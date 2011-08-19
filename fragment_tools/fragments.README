@@ -1,0 +1,42 @@
+WEBSERVER FOR FRAGMENTS:
+http://robetta.bakerlab.org/fragmentsubmit.jsp
+
+TO MAKE FRAGMENTS LOCALLY WITH make_fragments.pl:
+
+0. Setup:
+
+   DATABASE:
+   nr -- downloadable from ftp://ftp.ncbi.nih.gov/blast/db/
+   vall database -- included in release.
+
+   REQUIRED PROGRAMS:
+   PSI_BLAST -- ftp://ftp.ncbi.nih.gov/blast/executables/release/
+   rosetta fragment picker -- included in the release
+
+   OPTIONAL SECONDARY STRUCTURE PREDICTION PROGRAMS:
+   PSIPRED -- http://bioinf.cs.ucl.ac.uk/psipred/
+   SAM -- http://www.soe.ucsc.edu/research/compbio/sam.html
+   PORTER -- http://distill.ucd.ie/porter/
+
+   Configure paths at the top of make_fragments.pl to point to these databases and programs.
+
+1. Obtain a fasta file for the desired sequence. First
+   line can be a comment starting with the '>' character.
+
+2. Obtain secondary structure predictions from web servers, or
+   install locally so that make_fragment.pl can run
+   secondary structure predictions. Up to three predictions can be used. At least
+   one must be used. If secondary structure predictions are obtained manually, they should be converted to
+   'psipred_ss2' format using the provided script 'ss_pred_converter.py'.
+
+3. Run make_fragments.pl. Invoke without arguments for usage options.
+   Likely the only argument you need to provide is the fasta file.
+
+   $> make_fragments.pl -verbose 2ptl_.fasta
+
+   If you want to exclude homologous seqeunces from the fragment search,
+   add the -nohoms argument.
+
+   $> make_fragments.pl -verbose -nohoms 2ptl_.fasta
+
+

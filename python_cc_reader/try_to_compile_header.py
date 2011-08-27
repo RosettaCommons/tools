@@ -19,7 +19,7 @@ if len( sys.argv) != 3 or sys.argv[2] != "skip" :
       print "Failed to compile test header (", test_header, ")."
       print "Your header may compile, but this script will not report that accurately"
       print "unless you make one or more adjustments.  This script is meant to run within"
-      print "the mini/src/ directory.  Are you in that directory currently?"
+      print "the rosetta/rosetta_source/src/ directory.  Are you in that directory currently?"
       print "Have you adjusted the os, nbits, and compiler variables in"
       print "test_compile.py file to reflect your system?"
       print  "Check err.log and out.log for messages from your compiler."
@@ -38,4 +38,4 @@ else :
    print "messages from your compiler."
    sys.exit(1)
 
- 
+

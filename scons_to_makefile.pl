@@ -11,7 +11,7 @@ my $makefile_name    = 'Makefile';
 my @regexes_for_make = qw/ ^g\+\+ ^ld ^icpc /;
 
 my @makefile_lines;
-while ( my $line = <STDIN> ) {
+while ( my $line = <> ) {
 	chomp $line;
 
 	print $line, "\n";

@@ -45,6 +45,16 @@ def libraries_with_ccfiles_to_examine() :
 def libraries_with_hhfiles_to_examine() :
    return libraries_with_ccfiles_to_examine() + [ "utility", "numeric", "ObjexxFCL" ]
 
+def directories_with_ccfiles_to_examine() :
+   """The list of directories in rosetta which are turned into libraries that are built by scons
+   This list is used to determine if a file should be examined.  Note that
+   there is no longer a perfect correspondence between the libraries that are
+   produced and the directories that contain them"""
+   return [ 'basic', 'core', 'protocols', 'devel', 'apps' ]
+
+def directories_with_hhfiles_to_examine() :
+   return directories_with_ccfiles_to_examine() + [ "utility", "numeric", "ObjexxFCL" ]
+
 # read a line which begins with #include and return the file name that
 # is #included.  This will read both <> includes or "" includes.
 def include_for_line( line ) :
@@ -101,13 +111,18 @@ def compiled_cc_files() :
         libname = "apps"
         settings_file_name += ".all"
      f = file( settings_file_name ).read()
+     #print "reading files for library", libname
      exec(f)
      for dir in sources.keys() :
         for cc_file in sources[ dir ] :
+           if len( cc_file ) > 3 and cc_file[-3:] == ".cu" :
+              # skip cuda files
+              continue
            if dir == "" :
               name = cc_file + ".cc" # note, following Sam's change to the .src.settings files, no longer append libname to file name
            else :
               name = dir + "/" + cc_file + ".cc" # note, following Sam's change to the .src.settings files, no longer append libname to file name
+           #print "file to be compiled: ", name
            to_be_compiled.append( name )
    return to_be_compiled
 
@@ -137,7 +152,7 @@ def scan_compilable_files() :
    unprocessed_filenames = compiled_cc_files()
    for name in unprocessed_filenames :
       toks = name.split("/")
-      if len( toks ) < 2 or toks[ 0 ] not in libraries_with_hhfiles_to_examine() :
+      if len( toks ) < 2 or toks[ 0 ] not in directories_with_hhfiles_to_examine() :
          #print "skipping past", name
          continue
       #print "reading includes from", name
@@ -175,7 +190,7 @@ def load_source_tree() :
       for included in compilable_includes[ file ] :
          if included not in compilable_files :
             toks = included.split( "/" )
-            if len( toks ) > 1 and toks[ 0 ] in libraries_with_hhfiles_to_examine() :
+            if len( toks ) > 1 and toks[ 0 ] in directories_with_hhfiles_to_examine() :
                all_library_files.append( included )
    for file in all_library_files :
       file_contents[ file ] = open( file ).readlines()

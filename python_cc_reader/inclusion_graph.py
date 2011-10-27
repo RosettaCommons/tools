@@ -448,9 +448,7 @@ def find_cycles(graph):
     @return: List of nodes.
     """
 
-    if (type(graph) == pygraph.graph):
-        directed = False
-    elif (type(graph) == pygraph.digraph):
+    if (type(graph) == pygraph.digraph):
         directed = True
     else:
         raise InvalidGraphType

@@ -2,9 +2,10 @@
 # You will have to modify three variables here for your own
 # computer:  os, nbits, and compiler.
 
-import subprocess, re, time
-from code_utilities import expand_includes_for_file
+import subprocess, re, time, sys
+from code_utilities import expand_includes_for_file, load_source_tree
 from reinterpret_objdump import relabel_sections, compare_objdump_lines
+
 
 def no_empty_args( command_list ) :
    clprime = []
@@ -85,7 +86,6 @@ def test_compile_from_lines( filelines ) :
    compiler, generic_command = central_compile_command()
 
    command = compiler + " -o /dev/null " + generic_command + " -x c++ -"
-   #print command
    command_list = command.split(" ")
    command_list = no_empty_args( command_list )
 
@@ -96,6 +96,10 @@ def test_compile_from_lines( filelines ) :
    if ( job.returncode == 0 ) :
       return True
    else :
+      print "test_compile_from_lines return code:", job.returncode
+      print command
+      open("blah","w").writelines(filelines)
+      print job.stderr
       return False
 
 # C_cc may be either a header or a cc file; either will compile
@@ -165,3 +169,23 @@ def tar_together_files( tar_file_name, filelist ) :
    command_list.extend( filelist )
    subprocess.call( command_list )
 
+
+if __name__ == "__main__" :
+   if len(sys.argv) < 2 :
+      print "Usage: python test_compile.py <filename>"
+      sys.exit(1)
+   print "First testing compilation directly from .cc file"
+   compiled = test_compile( sys.argv[1], True )
+
+   print "Now testing compilation using python-expanded #includes"
+   compilable_files, all_includes, file_contents = load_source_tree()
+   print "...source tree loaded"
+   if sys.argv[1] not in file_contents :
+      print "File", sys.argv[1], "not found in source tree"
+      sys.exit(1)
+   compiled = test_compile_from_lines( expand_includes_for_file( sys.argv[1], file_contents ))
+   if ( compiled ) :
+      print "Success"
+   else :
+      test_compile( sys.argv[1], True )
+      print "Failed"

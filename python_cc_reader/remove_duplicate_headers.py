@@ -1,6 +1,7 @@
 
 import re, code_reader
 from add_headers import write_file
+from code_utilities import load_source_tree
 
 def remove_duplicate_headers_from_filelines( filename, filelines ) :
    included_files = {}
@@ -38,3 +39,11 @@ def remove_duplicate_headers_from_filelines( filename, filelines ) :
 def remove_duplicate_headers_from_file( filename ) :
    newlines = remove_duplicate_headers_from_filelines( filename, open( filename ).readlines() )
    write_file( filename, newlines )
+
+
+if __name__ == "__main__" :
+   compilable_files, all_includes, file_contents = load_source_tree()
+   for cc in compilable_files :
+      newlines = remove_duplicate_headers_from_filelines( cc, file_contents[cc] )
+      write_file( cc, newlines )
+   

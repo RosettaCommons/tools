@@ -8,6 +8,7 @@ class DontRemoveInclude :
       self.regexes_to_leave_intact = []
       self.includes_to_leave_intact = set()
       self.initialize_keep_intact_lists()
+      self.includes_to_leave_be = set()
 
    # returns True if no headers should be removed
    # from a particular file
@@ -26,12 +27,15 @@ class DontRemoveInclude :
    def leave_include_in_file( self, included_file_name, source_file ) :
       if ( included_file_name, source_file ) in self.includes_to_leave_intact :
          return True
+      elif included_file_name in self.includes_to_leave_be :
+         return True
       return False
 
    def initialize_keep_intact_lists( self ) :
       self.initialize_files_to_leave_intact()
       self.initialize_regexes_to_leave_intact()
       self.initialize_includes_to_leave_intact()
+      self.initialize_includes_to_leave_be()
 
    def initialize_files_to_leave_intact( self ) :
       intact = set()
@@ -54,6 +58,7 @@ class DontRemoveInclude :
 
    def initialize_regexes_to_leave_intact( self ) :
       self.regexes_to_leave_intact.append( re.compile( "\.tmpl\.hh$" ) )
+      self.regexes_to_leave_intact.append( re.compile( "\.ipp$" ) )
 
    def initialize_includes_to_leave_intact( self ) :
       pairs = [ ( "core/types.hh", "core/pack/rotamer_set/RotamerSetsBase.hh" ), \
@@ -92,3 +97,6 @@ class DontRemoveInclude :
       for pair in pairs :
          self.includes_to_leave_intact.add( pair )
 
+   def initialize_includes_to_leave_be() :
+      self.includes_to_leave_be.add( "utility/vector1.hh" )
+      self.includes_to_leave_be.add( "utility/vector0.hh" )

@@ -59,10 +59,10 @@ remove_known_circular_dependencies_from_graph( g )
 
 # second, verify that all files compile on their own
 any_fail_to_compile = False
-#for fname in compilable_files :
-#   if not test_compile_from_lines( expand_file_contents( fname, file_contents ) ) :
-#      print "Error: ", fname, "does not compile on its own"
-#      any_fail_to_compile = True
+for fname in compilable_files :
+   if not test_compile_from_lines( expand_includes_for_file( fname, file_contents ) ) :
+      print "Error: ", fname, "does not compile on its own"
+      any_fail_to_compile = True
 
 if any_fail_to_compile :
    print "Error: coud not compile all files on their own"
@@ -102,6 +102,7 @@ funcs = ( \
           known_circular_dependencies, topological_sorting, depth_first_search, total_order_from_graph, \
           transitive_closure, write_file, topologically_sorted, \
           libraries_with_ccfiles_to_examine, scan_compilable_files, libraries_with_hhfiles_to_examine,\
+          directories_with_ccfiles_to_examine, directories_with_hhfiles_to_examine, \
           include_for_line, find_all_includes, find_includes_at_global_scope, compiled_cc_files, \
           strip_toendofline_comment )
 

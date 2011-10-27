@@ -96,7 +96,7 @@ class CodeReader :
                return newline[:-1] + "\n" # remove the last /
          else :
             if in_string :
-               if line[i] == '"' :
+               if line[i] == '"' and last_char != "\\" : #escaped quotes don't end strings.
                   in_string = False
                newline += line[i]
             else :
@@ -105,6 +105,8 @@ class CodeReader :
                elif line[i] == "*" and last_char == "/":
                   newline = newline[:-1] #delete the / at the beginning of the block comment
                   self.long_comment = True
+                  last_char = " " # don't let /*/ be read as a start and end of a block comment!
+                  continue
                else:
                   if line[i] == '"' :
                      in_string = True

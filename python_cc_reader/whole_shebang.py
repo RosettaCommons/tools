@@ -63,7 +63,6 @@ for fname in compilable_files :
    if not test_compile_from_lines( expand_includes_for_file( fname, file_contents ) ) :
       print "Error: ", fname, "does not compile on its own"
       any_fail_to_compile = True
-
 if any_fail_to_compile :
    print "Error: coud not compile all files on their own"
    sys.exit(0)

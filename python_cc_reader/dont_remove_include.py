@@ -7,8 +7,8 @@ class DontRemoveInclude :
       self.files_to_leave_intact = set()
       self.regexes_to_leave_intact = []
       self.includes_to_leave_intact = set()
-      self.initialize_keep_intact_lists()
       self.includes_to_leave_be = set()
+      self.initialize_keep_intact_lists()
 
    # returns True if no headers should be removed
    # from a particular file
@@ -97,6 +97,6 @@ class DontRemoveInclude :
       for pair in pairs :
          self.includes_to_leave_intact.add( pair )
 
-   def initialize_includes_to_leave_be() :
+   def initialize_includes_to_leave_be( self ) :
       self.includes_to_leave_be.add( "utility/vector1.hh" )
       self.includes_to_leave_be.add( "utility/vector0.hh" )

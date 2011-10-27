@@ -92,8 +92,11 @@ class CodeReader :
          if self.long_comment :
             if line[ i ] == "/" and last_char == "*" :
                self.long_comment = False
-            elif line[ i ] == "/" and last_char == "/" :
-               return newline[:-1] + "\n" # remove the last /
+               last_char = " " # consider the "/" in "*/" consumed
+               continue
+            # // in long comments is meaningless!
+            #elif line[ i ] == "/" and last_char == "/" :
+            #   return newline[:-1] + "\n" # remove the last /
          else :
             if in_string :
                if line[i] == '"' and last_char != "\\" : #escaped quotes don't end strings.

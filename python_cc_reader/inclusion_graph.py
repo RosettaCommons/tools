@@ -9,7 +9,7 @@ from remove_header import remove_header_from_filelines
 from remove_duplicate_headers import remove_duplicate_headers_from_filelines
 from add_namespaces import remove_using_namespace_from_lines, add_using_namespaces_to_lines, cleanup_auto_namespace_block_lines
 from test_compile import test_compile_from_lines, test_compile_from_stdin
-from code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file
+from code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file, find_includes_at_global_scope
 from inclusion_equivalence_sets import inclusion_equivalence_sets
 import dont_remove_include
 
@@ -222,6 +222,20 @@ def add_indirect_headers( tg, files ) :
          if tg.edge_label( fname, neighb ) == "indirect" :
             indirect_headers.append( neighb )
       add_autoheaders_to_file( fname, indirect_headers )
+
+# For files that are not part of the transitive-closure graph,
+# detect the headers that have to be included and add those headers
+# useful for getting the cxxtest headers straightened
+def add_indirect_headers_to_file_outside_tg( tg, fname ) :
+   direct_headers = find_includes_at_global_scope( fname, open( fname ).readlines() )
+   direct_headers = set( direct_headers )
+   indirect_headers = set()
+   for header in direct_headers :
+      if header not in tg.node_neighbors : continue # not all inclusions are to files in tg
+      for neighb in tg.node_neighbors[ header ] :
+         if neighb not in indirect_headers and neighb not in direct_headers :
+            indirect_headers.add( neighb )
+   add_autoheaders_to_file( fname, indirect_headers )
 
 # Remove any headers from the input file C_cc that are unnecessary for
 # the compilation of C_cc.  C_cc may be a .cc, an .hh or a .fwd.hh file.

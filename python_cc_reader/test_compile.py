@@ -46,6 +46,22 @@ def central_compile_command() :
    generic_command = " -c -std=c++98 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store" + include_directories
    return compiler, generic_command
 
+# to be executed in the rosetta_source/src directory
+# follow this command with 1) the name of the output (.cpp) file to be generated and 2) the name of the input .cxxtest.hh file
+def cxxtest_testgen_command() :
+   return "../external/cxxtest/cxxtestgen.py --have-std --part -o "
+
+
+def cxxtest_gcc_compile_command() :
+   return "g++ -c -isystem ../external/boost_1_46_1/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_46_1 -I../external/dbio -I/usr/local/include -I/usr/include -o "
+
+def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
+   first_compile_command = cxxtest_testgen_command() + "cxx1_tmp" + id + ".cpp " + cxx_hh
+   return_code = subprocess.call( no_empty_args( first_compile_command.split(" ")), stderr=errfile, stdout=logfile )
+   if return_code ==  0:
+      second_compile_command = cxxtest_gcc_compile_command + "cxx2_tmp" + id + ".o cxx1_tmp" + id + ".cpp"
+      return_code = subprocess.call( no_empty_args( second_compile_command.split(" ")), stderr=errfile, stdout=logfile )
+
 def test_compile( cc_file, verbose=False, id="" ) :
 
    compiler, generic_command = central_compile_command()
@@ -82,7 +98,7 @@ def test_compile( cc_file, verbose=False, id="" ) :
 
    #return return_code == 0
 
-def test_compile_from_lines( filelines ) :
+def test_compile_from_lines( filelines, verbose=False ) :
    compiler, generic_command = central_compile_command()
 
    command = compiler + " -o /dev/null " + generic_command + " -x c++ -"
@@ -96,10 +112,11 @@ def test_compile_from_lines( filelines ) :
    if ( job.returncode == 0 ) :
       return True
    else :
-      print "test_compile_from_lines return code:", job.returncode
-      print command
-      open("blah","w").writelines(filelines)
-      print job.stderr
+      if verbose :
+         print "test_compile_from_lines return code:", job.returncode
+         print command
+         open("blah","w").writelines(filelines)
+         print job.stderr
       return False
 
 # C_cc may be either a header or a cc file; either will compile
@@ -183,7 +200,7 @@ if __name__ == "__main__" :
    if sys.argv[1] not in file_contents :
       print "File", sys.argv[1], "not found in source tree"
       sys.exit(1)
-   compiled = test_compile_from_lines( expand_includes_for_file( sys.argv[1], file_contents ))
+   compiled = test_compile_from_lines( expand_includes_for_file( sys.argv[1], file_contents), verbose=True )
    if ( compiled ) :
       print "Success"
    else :

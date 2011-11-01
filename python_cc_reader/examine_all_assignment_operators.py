@@ -15,6 +15,8 @@ for hh_file in hh_files :
         continue
     if hh_file.partition( "ObjexxFCL" )[ 2 ] :
         continue
+    if hh_file.partition( "basic")[2] :
+        continue
     print "Processing header", hh_file
     classes = read_classes_from_header( hh_file, file_contents[ hh_file ] )
 

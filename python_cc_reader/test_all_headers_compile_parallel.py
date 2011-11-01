@@ -39,7 +39,7 @@ headers = hh_headers
 ncpu = 8
 
 ppservers = ()
-job_server = pp.Server(ppservers=ppservers)
+job_server = pp.Server(ppservers=ppservers,secret="hotdogfastpig")
 
 funcs = ( \
                        test_compile, central_compile_command, remove_duplicate_headers_from_filelines, no_empty_args, \

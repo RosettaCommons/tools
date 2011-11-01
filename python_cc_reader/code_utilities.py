@@ -1,7 +1,7 @@
 #from test_compile import find_includes_for_file
 
 import code_reader
-import re, sys
+import re, sys, os
 
 def regex_subset( filelist, regex ) :
    subset = []
@@ -120,10 +120,33 @@ def compiled_cc_files() :
               continue
            if dir == "" :
               name = cc_file + ".cc" # note, following Sam's change to the .src.settings files, no longer append libname to file name
+           elif libname == "apps" :
+              name = libname + "/" + dir + "/" + cc_file + ".cc"
            else :
               name = dir + "/" + cc_file + ".cc" # note, following Sam's change to the .src.settings files, no longer append libname to file name
            #print "file to be compiled: ", name
            to_be_compiled.append( name )
+   return to_be_compiled
+
+def compiled_cxxtest_hh_files() :
+   to_be_compiled = []
+   # the unit tests were not split when core was split
+   # so instead of dealing with core.1, core.2 etc, just look at
+   # the 
+   for library in directories_with_ccfiles_to_examine() :
+      settings_file_name = "../test/" + library + ".test.settings"
+      libname = library
+      if library == "pilot_apps" :
+         libname = "apps"
+      if not os.path.isfile( settings_file_name ) :
+         print "did not find", settings_file_name, ". Skipping"
+         continue
+      f = file( settings_file_name ).read()
+      exec(f)
+      for dir in sources.keys() :
+         for hh_file in sources[ dir ] :
+            name = "../test/" + libname + "/" + dir + "/" + hh_file + ".cxxtest.hh"
+            to_be_compiled.append( name )
    return to_be_compiled
 
 #return a set of all the top-level directories in a particular .src.settings file
@@ -232,7 +255,8 @@ def known_circular_dependencies() :
       ( "utility/vector1_bool.hh", "utility/vector1.hh" ), \
       ( "utility/vectorL_bool.hh", "utility/vectorL.hh" ), \
       ( "utility/vector0_bool.hh", "utility/vector0.hh" ), \
-      ( "utility/io/zipstream.ipp", "utility/io/zipstream.hpp" ) ]
+      ( "utility/io/zipstream.ipp", "utility/io/zipstream.hpp" ), \
+      ( "core/io/silent/ProteinSilentStuct.tmpl.hh", "core/io/silent/ProteinSilentStruct.hh" )]
    return circular_dependencies
 
 

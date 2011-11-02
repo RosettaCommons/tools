@@ -56,11 +56,23 @@ def cxxtest_gcc_compile_command() :
    return "g++ -c -isystem ../external/boost_1_46_1/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_46_1 -I../external/dbio -I/usr/local/include -I/usr/include -o "
 
 def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
-   first_compile_command = cxxtest_testgen_command() + "cxx1_tmp" + id + ".cpp " + cxx_hh
+   out_log = "out.log"
+   err_log = "err.log"
+   temp_o  = "temp.o"
+   if id != "" :
+     out_log = out_log + "." + str( id )
+     err_log = err_log + "." + str( id )
+
+   errfile = open( out_log, "w" )
+   logfile = open( err_log, "w" )
+   first_compile_command = cxxtest_testgen_command() + "cxx1_tmp" + str(id) + ".cpp " + cxx_hh
    return_code = subprocess.call( no_empty_args( first_compile_command.split(" ")), stderr=errfile, stdout=logfile )
    if return_code ==  0:
-      second_compile_command = cxxtest_gcc_compile_command + "cxx2_tmp" + id + ".o cxx1_tmp" + id + ".cpp"
+      second_compile_command = cxxtest_gcc_compile_command() + "cxx2_tmp" + str(id) + ".o cxx1_tmp" + str(id) + ".cpp"
       return_code = subprocess.call( no_empty_args( second_compile_command.split(" ")), stderr=errfile, stdout=logfile )
+      return return_code == 0
+   return False
+         
 
 def test_compile( cc_file, verbose=False, id="" ) :
 
@@ -160,12 +172,16 @@ def generate_objdump( filelines, id = "" ) :
 
 def test_compile_extreme( filelines, gold_objdump, id = "" ) :
    builds, test_objdump = generate_objdump( filelines, id )
+   #if ( test_objdump ) : open( "test_objdump.objdump", "w" ).writelines( test_objdump ) #temp debug
    if not builds :
+      #print "test compile extreme: build fails" #temp debug
+      #open( "failed_filelines.txt","w").writelines( filelines );
       return False
    else :
       if compare_objdump_lines( gold_objdump, test_objdump ) :
          return True
       else :
+         #print "test compile extreme: objdump comparison fails"
          return False
 
 def tar_everything( tar_file_name ) :

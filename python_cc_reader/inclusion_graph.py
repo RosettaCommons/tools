@@ -8,8 +8,8 @@ from add_headers import add_autoheaders_to_file, add_autoheaders_to_filelines,  
 from remove_header import remove_header_from_filelines
 from remove_duplicate_headers import remove_duplicate_headers_from_filelines
 from add_namespaces import remove_using_namespace_from_lines, add_using_namespaces_to_lines, cleanup_auto_namespace_block_lines
-from test_compile import test_compile_from_lines, test_compile_from_stdin
-from code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file, find_includes_at_global_scope
+from test_compile import test_compile_from_lines, test_compile_from_stdin, generate_objdump, test_compile_extreme, cxxtest_test_compile
+from code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file, find_includes_at_global_scope, load_source_tree
 from inclusion_equivalence_sets import inclusion_equivalence_sets
 import dont_remove_include
 
@@ -256,11 +256,36 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
 
    file_contents[ C_cc ] = remove_duplicate_headers_from_filelines( C_cc, file_contents[ C_cc ] )
 
+   C_cc_headers = None
    indirect_headers = []
-   for header in tg.node_neighbors[ C_cc ] :
-      #print header, tg.edge_label( C_cc, header ), C_cc
-      if tg.edge_label( C_cc, header ) == "indirect" :
-         indirect_headers.append( header )
+   if C_cc in tg.node_neighbors :
+      # if we're dealing with a file that's part of the tg, then we can use the edges in tg to construct the set of indirect_headers
+      C_cc_headers = tg.node_neighbors[ C_cc ]
+      for header in C_cc_headers :
+         #print header, tg.edge_label( C_cc, header ), C_cc
+         if tg.edge_label( C_cc, header ) == "indirect" :
+            indirect_headers.append( header )
+   else :
+      # if we're not dealing with a file that's part of the tg, then read the headers from the file_contents
+      # add in transitive headers for any files that are part of the tg.  (Note there may be headers which are not part of tg)
+      # Note that if we're going to remove includes for a file, then that file must be included in the
+      # file_contents map, even though it doesn't have to be part of the tg
+      assert( C_cc in file_contents )
+      C_cc_headers = find_includes_at_global_scope( C_cc, file_contents[ C_cc ] )
+      if len(C_cc_headers) == 0 : print "FOUND NO HEADERS AT GLOBAL SCOPE!"
+      C_cc_headers_set = set( C_cc_headers )
+      indirect_set = set()
+      for header in C_cc_headers :
+         if header in tg :
+            for neighb in tg.node_neighbors[ header ] :
+               if neighb not in C_cc_headers_set and neighb not in indirect_set :
+                  indirect_set.add( neighb )
+      indirect_headers = list( indirect_set )
+
+   for h in C_cc_headers : #temp debug
+      print "File,", C_cc, " has header:", h #temp debug
+   for ih in indirect_headers : #temp debug
+      print "About to add indirect header:", ih #temp debug
 
    file_contents[ C_cc ] = add_autoheaders_to_filelines( C_cc, file_contents[ C_cc ], indirect_headers )
    if compile_command( C_cc, file_contents, compile_args ) :
@@ -295,9 +320,22 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
    for namespace in namespaces :
       print namespace, " added in auto-namespace block"
 
-   headers = topologically_sorted( total_order, tg.node_neighbors[ C_cc ] )
+   if not compile_command( C_cc, file_contents, compile_args ) :
+      print "ERROR: failed to compile after namespace addition twice"
+      file_contents[ C_cc ] = last_compiling_version
+      return
+
+   C_cc_headers_in_tg = []
+   for X_hh in C_cc_headers :
+      if X_hh in tg :
+         C_cc_headers_in_tg.append( X_hh )
+      else :
+         print "Header",X_hh,"not in tg. Skipping."
+
+   headers = topologically_sorted( total_order, C_cc_headers_in_tg )
    necessary = [] # tg.node_incidence[ C_cc ]
    for X_hh in headers :
+
       print "...Testing: is ",X_hh, "necessary for", C_cc,
 
       if prohibit_removal( C_cc, X_hh, DRI ) :
@@ -346,6 +384,7 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
 
    if not compile_command( C_cc, file_contents, compile_args ) :
       print "Warning: Could not compile", C_cc, "at conclusion of trim_unnecessary_headers_from_file"
+      open( "blah", "w" ).writelines( file_contents[ C_cc ] )
       file_contents[ C_cc ] = last_compiling_version
 
 
@@ -385,11 +424,31 @@ def trim_inclusions_from_files_extreme( filelist, id ) :
          trim_unnecessary_headers_from_file( fname, tg, total_order, file_contents, wrap_compile_extreme, arg_tuple )
          write_file( fname, file_contents[ fname ] )
 
+# Similar to trim_inclusions_from_files, except it relies on the
+# "extreme" version of the compilation test which also compares
+# the objdump output from the compiled object file
+def trim_inclusions_from_cxxtest_files( filelist, id ) :
+   compilable_files, all_includes, file_contents = load_source_tree()
+   g = create_graph_from_includes( all_includes )
+   remove_known_circular_dependencies_from_graph( g )
+   tg = transitive_closure( g )
+   total_order = total_order_from_graph( g )
+   for fname in filelist :
+      file_contents[ fname ] = open( fname ).readlines()
+      arg_tuple = ( id, ) 
+      trim_unnecessary_headers_from_file( fname, tg, total_order, file_contents, wrap_cxxtest_compile, arg_tuple )
+      write_file( fname, file_contents[ fname ] )
+
 def wrap_compile_extreme( fname, file_contents, arg_tuple ) :
    return test_compile_extreme( expand_includes_for_file( fname, file_contents ), arg_tuple[ 0 ], arg_tuple[ 1 ] )
 
 def simple_compile_from_lines( C_cc, file_contents, unused ) :
    return test_compile_from_stdin( C_cc, file_contents )
+
+def wrap_cxxtest_compile( C_cc, file_contents, arg_tuple ) :
+   # no option to read from stdin, so first write the file to disk
+   open( C_cc, "w" ).writelines( file_contents[ C_cc ] )
+   return cxxtest_test_compile( C_cc, False, arg_tuple[0] )
 
 def backup_file( filename, extension ) :
    newlines = open( filename ).readlines()

@@ -18,6 +18,7 @@ import pygraph
 import subprocess
 import pp
 import math
+import random
 
 # $1 = num cpu -- default of 8 if none given
 # $2 = secret phrase for the parallel-python server; optional
@@ -97,6 +98,7 @@ tar_everything( "bu_starting_code" )
 add_indirect_headers( tg, compilable_files )
 tar_everything( "bu_transclose_headers_round_0" )
 
+
 # fifth, compute the equivalence sets, focusing only on files in
 # core/ protocols/ devel/ and apps/
 equiv_sets = inclusion_equivalence_sets_from_desired_subgraph( g )
@@ -137,7 +139,7 @@ for es in equiv_sets :
    #   continue
 
    es_filtered = filter( DRI.attempt_include_removal_for_file, es )
-
+   random.shuffle( es_filtered )
    nfiles_to_process = len( es_filtered )
    nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )
    print "Starting round", count_round, "with", nfiles_per_cpu, "jobs per cpu"

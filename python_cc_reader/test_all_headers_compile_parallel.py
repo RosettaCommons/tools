@@ -24,6 +24,30 @@ def test_headers_compile( header_list ) :
    return error_msgs
 
 
+# $1 = num cpu -- default of 8 if none given
+# $2 = secret phrase for the parallel-python server; optional
+
+
+secret_phrase = ""
+ncpu = 8
+
+if len(sys.argv) > 1 :
+   try :
+      ncpu = int(sys.argv[1])
+   except :
+      print "Could not convert first parameter,", sys.argv[1],"to an integer"
+      print "Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>"
+      sys.exit(1)
+if len(sys.argv) > 2 :
+   secret_phrase = sys.argv[2]
+
+ppservers = ()
+try :
+   job_server = pp.Server(ppservers=ppservers, secret=secret_phrase)
+except:
+   print( "Could not connect to parallel-python server.  Is it running?  Did you provide the right secret_phrase?")
+   sys.exit(1)
+
 includes = scan_compilable_files()
 re_hh_header  = re.compile("\S*\.hh$")
 re_hpp_header = re.compile( "\S*\.hpp$")
@@ -36,10 +60,6 @@ hpp_headers = regex_subset( all_files, re_hpp_header )
 hh_headers.extend( hpp_headers )
 headers = hh_headers
 
-ncpu = 8
-
-ppservers = ()
-job_server = pp.Server(ppservers=ppservers,secret="hotdogfastpig")
 
 funcs = ( \
                        test_compile, central_compile_command, remove_duplicate_headers_from_filelines, no_empty_args, \
@@ -101,4 +121,4 @@ else :
 #   sys.exit( 0 )
 #else :
 #   sys.exit( 1 )
-      
+

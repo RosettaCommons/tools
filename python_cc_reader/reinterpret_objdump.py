@@ -117,7 +117,7 @@ def compare_objdump_lines( lines1, lines2 ) :
    if len( lines1 ) != len( lines2 ) :
       return False
    offset_found = False
-   offset = 0
+   offsets = set()
    good = True
    count_mismatches = 0 # tolerate 1 mismatch
    for i in range( len( lines1 ) ) :
@@ -125,7 +125,7 @@ def compare_objdump_lines( lines1, lines2 ) :
          continue
       split1 = lines1[ i ].split("\t")
       split2 = lines2[ i ].split("\t")
-      if len( lines1 ) < 3 or len( lines2 ) < 3 :
+      if len( split1 ) < 3 or len( split2 ) < 3 :
          return False
       if split1[ 2 ].find( "mov" ) == -1 or split2[ 2 ].find( "mov" ) == -1:
          return False
@@ -139,13 +139,15 @@ def compare_objdump_lines( lines1, lines2 ) :
          return False
       iad1 = int( addr1, 16 )
       iad2 = int( addr2, 16 )
-      if offset_found and iad1 - iad2 != offset :
-         print "Offset mismatch:", offset, iad1 - iad2
+      if offset_found and iad1 - iad2 not in offsets :
+         #print "Offset mismatch:", offset, iad1 - iad2
          count_mismatches += 1
          if count_mismatches > 1 :
             good = False # see how many offset mismatches we have
       offset_found = True
-      offset = iad1 - iad2
+      offsets.add( iad1 - iad2 )
+   if not good :
+      print "objdump comparison failed: n_offsets", count_mismatches
    return good
 
 if __name__ == "__main__" :

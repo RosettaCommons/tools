@@ -347,6 +347,8 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       for nec in necessary :
          if X_hh in tg.node_neighbors[ nec ] :
             X_hh_necessary = True
+            if X_hh in tg :
+               print "yes.  Dependent of", X_hh,  "(", len(tg.node_neighbors[X_hh]), ") is necessary."
             print "yes.  Dependent of", X_hh, "is necessary."
             break
 
@@ -360,12 +362,18 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
       file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ],  X_hh )
       if not compile_command( C_cc, file_contents, compile_args ) :
-         print "yes.  Removing", X_hh, "breaks the build."
+         if X_hh in tg :
+            print "yes.  Removing", X_hh, "(", len(tg.node_neighbors[X_hh]), ") breaks the build."
+         else:
+            print "yes.  Removing", X_hh, "breaks the build."
          file_contents[ C_cc ] = backup_C_cc
          necessary.append( X_hh )
       else :
          last_compiling_version = file_contents[ C_cc ][ : ]
-         print "no.", X_hh, "may be safely removed."
+         if X_hh in tg :
+            print "no.", X_hh, "(", len(tg.node_neighbors[X_hh]), ") may be safely removed."
+         else:
+            print "no.", X_hh, "may be safely removed."
 
    for ns in namespaces :
       backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
@@ -734,3 +742,10 @@ def topological_sorting(graph):
     tmp, tmp, post = depth_first_search(graph)
     post.reverse()
     return post
+
+
+# report the number of #includes for each file.
+if __name__ == "__main__" :
+   g = scan_files_to_create_inclusion_graph()
+   for node in g.nodes() :
+      print node, len( g.node_neighbors[node] )

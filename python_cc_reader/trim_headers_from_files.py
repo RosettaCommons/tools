@@ -10,6 +10,7 @@ import os
 import subprocess
 import pp
 import math
+import random
 
 # $1 = num cpu
 # $2 = secret phrase for the parallel-python server; optional
@@ -38,6 +39,7 @@ for fname in fnames :
 if not good :
     sys.exit(1)
 
+random.shuffle( fnames ) #mix 'em up to spread them out effectively
 nfiles_to_process = len( fnames )
 
 if nfiles_to_process == 1 :

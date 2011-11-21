@@ -9,6 +9,82 @@ def initialize_options_parser() :
                        help="Include in the list of illegal dependencies those which impact libraries which have not yet been split (i.e. protocols)", )
     return parser
 
+def all_protocols_dirs():
+    return [ "RotamerDump",
+             "abinitio",
+             "anchored_design",
+             "antibody",
+             "basic_moves",
+             "boinc",
+             "branch_angle",
+             "canonical_sampling",
+             "cartesian",
+             "checkpoint",
+             "cluster",
+             "coarse_rna",
+             "comparative_modeling",
+             "constraints_additional",
+             "contact_map",
+             "ddg",
+             "dna",
+             "docking",
+             "domain_assembly",
+             "electron_density",
+             "enzdes",
+             "evaluation",
+             "features",
+             "filters",
+             "fldsgn",
+             "flexpack",
+             "flexpep_docking",
+             "flxbb",
+             "forge",
+             "frag_picker",
+             "frags",
+             "genetic_algorithm",
+             "geometry",
+             "hotspot_hashing",
+             "idealize",
+             "jd2",
+             "jobdist",
+             "jumping",
+             "kinmatch",
+             "ligand_docking",
+             "loophash",
+             "loops",
+             "make_rot_lib",
+             "match",
+             "medal",
+             "motifs",
+             "moves",
+             "multistate_design",
+             "noesy_assign",
+             "nonlocal",
+             "optimize_weights",
+             "pack_daemon",
+             "pmut_scan",
+             "pockets",
+             "protein_interface_design",
+             "qsar",
+             "rbsegment_moves",
+             "relax",
+             "rna",
+             "rosetta_scripts",
+             "rotamer_recovery",
+             "scoring",
+             "seeded_abinitio",
+             "smanager",
+             "sparta",
+             "surface_docking",
+             "swa",
+             "symmetric_docking",
+             "toolbox",
+             "topology_broker",
+             "unfolded_state_energy_calculator",
+             "viewer",
+             "wum" ];
+
+
 def basic_levels() :
    levels = []
    levels.append( toplevel_subdirs_of_library( "basic" )) # all the subdirectories of basic are in the same library.
@@ -32,11 +108,24 @@ def core_levels() :
 
 def protocols_levels() :
    levels = []
-   levels.append( set([ "boinc", "checkpoint", "filters", "moves", "jd2", "toolbox", "viewer", "qsar", "rosetta_scripts", "wum", "jobdist", "idealize" ] ))
-   levels.append( set([ "basic_moves", "basic_filters", "branch_angle", "cluster", "constraints_additional", "flexpack", "frags", "geometry", "loops", "rbsegment_moves", "fast_sc_mover", "rotamer_recovery", "scoring", "electron_density", "evaluation" ]))
-   levels.append( set([ "abinitio", "docking", "jumping", "ligand_docking", "relax", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash" ] ))
-   levels.append( set([ "comparative_modeling", "ddg", "dna", "enzdes", "multistate_design", "rna", "domain_assembly", "swa", "match", "forge", "surface_docking" ] ))
-   levels.append( set( [ "antibody", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb" ]))
+   # 1. 
+   # Note: smanager is scheduled for deletion
+   levels.append( set([ "boinc", "checkpoint", "filters", "moves", "jd2", "toolbox", "viewer", "rosetta_scripts", "wum", "jobdist", "idealize", "frags", "frag_picker", "smanager", "genetic_algorithm", "evaluation" ] ))
+
+   # 2.
+   levels.append( set( [ "basic_moves", "basic_filters", "branch_angle", "loops" ] ))
+
+   # 3.
+   levels.append( set([ "cluster", "constraints_additional", "flexpack", "geometry", "fast_sc_mover", "rotamer_recovery", "scoring", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump" ]))
+
+   # 4.
+   levels.append( set([ "abinitio", "docking", "jumping", "ligand_docking", "relax", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "canonical_sampling", "qsar", "seeded_abinitio", "comparative_modeling", "rbsegment_moves" ] ))
+
+   # 5.
+   levels.append( set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ] ))
+
+   # 6.
+   levels.append( set( [ "antibody", "forge", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb", "make_rot_lib", "pockets", "enzdes", "match" ]))
    return levels
 
 class DesiredDependencies :
@@ -48,9 +137,22 @@ class DesiredDependencies :
          ( "numeric", [], True ),
          ( "basic", basic_levels(), True ),
          ( "core", core_levels(), True ),
-         ( "protocols", protocols_levels(), False ),
+         ( "protocols", protocols_levels(), False ), # set this to 'True' to look for illegal dependencies in the protocols library
          ( "devel", [], False ),
          ( "apps", [], False ) ]
+      for lib in self.lib_levels_ :
+          print lib[0]
+          if len( lib[1] ) > 0 :
+              count = 0
+              for dirs in lib[1] :
+                  count += 1
+                  print " ", lib[0] , count, ":",
+                  for directory in dirs :
+                      print directory,
+                  print
+      #print self.lib_levels_[ 6 ][ 0 ]
+      #print sum( [ len(x) for x in self.lib_levels_[ 6 ][ 1 ] ] )
+      #sys.exit()
    def lib_id( self, libname ) :
       for i in xrange( self.lib_levels_ ) :
          if libname == self.lib_levels_[ i ][ 0 ]:
@@ -213,6 +315,21 @@ if __name__ == "__main__" :
    parser = initialize_options_parser()
    (options, args) = parser.parse_args()
 
+   prot_levels = protocols_levels();
+   prots_assigned = set([])
+   for protset in prot_levels :
+       prots_assigned = prots_assigned.union( protset )
+
+   all_prot_levels = set( all_protocols_dirs())
+   print "protocol directories not assigned to the hierarchy"
+   print all_prot_levels - prots_assigned
+
+   print "----------"
+   print "protocol directories in the hierarchy that do not exist"
+   print prots_assigned - all_prot_levels
+
+   #sys.exit()
+   
 
    #cl = core_levels()
    #cd2_lines = open( "core_d2.dot" ).readlines()

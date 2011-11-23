@@ -93,20 +93,22 @@ class DontRemoveInclude :
                 ( "protocols/jd2/MPIWorkPoolJobDistributor.hh", "protocols/jd2/JobDistributorFactory.cc" ), \
                 ( "protocols/jd2/archive/MPIArchiveJobDistributor.hh", "protocols/jd2/JobDistributorFactory.cc" ), \
                 ( "ObjexxFCL/FArray1D.hh", "core/kinematics/DomainMap.hh" ), \
-                ( "numeric/deriv/dihedral_deriv.hh", "core/scoring/constraints/DihedralConstraint.cc" ),
-                ( "iostream" "devel/domain_assembly/DomainAssemblyReader.cc", ),
-                ( "core/scoring/mm/MMBondAngleResidueTypeParam.hh" "protocols/branch_angle/BranchAngleOptimizer.cc", ),
-                ( "iostream" "protocols/genetic_algorithm/Entity.cc", ),
-                ( "iostream" "protocols/pack_daemon/MultistateFitnessFunction.cc", ),
-                ( "iostream" "protocols/smanager/smanager.cc", ),
-                ( "iostream" "protocols/wum/WorkUnitManager.cc", ),
-                ( "iostream" "protocols/optimize_weights/Arithmetic.cc", ),
-                ( "iostream" "core/scoring/dssp/StrandPairing.cc", ),
-                ( "core/id/DOF_ID_Range.hh" "protocols/moves/ThermodynamicMover.hh", ),
-                ( "core/id/TorsionID_Range.hh" "protocols/moves/ThermodynamicMover.hh", ),
-                ( "iostream" "core/pack/interaction_graph/DensePDInteractionGraph.cc", ),
-                ( "core/optimization/MinimizerOptions.hh" "apps/benchmark/Minimizer.bench.hh", ),
-                ( "iostream" "apps/pilot/will/test_string.cc", )]
+                ( "numeric/deriv/dihedral_deriv.hh", "core/scoring/constraints/DihedralConstraint.cc" ), \
+                ( "iostream", "devel/domain_assembly/DomainAssemblyReader.cc", ), \
+                ( "core/scoring/mm/MMBondAngleResidueTypeParam.hh", "protocols/branch_angle/BranchAngleOptimizer.cc", ), \
+                ( "iostream", "protocols/genetic_algorithm/Entity.cc", ), \
+                ( "iostream", "protocols/pack_daemon/MultistateFitnessFunction.cc", ), \
+                ( "iostream", "protocols/smanager/smanager.cc", ), \
+                ( "iostream", "protocols/wum/WorkUnitManager.cc", ), \
+                ( "iostream", "protocols/optimize_weights/Arithmetic.cc", ), \
+                ( "iostream", "core/scoring/dssp/StrandPairing.cc", ), \
+                ( "core/id/DOF_ID_Range.hh", "protocols/moves/ThermodynamicMover.hh", ), \
+                ( "core/id/TorsionID_Range.hh", "protocols/moves/ThermodynamicMover.hh", ), \
+                ( "iostream", "core/pack/interaction_graph/DensePDInteractionGraph.cc", ), \
+                ( "core/optimization/MinimizerOptions.hh", "apps/benchmark/Minimizer.bench.hh", ), \
+                ( "iostream", "apps/pilot/will/test_string.cc" ), \
+                ( "core/pack/dunbrack/SingleResidueDunbrackLibrary.tmpl.hh", "core/pack/dunbrack/RotamerLibrary.cc" ), \
+                ( "core/fragment/FrameIteratorWorker_.hh", "core/fragment/FrameIterator.hh" ) ]
 
       for pair in pairs :
          self.includes_to_leave_intact.add( pair )

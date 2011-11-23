@@ -119,7 +119,7 @@ def compare_objdump_lines( lines1, lines2 ) :
    offset_found = False
    offsets = set()
    good = True
-   count_mismatches = 0 # tolerate 1 mismatch
+   count_mismatches = 0 # tolerate 2 mismatches
    for i in range( len( lines1 ) ) :
       if lines1[ i ] == lines2[ i ] :
          continue
@@ -142,8 +142,8 @@ def compare_objdump_lines( lines1, lines2 ) :
       if offset_found and iad1 - iad2 not in offsets :
          #print "Offset mismatch:", offset, iad1 - iad2
          count_mismatches += 1
-         if count_mismatches > 1 :
-            good = False # see how many offset mismatches we have
+         if count_mismatches > 2 :
+            good = False # see how many offset mismatches we have, this is a "bad" comparison, but don't stop counting yet
       offset_found = True
       offsets.add( iad1 - iad2 )
    if not good :

@@ -242,7 +242,7 @@ def add_indirect_headers_to_file_outside_tg( tg, fname ) :
 # compile_command should be a function that takes three arguments:
 # C_cc, file_contents, and compile_args. It should return true if the
 # compilation succeeds and false if the compilation fails
-def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, compile_command, compile_args ) :
+def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, compile_command, compile_args, super_cautious=False ) :
    print "Examining includes within", C_cc
 
    DRI = dont_remove_include.DontRemoveInclude() 
@@ -349,7 +349,8 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
             X_hh_necessary = True
             if X_hh in tg :
                print "yes.  Dependent of", X_hh,  "(", len(tg.node_neighbors[X_hh]), ") is necessary."
-            print "yes.  Dependent of", X_hh, "is necessary."
+            else :
+               print "yes.  Dependent of", X_hh, "is necessary."
             break
 
       if X_hh_necessary :
@@ -357,8 +358,23 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
          # by adding the fourth argument (True) here, this directs
          # the remove_header_from_filelines function to leave
          # non-auto-headers intact.
-         file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ], X_hh, True )
+         if super_cautious :
+            contents_after_removal = remove_header_from_filelines( C_cc, file_contents[ C_cc ], X_hh, True )
+
+            # OK super extra slow.  Make sure that removing this header didn't break the build.
+            if ( file_contents[ C_cc ] != contents_after_removal ) :
+               backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
+               file_contents[ C_cc ] = contents_after_removal
+               if not compile_command( C_cc, file_contents, compile_args ) :
+                  print "Whoa!  Removing header ", X_hh, " which is transitively included breaks the build! WTF?!"
+                  file_contents[ C_cc ] = backup_C_cc
+               else:
+                  print "Safely removed ", X_hh, "which is transitively included and an auto-header"
+         else :
+            file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ], X_hh, True )
+
          continue
+
       backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
       file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ],  X_hh )
       if not compile_command( C_cc, file_contents, compile_args ) :
@@ -394,6 +410,9 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       print "Warning: Could not compile", C_cc, "at conclusion of trim_unnecessary_headers_from_file"
       open( "blah", "w" ).writelines( file_contents[ C_cc ] )
       file_contents[ C_cc ] = last_compiling_version
+      if not super_cautious :
+         # try again with super-slow removal
+         trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, compile_command, compile_args, super_cautious=True )
 
 
 
@@ -417,7 +436,7 @@ def trim_inclusions_from_files( filelist ) :
 # Similar to trim_inclusions_from_files, except it relies on the
 # "extreme" version of the compilation test which also compares
 # the objdump output from the compiled object file
-def trim_inclusions_from_files_extreme( filelist, id ) :
+def trim_inclusions_from_files_extreme( filelist, id, super_cautious=False ) :
    compilable_files, all_includes, file_contents = load_source_tree()
    g = create_graph_from_includes( all_includes )
    remove_known_circular_dependencies_from_graph( g )
@@ -429,7 +448,7 @@ def trim_inclusions_from_files_extreme( filelist, id ) :
          print "ERROR: could not compile", fname
       else :
          arg_tuple = ( gold_objdump, id ) 
-         trim_unnecessary_headers_from_file( fname, tg, total_order, file_contents, wrap_compile_extreme, arg_tuple )
+         trim_unnecessary_headers_from_file( fname, tg, total_order, file_contents, wrap_compile_extreme, arg_tuple, super_cautious )
          write_file( fname, file_contents[ fname ] )
 
 # Similar to trim_inclusions_from_files, except it relies on the

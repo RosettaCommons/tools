@@ -43,7 +43,7 @@ random.shuffle( fnames ) #mix 'em up to spread them out effectively
 nfiles_to_process = len( fnames )
 
 if nfiles_to_process == 1 :
-    trim_inclusions_from_files_extreme( fnames, 0 )
+    trim_inclusions_from_files_extreme( fnames, 0, True )
 
 else:
 

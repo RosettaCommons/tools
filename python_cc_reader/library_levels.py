@@ -110,21 +110,24 @@ def protocols_levels() :
    levels = []
    # 1. 
    # Note: smanager is scheduled for deletion
-   levels.append( set([ "boinc", "checkpoint", "filters", "moves", "jd2", "toolbox", "viewer", "rosetta_scripts", "wum", "jobdist", "idealize", "frags", "frag_picker", "smanager", "genetic_algorithm", "evaluation" ] ))
+   levels.append( set([ "checkpoint", "filters", "moves", "jd2", "toolbox", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation" ] ))
 
    # 2.
-   levels.append( set( [ "basic_moves", "basic_filters", "branch_angle", "loops" ] ))
+   levels.append( set( ["boinc", "viewer", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring" ] ) )
 
    # 3.
-   levels.append( set([ "cluster", "constraints_additional", "flexpack", "geometry", "fast_sc_mover", "rotamer_recovery", "scoring", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump" ]))
+   levels.append( set( [ "basic_moves", "basic_filters", "branch_angle", "flexpack", "loops", "relax" ] ))
 
    # 4.
-   levels.append( set([ "abinitio", "docking", "jumping", "ligand_docking", "relax", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "canonical_sampling", "qsar", "seeded_abinitio", "comparative_modeling", "rbsegment_moves" ] ))
+   levels.append( set([ "cluster", "constraints_additional", "fast_sc_mover", "rotamer_recovery", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump", "rbsegment_moves" ]))
 
    # 5.
-   levels.append( set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ] ))
+   levels.append( set([ "abinitio", "docking", "jumping", "ligand_docking", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "canonical_sampling", "qsar", "seeded_abinitio", "comparative_modeling" ] ))
 
    # 6.
+   levels.append( set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ] ))
+
+   # 7.
    levels.append( set( [ "antibody", "forge", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb", "make_rot_lib", "pockets", "enzdes", "match" ]))
    return levels
 
@@ -137,7 +140,7 @@ class DesiredDependencies :
          ( "numeric", [], True ),
          ( "basic", basic_levels(), True ),
          ( "core", core_levels(), True ),
-         ( "protocols", protocols_levels(), False ), # set this to 'True' to look for illegal dependencies in the protocols library
+         ( "protocols", protocols_levels(), True ), # set this to 'True' to look for illegal dependencies in the protocols library
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :

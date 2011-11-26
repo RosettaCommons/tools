@@ -140,7 +140,7 @@ class DesiredDependencies :
          ( "numeric", [], True ),
          ( "basic", basic_levels(), True ),
          ( "core", core_levels(), True ),
-         ( "protocols", protocols_levels(), True ), # set this to 'True' to look for illegal dependencies in the protocols library
+         ( "protocols", protocols_levels(), False ), # set this to 'True' to look for illegal dependencies in the protocols library
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :

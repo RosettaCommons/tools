@@ -87,7 +87,7 @@ def all_protocols_dirs():
 
 def basic_levels() :
    levels = []
-   levels.append( (toplevel_subdirs_of_library( "basic" ),) ) # all the subdirectories of basic are in the same library.
+   levels.append( toplevel_subdirs_of_library( "basic" )) # all the subdirectories of basic are in the same library.
    return levels
 
 # take the library levels directly out of the .src.settings files, in case
@@ -99,62 +99,37 @@ def core_levels() :
    #levels.append( set([ "scoring", "pose", "sequence", "io" ] ))
    #levels.append( set([ "pack", "optimization", ] ))
    #levels.append( set([ "fragment", "init", "import_pose" ] ))
-   levels.append( (toplevel_subdirs_of_library( "core.1" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.2" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.3" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.4" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.5" ),) )
+   levels.append( toplevel_subdirs_of_library( "core.1" ) )
+   levels.append( toplevel_subdirs_of_library( "core.2" ) )
+   levels.append( toplevel_subdirs_of_library( "core.3" ) )
+   levels.append( toplevel_subdirs_of_library( "core.4" ) )
+   levels.append( toplevel_subdirs_of_library( "core.5" ) )
    return levels
 
 def protocols_levels() :
    levels = []
-   # 1.
+   # 1. 
    # Note: smanager is scheduled for deletion
-   levels.append( (set([ "checkpoint", "filters", "moves", "jd2", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation", "viewer" ] ), ) )
+   levels.append( set([ "checkpoint", "filters", "moves", "jd2", "toolbox", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation" ] ))
 
    # 2.
-   levels.append( ( set( ["boinc", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring" ] ), ) )
+   levels.append( set( ["boinc", "viewer", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring" ] ) )
 
    # 3.
-   levels.append( (set( [ "simple_moves", "simple_filters", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling" ] ), ))
+   levels.append( set( [ "basic_moves", "basic_filters", "branch_angle", "flexpack", "loops", "relax" ] ))
 
    # 4.
-   levels.append( (set([ "cluster", "constraints_additional", "pockets", "forge" ]), set (["rotamer_recovery", "electron_density", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_moves", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
+   levels.append( set([ "cluster", "constraints_additional", "fast_sc_mover", "rotamer_recovery", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump", "rbsegment_moves" ]))
 
    # 5.
-   levels.append( (set([ "abinitio", "jumping", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking" "loophash", "qsar"]), set(["fldsgn", "flxbb"]), set([ "enzdes", "match", "hotspot_hashing", "protein_interface_design", "seeded_abinitio" ]), set([ "antibody" ]) ))
+   levels.append( set([ "abinitio", "docking", "jumping", "ligand_docking", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "canonical_sampling", "qsar", "seeded_abinitio", "comparative_modeling" ] ))
 
    # 6.
-   levels.append( (set(["coarse_rna", "rna", "swa" ]), set([ "nonlocal", "medal" ]) ))
+   levels.append( set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ] ))
 
    # 7.
-   levels.append( ( set( [ "init" ]), ))
+   levels.append( set( [ "antibody", "forge", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb", "make_rot_lib", "pockets", "enzdes", "match" ]))
    return levels
-
-#def protocols_levels() :
-#   levels = []
-#   # 1.
-#   # Note: smanager is scheduled for deletion
-#   levels.append( (set([ "checkpoint", "filters", "moves", "jd2", "toolbox", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation" ] ), ) )
-#
-#   # 2.
-#   levels.append( ( set( ["boinc", "viewer", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring", "canonical_sampling" ] ), ) )
-#
-#   # 3.
-#   levels.append( (set( [ "basic_moves", "basic_filters", "branch_angle", "flexpack", "loops", "relax" ] ), ))
-#
-#   # 4.
-#   levels.append( (set([ "cluster", "constraints_additional", "fast_sc_mover", "rotamer_recovery", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump", "rbsegment_moves" ]), ))
-#
-#   # 5.
-#   levels.append( (set([ "abinitio", "docking", "jumping", "ligand_docking", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "qsar", "seeded_abinitio", "comparative_modeling" ]), ))
-#
-#   # 6.
-#   levels.append( (set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ]), ))
-#
-#   # 7.
-#   levels.append( ( set( [ "antibody", "forge", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb", "make_rot_lib", "pockets", "enzdes", "match" ]), ))
-#   return levels
 
 class DesiredDependencies :
    def __init__( self ) :
@@ -165,7 +140,7 @@ class DesiredDependencies :
          ( "numeric", [], True ),
          ( "basic", basic_levels(), True ),
          ( "core", core_levels(), True ),
-         ( "protocols", protocols_levels(), True ), # set this to 'True' to look for illegal dependencies in the protocols library
+         ( "protocols", protocols_levels(), False ), # set this to 'True' to look for illegal dependencies in the protocols library
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :
@@ -191,17 +166,12 @@ class DesiredDependencies :
       return self.lib_levels_[ libname ][ 2 ]
 
    def subdir_level( self, libname, subdir_name ) :
-      #print "subdir_level", libname, subdir_name
       for i in xrange( len( self.lib_levels_ )) :
          if libname == self.lib_levels_[ i ][ 0 ] :
             for j in xrange( len( self.lib_levels_[ i ][ 1 ] )) :
-               for k in xrange( len( self.lib_levels_[ i ][ 1 ][ j ] ) ) :
-                  #print "  subdir_level", libname, subdir_name, i, j, k, self.lib_levels_[ i ][ 1 ][ j ][ k ]
-                  if subdir_name in self.lib_levels_[ i ][ 1 ][ j ][ k ]:
-                     #print "returning", j, k
-                     return ( j, k )
-      #print "returning -1, -1"
-      return ( -1, -1 )
+               if subdir_name in self.lib_levels_[ i ][ 1 ][ j ]:
+                  return j
+      return -1
 
    def levels_for_lib( self, libname ) :
       for i in xrange( len( self.lib_levels_)):
@@ -226,15 +196,13 @@ class DesiredDependencies :
          return False
       if dep_libid > par_libid :
          return True
-      dep_subdir_level, dep_subdir_column = self.subdir_level( dep_lib, dep_dirs[ 1 ] )
-      par_subdir_level, par_subdir_column = self.subdir_level( par_lib, par_dirs[ 1 ] )
+      dep_subdir_id = self.subdir_level( dep_lib, dep_dirs[ 1 ] )
+      par_subdir_id = self.subdir_level( par_lib, par_dirs[ 1 ] )
 
       if dep_subdir_id == -1 or par_subdir_id == -1 :
          return False
       if par_subdir_id > dep_subdir_id :
          return False
-      if par_subdir_id == dep_subdir_id :
-         return par_subdir_column == dep_subdir_column
       return True
 
    def level_for_lib( self, libname ):
@@ -243,46 +211,46 @@ class DesiredDependencies :
             return i
       return -1
 
-   #def level_for_ns( self, libname, ns ):
-   #   for i in xrange( len( self.lib_levels_ )):
-   #      if self.lib_levels_[ i ][ 0 ] != libname : continue
-   #      for j in xrange( len(self.lib_levels_[ i ][1])):
-   #         if ns in self.lib_levels_[ i ][1][ j ]:
-   #            return j
-   #   return -1
+   def level_for_ns( self, libname, ns ):
+      for i in xrange( len( self.lib_levels_ )):
+         if self.lib_levels_[ i ][ 0 ] != libname : continue
+         for j in xrange( len(self.lib_levels_[ i ][1])):
+            if ns in self.lib_levels_[ i ][1][ j ]:
+               return j
+      return -1
 
 
-#def purge_illegal_dependencies( dot_lines, liblevels, libname ):
-#   newlines = []
-#   first_arrow_found = False
-#   for line in dot_lines :
-#      print line,
-#      cols = line.strip().split(" ")
-#      if len(cols) != 3 or cols[1] != "->":
-#         newlines.append( line )
-#      else :
-#        if not first_arrow_found :
-#          newlines.append( "   compound=true;\n")
-#          newlines.append( '   clusterrank="local";\n')
-#          for i in xrange(len(liblevels.levels_for_lib( libname))) :
-#            newlines.append( "   subgraph cluster_"+libname+str(i)+"{\n" )
-#            newlines.append( "      rank = same;\n" )
-#            newlines.append( "      label = "+libname+str(i)+";\n" )
-#            for ns in levels[i] :
-#               newlines.append( '      "' + libname + '::' + ns + '";\n' )
-#            newlines.append( "   }\n")
-#          first_arrow_found = True
-#        d1 = cols[0].split("::")[1].split("\"")[0]
-#        d2 = cols[2].split("::")[1].split("\"")[0]
-#        l1,col1 = liblevels.subdir_level( libname, d1 )
-#        l2,col2 = liblevels.subdir_level( libname, d2 )
-#        print d1, l1, d2, l2, col1, col2
-#        if l1 == l2 and l1 != -1 and l2 != -1 :
-#           #newlines.append( line )
-#           newlines.append( "     " + cols[2] + " -> " + cols[0] + '[ dir = "back" ]\n' )
-#        if l1 > l2 and l1 != -1 and l2 != -1 :
-#           newlines.append( "     " + cols[2] + " -> " + cols[ 0 ] + " [ ltail=cluster_" + libname+str(l2) + ", lhead=cluster_" + libname + str(l1)+ ', dir="back"]\n' )
-#   return newlines
+def purge_illegal_dependencies( dot_lines, liblevels, libname ):
+   newlines = []
+   first_arrow_found = False
+   for line in dot_lines :
+      print line,
+      cols = line.strip().split(" ")
+      if len(cols) != 3 or cols[1] != "->":
+         newlines.append( line )
+      else :
+        if not first_arrow_found :
+          newlines.append( "   compound=true;\n")
+          newlines.append( '   clusterrank="local";\n')
+          for i in xrange(len(liblevels.levels_for_lib( libname))) :
+            newlines.append( "   subgraph cluster_"+libname+str(i)+"{\n" )
+            newlines.append( "      rank = same;\n" )
+            newlines.append( "      label = "+libname+str(i)+";\n" )
+            for ns in levels[i] :
+               newlines.append( '      "' + libname + '::' + ns + '";\n' )
+            newlines.append( "   }\n")
+          first_arrow_found = True
+        d1 = cols[0].split("::")[1].split("\"")[0]
+        d2 = cols[2].split("::")[1].split("\"")[0]
+        l1 = liblevels.level_for_ns( libname, d1 )
+        l2 = liblevels.level_for_ns( libname, d2 )
+        print d1, l1, d2, l2
+        if l1 == l2 and l1 != -1 and l2 != -1 :
+           #newlines.append( line )
+           newlines.append( "     " + cols[2] + " -> " + cols[0] + '[ dir = "back" ]\n' )
+        if l1 > l2 and l1 != -1 and l2 != -1 :
+           newlines.append( "     " + cols[2] + " -> " + cols[ 0 ] + " [ ltail=cluster_" + libname+str(l2) + ", lhead=cluster_" + libname + str(l1)+ ', dir="back"]\n' )
+   return newlines
 
 def libname_for_file( fname ):
    cols = fname.split("/")
@@ -328,12 +296,9 @@ def find_and_group_illegal_dependencies( ig, count_noncritical_illegals ) :
          s2 = subdir_for_file( n2 )
          if s1 == "" or s2 == "" :
             continue
-         slev1, col1 = des_deps.subdir_level( l1, s1 )
-         slev2, col2 = des_deps.subdir_level( l2, s2 )
-         if slev1 > slev2 :
-            #perfectly legal
-            continue
-         elif slev1 == slev2 and col1 == col2:
+         slev1 = des_deps.level_for_ns( l1, s1 )
+         slev2 = des_deps.level_for_ns( l2, s2 )
+         if slev1 >= slev2 :
             #perfectly legal
             continue
          else:
@@ -356,9 +321,7 @@ if __name__ == "__main__" :
    prot_levels = protocols_levels();
    prots_assigned = set([])
    for protset in prot_levels :
-       for column in protset:
-           print column
-           prots_assigned = prots_assigned.union( column )
+       prots_assigned = prots_assigned.union( protset )
 
    all_prot_levels = set( all_protocols_dirs())
    print "protocol directories not assigned to the hierarchy"
@@ -369,7 +332,7 @@ if __name__ == "__main__" :
    print prots_assigned - all_prot_levels
 
    #sys.exit()
-
+   
 
    #cl = core_levels()
    #cd2_lines = open( "core_d2.dot" ).readlines()
@@ -383,7 +346,6 @@ if __name__ == "__main__" :
    compilable_files, all_includes, file_contents = load_source_tree()
    g = create_graph_from_includes( all_includes )
    illegal_includes = find_and_group_illegal_dependencies( g, options.verbose )
-   des_deps = DesiredDependencies()
    bad_deps_exist = False
    for key in illegal_includes[0].keys():
       print "Highly illegal dependency class:", key[ 0 ], "dependent on", key[ 1 ]
@@ -393,18 +355,7 @@ if __name__ == "__main__" :
    for lib in illegal_includes[1].keys():
       for subdir in illegal_includes[1][lib].keys():
          for key in illegal_includes[1][lib][subdir].keys():
-            #print key, key[0].partition("/")[2], key[1].partition("/")[2]
-            s1,col1 = des_deps.subdir_level( lib, key[0].partition("/")[2])
-            s2,col2 = des_deps.subdir_level( lib, key[1].partition("/")[2])
-            #print key, s1, s2, col1, col2
-            if s1 == -1 or s2 == -1 :
-                continue
-            if s1 == s2 :
-               print "s1 == s2", lib, key[0], key[1], s1, s2, col1, col2
-               assert( col1 != col2 )
-               print "Illegal lateral dependency between columns at the same level: directory ", key[0], "dependent on", key[1]
-            else:
-               print "Illegal intra-library dependency", key[ 0 ], "dependent on", key[ 1 ]
+            print "Illegal intra-library dependency", key[ 0 ], "dependent on", key[ 1 ]
             for edge in illegal_includes[1][lib][subdir][key]:
                print "   " + edge[0] + " --> " + edge[1]
             print

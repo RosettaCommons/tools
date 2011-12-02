@@ -14,7 +14,6 @@ def all_protocols_dirs():
              "abinitio",
              "anchored_design",
              "antibody",
-             "basic_moves",
              "boinc",
              "branch_angle",
              "canonical_sampling",
@@ -33,6 +32,7 @@ def all_protocols_dirs():
              "enzdes",
              "evaluation",
              "features",
+             "fibril",
              "filters",
              "fldsgn",
              "flexpack",
@@ -73,6 +73,8 @@ def all_protocols_dirs():
              "rotamer_recovery",
              "scoring",
              "seeded_abinitio",
+             "simple_filters",
+             "simple_moves",
              "smanager",
              "sparta",
              "surface_docking",
@@ -113,19 +115,19 @@ def protocols_levels() :
    levels.append( (set([ "checkpoint", "filters", "moves", "jd2", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation", "viewer" ] ), ) )
 
    # 2.
-   levels.append( ( set( ["boinc", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring" ] ), ) )
+   levels.append( ( set( ["boinc", "wum", "frag_picker", "genetic_algorithm", "frags"] ), ) )
 
    # 3.
-   levels.append( (set( [ "simple_moves", "simple_filters", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling" ] ), ))
+   levels.append( (set( [ "simple_moves", "simple_filters", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling", "fibril", "geometry", "scoring", "electron_density" ] ), ))
 
    # 4.
-   levels.append( (set([ "cluster", "constraints_additional", "pockets", "forge" ]), set (["rotamer_recovery", "electron_density", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_moves", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
+   levels.append( (set([ "cluster", "constraints_additional", "pockets", "forge" ]), set (["rotamer_recovery", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_moves", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
 
    # 5.
-   levels.append( (set([ "abinitio", "jumping", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking" "loophash", "qsar"]), set(["fldsgn", "flxbb"]), set([ "enzdes", "match", "hotspot_hashing", "protein_interface_design", "seeded_abinitio" ]), set([ "antibody" ]) ))
+   levels.append( (set([ "abinitio", "jumping", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking", "loophash", "qsar"]), set([ "antibody" ]) ))
 
    # 6.
-   levels.append( (set(["coarse_rna", "rna", "swa" ]), set([ "nonlocal", "medal" ]) ))
+   levels.append( (set(["coarse_rna", "rna", "swa" ]), set([ "nonlocal", "medal" ]),  set([ "enzdes", "match", "hotspot_hashing", "protein_interface_design", "seeded_abinitio","fldsgn", "flxbb" ]) ))
 
    # 7.
    levels.append( ( set( [ "init" ]), ))

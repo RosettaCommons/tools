@@ -10,81 +10,13 @@ def initialize_options_parser() :
     return parser
 
 def all_protocols_dirs():
-    return [ "RotamerDump",
-             "abinitio",
-             "anchored_design",
-             "antibody",
-             "boinc",
-             "branch_angle",
-             "canonical_sampling",
-             "cartesian",
-             "checkpoint",
-             "cluster",
-             "coarse_rna",
-             "comparative_modeling",
-             "constraints_additional",
-             "contact_map",
-             "ddg",
-             "dna",
-             "docking",
-             "domain_assembly",
-             "electron_density",
-             "enzdes",
-             "evaluation",
-             "features",
-             "fibril",
-             "filters",
-             "fldsgn",
-             "flexpack",
-             "flexpep_docking",
-             "flxbb",
-             "forge",
-             "frag_picker",
-             "frags",
-             "genetic_algorithm",
-             "geometry",
-             "hotspot_hashing",
-             "idealize",
-             "jd2",
-             "jobdist",
-             "jumping",
-             "kinmatch",
-             "ligand_docking",
-             "loophash",
-             "loops",
-             "make_rot_lib",
-             "match",
-             "medal",
-             "motifs",
-             "moves",
-             "multistate_design",
-             "noesy_assign",
-             "nonlocal",
-             "optimize_weights",
-             "pack_daemon",
-             "pmut_scan",
-             "pockets",
-             "protein_interface_design",
-             "qsar",
-             "rbsegment_moves",
-             "relax",
-             "rna",
-             "rosetta_scripts",
-             "rotamer_recovery",
-             "scoring",
-             "seeded_abinitio",
-             "simple_filters",
-             "simple_moves",
-             "smanager",
-             "sparta",
-             "surface_docking",
-             "swa",
-             "symmetric_docking",
-             "toolbox",
-             "topology_broker",
-             "unfolded_state_energy_calculator",
-             "viewer",
-             "wum" ];
+    protdirs = []
+    dir = "protocols"
+    for item in os.listdir(dir):
+        name = os.path.join(dir,item)
+        if not os.path.isfile( name ) :
+            protdirs.append( item )
+    return protdirs
 
 
 def basic_levels() :
@@ -118,13 +50,13 @@ def protocols_levels() :
    levels.append( ( set( ["boinc", "wum", "frag_picker", "genetic_algorithm", "frags"] ), ) )
 
    # 3.
-   levels.append( (set( [ "simple_moves", "simple_filters", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling", "fibril", "geometry", "scoring", "electron_density" ] ), ))
+   levels.append( (set( [ "simple_moves", "simple_filters", "backrub", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling", "fibril", "scoring", "electron_density", "analysis", "rigid", "constraints_additional"]), ))
 
    # 4.
-   levels.append( (set([ "cluster", "constraints_additional", "pockets", "forge" ]), set (["rotamer_recovery", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_moves", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
+   levels.append( (set([ "cluster", "pockets", "forge" ]), set (["rotamer_recovery", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_relax", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
 
    # 5.
-   levels.append( (set([ "abinitio", "jumping", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking", "loophash", "qsar"]), set([ "antibody" ]) ))
+   levels.append( (set([ "abinitio", "jumping", "loop_build", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking", "loophash", "qsar"]), set([ "antibody" ]) ))
 
    # 6.
    levels.append( (set(["coarse_rna", "rna", "swa" ]), set([ "nonlocal", "medal" ]),  set([ "enzdes", "match", "hotspot_hashing", "protein_interface_design", "seeded_abinitio","fldsgn", "flxbb" ]) ))
@@ -171,15 +103,15 @@ class DesiredDependencies :
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :
-          print lib[0]
+          #print lib[0]
           if len( lib[1] ) > 0 :
               count = 0
               for dirs in lib[1] :
                   count += 1
-                  print " ", lib[0] , count, ":",
-                  for directory in dirs :
-                      print directory,
-                  print
+                  #print " ", lib[0] , count, ":",
+                  #for directory in dirs :
+                  #    print directory,
+                  #print
       #print self.lib_levels_[ 6 ][ 0 ]
       #print sum( [ len(x) for x in self.lib_levels_[ 6 ][ 1 ] ] )
       #sys.exit()
@@ -359,16 +291,18 @@ if __name__ == "__main__" :
    prots_assigned = set([])
    for protset in prot_levels :
        for column in protset:
-           print column
+           #print column
            prots_assigned = prots_assigned.union( column )
 
+   
    all_prot_levels = set( all_protocols_dirs())
-   print "protocol directories not assigned to the hierarchy"
-   print all_prot_levels - prots_assigned
-
-   print "----------"
-   print "protocol directories in the hierarchy that do not exist"
-   print prots_assigned - all_prot_levels
+   if all_prot_levels - prots_assigned :
+       print "protocol directories not assigned to the hierarchy"
+       print all_prot_levels - prots_assigned
+       print "----------"
+   if prots_assigned - all_prot_levels :
+       print "protocol directories in the hierarchy that do not exist"
+       print prots_assigned - all_prot_levels
 
    #sys.exit()
 

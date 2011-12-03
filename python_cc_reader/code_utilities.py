@@ -57,7 +57,7 @@ def directories_with_hhfiles_to_examine() :
 
 # read a line which begins with #include and return the file name that
 # is #included.  This will read both <> includes or "" includes.
-def include_for_line( line ) :
+def include_for_line( cr, line ) :
    re_splitter = re.compile( "\S+" )
    toks = re_splitter.findall( line )
    if len( toks ) < 2 :
@@ -79,7 +79,7 @@ def find_all_includes( name, filelines ) :
       cr.examine_line( line )
       if cr.line_is_visible() :
          if re_pound_include.match( line ) :
-            include = include_for_line( line )
+            include = include_for_line( cr, line )
             if include not in inclusions :
                inclusions.append( include )
    return inclusions
@@ -94,7 +94,7 @@ def find_includes_at_global_scope( name, filelines ) :
       if cr.line_is_visible() and cr.scope_level == 0 :
          if re_pound_include.match( cr.commentless_line ) :
             #print cr.line_is_visible(), cr.curr_file(), cr.curr_line(), line, cr.commentless_line,
-            include = include_for_line( cr.commentless_line )
+            include = include_for_line( cr, cr.commentless_line )
             if include not in inclusions :
                inclusions.append( include )
    return inclusions
@@ -104,7 +104,9 @@ def find_includes_at_global_scope( name, filelines ) :
 # NOTE: I should be reading pilot_apps.src.settings.all!
 def compiled_cc_files() :
    to_be_compiled = []
-   for library in libraries_with_ccfiles_to_examine() :
+   projects = rosetta_projects()
+
+   for library in projects[ "src" ] :
      settings_file_name = library + ".src.settings"
      libname = library
      if library == "pilot_apps" :
@@ -148,6 +150,12 @@ def compiled_cxxtest_hh_files() :
             name = "../test/" + libname + "/" + dir + "/" + hh_file + ".cxxtest.hh"
             to_be_compiled.append( name )
    return to_be_compiled
+
+# return all the libraries that are to be built
+def rosetta_projects() :
+   f = file( "../projects.settings" ).read()
+   exec( f )
+   return projects
 
 #return a set of all the top-level directories in a particular .src.settings file
 #intended for the sub-divided libraries and for use in the library_levels.py script
@@ -227,7 +235,7 @@ def follow_includes_for_file( file, file_contents, cr, lines, re_pound_include, 
         continue
       if cr.line_is_visible() :
          if re_pound_include.match( cr.commentless_line ) :
-            include = include_for_line( cr.commentless_line )
+            include = include_for_line( cr, cr.commentless_line )
             if include in file_contents:
                if include in already_included :
                   continue

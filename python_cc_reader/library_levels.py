@@ -16,6 +16,8 @@ def all_protocols_dirs():
         name = os.path.join(dir,item)
         if not os.path.isfile( name ) :
             protdirs.append( item )
+            #print "protocols directory:",name
+    #print protdirs
     return protdirs
 
 
@@ -24,71 +26,38 @@ def basic_levels() :
    levels.append( (toplevel_subdirs_of_library( "basic" ),) ) # all the subdirectories of basic are in the same library.
    return levels
 
+def levels_for_library( library_prefix ) :
+   projects = rosetta_projects()
+   library_sublibs = {}
+   for lib in projects[ "src" ] :
+       #print lib
+       if lib.find( library_prefix ) != -1 :
+           level = int( lib.rpartition(".")[2] )
+           #print lib, level
+           if level not in library_sublibs :
+               library_sublibs[level] = []
+           library_sublibs[level].append( lib )
+   levels = []
+   nlevels = max( library_sublibs.keys() )
+   for level in xrange(1,nlevels+1) :
+      columns = []
+      for libname in library_sublibs[ level ] :
+         subdirs = toplevel_subdirs_of_library( libname )
+         #print libname, subdirs
+         #for subdir in subdirs :
+         #    print libname, subdir
+         columns.append( subdirs )
+      levels.append( columns )
+   return levels
+
+
 # take the library levels directly out of the .src.settings files, in case
 # someone adds a new top-level directory in core/
 def core_levels() :
-   levels = []
-   #levels.append( set([ "util", "graph", "options", "grid" ] ) )
-   #levels.append( set([ "id", "chemical", "conformation", "kinematics" ] ))
-   #levels.append( set([ "scoring", "pose", "sequence", "io" ] ))
-   #levels.append( set([ "pack", "optimization", ] ))
-   #levels.append( set([ "fragment", "init", "import_pose" ] ))
-   levels.append( (toplevel_subdirs_of_library( "core.1" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.2" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.3" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.4" ),) )
-   levels.append( (toplevel_subdirs_of_library( "core.5" ),) )
-   return levels
+   return levels_for_library( "core" )
 
 def protocols_levels() :
-   levels = []
-   # 1.
-   # Note: smanager is scheduled for deletion
-   levels.append( (set([ "checkpoint", "filters", "moves", "jd2", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation", "viewer" ] ), ) )
-
-   # 2.
-   levels.append( ( set( ["boinc", "wum", "frag_picker", "genetic_algorithm", "frags"] ), ) )
-
-   # 3.
-   levels.append( (set( [ "simple_moves", "simple_filters", "backrub", "branch_angle", "flexpack", "loops", "relax", "toolbox", "canonical_sampling", "fibril", "scoring", "electron_density", "analysis", "rigid", "constraints_additional"]), ))
-
-   # 4.
-   levels.append( (set([ "cluster", "pockets", "forge" ]), set (["rotamer_recovery", "features","docking", "surface_docking", "ligand_docking", "qsar", "rbsegment_relax", "comparative_modeling", "domain_assembly" ]), set(["unfolded_state_energy_calculator", "cartesian"]), set(["sparta", "pmut_scan"]), set(["contact_map", "RotamerDump", "kinmatch", "make_rot_lib", "optimize_weights", "ddg" ]),  set(["dna", "motifs", "multistate_design", "pack_daemon", "anchored_design" ]), ))
-
-   # 5.
-   levels.append( (set([ "abinitio", "jumping", "loop_build", "topology_broker", "symmetric_docking", "noesy_assign", "topology_broker"]), set([ "flexpep_docking", "loophash", "qsar"]), set([ "antibody" ]) ))
-
-   # 6.
-   levels.append( (set(["coarse_rna", "rna", "swa" ]), set([ "nonlocal", "medal" ]),  set([ "enzdes", "match", "hotspot_hashing", "protein_interface_design", "seeded_abinitio","fldsgn", "flxbb" ]) ))
-
-   # 7.
-   levels.append( ( set( [ "init" ]), ))
-   return levels
-
-#def protocols_levels() :
-#   levels = []
-#   # 1.
-#   # Note: smanager is scheduled for deletion
-#   levels.append( (set([ "checkpoint", "filters", "moves", "jd2", "toolbox", "rosetta_scripts", "jobdist", "idealize", "smanager", "evaluation" ] ), ) )
-#
-#   # 2.
-#   levels.append( ( set( ["boinc", "viewer", "wum", "fragpicker", "genetic_algorithm", "frags", "geometry", "scoring", "canonical_sampling" ] ), ) )
-#
-#   # 3.
-#   levels.append( (set( [ "basic_moves", "basic_filters", "branch_angle", "flexpack", "loops", "relax" ] ), ))
-#
-#   # 4.
-#   levels.append( (set([ "cluster", "constraints_additional", "fast_sc_mover", "rotamer_recovery", "electron_density", "unfolded_state_energy_calculator", "cartesian", "sparta", "pmut_scan", "contact_map", "RotamerDump", "rbsegment_moves" ]), ))
-#
-#   # 5.
-#   levels.append( (set([ "abinitio", "docking", "jumping", "ligand_docking", "symmetric_docking", "flexpep_docking", "noesy_assign", "topology_broker", "loophash", "qsar", "seeded_abinitio", "comparative_modeling" ]), ))
-#
-#   # 6.
-#   levels.append( (set([ "ddg", "dna", "multistate_design", "pack_daemon", "coarse_rna", "rna", "domain_assembly", "swa", "kinmatch", "surface_docking", "anchored_design", "nonlocal", "features", "medal" ]), ))
-#
-#   # 7.
-#   levels.append( ( set( [ "antibody", "forge", "hotspot_hashing", "protein_interface_design", "motifs", "optimize_weights", "init", "fldsgn", "flxbb", "make_rot_lib", "pockets", "enzdes", "match" ]), ))
-#   return levels
+    return levels_for_library( "protocols" )
 
 class DesiredDependencies :
    def __init__( self ) :
@@ -103,15 +72,15 @@ class DesiredDependencies :
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :
-          #print lib[0]
+          print lib[0]
           if len( lib[1] ) > 0 :
               count = 0
               for dirs in lib[1] :
                   count += 1
-                  #print " ", lib[0] , count, ":",
-                  #for directory in dirs :
-                  #    print directory,
-                  #print
+                  print " ", lib[0] , count, ":",
+                  for directory in dirs :
+                      print directory,
+                  print
       #print self.lib_levels_[ 6 ][ 0 ]
       #print sum( [ len(x) for x in self.lib_levels_[ 6 ][ 1 ] ] )
       #sys.exit()
@@ -294,8 +263,9 @@ if __name__ == "__main__" :
            #print column
            prots_assigned = prots_assigned.union( column )
 
-   
+
    all_prot_levels = set( all_protocols_dirs())
+   print all_prot_levels
    if all_prot_levels - prots_assigned :
        print "protocol directories not assigned to the hierarchy"
        print all_prot_levels - prots_assigned

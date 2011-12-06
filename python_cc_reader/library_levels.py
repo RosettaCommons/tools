@@ -57,7 +57,24 @@ def core_levels() :
    return levels_for_library( "core" )
 
 def protocols_levels() :
-    return levels_for_library( "protocols" )
+   return levels_for_library( "protocols" )
+
+def library_and_column_for_file( levels_for_lib, fname ) :
+   dirs = fname.split("/")
+   if len(dirs) < 3 :
+      print "Error in library_and_column_for_file", fname
+      print "Could not find subdirectory of the library directory"
+   topleveldir = dirs[1]
+   for i in xrange(len(levels_for_lib)) :
+      ilib = levels_for_lib[i]
+      for column in xrange(len(ilib)) :
+         if topleveldir in ilib[ column ] :
+            if len(ilib) == 1 :
+               return i+1, "" # no column name for libraries with only a single entry
+            else :
+               return i+1, chr( ord('a') + column )
+   print "ERROR top level directory",topleveldir,"not found in levels for this library"
+   return None, None
 
 class DesiredDependencies :
    def __init__( self ) :

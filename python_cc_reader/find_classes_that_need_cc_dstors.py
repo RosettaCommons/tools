@@ -5,24 +5,38 @@ import re
 OP_regex1 = re.compile( "OP" )
 OP_regex2 = re.compile( "owning_ptr" )
 
-def class_needs_a_cc_dstor( cl ) :
-    has_dstor  = False
-    dstor_inhh = False
-    has_ownptr = False
-    for func in cl.functions :
-        if func.name == "Destructor" :
-            has_dstor = True
-            if func.definition_present :
-                dstor_inhh = True
-                break
+def class_lacks_a_cc_dstor( cl ) :
+    dstor_funcs = filter( lambda func : func.name == "Destructor", cl.functions )
+    if dstor_funcs :
+        #print cl.name,"has dstor; defined in header?", dstor_funcs[0].definition_present
+        return dstor_funcs[0].definition_present
+    return True
+
+def class_contains_an_OP_datamember( cl ) :
     for dmemb in cl.data_members :
         if OP_regex1.search( dmemb[ 0 ] ) or OP_regex2.search( dmemb[ 0 ] ) :
             print "   Found suspected OP", dmemb[ 0 ], "in class ", cl.name
-            has_ownptr = True
-    return has_ownptr and ( not has_dstor or dstor_inhh )
+            return True
+    return False
 
-def class_needs_a_cc_copy_dstor( cl ) :
+def class_needs_a_cc_dstor( cl ) :
+    return class_contains_an_OP_datamember( cl ) and class_lacks_a_cc_dstor( cl )
 
+def class_lacks_a_cc_copy_ctor( cl ) :
+    ctor_funcs = filter( lambda func : func.name == "Constructor", cl.functions )
+    for ctor in ctor_funcs :
+        if len( ctor.parameters ) != 1 : continue
+        if ctor.parameters[0].find( cl.name ) != -1 :
+            return ctor.definition_present
+    return True
+
+def class_declares_a_copy_ctor( cl ) :
+    ctor_funcs = filter( lambda func : func.name == "Constructor", cl.functions )
+    for ctor in ctor_funcs :
+        if len( ctor.parameters ) != 1 : continue
+        if ctor.parameters[0].find( cl.name ) != -1 :
+            return True
+    return False
 
 def find_all_classes_that_require_cc_dstors() :
     compilable_files, all_includes, file_contents = load_source_tree()
@@ -47,8 +61,17 @@ def find_all_classes_that_require_cc_dstors() :
             print  " Processing class", cl.name
             if class_needs_a_cc_dstor( cl ) :
                 classes_needing_ccdstors.append( cl )
+            if class_lacks_a_cc_copy_ctor( cl ) :
+                if class_declares_a_copy_ctor( cl ) :
+                    print "  class", cl.name, "declares a copy constructor and implements it in its header file"
+                else :
+                    print "  class", cl.name, "lacks a CC copy constructor declaration and implementation"
+            else:
+                print "  class", cl.name, "has a CC copy constructor"
 
     return classes_needing_ccdstors
+
+
 
 if __name__ == "__main__" :
     classes_needing_ccdstors = find_all_classes_that_require_cc_dstors()

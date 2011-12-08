@@ -29,7 +29,8 @@ def basic_levels() :
 def levels_for_library( library_prefix ) :
    projects = rosetta_projects()
    library_sublibs = {}
-   for lib in projects[ "src" ] :
+   sorted_src_projects = sorted( projects[ "src" ] )
+   for lib in sorted_src_projects :
        #print lib
        if lib.find( library_prefix ) != -1 :
            level = int( lib.rpartition(".")[2] )
@@ -89,15 +90,15 @@ class DesiredDependencies :
          ( "devel", [], False ),
          ( "apps", [], False ) ]
       for lib in self.lib_levels_ :
-          print lib[0]
+          #print lib[0]
           if len( lib[1] ) > 0 :
               count = 0
               for dirs in lib[1] :
                   count += 1
-                  print " ", lib[0] , count, ":",
-                  for directory in dirs :
-                      print directory,
-                  print
+                  #print " ", lib[0] , count, ":",
+                  #for directory in dirs :
+                  #    print directory,
+                  #print
       #print self.lib_levels_[ 6 ][ 0 ]
       #print sum( [ len(x) for x in self.lib_levels_[ 6 ][ 1 ] ] )
       #sys.exit()

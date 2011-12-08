@@ -4,6 +4,15 @@ import pygraph
 import inclusion_graph
 import sys
 
+# returns a tuple -- an integer and a string -- representing the library name and column.
+def library_level_and_column_from_src_settingsfile_name( libprefix, lib_srcsettings_fname ) :
+   assert( lib_srcsettings_fname.find( libprefix ) != -1 )
+   suffix = lib_srcsettings_fname[len(libprefix):][:-13]
+   print libprefix, suffix, lib_srcsettings_fname[len(libprefix):]
+   if len( suffix ) == 2 :
+      return int(suffix[-1:]), ""
+   elif len( suffix ) == 4 :
+      return int( suffix[-1:]), suffix[-3:2]
 
 if __name__ == "__main__" :
 

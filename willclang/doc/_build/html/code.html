@@ -1,0 +1,877 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Module Documentation &mdash; willclang 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="willclang 0.1 documentation" href="index.html" />
+    <link rel="next" title="Tests" href="tests.html" />
+    <link rel="prev" title="Intro" href="intro.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tests.html" title="Tests"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Intro"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">willclang 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-willclang">
+<span id="module-documentation"></span><h1>Module Documentation<a class="headerlink" href="#module-willclang" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-willclang.util">
+<span id="util"></span><h2>Util<a class="headerlink" href="#module-willclang.util" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="willclang.util.dir2ns">
+<tt class="descclassname">willclang.util.</tt><tt class="descname">dir2ns</tt><big>(</big><em>fname</em>, <em>checkfs=True</em><big>)</big><a class="reference internal" href="_modules/willclang/util.html#dir2ns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.util.dir2ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>get namespace corresponding to dir</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="s">&quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/pack/task&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir2ns</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">&#39;core::pack::task&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.util.rosbase">
+<tt class="descclassname">willclang.util.</tt><tt class="descname">rosbase</tt><big>(</big><em>fname</em>, <em>checkfs=True</em><big>)</big><a class="reference internal" href="_modules/willclang/util.html#rosbase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.util.rosbase" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the rosetta-relative path</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="s">&quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/scoring/methods&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rosbase</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">&#39;src/core/scoring/methods&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">==</span> <span class="n">rospath</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;/&quot;</span><span class="o">+</span><span class="n">rosbase</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.util.rospath">
+<tt class="descclassname">willclang.util.</tt><tt class="descname">rospath</tt><big>(</big><em>fname</em>, <em>checkfs=True</em><big>)</big><a class="reference internal" href="_modules/willclang/util.html#rospath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.util.rospath" title="Permalink to this definition">¶</a></dt>
+<dd><p>get path to rosetta_source</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="s">&quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/scoring&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rospath</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">&#39;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">==</span> <span class="n">rospath</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;/&quot;</span><span class="o">+</span><span class="n">rosbase</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.util.swapfwdhh">
+<tt class="descclassname">willclang.util.</tt><tt class="descname">swapfwdhh</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/willclang/util.html#swapfwdhh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.util.swapfwdhh" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">swapfwdhh</span><span class="p">(</span><span class="s">&quot;test.hh&quot;</span><span class="p">)</span>
+<span class="go">test.fwd.hh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">swapfwdhh</span><span class="p">(</span><span class="s">&quot;t/e/s/t.fwd.hh&quot;</span><span class="p">)</span>
+<span class="go">t/e/s/t.hh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">swapfwdhh</span><span class="p">(</span><span class="s">&quot;test.cc&quot;</span><span class="p">)</span>
+<span class="go">test.cc</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-willclang.LibclangWrap">
+<span id="libclangwrap"></span><h2>LibClangWrap<a class="headerlink" href="#module-willclang.LibclangWrap" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="willclang.LibclangWrap.get_doctest_file">
+<tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">get_doctest_file</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#get_doctest_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.get_doctest_file" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_doctest_file</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>      
+<span class="go">&#39;.../willclang/test/types.cc&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.LibclangWrap.get_doctest_ast">
+<tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">get_doctest_ast</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#get_doctest_ast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.get_doctest_ast" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>      
+<span class="go">TRANSLATION_UNIT /Users/sheffl..test/types.cc     &#39;struct MyStru..\tMSP msp;\n}&#39;</span>
+<span class="go">| STRUCT_DECL MyStruct     &#39;struct MyStruct {}&#39;</span>
+<span class="go">| TYPEDEF_DECL MSP     &#39;typedef MyStruct MSP&#39;</span>
+<span class="go">| | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| FUNCTION_DECL test_types     &#39;void test_typ..\tMSP msp;\n}&#39;</span>
+<span class="go">| | COMPOUND_STMT      &#39;{\n\tint i;\n..\tMSP msp;\n}&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;int i;&#39;</span>
+<span class="go">| | | | VAR_DECL i     &#39;int i&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="go">| | | | VAR_DECL ip     &#39;int *ip&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;int &amp; ir(i);&#39;</span>
+<span class="go">| | | | VAR_DECL ir     &#39;int &amp; ir(i&#39;</span>
+<span class="go">| | | | | DECL_REF_EXPR i     &#39;i&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;MyStruct m;&#39;</span>
+<span class="go">| | | | VAR_DECL m     &#39;MyStruct m&#39;</span>
+<span class="go">| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| | | | | CALL_EXPR MyStruct     &#39;m&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;MyStruct *mp;&#39;</span>
+<span class="go">| | | | VAR_DECL mp     &#39;MyStruct *mp&#39;</span>
+<span class="go">| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="go">| | | | VAR_DECL mr     &#39;MyStruct &amp;mr(m&#39;</span>
+<span class="go">| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| | | | | DECL_REF_EXPR m     &#39;m&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;MSP msp;&#39;</span>
+<span class="go">| | | | VAR_DECL msp     &#39;MSP msp&#39;</span>
+<span class="go">| | | | | TYPE_REF MSP     &#39;MSP&#39;</span>
+<span class="go">| | | | | CALL_EXPR MyStruct     &#39;msp&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.LibclangWrap.print_raw_ast">
+<tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">print_raw_ast</tt><big>(</big><em>cursor</em>, <em>depth=0</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#print_raw_ast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.print_raw_ast" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_type_simple.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_raw_ast</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">cursor</span><span class="p">)</span>                           
+<span class="go">TRANSLATION_UNIT ...</span>
+<span class="go">|  TYPEDEF_DECL __int128_t</span>
+<span class="go">|  TYPEDEF_DECL __uint128_t</span>
+<span class="go">|  STRUCT_DECL __va_list_tag</span>
+<span class="go">|  |  FIELD_DECL gp_offset</span>
+<span class="go">|  |  FIELD_DECL fp_offset</span>
+<span class="go">|  |  FIELD_DECL overflow_arg_area</span>
+<span class="go">|  |  FIELD_DECL reg_save_area</span>
+<span class="go">|  TYPEDEF_DECL __va_list_tag</span>
+<span class="go">|  |  STRUCT_DECL __va_list_tag</span>
+<span class="go">|  |  |  FIELD_DECL gp_offset</span>
+<span class="go">|  |  |  FIELD_DECL fp_offset</span>
+<span class="go">|  |  |  FIELD_DECL overflow_arg_area</span>
+<span class="go">|  |  |  FIELD_DECL reg_save_area</span>
+<span class="go">|  TYPEDEF_DECL __builtin_va_list</span>
+<span class="go">|  |  TYPE_REF __va_list_tag</span>
+<span class="go">|  |  INTEGER_LITERAL </span>
+<span class="go">|  VAR_DECL i</span>
+<span class="go">|  VAR_DECL ir</span>
+<span class="go">|  |  UNEXPOSED_EXPR i</span>
+<span class="go">|  |  |  DECL_REF_EXPR i</span>
+<span class="go">|  VAR_DECL ip</span>
+<span class="go">|  |  UNARY_OPERATOR </span>
+<span class="go">|  |  |  DECL_REF_EXPR i</span>
+<span class="go">|  VAR_DECL ic</span>
+<span class="go">|  |  UNEXPOSED_EXPR i</span>
+<span class="go">|  |  |  DECL_REF_EXPR i</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="willclang.LibclangWrap.hashcursor">
+<tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">hashcursor</tt><big>(</big><em>c</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#hashcursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.hashcursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a unique string for a cursor</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test.cc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hashcursor</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">cursor</span><span class="p">)</span>
+<span class="go">&#39;c:@ir&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="sourcefile">
+<h2>SourceFile<a class="headerlink" href="#sourcefile" title="Permalink to this headline">¶</a></h2>
+<p>SourceFile class represents a single C++ sourcefile and should hold all data and logic
+that doesn&#8217;d require parsing at AST
+WORK IN PROGRESS!!!</p>
+<dl class="class">
+<dt id="willclang.LibclangWrap.SourceFile">
+<em class="property">class </em><tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">SourceFile</tt><big>(</big><em>fname</em>, <em>clangargs=None</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#SourceFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.SourceFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>SourceFile holds an individual C++ sourcefile
+this should eventually include non-ast locic to do things fast, if possible
+resort to ast only if necessary</p>
+</dd></dl>
+
+<div class="section" id="rosettasourcefile">
+<h3>RosettaSourceFile<a class="headerlink" href="#rosettasourcefile" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="willclang.LibclangWrap.RosettaSourceFile">
+<em class="property">class </em><tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">RosettaSourceFile</tt><big>(</big><em>fname</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#RosettaSourceFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.RosettaSourceFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as SourceFile, except sepcifies rosetta includes for clang</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="ast">
+<h2>AST<a class="headerlink" href="#ast" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="willclang.LibclangWrap.AST">
+<em class="property">class </em><tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">AST</tt><big>(</big><em>src</em>, <em>clangargs=None</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper of libclang ast</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test.cc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.check">
+<tt class="descname">check</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>consistency check for ast</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;bad.cc&quot;</span><span class="p">)</span>               
+<span class="gt">Traceback (most recent call last):</span>
+<span class="gr">ASTException: &quot;Parse failed from Errors:...Error</span>: <span class="n">no member named &#39;not_func&#39; in namespace &#39;foo::bar&#39; AT .../test/bad.cc line 13 col 38&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">allchild</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="s">&quot;Nonsense&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+<span class="gr">AssertionError</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.check_tu">
+<tt class="descname">check_tu</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.check_tu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.check_tu" title="Permalink to this definition">¶</a></dt>
+<dd><p>check for parse errors</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;bad.cc&quot;</span><span class="p">)</span>               
+<span class="gt">Traceback (most recent call last):</span>
+<span class="gr">ASTException: &quot;Parse failed from Errors:...Error</span>: <span class="n">no member named &#39;not_func&#39; in namespace &#39;foo::bar&#39; AT .../test/bad.cc line 13 col 38&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.get_all_headers">
+<tt class="descname">get_all_headers</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.get_all_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.get_all_headers" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_fwd.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_all_headers</span><span class="p">()):</span> <span class="k">print</span> <span class="n">i</span>     
+<span class="go">/.../willclang/test/include/class1.fwd.hh</span>
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.get_necessary_headers">
+<tt class="descname">get_necessary_headers</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.get_necessary_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.get_necessary_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper for self.root.includes_used()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.switch_to_fwd">
+<tt class="descname">switch_to_fwd</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.switch_to_fwd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.switch_to_fwd" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_fwd.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">all_headers</span><span class="p">):</span> <span class="k">print</span> <span class="n">h</span>                       
+<span class="go">/.../willclang/test/include/class1.fwd.hh</span>
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">all_headers</span><span class="p">):</span> <span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">switch_to_fwd</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>          
+<span class="go">/.../willclang/test/include/class1.fwd.hh</span>
+<span class="go">/.../willclang/test/include/class1.fwd.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.switch_to_hh">
+<tt class="descname">switch_to_hh</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.switch_to_hh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.switch_to_hh" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_fwd.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">all_headers</span><span class="p">):</span> <span class="k">print</span> <span class="n">h</span>                               
+<span class="go">/.../willclang/test/include/class1.fwd.hh</span>
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">all_headers</span><span class="p">):</span> <span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">switch_to_hh</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>    
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.AST.transitive_include_gragh">
+<tt class="descname">transitive_include_gragh</tt><big>(</big><em>inc_subset</em>, <em>inc_why=None</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#AST.transitive_include_gragh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.AST.transitive_include_gragh" title="Permalink to this definition">¶</a></dt>
+<dd><p>return {map of headers H to sets of all other headers which provide them}
+find all headers which (possibly transitively) include a header H</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">replace the lame Include class with a map or something, no reason for it to exist right now</p>
+</div>
+<div class="highlight-python"><pre>&gt;&gt;&gt; ast = get_doctest_ast("test_inc.cc")
+&gt;&gt;&gt; necessary_headers = [str(x.include) for x in ast.tu.get_includes()]
+&gt;&gt;&gt; inodes,inc_subset = ast.transitive_include_gragh(necessary_headers)
+&gt;&gt;&gt; for k in sorted(inodes.keys()):          
+...    print os.path.basename(k)
+...    for i in sorted(inodes[k]): print "    provided by:",os.path.basename(i)
+class1.hh
+class2.hh
+class3.hh
+...
+tdefchain1.hh
+tdefchain2.hh
+    provided by: tdefchain1.hh
+tdefchain3.hh
+    provided by: tdefchain1.hh
+    provided by: tdefchain2.hh
+tdefchain4.hh
+    provided by: tdefchain1.hh
+    provided by: tdefchain2.hh
+    provided by: tdefchain3.hh
+...
+&gt;&gt;&gt; ast.transitive_include_gragh(["imaginary_header.hh"])    
+Traceback (most recent call last):
+ASTException: 
+'Bad inc_subset! Include: imaginary_header.hh not referenced in clang parse of: /Users/sheffler/Dropbox/lib/willclang/test/test_inc.cc!'</pre>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="node">
+<h3>Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="willclang.LibclangWrap.Node">
+<em class="property">class </em><tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">Node</tt><big>(</big><em>ast</em>, <em>cursor</em>, <em>parent=None</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper of libclang ast &#8216;cursor&#8217;</p>
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.allchild">
+<tt class="descname">allchild</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.allchild" title="Permalink to this definition">¶</a></dt>
+<dd><p>all children</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.ast">
+<tt class="descname">ast</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.ast" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST this node belongs to</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.check">
+<tt class="descname">check</tt><big>(</big><em>recursive=True</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.check" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test.cc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">root</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">node</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">allchild</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">allchild</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="s">&quot;NONSENSE&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+<span class="gr">AssertionError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">node</span>         
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">allchild</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">allchild</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="k">assert</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span>
+<span class="gr">AssertionError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span>
+<span class="gr">AssertionError</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.children_of_type">
+<tt class="descname">children_of_type</tt><big>(</big><em>t</em>, <em>recurseall=False</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.children_of_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.children_of_type" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">decl</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">children_of_type</span><span class="p">(</span><span class="s">&quot;DECL_STMT&quot;</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">print</span> <span class="n">decl</span>
+<span class="go">DECL_STMT      &#39;int i;&#39;</span>
+<span class="go">DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="go">DECL_STMT      &#39;int &amp; ir(i);&#39;</span>
+<span class="go">DECL_STMT      &#39;MyStruct m;&#39;</span>
+<span class="go">DECL_STMT      &#39;MyStruct *mp;&#39;</span>
+<span class="go">DECL_STMT      &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="go">DECL_STMT      &#39;MSP msp;&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.code">
+<tt class="descname">code</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nchild+1 bits of code interdigitated between code owned by children</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.codeline">
+<tt class="descname">codeline</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.codeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.codeline" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&quot;test_types&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">n</span><span class="o">.</span><span class="n">codeline</span><span class="p">()</span>
+<span class="go">void test_types() {i ...| ct &amp;mr(m);MSP msp;}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.cursor">
+<tt class="descname">cursor</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>clang cursor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.definition">
+<tt class="descname">definition</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.definition" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_ref.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recurseall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>                     
+<span class="go">TRANSLATION_UNIT /.../test_ref.cc     &#39;#include &lt;tes..sfunc(ms);\n}&#39;</span>
+<span class="go">| STRUCT_DECL MyStruct</span>
+<span class="go">| STRUCT_DECL MyStruct</span>
+<span class="go">| | FIELD_DECL i</span>
+<span class="go">| FUNCTION_DECL msfunc</span>
+<span class="go">| | PARM_DECL ms</span>
+<span class="go">| | | TYPE_REF struct MyStruct</span>
+<span class="go">| | COMPOUND_STMT </span>
+<span class="go">| | | RETURN_STMT </span>
+<span class="go">| | | | UNEXPOSED_EXPR i</span>
+<span class="go">| | | | | MEMBER_REF_EXPR i</span>
+<span class="go">| | | | | | DECL_REF_EXPR ms</span>
+<span class="go">| FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\n}&#39;</span>
+<span class="go">| | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="go">| | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| | COMPOUND_STMT      &#39;{\n\tint i = msfunc(ms);\n}&#39;</span>
+<span class="go">| | | DECL_STMT      &#39;int i = msfunc(ms);&#39;</span>
+<span class="go">| | | | VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="go">| | | | | CALL_EXPR msfunc     &#39;msfunc(ms)&#39;</span>
+<span class="go">| | | | | | UNEXPOSED_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="go">| | | | | | | DECL_REF_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="go">| | | | | | DECL_REF_EXPR ms     &#39;ms&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treeprint</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">definition</span><span class="p">(),</span><span class="n">allchild</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> 
+<span class="go">None</span>
+<span class="go">| STRUCT_DECL MyStruct</span>
+<span class="go">| STRUCT_DECL MyStruct</span>
+<span class="go">| | FIELD_DECL i</span>
+<span class="go">| FUNCTION_DECL msfunc</span>
+<span class="go">| | PARM_DECL ms</span>
+<span class="go">| | | STRUCT_DECL MyStruct</span>
+<span class="go">| | None</span>
+<span class="go">| | | None</span>
+<span class="go">| | | | FIELD_DECL i</span>
+<span class="go">| | | | | FIELD_DECL i</span>
+<span class="go">| | | | | | PARM_DECL ms</span>
+<span class="go">| FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\n}&#39;</span>
+<span class="go">| | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="go">| | | STRUCT_DECL MyStruct</span>
+<span class="go">| | None</span>
+<span class="go">| | | None</span>
+<span class="go">| | | | VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="go">| | | | | FUNCTION_DECL msfunc</span>
+<span class="go">| | | | | | FUNCTION_DECL msfunc</span>
+<span class="go">| | | | | | | FUNCTION_DECL msfunc</span>
+<span class="go">| | | | | | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.end">
+<tt class="descname">end</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>end position in sourcefile</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.fname">
+<tt class="descname">fname</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.fname" title="Permalink to this definition">¶</a></dt>
+<dd><p>filename of sourcefile this node came from</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.getstr">
+<tt class="descname">getstr</tt><big>(</big><em>recursive=True</em>, <em>recurseall=False</em>, <em>depth=0</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.getstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.getstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>make a printable string from a node</p>
+<p>say raw source is this (test2.hh contains ns1::i):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test2.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">code</span>                                          
+<span class="go">#include &lt;test2.hh&gt;</span>
+<span class="go">using namespace ns1;</span>
+<span class="go">int j = ns1::i;</span>
+</pre></div>
+</div>
+<p>raw ast looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">print_raw_ast</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">cursor</span><span class="p">)</span>                             
+<span class="go">TRANSLATION_UNIT ...</span>
+<span class="go">|  NAMESPACE ns1</span>
+<span class="go">|  |  VAR_DECL i</span>
+<span class="go">|  USING_DIRECTIVE </span>
+<span class="go">|  |  NAMESPACE_REF ns1</span>
+<span class="go">|  VAR_DECL j</span>
+<span class="go">|  |  UNEXPOSED_EXPR i</span>
+<span class="go">|  |  |  DECL_REF_EXPR i</span>
+<span class="go">|  |  |  |  NAMESPACE_REF ns1</span>
+</pre></div>
+</div>
+<p>by default prints only nodes from parsed src file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">recurseall</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>   
+<span class="go">TRANSLATION_UNIT ...</span>
+<span class="go">| USING_DIRECTIVE      &#39;using namespace ns1&#39;</span>
+<span class="go">| | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="go">| VAR_DECL j     &#39;int j = ns1::i&#39;</span>
+<span class="go">| | UNEXPOSED_EXPR i     &#39;ns1::i&#39;</span>
+<span class="go">| | | DECL_REF_EXPR i     &#39;ns1::i&#39;</span>
+<span class="go">| | | | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+</pre></div>
+</div>
+<p>with recursive=False prints only this node</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>                   
+<span class="go">TRANSLATION_UNIT ...</span>
+</pre></div>
+</div>
+<p>with recurseall, you get lines from included headers (NAMESPACE,VAR_DECL):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">recurseall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>    
+<span class="go">TRANSLATION_UNIT ...</span>
+<span class="go">| NAMESPACE ns1</span>
+<span class="go">| | VAR_DECL i </span>
+<span class="go">| USING_DIRECTIVE      &#39;using namespace ns1&#39;</span>
+<span class="go">| | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="go">| VAR_DECL j     &#39;int j = ns1::i&#39;</span>
+<span class="go">| | UNEXPOSED_EXPR i     &#39;ns1::i&#39;</span>
+<span class="go">| | | DECL_REF_EXPR i     &#39;ns1::i&#39;</span>
+<span class="go">| | | | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.includes_used">
+<tt class="descname">includes_used</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.includes_used"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.includes_used" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns [sorted list of includes] {map of nodes which think they need a particular include}
+attempt to find the headers which are actually needed for the core in the sourcefile
+in the following example, many headers are included, but only something in tdef3.hh is actually used.</p>
+<p>WORK IN PROGRESS!</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_inc.cc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>print all headers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">all_headers</span><span class="p">):</span> <span class="k">print</span> <span class="n">h</span>            
+<span class="go">/.../willclang/test/include/class1.hh</span>
+<span class="go">/.../willclang/test/include/class2.hh</span>
+<span class="go">/.../willclang/test/include/class3.hh</span>
+<span class="go">/.../willclang/test/include/class4.hh</span>
+<span class="go">/.../willclang/test/include/def1.hh</span>
+<span class="go">/.../willclang/test/include/def2.hh</span>
+<span class="go">/.../willclang/test/include/def3.hh</span>
+<span class="go">/.../willclang/test/include/def4.hh</span>
+<span class="go">/.../willclang/test/include/func1.hh</span>
+<span class="go">/.../willclang/test/include/func2.hh</span>
+<span class="go">/.../willclang/test/include/func3.hh</span>
+<span class="go">/.../willclang/test/include/func4.hh</span>
+<span class="go">/.../willclang/test/include/ns1.hh</span>
+<span class="gp">... </span>            
+</pre></div>
+</div>
+<p>but these aren&#8217;t all needed, the ast it just this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">()</span>                               
+<span class="go">TRANSLATION_UNIT ...</span>
+<span class="go">| VAR_DECL i     &#39;tdef3 i&#39;</span>
+<span class="go">| | TYPE_REF tdef3     &#39;tdef3&#39;</span>
+</pre></div>
+</div>
+<p>print only headers &#8220;referred&#8221; to in the actual source:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">inc</span><span class="p">,</span><span class="n">inc_why</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">includes_used</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inc</span><span class="p">):</span> <span class="k">print</span> <span class="n">h</span>                          
+<span class="go">/.../willclang/test/include/tdef3.hh</span>
+</pre></div>
+</div>
+<p>The node(s) which think they need a particular header are reported in the map &#8216;inc_why&#8217; (2nd return):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">inc</span><span class="p">:</span>                                          
+<span class="gp">... </span>   <span class="k">print</span> <span class="n">h</span>
+<span class="gp">... </span>   <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">inc_why</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+<span class="gp">... </span>       <span class="k">print</span> <span class="s">&quot;    needed by&quot;</span><span class="p">,</span><span class="n">n</span><span class="o">.</span><span class="n">getstr</span><span class="p">()</span>
+<span class="go">/.../willclang/test/include/tdef3.hh</span>
+<span class="go">    needed by TYPE_REF tdef3     &#39;tdef3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.is_decl">
+<tt class="descname">is_decl</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.is_decl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.is_decl" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">):</span> <span class="k">print</span> <span class="s">&quot;IS_DECL:&quot;</span><span class="p">,</span><span class="n">node</span><span class="o">.</span><span class="n">is_decl</span><span class="p">(),</span><span class="n">node</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treemap</span><span class="p">(</span><span class="n">visit</span><span class="p">)</span> 
+<span class="go">IS_DECL: False TRANSLATION_UNIT ...test/types.cc     ...</span>
+<span class="go">IS_DECL: False STRUCT_DECL MyStruct       &#39;struct MyStruct {}&#39;</span>
+<span class="gp">...</span>
+<span class="go">IS_DECL: False DECL_STMT                  &#39;int i;&#39;</span>
+<span class="go">IS_DECL: True  VAR_DECL i                 &#39;int i&#39;</span>
+<span class="go">IS_DECL: False DECL_STMT                  &#39;int *ip;&#39;</span>
+<span class="go">IS_DECL: True  VAR_DECL ip                &#39;int *ip&#39;</span>
+<span class="go">IS_DECL: False DECL_STMT                  &#39;int &amp; ir(i);&#39;</span>
+<span class="go">IS_DECL: True  VAR_DECL ir                &#39;int &amp; ir(i&#39;</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.is_ptr_or_ref">
+<tt class="descname">is_ptr_or_ref</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.is_ptr_or_ref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.is_ptr_or_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True if this node is a reference or pointer type; 
+returns False if this node is a non-reference and non-pointer type;     
+should return None if not a declaration</p>
+<p>WORK IN PROGRESS</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">):</span> <span class="k">print</span> <span class="s">&quot;IS_PtrRef:&quot;</span><span class="p">,</span><span class="n">node</span><span class="o">.</span><span class="n">is_ptr_or_ref</span><span class="p">(),</span><span class="n">node</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treemap</span><span class="p">(</span><span class="n">visit</span><span class="p">)</span>                            
+<span class="go">IS_PtrRef: None  TRANSLATION_UNIT ...test/types.cc ...</span>
+<span class="go">IS_PtrRef: None  STRUCT_DECL MyStruct         &#39;struct MyStruct {}&#39;</span>
+<span class="gp">...</span>
+<span class="go">IS_PtrRef: False VAR_DECL i                   &#39;int i&#39;</span>
+<span class="go">IS_PtrRef: None  DECL_STMT                    &#39;int *ip;&#39;</span>
+<span class="go">IS_PtrRef: True  VAR_DECL ip                  &#39;int *ip&#39;</span>
+<span class="go">IS_PtrRef: None  DECL_STMT                    &#39;int &amp; ir(i);&#39;</span>
+<span class="go">IS_PtrRef: True  VAR_DECL ir                  &#39;int &amp; ir(i&#39;</span>
+<span class="go">IS_PtrRef: None  DECL_REF_EXPR i              &#39;i&#39;</span>
+<span class="go">IS_PtrRef: None  DECL_STMT                    &#39;MyStruct m;&#39;</span>
+<span class="go">IS_PtrRef: False VAR_DECL m                   &#39;MyStruct m&#39;</span>
+<span class="gp">... </span>    
+<span class="go">IS_PtrRef: True  VAR_DECL mp                  &#39;MyStruct *mp&#39;</span>
+<span class="go">IS_PtrRef: None  TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">IS_PtrRef: None  DECL_STMT                    &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="go">IS_PtrRef: True  VAR_DECL mr                  &#39;MyStruct &amp;mr(m&#39;</span>
+<span class="gp">...</span>
+<span class="go">IS_PtrRef: False VAR_DECL msp                 &#39;MSP msp&#39;</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.isdefinition">
+<tt class="descname">isdefinition</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.isdefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.isdefinition" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">):</span> <span class="k">print</span> <span class="s">&quot;IS_DEF:&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">isdefinition</span><span class="p">())</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span><span class="n">node</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treemap</span><span class="p">(</span><span class="n">visit</span><span class="p">)</span> 
+<span class="go">IS_DEF: False TRANSLATION_UNIT /Users/sheffl..test/types.cc     &#39;struct MyStru..\tMSP msp;\n}&#39;</span>
+<span class="go">IS_DEF: True  STRUCT_DECL MyStruct     &#39;struct MyStruct {}&#39;</span>
+<span class="go">IS_DEF: True  TYPEDEF_DECL MSP     &#39;typedef MyStruct MSP&#39;</span>
+<span class="go">IS_DEF: False TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">IS_DEF: True  FUNCTION_DECL test_types     &#39;void test_typ..\tMSP msp;\n}&#39;</span>
+<span class="go">IS_DEF: False COMPOUND_STMT      &#39;{\n\tint i;\n..\tMSP msp;\n}&#39;</span>
+<span class="go">IS_DEF: False DECL_STMT      &#39;int i;&#39;</span>
+<span class="go">IS_DEF: True  VAR_DECL i     &#39;int i&#39;</span>
+<span class="go">IS_DEF: False DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="go">IS_DEF: True  VAR_DECL ip     &#39;int *ip&#39;</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.namespace">
+<tt class="descname">namespace</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the full namespace of any-old-thing. you <em>can&#8217;t</em> do this with grep!</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">find another way to get namespace of arbitrary things, because this the parent-reference approach
+is really the only reason each node needs a wrapper. this is expensive</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_ns.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">visit</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">codeline</span><span class="p">()</span> <span class="o">+</span> <span class="p">(</span><span class="s">&quot; IN &quot;</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">namespace</span><span class="p">()</span> <span class="k">else</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">namespace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treeprint</span><span class="p">(</span><span class="n">visit</span><span class="p">)</span>     
+<span class="go">#...</span>
+<span class="go">| | | ns1::val1                     IN ns1                     ...</span>
+<span class="go">| | | ns1::ns2::val2                IN ns1::ns2                ...</span>
+<span class="go">| | | ns1::ns2::ns3::val3           IN ns1::ns2::ns3           ...</span>
+<span class="go">| | | ns1::ns2::ns3::ns4::val4      IN ns1::ns2::ns3::ns4      ...</span>
+<span class="go">| | | ns1::ns2::ns3::ns4::ns5::val5 IN ns1::ns2::ns3::ns4::ns5 ...</span>
+<span class="go">| | | using namespace ns1; ...</span>
+<span class="go">| | | using namespace ns2; ...</span>
+<span class="go">| | | using namespace ns3; ...</span>
+<span class="go">| | | val1           IN ns1</span>
+<span class="go">| | | val2           IN ns1::ns2</span>
+<span class="go">| | | val3           IN ns1::ns2::ns3</span>
+<span class="go">| | | ns4::val4      IN ns1::ns2::ns3::ns4      ...</span>
+<span class="go">| | | ns4::ns5::val5 IN ns1::ns2::ns3::ns4::ns5 ...</span>
+<span class="go">| | | using namespace ns4; ...</span>
+<span class="go">| | | using namespace ns5; ...</span>
+<span class="go">| | | val1 IN ns1</span>
+<span class="go">| | | val2 IN ns1::ns2</span>
+<span class="go">| | | val3 IN ns1::ns2::ns3</span>
+<span class="go">| | | val4 IN ns1::ns2::ns3::ns4</span>
+<span class="go">| | | val5 IN ns1::ns2::ns3::ns4::ns5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.parent">
+<tt class="descname">parent</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>parent node</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="willclang.LibclangWrap.Node.start">
+<tt class="descname">start</tt><em class="property"> = None</em><a class="headerlink" href="#willclang.LibclangWrap.Node.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>start position in sourcefile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.treemap">
+<tt class="descname">treemap</tt><big>(</big><em>func</em>, <em>allchild=False</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.treemap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.treemap" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">):</span> <span class="k">print</span> <span class="n">node</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;types.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treemap</span><span class="p">(</span><span class="n">visit</span><span class="p">)</span> 
+<span class="go">&lt;SourceLocation file None, line 0, column 0&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 1, column 8&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 3, column 18&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 3, column 9&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 5, column 6&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 5, column 19&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 6, column 2&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 6, column 6&gt;</span>
+<span class="go">&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 7, column 2&gt;</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.treeprint">
+<tt class="descname">treeprint</tt><big>(</big><em>func</em>, <em>allchild=False</em>, <em>depth=0</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.treeprint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.treeprint" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span> <span class="o">=</span> <span class="n">get_doctest_ast</span><span class="p">(</span><span class="s">&quot;test_ref.cc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ast</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">treeprint</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="s">&quot;FOO &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+<span class="go">FOO TRANSLATION_UNIT /Users/sheffl..t/test_ref.cc     &#39;#include &lt;tes..sfunc(ms);\n}&#39;</span>
+<span class="go">| FOO FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\n}&#39;</span>
+<span class="go">| | FOO PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="go">| | | FOO TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="go">| | FOO COMPOUND_STMT      &#39;{\n\tint i = msfunc(ms);\n}&#39;</span>
+<span class="go">| | | FOO DECL_STMT      &#39;int i = msfunc(ms);&#39;</span>
+<span class="go">| | | | FOO VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="go">| | | | | FOO CALL_EXPR msfunc     &#39;msfunc(ms)&#39;</span>
+<span class="go">| | | | | | FOO UNEXPOSED_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="go">| | | | | | | FOO DECL_REF_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="go">| | | | | | FOO DECL_REF_EXPR ms     &#39;ms&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="willclang.LibclangWrap.Node.update_srcchild">
+<tt class="descname">update_srcchild</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#Node.update_srcchild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.Node.update_srcchild" title="Permalink to this definition">¶</a></dt>
+<dd><p>updates list of same-srcfile children</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
+<dl class="exception">
+<dt id="willclang.LibclangWrap.ASTException">
+<em class="property">exception </em><tt class="descclassname">willclang.LibclangWrap.</tt><tt class="descname">ASTException</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="_modules/willclang/LibclangWrap.html#ASTException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#willclang.LibclangWrap.ASTException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Module Documentation</a><ul>
+<li><a class="reference internal" href="#module-willclang.util">Util</a></li>
+<li><a class="reference internal" href="#module-willclang.LibclangWrap">LibClangWrap</a></li>
+<li><a class="reference internal" href="#sourcefile">SourceFile</a><ul>
+<li><a class="reference internal" href="#rosettasourcefile">RosettaSourceFile</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ast">AST</a><ul>
+<li><a class="reference internal" href="#node">Node</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Intro</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tests.html"
+                        title="next chapter">Tests</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/code.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tests.html" title="Tests"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Intro"
+             >previous</a> |</li>
+        <li><a href="index.html">willclang 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Will Sheffler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

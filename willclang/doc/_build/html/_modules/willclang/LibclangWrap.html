@@ -1,0 +1,1168 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>willclang.LibclangWrap &mdash; willclang 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="willclang 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">willclang 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for willclang.LibclangWrap</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">re</span><span class="o">,</span><span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">clang.cindex</span> <span class="kn">import</span> <span class="n">Index</span><span class="p">,</span><span class="n">CursorKind</span><span class="p">,</span><span class="n">TypeKind</span>
+<span class="kn">from</span> <span class="nn">willclang.util</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">ERRLEVEL</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Ignored:&quot;</span><span class="p">,</span><span class="s">&quot;Note:&quot;</span><span class="p">,</span><span class="s">&quot;Warning:&quot;</span><span class="p">,</span><span class="s">&quot;Error:&quot;</span><span class="p">,</span><span class="s">&quot;Fatal:&quot;</span><span class="p">)</span>
+<span class="n">DECL_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="n">CursorKind</span><span class="o">.</span><span class="n">PARM_DECL</span><span class="p">,</span><span class="n">CursorKind</span><span class="o">.</span><span class="n">FIELD_DECL</span><span class="p">,</span><span class="n">CursorKind</span><span class="o">.</span><span class="n">VAR_DECL</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_doctest_file"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.get_doctest_file">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_file</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&gt;&gt;&gt; get_doctest_file(&quot;types.cc&quot;)      #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">	&#39;.../willclang/test/types.cc&#39;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;/test/&quot;</span><span class="o">+</span><span class="n">fn</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;can&#39;t find file: &quot;</span><span class="o">+</span><span class="n">fn</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">fn</span>
+</div>
+<div class="viewcode-block" id="get_doctest_ast"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.get_doctest_ast">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_ast</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&gt;&gt;&gt; print get_doctest_ast(&quot;types.cc&quot;)      #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">	TRANSLATION_UNIT /Users/sheffl..test/types.cc     &#39;struct MyStru..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">	| STRUCT_DECL MyStruct     &#39;struct MyStruct {}&#39;</span>
+<span class="sd">	| TYPEDEF_DECL MSP     &#39;typedef MyStruct MSP&#39;</span>
+<span class="sd">	| | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">	| FUNCTION_DECL test_types     &#39;void test_typ..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">	| | COMPOUND_STMT      &#39;{\\n\\tint i;\\n..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;int i;&#39;</span>
+<span class="sd">	| | | | VAR_DECL i     &#39;int i&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="sd">	| | | | VAR_DECL ip     &#39;int *ip&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;int &amp; ir(i);&#39;</span>
+<span class="sd">	| | | | VAR_DECL ir     &#39;int &amp; ir(i&#39;</span>
+<span class="sd">	| | | | | DECL_REF_EXPR i     &#39;i&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;MyStruct m;&#39;</span>
+<span class="sd">	| | | | VAR_DECL m     &#39;MyStruct m&#39;</span>
+<span class="sd">	| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">	| | | | | CALL_EXPR MyStruct     &#39;m&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;MyStruct *mp;&#39;</span>
+<span class="sd">	| | | | VAR_DECL mp     &#39;MyStruct *mp&#39;</span>
+<span class="sd">	| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="sd">	| | | | VAR_DECL mr     &#39;MyStruct &amp;mr(m&#39;</span>
+<span class="sd">	| | | | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">	| | | | | DECL_REF_EXPR m     &#39;m&#39;</span>
+<span class="sd">	| | | DECL_STMT      &#39;MSP msp;&#39;</span>
+<span class="sd">	| | | | VAR_DECL msp     &#39;MSP msp&#39;</span>
+<span class="sd">	| | | | | TYPE_REF MSP     &#39;MSP&#39;</span>
+<span class="sd">	| | | | | CALL_EXPR MyStruct     &#39;msp&#39;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">fn</span> <span class="o">=</span> <span class="n">get_doctest_file</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+	<span class="n">src</span> <span class="o">=</span> <span class="n">SourceFile</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">clangargs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;-I&quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">fn</span><span class="p">)])</span>
+	<span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">get_ast</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="print_raw_ast"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.print_raw_ast">[docs]</a><span class="k">def</span> <span class="nf">print_raw_ast</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_type_simple.cc&quot;)</span>
+<span class="sd">	&gt;&gt;&gt; print_raw_ast(ast.tu.cursor)		           #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">	TRANSLATION_UNIT ...</span>
+<span class="sd">	|  TYPEDEF_DECL __int128_t</span>
+<span class="sd">	|  TYPEDEF_DECL __uint128_t</span>
+<span class="sd">	|  STRUCT_DECL __va_list_tag</span>
+<span class="sd">	|  |  FIELD_DECL gp_offset</span>
+<span class="sd">	|  |  FIELD_DECL fp_offset</span>
+<span class="sd">	|  |  FIELD_DECL overflow_arg_area</span>
+<span class="sd">	|  |  FIELD_DECL reg_save_area</span>
+<span class="sd">	|  TYPEDEF_DECL __va_list_tag</span>
+<span class="sd">	|  |  STRUCT_DECL __va_list_tag</span>
+<span class="sd">	|  |  |  FIELD_DECL gp_offset</span>
+<span class="sd">	|  |  |  FIELD_DECL fp_offset</span>
+<span class="sd">	|  |  |  FIELD_DECL overflow_arg_area</span>
+<span class="sd">	|  |  |  FIELD_DECL reg_save_area</span>
+<span class="sd">	|  TYPEDEF_DECL __builtin_va_list</span>
+<span class="sd">	|  |  TYPE_REF __va_list_tag</span>
+<span class="sd">	|  |  INTEGER_LITERAL </span>
+<span class="sd">	|  VAR_DECL i</span>
+<span class="sd">	|  VAR_DECL ir</span>
+<span class="sd">	|  |  UNEXPOSED_EXPR i</span>
+<span class="sd">	|  |  |  DECL_REF_EXPR i</span>
+<span class="sd">	|  VAR_DECL ip</span>
+<span class="sd">	|  |  UNARY_OPERATOR </span>
+<span class="sd">	|  |  |  DECL_REF_EXPR i</span>
+<span class="sd">	|  VAR_DECL ic</span>
+<span class="sd">	|  |  UNEXPOSED_EXPR i</span>
+<span class="sd">	|  |  |  DECL_REF_EXPR i</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">print</span> <span class="s">&quot;|  &quot;</span><span class="o">*</span><span class="n">depth</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">kind</span><span class="p">)[</span><span class="mi">11</span><span class="p">:],</span>
+	<span class="k">print</span> <span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span> <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span> <span class="k">else</span> <span class="n">cursor</span><span class="o">.</span><span class="n">displayname</span>
+	<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
+		<span class="n">print_raw_ast</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="hashcursor"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.hashcursor">[docs]</a><span class="k">def</span> <span class="nf">hashcursor</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	get a unique string for a cursor</span>
+<span class="sd">	</span>
+<span class="sd">	&gt;&gt;&gt; n = get_doctest_ast(&quot;test.cc&quot;).root.srcchild[1]</span>
+<span class="sd">	&gt;&gt;&gt; hashcursor(n.cursor)</span>
+<span class="sd">	&#39;c:@ir&#39;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">get_usr</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ASTException"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.ASTException">[docs]</a><span class="k">class</span> <span class="nc">ASTException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+		
+
+</div>
+<span class="k">class</span> <span class="nc">Include</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;docstring for IncludeTree&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">namemap</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Include</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">provided_by</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">provided_by_transitive</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">namemap</span> <span class="o">=</span> <span class="n">namemap</span>
+	
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">printed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="o">+</span><span class="s">&quot;, provided by:&quot;</span>
+		<span class="n">tmp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">provided_by_transitive</span><span class="p">)</span>
+		<span class="n">tmp</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+			<span class="n">s</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">    &quot;</span><span class="o">+</span><span class="n">c</span><span class="o">.</span><span class="n">fname</span>
+		<span class="k">return</span> <span class="n">s</span>
+	
+	<span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">othr</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span><span class="n">othr</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+	
+
+
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Wrapper of libclang ast &#39;cursor&#39;&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ast</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ast</span> <span class="o">=</span> <span class="n">ast</span>       <span class="c">#: AST this node belongs to</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">cursor</span> <span class="c">#: clang cursor</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span> <span class="c">#: parent node</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="p">[]</span>       <span class="c">#: Nchild+1 bits of code interdigitated between code owned by children</span>
+		<span class="n">childiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CursorKind</span><span class="o">.</span><span class="n">TRANSLATION_UNIT</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+			<span class="c"># remove extra crap at beginning</span>
+			<span class="k">assert</span> <span class="n">childiter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">spelling</span> <span class="o">==</span> <span class="s">&quot;__int128_t&quot;</span>
+			<span class="k">assert</span> <span class="n">childiter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">spelling</span> <span class="o">==</span> <span class="s">&quot;__uint128_t&quot;</span>
+			<span class="k">assert</span> <span class="n">childiter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">spelling</span> <span class="o">==</span> <span class="s">&quot;__va_list_tag&quot;</span>
+			<span class="k">assert</span> <span class="n">childiter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">spelling</span> <span class="o">==</span> <span class="s">&quot;__va_list_tag&quot;</span>
+			<span class="k">assert</span> <span class="n">childiter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">spelling</span> <span class="o">==</span> <span class="s">&quot;__builtin_va_list&quot;</span>				
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>  <span class="c">#: filename of sourcefile this node came from</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">extent</span><span class="o">.</span><span class="n">start</span><span class="o">.</span><span class="n">offset</span> <span class="c">#: start position in sourcefile</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">end</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">extent</span><span class="o">.</span><span class="n">end</span><span class="o">.</span><span class="n">offset</span>   <span class="c">#: end position in sourcefile</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">get_definition</span><span class="p">():</span>
+		 	<span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">locmap</span><span class="p">[</span><span class="n">hashcursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">allchild</span> <span class="o">=</span> <span class="p">[</span><span class="n">Node</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">childiter</span><span class="p">]</span> <span class="c">#: all children</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_srcchild</span><span class="p">()</span>                                
+	
+<div class="viewcode-block" id="Node.update_srcchild"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.update_srcchild">[docs]</a>	<span class="k">def</span> <span class="nf">update_srcchild</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		updates list of same-srcfile children</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span> <span class="o">=</span> <span class="p">[]</span>                                    <span class="c">#: children from same srcfile</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">):</span> <span class="k">continue</span>
+			<span class="c">#if c.type().startswith(&quot;UNEXPOSED&quot;): continue</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">update_srcchild</span><span class="p">()</span>
+	</div>
+<div class="viewcode-block" id="Node.includes_used"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.includes_used">[docs]</a>	<span class="k">def</span> <span class="nf">includes_used</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		returns [sorted list of includes] {map of nodes which think they need a particular include}</span>
+<span class="sd">		attempt to find the headers which are actually needed for the core in the sourcefile</span>
+<span class="sd">		in the following example, many headers are included, but only something in tdef3.hh is actually used.</span>
+
+<span class="sd">		WORK IN PROGRESS!</span>
+
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_inc.cc&quot;)</span>
+
+<span class="sd">		print all headers:</span>
+
+<span class="sd">		&gt;&gt;&gt; for h in sorted(ast.all_headers): print h            #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		/.../willclang/test/include/class4.hh</span>
+<span class="sd">		/.../willclang/test/include/def1.hh</span>
+<span class="sd">		/.../willclang/test/include/def2.hh</span>
+<span class="sd">		/.../willclang/test/include/def3.hh</span>
+<span class="sd">		/.../willclang/test/include/def4.hh</span>
+<span class="sd">		/.../willclang/test/include/func1.hh</span>
+<span class="sd">		/.../willclang/test/include/func2.hh</span>
+<span class="sd">		/.../willclang/test/include/func3.hh</span>
+<span class="sd">		/.../willclang/test/include/func4.hh</span>
+<span class="sd">		/.../willclang/test/include/ns1.hh</span>
+<span class="sd">		...		</span>
+<span class="sd">		</span>
+<span class="sd">		but these aren&#39;t all needed, the ast it just this:</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; print ast.root.getstr()                               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT ...</span>
+<span class="sd">		| VAR_DECL i     &#39;tdef3 i&#39;</span>
+<span class="sd">		| | TYPE_REF tdef3     &#39;tdef3&#39;</span>
+<span class="sd">		</span>
+<span class="sd">		print only headers &quot;referred&quot; to in the actual source:</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; inc,inc_why = ast.root.includes_used()</span>
+<span class="sd">		&gt;&gt;&gt; for h in sorted(inc): print h                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/tdef3.hh</span>
+
+<span class="sd">		The node(s) which think they need a particular header are reported in the map &#39;inc_why&#39; (2nd return):</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; for h in inc:                                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		...    print h</span>
+<span class="sd">		...    for n in inc_why[h]:</span>
+<span class="sd">		...        print &quot;    needed by&quot;,n.getstr()</span>
+<span class="sd">		/.../willclang/test/include/tdef3.hh</span>
+<span class="sd">		    needed by TYPE_REF tdef3     &#39;tdef3&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">inc</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="n">incwhy</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">:</span>
+			<span class="n">td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+			<span class="k">if</span> <span class="n">td</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">get_canonical</span><span class="p">()</span><span class="o">.</span><span class="n">get_declaration</span><span class="p">()</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">:</span>
+				<span class="n">h</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">get_canonical</span><span class="p">()</span><span class="o">.</span><span class="n">get_declaration</span><span class="p">()</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">h</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span>
+					<span class="n">inc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+					<span class="n">incwhy</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">h</span><span class="p">,[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">td</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CursorKind</span><span class="o">.</span><span class="n">TYPE_REF</span><span class="p">:</span>
+				<span class="k">while</span> <span class="n">td</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CursorKind</span><span class="o">.</span><span class="n">TYPE_REF</span><span class="p">:</span>
+					<span class="n">td</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">get_definition</span><span class="p">()</span>
+					<span class="k">if</span> <span class="n">td</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">break</span>
+					<span class="n">chld</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">get_children</span><span class="p">())</span>
+					<span class="k">if</span> <span class="n">td</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">:</span> 
+						<span class="n">fn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+						<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">is_decl</span><span class="p">():</span>
+							<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">is_ptr_or_ref</span><span class="p">():</span>	<span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">switch_to_fwd</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+							<span class="k">else</span><span class="p">:</span>                           <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">switch_to_hh</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+							<span class="k">if</span> <span class="n">fn</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span>
+								<span class="n">inc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+								<span class="n">incwhy</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">fn</span><span class="p">,[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+					<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chld</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span> <span class="n">td</span> <span class="o">=</span> <span class="n">chld</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>					
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span>
+		 	<span class="n">cinc</span><span class="p">,</span><span class="n">cincwhy</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">includes_used</span><span class="p">()</span>
+			<span class="n">inc</span> <span class="o">|=</span> <span class="n">cinc</span>
+			<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">incwhy</span><span class="p">:</span> <span class="n">cincwhy</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,[])</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">incwhy</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+			<span class="n">incwhy</span> <span class="o">=</span> <span class="n">cincwhy</span>
+		<span class="k">return</span> <span class="n">inc</span><span class="p">,</span><span class="n">incwhy</span>
+	</div>
+	<span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+		<span class="n">rslt</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">displayname</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">name</span><span class="p">)):</span>
+			<span class="n">rslt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="n">rslt</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">rslt</span>
+	
+	<span class="k">def</span> <span class="nf">splitcode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">])</span>
+				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">)):</span>
+					<span class="c">#assert self.srcchild[i-1].end &lt;= self.srcchild[i].start</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">])</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">])</span>
+			<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">splitcode</span><span class="p">()</span>
+	
+<div class="viewcode-block" id="Node.isdefinition"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.isdefinition">[docs]</a>	<span class="k">def</span> <span class="nf">isdefinition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; def visit(node): print &quot;IS_DEF:&quot;,str(node.isdefinition()).ljust(5),node.getstr(recursive=False)</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;types.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treemap(visit) #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		IS_DEF: False TRANSLATION_UNIT /Users/sheffl..test/types.cc     &#39;struct MyStru..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">		IS_DEF: True  STRUCT_DECL MyStruct     &#39;struct MyStruct {}&#39;</span>
+<span class="sd">		IS_DEF: True  TYPEDEF_DECL MSP     &#39;typedef MyStruct MSP&#39;</span>
+<span class="sd">		IS_DEF: False TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">		IS_DEF: True  FUNCTION_DECL test_types     &#39;void test_typ..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">		IS_DEF: False COMPOUND_STMT      &#39;{\\n\\tint i;\\n..\\tMSP msp;\\n}&#39;</span>
+<span class="sd">		IS_DEF: False DECL_STMT      &#39;int i;&#39;</span>
+<span class="sd">		IS_DEF: True  VAR_DECL i     &#39;int i&#39;</span>
+<span class="sd">		IS_DEF: False DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="sd">		IS_DEF: True  VAR_DECL ip     &#39;int *ip&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">is_definition</span><span class="p">()</span>
+	</div>
+<div class="viewcode-block" id="Node.definition"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.definition">[docs]</a>	<span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_ref.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; print ast.root.getstr(recurseall=True)                     #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT /.../test_ref.cc     &#39;#include &lt;tes..sfunc(ms);\\n}&#39;</span>
+<span class="sd">		| STRUCT_DECL MyStruct</span>
+<span class="sd">		| STRUCT_DECL MyStruct</span>
+<span class="sd">		| | FIELD_DECL i</span>
+<span class="sd">		| FUNCTION_DECL msfunc</span>
+<span class="sd">		| | PARM_DECL ms</span>
+<span class="sd">		| | | TYPE_REF struct MyStruct</span>
+<span class="sd">		| | COMPOUND_STMT </span>
+<span class="sd">		| | | RETURN_STMT </span>
+<span class="sd">		| | | | UNEXPOSED_EXPR i</span>
+<span class="sd">		| | | | | MEMBER_REF_EXPR i</span>
+<span class="sd">		| | | | | | DECL_REF_EXPR ms</span>
+<span class="sd">		| FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\\n}&#39;</span>
+<span class="sd">		| | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="sd">		| | | TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">		| | COMPOUND_STMT      &#39;{\\n\\tint i = msfunc(ms);\\n}&#39;</span>
+<span class="sd">		| | | DECL_STMT      &#39;int i = msfunc(ms);&#39;</span>
+<span class="sd">		| | | | VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="sd">		| | | | | CALL_EXPR msfunc     &#39;msfunc(ms)&#39;</span>
+<span class="sd">		| | | | | | UNEXPOSED_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="sd">		| | | | | | | DECL_REF_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="sd">		| | | | | | DECL_REF_EXPR ms     &#39;ms&#39;</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treeprint(lambda n: n.definition(),allchild=True) #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		None</span>
+<span class="sd">		| STRUCT_DECL MyStruct</span>
+<span class="sd">		| STRUCT_DECL MyStruct</span>
+<span class="sd">		| | FIELD_DECL i</span>
+<span class="sd">		| FUNCTION_DECL msfunc</span>
+<span class="sd">		| | PARM_DECL ms</span>
+<span class="sd">		| | | STRUCT_DECL MyStruct</span>
+<span class="sd">		| | None</span>
+<span class="sd">		| | | None</span>
+<span class="sd">		| | | | FIELD_DECL i</span>
+<span class="sd">		| | | | | FIELD_DECL i</span>
+<span class="sd">		| | | | | | PARM_DECL ms</span>
+<span class="sd">		| FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\\n}&#39;</span>
+<span class="sd">		| | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="sd">		| | | STRUCT_DECL MyStruct</span>
+<span class="sd">		| | None</span>
+<span class="sd">		| | | None</span>
+<span class="sd">		| | | | VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="sd">		| | | | | FUNCTION_DECL msfunc</span>
+<span class="sd">		| | | | | | FUNCTION_DECL msfunc</span>
+<span class="sd">		| | | | | | | FUNCTION_DECL msfunc</span>
+<span class="sd">		| | | | | | PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">get_definition</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+		<span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">locmap</span><span class="p">[</span><span class="n">hashcursor</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+		<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+	</div>
+	<span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">kind</span><span class="p">)[</span><span class="mi">11</span><span class="p">:]</span>
+	
+<div class="viewcode-block" id="Node.children_of_type"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.children_of_type">[docs]</a>	<span class="k">def</span> <span class="nf">children_of_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">recurseall</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;types.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; for decl in ast.root.children_of_type(&quot;DECL_STMT&quot;):</span>
+<span class="sd">		...    print decl</span>
+<span class="sd">		DECL_STMT      &#39;int i;&#39;</span>
+<span class="sd">		DECL_STMT      &#39;int *ip;&#39;</span>
+<span class="sd">		DECL_STMT      &#39;int &amp; ir(i);&#39;</span>
+<span class="sd">		DECL_STMT      &#39;MyStruct m;&#39;</span>
+<span class="sd">		DECL_STMT      &#39;MyStruct *mp;&#39;</span>
+<span class="sd">		DECL_STMT      &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="sd">		DECL_STMT      &#39;MSP msp;&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">n</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span> <span class="k">else</span> <span class="nb">list</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allchild</span> <span class="k">if</span> <span class="n">recurseall</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">):</span>
+			<span class="n">n</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">children_of_type</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">n</span>
+	</div>
+<div class="viewcode-block" id="Node.namespace"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.namespace">[docs]</a>	<span class="k">def</span> <span class="nf">namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_ns.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; visit = lambda x: x.codeline() + (&quot; IN &quot; if x.namespace() else &quot;&quot;) + x.namespace()</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treeprint(visit)     #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		#...</span>
+<span class="sd">		| | | ns1::val1                     IN ns1                     ...</span>
+<span class="sd">		| | | ns1::ns2::val2                IN ns1::ns2                ...</span>
+<span class="sd">		| | | ns1::ns2::ns3::val3           IN ns1::ns2::ns3           ...</span>
+<span class="sd">		| | | ns1::ns2::ns3::ns4::val4      IN ns1::ns2::ns3::ns4      ...</span>
+<span class="sd">		| | | ns1::ns2::ns3::ns4::ns5::val5 IN ns1::ns2::ns3::ns4::ns5 ...</span>
+<span class="sd">		| | | using namespace ns1; ...</span>
+<span class="sd">		| | | using namespace ns2; ...</span>
+<span class="sd">		| | | using namespace ns3; ...</span>
+<span class="sd">		| | | val1           IN ns1</span>
+<span class="sd">		| | | val2           IN ns1::ns2</span>
+<span class="sd">		| | | val3           IN ns1::ns2::ns3</span>
+<span class="sd">		| | | ns4::val4      IN ns1::ns2::ns3::ns4      ...</span>
+<span class="sd">		| | | ns4::ns5::val5 IN ns1::ns2::ns3::ns4::ns5 ...</span>
+<span class="sd">		| | | using namespace ns4; ...</span>
+<span class="sd">		| | | using namespace ns5; ...</span>
+<span class="sd">		| | | val1 IN ns1</span>
+<span class="sd">		| | | val2 IN ns1::ns2</span>
+<span class="sd">		| | | val3 IN ns1::ns2::ns3</span>
+<span class="sd">		| | | val4 IN ns1::ns2::ns3::ns4</span>
+<span class="sd">		| | | val5 IN ns1::ns2::ns3::ns4::ns5</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+		<span class="n">ns</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;&quot;</span>
+		<span class="k">while</span> <span class="n">p</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">cursor</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CursorKind</span><span class="o">.</span><span class="n">NAMESPACE</span><span class="p">:</span>
+				<span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span> <span class="o">+</span> <span class="s">&quot;::&quot;</span> <span class="o">+</span> <span class="n">ns</span>
+			<span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parent</span>
+		<span class="k">return</span> <span class="n">ns</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="Node.codeline"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.codeline">[docs]</a>	<span class="k">def</span> <span class="nf">codeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; n = get_doctest_ast(&quot;types.cc&quot;).root.search(&quot;test_types&quot;)[0]</span>
+<span class="sd">		&gt;&gt;&gt; print n.codeline()</span>
+<span class="sd">		void test_types() {i ...| ct &amp;mr(m);MSP msp;}</span>
+<span class="sd">		&quot;&quot;&quot;</span>		
+		<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span>
+		<span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+		<span class="n">l</span> <span class="o">=</span> <span class="p">(</span><span class="n">code</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">50</span> <span class="k">else</span> <span class="n">code</span><span class="p">[:</span><span class="mi">22</span><span class="p">]</span><span class="o">+</span><span class="s">&quot; ...| &quot;</span><span class="o">+</span><span class="n">code</span><span class="p">[</span><span class="o">-</span><span class="mi">22</span><span class="p">:])</span>
+		<span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="Node.treemap"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.treemap">[docs]</a>	<span class="k">def</span> <span class="nf">treemap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">allchild</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; def visit(node): print node.cursor.location</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;types.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treemap(visit) #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		&lt;SourceLocation file None, line 0, column 0&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 1, column 8&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 3, column 18&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 3, column 9&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 5, column 6&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 5, column 19&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 6, column 2&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 6, column 6&gt;</span>
+<span class="sd">		&lt;SourceLocation file &#39;.../willclang/test/types.cc&#39;, line 7, column 2&gt;</span>
+<span class="sd">		...</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span> <span class="k">if</span> <span class="n">allchild</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+			<span class="n">c</span><span class="o">.</span><span class="n">treemap</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="Node.treeprint"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.treeprint">[docs]</a>	<span class="k">def</span> <span class="nf">treeprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">allchild</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_ref.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treeprint(lambda n: &quot;FOO &quot;+str(n))</span>
+<span class="sd">		FOO TRANSLATION_UNIT /Users/sheffl..t/test_ref.cc     &#39;#include &lt;tes..sfunc(ms);\\n}&#39;</span>
+<span class="sd">		| FOO FUNCTION_DECL func1     &#39;void func1(My..sfunc(ms);\\n}&#39;</span>
+<span class="sd">		| | FOO PARM_DECL ms     &#39;MyStruct &amp; ms&#39;</span>
+<span class="sd">		| | | FOO TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">		| | FOO COMPOUND_STMT      &#39;{\\n\\tint i = msfunc(ms);\\n}&#39;</span>
+<span class="sd">		| | | FOO DECL_STMT      &#39;int i = msfunc(ms);&#39;</span>
+<span class="sd">		| | | | FOO VAR_DECL i     &#39;int i = msfunc(ms)&#39;</span>
+<span class="sd">		| | | | | FOO CALL_EXPR msfunc     &#39;msfunc(ms)&#39;</span>
+<span class="sd">		| | | | | | FOO UNEXPOSED_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="sd">		| | | | | | | FOO DECL_REF_EXPR msfunc     &#39;msfunc&#39;</span>
+<span class="sd">		| | | | | | FOO DECL_REF_EXPR ms     &#39;ms&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>		
+		<span class="k">print</span> <span class="s">&quot;| &quot;</span><span class="o">*</span><span class="n">depth</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+		<span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span> <span class="k">if</span> <span class="n">allchild</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+			<span class="n">c</span><span class="o">.</span><span class="n">treeprint</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="n">allchild</span><span class="p">,</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="Node.is_decl"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.is_decl">[docs]</a>	<span class="k">def</span> <span class="nf">is_decl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; def visit(node): print &quot;IS_DECL:&quot;,node.is_decl(),node.getstr(recursive=False)</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;types.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treemap(visit) #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		IS_DECL: False TRANSLATION_UNIT ...test/types.cc     ...</span>
+<span class="sd">		IS_DECL: False STRUCT_DECL MyStruct       &#39;struct MyStruct {}&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		IS_DECL: False DECL_STMT                  &#39;int i;&#39;</span>
+<span class="sd">		IS_DECL: True  VAR_DECL i                 &#39;int i&#39;</span>
+<span class="sd">		IS_DECL: False DECL_STMT                  &#39;int *ip;&#39;</span>
+<span class="sd">		IS_DECL: True  VAR_DECL ip                &#39;int *ip&#39;</span>
+<span class="sd">		IS_DECL: False DECL_STMT                  &#39;int &amp; ir(i);&#39;</span>
+<span class="sd">		IS_DECL: True  VAR_DECL ir                &#39;int &amp; ir(i&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="n">DECL_TYPES</span>
+	</div>
+<div class="viewcode-block" id="Node.is_ptr_or_ref"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.is_ptr_or_ref">[docs]</a>	<span class="k">def</span> <span class="nf">is_ptr_or_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		returns True if this node is a reference or pointer type; </span>
+<span class="sd">		returns False if this node is a non-reference and non-pointer type;	</span>
+<span class="sd">		should return None if not a declaration</span>
+
+<span class="sd">		WORK IN PROGRESS</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; def visit(node): print &quot;IS_PtrRef:&quot;,node.is_ptr_or_ref(),node.getstr(recursive=False)</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;types.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.treemap(visit)                            #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		IS_PtrRef: None  TRANSLATION_UNIT ...test/types.cc ...</span>
+<span class="sd">		IS_PtrRef: None  STRUCT_DECL MyStruct         &#39;struct MyStruct {}&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		IS_PtrRef: False VAR_DECL i                   &#39;int i&#39;</span>
+<span class="sd">		IS_PtrRef: None  DECL_STMT                    &#39;int *ip;&#39;</span>
+<span class="sd">		IS_PtrRef: True  VAR_DECL ip                  &#39;int *ip&#39;</span>
+<span class="sd">		IS_PtrRef: None  DECL_STMT                    &#39;int &amp; ir(i);&#39;</span>
+<span class="sd">		IS_PtrRef: True  VAR_DECL ir                  &#39;int &amp; ir(i&#39;</span>
+<span class="sd">		IS_PtrRef: None  DECL_REF_EXPR i              &#39;i&#39;</span>
+<span class="sd">		IS_PtrRef: None  DECL_STMT                    &#39;MyStruct m;&#39;</span>
+<span class="sd">		IS_PtrRef: False VAR_DECL m                   &#39;MyStruct m&#39;</span>
+<span class="sd">		...	</span>
+<span class="sd">		IS_PtrRef: True  VAR_DECL mp                  &#39;MyStruct *mp&#39;</span>
+<span class="sd">		IS_PtrRef: None  TYPE_REF struct MyStruct     &#39;MyStruct&#39;</span>
+<span class="sd">		IS_PtrRef: None  DECL_STMT                    &#39;MyStruct &amp;mr(m);&#39;</span>
+<span class="sd">		IS_PtrRef: True  VAR_DECL mr                  &#39;MyStruct &amp;mr(m&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		IS_PtrRef: False VAR_DECL msp                 &#39;MSP msp&#39;</span>
+<span class="sd">		...</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_decl</span><span class="p">():</span> <span class="k">return</span> <span class="bp">None</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="n">CursorKind</span><span class="o">.</span><span class="n">TEMPLATE_REF</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">displayname</span><span class="o">==</span><span class="s">&quot;owning_ptr&quot;</span><span class="p">:</span>	<span class="k">return</span> <span class="bp">True</span>
+			<span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="n">CursorKind</span><span class="o">.</span><span class="n">TYPE_REF</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">displayname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;OP&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>
+				<span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">displayname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;OPs&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>
+				<span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">displayname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;CAP&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>				
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">get_canonical</span><span class="p">()</span><span class="o">.</span><span class="n">get_pointee</span><span class="p">()</span><span class="o">.</span><span class="n">kind</span><span class="o">!=</span><span class="n">TypeKind</span><span class="o">.</span><span class="n">INVALID</span>
+	</div>
+<div class="viewcode-block" id="Node.getstr"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.getstr">[docs]</a>	<span class="k">def</span> <span class="nf">getstr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">recurseall</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		make a printable string from a node</span>
+<span class="sd">		</span>
+<span class="sd">		say raw source is this (test2.hh contains ns1::i):</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test2.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; print ast.code                                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		#include &lt;test2.hh&gt;</span>
+<span class="sd">		using namespace ns1;</span>
+<span class="sd">		int j = ns1::i;</span>
+<span class="sd">		</span>
+<span class="sd">		raw ast looks like this:</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; print_raw_ast(ast.tu.cursor)                             #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT ...</span>
+<span class="sd">		|  NAMESPACE ns1</span>
+<span class="sd">		|  |  VAR_DECL i</span>
+<span class="sd">		|  USING_DIRECTIVE </span>
+<span class="sd">		|  |  NAMESPACE_REF ns1</span>
+<span class="sd">		|  VAR_DECL j</span>
+<span class="sd">		|  |  UNEXPOSED_EXPR i</span>
+<span class="sd">		|  |  |  DECL_REF_EXPR i</span>
+<span class="sd">		|  |  |  |  NAMESPACE_REF ns1</span>
+<span class="sd">		</span>
+<span class="sd">		by default prints only nodes from parsed src file:</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; print ast.root.getstr(recursive=True,recurseall=False)   #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT ...</span>
+<span class="sd">		| USING_DIRECTIVE      &#39;using namespace ns1&#39;</span>
+<span class="sd">		| | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="sd">		| VAR_DECL j     &#39;int j = ns1::i&#39;</span>
+<span class="sd">		| | UNEXPOSED_EXPR i     &#39;ns1::i&#39;</span>
+<span class="sd">		| | | DECL_REF_EXPR i     &#39;ns1::i&#39;</span>
+<span class="sd">		| | | | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="sd">		</span>
+<span class="sd">		with recursive=False prints only this node</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; print ast.root.getstr(recursive=False)                   #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT ...</span>
+<span class="sd">		</span>
+<span class="sd">		with recurseall, you get lines from included headers (NAMESPACE,VAR_DECL):</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; print ast.root.getstr(recursive=True,recurseall=True)    #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		TRANSLATION_UNIT ...</span>
+<span class="sd">		| NAMESPACE ns1</span>
+<span class="sd">		| | VAR_DECL i </span>
+<span class="sd">		| USING_DIRECTIVE      &#39;using namespace ns1&#39;</span>
+<span class="sd">		| | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="sd">		| VAR_DECL j     &#39;int j = ns1::i&#39;</span>
+<span class="sd">		| | UNEXPOSED_EXPR i     &#39;ns1::i&#39;</span>
+<span class="sd">		| | | DECL_REF_EXPR i     &#39;ns1::i&#39;</span>
+<span class="sd">		| | | | NAMESPACE_REF ns1     &#39;ns1&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s">&quot;| &quot;</span><span class="o">*</span><span class="n">depth</span>
+		<span class="n">subcode</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="c">#SOURCE UNREAD FOR: &quot;+self.fname</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span>
+			<span class="n">subcode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+			<span class="n">subcode</span> <span class="o">=</span> <span class="n">subcode</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">t&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subcode</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span> <span class="n">subcode</span> <span class="o">=</span> <span class="n">subcode</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;..&quot;</span><span class="o">+</span><span class="n">subcode</span><span class="p">[</span><span class="o">-</span><span class="mi">13</span><span class="p">:]</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">spelling</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">displayname</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;..&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">13</span><span class="p">:]</span>
+		<span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="n">name</span>
+		<span class="k">if</span> <span class="n">subcode</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s">&quot;     &#39;&quot;</span><span class="o">+</span><span class="n">subcode</span><span class="o">+</span><span class="s">&quot;&#39;&quot;</span>
+		<span class="c">#s += &#39;&quot;&#39;+self.codeline()+&#39;&quot; &#39;</span>
+		<span class="c">#s += str(self.code)+&quot; &quot;</span>
+		<span class="c">#s += os.path.basename(str(self.cursor.location.file))+&quot;:&quot;+str(self.cursor.extent.start.line)</span>
+		<span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+			<span class="n">chld</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span> <span class="k">if</span> <span class="n">recurseall</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span>
+			<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chld</span><span class="p">:</span>
+				<span class="n">s</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+				<span class="n">s</span> <span class="o">+=</span> <span class="n">c</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="p">,</span><span class="n">recurseall</span><span class="p">,</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">s</span>
+	</div>
+	<span class="k">def</span> <span class="nf">gencode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">SP</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">)):</span>
+				<span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">gencode</span><span class="p">(</span><span class="n">SP</span><span class="p">)</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">return</span> <span class="n">SP</span><span class="o">+</span><span class="n">s</span><span class="o">+</span><span class="n">SP</span>
+	
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+	
+<div class="viewcode-block" id="Node.check"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.Node.check">[docs]</a>	<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; node = get_doctest_ast(&quot;test.cc&quot;).root</span>
+<span class="sd">		&gt;&gt;&gt; node.check()</span>
+<span class="sd">		&gt;&gt;&gt; test = node</span>
+<span class="sd">		&gt;&gt;&gt; test.allchild[1].allchild[0].fname = &quot;NONSENSE&quot;</span>
+<span class="sd">		&gt;&gt;&gt; test.check(recursive=False)</span>
+<span class="sd">		&gt;&gt;&gt; test.check()</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		    assert self.fname == str(self.cursor.location.file)</span>
+<span class="sd">		AssertionError</span>
+<span class="sd">		&gt;&gt;&gt; test = node		</span>
+<span class="sd">		&gt;&gt;&gt; test.allchild[1].allchild = []</span>
+<span class="sd">		&gt;&gt;&gt; test.check()</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		    for c in self.srcchild: assert c in self.allchild</span>
+<span class="sd">		AssertionError</span>
+<span class="sd">		&gt;&gt;&gt; test.fname = str(node.cursor.location.file)</span>
+<span class="sd">		&gt;&gt;&gt; test.check()</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		    assert self.fname == self.ast.fname</span>
+<span class="sd">		AssertionError</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="o">==</span><span class="s">&quot;TRANSLATION_UNIT&quot;</span><span class="p">:</span>
+			<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">fname</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="k">assert</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">fname</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="k">assert</span> <span class="bp">self</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">allchild</span>
+			<span class="k">else</span><span class="p">:</span> <span class="k">assert</span> <span class="bp">self</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">srcchild</span>  <span class="ow">and</span> <span class="bp">self</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">allchild</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span> <span class="k">return</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allchild</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+	</div>
+	<span class="k">def</span> <span class="nf">checksrcoverlap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">fail</span> <span class="o">=</span> <span class="bp">False</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">c</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+				<span class="n">fail</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">)):</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
+				<span class="n">fail</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">if</span> <span class="n">fail</span><span class="p">:</span>
+			<span class="c"># print &quot;I&quot;,self.code[0]</span>
+			<span class="c"># for i in range(len(self.srcchild)):</span>
+			<span class="c"># 	print &quot;C&quot;,self.srcchild[i].gencode()</span>
+			<span class="c"># 	print &quot;I&quot;,self.code[i+1]</span>
+			<span class="c"># print</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="ow">in</span> <span class="n">CUSTOM_CGEN_TYPES</span><span class="p">:</span>
+				<span class="k">return</span>
+			<span class="n">CUSTOM_CGEN_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="p">)</span>
+			<span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span>
+			<span class="c"># print str(self.start).rjust(5)+&quot;-&quot;+str(self.end).ljust(5),self</span>
+			<span class="c"># for c in self.srcchild:</span>
+			<span class="c"># 	print str(c.start).rjust(5)+&quot;-&quot;+str(c.end).ljust(5),&quot;   &quot;,c</span>
+			<span class="c"># print</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcchild</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">checksrcoverlap</span><span class="p">()</span>
+		
+	
+
+</div>
+<div class="viewcode-block" id="AST"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST">[docs]</a><span class="k">class</span> <span class="nc">AST</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Wrapper of libclang ast</span>
+<span class="sd">	</span>
+<span class="sd">	&gt;&gt;&gt; ast = get_doctest_ast(&quot;test.cc&quot;)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">,</span><span class="n">clangargs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		recursively create Node wrapper around chang ast cursors</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">AST</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">clangargs</span><span class="p">:</span> <span class="n">clangargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">src</span> <span class="o">=</span> <span class="n">src</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">fname</span>
+		<span class="n">pform</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">locmap</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+		<span class="n">clang</span> <span class="o">=</span> <span class="n">Index</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+		<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+		<span class="n">wd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s">&quot;/Users/sheffler/hg/rosetta/rosetta_source/&quot;</span><span class="p">)</span>
+		<span class="n">ClangOpt_None</span> <span class="o">=</span> <span class="mh">0x0</span>
+		<span class="n">ClangOpt_DetailedPreprocessingRecord</span> <span class="o">=</span> <span class="mh">0x01</span>
+		<span class="n">ClangOpt_Incomplete</span> <span class="o">=</span> <span class="mh">0x02</span>
+		<span class="n">ClangOpt_PrecompiledPreamble</span> <span class="o">=</span> <span class="mh">0x04</span>
+		<span class="n">ClangOpt_CacheCompletionResults</span> <span class="o">=</span> <span class="mh">0x08</span>
+		<span class="n">ClangOpt_CXXPrecompiledPreamble</span> <span class="o">=</span> <span class="mh">0x10</span>
+		<span class="n">ClangOpt_CXXChainedPCH</span> <span class="o">=</span> <span class="mh">0x20</span>
+		<span class="n">ClangOpt_NestedMacroExpansions</span> <span class="o">=</span> <span class="mh">0x40</span>
+		<span class="c">#print &quot;libclang parsing&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tu</span> <span class="o">=</span> <span class="n">clang</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">clangargs</span><span class="p">,</span><span class="n">options</span><span class="o">=</span><span class="n">ClangOpt_None</span><span class="p">)</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+		<span class="c">#print &quot;parse done&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_tu</span><span class="p">()</span>
+		<span class="c">#print &quot;building wrapper tree&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+		<span class="c"># self.root.allchild = []</span>
+		<span class="c"># self.root.fname = self.fname</span>
+		<span class="c"># for x in self.tu.cursor.get_children():</span>
+		<span class="c"># 	# fn = str(x.location.file)</span>
+		<span class="c"># 	# if fn == self.fname or fn[0] != &quot;/&quot;:</span>
+		<span class="c"># 			self.root.allchild.append( Node(self,x,None) )</span>
+		<span class="c"># print self.root.allchild[5]</span>
+		<span class="c">#print &quot;update srcchild&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">update_srcchild</span><span class="p">()</span>
+		<span class="c">#print &quot;dividing code&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">splitcode</span><span class="p">()</span>
+		<span class="c">#print &quot;consistency check&quot;</span>
+		<span class="c">#self.root.check()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">all_headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_headers</span><span class="p">()</span>
+	
+<div class="viewcode-block" id="AST.get_all_headers"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.get_all_headers">[docs]</a>	<span class="k">def</span> <span class="nf">get_all_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_fwd.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; for i in sorted(ast.get_all_headers()): print i     #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.fwd.hh</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">include</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">get_includes</span><span class="p">())</span>
+	</div>
+<div class="viewcode-block" id="AST.check_tu"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.check_tu">[docs]</a>	<span class="k">def</span> <span class="nf">check_tu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		check for parse errors</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;bad.cc&quot;)               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		ASTException: &quot;Parse failed from Errors:...Error: no member named &#39;not_func&#39; in namespace &#39;foo::bar&#39; AT .../test/bad.cc line 13 col 38&quot;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">fail</span> <span class="o">=</span> <span class="bp">False</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">):</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ERRLEVEL</span><span class="p">[</span><span class="n">err</span><span class="o">.</span><span class="n">severity</span><span class="p">])</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">spelling</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; AT &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; line &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">line</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; col &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">column</span><span class="p">)</span>
+			<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+			<span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">severity</span> <span class="o">&gt;=</span> <span class="n">err</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span> <span class="n">fail</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">if</span> <span class="n">fail</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">ASTException</span><span class="p">(</span><span class="s">&quot;Parse failed from Errors: &quot;</span><span class="o">+</span><span class="n">msg</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="AST.check"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.check">[docs]</a>	<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		consistency check for ast</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;bad.cc&quot;)               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		ASTException: &quot;Parse failed from Errors:...Error: no member named &#39;not_func&#39; in namespace &#39;foo::bar&#39; AT .../test/bad.cc line 13 col 38&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; ast.root.allchild[2].fname = &quot;Nonsense&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast.check()</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		    assert self.fname == str(self.cursor.location.file)</span>
+<span class="sd">		AssertionError</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_tu</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+	</div>
+<div class="viewcode-block" id="AST.get_necessary_headers"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.get_necessary_headers">[docs]</a>	<span class="k">def</span> <span class="nf">get_necessary_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		wrapper for self.root.includes_used()</span>
+<span class="sd">		&quot;&quot;&quot;</span>	
+		<span class="n">inc</span><span class="p">,</span><span class="n">incwhy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">includes_used</span><span class="p">()</span>
+		<span class="k">return</span> <span class="n">inc</span><span class="p">,</span><span class="n">incwhy</span>
+	</div>
+<div class="viewcode-block" id="AST.transitive_include_gragh"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.transitive_include_gragh">[docs]</a>	<span class="k">def</span> <span class="nf">transitive_include_gragh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">inc_subset</span><span class="p">,</span><span class="n">inc_why</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		return {map of headers H to sets of all other headers which provide them}</span>
+<span class="sd">		find all headers which (possibly transitively) include a header H</span>
+<span class="sd">		</span>
+<span class="sd">		.. todo::</span>
+<span class="sd">			replace the lame Include class with a map or something, no reason for it to exist right now</span>
+<span class="sd">		</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_inc.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; necessary_headers = [str(x.include) for x in ast.tu.get_includes()]</span>
+<span class="sd">		&gt;&gt;&gt; inodes,inc_subset = ast.transitive_include_gragh(necessary_headers)</span>
+<span class="sd">		&gt;&gt;&gt; for k in sorted(inodes.keys()):          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		...    print os.path.basename(k)</span>
+<span class="sd">		...    for i in sorted(inodes[k]): print &quot;    provided by:&quot;,os.path.basename(i)</span>
+<span class="sd">		class1.hh</span>
+<span class="sd">		class2.hh</span>
+<span class="sd">		class3.hh</span>
+<span class="sd">		...</span>
+<span class="sd">		tdefchain1.hh</span>
+<span class="sd">		tdefchain2.hh</span>
+<span class="sd">		    provided by: tdefchain1.hh</span>
+<span class="sd">		tdefchain3.hh</span>
+<span class="sd">		    provided by: tdefchain1.hh</span>
+<span class="sd">		    provided by: tdefchain2.hh</span>
+<span class="sd">		tdefchain4.hh</span>
+<span class="sd">		    provided by: tdefchain1.hh</span>
+<span class="sd">		    provided by: tdefchain2.hh</span>
+<span class="sd">		    provided by: tdefchain3.hh</span>
+<span class="sd">		...</span>
+<span class="sd">		&gt;&gt;&gt; ast.transitive_include_gragh([&quot;imaginary_header.hh&quot;])    #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		Traceback (most recent call last):</span>
+<span class="sd">		ASTException: </span>
+<span class="sd">		&#39;Bad inc_subset! Include: imaginary_header.hh not referenced in clang parse of: /Users/sheffler/Dropbox/lib/willclang/test/test_inc.cc!&#39;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">inc_all</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tu</span><span class="o">.</span><span class="n">get_includes</span><span class="p">())</span>
+		<span class="n">abs2relpath</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="n">root</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="c"># inc_subset from ast parse may be leaf in include graph</span>
+		<span class="c"># so abs2relpath mapping not in all includes</span>
+		<span class="k">for</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">inc_all</span><span class="p">:</span>
+			<span class="n">dn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">include</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inc_subset</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">dn</span><span class="p">):</span>
+					<span class="n">abs2relpath</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dn</span>
+		<span class="c"># make name mapping</span>
+		<span class="k">for</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">inc_all</span><span class="p">:</span>
+			<span class="n">fn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+			<span class="n">incfn</span> <span class="o">=</span> <span class="n">fn</span>
+			<span class="k">for</span> <span class="n">cur2</span> <span class="ow">in</span> <span class="n">inc_all</span><span class="p">:</span>
+				<span class="n">dn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur2</span><span class="o">.</span><span class="n">include</span><span class="p">)</span>
+		 		<span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">dn</span><span class="p">):</span>
+					<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dn</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">incfn</span><span class="p">)</span> <span class="ow">and</span> <span class="n">incfn</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">dn</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s">&quot;/&quot;</span><span class="p">:</span>
+						<span class="n">incfn</span> <span class="o">=</span> <span class="n">dn</span>
+			<span class="n">abs2relpath</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span> <span class="o">=</span> <span class="n">incfn</span>
+	 	<span class="c"># for k in sorted(abs2relpath.keys()):</span>
+	 	<span class="c"># 	 	print k.ljust(100),abs2relpath[k]</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">inc_subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">abs2relpath</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inc_subset</span><span class="p">]</span>
+		<span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Bad inc_subset! Include: &quot;</span><span class="o">+</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="o">+</span><span class="s">&quot; not referenced in clang parse of: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="o">+</span><span class="s">&quot;!&quot;</span>
+			<span class="k">if</span> <span class="n">inc_why</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span> <span class="ow">in</span> <span class="n">inc_why</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">include deemed necessary because:&quot;</span>
+				<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">inc_why</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">]:</span>
+					<span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">    &quot;</span><span class="o">+</span><span class="n">n</span><span class="o">.</span><span class="n">fname</span><span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">line</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="n">n</span><span class="o">.</span><span class="n">getstr</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="n">ASTException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+		<span class="n">t</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="n">inodes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>	
+		<span class="c"># incrs = set()</span>
+		<span class="k">for</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">inc_all</span><span class="p">:</span>
+			<span class="n">incer</span> <span class="o">=</span> <span class="n">abs2relpath</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">file</span><span class="p">)]</span>
+			<span class="n">incee</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">include</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">incer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inodes</span><span class="p">:</span> <span class="n">inodes</span><span class="p">[</span><span class="n">incer</span><span class="p">]</span> <span class="o">=</span> <span class="n">Include</span><span class="p">(</span><span class="n">incer</span><span class="p">,</span><span class="n">abs2relpath</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">incee</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inodes</span><span class="p">:</span> <span class="n">inodes</span><span class="p">[</span><span class="n">incee</span><span class="p">]</span> <span class="o">=</span> <span class="n">Include</span><span class="p">(</span><span class="n">incee</span><span class="p">,</span><span class="n">abs2relpath</span><span class="p">)</span>
+			<span class="c">#print &quot;IOAERSN&quot;,incer,incee</span>
+			<span class="n">inodes</span><span class="p">[</span><span class="n">incee</span><span class="p">]</span><span class="o">.</span><span class="n">provided_by</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">inodes</span><span class="p">[</span><span class="n">incer</span><span class="p">])</span>
+		<span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">inodes</span><span class="p">:</span>
+			<span class="n">inodes</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span><span class="o">.</span><span class="n">provided_by_transitive</span> <span class="o">|=</span> <span class="n">inodes</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span><span class="o">.</span><span class="n">provided_by</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inodes</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">)):</span> <span class="c"># logN times -- like matrix mult to get X^N</span>
+			<span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">inodes</span><span class="p">:</span>
+				<span class="n">tmp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+				<span class="k">for</span> <span class="n">inode2</span> <span class="ow">in</span> <span class="n">inodes</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span><span class="o">.</span><span class="n">provided_by_transitive</span><span class="p">:</span>
+				 	<span class="n">tmp</span> <span class="o">|=</span> <span class="n">inode2</span><span class="o">.</span><span class="n">provided_by_transitive</span>
+				<span class="n">inodes</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span><span class="o">.</span><span class="n">provided_by_transitive</span> <span class="o">|=</span> <span class="n">tmp</span>
+		<span class="n">inodes_nes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">inodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">inc_subset</span><span class="p">:</span>
+				<span class="n">inodes_nes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">fname</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">provided_by_transitive</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">fname</span> <span class="ow">in</span> <span class="n">inc_subset</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">inodes_nes</span><span class="p">,</span><span class="n">inc_subset</span>
+	</div>
+<div class="viewcode-block" id="AST.switch_to_fwd"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.switch_to_fwd">[docs]</a>	<span class="k">def</span> <span class="nf">switch_to_fwd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fn</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_fwd.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; for h in sorted(ast.all_headers): print h                       #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.fwd.hh</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		&gt;&gt;&gt; for h in sorted(ast.all_headers): print ast.switch_to_fwd(h)	  #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.fwd.hh</span>
+<span class="sd">		/.../willclang/test/include/class1.fwd.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.fwd.hh&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.hh&quot;</span><span class="p">):</span>
+			<span class="n">tmp</span> <span class="o">=</span> <span class="n">fn</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;.fwd.hh&quot;</span>
+			<span class="k">if</span> <span class="n">tmp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_headers</span><span class="p">:</span> <span class="k">return</span> <span class="n">tmp</span>
+		<span class="k">return</span> <span class="n">fn</span>
+	</div>
+<div class="viewcode-block" id="AST.switch_to_hh"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.AST.switch_to_hh">[docs]</a>	<span class="k">def</span> <span class="nf">switch_to_hh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fn</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_fwd.cc&quot;)</span>
+<span class="sd">		&gt;&gt;&gt; for h in sorted(ast.all_headers): print h		                    #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.fwd.hh</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		&gt;&gt;&gt; for h in sorted(ast.all_headers): print ast.switch_to_hh(h)	   #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class1.hh</span>
+<span class="sd">		/.../willclang/test/include/class2.hh</span>
+<span class="sd">		/.../willclang/test/include/class3.hh</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.fwd.hh&quot;</span><span class="p">):</span>
+			<span class="n">tmp</span> <span class="o">=</span> <span class="n">fn</span><span class="p">[:</span><span class="o">-</span><span class="mi">7</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;.hh&quot;</span>
+			<span class="k">if</span> <span class="n">tmp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_headers</span><span class="p">:</span> <span class="k">return</span> <span class="n">tmp</span>
+		<span class="k">return</span> <span class="n">fn</span>
+	</div>
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">getstr</span><span class="p">()</span>
+
+		</div>
+<div class="viewcode-block" id="SourceFile"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.SourceFile">[docs]</a><span class="k">class</span> <span class="nc">SourceFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	SourceFile holds an individual C++ sourcefile</span>
+<span class="sd">	this should eventually include non-ast locic to do things fast, if possible</span>
+<span class="sd">	resort to ast only if necessary</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">clangargs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">SourceFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+		<span class="c"># self.code = None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ast</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">clangargs</span><span class="p">:</span> <span class="n">clangargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">clangargs</span> <span class="o">=</span> <span class="n">clangargs</span>
+	
+	<span class="c"># def get_code(self):</span>
+		<span class="c"># if not self.code:</span>
+		<span class="c"># 	with open(fname) as o:</span>
+		<span class="c"># 		self.code = o.read()</span>
+  
+	<span class="k">def</span> <span class="nf">get_ast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">ast</span> <span class="o">=</span> <span class="n">AST</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">clangargs</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span>
+	
+
+</div>
+<div class="viewcode-block" id="RosettaSourceFile"><a class="viewcode-back" href="../../code.html#willclang.LibclangWrap.RosettaSourceFile">[docs]</a><span class="k">class</span> <span class="nc">RosettaSourceFile</span><span class="p">(</span><span class="n">SourceFile</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Same as SourceFile, except sepcifies rosetta includes for clang&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+		<span class="n">clangargs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;-Isrc&quot;</span><span class="p">,</span><span class="s">&quot;-Iexternal/include&quot;</span><span class="p">,</span><span class="s">&quot;-Iexternal/dbio&quot;</span><span class="p">,</span><span class="s">&quot;-Isrc/platform/&quot;</span><span class="o">+</span><span class="n">rosetta_platform</span><span class="p">()]</span>		
+		<span class="nb">super</span><span class="p">(</span><span class="n">RosettaSourceFile</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">clangargs</span><span class="p">)</span>
+	
+
+</div>
+<span class="k">def</span> <span class="nf">setup_extra_doctests</span><span class="p">():</span>
+	<span class="n">TEST</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+	<span class="n">TEST</span><span class="p">[</span><span class="s">&quot;test_inc_all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">	&gt;&gt;&gt; ast = get_doctest_ast(&quot;test_inc.cc&quot;)</span>
+<span class="s">	&gt;&gt;&gt; print ast.root.getstr(recurseall=True)         #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE</span>
+<span class="s">	TRANSLATION_UNIT ...</span>
+<span class="s">	| STRUCT_DECL class1</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| STRUCT_DECL class2</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| STRUCT_DECL class3</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| STRUCT_DECL class4</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| VAR_DECL def1</span>
+<span class="s">	| | INTEGER_LITERAL </span>
+<span class="s">	| VAR_DECL def2</span>
+<span class="s">	| VAR_DECL def3</span>
+<span class="s">	| | INTEGER_LITERAL </span>
+<span class="s">	| VAR_DECL def4</span>
+<span class="s">	| | INTEGER_LITERAL </span>
+<span class="s">	| FUNCTION_DECL func1</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | UNEXPOSED_EXPR t</span>
+<span class="s">	| | | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_DECL func2</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | UNEXPOSED_EXPR t</span>
+<span class="s">	| | | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_DECL func3</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | UNEXPOSED_EXPR t</span>
+<span class="s">	| | | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_DECL func4</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | UNEXPOSED_EXPR t</span>
+<span class="s">	| | | | | DECL_REF_EXPR t</span>
+<span class="s">	| NAMESPACE ns1</span>
+<span class="s">	| | VAR_DECL i</span>
+<span class="s">	| NAMESPACE ns2</span>
+<span class="s">	| | VAR_DECL i</span>
+<span class="s">	| NAMESPACE ns3</span>
+<span class="s">	| | VAR_DECL i</span>
+<span class="s">	| NAMESPACE ns4</span>
+<span class="s">	| | VAR_DECL i</span>
+<span class="s">	| CLASS_TEMPLATE tclass1</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| CLASS_TEMPLATE tclass2</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| CLASS_TEMPLATE tclass3</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| CLASS_TEMPLATE tclass4</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | FIELD_DECL i</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| TYPEDEF_DECL tdef1</span>
+<span class="s">	| TYPEDEF_DECL tdef2</span>
+<span class="s">	| TYPEDEF_DECL tdef3</span>
+<span class="s">	| TYPEDEF_DECL tdef4</span>
+<span class="s">	| TYPEDEF_DECL tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain4</span>
+<span class="s">	| TYPEDEF_DECL tdefchain3</span>
+<span class="s">	| | TYPE_REF tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain3</span>
+<span class="s">	| TYPEDEF_DECL tdefchain2</span>
+<span class="s">	| | TYPE_REF tdefchain3</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain2</span>
+<span class="s">	| TYPEDEF_DECL tdefchain1</span>
+<span class="s">	| | TYPE_REF tdefchain2</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain1</span>
+<span class="s">	| TYPEDEF_DECL tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain4</span>
+<span class="s">	| TYPEDEF_DECL tdefchain3</span>
+<span class="s">	| | TYPE_REF tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain3</span>
+<span class="s">	| TYPEDEF_DECL tdefchain2</span>
+<span class="s">	| | TYPE_REF tdefchain3</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain2</span>
+<span class="s">	| TYPEDEF_DECL tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain4</span>
+<span class="s">	| TYPEDEF_DECL tdefchain3</span>
+<span class="s">	| | TYPE_REF tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain3</span>
+<span class="s">	| TYPEDEF_DECL tdefchain4</span>
+<span class="s">	| TYPEDEF_DECL tdefnochain4</span>
+<span class="s">	| FUNCTION_TEMPLATE tfunc1</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_TEMPLATE tfunc2</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_TEMPLATE tfunc3</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | DECL_REF_EXPR t</span>
+<span class="s">	| FUNCTION_TEMPLATE tfunc4</span>
+<span class="s">	| | TEMPLATE_TYPE_PARAMETER T</span>
+<span class="s">	| | PARM_DECL t</span>
+<span class="s">	| | | TYPE_REF T</span>
+<span class="s">	| | COMPOUND_STMT </span>
+<span class="s">	| | | RETURN_STMT </span>
+<span class="s">	| | | | DECL_REF_EXPR t    </span>
+<span class="s">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">TEST</span>
+
+<span class="n">__TEST__</span> <span class="o">=</span> <span class="n">setup_extra_doctests</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="c"># ast = get_doctest_ast(&quot;template.cc&quot;)</span>
+	<span class="c"># print_raw_ast(ast.root.cursor)</span>
+	<span class="c"># inc_nes = ast.src.get_necessary_headers()</span>
+	<span class="c"># for i in inc_nes: print &quot;PREPRUNE&quot;,i	</span>
+<span class="c">#	print ast.root.getstr(recursive=True)</span>
+<span class="c">#	print ast.root.srcchild[-1].is_ptr_or_ref()</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="k">print</span> <span class="s">&quot;running doctests&quot;</span>
+	<span class="n">tr</span> <span class="o">=</span> <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
+	<span class="k">print</span> <span class="s">&quot;tests passed:&quot;</span><span class="p">,</span><span class="n">tr</span><span class="o">.</span><span class="n">attempted</span><span class="o">-</span><span class="n">tr</span><span class="o">.</span><span class="n">failed</span>
+	<span class="k">print</span> <span class="s">&quot;tests failed:&quot;</span><span class="p">,</span><span class="n">tr</span><span class="o">.</span><span class="n">failed</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">willclang 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Will Sheffler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

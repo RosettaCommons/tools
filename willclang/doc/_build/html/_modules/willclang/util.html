@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>willclang.util &mdash; willclang 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="willclang 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">willclang 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for willclang.util</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">re</span><span class="o">,</span><span class="nn">platform</span>
+
+<span class="n">ERRLEVEL</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Ignored:&quot;</span><span class="p">,</span><span class="s">&quot;Note:&quot;</span><span class="p">,</span><span class="s">&quot;Warning:&quot;</span><span class="p">,</span><span class="s">&quot;Error:&quot;</span><span class="p">,</span><span class="s">&quot;Fatal:&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">rosetta_platform</span><span class="p">():</span>
+	<span class="k">if</span>   <span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;Darwin&quot;</span><span class="p">):</span> <span class="n">pform</span> <span class="o">=</span> <span class="s">&quot;macos&quot;</span>
+	<span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;Linux&quot;</span> <span class="p">):</span> <span class="n">pform</span> <span class="o">=</span> <span class="s">&quot;linux&quot;</span>
+	<span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ASTException</span><span class="p">(</span><span class="s">&quot;AST doesn&#39;t recognize platform: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">())</span>
+	<span class="k">return</span> <span class="n">pform</span>
+
+
+<div class="viewcode-block" id="rospath"><a class="viewcode-back" href="../../code.html#willclang.util.rospath">[docs]</a><span class="k">def</span> <span class="nf">rospath</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	get path to rosetta_source</span>
+<span class="sd">	</span>
+<span class="sd">	&gt;&gt;&gt; fname = &quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/scoring&quot;</span>
+<span class="sd">	&gt;&gt;&gt; rospath(fname,checkfs=False)</span>
+<span class="sd">	&#39;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source&#39;</span>
+<span class="sd">	&gt;&gt;&gt; fname == rospath(fname,checkfs=False)+&quot;/&quot;+rosbase(fname,checkfs=False)</span>
+<span class="sd">	True</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+	<span class="n">mark</span> <span class="o">=</span> <span class="s">&quot;rosetta_source/src&quot;</span>
+	<span class="k">assert</span> <span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+	<span class="n">r</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[:</span><span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>	
+	<span class="k">return</span> <span class="n">r</span>
+
+</div>
+<div class="viewcode-block" id="rosbase"><a class="viewcode-back" href="../../code.html#willclang.util.rosbase">[docs]</a><span class="k">def</span> <span class="nf">rosbase</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	get the rosetta-relative path</span>
+<span class="sd">	</span>
+<span class="sd">	&gt;&gt;&gt; fname = &quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/scoring/methods&quot;</span>
+<span class="sd">	&gt;&gt;&gt; rosbase(fname,checkfs=False)</span>
+<span class="sd">	&#39;src/core/scoring/methods&#39;</span>
+<span class="sd">	&gt;&gt;&gt; fname == rospath(fname,checkfs=False)+&quot;/&quot;+rosbase(fname,checkfs=False)</span>
+<span class="sd">	True</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="n">mark</span> <span class="o">=</span> <span class="s">&quot;rosetta_source/src&quot;</span>
+	<span class="k">assert</span> <span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+	<span class="k">return</span> <span class="n">fname</span><span class="p">[</span><span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">:]</span>
+
+</div>
+<div class="viewcode-block" id="dir2ns"><a class="viewcode-back" href="../../code.html#willclang.util.dir2ns">[docs]</a><span class="k">def</span> <span class="nf">dir2ns</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">checkfs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	get namespace corresponding to dir</span>
+<span class="sd">	</span>
+<span class="sd">	&gt;&gt;&gt; fname = &quot;/SOME_DIRECTORY/SOME_OTHER_DIR/rosetta_source/src/core/pack/task&quot;</span>
+<span class="sd">	&gt;&gt;&gt; dir2ns(fname,checkfs=False)</span>
+<span class="sd">	&#39;core::pack::task&#39;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">checkfs</span><span class="p">:</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+	<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+	<span class="n">mark</span> <span class="o">=</span> <span class="s">&quot;rosetta_source/src&quot;</span>
+	<span class="k">assert</span> <span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+	<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+	<span class="k">return</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">,</span><span class="s">&quot;::&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="swapfwdhh"><a class="viewcode-back" href="../../code.html#willclang.util.swapfwdhh">[docs]</a><span class="k">def</span> <span class="nf">swapfwdhh</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&gt;&gt;&gt; print swapfwdhh(&quot;test.hh&quot;)</span>
+<span class="sd">	test.fwd.hh</span>
+<span class="sd">	&gt;&gt;&gt; print swapfwdhh(&quot;t/e/s/t.fwd.hh&quot;)</span>
+<span class="sd">	t/e/s/t.hh</span>
+<span class="sd">	&gt;&gt;&gt; print swapfwdhh(&quot;test.cc&quot;)</span>
+<span class="sd">	test.cc</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.fwd.hh&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="n">fn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;.fwd.hh&quot;</span><span class="p">,</span><span class="s">&quot;.hh&quot;</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.hh&quot;</span><span class="p">):</span>   <span class="k">return</span> <span class="n">fn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;.hh&quot;</span><span class="p">,</span><span class="s">&quot;.fwd.hh&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">fn</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">tr</span> <span class="o">=</span> <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>	
+	<span class="k">print</span> <span class="s">&quot;tests passed:&quot;</span><span class="p">,</span><span class="n">tr</span><span class="o">.</span><span class="n">attempted</span><span class="o">-</span><span class="n">tr</span><span class="o">.</span><span class="n">failed</span>
+	<span class="k">print</span> <span class="s">&quot;tests failed:&quot;</span><span class="p">,</span><span class="n">tr</span><span class="o">.</span><span class="n">failed</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">willclang 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Will Sheffler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

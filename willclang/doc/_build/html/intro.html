@@ -1,0 +1,183 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Intro &mdash; willclang 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="willclang 0.1 documentation" href="index.html" />
+    <link rel="next" title="Module Documentation" href="code.html" />
+    <link rel="prev" title="Welcome to willclang’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Module Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to willclang’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">willclang 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="intro">
+<h1>Intro<a class="headerlink" href="#intro" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>I am tired of writing complicated regular expressions to try and automate C++ refactoring. There is no fundamental reason we have to spend hundreds of man-hours fixing compile errors at XRW. It’s time for some C++ parsing real tools.</p>
+<p>This is an attempt at that based on the clang compiler. ATM, it&#8217;s a bit slow compared to compiling (or grep), but with libclang, it will (eventually) be possible to do refactoring operations <em>completely</em> and <em>correctly</em> in a turn-key fashion.</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">improve speed... removing necessity for parent links and locmap will help</p>
+</div>
+</div>
+<div class="section" id="what-already-works">
+<h2>What already works<a class="headerlink" href="#what-already-works" title="Permalink to this headline">¶</a></h2>
+<p>You can</p>
+<ul class="simple">
+<li>completely parse C++ source files</li>
+<li>get the full namespace of anything, regardless of context</li>
+<li>get the headers that a file <em>really</em> needs</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="libclang">
+<h3>Libclang<a class="headerlink" href="#libclang" title="Permalink to this headline">¶</a></h3>
+<p>I got the following from directions here: <a class="reference external" href="http://clang.llvm.org/get_started.html#build">http://clang.llvm.org/get_started.html#build</a></p>
+<p>mkdir libclang</p>
+<p>cd libclang/</p>
+<p>svn co <a class="reference external" href="http://llvm.org/svn/llvm-project/llvm/trunk">http://llvm.org/svn/llvm-project/llvm/trunk</a> llvm</p>
+<p>cd llvm/tools/</p>
+<p>svn co <a class="reference external" href="http://llvm.org/svn/llvm-project/cfe/trunk">http://llvm.org/svn/llvm-project/cfe/trunk</a> clang</p>
+<p>cd ../..</p>
+<p>mkdir build</p>
+<p>cd build/</p>
+<p>../llvm/configure</p>
+<p>make -j8 ENABLE_OPTIMIZED=1</p>
+<p># clang is here: build/Release+Asserts/bin/clang++</p>
+<p># libclang is here: build/Release+Asserts/lib</p>
+<p>export LD_LIBRARY_PATH=/PATH_TO_LIBCLANG/build/Release+Asserts/lib:LD_LIBRARY_PATH</p>
+<p>export PYTHONPATH=/PATH_TO_LIBCLANG/llvm/tools/clang/bindings/python:PYTHONPATH</p>
+</div>
+<div class="section" id="sphinx">
+<h3>Sphinx<a class="headerlink" href="#sphinx" title="Permalink to this headline">¶</a></h3>
+<p>for documentation, you need sphinx, which is the defacto python doc tool.</p>
+<p>sudo pip install sphinx</p>
+<p>or, if you don&#8217;t have pip &#8216;sudo easy_install sphinx&#8217;, but you should really really get pip (sudo easy_install pip will do it)</p>
+<p>anything checked in really should have up-to-date docs, but you can rebuild docs with:</p>
+<p>cd doc; make html</p>
+</div>
+<div class="section" id="tbd-unittest-framework">
+<h3>TBD unittest framework?<a class="headerlink" href="#tbd-unittest-framework" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Intro</a><ul>
+<li><a class="reference internal" href="#motivation">Motivation</a></li>
+<li><a class="reference internal" href="#what-already-works">What already works</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#libclang">Libclang</a></li>
+<li><a class="reference internal" href="#sphinx">Sphinx</a></li>
+<li><a class="reference internal" href="#tbd-unittest-framework">TBD unittest framework?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to willclang&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="code.html"
+                        title="next chapter">Module Documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Module Documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to willclang’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">willclang 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Will Sheffler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -671,7 +671,7 @@ class AST(object):
 	
 	>>> ast = get_doctest_ast("test.cc")
 	"""
-	def __init__(self,src,clangargs=None):
+	def __init__(self,src,clangargs=None,clangwd=None):
 		"""
 		recursively create Node wrapper around chang ast cursors
 		"""
@@ -686,7 +686,8 @@ class AST(object):
 		with open(self.src.fname) as o:
 			self.code = o.read()
 		wd = os.getcwd()
-		os.chdir("/Users/sheffler/hg/rosetta/rosetta_source/")
+		if clangwd:
+			os.chdir(clangwd)
 		ClangOpt_None = 0x0
 		ClangOpt_DetailedPreprocessingRecord = 0x01
 		ClangOpt_Incomplete = 0x02
@@ -906,13 +907,14 @@ class SourceFile(object):
 	this should eventually include non-ast locic to do things fast, if possible
 	resort to ast only if necessary
 	"""
-	def __init__(self,fname,clangargs=None):
+	def __init__(self,fname,clangargs=None,clangwd=None):
 		super(SourceFile, self).__init__()
 		self.fname = os.path.abspath(fname)
 		# self.code = None
 		self.ast = None
 		if not clangargs: clangargs = list()
 		self.clangargs = clangargs
+		self.clangwd = clangwd
 	
 	# def get_code(self):
 		# if not self.code:
@@ -921,7 +923,7 @@ class SourceFile(object):
   
 	def get_ast(self):
 		if not self.ast:
-			self.ast = AST(self,self.clangargs)
+			self.ast = AST(self,self.clangargs,self.clangwd)
 		return self.ast
 	
 
@@ -930,7 +932,10 @@ class RosettaSourceFile(SourceFile):
 	"""Same as SourceFile, except sepcifies rosetta includes for clang"""
 	def __init__(self, fname):
 		clangargs = ["-Isrc","-Iexternal/include","-Iexternal/dbio","-Isrc/platform/"+rosetta_platform()]		
-		super(RosettaSourceFile,self).__init__(fname,clangargs)
+		clangwd="/Users/sheffler/svn/rosetta/rosetta_source/"
+		if not os.path.exists(clangwd):
+			clangwd = None
+		super(RosettaSourceFile,self).__init__(fname,clangargs,clangwd)
 	
 
 

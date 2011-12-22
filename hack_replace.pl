@@ -7,8 +7,14 @@ use File::Find;
 
 # hacky script for performing modifications to source files
 
+#usage: edit the script and copy it to rosetta_source/src, then "perl hack_replace.pl".  The mr function lets you specifcy something, but I don't know what.
+#to edit the script, first comment on/off the functions you want out of the top make_transformer function.  You'll likely want replace_call and replace_header for XRW-type work.
+#next, edit the guts of the functions you'll use to fix the relevant search-and-replace strings.
+
+
+#In
 my $func_ref = make_transformer(
-    \&mr,
+    #\&mr,
 				#\&fix_montecarlo_references,
 				#\&fix_parsemytag,
 				#\&protocol_to_protocols,
@@ -18,8 +24,8 @@ my $func_ref = make_transformer(
 				#\&asfd_to_bm,
 				#\&basic_moves_to_simple_moves,
 				#\&remove_trailing_whitespace,
-				#\&replace_call,
-				#\&replace_header,
+				\&replace_call,
+				\&replace_header,
 );
 
 find( { wanted => $func_ref }, '.' );
@@ -35,7 +41,7 @@ sub mr {
 }
 
 
-
+#this will change header paths, here from old core/io/pdb/file_data.fwd.hh to core/import_pose/file_data.fwd.hh
 sub replace_header {
 	my $line = shift;
 
@@ -44,6 +50,7 @@ sub replace_header {
 	return $line;
 }
 
+#changes function and class names and namespacing
 sub replace_call {
 	my $line = shift;
 	#my @func_names = qw/
@@ -56,10 +63,14 @@ sub replace_call {
 		#read_additional_pdb_data
 		#write_additional_pdb_data
 	#/;
+
+	#list the function or class names you want to alter
+
 	my @func_names = qw/
 		FileData
 	/;
 	
+	#list all possible namespaces for your function.  Here, core::io::pdb::FileData, so the 4, 3, 2, and 1-unit namespacings need to be considered.
 	foreach my $func_name (@func_names) {
 		$line =~ s/core::io::pdb::($func_name)/core::import_pose::$1/g;
 		$line =~ s/io::pdb::($func_name)/core::import_pose::$1/g;

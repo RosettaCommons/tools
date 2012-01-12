@@ -71,7 +71,7 @@ else:
         libraries_with_ccfiles_to_examine, scan_compilable_files, libraries_with_hhfiles_to_examine,\
         directories_with_ccfiles_to_examine, directories_with_hhfiles_to_examine, \
         include_for_line, find_all_includes, find_includes_at_global_scope, compiled_cc_files, \
-        strip_toendofline_comment )
+        strip_toendofline_comment, rosetta_projects, )
 
     modules = ( "re", "subprocess", "code_reader", "pygraph", "subprocess", "dont_remove_include" )
     nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )

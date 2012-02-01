@@ -44,6 +44,7 @@ nfiles_to_process = len( fnames )
 
 if nfiles_to_process == 1 :
     trim_inclusions_from_files_extreme( fnames, 0, True )
+    #trim_inclusions_from_files( fnames )
 
 else:
 
@@ -71,7 +72,7 @@ else:
         libraries_with_ccfiles_to_examine, scan_compilable_files, libraries_with_hhfiles_to_examine,\
         directories_with_ccfiles_to_examine, directories_with_hhfiles_to_examine, \
         include_for_line, find_all_includes, find_includes_at_global_scope, compiled_cc_files, \
-        strip_toendofline_comment, rosetta_projects, )
+        strip_toendofline_comment, rosetta_projects, simple_compile_from_lines, test_compile_from_stdin, )
 
     modules = ( "re", "subprocess", "code_reader", "pygraph", "subprocess", "dont_remove_include" )
     nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )
@@ -87,6 +88,7 @@ else:
     for fnames_subset in fnames_subsets :
         count_jobid += 1
         jobs.append( job_server.submit( trim_inclusions_from_files_extreme, ( fnames_subset, count_jobid ), funcs, modules ) )
+        #jobs.append( job_server.submit( trim_inclusions_from_files, ( fnames_subset, ), funcs, modules ) )
     job_server.wait()
     for job in jobs :
         print job()

@@ -8,7 +8,7 @@ use warnings;
 
 my $target           = 'default';
 my $makefile_name    = 'Makefile';
-my @regexes_for_make = qw/ ^g\+\+ ^ld ^icpc ^clang\+\+ /;
+my @regexes_for_make = qw/ ^g\+\+ ^ld ^icpc ^clang\+\+ ^llvm-g\+\+ /;
 
 my @makefile_lines;
 while ( my $line = <> ) {

@@ -10,15 +10,22 @@ TO MAKE FRAGMENTS LOCALLY WITH make_fragments.pl:
    vall database -- included in release.
 
    REQUIRED PROGRAMS:
-   PSI_BLAST -- ftp://ftp.ncbi.nih.gov/blast/executables/release/
-   rosetta fragment picker -- included in the release
+
+   ROSETTA fragment_picker -- included in the release
+   BLAST -- ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/ (Requires non-blast+ NCBI version)
+   PSIPRED -- http://bioinf.cs.ucl.ac.uk/psipred/
+   SPARKS-X -- http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
 
    OPTIONAL SECONDARY STRUCTURE PREDICTION PROGRAMS:
-   PSIPRED -- http://bioinf.cs.ucl.ac.uk/psipred/
    SAM -- http://www.soe.ucsc.edu/research/compbio/sam.html
    PORTER -- http://distill.ucd.ie/porter/
 
    Configure paths at the top of make_fragments.pl to point to these databases and programs.
+
+   If you want to exclude homologous sequences from the fragment search, you must format the
+   VALL blast database using the following command:
+
+   /my_src_dir/blast-2.2.17_x64/blast-2.2.17/bin/formatdb -i <vall_database.blast>
 
 1. Obtain a fasta file for the desired sequence. First
    line can be a comment starting with the '>' character.

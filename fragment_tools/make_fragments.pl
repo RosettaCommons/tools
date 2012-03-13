@@ -1,49 +1,63 @@
 #!/usr/bin/perl
-###############################################################################
-###############################################################################
-# The purpose of this script is to generate input files required for the
-# rosetta fragment picker and to run the picker to generate fragment libraries.
-#
-# This script takes a fasta file and runs the following:
-#
-#  1. psiblast to generate a PSSM (position-specific scoring matrix)
-#  2. psipred, porter, and sam (predict-2nd) to predict secondary structure
-#  3. the rosetta fragment picker to generate fragment libraries
-#
-#
-#  Authors: Dylan Chivian, James Thompson, David E Kim
-#
+
+use strict;
+use warnings;
+
+use File::Path;
+use File::Copy qw/ copy /;
+use File::Basename;
+use Sys::Hostname;
+use Time::Local;
+my $host = hostname;
 ###############################################################################
 # USER CONFIGURATION  -- ONLY CHANGE THIS SECTION.
-#                        YOU MUST EDIT THESE BEFORE USING
+#                        YOU MUST EDIT THESE PATHS BEFORE USING
 ###############################################################################
+
+# change the following paths to point to the locations of your copies of these
+# files, databases or directories.
 
 # BLAST install path (Requires non-blast+ NCBI version)
 # recommended: blast-2.2.17
 # ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
-local $BLAST_DIR = "/my_src_dir/blast-2.2.17_x64/blast-2.2.17";
-local $BLAST_NUM_CPUS = 4;    # number of processors to use
+my $BLAST_DIR = "/work/robetta/src/shareware/blast"
+  ;    # "/my_src_dir/blast-2.2.17_x64/blast-2.2.17";
+my $BLAST_NUM_CPUS = 8;    # number of processors to use
 
 # NR blast database filename
 # Create blast db files using 'formatdb  -o T -i nr'
 # ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
-local $NR = "/my_database_dir/blast/nr";
+my $NR = "/work/robetta/databases/local_db/nr/nr"; #"/my_database_dir/blast/nr";
+
+# RCSB PDB files for homolog detection and date filtering when benchmarking
+my $PDB_SEQRES      = "/work/robetta/databases/pdb/pdb_seqres.txt";
+my $PDB_ENTRIES_IDX = "/work/robetta/databases/pdb/entries.idx";
 
 # DEFAULT PDB STRUCTURE, PSSM, and SPARTA (chemical shift) DATABASE (VALL)
 # '-vall_files' option overrides this
-local $VALL = "/my_database_dir/vall.apr24.2008.extended";
+my $VALL = "/work/robetta/src/rosetta.2012-03-09/fragment_tools/vall.jul19.2011"
+  ;    #"/my_database_dir/vall.apr24.2008.extended";
 
-# ROSETTA PICKER
-local $PICKER =
-  "/my_src_dir/mini/bin/picker.linuxgccrelease";
-local $ROSETTA_DATABASE =
-  "/my_database_dir/minirosetta_database";
+# ROSETTA FRAGMENT PICKER
+my $FRAGMENT_PICKER =
+"/work/robetta/src/rosetta.2012-03-09/rosetta_source/bin/fragment_picker.linuxgccrelease"
+  ;    #"/my_src_dir/mini/bin/picker.linuxgccrelease";
+my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
+my $ROSETTA_DATABASE = "/work/robetta/src/rosetta.2012-03-09/rosetta_database"
+  ;                                  #"/my_database_dir/rosetta_database";
 
 # This is an optional script that you can provide to launch picker jobs on
 # free nodes to run them in parallel. A separate picker job is run for each
 # fragment size. The command passed to this script is the picker command.
 # If left as an empty string, picker jobs will run serially.
-local $SLAVE_LAUNCHER = "";
+my $SLAVE_LAUNCHER =
+  "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
+
+# spine-x/sparks (for phi, psi, and solvent accessibility predictions)
+# http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
+# If left as an empty string, solvent accessibility, phi, and psi scores
+# will not be used which may reduce fragment quality.
+my $SPARKS = "/work/robetta/src/sparks/sparks-x/bin/scan1.sh";
 
 # THE FOLLOWING IS NOT REQUIRED IF YOU RUN SECONDARY STRUCTURE PREDICTIONS
 # MANUALLY AND USE THE FOLLOWING OPTIONS:
@@ -55,228 +69,171 @@ local $SLAVE_LAUNCHER = "";
 
 # PSIPRED install path (secondary structure prediction software)
 # http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/
-local $PSIPRED_DIR =
-  "/my_src_dir/psipred";    # psipred installation directory
+my $PSIPRED_DIR = "/work/robetta/src/shareware/psipred"
+  ;    # "/my_src_dir/psipred";    # psipred installation directory
 
 # pfilt filtered NR blast database filename used for PSIPRED (see PSIPRED readme)
-local $PFILTNR = "/my_database_dir/blast/nr_pfilt";
+my $PFILTNR = "/work/robetta/databases/local_db/nr/nr_pfilt"
+  ;    #"/my_database_dir/blast/nr_pfilt";
 
 # SAM install path
 # http://compbio.soe.ucsc.edu/sam2src/
-local $SAM_DIR = "/my_src_dir/sam3.5.x86_64-linux_current";
+my $SAM_DIR =
+  "/work/robetta/src/shareware/sam"; #"/my_src_dir/sam3.5.x86_64-linux_current";
 
 # SAM predict-2nd install path
 # Secondary structure prediction software using SAM sequence alignment
 # http://users.soe.ucsc.edu/~karplus/predict-2nd/
-local $SAM_PREDICT_2ND_DIR =
-  "/my_src_dir/predict-2nd";    # sam predict-2nd directory
+my $SAM_PREDICT_2ND_DIR = "/work/robetta/src/shareware/sam.predict2nd"
+  ;    # "/my_src_dir/predict-2nd";    # sam predict-2nd directory
 
 # PORTER (secondary structure prediction software)
 # http://distill.ucd.ie/porter/
-local $PORTER = "/my_src_dir/porter_current/runPorter.pl";
+my $PORTER = "/work/robetta/src/shareware/porter/runPorter.pl"
+  ;    # "/my_src_dir/porter_current/runPorter.pl";
 
-### END OF USER CONFIGURATION #################################################
-###############################################################################
-
-use Cwd;
-use bytes;
-
-$DEBUG   = 0;
-
-# tail of output fragment file names
-local $TAIL = "_v1_3";
-
-$| = 1;    # disable stdout buffering
-
-local $BLASTPGP = "$BLAST_DIR/bin/blastpgp -a $BLAST_NUM_CPUS ";
-local $MAKEMAT =
-  "$BLAST_DIR/bin/makemat";    # makemat utility (part of NCBI tools)
-
-local $PSIPRED  = "$PSIPRED_DIR/bin/psipred";   # psipred
-local $PSIPASS2 = "$PSIPRED_DIR/bin/psipass2";  # psipass2 (part of psipred pkg)
-local $PSIPRED_DATA = "$PSIPRED_DIR/data";  # dir containing psipred data files.
-
-local $SAM           = "$SAM_DIR/bin/target2k";   #target99";     # sam target99
-local $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";  # sam uniqueseq
-
-local $VALL_BLAST_DB =
-  "$VALL.blast";    # blast database of VALL sequences for homolog detection
-
-# This is not necessary because VALL PDB sequences should exist in $VALL.blast.
-# PDB pdb_seqres.txt database filename for homolog search using '-nohoms' option.
-# Create blast db files using 'formatdb  -o T -i pdb_seqres.txt'.
-# ftp://ftp.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt
-local $PDB_SEQRES = "";
-
-# default values
-local @fragsizes = ( 3, 9 );
-#  ( 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 );
-local $n_frags      = 200;
-local $n_candidates = 1000;
-
-local @vall_files = ($VALL);
-
-# argv
-local %opts = &getCommandLineOptions();
-local $file = $opts{f};
-local $run_dir       = cwd();    # get the full path (needed for sam stuff)
-local $no_homs       = 0;
-local $no_frags      = 0;
-local $psipred_iter  = 1;
-local $psipred_hbias = 1;
-local $psipred_sbias = 1;
-local $runpsipred    = 1;
-local $runporter     = 1;
-local $runsam        = 1;
-local $haspsipred    = 0;
-local $hasporter     = 0;
-local $hassam        = 0;
-local $id            = "temp";
-local $chain         = "_";
-local $xx            = "aa";
-local @checkpoint_matrix;
-local $sequence;
-local $num_ss_preds  = 0;
-local $cleanup       = 1;
-local @cleanup_files = ();
-
-my @allss;
-
-chop($run_dir) if ( substr( $run_dir, -1, 1 ) eq '/' );
-
-# wait a random amount of time before proceeding, to avoid disk-choke problems
-srand();
-sleep( int( rand(10) ) + 1 );
-
-if ( defined( $opts{verbose} ) ) {
-    if ( $opts{verbose} == 1 ) {
-        $DEBUG = 1;
-        print "VERBOSE.\n";
-    }
+if ( $host =~ /nrb/ ) {
+    $NR              = "/scratch/robetta/local_db/nr/nr";
+    $PFILTNR         = "/scratch/robetta/local_db/nr/nr_pfilt";
+    $PDB_SEQRES      = "/scratch/shared/genomes/pdb_seqres.txt";
+    $PDB_ENTRIES_IDX = "/scratch/shared/genomes/entries.idx";
 }
 
-if ( defined( $opts{rundir} ) ) {
-    $run_dir = $opts{rundir};
-    &checkExist( 'd', $run_dir );
-    chop($run_dir) if ( substr( $run_dir, -1, 1 ) eq '/' );
+###############################################################################
+#
+# MAKE_FRAGMENTS.PL -- THE (PEN)ULTIMATE IN HOME FRAGMENT-PICKING SOFTWARE!
+#
+# CAUTION:  NO USER SERVICEABLE PARTS BELOW!
+#
+#           TO REDUCE RISK OF ELECTRIC SHOCK, DO NOT REMOVE THE COVER!
+#           DO NOT ATTEMPT REPAIRS!  REFER SERVICING TO YOUR AUTHORIZED DEALER!
+#           AVOID PROLONGED EXPOSURE TO HEAT OR SUNLIGHT!
+#           TO REDUCE THE RISK OF FIRE OR ELECTRIC SHOCK, DO NOT EXPOSE THE
+#            PRODUCT TO RAIN AND/OR MOISTURE!
+#           DO NOT MOVE THE PRODUCT WHILE IN USE!
+#           DO NOT LOOK AT THE PRODUCT WHILE IN USE!
+#           DO NOT COMPLAIN ABOUT THE PRODUCT WHILE IN USE!
+#           DO NOT DISCUSS THE PRODUCT WHILE IN USE!
+#           DO NOT THINK ABOUT THE PRODUCT WHILE IN USE!
+#           CLEAN ONLY WITH MILD DETERGENTS AND A SOFT CLOTH!
+#           USE ONLY IN WELL-VENTILATED AREAS!
+#
+#           FOR EXTERNAL USE ONLY!  DO NOT TAKE INTERNALLY!
+#           MAY PRODUCE STRONG MAGNETIC FIELDS!
+#
+#           DO NOT REMOVE THIS TAG UNDER PENALTY OF LAW.
+#
+#           THIS ARTICLE CONTAINS NEW MATERIAL ONLY.
+#
+#           THIS LABEL IS AFFIXED IN COMPLAINCE WITH THE UPHOLSTERED AND
+#            STUFFED ARTICLES ACT.
+#
+#
+# (IN OTHER WORDS:  DON'T EVEN *THINK* ABOUT CHANGING THINGS BELOW THIS POINT!)
+#
+###############################################################################
 
-    ( !$DEBUG ) || print "RUN DIRECTORY: $run_dir\n";
+## THESE FILE LOCATIONS DEPEND ON THE SOFTWARE PACKAGE
+my $PSIBLAST = "$BLAST_DIR/bin/blastpgp -a $BLAST_NUM_CPUS ";
+my $MAKEMAT = "$BLAST_DIR/bin/makemat";   # makemat utility (part of NCBI tools)
+my $PSIPRED = "$PSIPRED_DIR/bin/psipred"; # psipred
+my $PSIPASS2 = "$PSIPRED_DIR/bin/psipass2";    # psipass2 (part of psipred pkg)
+my $PSIPRED_DATA = "$PSIPRED_DIR/data";    # dir containing psipred data files.
+
+my $SAM           = "$SAM_DIR/bin/target99";     # sam target99
+my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
+
+my $VALL_BLAST_DB =
+  "$VALL.blast";    # blast database of VALL sequences for homolog detection
+
+use Cwd qw/ cwd abs_path /;
+use bytes;
+
+my %options;
+$options{DEBUG} = 0;
+use constant VERSION => 3.00;    # works with standard & warnings
+
+$| = 1;                          # disable stdout buffering
+
+# initialize options
+my %opts = &getCommandLineOptions();
+$options{fastafile} = abs_path( $opts{f} );
+$options{rundir}       = cwd();     # get the full path (needed for sam stuff)
+$options{homs}         = 1;
+$options{pick_frags}   = 1;
+$options{psipred_file} = "";
+$options{sam_file}     = "";
+$options{porter_file}  = "";
+$options{psipred}      = 1; # use psipred by default
+$options{porter}       = 0; # skip porter by default
+$options{sam}          = 0; # skip sam by default
+$options{id}           = "temp";
+$options{chain}        = "_";
+$options{runid}        = "temp_";
+$options{cleanup}      = 1;
+$options{torsion_bin}  = 0;
+$options{exclude_homologs_by_pdb_date} = 0;
+
+my @cleanup_files  = ();
+my @fragsizes      = ( 3, 9 );  #4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 );
+my @add_vall_files = ();
+my @use_vall_files = ();
+
+$options{n_frags}      = 200;
+$options{n_candidates} = 1000;
+
+foreach my $key ( keys %opts ) {
+    $options{$key} = $opts{$key};
+}
+
+# special option parsing
+if ( $options{verbose} ) {
+    $options{DEBUG} = 1;
+    print_debug("Run options:");
+    print_debug("be verbose.");
 }
 
 if ( defined( $opts{frag_sizes} ) ) {
     @fragsizes = split( /,/, $opts{frag_sizes} );
-    ( !$DEBUG ) || print "FRAGMENT SIZES: " . join( " ", @fragsizes ) . "\n";
+    print_debug( "fragment sizes: " . join( " ", @fragsizes ) );
 }
 
-if ( defined( $opts{n_frags} ) ) {
-    $n_frags = $opts{n_frags};
-    ( !$DEBUG ) || print "n_frags: $n_frags\n";
-}
-
-if ( defined( $opts{n_candidates} ) ) {
-    $n_candidates = $opts{n_candidates};
-    ( !$DEBUG ) || print "n_candidates: $n_candidates\n";
-}
-
-if ( defined( $opts{vall_files} ) ) {
-    @vall_files = ();
-    foreach my $vall ( split( /,/, $opts{vall_files} ) ) {
-        if ( -s $vall ) {
-            push( @vall_files, $vall );
-        }
-        else {
-            warn "WARNING!! vall file $vall does not exist\n";
-        }
+if ( exists $opts{add_vall_files} ) {
+    foreach my $vall ( split( /,/, $opts{add_vall_files} ) ) {
+        push( @add_vall_files, $vall ) if ( -s $vall );
     }
 }
 
-if ( defined( $opts{homs} ) ) {
-    if ( $opts{homs} == 0 ) {
-        $no_homs = 1;
-        ( !$DEBUG ) || print "EXCLUDE HOMOLOGS.\n";
+if ( exists $opts{use_vall_files} ) {
+    foreach my $vall ( split( /,/, $opts{use_vall_files} ) ) {
+        push( @use_vall_files, $vall ) if ( -s $vall );
     }
 }
 
-if ( defined( $opts{frags} ) ) {
-    if ( $opts{frags} == 0 ) {
-        $no_frags = 1;
-        ( !$DEBUG ) || print "don't make fragments.\n";
-    }
-}
-
-if ( defined( $opts{psipred} ) ) {
-    if ( $opts{psipred} == 0 ) {
-        $runpsipred = 0;
-        ( !$DEBUG ) || print "don't run psipred.\n";
-    }
-}
-
-if ( defined( $opts{psipred_iter} ) ) {
-    $psipred_iter = $opts{psipred_iter};
-    ( !$DEBUG ) || print "psipred_iter = $psipred_iter\n";
-}
-
-if ( defined( $opts{psipred_hbias} ) ) {
-    $psipred_hbias = $opts{psipred_hbias};
-    ( !$DEBUG ) || print "psipred_hbias = $psipred_hbias\n";
-}
-
-if ( defined( $opts{psipred_sbias} ) ) {
-    $psipred_sbias = $opts{psipred_sbias};
-    ( !$DEBUG ) || print "psipred_sbias = $psipred_sbias\n";
-}
-
-if ( defined( $opts{porter} ) ) {
-    if ( $opts{porter} == 0 ) {
-        $runporter = 0;
-        ( !$DEBUG ) || print "don't run porter.\n";
-    }
-}
-
-if ( defined( $opts{sam} ) ) {
-    if ( $opts{sam} == 0 ) {
-        $runsam = 0;
-        ( !$DEBUG ) || print "don't run sam.\n";
-    }
-}
-
-if ( defined( $opts{xx} ) ) {
-    $xx = substr( $opts{xx}, 0, 2 );
-    ( !$DEBUG ) || print "picker xx code: $xx\n";
-}
-
-if ( defined( $opts{cleanup} ) ) {
-    if ( $opts{cleanup} == 0 ) {
-        $cleanup = 0;
-    }
-}
-
-( !$DEBUG ) || print "FILENAME: $file\n";
+mkpath( $options{rundir} );
+$options{rundir} = abs_path( $options{rundir} );
+chop( $options{rundir} ) if ( substr( $options{rundir}, -1, 1 ) eq '/' );
+&checkExist( 'd', $options{rundir} );
 
 if ( !defined( $opts{id} ) ) {
-    ( !$DEBUG ) || print "no id specified. parse filename instead.\n";
+    print_debug("no id specified. parsing filename instead.");
 
-    ($id) = $file =~ /(\w+\.\w+)$/;
-    ( !$DEBUG ) || print "INTERMEDIATE: $id\n";
-    ($id) = $id =~ /^(\w+)/;
+    ( $options{id} ) = $options{fastafile} =~ /(\w+\.\w+)$/;
+    print_debug("INTERMEDIATE: $options{id}");
+    ( $options{id} ) = $options{id} =~ /^(\w+)/;
 
-    if ( length($id) != 5 ) {
-        die(
-"DANGER WILL ROBINSON! DANGER! Your fasta filename is more than/less than five letters!\n"
-              . "You should either 1) rename your file to something of the form *****.fasta -or-\n"
-              . "You should explicitly specify the id and chain with the -id option.\n"
-        );
+    if ( length( $options{id} ) != 5 ) {
+        $options{id} = 't001_';
     }
 
-    $chain = substr( $id, 4, 1 );
-    $id    = substr( $id, 0, 4 );
-    ( !$DEBUG ) || print "ID: $id CHAIN: $chain\n";
-
+    $options{chain} = substr( $options{id}, 4, 1 );
+    $options{id}    = substr( $options{id}, 0, 4 );
+    print_debug("ID: $options{id} CHAIN: $options{chain}");
 }
 else {
     chomp $opts{id};
 
-    ( !$DEBUG ) || print "id specified by user: $opts{id}\n";
+    print_debug("id specified by user: $opts{id}");
 
     if ( length( $opts{id} ) != 5 ) {
         die("The id you specify must be 5 characters long.\n");
@@ -286,112 +243,77 @@ else {
         die("Only alphanumeric characters and _ area allowed in the id.\n");
     }
 
-    $id    = substr( $opts{id}, 0, 4 );
-    $chain = substr( $opts{id}, 4, 1 );
+    $options{id}    = substr( $opts{id}, 0, 4 );
+    $options{chain} = substr( $opts{id}, 4, 1 );
 
-    ( !$DEBUG ) || print "ID: $id CHAIN: $chain\n";
+    if ( -s "$options{id}$options{chain}.fasta" ) {
+        my @diff = `diff $options{id}$options{chain}.fasta $options{fastafile}`;
+        if ( scalar @diff ) {
+            die
+"ERROR! $options{id}$options{chain}.fasta already exists but does not match $options{fastafile}: $options{id}$options{chain}.fasta is autogenerated and should not exist\n";
+        }
+    }
+    print_debug("using $options{fastafile} as query fasta");
+    print_debug("ID: $options{id} CHAIN: $options{chain}");
 }
 
-#########
+$options{runid} = "$options{id}$options{chain}";
+
+if ( abs_path( $options{fastafile} ) ne abs_path("$options{runid}.fasta") ) {
+    copy( $options{fastafile}, "$options{runid}.fasta" );
+    $options{fastafile} = "$options{runid}.fasta";
+}
+
 # determine what ss predictions to run
-#########
-
-# default SS prediction file names if predictions are run by this script
-local $psipred_file = "$run_dir/$id$chain.psipred_ss2";
-local $sam_file     = "$run_dir/$id$chain.rdb_ss2";
-local $porter_file  = "$run_dir/$id$chain.porter_ss2";
-
-if ( defined( $opts{psipredfile} ) ) {
-    $psipred_file = $opts{psipredfile};
-    if ( !&fileExist($psipred_file) ) {
-        print
-"Specified psipred file ($psipred_file) not found!  Running psipred instead.\n";
-        $psipred_file = "$run_dir/$id$chain.psipred_ss2";
-        $runpsipred   = 1;
+foreach my $ss_pred (qw/ porter sam psipred /) {
+    if ( $options{$ss_pred} ) {
+        my $fn_key = join '_', ( $ss_pred, 'file' );
+        my $fn = $options{$fn_key};
+        $options{$ss_pred} = file_overrides_option( $fn, $ss_pred );
     }
 }
 
-if ( &fileExist($psipred_file) ) {
-    $runpsipred = 0;
-    print "Assuming $psipred_file is a psipred_ss2 file.\n";
-    my $ssstr = &read_ss2($psipred_file);
-    push( @allss, { type => 'psipred', ss => $sstr, file => $psipred_file } );
-    $haspsipred = 1;
+my $abs_path_fasta = abs_path( $options{fastafile} );
+$options{fastafile} = basename( $options{fastafile} );
+if ( $abs_path_fasta ne abs_path("$options{rundir}/$options{fastafile}") ) {
+    copy( $options{fastafile}, "$options{rundir}/" )
+      or die "Error copying $options{fastafile} into $options{rundir}!\n";
 }
 
-###############
-if ( defined( $opts{porterfile} ) ) {
-    $porter_file = $opts{porterfile};
-    if ( !&fileExist($porter_file) ) {
-        print
-"Specified porter file ($porter_file) not found!  Running porter instead.\n";
-        $porter_file = "$run_dir/$id$chain.porter_ss2";
-        $runporter   = 1;
-    }
-}
+print "picking fragments with options:\n", options_to_str( \%options ), "\n";
+print_debug("FILENAME: $options{fastafile}");
 
-if ( &fileExist($porter_file) ) {
-    $runporter = 0;
-    print "Assuming $porter_file is a porter file.\n";
-    my $ssstr = &read_ss2($porter_file);
-    push( @allss, { type => 'porter', ss => $sstr, file => $porter_file } );
-    $hasporter = 1;
-}
-###############
-
-if ( defined( $opts{samfile} ) ) {
-    $sam_file = $opts{samfile};
-    if ( !&fileExist($sam_file) ) {
-        print
-          "Specified sam file ($sam_file) not found!  Running sam instead.\n";
-        $sam_file = "$run_dir/$id$chain.rdb_ss2";
-        $runsam   = 1;
-    }
-}
-
-if ( &fileExist($sam_file) ) {
-    $runsam = 0;
-    print "Assuming $sam_file is a sam file.\n";
-    my $ssstr = &read_ss2($sam_file);
-    push( @allss, { type => 'sam', ss => $sstr, file => $sam_file } );
-    $hassam = 1;
-}
-
-###############################################################################
 # main
-###############################################################################
 
-chdir($run_dir);
+chdir( $options{rundir} );
 
 # get the sequence from the fasta file
-open( SEQFILE, $file );
+my $sequence = read_fasta( $options{fastafile} );
+print_debug("Sequence: $sequence");
 
-my $has_comment = 0;
-my $has_eof     = 0;
-my $eof;
-while (<SEQFILE>) {
-    $eof = $_;
-    s/\s//g;
-    if (/^>/) { $has_comment = 1; next; }
-    chomp;
-    $sequence .= $_;
+# run sparks
+if ($SPARKS) {
+    unless ( &nonempty_file_exists( $options{fastafile} . ".phipsi" ) ) {
+        print_debug(
+            "running sparks for phi, psi, and solvent accessibility predictions"
+        );
+        ( system("$SPARKS $options{fastafile}") == 0
+              && -s $options{fastafile} . ".phipsi" )
+          or die("sparks failed!\n");
+    }
 }
-$has_eof = 1 if ( $eof =~ /\n$/ );
-( $has_comment && $has_eof )
-  or die "fasta file must have a comment and end with a new line!\n";
-
-( !$DEBUG ) || print "Sequence: $sequence\n";
 
 # run blast
-unless ( &fileExist("$id$chain.nr.chk") ) {
+unless ( &nonempty_file_exists("$options{runid}.check") ) {
+    print_debug("running psiblast for sequence profile");
     if (
         !&try_try_again(
-"$BLASTPGP -t 1 -i $file -F F -j2 -o $id$chain.nr.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $id$chain.nr.chk -Q $id$chain.nr.pssm",
+"$PSIBLAST -t 1 -i $options{fastafile} -F F -j2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
             2,
-            ["$id$chain.nr.chk"],
+            ["$options{runid}.check"],
             [
-                "$id$chain.nr.chk",  "$id$chain.nr.blast",
-                "$id$chain.nr.pssm", "error.log"
+                "$options{runid}.check", "$options{runid}.blast",
+                "$options{runid}.pssm",  "error.log"
             ]
         )
       )
@@ -400,35 +322,32 @@ unless ( &fileExist("$id$chain.nr.chk") ) {
     }
 }
 
-unless ( &fileExist("$id$chain.checkpoint") ) {
+unless ( &nonempty_file_exists("$options{runid}.checkpoint") ) {
 
     # parse & fortran-ify the checkpoint matrix.
-    @checkpoint_matrix = &parse_checkpoint_file("$id$chain.nr.chk");
+    my @checkpoint_matrix;
+    @checkpoint_matrix = &parse_checkpoint_file("$options{runid}.check");
     @checkpoint_matrix =
       &finish_checkpoint_matrix( $sequence, @checkpoint_matrix );
-    &write_checkpoint_file( "$id$chain.checkpoint", $sequence,
+    &write_checkpoint_file( "$options{runid}.checkpoint", $sequence,
         @checkpoint_matrix );
 }
 
 push( @cleanup_files,
-    ( "$id$chain.nr.blast", "$id$chain.nr.pssm", "error.log" ) );
+    ( "$options{runid}.blast", "$options{runid}.pssm", "error.log" ) );
 
-#############################################
 # Secondary Structure Prediction methods
-#############################################
+if ( $options{psipred} ) {
+    print_debug("running psipred");
 
-#
-# preliminaries -- run psi-blast for psipred
-#
-if ($runpsipred) {
-    unless ( &fileExist("sstmp.chk")
-        && &fileExist("sstmp.ascii")
-        && &fileExist("ss_blast") )
+    # run psi-blast for psipred
+    unless ( &nonempty_file_exists("sstmp.chk")
+        && &nonempty_file_exists("sstmp.ascii")
+        && &nonempty_file_exists("ss_blast") )
     {
-        ## PB - add -b -v args since ss_blast will be used by PROF
         if (
             !&try_try_again(
-"$BLASTPGP -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $file -C sstmp.chk -Q sstmp.ascii -o ss_blast",
+"$PSIBLAST -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
                 2,
                 [ "sstmp.chk", "sstmp.ascii" ],
                 [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]
@@ -439,21 +358,15 @@ if ($runpsipred) {
         }
         push( @cleanup_files, ( "ss_blast", "sstmp.chk", "sstmp.ascii" ) );
     }
-}
 
-#
-# psipred
-#
-if ($runpsipred) {
-    ( !$DEBUG ) || print "running psipred.\n";
-
-    unless ( &fileExist("psitmp.sn") ) {
-        &run( "echo $file > psitmp.sn", ("psitmp.sn") );
+    unless ( &nonempty_file_exists("psitmp.sn") ) {
+        &run( "echo $options{fastafile} > psitmp.sn", ("psitmp.sn") );
     }
-    unless ( &fileExist("psitmp.pn") ) {
+    unless ( &nonempty_file_exists("psitmp.pn") ) {
         &run( "echo sstmp.chk > psitmp.pn", ("psitmp.pn") );
     }
-    unless ( &fileExist("sstmp.mtx") ) {
+
+    unless ( &nonempty_file_exists("sstmp.mtx") ) {
         if (
             !&try_try_again(
                 "$MAKEMAT -P psitmp",
@@ -464,7 +377,8 @@ if ($runpsipred) {
             die("psipred: makemat failed.");
         }
     }
-    unless ( &fileExist("psipred_ss") ) {
+
+    unless ( &nonempty_file_exists("psipred_ss") ) {
         if (
             !&try_try_again(
 "$PSIPRED sstmp.mtx $PSIPRED_DATA/weights.dat $PSIPRED_DATA/weights.dat2 $PSIPRED_DATA/weights.dat3 $PSIPRED_DATA/weights.dat4 > psipred_ss",
@@ -478,10 +392,10 @@ if ($runpsipred) {
         }
     }
 
-    unless ( &fileExist("psipred_horiz") ) {
+    unless ( &nonempty_file_exists("psipred_horiz") ) {
         if (
             !&try_try_again(
-"$PSIPASS2 $PSIPRED_DATA/weights_p2.dat $psipred_iter $psipred_hbias $psipred_sbias psipred_ss2 psipred_ss > psipred_horiz",
+"$PSIPASS2 $PSIPRED_DATA/weights_p2.dat 1 1 1 psipred_ss2 psipred_ss > psipred_horiz",
                 2,
                 [ "psipred_ss2", "psipred_horiz" ],
                 [ "psipred_ss2", "psipred_horiz" ]
@@ -490,218 +404,179 @@ if ($runpsipred) {
         {
             die("psipred/psipass2 failed.");
         }
-        rename( "psipred_horiz", "$id$chain.psipred" )
-          || die("couldn't move psipred_horiz to $id$chain.psipred: $!\n");
+
+        rename( "psipred_horiz", "$options{runid}.psipred" )
+          or
+          die("couldn't move psipred_horiz to $options{runid}.psipred: $!\n");
+
         if ( !scalar(`grep 'PSIPRED VFORMAT' psipred_ss2`) ) {
             open( FILE, "psipred_ss2" );
             my @ss2 = <FILE>;
             close(FILE);
-            open( FILE, ">$id$chain.psipred_ss2" );
+            open( FILE, ">$options{runid}.psipred_ss2" );
             print FILE "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n\n";
             print FILE @ss2;
             close(FILE);
         }
         else {
-            rename( "psipred_ss2", "$id$chain.psipred_ss2" )
-              || die(
-                "couldn't move psipred_ss2 to $id$chain.psipred_ss2: $!\n");
+            rename( "psipred_ss2", "$options{runid}.psipred_ss2" )
+              or die(
+                "couldn't move psipred_ss2 to $options{runid}.psipred_ss2: $!\n"
+              );
         }
     }
 
-    if ( &fileExist("$run_dir/$id$chain.psipred_ss2") ) {
-        ( !$DEBUG ) || print "psipred file ok.\n";
-        my $ssstr = &read_ss2("$run_dir/$id$chain.psipred_ss2");
-        push(
-            @allss,
-            {
-                type => 'psipred',
-                ss   => $sstr,
-                file => "$run_dir/$id$chain.psipred_ss2"
-            }
-        );
-        $haspsipred = 1;
+    if ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
+        print_debug("psipred file ok.");
     }
     else {
         print "psipred run failed!\n";
     }
-    push( @cleanup_files, ( <psitmp*>, "psipred_ss", "sstmp.mtx" ) );
+
+    push( @cleanup_files, ( glob("psitmp*"), "psipred_ss", "sstmp.mtx" ) );
 }
 
-if ($runporter) {
-    ( !$DEBUG ) || print "running porter.\n";
-    if (
+if ( $options{porter} ) {
+    print_debug("running porter.");
+    if ( &nonempty_file_exists("$options{runid}.porter_ss2") ) {
+        print_debug("porter file ok.");
+    }
+    elsif (
         !&try_try_again(
-            "$PORTER $file", 2,
-            ["$id$chain.porter_ss2"], ["$id$chain.porter_ss2"]
+            "$PORTER $options{fastafile}", 2,
+            ["$options{runid}.porter_ss2"], ["$options{runid}.porter_ss2"]
         )
       )
     {
         die("porter failed!\n");
     }
-    else {
-        my $ssstr = &read_ss2("$run_dir/$id$chain.porter_ss2");
-        push(
-            @allss,
-            {
-                type => 'porter',
-                ss   => $sstr,
-                file => "$run_dir/$id$chain.porter_ss2"
-            }
-        );
-        $hasporter = 1;
-    }
-
-# cleanup?
-# 1utg_.chk  1utg_.dataset  1utg_.dataset.porter  1utg_.fasta  1utg_.flatblast  1utg_.msa0  1utg_.out0  1utg_.pssm  error.log  ModelsGlobalPaths.porter.txt
 }
 
-#
 # sam -- target99 alignment and predict2nd with 6 state neural net - condensed output to 3 state
-#
-if ($runsam) {
-    ( !$DEBUG ) || print "running sam.\n";
-
-    my $target99_out      = $id . $chain . ".target99";
-    my $target99_a2m_file = $target99_out . ".a2m";
-
-    ## run target99 for a2m alignment
-    if (
-        !&try_try_again(
-            "$SAM -seed $file -out " . $target99_out,
-            2, [$target99_a2m_file], [$target99_out_a2m_file]
-        )
-      )
-    {
-        die "sam target99 failed!\n";
+if ( $options{sam} ) {
+    print_debug("running sam.");
+    if ( &nonempty_file_exists("$options{runid}.rdb_ss2") ) {
+        print_debug("sam file ok.");
     }
+    else {
+        my $target99_out      = "$options{runid}.target99";
+        my $target99_a2m_file = $target99_out . ".a2m";
 
-    ## run uniqueseq
-    my $uniqueseq_a2m_id   = $id . $chain . ".uniqueseq";
-    my $uniqueseq_a2m_file = $uniqueseq_a2m_id . ".a2m";
-    if (
-        !&try_try_again(
-            "$SAM_uniqueseq $uniqueseq_a2m_id -percent_id 0.9 -alignfile "
-              . $target99_a2m_file,
-            2,
-            [$uniqueseq_a2m_file],
-            [$uniqueseq_a2m_file]
-        )
-      )
-    {
-        die "sam uniqueseq failed!\n";
-    }
-    ## run predict-2nd
-    chop($SAM_PREDICT_2ND_DIR)
-      if ( substr( $SAM_PREDICT_2ND_DIR, -1, 1 ) eq '/' );
-
-    # create samscript
-    my $sam_6state        = "$run_dir/$id$chain.sam_6state";
-    my $sam_ebghtl        = "$run_dir/$id$chain.sam_ebghtl";
-    my $sam_log           = "$run_dir/$id$chain.sam_log";
-    my $samscript_txt_buf = qq{ReadAlphabet $SAM_PREDICT_2ND_DIR/std.alphabet
-	       ReadAlphabet $SAM_PREDICT_2ND_DIR/DSSP.alphabet
-		   ReadNeuralNet $SAM_PREDICT_2ND_DIR/overrep-3617-IDaa13-7-10-11-10-11-7-7-ebghtl-seeded3-stride-trained.net
-		       ReadA2M $run_dir/$uniqueseq_a2m_file
-			   PrintRDB $sam_6state
-			       PrintPredictionFasta $sam_ebghtl
-			       };
-    my $samscript_txt = "$run_dir/$id$chain.samscript.txt";
-    open( SAMSCRIPT, '>' . $samscript_txt );
-    print SAMSCRIPT $samscript_txt_buf;
-    close(SAMSCRIPT);
-
-    # get into $SAM_PREDICT_2ND_DIR so sam can read file recode3.20comp
-    chdir $SAM_PREDICT_2ND_DIR;
-    if (
-        !&try_try_again(
-"$SAM_PREDICT_2ND_DIR/predict-2nd -noalph < $samscript_txt >& $sam_log",
-            2,
-            [$sam_6state],
-            [$sam_6state]
-        )
-      )
-    {
-        die "sam predict-2nd failed!\n";
-    }
-
-    chdir $run_dir;
-
-    # condense to 3 state prediction
-    # formerly a separate perl script: condense_6state.pl
-    # integrated here 8/1/03   C. Rohl
-
-    my $rows;
-    open IN, "<$sam_6state" || die "Cannot open file $sam_6state: $!\n";
-    @{$rows} = <IN>;
-    close(IN);
-    $rows = &condense_rdb6_rdb($rows);
-    open OUT, ">$id$chain.rdb" || die "Cannot open file $id$chain.rdb: $!\n";
-    print OUT @{$rows};
-    close(OUT);
-
-    # convert rdb to rdb_ss2
-    &convert_sam_ss("$id$chain.rdb");
-    ( -s "$id$chain.rdb_ss2" ) or die("SAM failed!\n");
-    my $ssstr = &read_ss2("$run_dir/$id$chain.rdb_ss2");
-    push( @allss,
-        { type => 'sam', ss => $sstr, file => "$run_dir/$id$chain.rdb_ss2" } );
-    $hassam = 1;
-
-    ( !$DEBUG ) || print "sam file ok.\n";
-
-    push(
-        @cleanup_files,
-        (
-            $samscript_txt, $sam_log,           $sam_6state,
-            $sam_ebghtl,    $target99_a2m_file, $uniqueseq_a2m_file,
-            "$target99_out.cst"
-        )
-    );
-
-}
-if ($DEBUG) {
-    print "\n";
-    print "              $sequence\n";
-    foreach my $ss (@allss) {
-        printf "SS %10s $ss->{ss} $ss->{file}\n", $ss->{type};
-    }
-    print "\n";
-}
-
-#############################################
-# Vall and homologue searches
-#############################################
-
-if ($no_homs) {
-    foreach my $vall (@vall_files) {
-        my $vallname = $vall;
-        $vallname =~ s/^.*\/([^\/]+)\s*$/$1/gs;
-        unless ( &fileExist("$vallname.blast.outn") ) {
-            if (
-                !&try_try_again(
-"$BLASTPGP -t 1 -i $file -j 1 -R $id$chain.nr.chk -o $vallname.blast.outn -e 0.05 -d $vall.blast",
-                    2,
-                    ["$vallname.blast.outn"],
-                    ["$vallname.blast.outn"]
-                )
-              )
-            {
-                die("homolog blast failed!\n");
-            }
-        }
-        &exclude_outn( $id, $chain, "$vallname.blast.outn" );
-    }
-
-#    if (!-s $PDB_SEQRES && $DEBUG) {
-#        print "WARNING!! pdb_seqres.txt does not exist so skipping homolog check from PDB database.\n";
-#    }
-    unless ( !-s $PDB_SEQRES || &fileExist("$id$chain.pdb_blast") ) {
         if (
             !&try_try_again(
-"$BLASTPGP -t 1 -i $file -j 1 -R $id$chain.nr.chk -o $id$chain.pdb_blast -e 0.05 -d $PDB_SEQRES",
+                "$SAM -seed $options{fastafile} -out " . $target99_out, 2,
+                [$target99_a2m_file], []
+            )
+          )
+        {
+            die "sam target99 failed!\n";
+        }
+
+        ## run uniqueseq
+        my $uniqueseq_a2m_id   = "$options{runid}.uniqueseq";
+        my $uniqueseq_a2m_file = $uniqueseq_a2m_id . ".a2m";
+        if (
+            !&try_try_again(
+                "$SAM_uniqueseq $uniqueseq_a2m_id -percent_id 0.9 -alignfile "
+                  . $target99_a2m_file,
                 2,
-                ["$id$chain.pdb_blast"],
-                ["$id$chain.pdb_blast"]
+                [$uniqueseq_a2m_file],
+                [$uniqueseq_a2m_file]
+            )
+          )
+        {
+            die "sam uniqueseq failed!\n";
+        }
+
+        ## run predict-2nd
+        chop($SAM_PREDICT_2ND_DIR)
+          if ( substr( $SAM_PREDICT_2ND_DIR, -1, 1 ) eq '/' );
+
+        # create samscript
+        my $sam_6state = "$options{rundir}/$options{runid}.sam_6state";
+        my $sam_ebghtl = "$options{rundir}/$options{runid}.sam_ebghtl";
+        my $sam_log    = "$options{rundir}/$options{runid}.sam_log";
+        my $samscript_txt_buf =
+          qq{ReadAlphabet $SAM_PREDICT_2ND_DIR/std.alphabet
+		ReadAlphabet $SAM_PREDICT_2ND_DIR/DSSP.alphabet
+		ReadNeuralNet $SAM_PREDICT_2ND_DIR/overrep-3617-IDaa13-7-10-11-10-11-7-7-ebghtl-seeded3-stride-trained.net
+		ReadA2M $options{rundir}/$uniqueseq_a2m_file
+		PrintRDB $sam_6state
+		PrintPredictionFasta $sam_ebghtl
+	};
+        my $samscript_txt = "$options{rundir}/$options{runid}.samscript.txt";
+        open( SAMSCRIPT, '>' . $samscript_txt );
+        print SAMSCRIPT $samscript_txt_buf;
+        close(SAMSCRIPT);
+
+        # get into $SAM_PREDICT_2ND_DIR so sam can read file recode3.20comp
+        chdir $SAM_PREDICT_2ND_DIR;
+        if (
+            !&try_try_again(
+"$SAM_PREDICT_2ND_DIR/predict-2nd -noalph < $samscript_txt >& $sam_log",
+                2,
+                [$sam_6state],
+                [$sam_6state]
+            )
+          )
+        {
+            die "sam predict-2nd failed!\n";
+        }
+        chdir $options{rundir};
+
+        # condense to 3 state prediction
+        # formerly a separate perl script: condense_6state.pl
+        my $rows;
+        open IN, "<$sam_6state" or die "Cannot open file $sam_6state: $!\n";
+        @{$rows} = <IN>;
+        close(IN);
+        $rows = &condense_rdb6_rdb($rows);
+        open OUT, ">$options{runid}.rdb"
+          or die "Cannot open file $options{runid}.rdb: $!\n";
+        print OUT @{$rows};
+        close(OUT);
+
+        # convert rdb to rdb_ss2
+        &convert_sam_ss("$options{runid}.rdb");
+        if ( !-s "$options{runid}.rdb_ss2" ) {
+            die("SAM failed!\n");
+        }
+
+        print_debug("sam file ok.");
+
+        push @cleanup_files,
+          (
+            $samscript_txt, $sam_log, $sam_6state, $sam_ebghtl,
+            $target99_a2m_file, $uniqueseq_a2m_file, "$target99_out.cst"
+          );
+    }
+}
+
+# Vall and homolog searches
+if ( !$options{homs} ) {
+
+    print_debug("excluding homologs.");
+    unless ( &nonempty_file_exists("$options{runid}.outn") ) {
+        if (
+            !&try_try_again(
+"$PSIBLAST -t 1 -i $options{fastafile} -j 1 -R $options{runid}.check -o $options{runid}.outn -e 0.05 -d $VALL_BLAST_DB",
+                2,
+                ["$options{runid}.outn"],
+                ["$options{runid}.outn"]
+            )
+          )
+        {
+            die("homolog vall blast failed!\n");
+        }
+    }
+
+    unless ( &nonempty_file_exists("$options{runid}.outn.pdb") ) {
+        if (
+            !&try_try_again(
+"$PSIBLAST -t 1 -i $options{fastafile} -j 1 -R $options{runid}.check -o $options{runid}.outn.pdb -e 0.05 -d $PDB_SEQRES",
+                2,
+                ["$options{runid}.outn.pdb"],
+                ["$options{runid}.outn.pdb"]
             )
           )
         {
@@ -709,174 +584,264 @@ if ($no_homs) {
         }
     }
 
-    &exclude_pdbblast( $id, $chain, "$id$chain.pdb_blast" );
-    &exclude_blast( $id, $chain, "$id$chain.blast" );
+    &exclude_blast( $options{runid} );
+    &exclude_pdbblast( $options{runid} );
+    &exclude_outn( $options{runid} );
 }
 
-#############################################
+if ( $options{exclude_homologs_by_pdb_date} ) {
+    my $exclude_homologs_by_pdb_date_epoch;
+    my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
+    print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
+    if ( $exclude_homologs_by_pdb_date =~ /^(\d\d)\/(\d\d)\/(\d\d)$/ ) {
+        my @dt = split( /\//, $exclude_homologs_by_pdb_date );
+        $dt[0] =~ s/^0//;
+        $dt[1] =~ s/^0//;
+        $dt[2] =~ s/^0//;
+        if ( $dt[2] < 30 ) {    # good till 2030
+            $dt[2] += 2000;
+        }
+        else {
+            $dt[2] += 1900;
+        }
+        $exclude_homologs_by_pdb_date_epoch =
+          timelocal( 0, 0, 0, $dt[1], $dt[0] - 1, $dt[2] - 1900 );
+        open( HOMF, ">>$options{runid}.homolog" );
+        print HOMF
+"# excluded by date $options{exclude_homologs_by_pdb_date} from $PDB_ENTRIES_IDX\n";
+        open( F, $PDB_ENTRIES_IDX )
+          or die "ERROR! cannot open $PDB_ENTRIES_IDX: $!\n";
+        foreach my $l (<F>) {
+            chomp $l;
+            my @cols = split( /\t/, $l );
+            if ( $#cols > 2 && $cols[2] =~ /^(\d\d)\/(\d\d)\/(\d\d)$/ ) {
+                my $m = $1;
+                my $d = $2;
+                my $y = $3;
+                $m =~ s/^0//;
+                $d =~ s/^0//;
+                $y =~ s/^0//;
+                if ( $y < 30 ) {    # good till 2030
+                    $y += 2000;
+                }
+                else {
+                    $y += 1900;
+                }
+                my $epoch = timelocal( 0, 0, 0, $d, $m - 1, $y - 1900 );
+                if ( $epoch > $exclude_homologs_by_pdb_date_epoch ) {
+                    my $hit_pdb = lc $cols[0];    # pdb code
+                    print HOMF "$hit_pdb\n";
+                }
+            }
+            else {
+                warn "Skipping line from $PDB_ENTRIES_IDX: $l\n";
+            }
+        }
+        close(HOMF);
+        close(F);
+    }
+    else {
+        die
+"ERROR! $exclude_homologs_by_pdb_date date format is incorrect: must be mm/dd/yy\n";
+    }
+}
+
+if ( !$options{pick_frags} ) {
+    cleanup(@cleanup_files);
+    exit 0;
+}
+
 # picker
-#############################################
+my @valls = ($VALL);
+if ( scalar @use_vall_files ) {
+    @valls = @use_vall_files;
+}
+push( @valls, @add_vall_files ) if ( scalar @add_vall_files );
+my $valls_str = join ' ', @valls;
 
-# don't run picker?
-goto CLEANUP if ($no_frags);
-
-###############################################################################
-###############################################################################
-#
-# PICKER CONFIGURATION
-###############################################################################
-
-local $PICKER_QUOTA_DEF = "";
-my $ss_pred_str = "";
-if ( $haspsipred && $hassam && $hasporter ) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               psipred         0.50
-2               porter          0.25
-3               sam             0.25
-QUOTA_DEF
-    $ss_pred_str = "$psipred_file psipred $porter_file porter $sam_file sam";
+my $nativeexists = 0;
+if ( -s "$options{runid}.pdb" ) {
+    print_debug("native pdb exists: $options{runid}.pdb.");
+    $nativeexists = 1;
 }
-elsif ( $haspsipred && $hassam ) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               psipred         0.50
-2               sam             0.50
-QUOTA_DEF
-    $ss_pred_str = "$psipred_file psipred $sam_file sam";
-}
-elsif ( $haspsipred && $hasporter ) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               psipred         0.50
-2               porter          0.50
-QUOTA_DEF
-    $ss_pred_str = "$psipred_file psipred $porter_file porter";
-}
-elsif ( $hasporter && $hassam ) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               porter          0.50
-2               sam             0.50
-QUOTA_DEF
-    $ss_pred_str = "$porter_file porter $sam_file sam";
-}
-elsif ($haspsipred) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               psipred         1.00
-QUOTA_DEF
-    $ss_pred_str = "$psipred_file psipred";
-}
-elsif ($hasporter) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               porter          1.00
-QUOTA_DEF
-    $ss_pred_str = "$porter_file porter";
-}
-elsif ($hassam) {
-    $PICKER_QUOTA_DEF = <<QUOTA_DEF;
-#pool_id        pool_name       fraction
-1               sam             1.00
-QUOTA_DEF
-    $ss_pred_str = "$sam_file sam";
-}
-else {
-    die "ERROR! you must use at least one secondary prediction\n";
-}
-
-my $ss_score_str = "";
-$ss_score_str .= "SecondarySimilarity     200     0.5     -       psipred\n"
-  if ($haspsipred);
-$ss_score_str .= "SecondarySimilarity     200     0.5     -       porter\n"
-  if ($hasporter);
-$ss_score_str .= "SecondarySimilarity     200     0.5     -       sam\n"
-  if ($hassam);
-local $PICKER_SCORE_CFG = <<PICKER_SCORE_CFG;
-# score name          priority  wght   min_allowed  extras
-$ss_score_str\ProfileScoreL1          300     1.0     -
-RamaScore               100     2.0     -
-PICKER_SCORE_CFG
-
-open( F, ">$id$chain\_Quota.def" )
-  or die "ERROR! cannot open $id$chain\_Quota.def: $!\n";
-print F $PICKER_QUOTA_DEF;
-close(F);
-open( F, ">$id$chain\_Scores.cfg" )
-  or die "ERROR! cannot open $id$chain\_Scores.cfg: $!\n";
-print F $PICKER_SCORE_CFG;
-close(F);
-
-my $valls_str = join( " ", @vall_files );
-print "VALL files: $valls_str\n" if $DEBUG;
 
 foreach my $size (@fragsizes) {
+    my $ss_pred_cnt = 0;
+    my $score_def;
+    my $sparkscmd = "";
+    my $nativecmd = "";
 
-    open( PATH_DEFS, ">$xx$id$chain\_picker_cmd_size$size.txt" );
+    # score file (small fragments)
+    if ( $size <= 4 ) {
+        $score_def = <<SCORE;
+# score name         priority  wght   min_allowed  extras
+ProfileScoreL1           700     1.0     -
+ProfileScoreStructL1     100     1.4     -
+SCORE
+
+        if ($SPARKS) {
+            $score_def .= "SolventAccessibility     500     0.5     -\n";
+            $score_def .= "Phi                      300     3.9     -\n";
+            $score_def .= "Psi                      200     0.9     -\n";
+            $sparkscmd =
+              "-spine_x                  $options{fastafile}.phipsi\n";
+        }
+
+        $ss_pred_cnt = 0;
+        foreach my $ss_pred (qw/ psipred sam porter /) {
+            if ( $options{$ss_pred} ) {
+                $ss_pred_cnt++;
+                $score_def .=
+                  "SecondarySimilarity      600     1.0     -    $ss_pred\n";
+                $score_def .=
+                  "RamaScore                400     6.0     -    $ss_pred\n";
+            }
+        }
+
+        # score file (large fragments)
+    }
+    else {
+        $score_def = <<SCORE;
+# score name         priority  wght   min_allowed  extras
+ProfileScoreL1           700     1.0     -
+ProfileScoreStructL1     100     4.0     -
+SCORE
+
+        if ($SPARKS) {
+            $score_def .= "SolventAccessibility     500     1.5     -\n";
+            $score_def .= "Phi                      300     1.0     -\n";
+            $score_def .= "Psi                      200     0.6     -\n";
+            $sparkscmd =
+              "-spine_x                  $options{fastafile}.phipsi\n";
+        }
+
+        $ss_pred_cnt = 0;
+        foreach my $ss_pred (qw/ psipred sam porter /) {
+            if ( $options{$ss_pred} ) {
+                $ss_pred_cnt++;
+                $score_def .=
+                  "SecondarySimilarity      600     1.0     -    $ss_pred\n";
+                $score_def .=
+                  "RamaScore                400     0.8     -    $ss_pred\n";
+            }
+        }
+    }
+
+    if ( $options{torsion_bin} && -f $options{torsion_bin} ) {
+        $score_def .= "TorsionBinSimilarity    100     1.0     -\n";
+    }
+
+    if ($nativeexists) {
+        $score_def .= "FragmentCrmsd            30      0.0     -\n";
+        $score_def .= "FragmentDME              30      0.0     -\n";
+        $nativecmd = "-in:file:s $options{runid}.pdb\n";
+    }
+
+    my $score_file_name = "$options{runid}\_scores$size.cfg";
+    open FILE, ">$score_file_name";
+    print FILE $score_def;
+    close FILE or die $!;
+
+    open( PATH_DEFS, ">$options{runid}\_picker_cmd_size$size.txt" );
     my $cmdtxt = <<CMDTXT;
--in:file:fasta		$file
--in::path::database     $ROSETTA_DATABASE
--in::file::vall         $valls_str
--frags::n_candidates	$n_candidates
--frags::n_frags		$n_frags
--frags::frag_sizes	$size
--frags::picking::quota_config_file  ./$id$chain\_Quota.def
-#-frags::describe_fragments test.fsc.score
--out::file::frag_prefix   $xx$id$chain
--frags::scoring::config   ./$id$chain\_Scores.cfg
--out:level 200
--in::file::checkpoint     $id$chain.checkpoint
--frags::ss_pred           $ss_pred_str
+-in:file:fasta          $options{fastafile}
+-in:path:database       $ROSETTA_DATABASE
+-in:file:vall           $valls_str
+-frags:n_candidates     $options{n_candidates}
+-frags:n_frags          $options{n_frags}
+-frags:frag_sizes       $size
+-out:file:frag_prefix   $options{runid}
+-frags:scoring:config   $score_file_name
+#-out:level 2000
+-in:file:checkpoint     $options{runid}.checkpoint
+-frags:write_ca_coordinates
+-frags:describe_fragments $options{runid}\_frags.$size.score
+$sparkscmd
+$nativecmd
 CMDTXT
 
-    if ($no_homs) {
-        $cmdtxt .= "-frags:denied_pdb         $id$chain.homolog\n";
+    # add fragment secondary structure predictions
+    my @frag_ss_tokens;
+    if ( -f "$options{runid}.psipred_ss2" ) {
+        push @frag_ss_tokens, ( "$options{runid}.psipred_ss2", "psipred" );
+    }
+    if ( -f "$options{runid}.rdb_ss2" ) {
+        push @frag_ss_tokens, ( "$options{runid}.rdb_ss2", "sam" );
+    }
+    if ( -f "$options{runid}.porter_ss2" ) {
+        push @frag_ss_tokens, ( "$options{runid}.porter_ss2", "porter" );
+    }
+    $cmdtxt .= join ' ', ( '-frags:ss_pred', @frag_ss_tokens );
+    $cmdtxt .= "\n";
+    if ( $options{torsion_bin} && -f $options{torsion_bin} ) {
+        $cmdtxt .= "-in:file:torsion_bin_probs $options{torsion_bin}\n";
+    }
+
+    # auto-generate quota votes if more than 1 ss_pred is used
+    if ( $ss_pred_cnt > 1 ) {
+        my %votes;
+        foreach my $ss_pred (qw/ psipred porter sam /) {
+            if ( $options{$ss_pred} ) {
+                $votes{$ss_pred} = get_ss_quota_vote($ss_pred);
+            }
+        }
+
+        if ( scalar( keys %votes ) > 0 ) {
+            my $quota_fn = "$options{runid}\_quota.def";
+            open QUOTA, ">$quota_fn" or die $!;
+            print QUOTA "#pool_id        pool_name       fraction\n";
+            my $count = 1;
+
+            use List::Util qw/ sum /;
+            my $sum = sum( values %votes );
+            foreach my $ss_pred ( keys %votes ) {
+                my $pct = sprintf( "%4.2f", $votes{$ss_pred} / $sum );
+                print QUOTA "$count          $ss_pred        $pct\n";
+                $count++;
+            }
+            $cmdtxt .= "-frags:picking:quota_config_file $quota_fn\n";
+        }
+    }
+
+    if ( !$options{homs} || $options{exclude_homologs_by_pdb_date} ) {
+        $cmdtxt .= "-frags:denied_pdb  $options{runid}.homolog\n";
     }
 
     print PATH_DEFS $cmdtxt;
     close(PATH_DEFS);
-}
-
-my $attempts        = 5;
-my $pickerexecregex = $PICKER;
-$pickerexecregex =~ s/(\W)/\\$1/g;
-
-## This is an ugly way to run the picker in parallel, sorry for the hackiness - dk
-my $slave_rundir = `pwd`;
-chomp $slave_rundir;
-$slave_rundir =~ s/\/$//;
-foreach my $attempt ( 1 .. $attempts ) {
 
     if ( !$SLAVE_LAUNCHER ) {    # run in series
-        foreach my $size (@fragsizes) {
-            my $sizestr = sprintf( "%2.2d", $size );
-            my ($resultfile1) = <$xx$id$chain$sizestr*$TAIL>;
-            my ($resultfile2) = <$xx$id$chain*\.$size\mers>;
-            unless ( -s $resultfile1 || -s $resultfile2 ) {
-                my $shell =
-"$PICKER \@$xx$id$chain\_picker_cmd_size$size.txt >& $xx$id$chain\_picker_cmd_size$size.log";
-                print "shell: $shell\n" if ($DEBUG);
-                ( system($shell) == 0 ) || die "ERROR! $shell command failed\n";
-            }
-        }
+        my $cmd =
+"$FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS";
+        produce_output_with_cmd( $cmd,
+            "$options{runid}.$options{n_frags}.$size" . "mers" );
     }
-    else {    # run in parallel
-        print "Attempt $attempt\n" if ($DEBUG);
+}
 
+if ($SLAVE_LAUNCHER) {           # run in parallel
+    ## This is an ugly way to run the picker in parallel, sorry for the hackiness - dk
+    my $attempts             = 3;
+    my $maxwait              = 2 * 60 * 60;
+    my $max_noprocess_nofile = 20;
+
+    my $pickerexecregex = $FRAGMENT_PICKER;
+    $pickerexecregex =~ s/(\W)/\\$1/g;
+    my $slave_rundir = `pwd`;
+    chomp $slave_rundir;
+    $slave_rundir =~ s/\/$//;
+
+    foreach my $attempt ( 1 .. $attempts ) {
+        print_debug("Attempt $attempt");
         my %submitted;
         my @ps = `ps ux`;
         foreach my $size (@fragsizes) {
-            my $sizestr = sprintf( "%2.2d", $size );
-            my ($resultfile1) = <$xx$id$chain$sizestr*$TAIL>;
-            my ($resultfile2) = <$xx$id$chain*\.$size\mers>;
-            my $pickerregex   = "$xx$id$chain\_picker_cmd_size$size.txt";
+            my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+            my $pickerregex = "$options{runid}\_picker_cmd_size$size.txt";
             $pickerregex =~ s/(\W)/\\$1/g;
             my $pwdregex = $slave_rundir;
             $pwdregex =~ s/(\W)/\\$1/g;
             unless (
-                   -s $resultfile1
-                || -s $resultfile2
+                -s $resultfile
                 || scalar(
                     grep { /$pickerregex/ && /$pickerexecregex/ && /$pwdregex/ }
                       @ps
@@ -884,10 +849,10 @@ foreach my $attempt ( 1 .. $attempts ) {
               )
             {
                 my $shell =
-"$SLAVE_LAUNCHER $PICKER \@$xx$id$chain\_picker_cmd_size$size.txt >& $xx$id$chain\_picker_cmd_size$size.log &";
-                print "shell: $shell\n" if ($DEBUG);
+"$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS >& $options{runid}\_picker_cmd_size$size.log &";
+                print_debug("shell: $shell");
                 system($shell);
-                sleep(2);    # give the disks a little break
+                sleep(1);    # give the disks a little break
                 $submitted{$size} = 1;
             }
             else {
@@ -895,7 +860,9 @@ foreach my $attempt ( 1 .. $attempts ) {
                   if (
                     scalar(
                         grep {
-                            /$pickerregex/ && /$pickerexecregex/ && /$pwdregex/
+                                 /$pickerregex/
+                              && /$pickerexecregex/
+                              && /$pwdregex/
                           } @ps
                     )
                   );
@@ -908,16 +875,20 @@ foreach my $attempt ( 1 .. $attempts ) {
         my %noprocess_nofile;
         if ( scalar( keys %submitted ) ) {
             while (1) {
+                sleep(30);
                 @ps = `ps ux`;
                 foreach my $size ( keys %submitted ) {
                     next if ( $done{$size} );
-                    my $pickerregex = "$xx$id$chain\_picker_cmd_size$size.txt";
+                    my $pickerregex =
+                      "$options{runid}\_picker_cmd_size$size.txt";
                     $pickerregex =~ s/(\W)/\\$1/g;
                     my $pwdregex = $slave_rundir;
                     $pwdregex =~ s/(\W)/\\$1/g;
-                    my ($resultfile) = <$xx$id$chain*\.$size\mers>;
+                    my $resultfile =
+                      "$options{runid}.$options{n_frags}.$size" . "mers";
                     if (
-                        $resultfile && $resultfile !~ /^\s*$/gs && !scalar(
+                        -f $resultfile
+                        || !scalar(
                             grep {
                                      /$pickerregex/
                                   && /$pickerexecregex/
@@ -926,233 +897,99 @@ foreach my $attempt ( 1 .. $attempts ) {
                         )
                       )
                     {
-                        sleep(30);
                         if ( -s $resultfile ) {
                             $done{$size} = 1;
-                            print "Size $size done!\n" if ($DEBUG);
+                            print_debug("size $size done!");
                         }
                         else {
+														print_debug("size $size process does not exist!");
                             $noprocess_nofile{$size}++;
-                            if ( $noprocess_nofile{$size} > 20 ) {
+                            if ( $noprocess_nofile{$size} >
+                                $max_noprocess_nofile )
+                            {
                                 warn
-"WARNING!! giving up on Size $size, process and result file do not exist, will probably try to run again.\n";
+"WARNING!! giving up on size $size, process and result file do not exist, will probably try to run again.\n";
                                 $done{$size} = 1;
                             }
-                        }
-                    }
-                    elsif (
-                        !scalar(
-                            grep {
-                                     /$pickerregex/
-                                  && /$pickerexecregex/
-                                  && /$pwdregex/
-                              } @ps
-                        )
-                      )
-                    {
-                        $noprocess_nofile{$size}++;
-                        if ( $noprocess_nofile{$size} > 20 ) {
-
-                            # give up on this one
-                            warn
-"WARNING!! giving up on Size $size, process and result file do not exist, will probably try to run again.\n";
-                            $done{$size} = 1;
                         }
                     }
                 }
                 my $diff = time() - $time;
                 last
                   if ( scalar( keys %done ) == scalar( keys %submitted )
-                    || $diff > 5 * 60 * 60 );    # max wait of 5 hours
+                    || $diff > $maxwait );    # max wait
                 sleep(120);
             }
         }
 
-    }
-
-    # convert files to old style names
-    my @frags = `ls -1 $xx$id$chain*mers`;
-    foreach my $frag (@frags) {
-        chomp $frag;
-        if ( $frag =~ /^$xx$id$chain.*\.(\d+)mers$/ ) {
-            eval {
-                ## check frag file format!
-                &check_fragformat( $file, $frag, $DEBUG );
-            };
-            if ($@) {
-
-                # format is bad so remove it and try again
-                unlink($frag);
-            }
-            else {
-                my $size = "00$1";
-                $size =~ s/^.*(\d{2})$/$1/gc;
-                my $newfrag = "$xx$id$chain$size\_05.200$TAIL";
-                system("mv $frag $newfrag");
-                ( -s $newfrag ) or die "picker failed!\n";
+        my %checkdone;
+        foreach my $size (@fragsizes) {
+            my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+            if ( -s $resultfile ) {
+                $checkdone{$resultfile} = 1;
+                print_debug("$resultfile exists!");
             }
         }
-    }
-
-    my %checkdone;
-    foreach my $size (@fragsizes) {
-        my $sizestr = sprintf( "%2.2d", $size );
-        my ($resultfile1) = <$xx$id$chain$sizestr*$TAIL>;
-				if ( $resultfile1 && -s $resultfile1 ) {
-            $checkdone{$resultfile1} = 1;
-            print "$resultfile1\n" if $DEBUG;
+        if ( scalar( keys %checkdone ) == scalar(@fragsizes) ) {
+            last;
         }
-    }
-
-    if ( scalar( keys %checkdone ) == scalar(@fragsizes) ) {
-        last;
-    }
-    else {
-        warn
+        else {
+            warn
 "WARNING! all fragment files do not exist after attempt $attempt, attempting to run picker again\n";
-        if ( $attempt == $attempts ) {
-            die "ERROR! picker failed after $attempt attempts\n";
+            if ( $attempt == $attempts ) {
+                die "ERROR! picker failed after $attempt attempts\n";
+            }
         }
     }
 }
-
-push(
-    @cleanup_files,
-    (
-        <zscore_*_$TAIL_$id$chain>, <status.*$TAIL_$xx$id>,
-        <names.*$TAIL$xx$id$chain>
-    )
-);
-
-#############################################
-# cleanup
-#############################################
-
-CLEANUP:
-
-if ($cleanup) {
-    my $file;
-
-    foreach $file (@cleanup_files) {
-        unlink($file);
-    }
-}
-
-print "Done!\n" if ($DEBUG);
 
 # done
+print_debug("done!");
 exit 0;
 
-###############################################################################
-# util
-###############################################################################
-
-sub check_fragformat {
-    my ( $fasta, $frag, $verbose ) = @_;
-    chomp $fasta;
-    chomp $frag;
-    my $seq;
-    print "Checking frag file format: $frag\n" if ($verbose);
-    open( F, $fasta ) or die "ERROR! cannot open $fasta: $!\n";
-    while (<F>) {
-        next if (/^>/);
-        $seq .= $_;
-    }
-    close(F);
-    $seq =~ s/\s+//gs;
-    my ( @n, $pos, $nbrs, $nbrscnt, $prevnbrs, $fragsize );
-    my $poscnt = 0;
-    open( F, $frag ) or die "ERROR! cannot open $frag: $!\n";
-    while (<F>) {
-        if (/^\s*position:\s+(\d+)\s+neighbors:\s+(\d+)\s*$/) {
-            $prevnbrs = $nbrs;
-            $pos      = $1;
-            $nbrs     = $2;
-            $poscnt++;
-            if ( $prevnbrs != $nbrscnt ) {
-                die "ERROR! neighbor truncated\n";
-            }
-            $nbrscnt = 0;
-        }
-        elsif (/^\s+\w\w\w\w\s+[\w\-]\s+\d+/) {
-            push( @n, $_ );
-        }
-        elsif (/^\s*$/) {
-            if ( scalar @n ) {
-                if ( !$nbrscnt ) {
-                    $fragsize = scalar @n;
-                }
-                else {
-                    if ( scalar @n != $fragsize ) {
-                        die "ERROR! neighbor count off\n";
-                    }
-                }
-                $nbrscnt++;
-            }
-            @n = ();
-        }
-    }
-    close(F);
-
-    if ( $nbrs != $nbrscnt ) {
-        die "ERROR! neighbor truncated\n";
-    }
-
-    if ( length($seq) != $pos + $fragsize - 1 ) {
-        my $len    = length($seq);
-        my $poslen = $pos + $fragsize - 1;
-        die "ERROR! fasta seq length $len does not match positions $poslen\n";
-    }
-    print "Format okay!\n" if ($verbose);
-}
+# subroutines
 
 # getCommandLineOptions()
-#
-#  rets: \%opts  pointer to hash of kv pairs of command line options
-#
+# rets: \%opts  pointer to hash of kv pairs of command line options
 sub getCommandLineOptions {
     use Getopt::Long;
 
-    my $fragsizes = join( ",", @fragsizes );
-    my $usage = qq{usage: $0
-		[
-		   \t-rundir <full path to run directory (default = ./)>
-		   \t-verbose  specify for chatty output
-		   \t-id  <5 character pdb code/chain id, e.g. 1tum_>
-		   \t-xx  <silly little 2-letter code, if you care>
-		   \t-nohoms  specify to omit homologs from search
-		   \t-nopsipred  don\'t run psipred.
-		   \t-psipred_iter  \# of psipred iterations (default = 1)
-		   \t-psipred_hbias  psipred helix bias (default = 1)
-		   \t-psipred_sbias  psipred strand bias (default = 1)
-		   \t-psipredfile  <path to file containing psipred ss prediction>
-		   \t-nosam   don\'t run sam.
-		   \t-samfile  <path to file containing sam ss prediction>
-		   \t-noporter  don\'t run porter.
-		   \t-porterfile  <path to file containing porter ss prediction>
-		   \t-nofrags  specify to not make fragments and just run SS predictions
-		   \t-vall_files <vall1,vall2,...>  (default = $VALL)
-		   \t-frag_sizes <size1,size2,...n> (default = $fragsizes)
-                   \t-n_frags <number of fragments> (default = $n_frags)
-                   \t-n_candidates <number of candidates> (default = $n_candidates)
-		   \t-nocleanup  specify to keep all the temporary files
-		]\n
-		<fasta file>\n};
+    my $usage =
+      qq{usage: $0  [-rundir <full path to run directory (default = ./)>
+		\t-verbose  specify for chatty output
+		\t-id  <5 character pdb code/chain id, e.g. 1tum_>
+		\t-nopsipred  don\'t run psipred. (run by default)
+		\t-sam  run sam.
+		\t-porter  run porter.
+		\t-nohoms  specify to omit homologs from search
+		\t-exclude_homologs_by_pdb_date <mm/dd/yy>
+		\t-psipredfile  <path to file containing psipred ss prediction>
+		\t-samfile  <path to file containing sam ss prediction>
+		\t-porterfile  <path to file containing porter ss prediction>
+		\t-nocleanup  specify to keep all the temporary files
+		\t-add_vall_files <vall1,vall2,...> add extra Vall files
+		\t-use_vall_files <vall1,vall2,...> use only the following Vall files
+		\t-frag_sizes <size1,size2,...n>
+		\t-nofrags specify to not make fragments and just run SS predictions
+		\t-n_frags <number of fragments>
+		\t-n_candidates <number of candidates>
+		\t<fasta file>
+	};
+    $usage = "$usage\n\n" . join ' ', ( 'Version:', VERSION, "\n" );
 
     # Get args
-    my %opts = ();
+    my %opts;
     &GetOptions(
-        \%opts,            "psipred!",
-        "psipred_iter=f",  "psipred_hbias=f",
-        "psipred_sbias:f", "sam!",
-        "homs!",           "porter!",
-        "psipredfile=s",   "samfile=s",
-        "porterfile=s",    "xx=s",
-        "verbose!",        "rundir=s",
-        "id=s",            "frags!",
-        "cleanup!",        "frag_sizes=s",
-        "n_frags=i",       "n_candidates=i",
-        "vall_files=s"
+        \%opts,             "psipred!",
+        "sam!",             "homs!",
+        "frags!",           "porter!",
+        "psipredfile=s",    "samfile=s",
+        "porterfile=s",     "verbose!",
+        "rundir=s",         "id=s",
+        "cleanup!",         "frag_sizes=s",
+        "n_frags=i",        "n_candidates=i",
+        "add_vall_files=s", "use_vall_files=s",
+        "torsion_bin=s",    "exclude_homologs_by_pdb_date=s"
     );
 
     if ( scalar(@ARGV) != 1 ) {
@@ -1168,16 +1005,14 @@ sub getCommandLineOptions {
     }
 
     &checkExist( "f", $opts{f} );
-
     if ( defined $opts{frag_sizes} && $opts{frag_sizes} !~ /^[\d\,]+$/ ) {
-        die("Fragment sizes are invalid\n");
+        die "Fragment sizes are invalid\n";
     }
 
-    return %opts;
+    if (wantarray) { return %opts; }
+    return \%opts;
 }
 
-# checkExist()
-#
 sub checkExist {
     my ( $type, $path ) = @_;
     if ( $type eq 'd' ) {
@@ -1198,22 +1033,16 @@ sub checkExist {
     }
 }
 
-sub fileExist {
-    my $path = shift;
-
-    return 0 if ( !-f $path );
-    return 0 if ( -z $path );
-
-    return 1;
+sub nonempty_file_exists {
+    my $file = shift;
+    return ( -f $file && !-z $file );
 }
 
 sub run {
     my ( $cmd, @files ) = @_;
     my $pid;
 
-    if ($DEBUG) {
-        print "cmd is: $cmd\n";
-    }
+    print_debug("cmd is: $cmd");
 
   FORK: {
         if ( $pid = fork ) {
@@ -1234,11 +1063,10 @@ sub run {
             wait;
 
             return $?;
-
         }
         elsif ( defined $pid ) {
 
-            #child
+            # child process
             exec($cmd);
         }
         elsif ( $! =~ /No more process/ ) {
@@ -1246,7 +1074,6 @@ sub run {
             # recoverable error
             sleep 5;
             redo FORK;
-
         }
         else {
 
@@ -1271,7 +1098,7 @@ sub try_try_again {
         $missing_files = 0;
 
         foreach $f (@$success_files) {
-            if ( !&fileExist($f) ) {
+            if ( !&nonempty_file_exists($f) ) {
                 ++$missing_files;
             }
         }
@@ -1287,18 +1114,20 @@ sub try_try_again {
 }
 
 sub exclude_outn {
-    my ( $pdb, $chain, $outn ) = @_;
+    my ($runid) = @_;
     my @hits;
     my $hit;
     my $hit_pdb;
     my $hit_chain;
     my %uniq_hits;
 
-    open( OUTN,  "$outn" );
-    open( EXCL,  ">>$pdb$chain.homolog_vall" );    # append
-    open( EXCL2, ">>$pdb$chain.homolog" );
+    open( EXCL,  ">$runid.homolog_vall" );
+    open( EXCL2, ">>$runid.homolog" );
 
+    print_debug("exclude_outn: excluding homologs from $runid.outn");
+    open( OUTN, "$runid.outn" );
     @hits = grep( /^>/, <OUTN> );
+    close(OUTN);
 
     foreach $hit (@hits) {
         $uniq_hits{$hit} = 1;
@@ -1313,27 +1142,29 @@ sub exclude_outn {
         $hit_chain = '_' if ( $hit_chain eq ' ' );
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
-        print EXCL "$pdb$chain $hit_pdb$hit_chain\n";
-        print EXCL2 "$pdb$chain $hit_pdb$hit_chain\n";
+        print EXCL "$runid $hit_pdb$hit_chain\n";
+        print EXCL2 "$runid $hit_pdb$hit_chain\n";
     }
-    close(OUTN);
+
     close(EXCL);
     close(EXCL2);
 }
 
 sub exclude_pdbblast {
-    my ( $pdb, $chain, $blast ) = @_;
+    my ($runid) = @_;
     my @hits;
     my $hit;
     my $hit_pdb;
     my $hit_chain;
     my %uniq_hits;
-    return if ( !-s $blast );
-    open( BLAST, $blast );
-    open( EXCL,  ">$pdb$chain.homolog_pdb" );
-    open( EXCL2, ">>$pdb$chain.homolog" );
 
-    @hits = grep( /^>/, <BLAST> );
+    open( EXCL,  ">$runid.homolog_pdb" );
+    open( EXCL2, ">>$runid.homolog" );
+
+    print_debug("exclude_pdbblast: excluding homologs from $runid.outn.pdb");
+    open( OUTN, "$runid.outn.pdb" );
+    @hits = grep( /^>/, <OUTN> );
+    close(OUTN);
 
     foreach $hit (@hits) {
         $uniq_hits{$hit} = 1;
@@ -1348,28 +1179,29 @@ sub exclude_pdbblast {
         $hit_chain = '_' if ( $hit_chain eq ' ' );
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
-        print EXCL "$pdb$chain $hit_pdb$hit_chain\n";
-        print EXCL2 "$pdb$chain $hit_pdb$hit_chain\n";
+        print EXCL "$runid $hit_pdb$hit_chain\n";
+        print EXCL2 "$runid $hit_pdb$hit_chain\n";
     }
 
     close(EXCL);
     close(EXCL2);
-    close(BLAST);
 }
 
 sub exclude_blast {
-    my ( $pdb, $chain, $blast ) = @_;
+    my ($runid) = @_;
     my @hits;
     my $hit;
     my $hit_pdb;
     my $hit_chain;
     my %uniq_hits;
 
-    open( BLAST, "$blast" );
-    open( EXCL,  ">$pdb$chain.homolog_nr" );
-    open( EXCL2, ">>$pdb$chain.homolog" );
+    open( EXCL,  ">$runid.homolog_nr" );
+    open( EXCL2, ">>$runid.homolog" );
 
+    print_debug("exclude_blast: excluding homologs from $runid.blast");
+    open( BLAST, "$runid.blast" );
     @hits = grep( /pdb\|/, <BLAST> );
+    close(BLAST);
 
     foreach $hit (@hits) {
         $uniq_hits{$hit} = 1;
@@ -1383,11 +1215,11 @@ sub exclude_blast {
             $hit_pdb =~ tr/[A-Z]/[a-z]/;
             $hit_chain = '_' if ( $hit_chain =~ /^\s*$/ );
 
-            print EXCL "$pdb$chain $hit_pdb$hit_chain\n";
-            print EXCL2 "$pdb$chain $hit_pdb$hit_chain\n";
+            print EXCL "$runid $hit_pdb$hit_chain\n";
+            print EXCL2 "$runid $hit_pdb$hit_chain\n";
         }
     }
-    close(BLAST);
+
     close(EXCL);
     close(EXCL2);
 }
@@ -1411,18 +1243,18 @@ sub parse_checkpoint_file {
     my @w;
     my @output;
 
-    open( INPUT, $filename ) || die("Couldn't open $filename for reading.\n");
+    open( INPUT, $filename ) or die("Couldn't open $filename for reading.\n");
 
-    read( INPUT, $buf, 4 ) || die("Couldn't read $filename!\n");
+    read( INPUT, $buf, 4 ) or die("Couldn't read $filename!\n");
     $seqlen = unpack( "i", $buf );
 
-    ( !$DEBUG ) || print "Sequence length: $seqlen\n";
+    print_debug("Sequence length: $seqlen");
 
-    read( INPUT, $buf, $seqlen ) || die("Premature end: $filename.\n");
+    read( INPUT, $buf, $seqlen ) or die("Premature end: $filename.\n");
     $seqstr = unpack( "a$seqlen", $buf );
 
     for ( $i = 0 ; $i < $seqlen ; ++$i ) {
-        read( INPUT, $buf, 160 ) || die("Premature end: $filename, line: $i\n");
+        read( INPUT, $buf, 160 ) or die("Premature end: $filename, line: $i\n");
         @w = unpack( "d20", $buf );
 
         for ( $j = 0 ; $j < 20 ; ++$j ) {
@@ -1444,12 +1276,12 @@ sub finish_checkpoint_matrix {
     my @sequence = split( //, $s );
     my $i;
     my $j;
-    my $line;
     my $sum;
     my @words;
     my @b62;
     my @blos_aa =
       ( 0, 14, 11, 2, 1, 13, 3, 5, 6, 7, 9, 8, 10, 4, 12, 15, 16, 18, 19, 17 );
+
     my %aaNum = (
         A => 0,
         C => 1,
@@ -1471,11 +1303,11 @@ sub finish_checkpoint_matrix {
         V => 17,
         W => 18,
         Y => 19,
-        X => 0     ### cheep fix for now ##
+        X => 0
     );
 
     ( length($s) == scalar(@matrix) )
-      || die("Length mismatch between sequence and checkpoint file!\n");
+      or die("Length mismatch between sequence and checkpoint file!\n");
 
     my $blosum62 = <<BLOSUM;
 #  BLOSUM Clustered Target Frequencies=qij
@@ -1508,10 +1340,11 @@ BLOSUM
     my @blosum62 = split( /\n/, $blosum62 );
 
     # read/build the blosum matrix
-    foreach (@blosum62) {
-        next if ( $_ !~ /^\d/ );
-        chomp;
-        @words = split(/\s/);
+    foreach my $blosumline (@blosum62) {
+        next if ( $blosumline !~ /^\d/ );
+        chomp $blosumline;
+        @words = split( /\s/, $blosumline );
+
         for ( $j = 0 ; $j <= $#words ; ++$j ) {
             $b62[ $blos_aa[$i] ][ $blos_aa[$j] ] = $words[$j];
             $b62[ $blos_aa[$j] ][ $blos_aa[$i] ] = $words[$j];
@@ -1575,39 +1408,6 @@ sub write_checkpoint_file {
     print OUTPUT "END";
 
     close(OUTPUT);
-}
-
-## verify_existing_checkpoint
-#
-# Does what it says...it verifies a checkpoint file to make sure it's kosher.
-#
-# arg: filename of checkpoint file.
-# rets: 1 if good, 0 if bad.
-
-sub verify_existing_checkpoint {
-    my $filename = shift;
-    my @file;
-
-    open( CPT, $filename ) || return 0;
-
-    ( !$DEBUG ) || print "opened checkpoint file.\n";
-
-    @file = <CPT>;
-
-    ( $file[0] =~ /^(\d+)$/ ) || return 0;
-
-    ( !$DEBUG ) || print "starting line ok.\n";
-
-    ( ( scalar(@file) - 2 ) == $1 ) || return 0;
-
-    ( !$DEBUG ) || print "length ok.\n";
-
-    ( $file[$#file] =~ /^END/ ) || return 0;
-
-    ( !$DEBUG ) || print "end ok.\n";
-
-    close(CPT);
-    return 1;
 }
 
 ## convert 6 state rdb file to 3 state
@@ -1674,22 +1474,132 @@ sub convert_sam_ss {
     close(SAM);
 }
 
-sub read_ss2 {
-    my $ss2 = shift;
-    $sstr = "";
-    open( SS2, $ss2 ) or die "ERROR! cannot open $ss2: $!\n";
-    while (<SS2>) {
-        if (/^\s*\d+\s+\w\s+(\w)\s+\d/) {
-            $sstr .= $1;
+sub print_debug {
+    if ( $options{DEBUG} ) {
+        foreach my $line (@_) {
+            print "$line\n";
         }
     }
-    close(SS2);
-    if (!$sstr) {
-        die "ERROR! cannot extract secondary structure prediction from $ss2: psipred_ss2 format required.\n";
-    }
-    return $sstr;
 }
 
+sub cleanup {
+    if ( $options{cleanup} ) {
+        foreach my $file (@cleanup_files) {
+            print_debug("removing file $file");
+            unlink($file);
+        }
+    }
+}
 
+sub options_to_str {
+    my $options = shift;
 
+    my $str = '';
 
+    use List::Util qw/ max /;
+    my $max_width = max map { length($_) } keys %$options;
+    my $format_str = "%" . $max_width . "s";
+    foreach my $key ( sort keys %$options ) {
+        my $val_str = $options->{$key};
+        if ( ref( $options->{$key} ) eq 'ARRAY' ) {
+            $val_str = join ' ', @{ $options->{$key} };
+        }
+        elsif ( ref( $options->{$key} ) eq 'HASH' ) {
+            my @keys = keys %{ $options->{$key} };
+            $val_str = join ', ',
+              map { join ': ', ( $_, $options->{$key}{$_} ) } @keys;
+        }
+        $str .= join ': ', ( sprintf( $format_str, $key ), $val_str );
+        $str .= "\n";
+    }
+    $str .= '-' x 80 . "\n";
+    return $str;
+}
+
+sub produce_output_with_cmd {
+    my $cmd       = shift;
+    my $output_fn = shift;
+
+    print_debug("Command: $cmd");
+    if ( -f $output_fn ) {
+        print_debug("Skipping command, $output_fn exists!");
+        return;
+    }
+
+    my $output = `$cmd`;
+    print_debug("Finished running command: $cmd");
+    if ( defined $output ) {
+        print_debug("Output: $output");
+    }
+
+    if ( !-f $output_fn ) {
+        die "Error: expected creation of $output_fn after running '$cmd'!\n";
+    }
+}
+
+sub read_fasta {
+    my $fn = shift;
+
+    open( SEQFILE, $fn ) or die "Error opening fasta file $fn!\n";
+    my $has_comment = 0;
+    my $eof;
+    my $seq = '';
+    while ( my $line = <SEQFILE> ) {
+        $eof = $line;
+        $line =~ s/\s//g;
+        if ( $line =~ /^>/ ) {
+            $has_comment = 1;
+        }
+        else {
+            chomp $line;
+            $seq .= $line;
+        }
+    }
+
+    my $has_eof = ( $eof =~ /\n$/ );
+    ( $has_comment && $has_eof )
+      or die
+      "fasta file (given $fn) must have a comment and end with a new line!\n";
+    close SEQFILE or die $!;
+
+    return $seq;
+}
+
+sub get_ss_quota_vote {
+    my $ss_pred_name = shift;
+
+    if ( $ss_pred_name eq 'psipred' ) {
+        return 3;
+    }
+    elsif ( $ss_pred_name eq 'sam' ) {
+        return 1;
+    }
+    elsif ( $ss_pred_name eq 'porter' ) {
+        return 1;
+    }
+    else {
+        die "Error: don't recognize ss_pred_name $ss_pred_name!\n";
+    }
+}
+
+sub file_overrides_option {
+    my $fn  = shift;
+    my $tag = shift;
+
+    if ( nonempty_file_exists($fn) ) {
+        my $fn_base = basename($fn);
+        if ( abs_path("$options{rundir}/$fn_base") ne abs_path($fn) ) {
+            copy( $fn, "$options{rundir}/$fn_base" )
+              or die "Error copying $fn -> $options{rundir}/$fn_base";
+            push( @cleanup_files, $fn_base );
+        }
+
+        print "Assuming $options{rundir}/$fn_base is a $tag file.\n";
+        return 0;
+    }
+    print "File for $tag not found! Generating from scratch instead.\n";
+    if ( length($fn) ) {
+        print "(given fn $fn)\n";
+    }
+    return 1;
+}

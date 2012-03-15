@@ -50,8 +50,8 @@ my $ROSETTA_DATABASE = "/work/robetta/src/rosetta.2012-03-09/rosetta_database"
 # free nodes to run them in parallel. A separate picker job is run for each
 # fragment size. The command passed to this script is the picker command.
 # If left as an empty string, picker jobs will run serially.
-my $SLAVE_LAUNCHER =
-  "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
+my $SLAVE_LAUNCHER = "";
+  # "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
 # http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
@@ -173,6 +173,7 @@ $options{runid}        = "temp_";
 $options{cleanup}      = 1;
 $options{torsion_bin}  = 0;
 $options{exclude_homologs_by_pdb_date} = 0;
+$options{old_name_format} = 0;
 
 my @cleanup_files  = ();
 my @fragsizes      = ( 3, 9 );  #4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 );
@@ -943,6 +944,17 @@ if ($SLAVE_LAUNCHER) {           # run in parallel
     }
 }
 
+if ($options{old_name_format}) {
+  foreach my $size (@fragsizes) {
+    my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+    my $fragsize = sprintf("%2.2d", $size);
+    my $fragname = "aa$options{runid}$fragsize\_05.$options{n_frags}\_v1_3";
+    print_debug("mv $resultfile $fragname");
+    (system("mv $resultfile $fragname") == 0 && -s $fragname) or 
+        die "ERROR! attempt to move $resultfile to $fragname failed\n";
+  }
+}
+
 # done
 print_debug("done!");
 exit 0;
@@ -970,9 +982,10 @@ sub getCommandLineOptions {
 		\t-add_vall_files <vall1,vall2,...> add extra Vall files
 		\t-use_vall_files <vall1,vall2,...> use only the following Vall files
 		\t-frag_sizes <size1,size2,...n>
-		\t-nofrags specify to not make fragments and just run SS predictions
 		\t-n_frags <number of fragments>
 		\t-n_candidates <number of candidates>
+		\t-nofrags specify to not make fragments and just run SS predictions
+                \t-old_name_format  use old name format e.g. aa1tum_05.200_v1_3
 		\t<fasta file>
 	};
     $usage = "$usage\n\n" . join ' ', ( 'Version:', VERSION, "\n" );
@@ -989,7 +1002,8 @@ sub getCommandLineOptions {
         "cleanup!",         "frag_sizes=s",
         "n_frags=i",        "n_candidates=i",
         "add_vall_files=s", "use_vall_files=s",
-        "torsion_bin=s",    "exclude_homologs_by_pdb_date=s"
+        "torsion_bin=s",    "exclude_homologs_by_pdb_date=s",
+        "old_name_format!"
     );
 
     if ( scalar(@ARGV) != 1 ) {

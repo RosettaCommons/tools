@@ -8,7 +8,11 @@ use File::Copy qw/ copy /;
 use File::Basename;
 use Sys::Hostname;
 use Time::Local;
-my $host = hostname;
+
+#http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
+use Parallel::ForkManager;
+
+our $host = hostname;
 ###############################################################################
 # USER CONFIGURATION  -- ONLY CHANGE THIS SECTION.
 #                        YOU MUST EDIT THESE PATHS BEFORE USING
@@ -22,7 +26,7 @@ my $host = hostname;
 # ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
 my $BLAST_DIR = "/work/robetta/src/shareware/blast"
   ;    # "/my_src_dir/blast-2.2.17_x64/blast-2.2.17";
-my $BLAST_NUM_CPUS = 8;    # number of processors to use
+my $BLAST_NUM_CPUS = 8;    # number of processors to use (blastpgp -a option)
 
 # NR blast database filename
 # Create blast db files using 'formatdb  -o T -i nr'
@@ -35,29 +39,36 @@ my $PDB_ENTRIES_IDX = "/work/robetta/databases/pdb/entries.idx";
 
 # DEFAULT PDB STRUCTURE, PSSM, and SPARTA (chemical shift) DATABASE (VALL)
 # '-vall_files' option overrides this
-my $VALL = "/work/robetta/src/rosetta.2012-03-09/fragment_tools/vall.jul19.2011"
+my $VALL = "/work/robetta/src/rosetta/fragment_tools/vall.jul19.2011"
   ;    #"/my_database_dir/vall.apr24.2008.extended";
+
+# pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
+my $PDB2VALL = "/work/robetta/src/rosetta/fragment_tools/pdb2vall/pdb2vall.py";
+my $PDB2VALL_IGNORE_ERRORS = 1;
 
 # ROSETTA FRAGMENT PICKER
 my $FRAGMENT_PICKER =
-"/work/robetta/src/rosetta.2012-03-09/rosetta_source/bin/fragment_picker.linuxgccrelease"
+"/work/robetta/src/rosetta/rosetta_source/bin/fragment_picker.linuxgccrelease"
   ;    #"/my_src_dir/mini/bin/picker.linuxgccrelease";
-my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
-my $ROSETTA_DATABASE = "/work/robetta/src/rosetta.2012-03-09/rosetta_database"
+# fragment_picker must be built with extras=boost_thread for multiple threads
+my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use 
+
+my $ROSETTA_DATABASE = "/work/robetta/src/rosetta/rosetta_database"
   ;                                  #"/my_database_dir/rosetta_database";
 
-# This is an optional script that you can provide to launch picker jobs on
-# free nodes to run them in parallel. A separate picker job is run for each
-# fragment size. The command passed to this script is the picker command.
-# If left as an empty string, picker jobs will run serially.
-my $SLAVE_LAUNCHER = "";
-  # "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
+# This is an optional script that you can provide to launch picker and pdb2vall jobs on
+# free nodes to run them in parallel. If left as an empty string, jobs will run serially.
+# Make sure your script will run the command passed to it on another machine. If it is
+# set up to run parallel jobs on the local machine, the local machine may run into CPU 
+# and memory issues when running multiple picker and pdb2vall jobs in parallel.
+my $SLAVE_LAUNCHER = "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
 # http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
+# Uses Spine-X for solvent accessibility, phi, and psi predictions.
 # If left as an empty string, solvent accessibility, phi, and psi scores
 # will not be used which may reduce fragment quality.
-my $SPARKS = "/work/robetta/src/sparks/sparks-x/bin/scan1.sh";
+my $SPARKS = "/work/robetta/src/sparks/sparks-x/bin/buildinp_query.sh";
 
 # THE FOLLOWING IS NOT REQUIRED IF YOU RUN SECONDARY STRUCTURE PREDICTIONS
 # MANUALLY AND USE THE FOLLOWING OPTIONS:
@@ -146,11 +157,15 @@ my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
 my $VALL_BLAST_DB =
   "$VALL.blast";    # blast database of VALL sequences for homolog detection
 
+## for SLAVE_LAUNCHER parallel jobs
+our $SLAVE_MAX_WAIT = 3 * 60 * 60;
+our $SLAVE_MAX_ATTEMPTS = 2;
+
 use Cwd qw/ cwd abs_path /;
 use bytes;
 
 my %options;
-$options{DEBUG} = 0;
+$options{DEBUG} = 1;
 use constant VERSION => 3.00;    # works with standard & warnings
 
 $| = 1;                          # disable stdout buffering
@@ -174,12 +189,13 @@ $options{cleanup}      = 1;
 $options{torsion_bin}  = 0;
 $options{exclude_homologs_by_pdb_date} = 0;
 $options{old_name_format} = 0;
+$options{add_pdbs_to_vall} = "";
 
 my @cleanup_files  = ();
 my @fragsizes      = ( 3, 9 );  #4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 );
 my @add_vall_files = ();
 my @use_vall_files = ();
-
+my @pdbs_to_vall = ();
 $options{n_frags}      = 200;
 $options{n_candidates} = 1000;
 
@@ -211,6 +227,10 @@ if ( exists $opts{use_vall_files} ) {
     }
 }
 
+if ( defined $opts{add_pdbs_to_vall} ) {
+  @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
+  print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
+}
 mkpath( $options{rundir} );
 $options{rundir} = abs_path( $options{rundir} );
 chop( $options{rundir} ) if ( substr( $options{rundir}, -1, 1 ) eq '/' );
@@ -393,7 +413,7 @@ if ( $options{psipred} ) {
         }
     }
 
-    unless ( &nonempty_file_exists("psipred_horiz") ) {
+    unless ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
         if (
             !&try_try_again(
 "$PSIPASS2 $PSIPRED_DATA/weights_p2.dat 1 1 1 psipred_ss2 psipred_ss > psipred_horiz",
@@ -658,13 +678,58 @@ if ( scalar @use_vall_files ) {
     @valls = @use_vall_files;
 }
 push( @valls, @add_vall_files ) if ( scalar @add_vall_files );
-my $valls_str = join ' ', @valls;
 
 my $nativeexists = 0;
 if ( -s "$options{runid}.pdb" ) {
     print_debug("native pdb exists: $options{runid}.pdb.");
     $nativeexists = 1;
 }
+
+# pdbs to vall
+if ( scalar @pdbs_to_vall ) {
+  print_debug("pdbs_to_vall");
+	my $pdbs2valldir = "$options{rundir}/$options{runid}\_pdbs_to_vall";
+  (-d $pdbs2valldir || mkdir($pdbs2valldir)) or die "ERROR! cannot mkdir $pdbs2valldir: $!\n";
+  chdir($pdbs2valldir);
+
+  if (!-s "$options{runid}\_pdbs_to_vall.vall") {  
+    if ( !$SLAVE_LAUNCHER ) {    # run in series
+	    foreach my $pdb (@pdbs_to_vall) {
+          my $cmd = "$PDB2VALL --no_structure_profile -d -p $pdb";
+          produce_output_with_cmd( $cmd, "$pdb.vall", $PDB2VALL_IGNORE_ERRORS );
+      }
+    } else {
+	    my (@commands, @results);
+	    foreach my $pdb (@pdbs_to_vall) {
+			   push(@commands,"$SLAVE_LAUNCHER $PDB2VALL --no_structure_profile -d -p $pdb");
+				 push(@results, "$pdb.vall" );
+			}
+			&run_in_parallel( \@commands, \@results, "pdb2vall_parallel_job", $PDB2VALL_IGNORE_ERRORS );
+	  }
+  }
+	# create one template vall - overwrite if exists
+	open(F, ">$options{runid}\_pdbs_to_vall.vall") or die "ERROR! cannot open $options{runid}\_pdbs_to_vall.vall: $!\n";
+  foreach my $pdb (@pdbs_to_vall) {
+	  next if ($PDB2VALL_IGNORE_ERRORS && !-s "$pdb.vall");
+    print_debug("adding $pdb.vall");
+	  open(NF, "$pdb.vall") or die "ERROR! cannot open $pdb.vall: $!\n";
+    foreach my $nf (<NF>) {
+      print F $nf;
+    }
+    close(NF);
+  }
+  close(F);
+
+	if (-s "$options{runid}\_pdbs_to_vall.vall") {
+      push( @valls, "$pdbs2valldir/$options{runid}\_pdbs_to_vall.vall" );
+  } else {
+	  warn "WARNING! pdb2vall output $options{runid}\_pdbs_to_vall.vall does not exist.\n";
+	}
+}
+
+my $valls_str = join ' ', @valls;
+
+chdir("$options{rundir}");
 
 foreach my $size (@fragsizes) {
     my $ss_pred_cnt = 0;
@@ -820,128 +885,12 @@ CMDTXT
 }
 
 if ($SLAVE_LAUNCHER) {           # run in parallel
-    ## This is an ugly way to run the picker in parallel, sorry for the hackiness - dk
-    my $attempts             = 3;
-    my $maxwait              = 2 * 60 * 60;
-    my $max_noprocess_nofile = 20;
-
-    my $pickerexecregex = $FRAGMENT_PICKER;
-    $pickerexecregex =~ s/(\W)/\\$1/g;
-    my $slave_rundir = `pwd`;
-    chomp $slave_rundir;
-    $slave_rundir =~ s/\/$//;
-
-    foreach my $attempt ( 1 .. $attempts ) {
-        print_debug("Attempt $attempt");
-        my %submitted;
-        my @ps = `ps ux`;
-        foreach my $size (@fragsizes) {
-            my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
-            my $pickerregex = "$options{runid}\_picker_cmd_size$size.txt";
-            $pickerregex =~ s/(\W)/\\$1/g;
-            my $pwdregex = $slave_rundir;
-            $pwdregex =~ s/(\W)/\\$1/g;
-            unless (
-                -s $resultfile
-                || scalar(
-                    grep { /$pickerregex/ && /$pickerexecregex/ && /$pwdregex/ }
-                      @ps
-                )
-              )
-            {
-                my $shell =
-"$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS >& $options{runid}\_picker_cmd_size$size.log &";
-                print_debug("shell: $shell");
-                system($shell);
-                sleep(1);    # give the disks a little break
-                $submitted{$size} = 1;
-            }
-            else {
-                $submitted{$size} = 1
-                  if (
-                    scalar(
-                        grep {
-                                 /$pickerregex/
-                              && /$pickerexecregex/
-                              && /$pwdregex/
-                          } @ps
-                    )
-                  );
-            }
-        }
-
-        # wait for jobs to complete
-        my $time = time();
-        my %done;
-        my %noprocess_nofile;
-        if ( scalar( keys %submitted ) ) {
-            while (1) {
-                sleep(30);
-                @ps = `ps ux`;
-                foreach my $size ( keys %submitted ) {
-                    next if ( $done{$size} );
-                    my $pickerregex =
-                      "$options{runid}\_picker_cmd_size$size.txt";
-                    $pickerregex =~ s/(\W)/\\$1/g;
-                    my $pwdregex = $slave_rundir;
-                    $pwdregex =~ s/(\W)/\\$1/g;
-                    my $resultfile =
-                      "$options{runid}.$options{n_frags}.$size" . "mers";
-                    if (
-                        -f $resultfile
-                        || !scalar(
-                            grep {
-                                     /$pickerregex/
-                                  && /$pickerexecregex/
-                                  && /$pwdregex/
-                              } @ps
-                        )
-                      )
-                    {
-                        if ( -s $resultfile ) {
-                            $done{$size} = 1;
-                            print_debug("size $size done!");
-                        }
-                        else {
-														print_debug("size $size process does not exist!");
-                            $noprocess_nofile{$size}++;
-                            if ( $noprocess_nofile{$size} >
-                                $max_noprocess_nofile )
-                            {
-                                warn
-"WARNING!! giving up on size $size, process and result file do not exist, will probably try to run again.\n";
-                                $done{$size} = 1;
-                            }
-                        }
-                    }
-                }
-                my $diff = time() - $time;
-                last
-                  if ( scalar( keys %done ) == scalar( keys %submitted )
-                    || $diff > $maxwait );    # max wait
-                sleep(120);
-            }
-        }
-
-        my %checkdone;
-        foreach my $size (@fragsizes) {
-            my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
-            if ( -s $resultfile ) {
-                $checkdone{$resultfile} = 1;
-                print_debug("$resultfile exists!");
-            }
-        }
-        if ( scalar( keys %checkdone ) == scalar(@fragsizes) ) {
-            last;
-        }
-        else {
-            warn
-"WARNING! all fragment files do not exist after attempt $attempt, attempting to run picker again\n";
-            if ( $attempt == $attempts ) {
-                die "ERROR! picker failed after $attempt attempts\n";
-            }
-        }
+    my (@commands, @results);
+    foreach my $size (@fragsizes) {
+       push(@results,"$options{runid}.$options{n_frags}.$size" . "mers");
+       push(@commands, "$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS");
     }
+    &run_in_parallel( \@commands, \@results, "picker_parallel_job");
 }
 
 if ($options{old_name_format}) {
@@ -949,10 +898,17 @@ if ($options{old_name_format}) {
     my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
     my $fragsize = sprintf("%2.2d", $size);
     my $fragname = "aa$options{runid}$fragsize\_05.$options{n_frags}\_v1_3";
-    print_debug("mv $resultfile $fragname");
-    (system("mv $resultfile $fragname") == 0 && -s $fragname) or 
+    # just in case scripts use rsync -a make the old_name_format the actual file
+    # and then create a link for the original name (for parallel job checkpoints)
+		if (!-s $fragname) {
+      print_debug("mv $resultfile $fragname");
+      (system("mv $resultfile $fragname") == 0 && -s $fragname) or 
         die "ERROR! attempt to move $resultfile to $fragname failed\n";
-  }
+      print_debug("ln -s $fragname $resultfile");
+      (system("ln -s $fragname $resultfile") == 0 && -s $resultfile) or
+        die "ERROR! attempt to link $fragname to $resultfile failed\n";
+    }
+	}
 }
 
 # done
@@ -981,11 +937,12 @@ sub getCommandLineOptions {
 		\t-nocleanup  specify to keep all the temporary files
 		\t-add_vall_files <vall1,vall2,...> add extra Vall files
 		\t-use_vall_files <vall1,vall2,...> use only the following Vall files
+		\t-add_pdbs_to_vall <codechain,codechain,...> add extra pdb Vall files
 		\t-frag_sizes <size1,size2,...n>
 		\t-n_frags <number of fragments>
 		\t-n_candidates <number of candidates>
 		\t-nofrags specify to not make fragments and just run SS predictions
-                \t-old_name_format  use old name format e.g. aa1tum_05.200_v1_3
+		\t-old_name_format  use old name format e.g. aa1tum_05.200_v1_3
 		\t<fasta file>
 	};
     $usage = "$usage\n\n" . join ' ', ( 'Version:', VERSION, "\n" );
@@ -1003,7 +960,7 @@ sub getCommandLineOptions {
         "n_frags=i",        "n_candidates=i",
         "add_vall_files=s", "use_vall_files=s",
         "torsion_bin=s",    "exclude_homologs_by_pdb_date=s",
-        "old_name_format!"
+        "old_name_format!", "add_pdbs_to_vall=s"
     );
 
     if ( scalar(@ARGV) != 1 ) {
@@ -1533,6 +1490,8 @@ sub options_to_str {
 sub produce_output_with_cmd {
     my $cmd       = shift;
     my $output_fn = shift;
+    my $no_output_ok = 0;
+		$no_output_ok = shift if (scalar @_);
 
     print_debug("Command: $cmd");
     if ( -f $output_fn ) {
@@ -1546,7 +1505,7 @@ sub produce_output_with_cmd {
         print_debug("Output: $output");
     }
 
-    if ( !-f $output_fn ) {
+    if (!$no_output_ok && !-f $output_fn ) {
         die "Error: expected creation of $output_fn after running '$cmd'!\n";
     }
 }
@@ -1617,3 +1576,74 @@ sub file_overrides_option {
     }
     return 1;
 }
+
+sub run_in_parallel {
+    my $commands_array_ref = shift;
+		my $resultfiles_array_ref = shift;
+		my $runid = shift;
+	  my $ignore_errors = 0;	
+		$ignore_errors = shift if (scalar @_);
+    my @commands = @$commands_array_ref;
+    my @results = @$resultfiles_array_ref;
+    return if (!scalar@commands);
+    (scalar@commands == scalar@results) or die "ERROR! number of commands does not match results in run_in_parallel\n";
+
+    my $logprefix = "$runid-$host";
+    eval {
+        local $SIG{ALRM} = sub { die "alarm\n" };
+        alarm $SLAVE_MAX_WAIT;
+        foreach my $attempt ( 1 .. $SLAVE_MAX_ATTEMPTS ) {
+            print_debug("Attempt $attempt");
+            my $pm = Parallel::ForkManager->new(scalar@commands);
+            for (my $i=0;$i<=$#commands;++$i) {
+		            my $resultfile = $results[$i];
+				        next if (-s $resultfile);
+                $pm->start and next;
+                my $PID = $$;
+				        my $logfile = "$logprefix\_$i.log";
+				        my $command = "$commands[$i] >& $logfile";
+                eval {
+									alarm $SLAVE_MAX_WAIT;
+		              print_debug("starting process $PID to make $resultfile.");
+				          system($command); # keep in mind the command can be orphaned if this is timed out
+				          print_debug("finished process $PID.");
+									alarm 0;
+                };
+								if ($@) { alarm 0; }
+                $pm->finish;
+            }
+            $pm->wait_all_children;
+
+            my %checkdone;
+            for (my $i=0;$i<=$#results;++$i) {
+                my $resultfile = $results[$i];
+                if ( -s $resultfile ) {
+                    $checkdone{$resultfile} = 1;
+                    print_debug("$resultfile exists!");
+                } else {
+                    print_debug("$resultfile missing!");
+                }
+            }
+            last if ( scalar( keys %checkdone ) == scalar(@results) );
+            if ( $attempt >= $SLAVE_MAX_ATTEMPTS ) {
+                if ($ignore_errors) {
+                    warn "WARNING! all result files do not exist after attempt $attempt.\n";
+                    last;
+                } else {
+                    die "ERROR! failed run_in_parallel after $attempt attempts\n";
+                }
+            }
+            warn "WARNING! all result files do not exist after attempt $attempt, attempting run_in_parallel again\n";
+        }
+        alarm 0;
+    };
+    if ($@) {
+		    alarm 0;
+        if ($ignore_errors) {
+            warn "WARNING! timed out run_in_parallel!\n";
+        } else {
+            die "ERROR! timed out run_in_parallel\n";
+        }
+    }
+}
+

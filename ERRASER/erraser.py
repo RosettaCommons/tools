@@ -206,7 +206,7 @@ for step in range(1, n_iterate + 1) :
     seq_rebuild_command2  = seq_rebuild_command_common
     seq_rebuild_command2 += " -pdb rebuild_outlier_%s.pdb" % step
     seq_rebuild_command2 += " -out_pdb rebuild_%s.pdb" % step
-    seq_rebuild_command2 += " -native_edensity_cutoff 1.0"
+    seq_rebuild_command2 += " -native_edensity_cutoff 0.97"
     seq_rebuild_command2 += " -rebuild_res"
     for res in rebuild_res_rmsd :
         seq_rebuild_command2 += " %s" % res

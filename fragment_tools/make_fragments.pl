@@ -156,6 +156,7 @@ my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
 
 my $VALL_BLAST_DB =
   "$VALL.blast";    # blast database of VALL sequences for homolog detection
+$VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 
 ## for SLAVE_LAUNCHER parallel jobs
 our $SLAVE_MAX_WAIT = 3 * 60 * 60;

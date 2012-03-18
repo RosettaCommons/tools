@@ -339,30 +339,28 @@ if exists(sampling_folder + '/blah.out'):
 
 os.chdir( base_dir)
 
-if exists(sampling_folder + '/blah.out'):
-    if verbose : 
+if verbose : 
+    if exists(CONTROL_filename) :
         score_line = subprocess_out('head -n 2 %s ' % CONTROL_filename ) [1]
         subprocess_call('echo "%s" > %s/output_pdb_CONTROL.txt ' % (score_line, main_folder))
         subprocess_call("grep SCORE %s | sort -nk2 >> %s/output_pdb_CONTROL.txt " % (CONTROL_filename, main_folder))
 
+    if exists(precluster_filename) :
         score_line = subprocess_out('head -n 2 %s ' % precluster_filename ) [1]
         subprocess_call('echo "%s" > %s/output_pdb_precluster.txt '  %(score_line, main_folder))
         subprocess_call("grep SCORE %s | sort -nk2 >> %s/output_pdb_precluster.txt " % (precluster_filename, main_folder))
 
-
+if exists(cluster_filename) :
     score_line = subprocess_out('head -n 2 %s ' % cluster_filename ) [1]
     subprocess_call('echo "%s" > %s/output_pdb.txt ' % (score_line, main_folder) )
     subprocess_call("grep SCORE %s | sort -nk2 >> %s/output_pdb.txt " % (cluster_filename, main_folder))
 else :
     output = open("%s/output_pdb.txt" % main_folder, 'w')
     output.write("No silent file is being output during rebuilding")
-
-
-
 #####################Extract the pdb from the silent_file###################
-if exists(sampling_folder + '/blah.out'):
-    if verbose: 
-        extract_pdb(precluster_filename, precluster_pdb_folder)
+if verbose and exists(precluster_filename) :
+    extract_pdb(precluster_filename, precluster_pdb_folder)
+if exists(cluster_filename) :
     extract_pdb(cluster_filename, output_pdb_folder)
 #####################Merge the sliced region back to starting pdb##################
 if slice_nearby :
@@ -374,7 +372,7 @@ if slice_nearby :
 ########################################################################
 
 if not verbose :
-    if exists(sampling_folder + '/blah.out'):
+    if exists(cluster_filename):
         os.remove(cluster_filename)
     shutil.rmtree(temp_folder)
     shutil.rmtree(sampling_folder)

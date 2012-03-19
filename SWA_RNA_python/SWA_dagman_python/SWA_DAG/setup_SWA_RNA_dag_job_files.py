@@ -26,12 +26,12 @@ submit_subprocess("python README_SETUP.py")
 if(local_demo):
 	local_demo_sampler_command	 	 =get_PYEXE("misc/create_local_dag.py")
 	local_demo_sampler_command	 	+=" -dag_file CONDOR/SAMPLER/REGION_0_1_START_FROM_REGION_0_0.condor "
-	local_demo_sampler_command	 	+=" -folder_layer 0 -local_dag_file SAMPLER_DEMO_COMMAND -minimizer_rename_tags True -VERBOSE False -output_pdb False > LOG_create_local_demo_sampler_command.txt "
+	local_demo_sampler_command	 	+=" -folder_layer 0 -local_dag_file SAMPLER_DEMO_COMMAND -minimizer_rename_tag True -VERBOSE False -output_pdb False > LOG_create_local_demo_sampler_command.txt "
 	submit_subprocess(local_demo_sampler_command)
 
 	local_demo_clusterer_command	 =get_PYEXE("misc/create_local_dag.py")
 	local_demo_clusterer_command	+=" -dag_file  CONDOR/CLUSTERER/REGION_0_1_cluster.condor -clusterer_silent_file_in region_0_1_sample.out "
-	local_demo_clusterer_command	+=" -folder_layer 0 -local_dag_file CLUSTERER_DEMO_COMMAND -minimizer_rename_tags True -VERBOSE False -output_pdb False > LOG_create_local_demo_clusterer_command.txt "
+	local_demo_clusterer_command	+=" -folder_layer 0 -local_dag_file CLUSTERER_DEMO_COMMAND -minimizer_rename_tag True -VERBOSE False -output_pdb False > LOG_create_local_demo_clusterer_command.txt "
 	submit_subprocess(local_demo_clusterer_command)
 
 	README_SETUP = open( "LOCAL_DEMO", 'w')

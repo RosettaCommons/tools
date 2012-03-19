@@ -16,7 +16,7 @@ HOMEDIR = expanduser('~')
 
 local_dag_file=parse_options( argv, "local_dag_file", "" )
 VERBOSE=parse_options( argv, "VERBOSE", "True" )
-minimizer_rename_tags=parse_options( argv, "minimizer_rename_tags", "False" )
+minimizer_rename_tag=parse_options( argv, "minimizer_rename_tag", "False" )
 output_pdb=parse_options( argv, "output_pdb", "True" )
 clusterer_silent_file_in=parse_options( argv, "clusterer_silent_file_in", "" )
 
@@ -128,7 +128,7 @@ if( exe.count(".linuxgccrelease")>0 or exe.count(".macosgccrelease") ):
 	if(actual_args.count("rna_resample_test")==1 or actual_args.count("rna_sample")==1): 
 
 		if(VERBOSE): 												actual_args=replace_arg_value(actual_args, "VERBOSE", "true", allow_missing=True)
-		if(minimizer_rename_tags==False):			actual_args=replace_arg_value(actual_args, "minimizer_rename_tags", "false", allow_missing=True)
+		if(minimizer_rename_tag==False):			actual_args=replace_arg_value(actual_args, "minimizer_rename_tag", "false", allow_missing=True)
 		actual_args+= " > rna_sample_output.txt"
 	elif(actual_args.count("rna_sample_virtual_ribose")==1):
 		actual_args+= " > sample_virtual_ribose_output.txt"
@@ -139,7 +139,7 @@ if( exe.count(".linuxgccrelease")>0 or exe.count(".macosgccrelease") ):
 		actual_args+= " > rna_cluster_output.txt"
 	elif(actual_args.count("rna_minimize")>0):
 		if(VERBOSE): 												actual_args=replace_arg_value(actual_args, "VERBOSE", "true", allow_missing=True)
-		if(minimizer_rename_tags==False):			actual_args=replace_arg_value(actual_args, "minimizer_rename_tags", "false", allow_missing=True)
+		if(minimizer_rename_tag==False):			actual_args=replace_arg_value(actual_args, "minimizer_rename_tag", "false", allow_missing=True)
 		actual_args+= " > rna_minimize_output.txt"
 	else:
 		error_exit_with_message("Invalid Rosetta exe (%s)" %(exe) )

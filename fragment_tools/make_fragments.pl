@@ -43,8 +43,10 @@ my $VALL = "/work/robetta/src/rosetta/fragment_tools/vall.jul19.2011"
   ;    #"/my_database_dir/vall.apr24.2008.extended";
 
 # pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
-my $PDB2VALL = "/work/robetta/src/rosetta/fragment_tools/pdb2vall/pdb2vall.py";
-my $PDB2VALL_IGNORE_ERRORS = 1;
+#  --no_structure_profile option is added to reduce the run time
+# This feature is not supported yet in the Rosetta release
+my $PDB2VALL = "/work/robetta/src/rosetta/fragment_tools/pdb2vall/pdb2vall.py --no_structure_profile";
+my $PDB2VALL_IGNORE_ERRORS = 1; # ignore pdb2vall jobs that fail
 
 # ROSETTA FRAGMENT PICKER
 my $FRAGMENT_PICKER =
@@ -60,8 +62,10 @@ my $ROSETTA_DATABASE = "/work/robetta/src/rosetta/rosetta_database"
 # free nodes to run them in parallel. If left as an empty string, jobs will run serially.
 # Make sure your script will run the command passed to it on another machine. If it is
 # set up to run parallel jobs on the local machine, the local machine may run into CPU 
-# and memory issues when running multiple picker and pdb2vall jobs in parallel.
+# and memory issues when running multiple picker and pdb2vall jobs in parallel, the
+# fragment_picker and blastpgp may be cpu and memory intense.
 my $SLAVE_LAUNCHER = "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
+my $SLAVE_LAUNCHER_MAX_JOBS = 40; # depends on your available machines/cpus
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
 # http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
@@ -159,8 +163,8 @@ my $VALL_BLAST_DB =
 $VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 
 ## for SLAVE_LAUNCHER parallel jobs
-our $SLAVE_MAX_WAIT = 3 * 60 * 60;
-our $SLAVE_MAX_ATTEMPTS = 2;
+my $SLAVE_MAX_WAIT = 3 * 60 * 60;
+my $SLAVE_MAX_ATTEMPTS = 2;
 
 use Cwd qw/ cwd abs_path /;
 use bytes;
@@ -229,8 +233,12 @@ if ( exists $opts{use_vall_files} ) {
 }
 
 if ( defined $opts{add_pdbs_to_vall} ) {
-  @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
-  print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
+  if (!$PDB2VALL) {
+	  print_debug("ignoring -add_pdbs_to_vall option: PDB2VALL not configured");
+	} else {
+    @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
+    print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
+  }
 }
 mkpath( $options{rundir} );
 $options{rundir} = abs_path( $options{rundir} );
@@ -308,6 +316,12 @@ print_debug("FILENAME: $options{fastafile}");
 # main
 
 chdir( $options{rundir} );
+
+if (-f "$options{runid}.make_fragments.success") {
+    print_debug("done! $options{runid}.make_fragments.success exists");
+		exit(0);
+}
+
 
 # get the sequence from the fasta file
 my $sequence = read_fasta( $options{fastafile} );
@@ -696,16 +710,16 @@ if ( scalar @pdbs_to_vall ) {
   if (!-s "$options{runid}\_pdbs_to_vall.vall") {  
     if ( !$SLAVE_LAUNCHER ) {    # run in series
 	    foreach my $pdb (@pdbs_to_vall) {
-          my $cmd = "$PDB2VALL --no_structure_profile -d -p $pdb";
+          my $cmd = "$PDB2VALL -p $pdb";
           produce_output_with_cmd( $cmd, "$pdb.vall", $PDB2VALL_IGNORE_ERRORS );
       }
     } else {
 	    my (@commands, @results);
 	    foreach my $pdb (@pdbs_to_vall) {
-			   push(@commands,"$SLAVE_LAUNCHER $PDB2VALL --no_structure_profile -d -p $pdb");
+			   push(@commands,"$SLAVE_LAUNCHER $PDB2VALL -p $pdb");
 				 push(@results, "$pdb.vall" );
 			}
-			&run_in_parallel( \@commands, \@results, "pdb2vall_parallel_job", $PDB2VALL_IGNORE_ERRORS );
+			&run_in_parallel( \@commands, \@results, "pdb2vall_parallel_job", $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS, $PDB2VALL_IGNORE_ERRORS );
 	  }
   }
 	# create one template vall - overwrite if exists
@@ -891,7 +905,7 @@ if ($SLAVE_LAUNCHER) {           # run in parallel
        push(@results,"$options{runid}.$options{n_frags}.$size" . "mers");
        push(@commands, "$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS");
     }
-    &run_in_parallel( \@commands, \@results, "picker_parallel_job");
+    &run_in_parallel( \@commands, \@results, "picker_parallel_job", $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS);
 }
 
 if ($options{old_name_format}) {
@@ -911,6 +925,14 @@ if ($options{old_name_format}) {
     }
 	}
 }
+
+# create a success "checkpoint" file if all fragments are generated
+my $success = 1; 
+foreach my $size (@fragsizes) {
+  my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+	$success = 0 if (!-s $resultfile);
+}
+system("touch $options{runid}.make_fragments.success") if ($success);
 
 # done
 print_debug("done!");
@@ -1582,6 +1604,9 @@ sub run_in_parallel {
     my $commands_array_ref = shift;
 		my $resultfiles_array_ref = shift;
 		my $runid = shift;
+		my $maxparalleljobs = shift;
+		my $maxwait = shift;
+		my $maxattempts = shift;
 	  my $ignore_errors = 0;	
 		$ignore_errors = shift if (scalar @_);
     my @commands = @$commands_array_ref;
@@ -1592,10 +1617,10 @@ sub run_in_parallel {
     my $logprefix = "$runid-$host";
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
-        alarm $SLAVE_MAX_WAIT;
-        foreach my $attempt ( 1 .. $SLAVE_MAX_ATTEMPTS ) {
+        alarm $maxwait;
+        foreach my $attempt ( 1 .. $maxattempts ) {
             print_debug("Attempt $attempt");
-            my $pm = Parallel::ForkManager->new(scalar@commands);
+            my $pm = Parallel::ForkManager->new($maxparalleljobs);
             for (my $i=0;$i<=$#commands;++$i) {
 		            my $resultfile = $results[$i];
 				        next if (-s $resultfile);
@@ -1604,7 +1629,7 @@ sub run_in_parallel {
 				        my $logfile = "$logprefix\_$i.log";
 				        my $command = "$commands[$i] >& $logfile";
                 eval {
-									alarm $SLAVE_MAX_WAIT;
+									alarm $maxwait;
 		              print_debug("starting process $PID to make $resultfile.");
 				          system($command); # keep in mind the command can be orphaned if this is timed out
 				          print_debug("finished process $PID.");
@@ -1626,7 +1651,7 @@ sub run_in_parallel {
                 }
             }
             last if ( scalar( keys %checkdone ) == scalar(@results) );
-            if ( $attempt >= $SLAVE_MAX_ATTEMPTS ) {
+            if ( $attempt >= $maxattempts ) {
                 if ($ignore_errors) {
                     warn "WARNING! all result files do not exist after attempt $attempt.\n";
                     last;

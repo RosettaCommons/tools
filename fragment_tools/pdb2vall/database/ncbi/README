@@ -1,0 +1,18 @@
+
+Install NCBI NR database here and run formatdb for BLAST.
+Keep in mind the nr database if very large.
+
+nr.gz can be found at:
+
+ftp://ftp.ncbi.nih.gov/blast/db/FASTA/
+
+
+Information about formatdb can be found at:
+
+ftp.ncbi.nlm.nih.gov/blast/documents/formatdb.html
+
+Example commands:
+
+  wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
+  gunzip nr.gz
+  formatdb -o T -i nr

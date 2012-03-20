@@ -1,0 +1,10 @@
+
+placeholder_seqs is a small file of arbitrary fasta sequences.
+
+This is used by the script "structure_profile_scripts/create_checkpoint_from_fasta_alignment.pl"
+to allow blast to quickly create a binary checkpoint file given an input alignment. The search 
+results against placeholder_seqs is not used.
+
+You must create a Blast formatted database using the following command:
+
+  formatdb -o T -i placeholder_seqs

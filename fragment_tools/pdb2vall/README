@@ -1,0 +1,53 @@
+
+Read pdb2vall.cfg for additional information
+
+1. Install required software, and BioPerl
+2  Install the NCBI nr database (keep in mind it is very large)
+   
+  wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz -O database/ncbi/
+  gunzip database/ncbi/nr.gz
+  formatdb -o T -i database/ncbi/nr
+
+3. Format 'structure_profile_scripts/placeholder_seqs/placeholder_seqs' for BLAST
+
+  formatdb -o T -i structure_profile_scripts/placeholder_seqs/placeholder_seqs
+
+3. Edit pdb2vall.cfg
+
+
+Required Software
+  (script(s) that use the software/package)
+
+BioPerl module Bio::AlignIO (http://doc.bioperl.org/):
+  structure_profile_scripts/create_checkpoint_from_fasta_alignment.pl
+
+DEPTH for residue depth (http://mspc.bii.a-star.edu.sg/tankp/download.html):
+  structure_profile_scripts/make_depthfile.py
+
+BLAST, non-blast+ NCBI version (ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/):
+  sequence_profile_scripts/run_psiblast_filtnr_tight.pl
+  structure_profile_scripts/create_checkpoint_from_fasta_alignment.pl
+
+DSSP (ftp://ftp.cmbi.ru.nl/pub/software/dssp/):
+  structure_profile_scripts/dssp2threestateSS.pl
+
+Rosetta
+  pdb2vall.py
+	structure_profile_scripts/make_sequence_fragments.pl
+
+
+
+Databases which may need to be updated in the future:
+
+  database/ncbi:
+  nr
+
+  database/rcsb_data:
+  derived_data ss_dis.txt
+
+  structure_profile_scripts/residue_depth_vall:
+  residue_depth_full_cullpdb_pc30_res2.0_R0.3_d110930_chains6280.4278.vall
+
+
+
+

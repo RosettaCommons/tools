@@ -36,14 +36,15 @@ def jump_over_missing_density( fasta_fn, pdb_fn, request ):
                     continue
                 
                 idealized_rsd = line.split()[4]
-                secstr        = line.split()[5]
-                phi           = line.split()[6]
-                psi           = line.split()[7]
-                omega         = line.split()[8]
+                if idealized_rsd != "X":
+                    secstr        = line.split()[5]
+                    phi           = line.split()[6]
+                    psi           = line.split()[7]
+                    omega         = line.split()[8]
 
-                torsion_line_edit = "%s %s %s %s %s %s\n" %( newnum_torsion, idealized_rsd, secstr, phi, psi, omega )
-                pdb_torsion_file.append( torsion_line_edit )
-                newnum_torsion = newnum_torsion + 1
+                    torsion_line_edit = "%s %s %s %s %s %s\n" %( newnum_torsion, idealized_rsd, secstr, phi, psi, omega )
+                    pdb_torsion_file.append( torsion_line_edit )
+                    newnum_torsion = newnum_torsion + 1
 
             line = file.readline()
         file.close()

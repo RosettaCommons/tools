@@ -1,13 +1,5 @@
 #!/usr/bin/env python
-
-from os import system
-from os.path import exists, basename, abspath
-from sys import argv
-import os
-import shutil
 import os.path
-import time
-import glob
 import imp
 
 try :
@@ -22,32 +14,38 @@ print '###################################'
 print 'Starting SWA_rebuild_erraser.py...'	
 start_time=time.time()
 #############USER INPUT OPTIONS###########################################
-input_pdb =  parse_options( argv, "pdb", "" ) 
-rebuild_res = parse_options( argv, "rebuild_res", 0 )
-map_file = parse_options( argv, "map", "")
-map_reso = parse_options (argv, 'map_reso', 2.0)
-verbose= parse_options( argv, "verbose", "False" )
-native_screen_RMSD= parse_options(argv, "native_screen_RMSD", 2.0)
-native_edensity_cutoff= parse_options(argv, "native_edensity_cutoff", 0.9) 
-cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.3 )
-ideal_geometry =  parse_options( argv, "ideal_geometry", "True" )
-include_native =  parse_options( argv, "include_native", "False" )
-slice_nearby =  parse_options( argv, "slice_nearby", "True" )
-finer_sampling = parse_options( argv, "finer_sampling", "False" )
-is_append = parse_options( argv, "is_append", "True" )
-new_torsional_potential= parse_options( argv, "new_torsional_potential", "True" )
-cutpoint_open = parse_option_int_list ( argv, 'cutpoint_open' )
+input_pdb =  parse_options( sys.argv, "pdb", "" ) 
+rebuild_res = parse_options( sys.argv, "rebuild_res", 0 )
+map_file = parse_options( sys.argv, "map", "")
+map_reso = parse_options (sys.argv, 'map_reso', 2.0)
+verbose= parse_options( sys.argv, "verbose", "False" )
+native_screen_RMSD= parse_options(sys.argv, "native_screen_RMSD", 2.0)
+native_edensity_cutoff= parse_options(sys.argv, "native_edensity_cutoff", 0.9) 
+cluster_RMSD = parse_options( sys.argv, "cluster_RMSD", 0.3 )
+ideal_geometry =  parse_options( sys.argv, "ideal_geometry", "True" )
+include_native =  parse_options( sys.argv, "include_native", "False" )
+slice_nearby =  parse_options( sys.argv, "slice_nearby", "True" )
+finer_sampling = parse_options( sys.argv, "finer_sampling", "False" )
+is_append = parse_options( sys.argv, "is_append", "True" )
+new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
+cutpoint_open = parse_option_int_list ( sys.argv, 'cutpoint_open' )
 
 if input_pdb =="" :  
-    error_exit_with_message("USER need to specify -pdb option")
+    error_exit("USER need to specify -pdb option")
 check_path_exist(input_pdb)
 
 if rebuild_res ==0 : 
-    error_exit_with_message("USER need to specify -rebuild_res option")
+    error_exit("USER need to specify -rebuild_res option")
 
 if map_file != "" : 
     check_path_exist( map_file )
     map_file = abspath( map_file )
+
+num_pose_kept = 30
+
+native_screen = True 
+if native_screen_RMSD > 10.0 :
+    native_screen = False
 ##############location of executable and database:########################
 database_folder = rosetta_database() 
 rna_swa_test_exe = rosetta_bin("swa_rna_main.linuxgccrelease" )
@@ -64,36 +62,36 @@ precluster_pdb_folder= os.path.abspath("%s/precluster_pdb/" %(main_folder))
 
 if exists(main_folder) : 
     print "warning...main_folder:%s already exist...removing it...! " % main_folder
-    shutil.rmtree(main_folder) 
+    remove(main_folder) 
 os.mkdir(main_folder)
 
 if exists(temp_folder) : 
     print "warning...temp_folder:%s already exist...removing it...! " % temp_folder
-    shutil.rmtree(temp_folder) 
+    remove(temp_folder) 
 os.mkdir(temp_folder)
 
 if exists(output_pdb_folder) : 
     print "warning...output_pdb_folder:%s already exist...removing it...! " % output_pdb_folder
-    shutil.rmtree(output_pdb_folder)
+    remove(output_pdb_folder)
 os.mkdir(output_pdb_folder)
 
 if exists(precluster_pdb_folder) : 
     print "warning...precluster_pdb_folder:%s already exist...removing it...! " %(precluster_pdb_folder) 
-    shutil.rmtree(precluster_pdb_folder)
+    remove(precluster_pdb_folder)
 os.mkdir(precluster_pdb_folder)
 
 ############################################################
 input_pdb_temp= temp_folder + '/' + basename(input_pdb)
-shutil.copy(input_pdb,  input_pdb_temp)
+copy(input_pdb,  input_pdb_temp)
 input_pdb=input_pdb_temp
 
 if map_file != "" :
     map_file_temp = temp_folder + '/' + basename(map_file)
-    shutil.copy(map_file, map_file_temp)
+    copy(map_file, map_file_temp)
     map_file=map_file_temp
 
 native_pdb = os.path.abspath("%s/native_struct.pdb" % output_pdb_folder)
-shutil.copy(input_pdb, native_pdb)
+copy(input_pdb, native_pdb)
 #####################Slice out the rebuild region##########################
 cutpoint_final = []
 res_sliced_all = []
@@ -123,8 +121,6 @@ if verbose :
     print "res_sliced = %s" % res_sliced_all
     print "cutpoint_final = %s" % cutpoint_final
     print "total_res= %d " % total_res
-    
-
 #################Check if the rebuilding Rsd is at chain break###########
 is_chain_break =False
 if rebuild_res_final == 1 or rebuild_res_final == total_res :
@@ -150,79 +146,74 @@ else :
 fasta_file=temp_folder + '/fasta'
 pdb2fasta(native_pdb_final, fasta_file)
 #########################Common Options##################################
+common_cmd = "" 
 
-num_pose_kept = 30
-native_screen = True 
-if native_screen_RMSD > 10.0 :
-    native_screen = False
-common_argv = "" 
-
-common_argv += " -database %s " % database_folder
+common_cmd += " -database %s " % database_folder
 
 if verbose :
-    common_argv += " -VERBOSE true"
+    common_cmd += " -VERBOSE true"
 else:
-    common_argv += " -VERBOSE false"
+    common_cmd += " -VERBOSE false"
 
-common_argv += " -fasta %s " % fasta_file
+common_cmd += " -fasta %s " % fasta_file
 
-common_argv += " -input_res "
+common_cmd += " -input_res "
 for n in range(1,total_res+1) : 
     if ideal_geometry and n == rebuild_res_final : 
         continue
-    common_argv += "%d " %n
+    common_cmd += "%d " %n
 
-common_argv+= " -fixed_res "
+common_cmd+= " -fixed_res "
 for n in range(1,total_res+1) : 
     if n == rebuild_res_final : 
         continue
-    common_argv += "%d " %n
+    common_cmd += "%d " %n
 
-common_argv += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
-common_argv += " -alignment_res 1-%d " % total_res
+common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+common_cmd += " -alignment_res 1-%d " % total_res
 
-common_argv += " -rmsd_res %d " %(total_res)
-common_argv += " -native " + native_pdb_final
+common_cmd += " -rmsd_res %d " %(total_res)
+common_cmd += " -native " + native_pdb_final
 if map_file == "" :
-    common_argv += " -score:weights rna/rna_loop_hires_04092010"
+    common_cmd += " -score:weights rna/rna_loop_hires_04092010"
 else :
-    common_argv += " -score:weights rna/rna_hires_elec_dens"
+    common_cmd += " -score:weights rna/rna_hires_elec_dens"
 
 if map_file != "" :
-    common_argv += " -edensity:mapfile %s " % map_file
-    common_argv += " -edensity:mapreso %s " % map_reso
-    common_argv += " -edensity:realign no "
+    common_cmd += " -edensity:mapfile %s " % map_file
+    common_cmd += " -edensity:mapreso %s " % map_reso
+    common_cmd += " -edensity:realign no "
 
 if len(cutpoint_final) != 0 :
-    common_argv += " -cutpoint_open "
+    common_cmd += " -cutpoint_open "
     for cutpoint in cutpoint_final :
-        common_argv += '%d ' % cutpoint
+        common_cmd += '%d ' % cutpoint
 
 if new_torsional_potential :
-    common_argv += " -score:rna_torsion_potential RNA09_based_2012_new "
+    common_cmd += " -score:rna_torsion_potential RNA09_based_2012_new "
 
 #########################Sampler Options##################################
 if not is_chain_break :
-    sampling_argv = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '
+    sampling_cmd = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '
 else :
-    sampling_argv = rna_swa_test_exe + ' -algorithm rna_resample_test '
+    sampling_cmd = rna_swa_test_exe + ' -algorithm rna_resample_test '
 
-sampling_argv += " -s %s " % start_pdb
-sampling_argv += " -out:file:silent blah.out " 
-sampling_argv += " -output_virtual true "
-sampling_argv += " -sampler_perform_o2star_pack true "
-sampling_argv += " -sampler_extra_syn_chi_rotamer true "
-sampling_argv += " -sampler_cluster_rmsd %s " % 0.3 
-sampling_argv += " -centroid_screen true "
-sampling_argv += " -minimize_and_score_native_pose %s " % str(include_native).lower()
-sampling_argv += " -finer_sampling_at_chain_closure %s " % str(finer_sampling).lower()
-sampling_argv += " -native_edensity_score_cutoff %s " % native_edensity_cutoff
-sampling_argv += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
-sampling_argv += " -sampler_native_screen_rmsd_cutoff %s " % native_screen_RMSD
-sampling_argv += " -sampler_num_pose_kept %s " % num_pose_kept 
-sampling_argv += " -PBP_clustering_at_chain_closure true " 
-sampling_argv += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
-sampling_argv += " -add_virt_root true "
+sampling_cmd += " -s %s " % start_pdb
+sampling_cmd += " -out:file:silent blah.out " 
+sampling_cmd += " -output_virtual true "
+sampling_cmd += " -sampler_perform_o2star_pack true "
+sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
+sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3 
+sampling_cmd += " -centroid_screen true "
+sampling_cmd += " -minimize_and_score_native_pose %s " % str(include_native).lower()
+sampling_cmd += " -finer_sampling_at_chain_closure %s " % str(finer_sampling).lower()
+sampling_cmd += " -native_edensity_score_cutoff %s " % native_edensity_cutoff
+sampling_cmd += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
+sampling_cmd += " -sampler_native_screen_rmsd_cutoff %s " % native_screen_RMSD
+sampling_cmd += " -sampler_num_pose_kept %s " % num_pose_kept 
+sampling_cmd += " -PBP_clustering_at_chain_closure true " 
+sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
+sampling_cmd += " -add_virt_root true "
 
 
 #############################################################################
@@ -230,7 +221,7 @@ if not is_chain_break :
     #################Use Analytical Loop Closure#############################
     if(exists(sampling_folder)): 
         print "warning...sampling_folder:%s already exist...removing it...! " % sampling_folder
-        shutil.rmtree(sampling_folder)
+        remove(sampling_folder)
     os.mkdir(sampling_folder)
 
     if is_append :
@@ -240,18 +231,17 @@ if not is_chain_break :
 
     os.chdir( sampling_folder)
 
-    specific_argv =""
-    specific_argv += " -sample_res %d " % rebuild_res_final
+    specific_cmd =""
+    specific_cmd += " -sample_res %d " % rebuild_res_final
     if is_append :
-        specific_argv += " -cutpoint_closed %d " % rebuild_res_final
+        specific_cmd += " -cutpoint_closed %d " % rebuild_res_final
     else :
-        specific_argv += " -cutpoint_closed %d " % rebuild_res_final - 1
+        specific_cmd += " -cutpoint_closed %d " % rebuild_res_final - 1
 
-    command = sampling_argv + ' ' + specific_argv + ' ' + common_argv + ' > sampling_1.out 2> sampling_1.err'
-
+    command = sampling_cmd + ' ' + specific_cmd + ' ' + common_cmd
     if (verbose): print  '\n', command, '\n'
 
-    subprocess_call( command ) 
+    subprocess_call( command, 'sampling_1.out', 'sampling_1.err' ) 
      
     os.chdir( base_dir)
 
@@ -260,21 +250,22 @@ else :
     print "Rebuilding residue at chain break point, ignoring chain closure..."
     if(exists(sampling_folder)): 
         print "warning...sampling_folder:%s already exist...removing it...! " % sampling_folder  
-        shutil.rmtree(sampling_folder)
+        remove(sampling_folder)
     os.mkdir(sampling_folder)
 
     print  '\n', "Rebuilding res %s" % rebuild_res_final,  '\n'
 
     os.chdir( sampling_folder)
 
-    specific_argv=""
-    specific_argv+= " -sample_res %d " % rebuild_res_final
+    specific_cmd=""
+    specific_cmd+= " -sample_res %d " % rebuild_res_final
 
-    command = sampling_argv + ' ' + specific_argv + ' ' + common_argv + ' > sampling_1.out 2> sampling_1.err'
+    command = sampling_cmd + ' ' + specific_cmd + ' ' + common_cmd
 
     if(verbose): print  '\n', command, '\n'
 
-    subprocess_call( command ) 
+    subprocess_call( command, 'sampling_1.out', 'sampling_1.err' ) 
+
      
     os.chdir( base_dir)
 
@@ -282,12 +273,12 @@ print '\n',"ALMOST DONE...sorting/clustering/extracting output_pdb....", '\n'
 ###################Rename the pdb using the clusterer#######################
 if(exists(cluster_folder)): 
     print "warning...cluster_folder:%s already exist...removing it...! " % cluster_folder
-    shutil.rmtree(cluster_folder)
+    remove(cluster_folder)
 os.mkdir(cluster_folder)
 
-CONTROL_filename=os.path.abspath(output_pdb_folder + "/CONTROL.out")
-cluster_filename=os.path.abspath(output_pdb_folder + "/cluster.out")
-precluster_filename=os.path.abspath(precluster_pdb_folder + "/precluster.out")
+CONTROL_filename = abspath(output_pdb_folder + "/CONTROL.out")
+cluster_filename = abspath(output_pdb_folder + "/cluster.out")
+precluster_filename = abspath(precluster_pdb_folder + "/precluster.out")
 
 
 os.chdir(cluster_folder)
@@ -315,27 +306,32 @@ no_clustering  = " -suite_cluster_radius 0.0 "
 no_clustering += " -loop_cluster_radius 0.0 "
 
 if(verbose):  ##This is just for control purposes...
-    command = cluster_args + ' ' + common_argv + no_clustering + " -recreate_silent_struct false  -out:file:silent %s > CONTROL.out 2> CONTROL.err" %(CONTROL_filename) 
+    command = (cluster_args + ' ' + common_cmd + no_clustering + 
+      " -recreate_silent_struct false  -out:file:silent %s" % CONTROL_filename)
+
     if exists(sampling_folder + '/blah.out'):
         print '\n', command ,'\n'
-        subprocess_call( command )
+        subprocess_call( command, 'CONTROL.out', 'CONTROL.err' )
 
     ###This one is with alignment to native_pose...however wary that SCORE output is not correct...
-    command = cluster_args + ' ' + common_argv +  no_clustering + " -recreate_silent_struct true -out:file:silent %s > precluster.out 2> precluster.err" %(precluster_filename)
+    command = (cluster_args + ' ' + common_cmd +  no_clustering + 
+      " -recreate_silent_struct true -out:file:silent %s" % precluster_filename)
+
     if exists(sampling_folder + '/blah.out'):
         if(verbose): print '\n', command ,'\n'
-        subprocess_call( command )
+        subprocess_call( command, 'precluster.out', 'precluster.err' )
 
-with_clustering=""
-with_clustering+= " -suite_cluster_radius %s " % cluster_RMSD
-with_clustering+= " -loop_cluster_radius 999.99 "
-with_clustering+= " -clusterer_num_pose_kept 50 "
+with_clustering  = ""
+with_clustering += " -suite_cluster_radius %s " % cluster_RMSD
+with_clustering += " -loop_cluster_radius 999.99 "
+with_clustering += " -clusterer_num_pose_kept 50 "
 
-command = cluster_args + ' ' + common_argv +  with_clustering + " -recreate_silent_struct true -out:file:silent %s > cluster.out 2> cluster.err" %(cluster_filename)
+command = (cluster_args + ' ' + common_cmd +  with_clustering + 
+  " -recreate_silent_struct true -out:file:silent %s" % cluster_filename )
 
 if exists(sampling_folder + '/blah.out'):
     if(verbose): print '\n', command ,'\n'
-    subprocess_call( command )
+    subprocess_call( command, 'cluster.out', 'cluster.err' )
 
 os.chdir( base_dir)
 
@@ -365,7 +361,7 @@ if exists(cluster_filename) :
 #####################Merge the sliced region back to starting pdb##################
 if slice_nearby :
     os.chdir( output_pdb_folder )
-    pdb_file_list = glob.glob("*.pdb")
+    pdb_file_list = glob("*.pdb")
     for pdb_file in pdb_file_list :
         sliced2orig_merge_back( native_pdb, pdb_file, pdb_file.replace('.pdb', '_merge.pdb'), res_sliced_all )
     os.chdir(base_dir)
@@ -373,11 +369,11 @@ if slice_nearby :
 
 if not verbose :
     if exists(cluster_filename):
-        os.remove(cluster_filename)
-    shutil.rmtree(temp_folder)
-    shutil.rmtree(sampling_folder)
-    shutil.rmtree(cluster_folder)
-    shutil.rmtree(precluster_pdb_folder)
+        remove(cluster_filename)
+    remove(temp_folder)
+    remove(sampling_folder)
+    remove(cluster_folder)
+    remove(precluster_pdb_folder)
 
 total_time=time.time()-start_time
 

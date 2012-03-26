@@ -1,11 +1,5 @@
 #!/usr/bin/env python
-
-from os.path import abspath, exists, basename
-from sys import argv
-import os
-import shutil
 import os.path
-import time
 import imp
 
 try :
@@ -21,17 +15,17 @@ print 'Starting full_struct_slice_and_minimize.py...'
 start_time=time.time()
 
 ###Load in cmdline options####
-input_pdb = parse_options(argv, 'pdb', '')
-map_file = parse_options(argv, 'map', '')
-out_pdb = parse_options(argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_full_minimize.pdb') )
-map_reso = parse_options(argv, 'map_reso', 2.0)
-vary_geometry= parse_options( argv, "vary_geometry", "True" )
-new_torsional_potential= parse_options( argv, "new_torsional_potential", "True" )
-kept_temp_folder = parse_options ( argv, 'kept_temp_folder', 'False' )
-fixed_res = parse_option_int_list ( argv, 'fixed_res' )
+input_pdb = parse_options(sys.argv, 'pdb', '')
+map_file = parse_options(sys.argv, 'map', '')
+out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_full_minimize.pdb') )
+map_reso = parse_options(sys.argv, 'map_reso', 2.0)
+vary_geometry= parse_options( sys.argv, "vary_geometry", "True" )
+new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
+kept_temp_folder = parse_options ( sys.argv, 'kept_temp_folder', 'False' )
+fixed_res = parse_option_int_list ( sys.argv, 'fixed_res' )
 
 if input_pdb == "" : 
-    error_exit_with_message("USER need to specify -pdb option")
+    error_exit("USER need to specify -pdb option")
 check_path_exist(input_pdb)
 
 if map_file != "" : 
@@ -40,7 +34,7 @@ if map_file != "" :
 
 if exists(out_pdb) :
     print "Output pdb file %s exists... Remove it..." % out_pdb
-    os.remove(out_pdb)
+    remove(out_pdb)
 #########Exe paths#########################
 python_file_path = os.path.split( os.path.abspath(__file__) ) [0]
 minimize_python = "%s/erraser_minimize.py" % python_file_path
@@ -52,16 +46,16 @@ base_dir = os.getcwd()
 temp_dir = '%s/%s' % (base_dir, basename(input_pdb).replace('.pdb', '_full_minimize_temp') )
 if exists(temp_dir) :
     print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
-    shutil.rmtree(temp_dir)
+    remove(temp_dir)
     os.mkdir(temp_dir)
 else :
     print 'Create temporary directory %s...' % temp_dir
     os.mkdir(temp_dir) 
 ###########################################
 os.chdir(temp_dir)
-shutil.copy( input_pdb, 'before_min.pdb' ) 
+copy( input_pdb, 'before_min.pdb' ) 
 total_res = get_total_res(input_pdb)
-n_chunk = int(total_res / 100.0 + 0.5)
+n_chunk = int(total_res / 80.0 + 0.5)
 cmdline_common = minimize_python
 cmdline_common += ' -pdb before_min.pdb'
 cmdline_common += ' -out_pdb after_min.pdb'
@@ -75,14 +69,14 @@ for res in fixed_res :
     cmdline_common += ' %d' % res
 ############################################
 if n_chunk <= 1 :
-    print "Input pdb < 150 residus, no slicing is required."
+    print "Input pdb < 120 residus, no slicing is required."
     print "Start minimizing the full pdb..."
     cmdline = cmdline_common
-    cmdline += " > full_minimize_temp.out 2> full_minimize_temp.err"
-    subprocess_call(cmdline)
-    subprocess_call('mv after_min.pdb %s' % out_pdb)
+    cmdline += ""
+    subprocess_call(cmdline, 'full_minimize_temp.out', 'full_minimize_temp.err')
+    move('after_min.pdb', out_pdb)
 else :
-    print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
+    print "Input pdb >= 120 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
     res_slice_list = pdb_slice_into_chunks(input_pdb, n_chunk)
     current_chunk = 0
     for res_slice in res_slice_list :
@@ -94,14 +88,15 @@ else :
         cmdline += " > full_minimize_temp_%s.out 2> full_minimize_temp_%s.err" % (current_chunk, current_chunk)
         print "Start minimizing chunk %s..." % current_chunk
         print "Chunk %s residues: %s" % (current_chunk, res_slice)
-        subprocess_call(cmdline)
-        shutil.copy('after_min.pdb', 'before_min.pdb')
+        subprocess_call(cmdline, 'full_minimize_temp_%s.out' % current_chunk, 
+          'full_minimize_temp_%s.err'  % current_chunk)
+        copy('after_min.pdb', 'before_min.pdb')
         print "Minimization for chunk %s ends sucessfully." % current_chunk
-    subprocess_call('mv after_min.pdb %s' % out_pdb)
+    move('after_min.pdb', out_pdb)
 
 if not kept_temp_folder :
     os.chdir(base_dir)
-    shutil.rmtree(temp_dir) 
+    remove(temp_dir) 
 
 total_time=time.time()-start_time
 

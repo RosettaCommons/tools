@@ -1,12 +1,7 @@
 #!/usr/bin/env python
-
-from os.path import abspath, exists, basename 
-from sys import argv
-import os
-import shutil
 import os.path
-import time
 import imp
+
 
 try :
     import erraser_util
@@ -21,17 +16,17 @@ print 'Starting erraser_minimize.py...'
 start_time=time.time()
 
 #######Load in cmdline options#####################
-input_pdb = parse_options(argv, 'pdb', '')
-map_file = parse_options(argv, 'map', '')
-out_pdb = parse_options(argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_minimize.pdb') )
-map_reso = parse_options(argv, 'map_reso', 2.0)
-vary_geometry= parse_options( argv, "vary_geometry", "True" )
-new_torsional_potential= parse_options( argv, "new_torsional_potential", "True" )
-fixed_res = parse_option_int_list ( argv, 'fixed_res' )
-res_slice = parse_option_int_list ( argv, 'res_slice' )
+input_pdb = parse_options(sys.argv, 'pdb', '')
+map_file = parse_options(sys.argv, 'map', '')
+out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_minimize.pdb') )
+map_reso = parse_options(sys.argv, 'map_reso', 2.0)
+vary_geometry= parse_options( sys.argv, "vary_geometry", "True" )
+new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
+fixed_res = parse_option_int_list ( sys.argv, 'fixed_res' )
+res_slice = parse_option_int_list ( sys.argv, 'res_slice' )
 
 if input_pdb == "" : 
-    error_exit_with_message("USER need to specify -pdb option")
+    error_exit("USER need to specify -pdb option")
 check_path_exist(input_pdb)
 
 if map_file != "" : 
@@ -45,13 +40,13 @@ temp_rs_min = input_pdb.replace('.pdb', '_temp_rs_min.pdb')
 
 if exists(temp_rs) :
     print "Temporary file %s exists... Remove it..." % temp_rs
-    os.remove(temp_rs) 
+    remove(temp_rs) 
 if exists(temp_rs_min) :
     print "Temporary file %s exists... Remove it..." % temp_rs_min
-    os.remove(temp_rs_min)
+    remove(temp_rs_min)
 if exists(out_pdb) :
     print "Output pdb file %s exists... Remove it..." % out_pdb
-    os.remove(out_pdb)
+    remove(out_pdb)
 
 ####slicing into smaller pdbs if given in the option####
 fixed_res_final = []
@@ -63,7 +58,7 @@ if len(res_slice) != 0 :
         if res in res_sliced_all :
             fixed_res_final.append( res_sliced_all.index(res) + 1 )
 else :
-    shutil.copy(input_pdb, temp_rs)
+    copy(input_pdb, temp_rs)
     fixed_res_final = fixed_res
     
 ####submit rosetta cmdline##############
@@ -99,11 +94,11 @@ print "#####################################################"
 ####Merge final result back to pdb####
 if len(res_slice) != 0 :
     sliced2orig_merge_back( input_pdb, temp_rs_min, out_pdb, res_sliced_all )
-    os.remove( temp_rs_min )
+    remove( temp_rs_min )
 else :
     shutil.move(temp_rs_min, out_pdb)
 
-os.remove( temp_rs )
+remove( temp_rs )
 #########################################
 
 total_time=time.time()-start_time

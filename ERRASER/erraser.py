@@ -1,12 +1,5 @@
 #!/usr/bin/env python
-
-from os.path import exists, basename, abspath
-from sys import argv
-import os
-import shutil
 import os.path
-import sys
-import time
 import imp
 
 try :
@@ -24,31 +17,31 @@ start_time=time.time()
 
 
 #####Input options#####################################
-input_pdb = parse_options(argv, 'pdb', '')
-out_pdb = parse_options(argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_erraser.pdb') )
-n_iterate = parse_options(argv, 'n_iterate', 1)
-map_file = parse_options(argv, 'map', '')
-map_reso = parse_options(argv, 'map_reso', '1.5')
-native_screen_RMSD= parse_options(argv, "native_screen_RMSD", 2.0)
-finer_sampling = parse_options(argv, 'finer_sampling', 'False')
-new_torsional_potential = parse_options( argv, "new_torsional_potential", "True" )
-use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
-kept_temp_folder = parse_options( argv, "kept_temp_folder", "False" )
-rebuild_all = parse_options( argv, "rebuild_all", "False" )
-extra_res = parse_option_chain_res_list ( argv, 'rebuild_extra_res' )
-fixed_res = parse_option_chain_res_list ( argv, 'fixed_res' )
-cutpoint_open = parse_option_chain_res_list ( argv, 'cutpoint_open' )
+input_pdb = parse_options(sys.argv, 'pdb', '')
+out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_erraser.pdb') )
+n_iterate = parse_options(sys.argv, 'n_iterate', 1)
+map_file = parse_options(sys.argv, 'map', '')
+map_reso = parse_options(sys.argv, 'map_reso', '1.5')
+native_screen_RMSD= parse_options(sys.argv, "native_screen_RMSD", 2.0)
+finer_sampling = parse_options(sys.argv, 'finer_sampling', 'False')
+new_torsional_potential = parse_options( sys.argv, "new_torsional_potential", "True" )
+use_existing_temp_folder = parse_options( sys.argv, "use_existing_temp_folder", "True" )
+kept_temp_folder = parse_options( sys.argv, "kept_temp_folder", "False" )
+rebuild_all = parse_options( sys.argv, "rebuild_all", "False" )
+extra_res = parse_option_chain_res_list ( sys.argv, 'rebuild_extra_res' )
+fixed_res = parse_option_chain_res_list ( sys.argv, 'fixed_res' )
+cutpoint_open = parse_option_chain_res_list ( sys.argv, 'cutpoint_open' )
 
 if input_pdb =="" : 
-    error_exit_with_message("Error: USER need to specify -pdb option")
+    error_exit("Error: USER need to specify -pdb option")
 if map_file =="" : 
-    error_exit_with_message("Error: USER need to specify -map option")
+    error_exit("Error: USER need to specify -map option")
 check_path_exist(input_pdb)
 check_path_exist(map_file)
 
 if exists( out_pdb ) : 
     print 'Output pdb %s already exists... Remove it.' % out_pdb
-    os.remove(out_pdb)
+    remove(out_pdb)
 #######File Paths#######################################################
 python_file_path = os.path.split( os.path.abspath(__file__) ) [0]
 minimize_python = "%s/full_struct_slice_and_minimize.py" % python_file_path
@@ -68,15 +61,20 @@ if exists(temp_dir) :
     else :
         print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
         print 'Because -use_existing_temp_folder is set to False.'
-        shutil.rmtree(temp_dir)
+        remove(temp_dir)
         os.mkdir(temp_dir)
 else :
     print 'Create temporay directory %s...' % temp_dir
     os.mkdir(temp_dir) 
 ########################################################################
 os.chdir(temp_dir)
-[res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(input_pdb, 'start.pdb')
-rosetta_ready_set('start.pdb', 'minimize_0.pdb')
+regularized_input_pdb = basename(input_pdb).replace('.pdb', '_regularized.pdb')
+regularize_pdb(input_pdb, regularized_input_pdb)
+[res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb')
+if not exists('minimize_0.pdb') :
+    rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb')
+else :
+    print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
 for res in fixed_res :
     if res in res_conversion_list :
@@ -103,7 +101,7 @@ for res in extra_res_final :
         res_name = res_conversion_list[res - 1]
         error_message  = "Confliction: rebuild_extra_res %s is either covalently bonded to a modified base" % res_name
         error_message += " or in user-input -fixed_res!!!" 
-        error_exit_with_message(error_message)
+        error_exit(error_message)
 #############################################################################
 minimize_command_common  = minimize_python
 minimize_command_common += " -map %s" % map_file
@@ -117,11 +115,10 @@ if len(fixed_res_final) != 0 :
 minimize_command  = minimize_command_common
 minimize_command += " -pdb minimize_0.pdb"
 minimize_command += " -out_pdb minimize_1.pdb"
-minimize_command += " > minimize_1.out 2> minimize_1.err"
 
 if not exists('minimize_1.pdb') :
     print 'Starting whole-structure minimization 1...' 
-    subprocess_call(minimize_command)
+    subprocess_call(minimize_command, 'minimize_1.out', 'minimize_1.err')
 else :
     print 'minimize_1.pdb already exists... Skip the minimization step.'
 print 'Minimization 1 completed sucessfully.'
@@ -151,7 +148,7 @@ for step in range(1, n_iterate + 1) :
             if not res_list[0] in rebuild_res_error :
                 res_rmsd_list_temp.append(res_list)
         res_rmsd_list = sorted(res_rmsd_list_temp, key = lambda x : x[1], reverse=True)
-        rmsd_cutoff = float(map_reso) * 0.1
+        rmsd_cutoff = float(map_reso) * 0.05
         percentage_cutoff = 0.2
 
         for i in range(0, int(len(res_rmsd_list) * percentage_cutoff)) :
@@ -173,11 +170,11 @@ for step in range(1, n_iterate + 1) :
 
     if len(rebuild_res_error) == 0 and len(rebuild_res_rmsd) == 0 :
         print "No residue need to be rebuilt!"
-        shutil.copy('minimize_%s.pdb' % step, 'FINAL.pdb')
-        rosetta2phenix_merge_back(input_pdb, 'FINAL.pdb', out_pdb)
+        copy('minimize_%s.pdb' % step, 'FINAL.pdb')
+        rosetta2phenix_merge_back(regularized_input_pdb, 'FINAL.pdb', out_pdb)
         if not kept_temp_folder :
             os.chdir(base_dir)
-            shutil.rmtree(temp_dir)
+            remove(temp_dir)
         total_time=time.time()-start_time
         print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
         print '###################################'	
@@ -201,7 +198,6 @@ for step in range(1, n_iterate + 1) :
     seq_rebuild_command1 += " -rebuild_res"
     for res in rebuild_res_error :
         seq_rebuild_command1 += " %s" % res
-    seq_rebuild_command1 += " > rebuild_outlier_%s.out 2> rebuild_outlier_%s.err" % (step, step)
 
     seq_rebuild_command2  = seq_rebuild_command_common
     seq_rebuild_command2 += " -pdb rebuild_outlier_%s.pdb" % step
@@ -210,25 +206,24 @@ for step in range(1, n_iterate + 1) :
     seq_rebuild_command2 += " -rebuild_res"
     for res in rebuild_res_rmsd :
         seq_rebuild_command2 += " %s" % res
-    seq_rebuild_command2 += " > rebuild_rmsd_%s.out 2> rebuild_rmsd_%s.err" % (step, step)
 
     if not exists('rebuild_%s.pdb' % step) :
         if not exists('rebuild_outlier_%s.pdb' % step) :
 
             if len(rebuild_res_error) != 0 :
-                subprocess_call(seq_rebuild_command1)
+                subprocess_call(seq_rebuild_command1, 'rebuild_outlier_%s.out' % step, 'rebuild_outlier_%s.err' % step)
             else :
                 print 'No errorenous residues... Skip the error residues rebuilding step %s.' % step
-                shutil.copy('minimize_%s.pdb' % step, 'rebuild_outlier_%s.pdb' % step)
+                copy('minimize_%s.pdb' % step, 'rebuild_outlier_%s.pdb' % step)
 
         else :
             print 'rebuild_outlier_%s.pdb already exists... Skip outlier rebuilding step.' % step
 
         if len(rebuild_res_rmsd) != 0 :
-            subprocess_call(seq_rebuild_command2)
+            subprocess_call(seq_rebuild_command2, 'rebuild_rmsd_%s.out' % step, 'rebuild_rmsd_%s.err' % step)
         else :
             print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
-            shutil.copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
+            copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
 
     else :
         print 'rebuild_%s.pdb already exists... Skip rebuilding step.' % step
@@ -237,20 +232,19 @@ for step in range(1, n_iterate + 1) :
     minimize_command  = minimize_command_common
     minimize_command += " -pdb rebuild_%s.pdb" % step
     minimize_command += " -out_pdb minimize_%s.pdb" % (step +1)
-    minimize_command += " > minimize_%s.out 2> minimize_%s.err" % (step + 1, step + 1)
 
-    if not exists('minimize_%s.pdb' % (step + 1)) :
-        subprocess_call(minimize_command)
+    if not exists( 'minimize_%s.pdb' % (step + 1) ) :
+        subprocess_call( minimize_command, 'minimize_%s.out' % (step + 1), 'minimize_%s.err' % (step + 1) )
     else :
         print 'minimize_%s.pdb already exists... Skip the minimization step.' % (step + 1)
     print 'Minimization %s completed sucessfully.' % (step + 1)
 ##############################################################################
 
-shutil.copy( 'minimize_%s.pdb' % (step + 1), 'FINAL.pdb' )
-rosetta2phenix_merge_back(input_pdb, 'FINAL.pdb', out_pdb)
+copy( 'minimize_%s.pdb' % (step + 1), 'FINAL.pdb' )
+rosetta2phenix_merge_back(regularized_input_pdb, 'FINAL.pdb', out_pdb)
 if not kept_temp_folder :
     os.chdir(base_dir)
-    shutil.rmtree(temp_dir)
+    remove(temp_dir)
 
 total_time=time.time()-start_time
 print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'

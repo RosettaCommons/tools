@@ -99,6 +99,8 @@ def subprocess_out(command, err = sys.stderr):
 
     err_channel.flush()
     out_list = subprocess.check_output(command, shell=True).split('\n')
+    if out_list[-1] == '' :
+        out_list.pop(-1)
     err_channel.flush()
     if err_channel != sys.stderr :
         os.fsync(err_channel)
@@ -408,28 +410,34 @@ def find_error_res(input_pdb) :
     check_path_exist(input_pdb)
     output = ""
     try :
-        output = subprocess_out("phenix.rna_validate %s" % input_pdb)
+        output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
     except :
         error_exit("Error in find_error_res!!!!")
 
     error_types = ["Pucker", "Bond", "Angle", "Suite"]
     current_error = 0
-    line = -1
+    line = 0
     error_res = [ [], [], [], [] ] #Pucker, Bond, Angle, Suite error_res
 
     while current_error != 4 or line < len(output) - 1 :
-        line += 1
         if len( output[line] ) < 7 :
             continue
         if error_types[current_error] in output[line] :
             line += 2
-            while len( output[line] ) > 7 :
+            while line < len(output) - 1 and len( output[line] ) > 7 :
                 res_string = output[line].split(':') [0]
                 res_string = res_string.replace(' ', '')
                 res = int( res_string[2:] )
-                error_res[current_error].append( res )
+                if current_error == 3 :
+                    suitename = output[line].split(':') [1]
+                    suiteness = float( output[line].split(':') [2] )
+                    if suitename != '__' and suiteness < 0.1 :
+                        error_res[current_error].append( res )
+                else :
+                    error_res[current_error].append( res )
                 line += 1
             current_error += 1
+        line += 1
 
     suite_res = []
     for res in error_res[3] :

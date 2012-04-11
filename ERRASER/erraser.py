@@ -28,6 +28,7 @@ new_torsional_potential = parse_options( sys.argv, "new_torsional_potential", "T
 use_existing_temp_folder = parse_options( sys.argv, "use_existing_temp_folder", "True" )
 kept_temp_folder = parse_options( sys.argv, "kept_temp_folder", "False" )
 rebuild_all = parse_options( sys.argv, "rebuild_all", "False" )
+rebuild_rmsd = parse_options( sys.argv, "rebuild_rmsd", "True" )
 extra_res = parse_option_chain_res_list ( sys.argv, 'rebuild_extra_res' )
 fixed_res = parse_option_chain_res_list ( sys.argv, 'fixed_res' )
 cutpoint_open = parse_option_chain_res_list ( sys.argv, 'cutpoint_open' )
@@ -141,7 +142,7 @@ for step in range(1, n_iterate + 1) :
         ###Overide the RMSD selection and rebuild all residues if rebuild_all == True###
         total_res = get_total_res('minimize_%s.pdb' % step)
         rebuild_res_rmsd = range(1, total_res + 1)
-    else :
+    elif rebuild_rmsd :
         res_rmsd_list = res_wise_rmsd('minimize_%s.pdb' % (step - 1),'minimize_%s.pdb' % step)
         res_rmsd_list_temp = []
         for res_list in res_rmsd_list :
@@ -222,7 +223,10 @@ for step in range(1, n_iterate + 1) :
         if len(rebuild_res_rmsd) != 0 :
             subprocess_call(seq_rebuild_command2, 'rebuild_rmsd_%s.out' % step, 'rebuild_rmsd_%s.err' % step)
         else :
-            print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
+            if rebuild_rmsd :
+                print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
+            else :
+                print 'rebuild_rmsd=False... Skip the high-RMSD residues rebuilding step %s.' % step
             copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
 
     else :

@@ -55,7 +55,7 @@ else :
 os.chdir(temp_dir)
 copy( input_pdb, 'before_min.pdb' ) 
 total_res = get_total_res(input_pdb)
-n_chunk = int(total_res / 80.0 + 0.5)
+n_chunk = int(total_res / 100.0 + 0.5)
 cmdline_common = minimize_python
 cmdline_common += ' -pdb before_min.pdb'
 cmdline_common += ' -out_pdb after_min.pdb'
@@ -69,7 +69,7 @@ for res in fixed_res :
     cmdline_common += ' %d' % res
 ############################################
 if n_chunk <= 1 :
-    print "Input pdb < 120 residus, no slicing is required."
+    print "Input pdb < 150 residus, no slicing is required."
     print "Start minimizing the full pdb..."
     cmdline = cmdline_common
     cmdline += ""

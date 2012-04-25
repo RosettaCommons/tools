@@ -19,9 +19,11 @@ input_pdb = parse_options(sys.argv, 'pdb', '')
 map_file = parse_options(sys.argv, 'map', '')
 out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_full_minimize.pdb') )
 map_reso = parse_options(sys.argv, 'map_reso', 2.0)
-vary_geometry= parse_options( sys.argv, "vary_geometry", "True" )
-new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
+vary_geometry = parse_options( sys.argv, "vary_geometry", "True" )
+constrain_phosphate = parse_options( sys.argv, "constrain_phosphate", "False" )
+new_torsional_potential = parse_options( sys.argv, "new_torsional_potential", "True" )
 kept_temp_folder = parse_options ( sys.argv, 'kept_temp_folder', 'False' )
+debug = parse_options ( sys.argv, 'debug', 'False' )
 fixed_res = parse_option_int_list ( sys.argv, 'fixed_res' )
 
 if input_pdb == "" : 
@@ -31,6 +33,9 @@ check_path_exist(input_pdb)
 if map_file != "" : 
     check_path_exist( map_file )
     map_file = abspath( map_file )
+
+if debug :
+    kept_temp_folder = True
 
 if exists(out_pdb) :
     print "Output pdb file %s exists... Remove it..." % out_pdb
@@ -62,6 +67,7 @@ cmdline_common += ' -out_pdb after_min.pdb'
 if map_file != '' :
     cmdline_common += ' -map %s' % map_file
     cmdline_common += ' -map_reso %s' % map_reso
+cmdline_common += ' -constrain_phosphate %s' % constrain_phosphate
 cmdline_common += ' -vary_geometry %s' % vary_geometry
 cmdline_common += ' -new_torsional_potential %s' % new_torsional_potential
 cmdline_common += ' -fixed_res'
@@ -69,7 +75,7 @@ for res in fixed_res :
     cmdline_common += ' %d' % res
 ############################################
 if n_chunk <= 1 :
-    print "Input pdb < 150 residus, no slicing is required."
+    print "Input pdb < 150 residues, no slicing is required."
     print "Start minimizing the full pdb..."
     cmdline = cmdline_common
     cmdline += ""

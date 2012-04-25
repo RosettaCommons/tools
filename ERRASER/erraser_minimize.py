@@ -21,6 +21,7 @@ map_file = parse_options(sys.argv, 'map', '')
 out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_minimize.pdb') )
 map_reso = parse_options(sys.argv, 'map_reso', 2.0)
 vary_geometry= parse_options( sys.argv, "vary_geometry", "True" )
+constrain_phosphate = parse_options( sys.argv, "constrain_phosphate", "False" )
 new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
 fixed_res = parse_option_int_list ( sys.argv, 'fixed_res' )
 res_slice = parse_option_int_list ( sys.argv, 'res_slice' )
@@ -67,15 +68,15 @@ command += " -database %s " % database_folder
 command += " -native %s " % temp_rs
 command += " -out_pdb %s " % temp_rs_min
 if map_file != '' :
-    command+= " -score::weights rna/rna_hires_elec_dens "
+    command += " -score::weights rna/rna_hires_elec_dens "
 else :
-    command+= " -score::weights rna/rna_loop_hires_04092010"
+    command += " -score::weights rna/rna_loop_hires_04092010"
 
 if new_torsional_potential :
-    command+= " -score:rna_torsion_potential RNA09_based_2012_new "
+    command += " -score:rna_torsion_potential RNA09_based_2012_new "
 
-if vary_geometry :
-    command+= " -vary_geometry true "
+command += " -vary_geometry %s " % str(vary_geometry).lower()
+command += " -constrain_P %s " % str(constrain_phosphate).lower()
 
 if len(fixed_res_final) != 0 :
     command += ' -fixed_res '
@@ -83,9 +84,9 @@ if len(fixed_res_final) != 0 :
         command += '%d ' % i
 
 if map_file != '' :
-    command+= " -edensity:mapfile %s " % abspath(map_file)
-    command+= " -edensity:mapreso %s " % map_reso
-    command+= " -edensity:realign no "
+    command += " -edensity:mapfile %s " % abspath(map_file)
+    command += " -edensity:mapreso %s " % map_reso
+    command += " -edensity:realign no "
 print "cmdline: %s" % command
 print "#######Submit the Rosetta Command Line###############"
 subprocess_call(command)

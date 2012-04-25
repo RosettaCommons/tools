@@ -19,6 +19,7 @@ out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb',
 map_file = parse_options(sys.argv, 'map', '')
 map_reso = parse_options(sys.argv, 'map_reso', 2.0)
 verbose = parse_options(sys.argv, 'verbose', "False")
+debug = parse_options(sys.argv, 'debug', "False")
 new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
 native_screen_RMSD= parse_options(sys.argv, "native_screen_RMSD", 2.0)
 native_edensity_cutoff= parse_options(sys.argv, "native_edensity_cutoff", 0.9) 
@@ -45,6 +46,10 @@ check_path_exist( input_pdb )
 if exists(out_pdb) :
     print "Output pdb file %s exists... Remove it..." % out_pdb
     remove(out_pdb)
+
+if debug :
+    verbose = True
+    kept_temp_folder = True
 ###########Exe file paths###########################
 python_file_path = os.path.split( os.path.abspath(__file__) ) [0]
 SWA_rebuild_python = "%s/SWA_rebuild_erraser.py" % python_file_path

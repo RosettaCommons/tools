@@ -331,6 +331,7 @@ def extract_pdb(silent_file, output_folder_name):
     """
 
     check_path_exist( silent_file )
+    silent_file_abs = abspath( silent_file )
 
     remove_variant_types = "false"
 
@@ -389,7 +390,7 @@ def extract_pdb(silent_file, output_folder_name):
     command = rosetta_bin("rna_extract.linuxgccrelease")
 
     command += " -tags " + tags_string
-    command += " -in:file:silent " + silent_file 
+    command += " -in:file:silent " + silent_file_abs 
     command += " -in:file:silent_struct_type  binary_rna"
     command += " -database %s" % rosetta_database()
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types 
@@ -409,10 +410,7 @@ def find_error_res(input_pdb) :
     """
     check_path_exist(input_pdb)
     output = ""
-    try :
-        output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
-    except :
-        error_exit("Error in find_error_res!!!!")
+    output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
 
     error_types = ["Pucker", "Bond", "Angle", "Suite"]
     current_error = 0

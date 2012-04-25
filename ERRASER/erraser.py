@@ -12,7 +12,7 @@ from erraser_util import *
 
 #####################################################
 print '###################################'	
-print 'Starting SWA_rebuild_erraser.py...'	
+print 'Starting erraser.py...'	
 start_time=time.time()
 
 
@@ -27,7 +27,9 @@ finer_sampling = parse_options(sys.argv, 'finer_sampling', 'False')
 new_torsional_potential = parse_options( sys.argv, "new_torsional_potential", "True" )
 use_existing_temp_folder = parse_options( sys.argv, "use_existing_temp_folder", "True" )
 kept_temp_folder = parse_options( sys.argv, "kept_temp_folder", "False" )
+debug = parse_options( sys.argv, "debug", "False" )
 rebuild_all = parse_options( sys.argv, "rebuild_all", "False" )
+constrain_phosphate = parse_options( sys.argv, "constrain_phosphate", "False" )
 rebuild_rmsd = parse_options( sys.argv, "rebuild_rmsd", "True" )
 extra_res = parse_option_chain_res_list ( sys.argv, 'rebuild_extra_res' )
 fixed_res = parse_option_chain_res_list ( sys.argv, 'fixed_res' )
@@ -108,6 +110,8 @@ minimize_command_common  = minimize_python
 minimize_command_common += " -map %s" % map_file
 minimize_command_common += " -map_reso %s" % map_reso
 minimize_command_common += ' -new_torsional_potential %s' % new_torsional_potential
+minimize_command_common += ' -debug %s' % debug
+minimize_command_common += ' -constrain_phosphate %s' % constrain_phosphate
 if len(fixed_res_final) != 0 :
     minimize_command_common += " -fixed_res"
     for res in fixed_res_final :
@@ -187,6 +191,7 @@ for step in range(1, n_iterate + 1) :
     seq_rebuild_command_common += " -finer_sampling %s" % finer_sampling
     seq_rebuild_command_common += ' -new_torsional_potential %s' % new_torsional_potential
     seq_rebuild_command_common += ' -native_screen_RMSD %s' % native_screen_RMSD
+    seq_rebuild_command_common += ' -debug %s' % debug
 
     if len(cutpoint_final) != 0 :
         seq_rebuild_command_common += " -cutpoint_open"

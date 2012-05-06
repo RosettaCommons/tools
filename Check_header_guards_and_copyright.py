@@ -40,25 +40,25 @@ def getAllFiles(folder):
 		elif os.path.isfile(fullpath):
 			listOfFiles.append(fullpath)
 	return listOfFiles
-	
+
 def getListOfFiles(root, extension_masks = None):
 	'''Recursively get a list of all files under root then filter on extension_masks'''
 	pathjoin = os.path.join
 	filelist = []
-	
+
 	log("Finding files.")
-	
+
 	# print a # or some other character to indicate progress every nth directory/file
 	filelist = getAllFiles(root)
-	
+
 	#todo: filter on extensions
-	
+
 	return filelist
-	
+
 # Move to constants.py
 BOILERPLATE = [  '''// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-''',
 			'''// vi: set ts=2 noet:''',
-			'''//''',                                                                                                                                                                                   
+			'''//''',
 			'''// (c) Copyright Rosetta Commons Member Institutions.''',
 			'''// (c) This file is part of the Rosetta software suite and is made available under license.''',
 			'''// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.''',
@@ -80,7 +80,7 @@ def checkHeader(filedata):
 			return["The file header does not match the standard header (emacs settings and copyright information):\n  %s\n  %s" % (lines[index], BOILERPLATE[index])]
 		index += 1
 	return []
-	
+
 def checkBannedWords(filedata):
 	warnings = []
 	words = filedata["words"]
@@ -100,11 +100,44 @@ def checkGuards(filedata):
 	if not(lines[idx].startswith("#ifndef") and lines[-1].startswith("#endif")):
 		return ["Missing inclusion guards."]
 	return []
-	
+
+def getIncGuardName(filename):
+	path, name = os.path.split(filename)
+	while path:
+		path, curdir = os.path.split(path)
+		if curdir == 'src':
+			break
+		name = curdir + '_' + name
+	if not path:
+		raise ValueError("Directory 'src' not found in path " + filename)
+	name = "INCLUDED_" + name
+	name = name.replace('.','_')
+	return name
+
+def checkGuardsWithNaming(filedata):
+	prune(filedata)
+	lines = filedata["prunedlines"] # Should have blank and comment lines removed from front and back
+	if len(lines) <= 2:
+		return ["Abnormally short file!"]
+	if not lines[0].startswith("#ifndef"):
+		return ["Proper include guard not found"]
+	if not lines[-1].startswith("#endif"):
+		return ["Include guard endif not found"]
+	ifndef_name = lines[0].split()[1]
+	# Capitalization not really important (shouldn't have cap-dependent paths).
+	if ifndef_name.lower() != getIncGuardName(filedata["filename"]).lower():
+		return ["Include guard not named appropriately ("+ifndef_name+")."]
+	if not lines[1].startswith("#define"):
+		return ["No define for include guard."]
+	if lines[1].split()[1] != ifndef_name: # Capitalization *here* is important.
+		return ["Include guard define not named appropriately ("+lines[1].split()[1]+")."]
+	return []
+
 CodingConventions = [
 		(checkHeader, ["hh"]),
 		(checkBannedWords, ["hh"]),
 		(checkGuards, ["hh"]),
+#		(checkGuardWithNaming, ["hh"]),
 	]
 
 def check_source(root):
@@ -117,8 +150,8 @@ def check_source(root):
 		words = set(contents.split())
 		F.close()
 		cwarnings = []
-		
-		filedata = {"contents" : contents, "lines" : lines, "words" : words}
+
+		filedata = {"contents" : contents, "lines" : lines, "words" : words, "filename" : os.path.abspath(fl) }
 		log("Processing %s:" % fl)
 		for convention in CodingConventions:
 			for ext in convention[1]: #Think of a better solution here
@@ -127,7 +160,7 @@ def check_source(root):
 					break
 		if cwarnings:
 			warnings.append((fl, cwarnings))
-	
+
 	return warnings
 
 def burninate(root):
@@ -138,7 +171,14 @@ def burninate(root):
 			log("%s:" % file)
 			for w in wrngs:
 				log("\t%s" % w)
-				
+
 	log("Done")
-		
-burninate(os.path.join(os.getcwd(), "src", "numeric"))
+
+if __name__ == "__main__":
+	if len(sys.argv) == 1:
+		burninate(os.path.join(os.getcwd(), "src", "numeric"))
+	elif len(sys.argv) == 2 and sys.argv[1] != "-h":
+		burninate(os.path.abspath(sys.argv[1]))
+	else:
+		print "Usage:", sys.argv[0], " [ path ] "
+		print "(Path defaults to ./src/numeric)"

@@ -9,6 +9,8 @@ use File::Basename;
 use Sys::Hostname;
 use Time::Local;
 
+use FindBin qw( $Bin );
+
 #http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
 use Parallel::ForkManager;
 
@@ -38,22 +40,23 @@ my $PDB_SEQRES      = "/work/robetta/databases/pdb/pdb_seqres.txt";
 my $PDB_ENTRIES_IDX = "/work/robetta/databases/pdb/entries.idx";
 
 # DEFAULT PDB STRUCTURE, PSSM, and SPARTA (chemical shift) DATABASE (VALL)
+# note: vall.jul19.2011 does not yet include SPARTA data
 # '-vall_files' option overrides this
-my $VALL = "/work/robetta/src/rosetta/fragment_tools/vall.jul19.2011"
-  ;    #"/my_database_dir/vall.apr24.2008.extended";
+my $VALL = "$Bin/vall.jul19.2011"; #"/my_database_dir/vall.apr24.2008.extended";
 
 # pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
 #  --no_structure_profile option is added to reduce the run time
 # This feature is not supported yet in the Rosetta release
-my $PDB2VALL = "/work/robetta/src/rosetta/fragment_tools/pdb2vall/pdb2vall.py --no_structure_profile";
-my $PDB2VALL_IGNORE_ERRORS = 1; # ignore pdb2vall jobs that fail
+my $PDB2VALL = "$Bin/pdb2vall/pdb2vall.py --no_structure_profile";
+my $PDB2VALL_IGNORE_ERRORS = 1;    # ignore pdb2vall jobs that fail
 
 # ROSETTA FRAGMENT PICKER
 my $FRAGMENT_PICKER =
-"/work/robetta/src/rosetta/rosetta_source/bin/fragment_picker.linuxgccrelease"
+  "/work/robetta/src/rosetta/rosetta_source/bin/fragment_picker.linuxgccrelease"
   ;    #"/my_src_dir/mini/bin/picker.linuxgccrelease";
+
 # fragment_picker must be built with extras=boost_thread for multiple threads
-my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use 
+my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
 
 my $ROSETTA_DATABASE = "/work/robetta/src/rosetta/rosetta_database"
   ;                                  #"/my_database_dir/rosetta_database";
@@ -61,20 +64,23 @@ my $ROSETTA_DATABASE = "/work/robetta/src/rosetta/rosetta_database"
 # This is an optional script that you can provide to launch picker and pdb2vall jobs on
 # free nodes to run them in parallel. If left as an empty string, jobs will run serially.
 # Make sure your script will run the command passed to it on another machine. If it is
-# set up to run parallel jobs on the local machine, the local machine may run into CPU 
+# set up to run parallel jobs on the local machine, the local machine may run into CPU
 # and memory issues when running multiple picker and pdb2vall jobs in parallel, the
 # fragment_picker and blastpgp may be cpu and memory intense.
-my $SLAVE_LAUNCHER = "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
-my $SLAVE_LAUNCHER_MAX_JOBS = 40; # depends on your available machines/cpus
+my $SLAVE_LAUNCHER =
+  "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
+my $SLAVE_LAUNCHER_MAX_JOBS = 40;    # depends on your available machines/cpus
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
 # http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
 # Uses Spine-X for solvent accessibility, phi, and psi predictions.
 # If left as an empty string, solvent accessibility, phi, and psi scores
 # will not be used which may reduce fragment quality.
-my $SPARKS = "/work/robetta/src/sparks/sparks-x/bin/buildinp_query.sh";
+my $SPARKS =
+  "/work/robetta/src/rosetta_server/bin/sparks-x/bin/buildinp_query.sh"
+  ;    #"/work/robetta/src/sparks/sparks-x/bin/buildinp_query.sh";
 
-# THE FOLLOWING IS NOT REQUIRED IF YOU RUN SECONDARY STRUCTURE PREDICTIONS
+# THE FOLLOWING IS NOT REQUIRED IF YOU RUN SECONDARY STRUCTURE PREDICTION(S)
 # MANUALLY AND USE THE FOLLOWING OPTIONS:
 # -psipredfile <psipred file>
 # -porterfile  <porter file>
@@ -87,9 +93,18 @@ my $SPARKS = "/work/robetta/src/sparks/sparks-x/bin/buildinp_query.sh";
 my $PSIPRED_DIR = "/work/robetta/src/shareware/psipred"
   ;    # "/my_src_dir/psipred";    # psipred installation directory
 
+my $PSIPRED_USE_weights_dat4 = 1;    # set to 0 if using psipred version 3.2+
+
 # pfilt filtered NR blast database filename used for PSIPRED (see PSIPRED readme)
 my $PFILTNR = "/work/robetta/databases/local_db/nr/nr_pfilt"
-  ;    #"/my_database_dir/blast/nr_pfilt";
+  ;                                  #"/my_database_dir/blast/nr_pfilt";
+
+
+
+# BY DEFAULT, Psipred is used only and the following can be ignored unless
+# you want to use the secondary structure prediction quota system with SAM 
+# and Porter.
+
 
 # SAM install path
 # http://compbio.soe.ucsc.edu/sam2src/
@@ -163,7 +178,7 @@ my $VALL_BLAST_DB =
 $VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 
 ## for SLAVE_LAUNCHER parallel jobs
-my $SLAVE_MAX_WAIT = 3 * 60 * 60;
+my $SLAVE_MAX_WAIT     = 96 * 60 * 60;
 my $SLAVE_MAX_ATTEMPTS = 2;
 
 use Cwd qw/ cwd abs_path /;
@@ -171,36 +186,36 @@ use bytes;
 
 my %options;
 $options{DEBUG} = 1;
-use constant VERSION => 3.00;    # works with standard & warnings
+use constant VERSION => 3.01;    # works with standard & warnings
 
 $| = 1;                          # disable stdout buffering
 
 # initialize options
 my %opts = &getCommandLineOptions();
 $options{fastafile} = abs_path( $opts{f} );
-$options{rundir}       = cwd();     # get the full path (needed for sam stuff)
-$options{homs}         = 1;
-$options{pick_frags}   = 1;
-$options{psipred_file} = "";
-$options{sam_file}     = "";
-$options{porter_file}  = "";
-$options{psipred}      = 1; # use psipred by default
-$options{porter}       = 0; # skip porter by default
-$options{sam}          = 0; # skip sam by default
-$options{id}           = "temp";
-$options{chain}        = "_";
-$options{runid}        = "temp_";
-$options{cleanup}      = 1;
-$options{torsion_bin}  = 0;
+$options{rundir}      = cwd();     # get the full path (needed for sam stuff)
+$options{homs}        = 1;
+$options{pick_frags}  = 1;
+$options{psipredfile} = "";
+$options{samfile}     = "";
+$options{porterfile}  = "";
+$options{psipred}     = 1;         # use psipred by default
+$options{porter}      = 0;         # skip porter by default
+$options{sam}         = 0;         # skip sam by default
+$options{id}          = "temp";
+$options{chain}       = "_";
+$options{runid}       = "temp_";
+$options{cleanup}     = 1;
+$options{torsion_bin} = 0;
 $options{exclude_homologs_by_pdb_date} = 0;
-$options{old_name_format} = 0;
-$options{add_pdbs_to_vall} = "";
+$options{old_name_format}              = 0;
+$options{add_pdbs_to_vall}             = "";
 
 my @cleanup_files  = ();
 my @fragsizes      = ( 3, 9 );  #4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 );
 my @add_vall_files = ();
 my @use_vall_files = ();
-my @pdbs_to_vall = ();
+my @pdbs_to_vall   = ();
 $options{n_frags}      = 200;
 $options{n_candidates} = 1000;
 
@@ -233,12 +248,14 @@ if ( exists $opts{use_vall_files} ) {
 }
 
 if ( defined $opts{add_pdbs_to_vall} ) {
-  if (!$PDB2VALL) {
-	  print_debug("ignoring -add_pdbs_to_vall option: PDB2VALL not configured");
-	} else {
-    @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
-    print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
-  }
+    if ( !$PDB2VALL ) {
+        print_debug(
+            "ignoring -add_pdbs_to_vall option: PDB2VALL not configured");
+    }
+    else {
+        @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
+        print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
+    }
 }
 mkpath( $options{rundir} );
 $options{rundir} = abs_path( $options{rundir} );
@@ -297,7 +314,7 @@ if ( abs_path( $options{fastafile} ) ne abs_path("$options{runid}.fasta") ) {
 # determine what ss predictions to run
 foreach my $ss_pred (qw/ porter sam psipred /) {
     if ( $options{$ss_pred} ) {
-        my $fn_key = join '_', ( $ss_pred, 'file' );
+        my $fn_key = join '', ( $ss_pred, 'file' );
         my $fn = $options{$fn_key};
         $options{$ss_pred} = file_overrides_option( $fn, $ss_pred );
     }
@@ -317,11 +334,10 @@ print_debug("FILENAME: $options{fastafile}");
 
 chdir( $options{rundir} );
 
-if (-f "$options{runid}.make_fragments.success") {
+if ( -f "$options{runid}.make_fragments.success" ) {
     print_debug("done! $options{runid}.make_fragments.success exists");
-		exit(0);
+    exit(0);
 }
-
 
 # get the sequence from the fasta file
 my $sequence = read_fasta( $options{fastafile} );
@@ -373,93 +389,105 @@ push( @cleanup_files,
     ( "$options{runid}.blast", "$options{runid}.pssm", "error.log" ) );
 
 # Secondary Structure Prediction methods
-if ( $options{psipred} ) {
+if ( $options{psipred}
+    || ( $options{psipredfile} && -s $options{psipredfile} ) )
+{
     print_debug("running psipred");
 
-    # run psi-blast for psipred
-    unless ( &nonempty_file_exists("sstmp.chk")
-        && &nonempty_file_exists("sstmp.ascii")
-        && &nonempty_file_exists("ss_blast") )
-    {
-        if (
-            !&try_try_again(
+    if ( $options{psipredfile} && -s $options{psipredfile} ) {
+        $options{psipred} = 1;
+        system("cp $options{psipredfile} $options{runid}.psipred_ss2");
+    }
+    else {
+
+        # run psi-blast for psipred
+        unless ( &nonempty_file_exists("sstmp.chk")
+            && &nonempty_file_exists("sstmp.ascii")
+            && &nonempty_file_exists("ss_blast") )
+        {
+            if (
+                !&try_try_again(
 "$PSIBLAST -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
-                2,
-                [ "sstmp.chk", "sstmp.ascii" ],
-                [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]
-            )
-          )
-        {
-            die("psipred psi-blast failed!\n");
+                    2,
+                    [ "sstmp.chk", "sstmp.ascii" ],
+                    [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]
+                )
+              )
+            {
+                die("psipred psi-blast failed!\n");
+            }
+            push( @cleanup_files, ( "ss_blast", "sstmp.chk", "sstmp.ascii" ) );
         }
-        push( @cleanup_files, ( "ss_blast", "sstmp.chk", "sstmp.ascii" ) );
-    }
 
-    unless ( &nonempty_file_exists("psitmp.sn") ) {
-        &run( "echo $options{fastafile} > psitmp.sn", ("psitmp.sn") );
-    }
-    unless ( &nonempty_file_exists("psitmp.pn") ) {
-        &run( "echo sstmp.chk > psitmp.pn", ("psitmp.pn") );
-    }
-
-    unless ( &nonempty_file_exists("sstmp.mtx") ) {
-        if (
-            !&try_try_again(
-                "$MAKEMAT -P psitmp",
-                2, ["sstmp.mtx"], ["sstmp.mtx"]
-            )
-          )
-        {
-            die("psipred: makemat failed.");
+        unless ( &nonempty_file_exists("psitmp.sn") ) {
+            &run( "echo $options{fastafile} > psitmp.sn", ("psitmp.sn") );
         }
-    }
-
-    unless ( &nonempty_file_exists("psipred_ss") ) {
-        if (
-            !&try_try_again(
-"$PSIPRED sstmp.mtx $PSIPRED_DATA/weights.dat $PSIPRED_DATA/weights.dat2 $PSIPRED_DATA/weights.dat3 $PSIPRED_DATA/weights.dat4 > psipred_ss",
-                2,
-                ["psipred_ss"],
-                ["psipred_ss"]
-            )
-          )
-        {
-            die("psipred failed.");
+        unless ( &nonempty_file_exists("psitmp.pn") ) {
+            &run( "echo sstmp.chk > psitmp.pn", ("psitmp.pn") );
         }
-    }
 
-    unless ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
-        if (
-            !&try_try_again(
+        unless ( &nonempty_file_exists("sstmp.mtx") ) {
+            if (
+                !&try_try_again(
+                    "$MAKEMAT -P psitmp",
+                    2, ["sstmp.mtx"], ["sstmp.mtx"]
+                )
+              )
+            {
+                die("psipred: makemat failed.");
+            }
+        }
+
+        unless ( &nonempty_file_exists("psipred_ss") ) {
+            my $psipredcmd =
+              ($PSIPRED_USE_weights_dat4)
+              ? "$PSIPRED sstmp.mtx $PSIPRED_DATA/weights.dat $PSIPRED_DATA/weights.dat2 $PSIPRED_DATA/weights.dat3 $PSIPRED_DATA/weights.dat4 > psipred_ss"
+              : "$PSIPRED sstmp.mtx $PSIPRED_DATA/weights.dat $PSIPRED_DATA/weights.dat2 $PSIPRED_DATA/weights.dat3 > psipred_ss";
+            if (
+                !&try_try_again(
+                    $psipredcmd, 2, ["psipred_ss"], ["psipred_ss"]
+                )
+              )
+            {
+                die("psipred failed.");
+            }
+        }
+
+        unless ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
+            if (
+                !&try_try_again(
 "$PSIPASS2 $PSIPRED_DATA/weights_p2.dat 1 1 1 psipred_ss2 psipred_ss > psipred_horiz",
-                2,
-                [ "psipred_ss2", "psipred_horiz" ],
-                [ "psipred_ss2", "psipred_horiz" ]
-            )
-          )
-        {
-            die("psipred/psipass2 failed.");
-        }
+                    2,
+                    [ "psipred_ss2", "psipred_horiz" ],
+                    [ "psipred_ss2", "psipred_horiz" ]
+                )
+              )
+            {
+                die("psipred/psipass2 failed.");
+            }
 
-        rename( "psipred_horiz", "$options{runid}.psipred" )
-          or
-          die("couldn't move psipred_horiz to $options{runid}.psipred: $!\n");
-
-        if ( !scalar(`grep 'PSIPRED VFORMAT' psipred_ss2`) ) {
-            open( FILE, "psipred_ss2" );
-            my @ss2 = <FILE>;
-            close(FILE);
-            open( FILE, ">$options{runid}.psipred_ss2" );
-            print FILE "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n\n";
-            print FILE @ss2;
-            close(FILE);
-        }
-        else {
-            rename( "psipred_ss2", "$options{runid}.psipred_ss2" )
+            rename( "psipred_horiz", "$options{runid}.psipred" )
               or die(
-                "couldn't move psipred_ss2 to $options{runid}.psipred_ss2: $!\n"
-              );
+                "couldn't move psipred_horiz to $options{runid}.psipred: $!\n");
+
+            if ( !scalar(`grep 'PSIPRED VFORMAT' psipred_ss2`) ) {
+                open( FILE, "psipred_ss2" );
+                my @ss2 = <FILE>;
+                close(FILE);
+                open( FILE, ">$options{runid}.psipred_ss2" );
+                print FILE
+                  "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n\n";
+                print FILE @ss2;
+                close(FILE);
+            }
+            else {
+                rename( "psipred_ss2", "$options{runid}.psipred_ss2" )
+                  or die(
+"couldn't move psipred_ss2 to $options{runid}.psipred_ss2: $!\n"
+                  );
+            }
         }
+
     }
 
     if ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
@@ -472,8 +500,12 @@ if ( $options{psipred} ) {
     push( @cleanup_files, ( glob("psitmp*"), "psipred_ss", "sstmp.mtx" ) );
 }
 
-if ( $options{porter} ) {
+if ( $options{porter} || ( $options{porterfile} && -s $options{porterfile} ) ) {
     print_debug("running porter.");
+    if ( $options{porterfile} && -s $options{porterfile} ) {
+        $options{porter} = 1;
+        system("cp $options{porterfile} $options{runid}.porter_ss2");
+    }
     if ( &nonempty_file_exists("$options{runid}.porter_ss2") ) {
         print_debug("porter file ok.");
     }
@@ -489,8 +521,12 @@ if ( $options{porter} ) {
 }
 
 # sam -- target99 alignment and predict2nd with 6 state neural net - condensed output to 3 state
-if ( $options{sam} ) {
+if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
     print_debug("running sam.");
+    if ( $options{samfile} && -s $options{samfile} ) {
+        $options{sam} = 1;
+        system("cp $options{samfile} $options{runid}.rdb_ss2");
+    }
     if ( &nonempty_file_exists("$options{runid}.rdb_ss2") ) {
         print_debug("sam file ok.");
     }
@@ -702,44 +738,56 @@ if ( -s "$options{runid}.pdb" ) {
 
 # pdbs to vall
 if ( scalar @pdbs_to_vall ) {
-  print_debug("pdbs_to_vall");
-	my $pdbs2valldir = "$options{rundir}/$options{runid}\_pdbs_to_vall";
-  (-d $pdbs2valldir || mkdir($pdbs2valldir)) or die "ERROR! cannot mkdir $pdbs2valldir: $!\n";
-  chdir($pdbs2valldir);
+    print_debug("pdbs_to_vall");
+    my $pdbs2valldir = "$options{rundir}/$options{runid}\_pdbs_to_vall";
+    ( -d $pdbs2valldir || mkdir($pdbs2valldir) )
+      or die "ERROR! cannot mkdir $pdbs2valldir: $!\n";
+    chdir($pdbs2valldir);
 
-  if (!-s "$options{runid}\_pdbs_to_vall.vall") {  
-    if ( !$SLAVE_LAUNCHER ) {    # run in series
-	    foreach my $pdb (@pdbs_to_vall) {
-          my $cmd = "$PDB2VALL -p $pdb";
-          produce_output_with_cmd( $cmd, "$pdb.vall", $PDB2VALL_IGNORE_ERRORS );
-      }
-    } else {
-	    my (@commands, @results);
-	    foreach my $pdb (@pdbs_to_vall) {
-			   push(@commands,"$SLAVE_LAUNCHER $PDB2VALL -p $pdb");
-				 push(@results, "$pdb.vall" );
-			}
-			&run_in_parallel( \@commands, \@results, "pdb2vall_parallel_job", $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS, $PDB2VALL_IGNORE_ERRORS );
-	  }
-  }
-	# create one template vall - overwrite if exists
-	open(F, ">$options{runid}\_pdbs_to_vall.vall") or die "ERROR! cannot open $options{runid}\_pdbs_to_vall.vall: $!\n";
-  foreach my $pdb (@pdbs_to_vall) {
-	  next if ($PDB2VALL_IGNORE_ERRORS && !-s "$pdb.vall");
-    print_debug("adding $pdb.vall");
-	  open(NF, "$pdb.vall") or die "ERROR! cannot open $pdb.vall: $!\n";
-    foreach my $nf (<NF>) {
-      print F $nf;
+    if ( !-s "$options{runid}\_pdbs_to_vall.vall" ) {
+        if ( !$SLAVE_LAUNCHER ) {    # run in series
+            foreach my $pdb (@pdbs_to_vall) {
+                my $cmd = "$PDB2VALL -p $pdb";
+                produce_output_with_cmd( $cmd, "$pdb.vall",
+                    $PDB2VALL_IGNORE_ERRORS );
+            }
+        }
+        else {
+            my ( @commands, @results );
+            foreach my $pdb (@pdbs_to_vall) {
+                push( @commands, "$SLAVE_LAUNCHER $PDB2VALL -p $pdb" );
+                push( @results,  "$pdb.vall" );
+            }
+            &run_in_parallel(
+                \@commands,              \@results,
+                "pdb2vall_parallel_job", $SLAVE_LAUNCHER_MAX_JOBS,
+                $SLAVE_MAX_WAIT,         $SLAVE_MAX_ATTEMPTS,
+                $PDB2VALL_IGNORE_ERRORS
+            );
+        }
     }
-    close(NF);
-  }
-  close(F);
 
-	if (-s "$options{runid}\_pdbs_to_vall.vall") {
-      push( @valls, "$pdbs2valldir/$options{runid}\_pdbs_to_vall.vall" );
-  } else {
-	  warn "WARNING! pdb2vall output $options{runid}\_pdbs_to_vall.vall does not exist.\n";
-	}
+    # create one template vall - overwrite if exists
+    open( F, ">$options{runid}\_pdbs_to_vall.vall" )
+      or die "ERROR! cannot open $options{runid}\_pdbs_to_vall.vall: $!\n";
+    foreach my $pdb (@pdbs_to_vall) {
+        next if ( $PDB2VALL_IGNORE_ERRORS && !-s "$pdb.vall" );
+        print_debug("adding $pdb.vall");
+        open( NF, "$pdb.vall" ) or die "ERROR! cannot open $pdb.vall: $!\n";
+        foreach my $nf (<NF>) {
+            print F $nf;
+        }
+        close(NF);
+    }
+    close(F);
+
+    if ( -s "$options{runid}\_pdbs_to_vall.vall" ) {
+        push( @valls, "$pdbs2valldir/$options{runid}\_pdbs_to_vall.vall" );
+    }
+    else {
+        warn
+"WARNING! pdb2vall output $options{runid}\_pdbs_to_vall.vall does not exist.\n";
+    }
 }
 
 my $valls_str = join ' ', @valls;
@@ -843,13 +891,13 @@ CMDTXT
 
     # add fragment secondary structure predictions
     my @frag_ss_tokens;
-    if ( -f "$options{runid}.psipred_ss2" ) {
+    if ( -s "$options{runid}.psipred_ss2" ) {
         push @frag_ss_tokens, ( "$options{runid}.psipred_ss2", "psipred" );
     }
-    if ( -f "$options{runid}.rdb_ss2" ) {
+    if ( -s "$options{runid}.rdb_ss2" ) {
         push @frag_ss_tokens, ( "$options{runid}.rdb_ss2", "sam" );
     }
-    if ( -f "$options{runid}.porter_ss2" ) {
+    if ( -s "$options{runid}.porter_ss2" ) {
         push @frag_ss_tokens, ( "$options{runid}.porter_ss2", "porter" );
     }
     $cmdtxt .= join ' ', ( '-frags:ss_pred', @frag_ss_tokens );
@@ -900,37 +948,41 @@ CMDTXT
 }
 
 if ($SLAVE_LAUNCHER) {           # run in parallel
-    my (@commands, @results);
+    my ( @commands, @results );
     foreach my $size (@fragsizes) {
-       push(@results,"$options{runid}.$options{n_frags}.$size" . "mers");
-       push(@commands, "$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS");
+        push( @results, "$options{runid}.$options{n_frags}.$size" . "mers" );
+        push( @commands,
+"$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS"
+        );
     }
-    &run_in_parallel( \@commands, \@results, "picker_parallel_job", $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS);
+    &run_in_parallel( \@commands, \@results, "picker_parallel_job",
+        $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS );
 }
 
-if ($options{old_name_format}) {
-  foreach my $size (@fragsizes) {
-    my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
-    my $fragsize = sprintf("%2.2d", $size);
-    my $fragname = "aa$options{runid}$fragsize\_05.$options{n_frags}\_v1_3";
-    # just in case scripts use rsync -a make the old_name_format the actual file
-    # and then create a link for the original name (for parallel job checkpoints)
-		if (!-s $fragname) {
-      print_debug("mv $resultfile $fragname");
-      (system("mv $resultfile $fragname") == 0 && -s $fragname) or 
-        die "ERROR! attempt to move $resultfile to $fragname failed\n";
-      print_debug("ln -s $fragname $resultfile");
-      (system("ln -s $fragname $resultfile") == 0 && -s $resultfile) or
-        die "ERROR! attempt to link $fragname to $resultfile failed\n";
+if ( $options{old_name_format} ) {
+    foreach my $size (@fragsizes) {
+        my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+        my $fragsize = sprintf( "%2.2d", $size );
+        my $fragname = "aa$options{runid}$fragsize\_05.$options{n_frags}\_v1_3";
+
+   # just in case scripts use rsync -a make the old_name_format the actual file
+   # and then create a link for the original name (for parallel job checkpoints)
+        if ( !-s $fragname ) {
+            print_debug("mv $resultfile $fragname");
+            ( system("mv $resultfile $fragname") == 0 && -s $fragname )
+              or die "ERROR! attempt to move $resultfile to $fragname failed\n";
+            print_debug("ln -s $fragname $resultfile");
+            ( system("ln -s $fragname $resultfile") == 0 && -s $resultfile )
+              or die "ERROR! attempt to link $fragname to $resultfile failed\n";
+        }
     }
-	}
 }
 
 # create a success "checkpoint" file if all fragments are generated
-my $success = 1; 
+my $success = 1;
 foreach my $size (@fragsizes) {
-  my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
-	$success = 0 if (!-s $resultfile);
+    my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";
+    $success = 0 if ( !-s $resultfile );
 }
 system("touch $options{runid}.make_fragments.success") if ($success);
 
@@ -1440,7 +1492,7 @@ sub convert_sam_ss {
     open( SAM, $ss_pred ) or die "ERROR! cannot open $ss_pred: $!\n";
     open( SAMCONV, ">$ss_pred\_ss2" )
       or die "ERROR! cannot open $ss_pred\_ss2: $!\n";
-    print SAMCONV "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n";
+    print SAMCONV "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n\n";
     while (<SAM>) {
         $_ =~ s/^\s+|\s+$//;
         next if ( $_ =~ /^#/ || $_ =~ /^\s*$/ );
@@ -1453,15 +1505,15 @@ sub convert_sam_ss {
 
         if ( $e >= $h && $e >= $c ) {
             printf SAMCONV "%4d $cols[1] E   %5.3f  %5.3f  %5.3f\n",
-              $cols[0] + $plusOne, $h, $e, $c;
+              $cols[0] + $plusOne, $c, $h, $e;
         }
         elsif ( $h > $e && $h >= $c ) {
             printf SAMCONV "%4d $cols[1] H   %5.3f  %5.3f  %5.3f\n",
-              $cols[0] + $plusOne, $h, $e, $c;
+              $cols[0] + $plusOne, $c, $h, $e;
         }
         elsif ( $c > $e && $c > $h ) {
             printf SAMCONV "%4d $cols[1] C   %5.3f  %5.3f  %5.3f\n",
-              $cols[0] + $plusOne, $h, $e, $c;
+              $cols[0] + $plusOne, $c, $h, $e;
         }
     }
     close(SAMCONV);
@@ -1511,10 +1563,10 @@ sub options_to_str {
 }
 
 sub produce_output_with_cmd {
-    my $cmd       = shift;
-    my $output_fn = shift;
+    my $cmd          = shift;
+    my $output_fn    = shift;
     my $no_output_ok = 0;
-		$no_output_ok = shift if (scalar @_);
+    $no_output_ok = shift if ( scalar @_ );
 
     print_debug("Command: $cmd");
     if ( -f $output_fn ) {
@@ -1528,7 +1580,7 @@ sub produce_output_with_cmd {
         print_debug("Output: $output");
     }
 
-    if (!$no_output_ok && !-f $output_fn ) {
+    if ( !$no_output_ok && !-f $output_fn ) {
         die "Error: expected creation of $output_fn after running '$cmd'!\n";
     }
 }
@@ -1601,18 +1653,20 @@ sub file_overrides_option {
 }
 
 sub run_in_parallel {
-    my $commands_array_ref = shift;
-		my $resultfiles_array_ref = shift;
-		my $runid = shift;
-		my $maxparalleljobs = shift;
-		my $maxwait = shift;
-		my $maxattempts = shift;
-	  my $ignore_errors = 0;	
-		$ignore_errors = shift if (scalar @_);
+    my $commands_array_ref    = shift;
+    my $resultfiles_array_ref = shift;
+    my $runid                 = shift;
+    my $maxparalleljobs       = shift;
+    my $maxwait               = shift;
+    my $maxattempts           = shift;
+    my $ignore_errors         = 0;
+    $ignore_errors = shift if ( scalar @_ );
     my @commands = @$commands_array_ref;
-    my @results = @$resultfiles_array_ref;
-    return if (!scalar@commands);
-    (scalar@commands == scalar@results) or die "ERROR! number of commands does not match results in run_in_parallel\n";
+    my @results  = @$resultfiles_array_ref;
+    return if ( !scalar @commands );
+    ( scalar @commands == scalar @results )
+      or die
+      "ERROR! number of commands does not match results in run_in_parallel\n";
 
     my $logprefix = "$runid-$host";
     eval {
@@ -1621,55 +1675,61 @@ sub run_in_parallel {
         foreach my $attempt ( 1 .. $maxattempts ) {
             print_debug("Attempt $attempt");
             my $pm = Parallel::ForkManager->new($maxparalleljobs);
-            for (my $i=0;$i<=$#commands;++$i) {
-		            my $resultfile = $results[$i];
-				        next if (-s $resultfile);
+            for ( my $i = 0 ; $i <= $#commands ; ++$i ) {
+                my $resultfile = $results[$i];
+                next if ( -s $resultfile );
                 $pm->start and next;
-                my $PID = $$;
-				        my $logfile = "$logprefix\_$i.log";
-				        my $command = "$commands[$i] >& $logfile";
+                my $PID     = $$;
+                my $logfile = "$logprefix\_$i.log";
+                my $command = "$commands[$i] >& $logfile";
                 eval {
-									alarm $maxwait;
-		              print_debug("starting process $PID to make $resultfile.");
-				          system($command); # keep in mind the command can be orphaned if this is timed out
-				          print_debug("finished process $PID.");
-									alarm 0;
+                    alarm $maxwait;
+                    print_debug("starting process $PID to make $resultfile.");
+                    system($command)
+                      ; # keep in mind the command can be orphaned if this is timed out
+                    print_debug("finished process $PID.");
+                    alarm 0;
                 };
-								if ($@) { alarm 0; }
+                if ($@) { alarm 0; }
                 $pm->finish;
             }
             $pm->wait_all_children;
 
             my %checkdone;
-            for (my $i=0;$i<=$#results;++$i) {
+            for ( my $i = 0 ; $i <= $#results ; ++$i ) {
                 my $resultfile = $results[$i];
                 if ( -s $resultfile ) {
                     $checkdone{$resultfile} = 1;
                     print_debug("$resultfile exists!");
-                } else {
+                }
+                else {
                     print_debug("$resultfile missing!");
                 }
             }
             last if ( scalar( keys %checkdone ) == scalar(@results) );
             if ( $attempt >= $maxattempts ) {
                 if ($ignore_errors) {
-                    warn "WARNING! all result files do not exist after attempt $attempt.\n";
+                    warn
+"WARNING! all result files do not exist after attempt $attempt.\n";
                     last;
-                } else {
-                    die "ERROR! failed run_in_parallel after $attempt attempts\n";
+                }
+                else {
+                    die
+                      "ERROR! failed run_in_parallel after $attempt attempts\n";
                 }
             }
-            warn "WARNING! all result files do not exist after attempt $attempt, attempting run_in_parallel again\n";
+            warn
+"WARNING! all result files do not exist after attempt $attempt, attempting run_in_parallel again\n";
         }
         alarm 0;
     };
     if ($@) {
-		    alarm 0;
+        alarm 0;
         if ($ignore_errors) {
             warn "WARNING! timed out run_in_parallel!\n";
-        } else {
+        }
+        else {
             die "ERROR! timed out run_in_parallel\n";
         }
     }
 }
-

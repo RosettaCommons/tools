@@ -662,7 +662,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
     check_path_exist(rs_pdb)
 
     def is_line_rna (line) :
-        res_name = line[17:20];
+        res_name = line[17:20]
         rna_res = ["  G", "G  ", " rG", "GUA",
                    "  A", "A  ", " rA", "ADE",
                    "  U", "U  ", " rU", "URI",
@@ -696,7 +696,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
             if res_orig != current_res :
                 lines_rs_temp = lines_rs[:]
                 for line_rs in lines_rs_temp :
-                    if (line_rs[0:4] != 'ATOM') : 
+                    if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) : 
                         lines_rs.remove(line_rs)
                         continue
                     res = line_rs[21:27]
@@ -724,14 +724,16 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
 
             lines_rs_temp = lines_rs[:]
             for line_rs in lines_rs_temp :
-                if (line_rs[0:4] != 'ATOM') : continue
+                if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) : 
+                    lines_rs.remove(line_rs)
+                    continue
                 res = line_rs[21:27]
-                res_name = line_rs[19].rjust(3)
+                res_name = line_rs[17:20]
 
                 atom_name = line_rs[12:16].replace('*', "'")
                 if atom_name_convert.has_key(atom_name) :
                     atom_name = atom_name_convert[atom_name]
-
+                
                 if (rna_types[res_name] != rna_types[res_name_orig]) : continue
                 if (atom_name != atom_name_orig) : continue
                 if (res != res_rs) : break
@@ -926,6 +928,11 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
 
             if not is_current_het :
                 atm_no += 1
+                if len(line) < 80 :
+                    line = line[:-1]
+                    for i in xrange( len(line), 81 ) :
+                        line += ' '
+                    line += '\n'
                 line_list = list(line)
                 line_list[4:11] = str(atm_no).rjust(7)
                 line_list[12:16] = atom_name

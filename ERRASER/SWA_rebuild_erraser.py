@@ -27,6 +27,7 @@ include_native =  parse_options( sys.argv, "include_native", "False" )
 slice_nearby =  parse_options( sys.argv, "slice_nearby", "True" )
 finer_sampling = parse_options( sys.argv, "finer_sampling", "False" )
 is_append = parse_options( sys.argv, "is_append", "True" )
+scoring_file = parse_options( sys.argv, "scoring_file", "" )
 new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "True" )
 cutpoint_open = parse_option_int_list ( sys.argv, 'cutpoint_open' )
 
@@ -118,9 +119,10 @@ else :
 
 total_res = get_total_res(native_pdb_final)
 if verbose :
+    print "rebuilding_res = %s" % rebuild_res_final
     print "res_sliced = %s" % res_sliced_all
     print "cutpoint_final = %s" % cutpoint_final
-    print "total_res= %d " % total_res
+    print "total_res = %d " % total_res
 #################Check if the rebuilding Rsd is at chain break###########
 is_chain_break =False
 if rebuild_res_final == 1 or rebuild_res_final == total_res :
@@ -174,10 +176,14 @@ common_cmd += " -alignment_res 1-%d " % total_res
 
 common_cmd += " -rmsd_res %d " %(total_res)
 common_cmd += " -native " + native_pdb_final
-if map_file == "" :
-    common_cmd += " -score:weights rna/rna_loop_hires_04092010"
+if scoring_file == "" :
+    if map_file == "" :
+        common_cmd += " -score:weights rna/rna_loop_hires_04092010 "
+    else :
+        common_cmd += " -score:weights rna/rna_hires_elec_dens "
 else :
-    common_cmd += " -score:weights rna/rna_hires_elec_dens"
+    common_cmd += " -score:weights %s " % scoring_file
+
 
 if map_file != "" :
     common_cmd += " -edensity:mapfile %s " % map_file

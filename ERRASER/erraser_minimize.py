@@ -11,8 +11,8 @@ except :
 
 from erraser_util import *
 
-print '###################################'	
-print 'Starting erraser_minimize.py...'	
+print '###################################'
+print 'Starting erraser_minimize.py...'
 start_time=time.time()
 
 #######Load in cmdline options#####################
@@ -26,22 +26,22 @@ new_torsional_potential= parse_options( sys.argv, "new_torsional_potential", "Tr
 fixed_res = parse_option_int_list ( sys.argv, 'fixed_res' )
 res_slice = parse_option_int_list ( sys.argv, 'res_slice' )
 
-if input_pdb == "" : 
+if input_pdb == "" :
     error_exit("USER need to specify -pdb option")
 check_path_exist(input_pdb)
 
-if map_file != "" : 
+if map_file != "" :
     check_path_exist( map_file )
     map_file = abspath( map_file )
 #######Folders and files paths###########################
-database_folder = rosetta_database() 
+database_folder = rosetta_database()
 rna_minimize_exe = rosetta_bin("erraser_minimizer.linuxgccrelease")
 temp_rs = input_pdb.replace('.pdb', '_temp_rs.pdb')
 temp_rs_min = input_pdb.replace('.pdb', '_temp_rs_min.pdb')
 
 if exists(temp_rs) :
     print "Temporary file %s exists... Remove it..." % temp_rs
-    remove(temp_rs) 
+    remove(temp_rs)
 if exists(temp_rs_min) :
     print "Temporary file %s exists... Remove it..." % temp_rs_min
     remove(temp_rs_min)
@@ -61,9 +61,9 @@ if len(res_slice) != 0 :
 else :
     copy(input_pdb, temp_rs)
     fixed_res_final = fixed_res
-    
+
 ####submit rosetta cmdline##############
-command = rna_minimize_exe 
+command = rna_minimize_exe
 command += " -database %s " % database_folder
 command += " -native %s " % temp_rs
 command += " -out_pdb %s " % temp_rs_min

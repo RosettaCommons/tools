@@ -554,21 +554,71 @@ plot_seqrank <- function(freq_mat, exp_freq_mat = NULL, wt_seq = NULL, star_mat 
     invisible(bg_freq_mat)
 }
 
+# This function produces boxplots showing the amount each generation contributes to
+# the the position weight matrix.
+
+plot_gen_contrib <- function(entitieslist, generationslist, 
+                             fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 1),
+                             temp_or_thresh = 0.228, 
+                             type = c("boltzmann", "cutoff"),
+                             main = "") {
+
+	type <- match.arg(type)
+
+	names(fitness_coef) <- paste("state1_fitness_comp", seq_along(fitness_coef), sep="")
+
+	gen_contrib <- matrix(nrow=length(entitieslist), ncol=length(generationslist[[1]]))
+
+	for (i in seq_along(entitieslist)) {
+
+		fitness <- entities_fitness(entitieslist[[i]], fitness_coef)
+		min_fitness <- min(fitness)
+		
+		if (type == "cutoff") {
+			weight <- fitness <= min_fitness+temp_or_thresh
+		} else {
+			if (temp_or_thresh != 0) {
+				weight <- exp(-(fitness-min_fitness)/temp_or_thresh)
+			} else {
+				weight <- fitness == min_fitness
+			}
+		}
+		
+		weight <- weight/sum(weight)
+		first_gen <- integer(length(fitness))
+		for (j in rev(seq_along(generationslist[[i]]))) {
+			first_gen[generationslist[[i]][[j]]] <- j
+		}
+		for (j in seq_along(generationslist[[i]])) {
+			gen_contrib[i,j] <- sum(weight[first_gen == j])
+		}
+	}
+	
+	colnames(gen_contrib) <- seq_along(generationslist[[1]])
+	
+	boxplot(as.data.frame(gen_contrib), xlab="Generation", ylab="Sequence Contribution", main=main, ylim=c(0,1), yaxt="n")
+	axis(2, seq(0, 1, by=.25), labels=FALSE)
+	axis(2, seq(0, 1, by=.5), seq(0, 1, by=.5), tick=FALSE, line=FALSE)
+}
+
+
 # This function is the main data processing procedure. It takes a directory 
 # path which contains *.ga.entities files. It reads all those files and
 # produces a set of boxplots in several different file formats. It also 
 # generates a position weight matrix and FASTA file for producing a sequence 
-# logo.
+# logo. By specifying plotgen=TRUE, it will produce a plot similar to 
+# Figure 5 in the PLoS One manuscript.
 
 process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 1),
                            temp_or_thresh = 0.228, 
                            type = c("boltzmann", "cutoff"),
-                           percentile = .5, prefix = "seqtol") {
+                           percentile = .5, prefix = "seqtol",
+                           plotgen = FALSE) {
 
 	type <- match.arg(type)
 	names(fitness_coef) <- paste("state1_fitness_comp", seq_along(fitness_coef), sep="")
 	
-	entities <- read_ga_entities_list(dirpath)
+	entities <- read_ga_entities_list(dirpath, readgen=plotgen)
 	pwms <- entities_list_pwms(entities, fitness_coef, temp_or_thresh, type)
 	pwm <- collapse_pwms(pwms, percentile)
 	posnames <- colnames(pwm)
@@ -618,11 +668,11 @@ process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 
 	
 	for (i in seq_along(posnames)) {
 		
-		for (type in c("pdf", "png", "pngsep")) {
+		for (imgtype in c("pdf", "png", "pngsep")) {
 			
-			if (type == "pdf") dev.set(pdfdev)
-			if (type == "png") dev.set(pngdev)
-			if (type == "pngsep") png(paste(paste(prefix, "_boxplot_", sep=""), posnames[i],".png", sep=""), width=plotwidth*72, height=plotheight*72, pointsize=pointsize)
+			if (imgtype == "pdf") dev.set(pdfdev)
+			if (imgtype == "png") dev.set(pngdev)
+			if (imgtype == "pngsep") png(paste(paste(prefix, "_boxplot_", sep=""), posnames[i],".png", sep=""), width=plotwidth*72, height=plotheight*72, pointsize=pointsize)
 			
 			par(mar = c(2.8, 2.8, 1.5, 0.1), mgp = c(1.7, 0.6, 0))
 			main <- paste("Residue", posnames[i], "Sequence Tolerance Boxplot")
@@ -631,7 +681,7 @@ process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 
 			boxplot(as.data.frame(t(pwms[,,i])), col="white", add=TRUE)
 			points(1:20, pwm[,i], pch=4, col="blue")
 			
-			if (type == "pngsep") dev.off()
+			if (imgtype == "pngsep") dev.off()
 		}
 	}
 	dev.off(pdfdev)
@@ -649,6 +699,12 @@ process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 
 	plot_seqrank(pwm, wt_seq=inputseq, rank_line=5)
 	dev.off()
 	
+	if (plotgen) {
+		pdf(paste(prefix, "_gencontrib.pdf", sep=""), width=7, height=3, pointsize=pointsize)
+		par(mar=c(2.7,2.7,1.5,0.2), mgp=c(1.7, 0.6, 0))
+		plot_gen_contrib(entities, attr(entities, "generations"), fitness_coef, temp_or_thresh, type, "Generation Contribution")
+		dev.off()
+	}
 }
 
 # This function is the main data processing procedure. It takes a directory 

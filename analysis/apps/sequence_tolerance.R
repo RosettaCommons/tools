@@ -601,6 +601,65 @@ plot_gen_contrib <- function(entitieslist, generationslist,
 	axis(2, seq(0, 1, by=.5), seq(0, 1, by=.5), tick=FALSE, line=FALSE)
 }
 
+# This function plots the fitnesses for those sequences that contribute
+# significantly to the position weight matrix.
+
+plot_seq_contrib <- function(entitieslist, 
+                             fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 1),
+                             temp_or_thresh = 0.228, 
+                             type = c("boltzmann", "cutoff"),
+                             main = "") {
+
+	type <- match.arg(type)
+	
+	if (temp_or_thresh == 0) {
+		maxfit <- 1
+	} else if (type == "boltzmann") {
+		maxfit <- -log(.01)*temp_or_thresh*2
+	} else {
+		maxfit <- 3*temp_or_thresh
+	}
+	
+	layout(matrix(1:2, nrow=2), heights=c(0.2, 0.8))
+	
+	mar1 <- mar2 <- par("mar")
+	
+	mar1[1] <- 0.1
+	mar2[3] <- 0.1
+	
+	par(mar=mar1)
+	
+	plot(0, 0, xlim=c(0, maxfit), type="n", ylim=c(0, 1), xaxt="n", yaxt="n", xlab="", ylab="Weight", main=main)
+	
+	if (type == "cutoff") {
+		segments(0, 1, temp_or_thresh, 1)
+		segments(temp_or_thresh, 1, temp_or_thresh, 0)
+		segments(temp_or_thresh, 0, maxfit*1.1, 0)
+	} else {
+		fitval <- seq(0, maxfit*1.1, length.out=100)
+		points(fitval, exp(-fitval/temp_or_thresh), type="l")
+	}
+	
+	axis(2, labels=FALSE)
+	axis(2, c(0,1), tick=FALSE)
+	
+	par(mar=mar2)
+	
+	plot(0, 0, xlim=c(0, maxfit), type="n", ylim=c(length(entitieslist), 1), xlab="Normalized Fitness", ylab="Backbone")
+
+	for (i in seq_along(entitieslist)) {
+
+		fitness <- entities_fitness(entitieslist[[i]], fitness_coef)
+		min_fitness <- min(fitness)
+		
+		norm_fit <- fitness-min_fitness
+		plot_idx <- which(norm_fit < maxfit*1.1)
+		
+		points(norm_fit[plot_idx], rep(i, length(plot_idx)), pch=20, cex=.5)
+	}
+	
+	if (type == "cutoff") abline(v=temp_or_thresh, lty="dashed")
+}
 
 # This function is the main data processing procedure. It takes a directory 
 # path which contains *.ga.entities files. It reads all those files and
@@ -613,7 +672,7 @@ process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 
                            temp_or_thresh = 0.228, 
                            type = c("boltzmann", "cutoff"),
                            percentile = .5, prefix = "seqtol",
-                           plotgen = FALSE) {
+                           plotgen = FALSE, plotseq = TRUE) {
 
 	type <- match.arg(type)
 	names(fitness_coef) <- paste("state1_fitness_comp", seq_along(fitness_coef), sep="")
@@ -702,7 +761,14 @@ process_seqtol <- function(dirpath = ".", fitness_coef = c(1/2.5, 1/2.5, 1/2.5, 
 	if (plotgen) {
 		pdf(paste(prefix, "_gencontrib.pdf", sep=""), width=7, height=3, pointsize=pointsize)
 		par(mar=c(2.7,2.7,1.5,0.2), mgp=c(1.7, 0.6, 0))
-		plot_gen_contrib(entities, attr(entities, "generations"), fitness_coef, temp_or_thresh, type, "Generation Contribution")
+		plot_gen_contrib(entities, attr(entities, "generations"), fitness_coef, temp_or_thresh, type, "Generation Contributions")
+		dev.off()
+	}
+	
+	if (plotseq) {
+		pdf(paste(prefix, "_seqcontrib.pdf", sep=""), width=6, height=6, pointsize=pointsize)
+		par(mar=c(2.7,2.7,1.5,0.2), mgp=c(1.7, 0.6, 0))
+		plot_seq_contrib(entities, fitness_coef, temp_or_thresh, type, "Sequence Contributions")
 		dev.off()
 	}
 }

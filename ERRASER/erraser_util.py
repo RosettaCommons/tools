@@ -11,33 +11,41 @@ import math
 import time
 
 #####################################################
-def rosetta_bin(exe_file = "") :
+def rosetta_bin(exe_file, rosetta_folder = "") :
     """
     Return the absolute path to the given exexutable file in Rosetta.
     If no input is given, return the Rosetta bin folder path.
+    Only the prefix should be given. Rosetta will figure out the rest.
     """
-    rosetta_folder = expandvars("$ROSETTA")
-    if rosetta_folder == "$ROSETTA" :
-        error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
+    if rosetta_folder == "" :
+        rosetta_folder = expandvars("$ROSETTA")
+        if rosetta_folder == "$ROSETTA" :
+            error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
     exe_folder = rosetta_folder + "/rosetta_source/bin/"
     check_path_exist(exe_folder)
-    exe_path = exe_folder + exe_file
+    name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
+    exe_path = ""
+    for name in name_extensions :
+        exe_path = exe_folder + exe_file + name
+        if exists(exe_path) :
+            break
     check_path_exist(exe_path)
     return exe_path
 #####################################################
-def rosetta_database() :
+def rosetta_database(rosetta_folder = "") :
     """
     Return the absolute path to the Rosetta database.
     If no input is given, return the Rosetta bin folder path.
     """
-    rosetta_folder = expandvars("$ROSETTA")
-    if rosetta_folder == "$ROSETTA" :
-        error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
+    if rosetta_folder == "" :
+        rosetta_folder = expandvars("$ROSETTA")
+        if rosetta_folder == "$ROSETTA" :
+            error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
     database_folder = rosetta_folder + "/rosetta_database/"
     check_path_exist(database_folder)
-    return database_folder    
+    return database_folder
 #####################################################
 def error_exit(message = ""):
     print >> sys.stderr, "#####################################################################"
@@ -76,10 +84,6 @@ def subprocess_call(command, out = sys.stdout, err = sys.stderr, is_append_file 
     subprocess.check_call(command, shell=True, stdout = out_channel, stderr = err_channel)
     out_channel.flush()
     err_channel.flush()
-    if out_channel != sys.stdout :
-        os.fsync(out_channel)
-    if err_channel != sys.stderr :
-        os.fsync(err_channel)
 ###################################################
 def subprocess_out(command, err = sys.stderr):
     """
@@ -144,10 +148,14 @@ def move(file1, dst) :
     """
     Move files to new destination.
     """
+    print exists(file1)
     check_path_exist(file1)
+    print exists(file1)
     if os.path.isfile(dst) :
         os.remove(dst)
+    print exists(file1)
     shutil.move(file1, dst)
+    print exists(file1)
 ###################################################
 def get_total_res(pdbname):
     """
@@ -173,7 +181,7 @@ def parse_options( argv, tag, default):
     """
     tag_argv = '-%s' % tag
     if tag_argv in argv :
-        pos = argv.index( tag_argv )   ###Position of the option name 
+        pos = argv.index( tag_argv )   ###Position of the option name
 
         if pos == ( len( argv ) - 1 ) or argv[ pos+1 ][0] == '-' :
             error_exit("Invalid parse_option input")
@@ -183,9 +191,9 @@ def parse_options( argv, tag, default):
                 value = True
             elif argv[ pos + 1 ] == "False" or argv[ pos + 1 ] == "false" :
                 value = False
-            else: 
-                error_exit('(%s != "True") and  (%s != "False")' % (tag, tag)) 
-        elif isinstance( default, str ) : 
+            else:
+                error_exit('(%s != "True") and  (%s != "False")' % (tag, tag))
+        elif isinstance( default, str ) :
             value = argv[ pos + 1 ]
         elif isinstance( default, int ) :
             value = int( argv[ pos + 1 ] )
@@ -193,19 +201,19 @@ def parse_options( argv, tag, default):
             value = float( argv[ pos + 1 ] )
         else:
             error_exit("Invalid parse_option default")
-            
-        print "%s = %s" %(tag, argv[ pos + 1 ])            
-        return value    
-            
+
+        print "%s = %s" %(tag, argv[ pos + 1 ])
+        return value
+
     else: #Return the default value
         print "%s = %s" %(tag, default)
-        if default=="False" or default=="True" : 
+        if default=="False" or default=="True" :
             if( default == "True"):
                 return True
             elif( default == "False"):
                 return False
-            else: 
-                error_exit('(%s != "True") and  (%s != "False")' % (tag, tag)) 
+            else:
+                error_exit('(%s != "True") and  (%s != "False")' % (tag, tag))
         else:
             return default
 ###############################
@@ -242,7 +250,7 @@ def parse_option_int_list ( argv, tag ) :
                     list_load.append(j)
             else :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, input_string) )
-    print "%s = %s" % (tag, list_load)        
+    print "%s = %s" % (tag, list_load)
     return list_load
 ###############################
 def parse_option_string_list ( argv, tag ) :
@@ -262,7 +270,7 @@ def parse_option_string_list ( argv, tag ) :
             if input_string[0] == '-' :
                 break
             list_load.append(input_string)
-    print "%s = %s" % (tag, list_load)        
+    print "%s = %s" % (tag, list_load)
     return list_load
 ##########################################
 def parse_option_chain_res_list ( argv, tag ) :
@@ -274,7 +282,7 @@ def parse_option_chain_res_list ( argv, tag ) :
     """
     list_load = []
     tag_argv = '-%s' % tag
-    
+
     if tag_argv in argv :
         pos = argv.index(tag_argv)
 
@@ -285,7 +293,7 @@ def parse_option_chain_res_list ( argv, tag ) :
             input_string = input_string.upper()
             if not input_string[0] in string.uppercase :
                 error_exit( "Incorrect input for -%s: instance %s" % (tag, input_string) )
-            
+
             chain_id = input_string[0]
             input_string = input_string[1:]
             split_string = input_string.split('-')
@@ -305,27 +313,27 @@ def parse_option_chain_res_list ( argv, tag ) :
                     list_load.append('%s%s' % (chain_id, j))
             else :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
-    print "%s = %s" % (tag, list_load)        
+    print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
-def rna_rosetta_ready_set( input_pdb, out_name ) : 
+def rna_rosetta_ready_set( input_pdb, out_name, rosetta_folder = "" ) :
     """
     Call Rosetta to read in a pdb and output the model right away.
     Can be used to ensure the file have the rosetta format for atom name, ordering and phosphate OP1/OP2.
     """
     check_path_exist(input_pdb)
 
-    command = rosetta_bin("erraser_minimizer.linuxgccrelease")
-    command += " -database %s" % rosetta_database()
+    command = rosetta_bin("erraser_minimizer", rosetta_folder)
+    command += " -database %s" % rosetta_database(rosetta_folder)
     command += " -native %s" % input_pdb
     command += " -out_pdb %s" % out_name
-    command += " -ready_set_only True"  
+    command += " -ready_set_only True"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
-    subprocess_call( command )
+    subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"
     return True
 #####################################################
-def extract_pdb(silent_file, output_folder_name):
+def extract_pdb(silent_file, output_folder_name, rosetta_folder = "", extract_first_only = False):
     """
     Extract pdb's from Rosetta silent files.
     """
@@ -335,48 +343,19 @@ def extract_pdb(silent_file, output_folder_name):
 
     remove_variant_types = "false"
 
-    #find the first discription line 
-
     ##########################
-    line=""
-
-    infile=open(silent_file,"r")
-
-    found_description_line=False
-
-    while (found_description_line == False):
-
-
-        line=infile.readline()
-        if line.find('desc') != -1: #found the description line
-            found_description_line=True  
-
-    line_list=line.split()
-
-    infile.close();
-
-    ########################
-
-    column_num=0
-
-    while column_num < len(line_list):
-        column_num += 1
-        if  line_list[column_num].find('desc') != -1:
-            break
-    #########################################
     tags_string = ""
 
     for line in open(silent_file):
+        if 'SCORE' in line and (not 'description' in line) :
+            tag = line.split()[-1]
+            tags_string += ' ' + tag
+            if extract_first_only :
+                break
 
-        if line.find('SCORE') == -1: #Line contain the word SCORE
-            continue
-
-        if line.find('desc') != -1: #Line is not a column_name line
-            continue
-
-        tag=line.split()[column_num]
-
-        tags_string += ' ' + tag
+    if tags_string == '' :#Empty silent file
+        sys.stderr.write("Extract pdb: Empty silent file or illegal format! Skip the extraction.\n")
+        return
 
     #########################################################
 
@@ -384,20 +363,20 @@ def extract_pdb(silent_file, output_folder_name):
 
     if not exists( output_folder_name ) :
         os.mkdir(output_folder_name)
-    
+
     os.chdir( output_folder_name )
 
-    command = rosetta_bin("rna_extract.linuxgccrelease")
+    command = rosetta_bin("rna_extract", rosetta_folder)
 
     command += " -tags " + tags_string
-    command += " -in:file:silent " + silent_file_abs 
+    command += " -in:file:silent " + silent_file_abs
     command += " -in:file:silent_struct_type  binary_rna"
-    command += " -database %s" % rosetta_database()
-    command += " -remove_variant_cutpoint_atoms " + remove_variant_types 
+    command += " -database %s" % rosetta_database(rosetta_folder)
+    command += " -remove_variant_cutpoint_atoms " + remove_variant_types
 
 
     print "######Start submitting the Rosetta command for extract_pdb##################"
-    subprocess_call( command )
+    subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"
 
     os.chdir( base_dir )
@@ -465,7 +444,7 @@ def pdb2fasta(input_pdb, fasta_out) :
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
     for line in open(input_pdb) :
-        if len(line) > 20 : 
+        if len(line) > 20 :
             if line[0:3] == 'TER':
                 output.write('\n')
 
@@ -490,7 +469,7 @@ def pdb_slice(input_pdb, out_name, segment) :
     Return list of cut residue
     """
     check_path_exist(input_pdb)
-    
+
     kept_res = []
     if type(segment) is list :
         kept_res = segment
@@ -502,7 +481,7 @@ def pdb_slice(input_pdb, out_name, segment) :
                     kept_res.append(i)
             else :
                 kept_res.append( int(elem) )
-    
+
     if len(kept_res) == 0 :
         error_exit("Invalid input of 'segment' option!")
 
@@ -529,11 +508,8 @@ def pdb_slice(input_pdb, out_name, segment) :
     return kept_res
 #####################################
 def check_path_exist(path_name) :
-    if exists(path_name) :
-        return True
-    else :
+    if not exists(path_name) :
         error_exit("Path %s does not exist!" % path_name)
-        return False
 #####################################
 def compute_squared_dist(coord1, coord2) :
     """
@@ -582,7 +558,7 @@ def load_pdb_coord(input_pdb) :
         if line[13:16] == 'C1*' :
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
-    if len(coord_C1) != len(coord_all) : 
+    if len(coord_C1) != len(coord_all) :
         error_exit("Number of residues != number of C1*!!!")
 
     return [coord_all, coord_C1]
@@ -601,7 +577,7 @@ def find_nearby_res(input_pdb, input_res, dist_cutoff, is_reload = True):
             [coord_all, coord_C1] = load_pdb_coord(input_pdb)
     except :
         [coord_all, coord_C1] = load_pdb_coord(input_pdb)
-        
+
     res_list = []
     for i in input_res :
         if not i in range(1, len(coord_all) + 1) :
@@ -636,7 +612,7 @@ def regularize_pdb(input_pdb, out_name) :
                  'A  ': '  A', 'C  ': '  C', 'G  ': '  G', 'U  ': '  U',
                  '  A': '  A', '  C': '  C', '  G': '  G', '  U': '  U'}
     atom_name_convert = { " O1P":" OP1", " O2P":" OP2", " O3P":" OP3"}
-    
+
     output_pdb = open(out_name, 'w')
 
     for line in open(input_pdb) :
@@ -672,10 +648,10 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
     output_pdb = open(out_name, 'w')
     lines_rs = open(rs_pdb).readlines()
     lines_orig = open(orig_pdb).readlines()
-    atom_name_convert = { " O1P":" OP1", " O2P":" OP2", " O3P":" OP3", 
-                          "1H5'":" H5'", "2H5'":"H5''", "1H2'":" H2'", 
+    atom_name_convert = { " O1P":" OP1", " O2P":" OP2", " O3P":" OP3",
+                          "1H5'":" H5'", "2H5'":"H5''", "1H2'":" H2'",
                           "1H2 ":" H21", "2H2 ":" H22", "2HO'":"HO2'",
-                          "3HO'":"HO3'", "5HO'":"HO5'", "1H4 ":" H41", 
+                          "3HO'":"HO3'", "5HO'":"HO5'", "1H4 ":" H41",
                           "2H4 ":" H42", "1H6 ":" H61", "2H6 ":" H62" }
 
     rna_types = {' rA': '  A', ' rC': '  C', ' rG': '  G', ' rU': '  U',
@@ -688,7 +664,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
     res_rs = ''
     atom_index = 0
     for line_orig in lines_orig :
-        header = line_orig[0:6] 
+        header = line_orig[0:6]
         if header == 'ATOM  ' and is_line_rna(line_orig) :
             res_name_orig = line_orig[17:20]
             res_orig = line_orig[21:27]
@@ -696,7 +672,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
             if res_orig != current_res :
                 lines_rs_temp = lines_rs[:]
                 for line_rs in lines_rs_temp :
-                    if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) : 
+                    if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) :
                         lines_rs.remove(line_rs)
                         continue
                     res = line_rs[21:27]
@@ -707,7 +683,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                         atom_index += 1
                         atom_name = line_rs[12:16].replace('*', "'")
                         if atom_name_convert.has_key(atom_name) :
-                            atom_name = atom_name_convert[atom_name]   
+                            atom_name = atom_name_convert[atom_name]
                         output_line = (line_rs[0:6] + str(atom_index).rjust(5) + ' ' + atom_name +
                         line_rs[16:21] + current_chain + current_res + line_rs[27:])
                         output_line = output_line.replace('rG',' G')
@@ -719,12 +695,12 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 current_res = res_orig
 
             atom_index += 1
-            output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] + 
+            output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
                            rna_types[res_name_orig] + line_orig[20:])
 
             lines_rs_temp = lines_rs[:]
             for line_rs in lines_rs_temp :
-                if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) : 
+                if (line_rs[0:4] != 'ATOM' or (not is_line_rna(line_rs) ) ) :
                     lines_rs.remove(line_rs)
                     continue
                 res = line_rs[21:27]
@@ -733,7 +709,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 atom_name = line_rs[12:16].replace('*', "'")
                 if atom_name_convert.has_key(atom_name) :
                     atom_name = atom_name_convert[atom_name]
-                
+
                 if (rna_types[res_name] != rna_types[res_name_orig]) : continue
                 if (atom_name != atom_name_orig) : continue
                 if (res != res_rs) : break
@@ -743,16 +719,16 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
 
             output_pdb.write(output_line)
 
-        elif header == 'ANISOU' : 
+        elif header == 'ANISOU' :
             output_line = ''
             res_name_orig = line_orig[17:20]
             if is_line_rna(line_orig) :
-                output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] + 
+                output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
                                rna_types[res_name_orig] + line_orig[20:])
             else :
                 output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:])
             output_pdb.write(output_line)
-        elif (header == 'HETATM' or 
+        elif (header == 'HETATM' or
             (header == 'ATOM  ' and (not is_line_rna(line_orig) ) ) ):
             res_name_orig = line_orig[17:20]
             atom_index += 1
@@ -773,9 +749,9 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     check_path_exist(input_pdb)
 
     atom_name_convert = { " O1P":" OP1", " O2P":" OP2", " O3P":" OP3",
-                          "1H5'":" H5'", "2H5'":"H5''", "1H2'":" H2'", 
+                          "1H5'":" H5'", "2H5'":"H5''", "1H2'":" H2'",
                           "1H2 ":" H21", "2H2 ":" H22", "2HO'":"HO2'",
-                          "3HO'":"HO3'", "5HO'":"HO5'", "1H4 ":" H41", 
+                          "3HO'":"HO3'", "5HO'":"HO5'", "1H4 ":" H41",
                           "2H4 ":" H42", "1H6 ":" H61", "2H6 ":" H62" }
 
     res_name_convert = {" rG":"  G", " rA":"  A", " rU":"  U", " rC":"  C"}
@@ -794,7 +770,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
             output.write(line)
         elif len(line) > 3 and line[0:4] == 'ATOM' :
             new_line = line.replace("*", "'")
-                 
+
             atom_name = new_line[12:16]
             if atom_name_convert.has_key(atom_name) :
                 atom_name = atom_name_convert[atom_name]
@@ -829,10 +805,10 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
 
     check_path_exist(input_pdb)
 
-    atom_name_convert = { " OP1":" O1P", " OP2":" O2P", " OP3":" O3P", 
-                          " H5'":"1H5'", "H5''":"2H5'", " H2'":"1H2'", 
+    atom_name_convert = { " OP1":" O1P", " OP2":" O2P", " OP3":" O3P",
+                          " H5'":"1H5'", "H5''":"2H5'", " H2'":"1H2'",
                           " H21":"1H2 ", " H22":"2H2 ", "HO2'":"2HO'",
-                          "HO3'":"3HO'", "HO5'":"5HO'", " H41":"1H4 ", 
+                          "HO3'":"3HO'", "HO5'":"5HO'", " H41":"1H4 ",
                           " H42":"2H4 ", " H61":"1H6 ", " H62":"2H6 " }
 
     res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG",
@@ -855,7 +831,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
 
     output = open(out_name, 'w')
     for line in open(input_pdb) :
-        if len(line) <= 21 :  
+        if len(line) <= 21 :
             continue
 
         if line[0:6] == 'CRYST1' :
@@ -910,7 +886,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 if (not is_current_het) and is_previous_het :
                     if res_no - 1 > 0 :
                         cutpoint_list.append( res_no - 1 )
-                
+
                 if len(O3prime_coord_pre) == 3 :
                     PO_dist = compute_dist( P_coord_cur, O3prime_coord_pre )
                     if PO_dist > PO_dist_cutoff :
@@ -961,7 +937,7 @@ def res_wise_rmsd(pdb1, pdb2) :
 
     if len(coord_pdb1) != len(coord_pdb2) :
         error_exit("Two pdbs have different # of residues!!!")
-        
+
     res_rmsd_list = []
     for i in range(0, len(coord_pdb1)) :
         if len(coord_pdb1[i]) != len(coord_pdb2[i]) :
@@ -1011,7 +987,6 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
         res_list += new_res
 
         return res_remove
-     
 
     total_res = get_total_res(input_pdb)
     res_list_sliced = []
@@ -1025,7 +1000,7 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
             res_list_current.append( res_list_unsliced.pop(0) )
             chunk_size = int( len(res_list_unsliced) / n_chunk_left)
             n_chunk_left -= 1
-        
+
         res_list_new = find_nearby_res(input_pdb, res_list_current, 3.5, False)
         res_remove = []
         for res in res_list_new :
@@ -1053,12 +1028,12 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
                     res_remove.append(res)
             for res in res_remove :
                 res_list_unsliced.remove(res)
-                    
+
             sliced_list_final.append( res_list_current )
             res_list_sliced += res_list_current
             if n_chunk_left == 1 :
                 res_list_current = res_list_unsliced
-                removed_res = fill_gaps_and_remove_isolated_res(res_list_current, total_res) 
+                removed_res = fill_gaps_and_remove_isolated_res(res_list_current, total_res)
                 sliced_list_final.append( res_list_current )
                 while len(removed_res) != 0 :
                     res_remove = []
@@ -1089,13 +1064,13 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
 ####################################
 def pdb_slice_with_patching( input_pdb, out_name, slice_res_list ) :
     """
-    Slice the pdb file with given input residue list. 
+    Slice the pdb file with given input residue list.
     Patch the nearby residues to the sliced pdb.
     Return a sorted new residue number list and a list of patched res (in new order).
     """
-    check_path_exist( input_pdb ) 
+    check_path_exist( input_pdb )
 
-    dist_cutoff = 4.0
+    dist_cutoff = 5.0
 
     patched_res = find_nearby_res( input_pdb, slice_res_list, dist_cutoff )
     patched_res.sort()

@@ -48,7 +48,7 @@ def erraser( option ) :
     regularize_pdb(option.input_pdb, regularized_input_pdb)
     [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb')
     if not exists('minimize_0.pdb') :
-        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb')
+        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option.rosetta_bin, option.rosetta_database)
     else :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
@@ -174,7 +174,7 @@ def erraser( option ) :
                 rebuild_option.log_out = 'rebuild_rmsd_%s.out' % step
                 seq_rebuild( rebuild_option )
             else :
-                if rebuild_rmsd :
+                if option.rebuild_rmsd :
                     print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
                 else :
                     print 'rebuild_rmsd=False... Skip the high-RMSD residues rebuilding step %s.' % step
@@ -249,7 +249,7 @@ def erraser_single_res( option ) :
     option.fixed_res_rs = fixed_res_final
     option.cutpoint_rs = cutpoint_final
     option.rebuild_res = res_conversion_list.index(option.rebuild_res_pdb) + 1
-    rna_rosetta_ready_set('start.pdb', 'temp.pdb')
+    rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
 
     print 'Starting to rebuild residue %s' % option.rebuild_res_pdb
 
@@ -354,8 +354,8 @@ def erraser_minimize( option ) :
     option.finalize()
 
     #######Folders and files paths###########################
-    database_folder = rosetta_database(option.rosetta_folder)
-    rna_minimize_exe = rosetta_bin("erraser_minimizer", option.rosetta_folder)
+    database_folder = rosetta_database_path(option.rosetta_database)
+    rna_minimize_exe = rosetta_bin_path("erraser_minimizer", option.rosetta_bin)
     temp_rs = option.input_pdb.replace('.pdb', '_temp_rs.pdb')
     temp_rs_min = option.input_pdb.replace('.pdb', '_temp_rs_min.pdb')
 
@@ -613,9 +613,9 @@ def SWA_rebuild_erraser( option ) :
     if option.native_screen_RMSD > 10.0 :
         native_screen = False
     ##############location of executable and database:###########
-    database_folder = rosetta_database(option.rosetta_folder)
-    rna_swa_test_exe = rosetta_bin("swa_rna_main", option.rosetta_folder )
-    rna_anal_loop_close_exe = rosetta_bin("swa_rna_analytical_closure", option.rosetta_folder )
+    database_folder = rosetta_database_path(option.rosetta_database)
+    rna_swa_test_exe = rosetta_bin_path("swa_rna_main", option.rosetta_bin )
+    rna_anal_loop_close_exe = rosetta_bin_path("swa_rna_analytical_closure", option.rosetta_bin )
     #############folder_name###################################
     base_dir=os.getcwd()
 
@@ -915,14 +915,14 @@ def SWA_rebuild_erraser( option ) :
             output.write("No silent file is being output during rebuilding")
 
         if option.verbose and exists(precluster_filename) :
-            extract_pdb(precluster_filename, precluster_pdb_folder, option.rosetta_folder)
+            extract_pdb(precluster_filename, precluster_pdb_folder, option.rosetta_bin, option.rosetta_database)
         if exists(cluster_filename) :
-            extract_pdb(cluster_filename, output_pdb_folder, option.rosetta_folder)
+            extract_pdb(cluster_filename, output_pdb_folder, option.rosetta_bin, option.rosetta_database)
 
     else : #Fast outputing
         out_slient_file = "%s/blah.out"  % sampling_folder
         if exists(out_slient_file) :
-            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_folder, extract_first_only = True)
+            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True)
 
     ##############Merge the sliced region back to starting pdb######
     if option.slice_nearby :

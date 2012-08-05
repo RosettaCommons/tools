@@ -22,6 +22,8 @@ class erraser_option :
         self.use_existing_temp_folder = True
         self.new_torsional_potential = True
         self.rosetta_folder = ""
+        self.rosetta_bin = ""
+        self.rosetta_database = ""
         self.log_out = ""
         self.log_err = ""
 
@@ -73,6 +75,8 @@ class erraser_option :
         self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
         self.new_torsional_potential = parse_options( argv, "new_torsional_potential", "True" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
+        self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
+        self.rosetta_database = parse_options( argv, 'rosetta_database', '')
 
         #erraser options
         self.n_iterate = parse_options( argv, 'n_iterate', 1 )
@@ -116,16 +120,30 @@ class erraser_option :
         self.out_pdb = parse_options( argv, 'out_pdb', '' )
         self.map_reso = parse_options( argv, 'map_reso', 2.5 )
         self.debug = parse_options( argv, "debug", "False" )
+        self.kept_temp_folder = parse_options( argv, "kept_temp_folder", "False" )
+        self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
+        self.new_torsional_potential = parse_options( argv, "new_torsional_potential", "True" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
+        self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
+        self.rosetta_database = parse_options( argv, 'rosetta_database', '')
 
         #erraser options
         self.n_iterate = parse_options( argv, 'n_iterate', 1 )
+        self.rebuild_rmsd = parse_options( argv, "rebuild_rmsd", "True" )
         self.rebuild_all = parse_options( argv, "rebuild_all", "False" )
         self.fixed_res = parse_option_chain_res_list ( argv, 'fixed_res' )
+        self.extra_res = parse_option_chain_res_list ( argv, 'rebuild_extra_res' )
+
+        #Minimize
+        self.constrain_phosphate = parse_options( argv, "constrain_phosphate", "True" )
 
         #SWA rebuilding
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
+        self.native_edensity_cutoff = parse_options(argv, "native_edensity_cutoff", 0.8)
+        self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
+        self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
+        self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.finalize()
 
     def finalize( self ) :
@@ -154,3 +172,15 @@ class erraser_option :
         if not self.use_native_edensity_cutoff :
             self.native_edensity_cutoff = -1
 
+
+        if self.rosetta_bin != '' and self.rosetta_folder != '':
+            error_exit("The options 'rosetta_folder' and 'rosetta_bin' are incompatible! Specify only one of them.")
+        if self.rosetta_database != '' and self.rosetta_folder != '':
+            error_exit("The options 'rosetta_folder' and 'rosetta_database' are incompatible! Specify only one of them.")
+        if ( ( self.rosetta_database != '' and self.rosetta_bin == '' ) or
+             ( self.rosetta_database == '' and self.rosetta_bin != '' ) ):
+            error_exit("Both options 'rosetta_bin' and 'rosetta_database' need to be specified!")
+
+        if self.rosetta_database != '' :
+            self.rosetta_bin = self.rosetta_folder
+            self.rosetta_database = self.rosetta_folder

@@ -11,18 +11,22 @@ import math
 import time
 
 #####################################################
-def rosetta_bin(exe_file, rosetta_folder = "") :
+def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
     Return the absolute path to the given exexutable file in Rosetta.
     If no input is given, return the Rosetta bin folder path.
     Only the prefix should be given. Rosetta will figure out the rest.
+    User can provides either the Rosetta root path or the binary path as optional input,
+    or the function will search for $ROSETTA environment variable.
     """
     if rosetta_folder == "" :
         rosetta_folder = expandvars("$ROSETTA")
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    exe_folder = rosetta_folder + "/rosetta_source/bin/"
+    exe_folder = rosetta_folder + "/rosetta_source/bin/" #Default Rosetta folder structure
+    if  not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
+        exe_folder = rosetta_folder
     check_path_exist(exe_folder)
     name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
     exe_path = ""
@@ -33,17 +37,21 @@ def rosetta_bin(exe_file, rosetta_folder = "") :
     check_path_exist(exe_path)
     return exe_path
 #####################################################
-def rosetta_database(rosetta_folder = "") :
+def rosetta_database_path(rosetta_folder = "") :
     """
     Return the absolute path to the Rosetta database.
     If no input is given, return the Rosetta bin folder path.
+    User can provides either the Rosetta root path or the database path as optional input,
+    or the function will search for $ROSETTA environment variable.
     """
     if rosetta_folder == "" :
         rosetta_folder = expandvars("$ROSETTA")
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    database_folder = rosetta_folder + "/rosetta_database/"
+    database_folder = rosetta_folder + "/rosetta_database/" #Default Rosetta folder structure
+    if  not exists(database_folder) : #Otherwise, assume the input folder name is database path
+        database_folder = rosetta_folder
     check_path_exist(database_folder)
     return database_folder
 #####################################################
@@ -148,14 +156,10 @@ def move(file1, dst) :
     """
     Move files to new destination.
     """
-    print exists(file1)
     check_path_exist(file1)
-    print exists(file1)
     if os.path.isfile(dst) :
         os.remove(dst)
-    print exists(file1)
     shutil.move(file1, dst)
-    print exists(file1)
 ###################################################
 def get_total_res(pdbname):
     """
@@ -316,15 +320,15 @@ def parse_option_chain_res_list ( argv, tag ) :
     print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
-def rna_rosetta_ready_set( input_pdb, out_name, rosetta_folder = "" ) :
+def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "" ) :
     """
     Call Rosetta to read in a pdb and output the model right away.
     Can be used to ensure the file have the rosetta format for atom name, ordering and phosphate OP1/OP2.
     """
     check_path_exist(input_pdb)
 
-    command = rosetta_bin("erraser_minimizer", rosetta_folder)
-    command += " -database %s" % rosetta_database(rosetta_folder)
+    command = rosetta_bin_path("erraser_minimizer", rosetta_bin)
+    command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -native %s" % input_pdb
     command += " -out_pdb %s" % out_name
     command += " -ready_set_only True"
@@ -333,7 +337,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_folder = "" ) :
     print "######Rosetta section completed#############################################"
     return True
 #####################################################
-def extract_pdb(silent_file, output_folder_name, rosetta_folder = "", extract_first_only = False):
+def extract_pdb(silent_file, output_folder_name, rosetta_bin = "", rosetta_database = "", extract_first_only = False):
     """
     Extract pdb's from Rosetta silent files.
     """
@@ -366,12 +370,12 @@ def extract_pdb(silent_file, output_folder_name, rosetta_folder = "", extract_fi
 
     os.chdir( output_folder_name )
 
-    command = rosetta_bin("rna_extract", rosetta_folder)
+    command = rosetta_bin_path("rna_extract", rosetta_bin)
 
     command += " -tags " + tags_string
     command += " -in:file:silent " + silent_file_abs
     command += " -in:file:silent_struct_type  binary_rna"
-    command += " -database %s" % rosetta_database(rosetta_folder)
+    command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
 
 

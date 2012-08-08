@@ -1,4 +1,3 @@
-#!/usr/bin/env phenix.python
 import os.path
 import imp
 from copy import deepcopy

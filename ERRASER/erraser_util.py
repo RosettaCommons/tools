@@ -337,7 +337,8 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     print "######Rosetta section completed#############################################"
     return True
 #####################################################
-def extract_pdb(silent_file, output_folder_name, rosetta_bin = "", rosetta_database = "", extract_first_only = False):
+def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
+                 rosetta_database = "", extract_first_only = False, output_virtual = False ):
     """
     Extract pdb's from Rosetta silent files.
     """
@@ -377,6 +378,7 @@ def extract_pdb(silent_file, output_folder_name, rosetta_bin = "", rosetta_datab
     command += " -in:file:silent_struct_type  binary_rna"
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
+    command += " -output_virtual " + str(output_virtual).lower()
 
 
     print "######Start submitting the Rosetta command for extract_pdb##################"

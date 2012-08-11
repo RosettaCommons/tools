@@ -21,6 +21,7 @@ class erraser_option :
         self.kept_temp_folder = False
         self.use_existing_temp_folder = True
         self.new_torsional_potential = True
+        self.corrected_geo = True
         self.rosetta_folder = ""
         self.rosetta_bin = ""
         self.rosetta_database = ""
@@ -74,6 +75,7 @@ class erraser_option :
         self.kept_temp_folder = parse_options( argv, "kept_temp_folder", "False" )
         self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
         self.new_torsional_potential = parse_options( argv, "new_torsional_potential", "True" )
+        self.corrected_geo = parse_options( argv, "corrected_geo", "True" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
@@ -141,7 +143,7 @@ class erraser_option :
         #General options
         self.input_pdb = parse_options( argv, 'pdb', '' )
         self.map_file = parse_options( argv, 'map', '' )
-        self.out_pdb = parse_options( argv, 'out_pdb', '' )
+        self.out_prefix = parse_options( argv, 'out_prefix', '' )
         self.map_reso = parse_options( argv, 'map_reso', 2.5 )
         self.debug = parse_options( argv, "debug", "False" )
         self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
@@ -163,6 +165,9 @@ class erraser_option :
             error_exit( 'input_pdb not specified for erraser_option!!!' )
         check_path_exist( self.input_pdb )
         self.input_pdb = abspath( self.input_pdb )
+
+        if self.out_prefix == "" :
+            self.out_prefix = basename( self.input_pdb ).replace('.pdb', '')
 
         if self.out_pdb == "" :
             self.out_pdb = basename( self.input_pdb ).replace('.pdb', '_erraser.pdb')

@@ -13,4 +13,5 @@ from erraser_util import *
 
 option = erraser_option()
 option.read_cmdline_erraser_single_res( sys.argv )
+option.finalize()
 erraser_single_res( option )

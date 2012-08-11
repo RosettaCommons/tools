@@ -215,14 +215,15 @@ def erraser_single_res( option ) :
     stderr = sys.stderr
     if option.log_out != "" :
         sys.stdout = open(option.log_out, 'w')
-    if log_err != "" :
+    if option.log_err != "" :
         option.sys.stderr = open(option.log_err, 'w')
 
     print '###################################'
     print 'Starting erraser_single_res...'
+    start_time=time.time()
 
-    options.finalize()
-    if optiosn.out_prefix == "" :
+    option.finalize()
+    if option.out_prefix == "" :
         option.out_prefix = basename(option.input_pdb).replace('.pdb', '_rebuild')
     option.out_prefix = abspath(option.out_prefix)
     #####Set temp folder#######################
@@ -256,8 +257,8 @@ def erraser_single_res( option ) :
     SWA_option.input_pdb = 'temp.pdb'
     SWA_option.log_out = 'rebuild_%s.out' % option.rebuild_res_pdb
     SWA_rebuild_erraser( SWA_option )
-    rebuilt_pdb_merge0 = './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res
-    rebuilt_pdb_orig0 = './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res
+    rebuilt_pdb_merge0 = './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % option.rebuild_res
+    rebuilt_pdb_orig0 = './temp_pdb_res_%d/output_pdb/S_000000.pdb' % option.rebuild_res
     rebuilt_pdb_final = ''
 
     if exists(rebuilt_pdb_merge0) :
@@ -270,19 +271,23 @@ def erraser_single_res( option ) :
     if rebuilt_pdb_final != '' :
         print "Residue %s is sucessfully rebuilt!" % option.rebuild_res_pdb
         res_sliced = []
+        rebuilding_res_rs = 0
         for line in open(SWA_option.log_out) :
             if "res_sliced" in line :
                 for elem in line.split('=') [-1].split(',') :
                     elem = elem.replace('[', '').replace(']', '')
                     res_sliced.append( int(elem) )
+            if "rebuilding_res" in line :
+                rebuilding_res_rs = int( line.split() [-1] )
 
         fixed_res = []
-        if rebuilding_res == 1 :
+        total_res = get_total_res(rebuilt_pdb_orig0)
+        if rebuilding_res_rs == 1 :
             fixed_res = range(2,total_res+1)
-        elif rebuilding_res == total_res :
+        elif rebuilding_res_rs == total_res :
             fixed_res = range(1, total_res)
         else :
-            fixed_res = range(1, rebuilding_res) + range(rebuilding_res+1, total_res+1)
+            fixed_res = range(1, rebuilding_res_rs) + range(rebuilding_res_rs+1, total_res+1)
         option.fixed_res_rs = fixed_res
 
         final_pdb_list = []
@@ -314,7 +319,7 @@ def erraser_single_res( option ) :
         out_score.write("rebuilt_model score\n")
         for i in xrange(0, len(final_pdb_list) ) :
             out_score.write("%d %.3f\n" % (i, final_pdb_list[i][0]) )
-            rosetta2phenix_merge_back(regularized_input_pdb, final_pdb_list[i][1], "%s_%d.pdb" % (out_prefix, i) )
+            rosetta2phenix_merge_back(regularized_input_pdb, final_pdb_list[i][1], "%s_%d.pdb" % (option.out_prefix, i) )
         out_score.close()
 
     if not option.verbose :
@@ -390,6 +395,8 @@ def erraser_minimize( option ) :
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
 
+    command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    command += " -chemical::enlarge_H_lj true "
     command += " -vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
 
@@ -746,7 +753,8 @@ def SWA_rebuild_erraser( option ) :
 
     if option.new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
-
+    common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    common_cmd += " -chemical::enlarge_H_lj true "
     ################Sampler Options##################################
     if not is_chain_break :
         sampling_cmd = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '
@@ -793,7 +801,7 @@ def SWA_rebuild_erraser( option ) :
         if option.is_append :
             specific_cmd += " -cutpoint_closed %d " % rebuild_res_final
         else :
-            specific_cmd += " -cutpoint_closed %d " % rebuild_res_final - 1
+            specific_cmd += " -cutpoint_closed %d " % (rebuild_res_final - 1)
 
         command = sampling_cmd + ' ' + specific_cmd + ' ' + common_cmd
         if (option.verbose): print  '\n', command, '\n'

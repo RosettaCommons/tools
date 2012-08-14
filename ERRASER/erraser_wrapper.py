@@ -396,7 +396,6 @@ def erraser_minimize( option ) :
         command += " -score:rna_torsion_potential RNA11_based_new "
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
-    command += " -chemical::enlarge_H_lj true "
     command += " -vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
 
@@ -754,7 +753,6 @@ def SWA_rebuild_erraser( option ) :
     if option.new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
-    common_cmd += " -chemical::enlarge_H_lj true "
     ################Sampler Options##################################
     if not is_chain_break :
         sampling_cmd = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '

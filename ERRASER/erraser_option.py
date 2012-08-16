@@ -30,7 +30,7 @@ class erraser_option :
 
         #erraser options
         self.n_iterate = 1
-        self.rebuild_rmsd = True
+        self.rebuild_rmsd = False
         self.rebuild_all = True
         self.fixed_res = []
         self.cutpoint = []
@@ -54,7 +54,7 @@ class erraser_option :
         self.finer_sampling = False
         self.rebuild_res = 0
         self.scoring_file = ''
-        self.cluster_RMSD = 0.3
+        self.cluster_RMSD = 0.1
         self.is_append = True
         self.constrain_chi = True
         self.native_screen_RMSD = 3.0
@@ -106,7 +106,7 @@ class erraser_option :
         self.finer_sampling = parse_options( argv, 'finer_sampling', 'False' )
         self.rebuild_res = parse_options( argv, "rebuild_res", 0 )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
-        self.cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.3 )
+        self.cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.1 )
         self.is_append = parse_options( argv, "is_append", "True" )
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )

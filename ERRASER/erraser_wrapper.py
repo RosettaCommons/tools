@@ -155,6 +155,8 @@ def erraser( option ) :
                 if len(rebuild_res_error) != 0 :
                     rebuild_option.input_pdb = "minimize_%s.pdb" % step
                     rebuild_option.out_pdb = "rebuild_outlier_%s.pdb" % step
+                    rebuild_option.include_native = False
+                    rebuild_option.ideal_geometry = False
                     rebuild_option.rebuild_res_list = rebuild_res_error
                     rebuild_option.log_out = 'rebuild_outlier_%s.out' % step
                     seq_rebuild( rebuild_option )
@@ -168,6 +170,8 @@ def erraser( option ) :
             if len(rebuild_res_rmsd) != 0 :
                 rebuild_option.input_pdb = "rebuild_outlier_%s.pdb" % step
                 rebuild_option.out_pdb = "rebuild_%s.pdb" % step
+                rebuild_option.ideal_geometry = False
+                rebuild_option.include_native = False
                 rebuild_option.rebuild_res_list = rebuild_res_rmsd
                 rebuild_option.native_edensity_cutoff = 0.97
                 rebuild_option.log_out = 'rebuild_rmsd_%s.out' % step

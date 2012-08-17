@@ -1,5 +1,5 @@
 
-import pygraph
+import pygraph, sys
 
 def inclusion_equivalence_sets( inclusion_graph ) :
    dg = pygraph.digraph()
@@ -11,7 +11,7 @@ def inclusion_equivalence_sets( inclusion_graph ) :
       for neighb in dg.node_neighbors[ node ] :
          if node == neighb :
             print "Node connects to itself?!:", node
-            exit
+            sys.exit(1)
 
    start = "Start"
    color = 0

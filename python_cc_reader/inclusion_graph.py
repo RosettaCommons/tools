@@ -2,7 +2,7 @@
 # utility functions for working with
 # inclusion graphs
 
-import re, pygraph
+import re, pygraph, sys
 #from pygraph.algorithms.sorting import topological_sorting
 from add_headers import add_autoheaders_to_file, add_autoheaders_to_filelines,  write_file
 from remove_header import remove_header_from_filelines
@@ -38,18 +38,18 @@ def read_inclusion_graph( filename ) :
             print "Error: While reading graph file", filename, ", encountered edge line"
             print "Error:", line
             print "Error: with", len( toks ), "tokens (expected exactly 2 tokens)"
-            exit
+            sys.exit(1)
          else :
             if toks[ 0 ] not in gr.nodes() :
                print "Error: While reading graph file", filename, ", encountered edge line"
                print "Error:", line
                print "Error: where the first node is not present in the graph"
-               exit
+               sys.exit(1)
             if toks[ 1 ] not in gr.nodes() :
                print "Error: While reading graph file", filename, ", encountered edge line"
                print "Error:", line
                print "Error: where the second node is not present in the graph"
-               exit
+               sys.exit(1)
             if toks[ 1 ] in ignore :
                continue
             gr.add_edge( toks[ 0 ], toks[ 1 ] )
@@ -60,20 +60,20 @@ def read_inclusion_graph( filename ) :
          elif len( toks ) == 1 :
             if toks[ 0 ] in gr.nodes() :
                print "Error: found duplicate node", toks[ 0 ]
-               exit
+               sys.exit(1)
             gr.add_node( toks[ 0 ] )
          else :
             print "Error: While reading graph file", filename, ", encountered edge line"
             print "Error:", line,
             print "Error: with", len( toks ), "tokens (expected either 1 token or 2 tokens)"
-            exit
+            sys.exit(1)
    file.close()
 
    for node in gr.nodes() :
       for neighb in gr.node_neighbors[ node ] :
          if node == neighb :
             print "Node connects to itself?!:", node
-            exit
+            sys.exit(1)
 
    return gr
 

@@ -61,9 +61,12 @@ def include_for_line( cr, line ) :
    re_splitter = re.compile( "\S+" )
    toks = re_splitter.findall( line )
    if len( toks ) < 2 :
+      if len( toks ) > 0 :
+         if toks[ 0 ].find( "<" ) != -1 :
+            return toks[ 0 ].split("<")[ 1 ].split(">")[ 0 ]
       print "Error", cr.curr_file(), cr.curr_line(), line,
       print "#include is missing a filename"
-      sys.exit()
+      sys.exit(1)
    if toks[ 1 ].find( "<" ) != -1 :
       include = toks[ 1 ].split("<")[ 1 ].split(">")[ 0 ]
    else :

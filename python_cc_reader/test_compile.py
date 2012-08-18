@@ -74,13 +74,14 @@ def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
    return False
          
 
-def test_compile( cc_file, verbose=False, id="" ) :
+def test_compile( cc_file, verbose=False, id="", devnull=False ) :
 
    compiler, generic_command = central_compile_command()
 
    out_log = "out.log"
    err_log = "err.log"
-   temp_o  = "temp.o"
+   temp_o = "temp.o"
+   if devnull : temp_o  = "/dev/null"
    if id != "" :
      out_log = out_log + "." + str( id )
      err_log = err_log + "." + str( id )

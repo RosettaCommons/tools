@@ -19,7 +19,7 @@ import math
 def test_headers_compile( header_list ) :
    error_msgs = []
    for header in header_list :
-      if not test_compile( header ) :
+      if not test_compile( header, devnull=True ) :
          error_msgs.append(  header + " fails to compile on its own" )
    return error_msgs
 

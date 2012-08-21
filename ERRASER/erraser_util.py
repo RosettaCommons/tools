@@ -331,7 +331,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -native %s" % input_pdb
     command += " -out_pdb %s" % out_name
-    command += " -ready_set_only True"
+    command += " -ready_set_only true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"
@@ -817,10 +817,10 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                           "HO3'":"3HO'", "HO5'":"5HO'", " H41":"1H4 ",
                           " H42":"2H4 ", " H61":"1H6 ", " H62":"2H6 " }
 
-    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG",
-                         "  A":" rA", "A  ":" rA", "ADE":" rA",
-                         "  U":" rU", "U  ":" rU", "URI":" rU",
-                         "  C":" rC", "C  ":" rC", "CYT":" rC" }
+    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG",
+                         "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA",
+                         "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU",
+                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC" }
 
     res_conversion_list = []
     fixed_res_list = []

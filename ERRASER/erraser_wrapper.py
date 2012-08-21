@@ -82,6 +82,7 @@ def erraser( option ) :
     ###################################################################
     minimize_option = deepcopy(option)
     rebuild_option = deepcopy(option)
+    rebuild_option.ideal_geometry = False
     if not exists('minimize_1.pdb') :
         print 'Starting whole-structure minimization 1...'
         minimize_option.input_pdb = "minimize_0.pdb"
@@ -155,8 +156,6 @@ def erraser( option ) :
                 if len(rebuild_res_error) != 0 :
                     rebuild_option.input_pdb = "minimize_%s.pdb" % step
                     rebuild_option.out_pdb = "rebuild_outlier_%s.pdb" % step
-                    rebuild_option.include_native = False
-                    rebuild_option.ideal_geometry = False
                     rebuild_option.rebuild_res_list = rebuild_res_error
                     rebuild_option.log_out = 'rebuild_outlier_%s.out' % step
                     seq_rebuild( rebuild_option )
@@ -170,8 +169,6 @@ def erraser( option ) :
             if len(rebuild_res_rmsd) != 0 :
                 rebuild_option.input_pdb = "rebuild_outlier_%s.pdb" % step
                 rebuild_option.out_pdb = "rebuild_%s.pdb" % step
-                rebuild_option.ideal_geometry = False
-                rebuild_option.include_native = False
                 rebuild_option.rebuild_res_list = rebuild_res_rmsd
                 rebuild_option.native_edensity_cutoff = 0.97
                 rebuild_option.log_out = 'rebuild_rmsd_%s.out' % step
@@ -391,10 +388,7 @@ def erraser_minimize( option ) :
     command += " -database %s " % database_folder
     command += " -native %s " % temp_rs
     command += " -out_pdb %s " % temp_rs_min
-    if option.map_file != '' :
-        command += " -score::weights rna/rna_hires_elec_dens "
-    else :
-        command += " -score::weights rna/rna_loop_hires_04092010"
+    command += " -score:weights %s " % option.scoring_file
 
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
@@ -402,6 +396,8 @@ def erraser_minimize( option ) :
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     command += " -vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
+    command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
+    command += " -skip_minimize %s " % str(option.skip_minimize).lower()
 
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
@@ -735,13 +731,7 @@ def SWA_rebuild_erraser( option ) :
 
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
-    if option.scoring_file == "" :
-        if option.map_file == "" :
-            common_cmd += " -score:weights rna/rna_loop_hires_04092010 "
-        else :
-            common_cmd += " -score:weights rna/rna_hires_elec_dens "
-    else :
-        common_cmd += " -score:weights %s " % option.scoring_file
+    common_cmd += " -score:weights %s " % option.scoring_file
 
 
     if option.map_file != "" :
@@ -768,9 +758,11 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
     sampling_cmd += " -sampler_perform_o2star_pack true "
-    sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
+    #sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
     sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
     sampling_cmd += " -centroid_screen true "
+    #sampling_cmd += " -VDW_atr_rep_screen false "
+    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % str(option.allow_syn_pyrimidine).lower()
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
     sampling_cmd += " -finer_sampling_at_chain_closure %s " % str(option.finer_sampling).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff

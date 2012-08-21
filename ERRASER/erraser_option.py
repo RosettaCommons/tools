@@ -41,6 +41,8 @@ class erraser_option :
 
         #Minimize
         self.vary_geometry = True
+        self.skip_minimize = False
+        self.attempt_pyrimidine_flip = True
         self.constrain_phosphate = True
         self.res_slice = []
 
@@ -49,6 +51,7 @@ class erraser_option :
         self.use_native_edensity_cutoff = False
         self.native_edensity_cutoff = 0.8
         self.ideal_geometry = True
+        self.allow_syn_pyrimidine = True
         self.include_native = False
         self.slice_nearby = True
         self.finer_sampling = False
@@ -93,6 +96,8 @@ class erraser_option :
 
         #Minimize
         self.vary_geometry = parse_options( argv, "vary_geometry", "True" )
+        self.skip_minimize = parse_options( argv, "skip_minimize", "False" )
+        self.attempt_pyrimidine_flip = parse_options( argv, "attempt_pyrimidine_flip", "True" )
         self.constrain_phosphate = parse_options( argv, "constrain_phosphate", "True" )
         self.res_slice = parse_option_int_list ( argv, 'res_slice' )
 
@@ -102,6 +107,7 @@ class erraser_option :
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.ideal_geometry =  parse_options( argv, "ideal_geometry", "True" )
         self.include_native =  parse_options( argv, "include_native", "False" )
+        self.allow_syn_pyrimidine =  parse_options( argv, "allow_syn_pyrimidine", "True" )
         self.slice_nearby =  parse_options( argv, "slice_nearby", "True" )
         self.finer_sampling = parse_options( argv, 'finer_sampling', 'False' )
         self.rebuild_res = parse_options( argv, "rebuild_res", 0 )
@@ -189,6 +195,11 @@ class erraser_option :
         if not self.use_native_edensity_cutoff :
             self.native_edensity_cutoff = -1
 
+        if self.scoring_file == "" :
+            if self.map_file == "" :
+                self.scoring_file = "rna/rna_loop_hires_04092010 "
+            else :
+                self.scoring_file = "rna/rna_hires_elec_dens "
 
         if self.rosetta_bin != '' and self.rosetta_folder != '':
             error_exit("The options 'rosetta_folder' and 'rosetta_bin' are incompatible! Specify only one of them.")

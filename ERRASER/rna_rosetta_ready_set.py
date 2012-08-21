@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env phenix.python
 import os.path
 import imp
 
@@ -28,9 +28,14 @@ temp_file = '%s/%s_temp_rs.pdb' % (base_dir, basename(input_pdb).replace('.pdb',
 input_pdb = abspath(input_pdb)
 out_pdb = abspath(out_pdb)
 
-pdb2rosetta(input_pdb, temp_file)
+[res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(input_pdb, temp_file)
 rna_rosetta_ready_set(temp_file, out_pdb)
 remove(temp_file)
+
+sys.stdout.write( "cutpoint in Rosetta pdb file: " )
+for i in cutpoint_final :
+    sys.stdout.write( str(i) + ' ' )
+sys.stdout.write('\n')
 
 total_time=time.time()-start_time
 print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'

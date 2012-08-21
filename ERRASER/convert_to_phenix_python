@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+sed -i 's/env python/env phenix.python/g' *.py

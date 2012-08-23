@@ -102,7 +102,7 @@ my $PFILTNR = "/work/robetta/databases/local_db/nr/nr_pfilt"
 
 
 # BY DEFAULT, Psipred is used only and the following can be ignored unless
-# you want to use the secondary structure prediction quota system with SAM 
+# you want to use the secondary structure prediction quota system with SAM
 # and Porter.
 
 
@@ -1188,8 +1188,8 @@ sub exclude_outn {
         $hit_chain = '_' if ( $hit_chain eq ' ' );
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
-        print EXCL "$runid $hit_pdb$hit_chain\n";
-        print EXCL2 "$runid $hit_pdb$hit_chain\n";
+        print EXCL "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n";
     }
 
     close(EXCL);
@@ -1225,8 +1225,8 @@ sub exclude_pdbblast {
         $hit_chain = '_' if ( $hit_chain eq ' ' );
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
-        print EXCL "$runid $hit_pdb$hit_chain\n";
-        print EXCL2 "$runid $hit_pdb$hit_chain\n";
+        print EXCL "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n";
     }
 
     close(EXCL);
@@ -1261,8 +1261,8 @@ sub exclude_blast {
             $hit_pdb =~ tr/[A-Z]/[a-z]/;
             $hit_chain = '_' if ( $hit_chain =~ /^\s*$/ );
 
-            print EXCL "$runid $hit_pdb$hit_chain\n";
-            print EXCL2 "$runid $hit_pdb$hit_chain\n";
+            print EXCL "$hit_pdb$hit_chain\n";
+            print EXCL2 "$hit_pdb$hit_chain\n";
         }
     }
 

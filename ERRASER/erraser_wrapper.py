@@ -758,7 +758,8 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
     sampling_cmd += " -sampler_perform_o2star_pack true "
-    #sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
+    sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
+    sampling_cmd += " -sampler_extra_anti_chi_rotamer true "
     sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "

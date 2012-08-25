@@ -52,6 +52,8 @@ def erraser( option ) :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
     for res in option.fixed_res :
+        print res
+        print res_conversion_list
         if res in res_conversion_list :
             fixed_res_final.append( res_conversion_list.index(res) + 1 )
 
@@ -617,6 +619,7 @@ def SWA_rebuild_erraser( option ) :
     native_screen = True
     if option.native_screen_RMSD > 10.0 :
         native_screen = False
+
     ##############location of executable and database:###########
     database_folder = rosetta_database_path(option.rosetta_database)
     rna_swa_test_exe = rosetta_bin_path("swa_rna_main", option.rosetta_bin )
@@ -683,6 +686,18 @@ def SWA_rebuild_erraser( option ) :
         print "res_sliced = %s" % res_sliced_all
         print "cutpoint_final = %s" % cutpoint_final
         print "total_res = %d " % total_res
+
+    #######Decide whether to sample syn pyrimidine################
+    if option.allow_syn_pyrimidine and option.search_syn_pyrimidine_only_when_native_syn :
+        chi_angle = find_chi_angle(native_pdb_final, rebuild_res_final)
+        is_syn = ( chi_angle < 90 and chi_angle > -90 )
+        print is_syn, ' ', chi_angle
+        if is_syn :
+            allow_syn_pyrimidine = 'true'
+        else :
+            allow_syn_pyrimidine = 'false'
+    else :
+        allow_syn_pyrimidine = 'false'
     ##########Check if the rebuilding Rsd is at chain break###########
     is_chain_break =False
     if rebuild_res_final == 1 or rebuild_res_final == total_res :
@@ -763,12 +778,12 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "
-    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % str(option.allow_syn_pyrimidine).lower()
+    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
     sampling_cmd += " -finer_sampling_at_chain_closure %s " % str(option.finer_sampling).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
     sampling_cmd += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
-    sampling_cmd += " -constraint_purine_chi %s " % str(option.constrain_chi).lower()
+    sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()
     sampling_cmd += " -sampler_native_screen_rmsd_cutoff %s " % option.native_screen_RMSD
     sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
     sampling_cmd += " -PBP_clustering_at_chain_closure true "

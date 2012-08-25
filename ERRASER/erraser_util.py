@@ -10,6 +10,11 @@ import re
 import math
 import time
 
+import imp
+file_path = os.path.split( os.path.abspath(__file__) ) [0]
+imp.load_source('measure_params', file_path + '/measure_params.py')
+from measure_params import compute_torsion, compute_dist, compute_squared_dist
+
 #####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
@@ -102,10 +107,7 @@ def subprocess_out(command, err = sys.stderr):
 
     err_channel = sys.stderr
     if type(err) is str :
-        if is_append_file :
-            err_channel = open(err, 'a')
-        else :
-            err_channel = open(err, 'w')
+        err_channel = open(err, 'w')
     elif type(err) is file :
         err_channel = err
 
@@ -517,23 +519,6 @@ def check_path_exist(path_name) :
     if not exists(path_name) :
         error_exit("Path %s does not exist!" % path_name)
 #####################################
-def compute_squared_dist(coord1, coord2) :
-    """
-    compute the squared distance between two xyz vector (3D).
-    """
-    sq_dist = 0
-    sq_dist += (coord1[0] - coord2[0]) * (coord1[0] - coord2[0])
-    sq_dist += (coord1[1] - coord2[1]) * (coord1[1] - coord2[1])
-    sq_dist += (coord1[2] - coord2[2]) * (coord1[2] - coord2[2])
-    return sq_dist
-####################################
-def compute_dist(coord1, coord2) :
-    """
-    compute the distance between two xyz vector (3D).
-    """
-    sq_dist = compute_squared_dist(coord1, coord2)
-    return math.sqrt(sq_dist)
-####################################
 def load_pdb_coord(input_pdb) :
     """
     Load in the pdb and return the coordinates for each heavy atom in each residue.
@@ -1138,3 +1123,38 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 is_residue_done = True
     out.close()
     return True
+####################################
+def find_chi_angle( input_pdb, res ) :
+    """
+    Find the chi angle value for given residue of the input pdb.
+    """
+
+    def coord_from_atm_name( atm_name, atm_coords_list ) :
+        for i in atm_coords_list :
+            if atm_name == i[0] :
+                return i[1]
+        error_exit("No proper atom name: %s is found!!" % atm_name)
+
+    atm_coords_list = []
+    is_purine = True
+    for line in open(input_pdb) :
+        if len(line) > 6 and line[0:4] == 'ATOM' :
+            res_num = int( line[22:26] )
+            if res == res_num :
+                atm_name = line[12:16].replace(' ', '')
+                res_name = line[19]
+                is_purine = res_name in 'GA'
+                coord = []
+                coord.append( float( line.split() [6] ) )
+                coord.append( float( line.split() [7] ) )
+                coord.append( float( line.split() [8] ) )
+                atm_coords_list.append( [atm_name, coord] )
+    atom1 = coord_from_atm_name('O4*', atm_coords_list)
+    atom2 = coord_from_atm_name('C1*', atm_coords_list)
+    if is_purine :
+        atom3 = coord_from_atm_name('N9', atm_coords_list)
+        atom4 = coord_from_atm_name('C4', atm_coords_list)
+    else :
+        atom3 = coord_from_atm_name('N1', atm_coords_list)
+        atom4 = coord_from_atm_name('C2', atm_coords_list)
+    return compute_torsion(atom1, atom2, atom3, atom4)

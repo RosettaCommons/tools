@@ -42,7 +42,7 @@ class erraser_option :
         #Minimize
         self.vary_geometry = True
         self.skip_minimize = False
-        self.attempt_pyrimidine_flip = True
+        self.attempt_pyrimidine_flip = False
         self.constrain_phosphate = True
         self.res_slice = []
 
@@ -64,7 +64,7 @@ class erraser_option :
         self.num_pose_kept = 100
         self.num_pose_kept_cluster = 10
         self.rebuild_res_list = []
-
+        self.search_syn_pyrimidine_only_when_native_syn = True
 
     def read_cmdline_full( self, argv ) :
         #General options
@@ -97,7 +97,7 @@ class erraser_option :
         #Minimize
         self.vary_geometry = parse_options( argv, "vary_geometry", "True" )
         self.skip_minimize = parse_options( argv, "skip_minimize", "False" )
-        self.attempt_pyrimidine_flip = parse_options( argv, "attempt_pyrimidine_flip", "True" )
+        self.attempt_pyrimidine_flip = parse_options( argv, "attempt_pyrimidine_flip", "False" )
         self.constrain_phosphate = parse_options( argv, "constrain_phosphate", "True" )
         self.res_slice = parse_option_int_list ( argv, 'res_slice' )
 
@@ -108,6 +108,8 @@ class erraser_option :
         self.ideal_geometry =  parse_options( argv, "ideal_geometry", "True" )
         self.include_native =  parse_options( argv, "include_native", "False" )
         self.allow_syn_pyrimidine =  parse_options( argv, "allow_syn_pyrimidine", "True" )
+        self.search_syn_pyrimidine_only_when_native_syn = (
+                parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.slice_nearby =  parse_options( argv, "slice_nearby", "True" )
         self.finer_sampling = parse_options( argv, 'finer_sampling', 'False' )
         self.rebuild_res = parse_options( argv, "rebuild_res", 0 )
@@ -143,6 +145,8 @@ class erraser_option :
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
+        self.search_syn_pyrimidine_only_when_native_syn = ( 
+                parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.finalize()
 
     def read_cmdline_erraser_single_res( self, argv ) :
@@ -164,6 +168,8 @@ class erraser_option :
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
+        self.search_syn_pyrimidine_only_when_native_syn = ( 
+                parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.finalize()
 
     def finalize( self ) :

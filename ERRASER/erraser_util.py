@@ -1145,9 +1145,9 @@ def find_chi_angle( input_pdb, res ) :
                 res_name = line[19]
                 is_purine = res_name in 'GA'
                 coord = []
-                coord.append( float( line.split() [6] ) )
-                coord.append( float( line.split() [7] ) )
-                coord.append( float( line.split() [8] ) )
+                coord.append( float( line[30:38] ) )
+                coord.append( float( line[38:46] ) )
+                coord.append( float( line[46:54] ) )
                 atm_coords_list.append( [atm_name, coord] )
     atom1 = coord_from_atm_name('O4*', atm_coords_list)
     atom2 = coord_from_atm_name('C1*', atm_coords_list)

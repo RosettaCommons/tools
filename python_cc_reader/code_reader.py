@@ -19,12 +19,12 @@ def strip_toendofline_comment( line ) :
 
 class CodeReader :
    def __init__( self ) :
-      self.re_pound_if     = re.compile( "#if " )
-      self.re_pound_ifdef  = re.compile( "#ifdef" )
-      self.re_pound_ifndef = re.compile( "#ifndef" )
-      self.re_pound_else   = re.compile( "#else" )
-      self.re_pound_endif  = re.compile( "#endif" )
-      self.re_pound_define = re.compile( "#define" )
+      self.re_pound_if     = re.compile( "\s*#if " )
+      self.re_pound_ifdef  = re.compile( "\s*#ifdef" )
+      self.re_pound_ifndef = re.compile( "\s*#ifndef" )
+      self.re_pound_else   = re.compile( "\s*#else" )
+      self.re_pound_endif  = re.compile( "\s*#endif" )
+      self.re_pound_define = re.compile( "\s*#define" )
       self.if_directive    = "if_directive"
       self.re_if_directive = re.compile( self.if_directive )
       self.re_splitter     = re.compile( "\S+" )
@@ -234,6 +234,7 @@ class HeavyCodeReader( CodeReader ) :
       self.privacy_stack = []
       self.parent_class_name = None
       self.function_name = ""
+      self.function_is_explicitly_virtual = False
       self.function_args = []
       self.function_return_type = ""
       self.function_body_present = False
@@ -281,7 +282,7 @@ class HeavyCodeReader( CodeReader ) :
                              ( '>', re.compile( r'>' ) ), \
                              ( ']', re.compile( '\]' ) ), \
                              ( '[', re.compile( '\[' ) ), ]
-
+      self.enum_pattern = re.compile( "\s*enum\s" )
 
 
    def examine_line( self, line ) :
@@ -387,6 +388,7 @@ class HeavyCodeReader( CodeReader ) :
       self.last_scope_level = self.scope_level
       if not self.processing_function_declaration :
          self.function_name = ""
+         self.function_is_explicitly_virtual = False
          self.function_args = []
          self.function_return_type = ""
          self.function_body_present = False
@@ -637,6 +639,12 @@ class HeavyCodeReader( CodeReader ) :
                         if toks[ ind_of_lparen - 3 ] == "operator" :
                            self.function_name = "operator" + toks[ ind_of_lparen - 2 ] + toks[ ind_of_lparen - 1 ]
                            function_name_begin_ind = ind_of_lparen - 3
+               if self.function_name == ">" :
+                  # ok, we're looking at a case like "template < class T > T funcname<> ( T const & one )"
+                  # where the function name is actually ind_of_lparen-3
+                  self.function_name = toks[ ind_of_lparen - 3 ]
+                  function_name_begin_ind = ind_of_lparen - 3
+                  #print "template function function_name_begin_ind reset: ", self.function_name 
                dstor_string = "~"+self.class_stack[ -1 ][ 0 ]
                #print dstor_string
                if self.function_name.find( dstor_string  ) != -1 :
@@ -670,6 +678,11 @@ class HeavyCodeReader( CodeReader ) :
                if paramtype :
                   self.function_args.append( paramtype )
                self.statement_string = ""
+            elif self.enum_pattern.match( self.statement_string ) :
+               # don't read enums listed in classes -- clear out the statement string.  I don't know if this will work for multi-line enums
+               print "enum encountered; skipping", self.statement_string
+               self.statement_string = ""
+               pass
             else : # variable declaration
                toks = self.tokenize_func_dec_string( self.statement_string )
                #print "VAR TOKS:"
@@ -725,6 +738,7 @@ class HeavyCodeReader( CodeReader ) :
       return retlist
 
    def interpret_toks_as_funcparam( self, toks ) :
+      #print toks
       paramtype = ""
       paramname = ""
       if len( toks ) == 0 :
@@ -738,6 +752,7 @@ class HeavyCodeReader( CodeReader ) :
          #print "TOK: ", tok, "TYPE:", paramtype, "NAME:", paramname, template_depth, depth_0_type
          if tok in self.reserve_words :
             n_valid_toks -= 1
+            if tok == "virtual" : self.function_is_explicitly_virtual = True
             continue
          paramtype += " "
          if tok == "<" :
@@ -788,6 +803,7 @@ class HeavyCodeReader( CodeReader ) :
 class FunctionDeclaration :
    def __init__( self ) :
       self.name = ""
+      self.is_explicitly_virtual = False
       self.return_type = ""
       self.parameters = ""
       self.definition_present = True
@@ -834,6 +850,7 @@ def read_classes_from_header( fname, flines ) :
          func = FunctionDeclaration()
          # deep cpy
          func.name = str( cr.function_name )
+         func.is_explicitly_virtual = cr.function_is_explicitly_virtual
          func.return_type = str( cr.function_return_type )
          func.parameters = list( cr.function_args )
          func.definition_present = cr.function_body_present

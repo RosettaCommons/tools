@@ -135,6 +135,8 @@ class Node(object):
 		self.ast = ast       #: AST this node belongs to
 		self.cursor = cursor #: clang cursor
 		self.parent = parent #: parent node
+		self.depth = 1
+		if parent : self.depth = parent.depth + 1
 		self.code = []       #: Nchild+1 bits of code interdigitated between code owned by children
 		childiter = self.cursor.get_children()
 		if self.cursor.kind == CursorKind.TRANSLATION_UNIT:
@@ -142,11 +144,11 @@ class Node(object):
 			self.start = 0
 			self.end = len(self.ast.code)
 			# remove extra crap at beginning
-			assert childiter.next().spelling == "__int128_t"
-			assert childiter.next().spelling == "__uint128_t"
-			assert childiter.next().spelling == "__va_list_tag"
-			assert childiter.next().spelling == "__va_list_tag"
-			assert childiter.next().spelling == "__builtin_va_list"				
+			#assert childiter.next().spelling == "__int128_t"
+			#assert childiter.next().spelling == "__uint128_t"
+			#assert childiter.next().spelling == "__va_list_tag"
+			#assert childiter.next().spelling == "__va_list_tag"
+			#assert childiter.next().spelling == "__builtin_va_list"				
 		else:
 			self.fname = str(self.cursor.location.file)  #: filename of sourcefile this node came from
 			self.start = self.cursor.extent.start.offset #: start position in sourcefile
@@ -434,7 +436,7 @@ class Node(object):
 		func(self)
 		children = self.allchild if allchild else self.srcchild
 		for c in children:
-			c.treemap(func)
+			c.treemap(func,allchild)
 	
 	def treeprint(self,func,allchild=False,depth=0):
 		"""

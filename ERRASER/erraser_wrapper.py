@@ -690,14 +690,13 @@ def SWA_rebuild_erraser( option ) :
     #######Decide whether to sample syn pyrimidine################
     if option.allow_syn_pyrimidine and option.search_syn_pyrimidine_only_when_native_syn :
         chi_angle = find_chi_angle(native_pdb_final, rebuild_res_final)
-        is_syn = ( chi_angle < 90 and chi_angle > -90 )
-        print is_syn, ' ', chi_angle
+        is_syn = ( chi_angle < 140 and chi_angle > -40 )
         if is_syn :
             allow_syn_pyrimidine = 'true'
         else :
             allow_syn_pyrimidine = 'false'
     else :
-        allow_syn_pyrimidine = 'false'
+        allow_syn_pyrimidine =  str(option.allow_syn_pyrimidine).lower()
     ##########Check if the rebuilding Rsd is at chain break###########
     is_chain_break =False
     if rebuild_res_final == 1 or rebuild_res_final == total_res :

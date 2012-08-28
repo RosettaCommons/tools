@@ -64,7 +64,7 @@ class erraser_option :
         self.num_pose_kept = 100
         self.num_pose_kept_cluster = 10
         self.rebuild_res_list = []
-        self.search_syn_pyrimidine_only_when_native_syn = True
+        self.search_syn_pyrimidine_only_when_native_syn =True
 
     def read_cmdline_full( self, argv ) :
         #General options

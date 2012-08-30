@@ -83,6 +83,25 @@ class CodeReader :
     #  str += " " * 2 * node.depth + "tok:(" + token.spelling + ")\n"
     return str
 
+class CodeQualityChecker_FindRawPtrs_to_RefcountSubclasses :
+  def __init__( self ) :
+    self.problem_string = ""
+
+  def has_problem( self ) :
+    return self.problem_string != ""
+
+  def problems( self ) :
+    return self.problem_string
+
+  def examine_ast( self, ast ) :
+    cr = CodeReader(ast)
+    ast.root.treemap( cr.find_class_declarations, allchild=True )
+    cr.note_classes_deriving_from_reference_count()
+    rfptrfinder = VarDecToRefCountSubclassPointerFinder( cr )
+    ast.root.treemap( rfptrfinder.save_lines_w_rawptrs_assigned_opdata, allchild=False )
+    if rfptrfinder.lines_w_rawpts_assigned_opdata :
+      self.problem_string = "\n".join( rfptrfinder.lines_w_rawpts_assigned_opdata )
+
 class VarDecToRefCountSubclassPointerFinder :
   def __init__( self, codereader ) :
     self.decs_to_refcount_subclass_pointers = {}
@@ -141,7 +160,7 @@ class VarDecToRefCountSubclassPointerFinder :
         if not childdef : return False
         defcursor = childdef.cursor
         return defcursor.get_usr() in self.code_reader.classes_deriving_from_refcount
-      print "ERROR: Non TYPE_REF, non NAMESPACE_REF cursor encountered in first_typeref_child_is_to_refcount_derived_class:", node.cursor.kind
+      #print "ERROR: Non TYPE_REF, non NAMESPACE_REF cursor encountered in first_typeref_child_is_to_refcount_derived_class:", node.cursor.kind
       return False
 
   def op_assignment_to_rawptr( self, node ) :
@@ -321,7 +340,8 @@ def binary_operator_token( node ) :
   return list( node.allchild[ 0 ].cursor.get_tokens() )[ -1 ].spelling
 
 def setup_cansampmover_ast() :
-  srcfile = "protocols/canonical_sampling/CanonicalSamplingMover.cc";
+  #srcfile = "protocols/canonical_sampling/CanonicalSamplingMover.cc";
+  srcfile = "protocols/unfolded_state_energy_calculator/UnfoldedStateEnergyCalculatorMover.cc"
   #srcfile = "utility/pointer/ReferenceCount.hh"
   #srcfile = "stupid_test.cc"
   fn = os.path.abspath(srcfile);
@@ -342,7 +362,67 @@ def setup_cansampmover_ast() :
   cr.note_classes_deriving_from_reference_count()
   return src, ast, cr
 
+class CodeQualityChecker_FindStackDeclaredObjectsReservedForTheHeap :
+  def __init__( self ) :
+    self.classes_that_should_only_live_on_the_heap = set( [
+      "core::chemical::ResidueType"
+    ])
+    self.problem_string = ""
 
+  def has_problem( self ) :
+    return self.problem_string != ""
+
+  def problems( self ) :
+    return self.problem_string
+
+  def examine_ast( self, ast ) :
+    ast.root.treemap( self.find_vardecs_to_heaponly_classes, allchild=False )
+
+  def find_vardecs_to_heaponly_classes( self, node ) :
+    vardec_type = self.vardec_type_for_node( node )
+    if not vardec_type : return
+    scoped_class_name = vardec_type.namespace() + "::" + vardec_type.cursor.spelling;
+    if scoped_class_name in self.classes_that_should_only_live_on_the_heap :
+      problem = \
+        "Variable declared in %s on line %d is of type %s which must only be declared on the heap.\n" % \
+        ( node.cursor.location.file, node.cursor.location.line, scoped_class_name )
+      problem += ">>> "
+      for token in node.cursor.get_tokens() :
+        problem += token.spelling
+      problem += "\n"
+      self.problem_string += problem
+
+  def vardec_type_for_node( self, node ) :
+    if node.cursor.kind == CursorKind.VAR_DECL and node.cursor.type.kind != TypeKind.LVALUEREFERENCE and node.cursor.type.kind != TypeKind.POINTER :
+      for child in node.allchild :
+        if child.cursor.kind == CursorKind.NAMESPACE_REF : continue
+        if child.cursor.kind == CursorKind.TYPE_REF :
+          if child.cursor.type.kind == TypeKind.RECORD :
+            # direct reference to a type
+            return child.definition()
+          elif child.cursor.type.kind == TypeKind.TYPEDEF :
+            canontype = child.cursor.type.get_canonical()
+            if canontype.kind != TypeKind.RECORD : return None
+            canontypedec = canontype.get_declaration()
+            if canontypedec.get_usr() in node.ast.locmap :
+              return node.ast.locmap[ canontypedec.get_usr() ]
+    return None
+
+#def vardec_to_residue_type( node ) :
+#  def_for_node = vardec_type_for_node( node )
+#  if not def_for_node : return False
+#  if def_for_node.cursor.spelling == "ResidueType" and def_for_node.namespace() == "core::chemical" :
+#    return True
+#  return False
+#
+#def print_vardec_to_residue_type_nodes( node ) :
+#  if vardec_to_residue_type( node ) :
+#    print node.cursor.location.file, node.cursor.location.line
+#    print ">>> ",
+#    for token in node.cursor.get_tokens() :
+#      print token.spelling,
+#    print
+  
 
 if __name__ == "__main__" :
 

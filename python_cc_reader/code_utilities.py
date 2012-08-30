@@ -230,6 +230,17 @@ def load_source_tree() :
       file_contents[ file ] = open( file ).readlines()
    return compilable_files, compilable_includes, file_contents
 
+def find_library_files() :
+   compilable_includes = scan_compilable_files()
+   all_library_files = compilable_includes.keys()
+   for file in compilable_includes.keys() :
+      for included in compilable_includes[ file ] :
+         if included not in compilable_includes :
+            toks = included.split( "/" )
+            if len( toks ) > 1 and toks[ 0 ] in directories_with_hhfiles_to_examine() :
+               all_library_files.append( included )
+   return all_library_files
+
 def follow_includes_for_file( file, file_contents, cr, lines, re_pound_include, already_included ) :
    cr.push_new_file( file )
    for line in file_contents[ file ] :

@@ -195,7 +195,7 @@ my %opts = &getCommandLineOptions();
 $options{fastafile} = abs_path( $opts{f} );
 $options{rundir}      = cwd();     # get the full path (needed for sam stuff)
 $options{homs}        = 1;
-$options{pick_frags}  = 1;
+$options{frags}  = 1;
 $options{psipredfile} = "";
 $options{samfile}     = "";
 $options{porterfile}  = "";
@@ -718,7 +718,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
     }
 }
 
-if ( !$options{pick_frags} ) {
+if ( !$options{frags} ) {
     cleanup(@cleanup_files);
     exit 0;
 }

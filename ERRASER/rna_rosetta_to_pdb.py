@@ -26,8 +26,9 @@ if exists( out_pdb ) :
     print 'Output pdb %s already exists... Remove it.' % out_pdb
     remove(out_pdb)
 
-rosetta2std_pdb(input_pdb, 'temp_rs2psb.pdb')
-regularize_OP1_OP2('temp_rs2psb.pdb', out_pdb)
+rosetta2std_pdb(input_pdb, 'temp_rs2pdb.pdb')
+regularize_OP1_OP2('temp_rs2pdb.pdb', out_pdb)
+remove('temp_rs2pdb.pdb')
 
 total_time=time.time()-start_time
 print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'

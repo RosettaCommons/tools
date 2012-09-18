@@ -13,7 +13,7 @@ import time
 import imp
 file_path = os.path.split( os.path.abspath(__file__) ) [0]
 imp.load_source('measure_params', file_path + '/measure_params.py')
-from measure_params import compute_torsion, compute_dist, compute_squared_dist
+from measure_params import compute_torsion, compute_dist, compute_squared_dist, cross, dot, vec_diff
 
 #####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
@@ -619,6 +619,113 @@ def regularize_pdb(input_pdb, out_name) :
                 output_pdb.write(line[:12] + atom_name + ' ' + res_name + line[20:])
         else :
             output_pdb.write(line)
+#############################################################
+def regularize_OP1_OP2(input_pdb, out_name) :
+    """
+    Regularize the chirality for OP1/OP2 to match PDB standard.
+    """
+    check_path_exist(input_pdb)
+
+    def output_cached_lines( out, cached_lines,
+                             P_coord, OP1_coord, OP2_coord, O5prime_coord,
+                             OP1_line_atom, OP1_line_anisou, OP2_line_atom, OP2_line_anisou ) :
+
+        if len(cached_lines) == 0 :
+            return
+        is_switch_OPs = False
+        if P_coord != [] and OP1_coord != [] and OP2_coord != [] and O5prime_coord != [] :
+            dot_product = dot( cross( vec_diff(OP1_coord, P_coord), vec_diff(OP2_coord, P_coord) ),
+                               vec_diff(O5prime_coord, P_coord) )
+            if dot_product > 0 :
+                is_switch_OPs = True
+
+        for line1 in cached_lines :
+            new_line = line1
+            if is_switch_OPs and len(line) > 26 :
+                if line1[12:16] == ' OP1' :
+                    new_line = line1[0:26]
+                    if line1[0:4] == 'ATOM' or line1[0:6] == 'HETATM' :
+                        new_line += OP2_line_atom[26:]
+                    elif line1[0:6] == 'ANISOU' :
+                        new_line += OP2_line_anisou[26:]
+                if line1[12:16] == ' OP2' :
+                    new_line = line1[0:26]
+                    if line1[0:4] == 'ATOM' or line1[0:6] == 'HETATM' :
+                        new_line += OP1_line_atom[26:]
+                    elif line1[0:6] == 'ANISOU' :
+                        new_line += OP1_line_anisou[26:]
+            out.write(new_line)
+
+    out = open(out_name, 'w')
+
+    cached_lines = []
+    P_coord = []
+    O5prime_coord = []
+    OP1_coord = []
+    OP2_coord = []
+    old_res_id = []
+    rna_types = [ '  A', '  C', '  G', '  U']
+    OP1_line_atom = ''
+    OP2_line_anisou = ''
+    OP2_line_atom = ''
+    OP1_line_anisou = ''
+
+    for line in open(input_pdb) :
+        is_output_cache = False
+        if len(line) > 26 and ( line[0:4] == 'ATOM' or line[0:6] == 'ANISOU' or line[0:6] == 'HETATM' ) :
+            res_name = line[17:20]
+            atom_name = line[12:16]
+            res_id = line[21:26]
+            if (not res_name in rna_types) or res_id != old_res_id :
+                is_output_cache = True
+                old_res_id = res_id
+        else :
+            is_output_cache = True
+
+        if is_output_cache and len(cached_lines) != 0 :
+            output_cached_lines( out, cached_lines,
+                                 P_coord, OP1_coord, OP2_coord, O5prime_coord,
+                                 OP1_line_atom, OP1_line_anisou, OP2_line_atom, OP2_line_anisou )
+            P_coord = []
+            O5prime_coord = []
+            OP1_coord = []
+            OP2_coord = []
+            cached_lines = []
+
+        if len(line) > 26 and ( line[0:4] == 'ATOM' or line[0:6] == 'ANISOU' or line[0:6] == 'HETATM' ) :
+            res_name = line[17:20]
+            atom_name = line[12:16]
+            res_id = line[21:26]
+            if res_name in rna_types :
+                if atom_name == ' OP1' :
+                    if line[0:4] == 'ATOM' or line[0:6] == 'HETATM' :
+                        OP1_line_atom = line
+                        OP1_coord.append( float( line[30:38] ) )
+                        OP1_coord.append( float( line[38:46] ) )
+                        OP1_coord.append( float( line[46:54] ) )
+                    elif line[0:6] == 'ANISOU' :
+                        OP1_line_anisou = line
+                if atom_name == ' OP2' :
+                    if line[0:4] == 'ATOM' or line[0:6] == 'HETATM' :
+                        OP2_line_atom = line
+                        OP2_coord.append( float( line[30:38] ) )
+                        OP2_coord.append( float( line[38:46] ) )
+                        OP2_coord.append( float( line[46:54] ) )
+                    elif line[0:6] == 'ANISOU' :
+                        OP2_line_anisou = line
+                if atom_name == ' P  ' and (line[0:4] == 'ATOM' or line[0:6] == 'HETATM') :
+                    P_coord.append( float( line[30:38] ) )
+                    P_coord.append( float( line[38:46] ) )
+                    P_coord.append( float( line[46:54] ) )
+                if atom_name == " O5'" and (line[0:4] == 'ATOM' or line[0:6] == 'HETATM') :
+                    O5prime_coord.append( float( line[30:38] ) )
+                    O5prime_coord.append( float( line[38:46] ) )
+                    O5prime_coord.append( float( line[46:54] ) )
+        cached_lines.append(line)
+
+    output_cached_lines( out, cached_lines,
+                         P_coord, OP1_coord, OP2_coord, O5prime_coord,
+                         OP1_line_atom, OP1_line_anisou, OP2_line_atom, OP2_line_anisou )
 
 #############################################################
 def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :

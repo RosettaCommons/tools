@@ -197,7 +197,8 @@ def erraser( option ) :
     ###################################################################
 
     copy( 'minimize_%s.pdb' % (step + 1), 'FINAL.pdb' )
-    rosetta2phenix_merge_back(regularized_input_pdb, 'FINAL.pdb', option.out_pdb)
+    rosetta2phenix_merge_back(regularized_input_pdb, 'FINAL.pdb', 'FINAL_merge.pdb')
+    regularize_OP1_OP2('FINAL_merge.pdb', option.out_pdb)
     os.chdir(base_dir)
     if not option.kept_temp_folder :
         remove(temp_dir)
@@ -322,7 +323,8 @@ def erraser_single_res( option ) :
         out_score.write("rebuilt_model score\n")
         for i in xrange(0, len(final_pdb_list) ) :
             out_score.write("%d %.3f\n" % (i, final_pdb_list[i][0]) )
-            rosetta2phenix_merge_back(regularized_input_pdb, final_pdb_list[i][1], "%s_%d.pdb" % (option.out_prefix, i) )
+            rosetta2phenix_merge_back(regularized_input_pdb, final_pdb_list[i][1], "FINAL_merge.pdb")
+            regularize_OP1_OP2('FINAL_merge.pdb',  "%s_%d.pdb" % (option.out_prefix, i))
         out_score.close()
 
     if not option.verbose :

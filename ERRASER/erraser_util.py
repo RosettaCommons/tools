@@ -1127,11 +1127,13 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
             for res in res_remove :
                 res_list_unsliced.remove(res)
 
+            res_list_current = sorted(res_list_current)
             sliced_list_final.append( res_list_current )
             res_list_sliced += res_list_current
             if n_chunk_left == 1 :
                 res_list_current = res_list_unsliced
                 removed_res = fill_gaps_and_remove_isolated_res(res_list_current, total_res)
+                res_list_current = sorted(res_list_current)
                 sliced_list_final.append( res_list_current )
                 while len(removed_res) != 0 :
                     res_remove = []

@@ -476,7 +476,7 @@ def full_struct_slice_and_minimize( option ) :
         print exists('after_min.pdb')
         move('after_min.pdb', option.out_pdb)
     else :
-        print "Input pdb >= 120 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
+        print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
         res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
         current_chunk = 0
         for res_slice in res_slice_list :

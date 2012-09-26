@@ -959,6 +959,25 @@ if ($SLAVE_LAUNCHER) {           # run in parallel
         $SLAVE_LAUNCHER_MAX_JOBS, $SLAVE_MAX_WAIT, $SLAVE_MAX_ATTEMPTS );
 }
 
+# Verify that the fragment files have the correct number of positions.
+# In rare circumstances, fragment files were truncated at an arbitrary position.
+my $sequence_len = length($sequence);
+foreach my $fragment_len (@fragsizes) {
+	my $fragment_file = "$options{runid}.$options{n_frags}.$fragment_len" . "mers";
+
+	my $expected_positions = $sequence_len - $fragment_len + 1;
+	my $actual_positions = 0;
+	open FILE, $fragment_file or die $!;
+	while (<FILE>) {
+		if ($_ =~ "position:") {
+			$actual_positions++;
+		}
+	}
+	close(FILE);
+	die "Expected $expected_positions, found $actual_positions" if ($expected_positions != $actual_positions);
+}
+print "Fragment files have correct number of positions\n";
+
 if ( $options{old_name_format} ) {
     foreach my $size (@fragsizes) {
         my $resultfile = "$options{runid}.$options{n_frags}.$size" . "mers";

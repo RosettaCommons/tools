@@ -1267,3 +1267,5 @@ def find_chi_angle( input_pdb, res ) :
         atom3 = coord_from_atm_name('N1', atm_coords_list)
         atom4 = coord_from_atm_name('C2', atm_coords_list)
     return compute_torsion(atom1, atom2, atom3, atom4)
+
+

@@ -104,7 +104,7 @@ print "====Suite Changes======================================="
 lines = []
 for i, j in zip(suite1, suite2) :
     if i[0] == j[0] and i[1] != j[1] :
-        lines.append( i[0] + '             ' + i[1] + '            ' + j[1] )
+        lines.append( i[0] + '               ' + i[1] + '              ' + j[1] )
 if lines != [] :
     print "'!!' stands for an outlier suite.\n"
     print "    Residue            Start         ERRASER            "

@@ -488,7 +488,6 @@ def full_struct_slice_and_minimize( option ) :
             minimize_option.res_slice = res_slice
             minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
             erraser_minimize( minimize_option )
-            log_out = "full_minimize_temp_%s.out" % current_chunk
             copy('after_min.pdb', 'before_min.pdb')
             print "Minimization for chunk %s ends sucessfully." % current_chunk
         move('after_min.pdb', option.out_pdb)
@@ -683,11 +682,11 @@ def SWA_rebuild_erraser( option ) :
         cutpoint_final = option.cutpoint_rs
 
     total_res = get_total_res(native_pdb_final)
-    if option.verbose :
-        print "rebuilding_res = %s" % rebuild_res_final
-        print "res_sliced = %s" % res_sliced_all
-        print "cutpoint_final = %s" % cutpoint_final
-        print "total_res = %d " % total_res
+
+    print "rebuilding_res = %s" % rebuild_res_final
+    print "res_sliced = %s" % res_sliced_all
+    print "cutpoint_final = %s" % cutpoint_final
+    print "total_res = %d " % total_res
 
     #######Decide whether to sample syn pyrimidine################
     if option.allow_syn_pyrimidine and option.search_syn_pyrimidine_only_when_native_syn :

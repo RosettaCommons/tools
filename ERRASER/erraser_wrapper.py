@@ -296,7 +296,11 @@ def erraser_single_res( option ) :
 
         final_pdb_list = []
         native_pdb = './temp_pdb_res_%d/output_pdb/native_struct.pdb' % option.rebuild_res
+        native_pdb_sliced = './temp_pdb_res_%d/output_pdb/native_struct_sliced.pdb' % option.rebuild_res
+
         minimize_option = deepcopy(option)
+
+        #Scores for other rebuilt models
         for i in xrange(0,9) :
             rebuilt_pdb = './temp_pdb_res_%d/output_pdb/S_00000%d.pdb' % (option.rebuild_res, i)
             if exists(rebuilt_pdb) :
@@ -317,14 +321,38 @@ def erraser_single_res( option ) :
                     final_pdb_list.append([score, minimize_option.out_pdb])
             else :
                 break
-
         final_pdb_list = sorted(final_pdb_list)
+
+        #Get (minimized) native score
+        native_merge_pdb = ''
+        if exists(native_pdb_sliced) :
+            minimize_option.input_pdb = native_pdb_sliced
+        else :
+            minimize_option.input_pdb = native_pdb
+        minimize_option.out_pdb = native_pdb.replace('.pdb', 'min.pdb')
+        minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_native.out' % option.rebuild_res
+        erraser_minimize( minimize_option )
+        native_score = 0.0
+        min_out_lines = open(minimize_option.log_out).readlines()
+        for j in xrange( len(min_out_lines) - 1, -1, -1) :
+            if "Total weighted score:" in min_out_lines[j] :
+                native_score = float(min_out_lines[j].split()[-1])
+                break
+        if len(res_sliced) != 0 :
+            sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, native_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
+            native_merge_pdb = native_pdb.replace('.pdb', '_merge.pdb')
+        else :
+            native_merge_pdb = minimize_option.out_pdb
+        
+        #Output scores
         out_score = open("../scores.out" ,'w')
-        out_score.write("rebuilt_model score\n")
         for i in xrange(0, len(final_pdb_list) ) :
-            out_score.write("%d %.3f\n" % (i, final_pdb_list[i][0]) )
+            out_score.write("model_%d %.3f\n" % (i, final_pdb_list[i][0]) )
             rosetta2phenix_merge_back(regularized_input_pdb, final_pdb_list[i][1], "FINAL_merge.pdb")
             regularize_OP1_OP2('FINAL_merge.pdb',  "%s_%d.pdb" % (option.out_prefix, i))
+        out_score.write("start_min %.3f\n" % native_score )
+        rosetta2phenix_merge_back(regularized_input_pdb, native_merge_pdb, "FINAL_merge.pdb")
+        regularize_OP1_OP2('FINAL_merge.pdb',  "%s_start_min.pdb" % option.out_prefix)
         out_score.close()
 
     if not option.verbose :

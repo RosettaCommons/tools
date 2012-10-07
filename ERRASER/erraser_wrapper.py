@@ -221,6 +221,9 @@ def erraser_single_res( option ) :
         sys.stdout = open(option.log_out, 'w')
     if option.log_err != "" :
         option.sys.stderr = open(option.log_err, 'w')
+    #Search all Chi conformer without constraint
+    option.search_syn_pyrimidine_only_when_native_syn = False
+    option.constrain_chi = False
 
     print '###################################'
     print 'Starting erraser_single_res...'

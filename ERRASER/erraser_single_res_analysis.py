@@ -147,8 +147,8 @@ for i in pdb_list :
 out = open(outfile, 'w')
 out.write( "Changes Introduced by ERRASER Single-Res\n" )
 out.write( "========================================================================\n" )
+out.write( "# Rebuild Residue: %7s\n" % res )
 out.write( "           Clashscore  Suite_i  Suite_i+1   Pucker        Chi      Score\n" )
-# "start_min      999.99       !!         !!  -100/!!  -100/anti  -999999.9"
 for i in data :
     score = '%9.1f' % (i[1][-1] - start_min_score)
     out.write( '%9s%12s%9s%11s%9s%11s%11s\n' % (i[0], i[1][0], i[1][1], i[1][2], i[1][3], i[1][4], score) )
@@ -156,5 +156,6 @@ out.write( "====================================================================
 out.write( "# ERRASER rebuilds two suites (i and i+1) and one pucker for each run.  \n" )
 out.write( "# For outlier puckers (!!) the corresponding delta angle are shown.     \n" )
 out.write( "# Chi intervals for syn: (-40, 140]. anti: (-180, -40] and (140, 180].  \n" )
+out.write( "# Score of the minimized starting model (start_min) is set to 0.        \n" )
 
 remove('*.temp')

@@ -59,12 +59,12 @@ class erraser_option :
         self.scoring_file = ''
         self.cluster_RMSD = 0.1
         self.is_append = True
-        self.constrain_chi = True
         self.native_screen_RMSD = 3.0
         self.num_pose_kept = 100
         self.num_pose_kept_cluster = 10
         self.rebuild_res_list = []
         self.search_syn_pyrimidine_only_when_native_syn =True
+        self.constrain_chi = True
 
     def read_cmdline_full( self, argv ) :
         #General options

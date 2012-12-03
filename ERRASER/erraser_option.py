@@ -145,7 +145,7 @@ class erraser_option :
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
-        self.search_syn_pyrimidine_only_when_native_syn = ( 
+        self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.finalize()
 

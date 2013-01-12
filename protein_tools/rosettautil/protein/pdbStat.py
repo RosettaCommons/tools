@@ -6,7 +6,6 @@ from rosettautil.util import fileutil
 import math
 import warnings
 
-
 def sequence_recovery(native_struct,designed_struct):
 	"""calculate percent sequence recovery between a native and designed struct"""
 	native_residues = native_struct.get_residues()
@@ -17,7 +16,22 @@ def sequence_recovery(native_struct,designed_struct):
 		if native.get_resname() == designed.get_resname():
 			recovered += 1
 		total += 1
-	#print recovered, total
+	return recovered/total
+
+def sequence_recovery_allowed_list(native_struct,designed_struct,allowed_residues):
+	"""calculate percent sequence recovery between a native and designed struct"""
+	native_residues = native_struct.get_residues()
+	designed_residues = designed_struct.get_residues()
+	total = 0.0;
+	recovered = 0.0;
+	for native,designed in zip(native_residues,designed_residues):
+		full_id = native.get_full_id()
+		residue_data = (full_id[3][1], full_id[2])
+		if residue_data not in allowed_residues:
+			continue
+		if native.get_resname() == designed.get_resname():
+			recovered += 1
+		total += 1
 	return recovered/total
 
 def sequence_recovery_range(native_struct,designed_struct,min,max):
@@ -97,6 +111,36 @@ def sequence_composition_range(struct,min,max):
 				composition[residue_name] = 1 
 	return composition
 
+def pssm_recovery_map_allowed_list(native_struct,designed_struct,pssm_map, allowed_residues):
+	"""calculate the pssm recovery given a structure and a pssm map"""
+	native_residues = native_struct.get_residues()
+	designed_residues = designed_struct.get_residues()
+	#pssm_recovery = 0.0;
+	#struct_size = 0.0;
+	recovery_map = {}
+	for native,designed in zip(native_residues,designed_residues):
+		
+		full_id = native.get_full_id()
+		residue_data = (full_id[3][1], full_id[2])
+		if residue_data not in allowed_residues:
+			continue
+		designed_name = designed.get_resname()
+		native_name = native.get_resname()
+		designed_num = designed.get_id()[1]
+		try:
+			status = pssm_map.conserved(designed_num,designed_name)
+		except KeyError:
+			warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+			continue
+		if status:
+			try:
+				recovery_map[native_name]+=1
+			except KeyError:
+				recovery_map[native_name] = 1
+	return recovery_map
+	
+	
+
 def pssm_recovery_map(struct,pssm_map):
 	"""calculate the pssm recovery given a structure and a pssm map"""
 	struct_residues = struct.get_residues()
@@ -106,7 +150,11 @@ def pssm_recovery_map(struct,pssm_map):
 	for residue in struct_residues:
 		residue_name = residue.get_resname()
 		residue_num = residue.get_id()[1]
-		status = pssm_map.conserved(residue_num,residue_name)
+		try:
+			status = pssm_map.conserved(residue_num,residue_name)
+		except KeyError:
+			warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+			continue
 		if status:
 			try:
 				recovery_map[residue_name]+=1
@@ -124,7 +172,11 @@ def pssm_recovery_map_range(struct,pssm_map,min,max):
 		if score >= min and score <= max:
 			residue_name = residue.get_resname()
 			residue_num = residue.get_id()[1]
-			status = pssm_map.conserved(residue_num, residue_name)
+			try:
+				status = pssm_map.conserved(residue_num, residue_name)
+			except KeyError:
+				warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+				continue
 			if status:
 				try:
 					recovery_map[residue_name]+= 1
@@ -132,7 +184,33 @@ def pssm_recovery_map_range(struct,pssm_map,min,max):
 					recovery_map[residue_name] = 1
 	return recovery_map
 
-def pssm_recovery(struct,pssm_map):
+def pssm_recovery_allowed_list(designed_struct,allowed_residues,pssm_map,manual_size=0):
+	"""return percent pssm recovery"""
+	designed_residues = designed_struct.get_residues()
+	pssm_recovery = 0.0;
+	struct_size = 0.0;
+	for residue in designed_residues:
+		
+		full_id = residue.get_full_id()
+		residue_data = (full_id[3][1], full_id[2])
+		if residue_data not in allowed_residues:
+			continue
+		residue_name = residue.get_resname()
+		residue_num = residue.get_id()[1]
+		try:
+			status = pssm_map.conserved(residue_num,residue_name)
+		except KeyError:
+			warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+			continue
+		if status:
+			pssm_recovery += 1.0
+		struct_size += 1.0
+	if manual_size == 0:
+		return pssm_recovery/struct_size
+	else:
+		return pssm_recovery/float(manual_size)
+
+def pssm_recovery(struct,pssm_map,manual_size=0):
 	"""return percent pssm recovery"""
 	struct_residues = struct.get_residues()
 	pssm_recovery = 0.0;
@@ -140,11 +218,19 @@ def pssm_recovery(struct,pssm_map):
 	for residue in struct_residues:
 		residue_name = residue.get_resname()
 		residue_num = residue.get_id()[1]
-		status = pssm_map.conserved(residue_num,residue_name)
+		try:
+			status = pssm_map.conserved(residue_num,residue_name)
+		except KeyError:
+			warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+			continue
 		if status:
 			pssm_recovery += 1.0
 		struct_size += 1.0
-	return pssm_recovery/struct_size
+	if manual_size == 0:
+		return pssm_recovery/struct_size
+	else:
+		return pssm_recovery/float(manual_size)
+			
 
 def pssm_recovery_range(struct,pssm_map,min,max):
 	"""return percent pssm recovery fro residues within a range of b factors"""
@@ -156,7 +242,11 @@ def pssm_recovery_range(struct,pssm_map,min,max):
 		if score >= min and score <= max:
 			residue_name = residue.get_resname()
 			residue_num = residue.get_id()[1]
-			status = pssm_map.conserved(residue_num,residue_name)
+			try:
+				status = pssm_map.conserved(residue_num,residue_name)
+			except KeyError:
+				warnings.warn("ignoring noncanonical amino acid "+residue_name+" in pssm calculation")
+				continue
 			if status:
 				pssm_recovery += 1.0
 			struct_size += 1.0

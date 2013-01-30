@@ -14,7 +14,7 @@ Read pdb2vall.cfg for additional information
 
 4. Install/Update the RCSB PDB data by running:
 
-  ./database/rcsb_data/update_rcsb_data.pl
+  ./database/rcsb_data/update_rcsb_data.pl -
 
 
   The script above should install/update from:

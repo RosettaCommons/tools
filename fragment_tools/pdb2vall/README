@@ -3,7 +3,7 @@ Read pdb2vall.cfg for additional information
 
 1. Install required software, and BioPerl
 2  Install the NCBI nr database (keep in mind it is very large)
-   
+
   wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz -O database/ncbi/
   gunzip database/ncbi/nr.gz
   formatdb -o T -i database/ncbi/nr
@@ -12,7 +12,16 @@ Read pdb2vall.cfg for additional information
 
   formatdb -o T -i structure_profile_scripts/placeholder_seqs/placeholder_seqs
 
-3. Edit pdb2vall.cfg
+4. Install/Update the RCSB PDB data by running:
+
+  ./database/rcsb_data/update_rcsb_data.pl
+
+
+  The script above should install/update from:
+     http://www.rcsb.org/pdb/files/ss_dis.txt.gz
+     ftp://ftp.wwpdb.org/pub/pdb/derived_data
+
+5. Edit pdb2vall.cfg
 
 
 Required Software

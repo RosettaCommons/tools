@@ -5,9 +5,11 @@ use Fcntl ':flock';
 
 # The PDB archive is updated on Wednesday 00:00 UTC which is Tuesday 4:00 PM PST
 # Return if it's not Tuesday-Thursday (to cover all timezones)
-my $wday = (localtime(time))[6]; # 0 is Sunday, 1 is Monday, 2 is Tuesday ....
-exit(0) if ($wday < 2 || $wday > 4);
 
+if (!scalar@ARGV) {
+  my $wday = (localtime(time))[6]; # 0 is Sunday, 1 is Monday, 2 is Tuesday ....
+  exit(0) if ($wday < 2 || $wday > 4);
+}
 
 # run rsyncPDB.sh with a minimum interval so we don't rsync the RCSB too often
 my $min_interval = 60 * 30; # 30 minutes
@@ -38,8 +40,8 @@ if ($diff > $min_interval) {
 # get the size of the recent update
 my $currsize = &gettotalsizefromlog($log);
 
-# only update ss_dis.txt if the RCSB archive was updated and ss_dis.txt is older than 4 days 
-# just to be safe so we don't update ss_dis.txt too often. ss_dis.txt is a big file and can 
+# only update ss_dis.txt if the RCSB archive was updated and ss_dis.txt is older than 4 days
+# just to be safe so we don't update ss_dis.txt too often. ss_dis.txt is a big file and can
 # only be retrieved via http and the RCSB http header does not provide Last-Modified info.
 my $ss_dis_diff = (-s "$Bin/ss_dis.txt") ? $epoch - (stat("$Bin/ss_dis.txt"))[8] : 7 * 60 * 60 * 24;
 if (  $prevsize != $currsize ||            # update if rsyncPDB.sh updated files

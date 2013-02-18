@@ -82,7 +82,21 @@ def sequence_recovery_group(native_struct,designed_struct,min,max):
 
 	return recovered
 
-	
+def sequence_composition_allowed_list(struct, allowed_residues):
+	"""calculate sequence composition by residue"""
+	struct_residues = struct.get_residues()
+	composition = {}
+	for residue in struct_residues:
+		full_id = residue.get_full_id()
+		residue_data = (full_id[3][1], full_id[2])
+		if residue_data not in allowed_residues:
+			continue
+		residue_name = residue.get_resname()
+		try:
+			composition[residue_name]+=1
+		except KeyError:
+			composition[residue_name] = 1 
+	return composition
 
 def sequence_composition(struct):
 	"""calculate sequence composition by residue"""
@@ -319,7 +333,7 @@ def atom_rms(atoms_a,atoms_b,residue_list=""):
 	resn = 0
 	for(atom_a,atom_b) in zip(atoms_a,atoms_b):
 		parent_a = atom_a.get_parent()
-		if parent_a.get_id()[1] in residue_list or residue_list == "":
+		if str(parent_a.get_id()[1]) in residue_list or residue_list == "":
 			#print "calculating for",parent_a.get_id()[1]
 			distance_2 = (atom_a-atom_b)**2
 			d_2_sum += distance_2
@@ -338,73 +352,104 @@ def copy_b_factor(native_pdb,designed_pdb):
 	return designed_pdb
 
 def calculate_rms(native,decoy,ca_mode,residues,rms_residues,chain):
-    native_atoms = []
-    decoy_atoms = []
-    residue_set = set()
-    rms_residue_set = set()
-    if residues is not "":
-        residue_file = open(residues,'r')
-        for residue in residue_file:
-            residue=residue.strip()
-            if residue is not '':
-                residue_set.add(int(residue))
-        residue_file.close()
+		native_atoms = []
+		decoy_atoms = []
+		residue_set = set()
+		rms_residue_set = set()
+		#check to see if we are calculating rmsd on just residues
+		if residues:
+			residue_file = open(residues,'r')
+			for residue in residue_file:
+				residue=residue.strip()
+				if residue is not '':
+					residue_set.add(int(residue))
+			residue_file.close()
 
-    if rms_residues is not "":
-        rms_residue_file = open(rms_residues,'r')
-        for rms_residue in rms_residue_file:
-            rms_residue = rms_residue.strip()
-            if rms_residue is not '':
-                rms_residue_set.add(int(rms_residue))
-        rms_residue_file.close()
+    #this seems redundant
+		if rms_residues:
+			rms_residue_file = open(rms_residues,'r')
+			for rms_residue in rms_residue_file:
+				rms_residue = rms_residue.strip()
+				if rms_residue is not '':
+					rms_residue_set.add(int(rms_residue))
+				rms_residue_file.close()
         
-    for(native_chain, decoy_chain) in zip (native[0].get_list(),decoy[0].get_list()):
-        if chain is not "":
-           if native_chain.get_id() != chain:
-               print "ignoring chain " + native_chain.get_id()
-               continue
-        for(native_residue, decoy_residue) in zip(native_chain.get_list(),decoy_chain.get_list()):
-           # if rms_residues is not "":
-           #     if native_residue.get_id()[1] not in rms_residue_set:
-           #         continue
-            if len(residue_set) > 0 and native_residue.id[1] in residue_set:
-                if ca_mode:
-                    try:
-                        native_atoms.append(native_residue['CA'])
-                        decoy_atoms.append(decoy_residue['CA'])
-                    except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
-                else:
-                    for (native_atom,decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
-                       # print native_atom
-			native_atoms.append(native_atom)
-                        decoy_atoms.append(decoy_atom)
-            elif len(residue_set) is 0:
-                if ca_mode:
-                    try:
-                        native_atoms.append(native_residue['CA'])
-                        decoy_atoms.append(decoy_residue['CA'])
-                    except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
-                else:
-                    for (native_atom,decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
-                        #print native_atom
-			native_atoms.append(native_atom)
-                        decoy_atoms.append(decoy_atom)
-    superpose = Superimposer()
-    superpose.set_atoms(native_atoms,decoy_atoms)
-    superpose.apply(decoy.get_atoms())
-    if rms_residues is not "":
-        return pdbStat.atom_rms(native_atoms,decoy_atoms,rms_residue_set)
-    else:
-        return superpose.rms
-
+    #only get atoms of a certain chain	
+		for(native_chain, decoy_chain) in zip (native[0].get_list(),decoy[0].get_list()):
+			if chain:
+				if native_chain.get_id() not in chain:
+					print "ignoring chain " + native_chain.get_id()
+					continue
+        #iterate through residues
+			for(native_residue, decoy_residue) in zip(native_chain.get_list(),decoy_chain.get_list()):
+ 					#check to see if it inclues our residues
+				if len(residue_set) > 0 and native_residue.id[1] in residue_set:
+					if ca_mode == "ca":
+						try:
+							native_atoms.append(native_residue['CA'])
+							decoy_atoms.append(decoy_residue['CA'])
+						except KeyError:
+							print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
+					elif ca_mode =="bb":
+							try:
+								native_atoms.append(native_residue['CA'])
+								native_atoms.append(native_residue['C'])
+								native_atoms.append(native_residue['O'])
+								native_atoms.append(native_residue['N'])
+								decoy_atoms.append(native_residue['CA'])
+								decoy_atoms.append(native_residue['C'])
+								decoy_atoms.append(native_residue['O'])
+								decoy_atoms.append(native_residue['N'])
+							except KeyError:
+								print "WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms"
+					elif ca_mode =="all":    
+						for (native_atom,decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
+							native_atoms.append(native_atom)
+							decoy_atoms.append(decoy_atom)
+					else:
+						print "you must specify a ca_mode, all,bb, or ca"
+						sys.exit()	
+				
+				#no residue set
+				else:
+					if ca_mode == 'ca':
+						try:
+							native_atoms.append(native_residue['CA'])
+							decoy_atoms.append(decoy_residue['CA'])
+						except KeyError:
+							print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
+					elif ca_mode == 'bb':
+						try:
+							native_atoms.append(native_residue['CA'])
+							native_atoms.append(native_residue['C'])
+							native_atoms.append(native_residue['O'])
+							native_atoms.append(native_residue['N'])  
+							decoy_atoms.append(native_residue['CA'])
+							decoy_atoms.append(native_residue['C'])
+							decoy_atoms.append(native_residue['N'])
+							decoy_atoms.append(native_residue['O'])
+						except KeyError:
+							print "WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms"	
+					elif ca_mode == 'all':
+						for (native_atom,decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
+							native_atoms.append(native_atom)
+							decoy_atoms.append(decoy_atom)
+					else:
+						print "you must specify a ca_mode, all,bb, or ca"
+						sys.exit()
+		superpose = Superimposer()
+		superpose.set_atoms(native_atoms,decoy_atoms)
+		superpose.apply(decoy.get_atoms())
+		if rms_residue_set:
+			return atom_rms(native_atoms,decoy_atoms,rms_residue_set)
+		else:
+			return atom_rms(native_atoms,decoy_atoms)
 def find_gaps(pdb,sequence,chain):
     """return a sequence with gaps in the pdb represented by - symbols"""
     #we can't trust the seqres record, it might not even exist, so get the sequence by looping through all the residues
     pdb_sequence = ""
     for residue in pdb.get_residues():
-        if residue.get_full_id()[2] != chain: #skip residues that aren't in the chain
+        if residue.get_full_id()[2] != chain and chain != 'ALL': #skip residues that aren't in the chain
             continue
         residue_name = Polypeptide.three_to_one(residue.get_resname())
         type(residue_name)
@@ -414,4 +459,3 @@ def find_gaps(pdb,sequence,chain):
     #print alignment
     return alignment[0][1]
     
-        

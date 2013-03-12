@@ -774,7 +774,7 @@ def SWA_rebuild_erraser( option ) :
 
     # PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
     #common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
-    common_cmd += " -jump_point_pairs %d %d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
 
     common_cmd += " -alignment_res 1-%d " % total_res
 

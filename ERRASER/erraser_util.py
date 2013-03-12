@@ -33,7 +33,7 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
     if  not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
-    name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
+    name_extensions = [".linuxgccdebug", ".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
     exe_path = ""
     for name in name_extensions :
         exe_path = exe_folder + exe_file + name
@@ -901,6 +901,9 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     and the CRYST1 line in the model.
     """
 
+    ##HAX for PHENIX conference working day
+    using_protein = True
+
     check_path_exist(input_pdb)
 
     atom_name_convert = { " OP1":" O1P", " OP2":" O2P", " OP3":" O3P",
@@ -912,7 +915,13 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG",
                          "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA",
                          "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU",
-                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC" }
+                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC",}
+
+    protein_res_names = ['ALA', 'ARG', 'ASN', 'ASP',
+                         'CYS', 'GLU', 'GLN', 'GLY',
+                         'HIS', 'ILE', 'LEU', 'LYS',
+                         'MET', 'PHE', 'PRO', 'SER',
+                         'THR', 'TRP', 'TYR', 'VAL']
 
     res_conversion_list = []
     fixed_res_list = []
@@ -940,6 +949,8 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 if res_name_convert.has_key(res_name) :
                     if use_rs_atom_res_name :
                         res_name = res_name_convert[res_name]
+                if using_protein and (res_name in protein_res_names):
+                    pass
                 else :
                     continue
 

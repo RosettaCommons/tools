@@ -546,7 +546,7 @@ def load_pdb_coord(input_pdb) :
 
         coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
         coord_res.append(coord_cur)
-        if line[13:16] == 'C1*' :
+        if line[13:16] == 'C1*' or line[13:16] == 'CA '  :
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
     if len(coord_C1) != len(coord_all) :
@@ -949,7 +949,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 if res_name_convert.has_key(res_name) :
                     if use_rs_atom_res_name :
                         res_name = res_name_convert[res_name]
-                if using_protein and (res_name in protein_res_names):
+                elif using_protein and (res_name in protein_res_names):
                     pass
                 else :
                     continue

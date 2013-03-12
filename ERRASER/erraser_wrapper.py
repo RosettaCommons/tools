@@ -346,7 +346,7 @@ def erraser_single_res( option ) :
             native_merge_pdb = native_pdb.replace('.pdb', '_merge.pdb')
         else :
             native_merge_pdb = minimize_option.out_pdb
-        
+
         #Output scores
         out_score = open("../scores.out" ,'w')
         for i in xrange(0, len(final_pdb_list) ) :
@@ -772,7 +772,10 @@ def SWA_rebuild_erraser( option ) :
         if n != rebuild_res_final :
             common_cmd += "%d " %n
 
-    common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+    # PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
+    #common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+    common_cmd += " -jump_point_pairs %d %d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+
     common_cmd += " -alignment_res 1-%d " % total_res
 
     common_cmd += " -rmsd_res %d " %(total_res)

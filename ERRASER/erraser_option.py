@@ -22,6 +22,7 @@ class erraser_option :
         self.use_existing_temp_folder = True
         self.new_torsional_potential = True
         self.corrected_geo = True
+        self.rna_prot_erraser = True
         self.rosetta_folder = ""
         self.rosetta_bin = ""
         self.rosetta_database = ""
@@ -79,6 +80,7 @@ class erraser_option :
         self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
         self.new_torsional_potential = parse_options( argv, "new_torsional_potential", "True" )
         self.corrected_geo = parse_options( argv, "corrected_geo", "True" )
+        self.rna_prot_erraser = parse_options( argv, "rna_prot_erraser", "False" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
@@ -129,6 +131,7 @@ class erraser_option :
         self.map_file = parse_options( argv, 'map', '' )
         self.out_pdb = parse_options( argv, 'out_pdb', '' )
         self.map_reso = parse_options( argv, 'map_reso', 2.5 )
+        self.rna_prot_erraser = parse_options( argv, "rna_prot_erraser", "False" )
         self.debug = parse_options( argv, "debug", "False" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
@@ -155,6 +158,7 @@ class erraser_option :
         self.map_file = parse_options( argv, 'map', '' )
         self.out_prefix = parse_options( argv, 'out_prefix', '' )
         self.map_reso = parse_options( argv, 'map_reso', 2.5 )
+        self.rna_prot_erraser = parse_options( argv, "rna_prot_erraser", "False" )
         self.debug = parse_options( argv, "debug", "False" )
         self.use_existing_temp_folder = parse_options( argv, "use_existing_temp_folder", "True" )
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')

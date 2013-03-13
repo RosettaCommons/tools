@@ -322,7 +322,7 @@ def parse_option_chain_res_list ( argv, tag ) :
     print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
-def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "" ) :
+def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
     """
     Call Rosetta to read in a pdb and output the model right away.
     Can be used to ensure the file have the rosetta format for atom name, ordering and phosphate OP1/OP2.
@@ -333,6 +333,8 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -native %s" % input_pdb
     command += " -out_pdb %s" % out_name
+    if ( rna_prot_erraser ) :
+        command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
@@ -340,7 +342,8 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     return True
 #####################################################
 def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
-                 rosetta_database = "", extract_first_only = False, output_virtual = False ):
+                 rosetta_database = "", extract_first_only = False, output_virtual = False, 
+                 rna_prot_erraser = False ):
     """
     Extract pdb's from Rosetta silent files.
     """
@@ -381,7 +384,8 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
     command += " -output_virtual " + str(output_virtual).lower()
-
+    if( rna_prot_erraser ) :
+        command += " -rna:rna_prot_erraser true -rna:corrected_geo true "
 
     print "######Start submitting the Rosetta command for extract_pdb##################"
     subprocess_call( command, sys.stdout, sys.stderr )
@@ -447,7 +451,13 @@ def pdb2fasta(input_pdb, fasta_out) :
     longer_names={' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
                   'ADE': 'a', 'CYT': 'c', 'GUA': 'g', 'URI': 'u',
                   'A  ': 'a', 'C  ': 'c', 'G  ': 'g', 'U  ': 'u',
-                  '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u'}
+                  '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
+                  'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
+                  'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
+                  'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
+                  'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
+                  'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'}
+
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -892,7 +902,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     output.close()
     return True
 ####################################
-def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True) :
+def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False) :
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
@@ -900,9 +910,6 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     a list of cutpoints (terminal residues) in the structure,
     and the CRYST1 line in the model.
     """
-
-    ##HAX for PHENIX conference working day
-    using_protein = True
 
     check_path_exist(input_pdb)
 

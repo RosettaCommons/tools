@@ -14,6 +14,10 @@ start_time=time.time()
 #####Input options#####################################
 input_pdb = parse_options(sys.argv, 'pdb', '')
 out_pdb = parse_options(sys.argv, 'out_pdb', basename(input_pdb).replace('.pdb', '_ready_set.pdb') )
+rna_prot_erraser = parse_options(sys.argv, 'rna_prot_erraser', 'False')
+
+if(rna_prot_erraser not in [True, False]):
+    error_exit("Error: rna_prot_erraser must be boolean true or false")
 
 if input_pdb =="" :
     error_exit("Error: USER need to specify -pdb option")
@@ -28,8 +32,8 @@ temp_file = '%s/%s_temp_rs.pdb' % (base_dir, basename(input_pdb).replace('.pdb',
 input_pdb = abspath(input_pdb)
 out_pdb = abspath(out_pdb)
 
-[res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(input_pdb, temp_file)
-rna_rosetta_ready_set(temp_file, out_pdb)
+[res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(input_pdb, temp_file, using_protein = rna_prot_erraser)
+rna_rosetta_ready_set(temp_file, out_pdb, rna_prot_erraser=rna_prot_erraser)
 remove(temp_file)
 
 sys.stdout.write( "cutpoint in Rosetta pdb file: " )

@@ -435,6 +435,10 @@ def erraser_minimize( option ) :
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
 
+    #Rescue the minimization default before r53221
+    command += " -scale_d 100 "
+    command += " -scale_theta 10 "
+
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
         for i in option.fixed_res_rs :

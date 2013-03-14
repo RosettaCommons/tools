@@ -18,7 +18,7 @@ from measure_params import compute_torsion, compute_dist, compute_squared_dist, 
 #####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
-    Return the absolute path to the given exexutable file in Rosetta.
+    Return the absolute path to the given executable file in Rosetta.
     If no input is given, return the Rosetta bin folder path.
     Only the prefix should be given. Rosetta will figure out the rest.
     User can provides either the Rosetta root path or the binary path as optional input,
@@ -30,10 +30,11 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
     exe_folder = rosetta_folder + "/rosetta_source/bin/" #Default Rosetta folder structure
-    if  not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
+    if not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
-    name_extensions = [".linuxgccdebug", ".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
+    name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease",
+                       "failed_to_find_Rosetta_path"] #this makes a better error message if pathing fails
     exe_path = ""
     for name in name_extensions :
         exe_path = exe_folder + exe_file + name
@@ -442,7 +443,7 @@ def find_error_res(input_pdb) :
     error_res_final.sort()
     return error_res_final
 #############################################
-def pdb2fasta(input_pdb, fasta_out) :
+def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
     """
     Extract fasta info from pdb.
     """
@@ -451,13 +452,15 @@ def pdb2fasta(input_pdb, fasta_out) :
     longer_names={' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
                   'ADE': 'a', 'CYT': 'c', 'GUA': 'g', 'URI': 'u',
                   'A  ': 'a', 'C  ': 'c', 'G  ': 'g', 'U  ': 'u',
-                  '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
-                  'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
-                  'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
-                  'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
-                  'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
-                  'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'}
+                  '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u'}
 
+    if (using_protein):
+        longer_names.update( { 'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
+                               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
+                               'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
+                               'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
+                               'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
+    
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -556,7 +559,8 @@ def load_pdb_coord(input_pdb) :
 
         coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
         coord_res.append(coord_cur)
-        if line[13:16] == 'C1*' or line[13:16] == 'CA '  :
+        if line[13:16] == 'C1*' or line[13:16] == 'CA ' :
+            #NOTICE: CA matching is a PHENIX conference rna_prot_erraser hack
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
     if len(coord_C1) != len(coord_all) :

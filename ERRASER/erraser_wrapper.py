@@ -753,7 +753,7 @@ def SWA_rebuild_erraser( option ) :
 
     #####################Create fasta file########################
     fasta_file=temp_folder + '/fasta'
-    pdb2fasta(native_pdb_final, fasta_file)
+    pdb2fasta(native_pdb_final, fasta_file, using_protein = option.rna_prot_erraser)
     #########################Common Options######################
     common_cmd = ""
 
@@ -773,9 +773,12 @@ def SWA_rebuild_erraser( option ) :
         if n != rebuild_res_final :
             common_cmd += "%d " %n
 
-    # PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
-    #common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
-    common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
+    #protein case
+    if option.rna_prot_erraser :
+        common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    else : #RNA only original case
+        common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
 
     common_cmd += " -alignment_res 1-%d " % total_res
 

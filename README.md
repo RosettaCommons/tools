@@ -7,7 +7,7 @@ Configure Rosetta
 -----------------
 via `curl`
 ```
-curl -L https://github.com/RosettaCommons/rosetta_tools/raw/master/configure_rosetta_repo.sh | sh
+curl -u $USERNAME -L https://github.com/RosettaCommons/rosetta_tools/raw/master/configure_rosetta_repo.sh -o rosetta.sh | sh rosetta.sh
 ```
 
 via `wget`

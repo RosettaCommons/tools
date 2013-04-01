@@ -7,12 +7,5 @@ Configure Rosetta
 -----------------
 via `curl`
 ```
-curl -u $USERNAME -L https://github.com/RosettaCommons/rosetta_tools/raw/master/configure_rosetta_repo.sh -o rosetta.sh | sh rosetta.sh
+tmp=$(date +%Y%m%d%H%M); curl -u $USER -L https://github.com/RosettaCommons/rosetta_tools/raw/master/configure_rosetta_repo.sh > $tmp && sh $tmp && rm $tmp
 ```
-
-via `wget`
-
-```
-wget --no-check-certificate https://github.com/RosettaCommons/rosetta_tools/raw/master/configure_rosetta_repo.sh -O - | sh
-```
-

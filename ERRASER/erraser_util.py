@@ -18,7 +18,7 @@ from measure_params import compute_torsion, compute_dist, compute_squared_dist, 
 #####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
-    Return the absolute path to the given exexutable file in Rosetta.
+    Return the absolute path to the given executable file in Rosetta.
     If no input is given, return the Rosetta bin folder path.
     Only the prefix should be given. Rosetta will figure out the rest.
     User can provides either the Rosetta root path or the binary path as optional input,
@@ -30,10 +30,11 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
     exe_folder = rosetta_folder + "/rosetta_source/bin/" #Default Rosetta folder structure
-    if  not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
+    if not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
-    name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
+    name_extensions = [".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease",
+                       "failed_to_find_Rosetta_path"] #this makes a better error message if pathing fails
     exe_path = ""
     for name in name_extensions :
         exe_path = exe_folder + exe_file + name
@@ -322,7 +323,7 @@ def parse_option_chain_res_list ( argv, tag ) :
     print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
-def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "" ) :
+def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
     """
     Call Rosetta to read in a pdb and output the model right away.
     Can be used to ensure the file have the rosetta format for atom name, ordering and phosphate OP1/OP2.
@@ -333,6 +334,8 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -native %s" % input_pdb
     command += " -out_pdb %s" % out_name
+    if ( rna_prot_erraser ) :
+        command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
@@ -340,7 +343,8 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     return True
 #####################################################
 def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
-                 rosetta_database = "", extract_first_only = False, output_virtual = False ):
+                 rosetta_database = "", extract_first_only = False, output_virtual = False, 
+                 rna_prot_erraser = False ):
     """
     Extract pdb's from Rosetta silent files.
     """
@@ -381,7 +385,8 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
     command += " -output_virtual " + str(output_virtual).lower()
-
+    if( rna_prot_erraser ) :
+        command += " -rna:rna_prot_erraser true -rna:corrected_geo true "
 
     print "######Start submitting the Rosetta command for extract_pdb##################"
     subprocess_call( command, sys.stdout, sys.stderr )
@@ -438,7 +443,7 @@ def find_error_res(input_pdb) :
     error_res_final.sort()
     return error_res_final
 #############################################
-def pdb2fasta(input_pdb, fasta_out) :
+def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
     """
     Extract fasta info from pdb.
     """
@@ -448,6 +453,14 @@ def pdb2fasta(input_pdb, fasta_out) :
                   'ADE': 'a', 'CYT': 'c', 'GUA': 'g', 'URI': 'u',
                   'A  ': 'a', 'C  ': 'c', 'G  ': 'g', 'U  ': 'u',
                   '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u'}
+
+    if (using_protein):
+        longer_names.update( { 'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
+                               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
+                               'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
+                               'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
+                               'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
+    
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -546,7 +559,8 @@ def load_pdb_coord(input_pdb) :
 
         coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
         coord_res.append(coord_cur)
-        if line[13:16] == 'C1*' :
+        if line[13:16] == 'C1*' or line[13:16] == 'CA ' :
+            #NOTICE: CA matching is a PHENIX conference rna_prot_erraser hack
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
     if len(coord_C1) != len(coord_all) :
@@ -892,7 +906,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     output.close()
     return True
 ####################################
-def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True) :
+def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False) :
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
@@ -912,7 +926,13 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG",
                          "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA",
                          "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU",
-                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC" }
+                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC",}
+
+    protein_res_names = ['ALA', 'ARG', 'ASN', 'ASP',
+                         'CYS', 'GLU', 'GLN', 'GLY',
+                         'HIS', 'ILE', 'LEU', 'LYS',
+                         'MET', 'PHE', 'PRO', 'SER',
+                         'THR', 'TRP', 'TYR', 'VAL']
 
     res_conversion_list = []
     fixed_res_list = []
@@ -940,6 +960,8 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 if res_name_convert.has_key(res_name) :
                     if use_rs_atom_res_name :
                         res_name = res_name_convert[res_name]
+                elif using_protein and (res_name in protein_res_names):
+                    pass
                 else :
                     continue
 

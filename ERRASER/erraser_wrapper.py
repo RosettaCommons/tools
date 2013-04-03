@@ -45,9 +45,9 @@ def erraser( option ) :
     os.chdir(temp_dir)
     regularized_input_pdb = basename(option.input_pdb).replace('.pdb', '_regularized.pdb')
     regularize_pdb(option.input_pdb, regularized_input_pdb)
-    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb')
+    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
     if not exists('minimize_0.pdb') :
-        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option.rosetta_bin, option.rosetta_database)
+        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
     else :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
@@ -250,7 +250,7 @@ def erraser_single_res( option ) :
 
     regularized_input_pdb = basename(option.input_pdb).replace('.pdb', '_regularized.pdb')
     regularize_pdb(option.input_pdb, regularized_input_pdb)
-    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb')
+    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
     cutpoint_final.sort()
     fixed_res_final.sort()
     option.fixed_res_rs = fixed_res_final
@@ -346,7 +346,7 @@ def erraser_single_res( option ) :
             native_merge_pdb = native_pdb.replace('.pdb', '_merge.pdb')
         else :
             native_merge_pdb = minimize_option.out_pdb
-        
+
         #Output scores
         out_score = open("../scores.out" ,'w')
         for i in xrange(0, len(final_pdb_list) ) :
@@ -429,10 +429,15 @@ def erraser_minimize( option ) :
         command += " -score:rna_torsion_potential RNA11_based_new "
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    command += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     command += " -vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
+
+    #Rescue the minimization default before r53221
+    command += " -scale_d 100 "
+    command += " -scale_theta 10 "
 
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
@@ -752,7 +757,7 @@ def SWA_rebuild_erraser( option ) :
 
     #####################Create fasta file########################
     fasta_file=temp_folder + '/fasta'
-    pdb2fasta(native_pdb_final, fasta_file)
+    pdb2fasta(native_pdb_final, fasta_file, using_protein = option.rna_prot_erraser)
     #########################Common Options######################
     common_cmd = ""
 
@@ -772,7 +777,13 @@ def SWA_rebuild_erraser( option ) :
         if n != rebuild_res_final :
             common_cmd += "%d " %n
 
-    common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+    #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
+    #protein case
+    if option.rna_prot_erraser :
+        common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    else : #RNA only original case
+        common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+
     common_cmd += " -alignment_res 1-%d " % total_res
 
     common_cmd += " -rmsd_res %d " %(total_res)
@@ -793,6 +804,7 @@ def SWA_rebuild_erraser( option ) :
     if option.new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     ################Sampler Options##################################
     if not is_chain_break :
         sampling_cmd = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '
@@ -963,14 +975,14 @@ def SWA_rebuild_erraser( option ) :
             output.write("No silent file is being output during rebuilding")
 
         if option.verbose and exists(precluster_filename) :
-            extract_pdb(precluster_filename, precluster_pdb_folder, option.rosetta_bin, option.rosetta_database)
+            extract_pdb(precluster_filename, precluster_pdb_folder, option.rosetta_bin, option.rosetta_database, rna_prot_erraser=option.rna_prot_erraser)
         if exists(cluster_filename) :
-            extract_pdb(cluster_filename, output_pdb_folder, option.rosetta_bin, option.rosetta_database)
+            extract_pdb(cluster_filename, output_pdb_folder, option.rosetta_bin, option.rosetta_database, rna_prot_erraser=option.rna_prot_erraser)
 
     else : #Fast outputing
         out_slient_file = "%s/blah.out"  % sampling_folder
         if exists(out_slient_file) :
-            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True)
+            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True, rna_prot_erraser=option.rna_prot_erraser)
 
     ##############Merge the sliced region back to starting pdb######
     if option.slice_nearby :

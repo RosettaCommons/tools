@@ -10,7 +10,8 @@
 # configure_rosetta_repo.sh
 
 #is the current branch tracked?
-git rev-parse --symbolic-full-name HEAD@{u} >& /dev/null
+git_upstream=`git rev-parse --symbolic-full-name HEAD@{u} 2> /dev/null`
+
 if [ ! $? -eq 0 ]; then
     branch_name=`git rev-parse --abbrev-ref HEAD`
     echo ""
@@ -24,4 +25,6 @@ if [ ! $? -eq 0 ]; then
     echo "git branch --set-upstream $branch_name origin/$branch_name"
     echo "***********************************************************"
     echo ""
+else
+    echo "test"
 fi

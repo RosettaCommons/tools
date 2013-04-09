@@ -14,15 +14,20 @@
 # Author:  Brian D. Weitzner (brian.weitzner@gmail.com)                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-repo="rosetta"
+if [ -z "$1" ]; then
+	echo "Your GitHub user name must be supplied as an argument to this script!"
+	exit
+fi
 
+github_user_name=$1
+repo="rosetta"
 while true; do
     read -p "Where do you to clone $repo? " path
     if [ ! -d $path ]
     then
-        echo "\033[0;33m\'$path\' does not exist!\033[0m You'll need to create $path if you want to install rosetta there."
+        echo "\033[0;33m'$path' does not exist!\033[0m You'll need to create '$path' if you want to install rosetta there."
         while true; do
-            read -p "\033[0;34mWould you like to create this directory now?\033[0m " yn
+            read -p "Would you like to create this directory now? " yn
             case $yn in
                 [Yy]* ) mkdir $path; break;;
                 [Nn]* ) exit;;
@@ -50,6 +55,21 @@ while true; do
     echo "\033[0;32m"'    \/__/         \/__/         \/__/         \/__/             \/__/      \/__/   \/__/     '"\033[0m"
 
     echo "\n\n \033[0;32m....is now cloned.\033[0m"
-
+	
+	echo "Disabling fast-forward merges on master..."
+	cd $path/$repo && git config branch.master.mergeoptions "--no-ff"
+	echo "Configuring commit message template..."
+	git config commit.template .commit_template.txt
+	cd -
+	cd $path/$repo/.git/hooks
+	
+	url="https://github.com/RosettaCommons/rosetta_tools/raw/master"
+	for hook in pre-commit post-commit; do 
+		echo "Configuring the $hook hook..."
+		curl -u $github_user_name -L $url/git_hooks/$hook > $hook
+		chmod +x $hook
+	done
+	
+	cd -
     break;
 done

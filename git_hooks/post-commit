@@ -8,3 +8,6 @@
 #
 # This script is inserted in the .git/hooks directory of repositories setup with
 # configure_rosetta_repo.sh
+
+#is the current 
+git rev-parse --symbolic-full-name git_hooks@{u} > /dev/null

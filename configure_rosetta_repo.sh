@@ -65,7 +65,8 @@ while true; do
 	echo "\033[0;34mConfiguring commit message template...\033[0m"
 	git config commit.template .commit_template.txt
 	
-	cd .git/hooks	
+	cd .git/hooks
+	url="https://github.com/RosettaCommons/rosetta_tools/raw/master"
 	for hook in pre-commit post-commit; do 
 		echo "\033[0;34mConfiguring the $hook hook...\033[0m"
 		curl -u $github_user_name -L $url/git_hooks/$hook > $hook

@@ -28,9 +28,13 @@ if [ ! $upstream_status -eq 0 ]; then
     echo ""
 else
     unpushed_count=`git log --oneline $git_upstream..$branch_name |wc -l |tr -d ' '`
+    echo ""
+    echo "*************************************************************"
     echo "You have $unpushed_count commits that you haven't pushed yet"
     echo "It's important to frequently push your commits"
     echo "Consider doing so now with the following command:"
     echo ""
     echo "git push origin $branch_name"
+    echo "*************************************************************"
+    echo ""
 fi

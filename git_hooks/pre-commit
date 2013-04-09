@@ -8,15 +8,36 @@
 # This script is inserted in the .git/hooks directory of repositories setup with
 # configure_rosetta_repo.sh
 
+os_type=`uname`
 
-read -p "Would you like to make this commit? " -n 1 -r < /dev/tty
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-    then
-    echo ""
-    echo "aborting commit"
-    exit 1
+files_modified=`git diff-index --cached --name-only HEAD`
+
+large_files=false
+for current_file in $files_modified
+do
+    #the stat command is different in linux and os x because the universe is a terrible place
+    
+    file_size=0
+    if [ $os_type == "Linux" ]; then
+        file_size=`stat -c "%s" $current_file`
+    elif [ $os_type == "Darwin" ]; then
+        file_size=`stat -f "%z" $current_file`
+    fi
+    if [ $file_size -gt 2000000 ]; then
+        echo "Warning: $current_file is larger than 2mb"
+        large_files=true
+    fi
+done
+
+if $large_files; then
+    echo "You are committing one or more large files"
+    read -p "Would you like to make this commit? [y/N] " -n 1 -r < /dev/tty
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "Cancelling commit"
+        exit 1
+    fi
 fi
 
-echo "making commit"
 exit 0
     

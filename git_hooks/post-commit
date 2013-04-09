@@ -9,5 +9,15 @@
 # This script is inserted in the .git/hooks directory of repositories setup with
 # configure_rosetta_repo.sh
 
-#is the current 
-git rev-parse --symbolic-full-name git_hooks@{u} > /dev/null
+#is the current branch tracked?
+git rev-parse --symbolic-full-name HEAD@{u} >& /dev/null
+if [ ! $? -eq 0 ]; then
+    branch_name=`git rev-parse --abbrev-ref HEAD`
+    echo "Warning: the current branch is untracked by the remote"
+    echo "You should push this branch if you have not done so"
+    echo "With the following command:"
+    echo ""
+    echo "git push -u origin $branch_name"
+    echo "if this branch has already bin pushed, enable tracking with"
+    echo "git branch --set-upstream $branch_name origin/$branch_name"
+fi

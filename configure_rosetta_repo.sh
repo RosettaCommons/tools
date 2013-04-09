@@ -56,20 +56,23 @@ while true; do
 
     echo "\n\n \033[0;32m....is now cloned.\033[0m"
 	
-	echo "Disabling fast-forward merges on master..."
-	cd $path/$repo && git config branch.master.mergeoptions "--no-ff"
-	echo "Configuring commit message template..."
-	git config commit.template .commit_template.txt
-	cd -
-	cd $path/$repo/.git/hooks
+	starting_dir=pwd
+	cd $path/$repo
 	
-	url="https://github.com/RosettaCommons/rosetta_tools/raw/master"
+	echo "\033[0;34mDisabling fast-forward merges on master...\033[0m"
+	git config branch.master.mergeoptions "--no-ff"
+	
+	echo "\033[0;34mConfiguring commit message template...\033[0m"
+	git config commit.template .commit_template.txt
+	
+	cd .git/hooks	
 	for hook in pre-commit post-commit; do 
-		echo "Configuring the $hook hook..."
+		echo "\033[0;34mConfiguring the $hook hook...\033[0m"
 		curl -u $github_user_name -L $url/git_hooks/$hook > $hook
 		chmod +x $hook
 	done
 	
-	cd -
+	cd $starting_dir
+	echo "\033[0;32mDone configuring your Rosetta git repository!\033[0m"
     break;
 done

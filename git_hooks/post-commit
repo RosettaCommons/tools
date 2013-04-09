@@ -11,9 +11,9 @@
 
 #is the current branch tracked?
 git_upstream=`git rev-parse --symbolic-full-name HEAD@{u} 2> /dev/null`
-
-if [ ! $? -eq 0 ]; then
-    branch_name=`git rev-parse --abbrev-ref HEAD`
+upstream_status=$?
+branch_name=`git rev-parse --abbrev-ref HEAD`
+if [ ! $upstream_status -eq 0 ]; then
     echo ""
     echo "**********************************************************"
     echo "Warning: the current branch is untracked by the remote"
@@ -22,9 +22,15 @@ if [ ! $? -eq 0 ]; then
     echo ""
     echo "git push -u origin $branch_name"
     echo "if this branch has already bin pushed, enable tracking with"
+    echo ""
     echo "git branch --set-upstream $branch_name origin/$branch_name"
     echo "***********************************************************"
     echo ""
 else
-    echo "test"
+    unpushed_count=`git log --oneline $git_upstream..$branch_name |wc -l |tr -d ' '`
+    echo "You have $unpushed_count commits that you haven't pushed yet"
+    echo "It's important to frequently push your commits"
+    echo "Consider doing so now with the following command:"
+    echo ""
+    echo "git push origin $branch_name"
 fi

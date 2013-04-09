@@ -2,7 +2,7 @@
 
 from sys import argv,exit
 from os import system,getcwd,popen
-from os.path import basename,dirname,expanduser,exists
+from os.path import basename,dirname,expanduser,exists,expandvars
 import string
 
 def Help():
@@ -144,12 +144,10 @@ for line in  lines:
         tot_jobs += 1
 
     EXE = cols[ 0 ]
-    if not exists( EXE ): EXE = EXE.replace( 'linux', 'macos' )
-    if not exists( EXE ): EXE = EXE.replace( 'macos', 'linux' )
+    rosetta_folder = expandvars("$ROSETTA")
     if not exists( EXE ):
-        EXE = HOMEDIR + '/src/rosetta_TRUNK/rosetta_source/bin/'+EXE
-    if not exists( EXE ):
-        EXE = HOMEDIR + '/src/mini/bin/'+EXE
+        EXE = rosetta_folder + '/rosetta_source/bin/'+EXE
+        print EXE
         assert( exists( EXE ) )
     arguments = string.join( cols[ 1: ] )
 

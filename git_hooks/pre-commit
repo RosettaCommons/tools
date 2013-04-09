@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/bash 
 
 # This script is run before a git-commit.  It is executed every time 'git commit' is executed
 # Currently, this script checks for large incoming files and prompts the user for confirmation
@@ -7,3 +7,16 @@
 # non-zero status exits will abort the commit, status of zero will continue.
 # This script is inserted in the .git/hooks directory of repositories setup with
 # configure_rosetta_repo.sh
+
+
+read -p "Would you like to make this commit? " -n 1 -r < /dev/tty
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+    then
+    echo ""
+    echo "aborting commit"
+    exit 1
+fi
+
+echo "making commit"
+exit 0
+    

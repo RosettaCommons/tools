@@ -56,7 +56,7 @@ echo "\033[0;32m"'    \/__/         \/__/         \/__/         \/__/           
 
 echo "\n\n \033[0;32m....is now cloned.\033[0m"
 
-starting_dir=pwd
+starting_dir=$PWD
 cd $path/$repo
 
 echo "\033[0;34mDisabling fast-forward merges on master...\033[0m"
@@ -72,7 +72,6 @@ for hook in pre-commit post-commit; do
 	curl -u $github_user_name -L $url/git_hooks/$hook > $hook
 	chmod +x $hook
 done
-
 
 echo "\033[0;34mConfiguring aliases...\033[0m"
 git config alias.tracked-branch "\!sh -c 'git checkout -b \$1 && git push origin \$1:\$2/\$1 && git branch --set-upstream \$1  origin/\$2/\$1' -"

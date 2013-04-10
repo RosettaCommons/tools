@@ -36,8 +36,10 @@ then
 	done
 fi  
 
+path="$path/"
+
 echo "\033[0;34mCloning Rosetta...\033[0m"
-hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $path/$repo || {
+hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $path$repo || {
 echo "git is not installed!"
 exit
 }
@@ -56,7 +58,7 @@ echo "\033[0;32m"'    \/__/         \/__/         \/__/         \/__/           
 
 echo "\n\n \033[0;32m....is now cloned.\033[0m"
 
-starting_dir=pwd
+starting_dir=$PWD
 cd $path/$repo
 
 echo "\033[0;34mDisabling fast-forward merges on master...\033[0m"

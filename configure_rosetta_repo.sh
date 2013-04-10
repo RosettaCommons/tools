@@ -36,21 +36,13 @@ then
 	done
 fi  
 
+path="$path/"
 
 echo "\033[0;34mCloning Rosetta...\033[0m"
-
-if [ $path == "" ]
-then
-    hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $repo || {
-        echo "git is not installed!"
-        exit
-    }
-else
-    hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $path/$repo || {
-        echo "git is not installed!"
-        exit
-    }
-fi
+hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $path$repo || {
+echo "git is not installed!"
+exit
+}
 								
 echo "\033[0;32m"'     ___           ___           ___           ___           __         ___         ___      '"\033[0m"
 echo "\033[0;32m"'    /\  \         /\  \         /\__\         /\__\         /\__\      /\__\       /\  \     '"\033[0m"

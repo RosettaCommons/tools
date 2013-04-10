@@ -15,16 +15,16 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 if [ -z "$1" ]; then
-	echo "Your GitHub user name must be supplied as the first argument to this script!"
-	exit
-fi
-if [ -z "$2" ]; then
-	echo "Your GitHub password must be supplied as the second argument to this script!"
+	echo "Your GitHub user name must be the first argument to this script!"
 	exit
 fi
 
+if [ -z "$2" ]; then
+    echo "Your GitHub password must be the second argument to this script!"
+fi
+
 github_user_name=$1
-github_passowrd=$2
+github_password=$2
 repo="rosetta"
 
 read -p "Where do you to clone $repo? " path
@@ -79,7 +79,7 @@ cd .git/hooks
 url="https://github.com/RosettaCommons/rosetta_tools/raw/master"
 for hook in pre-commit post-commit; do 
 	echo "\033[0;34mConfiguring the $hook hook...\033[0m"
-	curl -u $github_user_name:$github_passowrd -L $url/git_hooks/$hook > $hook
+	curl -u $github_user_name:$github_password -L $url/git_hooks/$hook > $hook
 	chmod +x $hook
 done
 

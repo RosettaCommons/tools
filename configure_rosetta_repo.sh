@@ -88,3 +88,4 @@ git config --global color.status auto
 	
 cd $starting_dir
 echo "\033[0;32mDone configuring your Rosetta git repository!\033[0m"
+echo "\033[0;32mRemember to check out rosetta_tools and rosetta_demos repositories!\033[0m"

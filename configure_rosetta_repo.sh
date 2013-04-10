@@ -75,7 +75,6 @@ for hook in pre-commit post-commit; do
 	chmod +x $hook
 done
 
-
 echo "\033[0;34mConfiguring aliases...\033[0m"
 git config alias.tracked-branch "\!sh -c 'git checkout -b \$1 && git push origin \$1:\$2/\$1 && git branch --set-upstream \$1  origin/\$2/\$1' -"
 git config alias.personal-tracked-branch "\!sh -c 'git tracked-branch \$1 $github_user_name' -"
@@ -90,3 +89,4 @@ git config --global color.status auto
 	
 cd $starting_dir
 echo "\033[0;32mDone configuring your Rosetta git repository!\033[0m"
+echo "\033[0;32mRemember to check out rosetta_tools and rosetta_demos repositories!\033[0m"

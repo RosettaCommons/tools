@@ -27,8 +27,11 @@ github_password=$2
 repo="rosetta"
 
 read -p "Where do you to clone $repo? " path
-if [ ! -d $path ]
-then
+if [ -z $path ]; then
+	path="."
+fi
+
+if [ ! -d $path ]; then
 	echo "\033[0;33m'$path' does not exist!\033[0m You'll need to create '$path' if you want to install rosetta there."
 	while true; do
 		read -p "Would you like to create this directory now? " yn

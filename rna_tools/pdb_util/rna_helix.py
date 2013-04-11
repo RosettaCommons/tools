@@ -11,8 +11,6 @@ parser.add_argument('-resnum', nargs=2, help='Renumber the residues with inputfo
 parser.add_argument('-o', default='helix.pdb', help='Filename of output pdb')
 args = parser.parse_args()
 
-print args
-
 
 #Build the helix
 temp = tempfile.NamedTemporaryFile(delete=False)
@@ -23,7 +21,7 @@ cmdline += '-o %s ' % temp.name
 cmdline += '-seq '
 for i in args.seq:
     cmdline += i + ' '
-print cmdline
+print 'Rosetta cmdline:', cmdline
 subprocess.check_call(cmdline.split())
 
 #Renumber the pdb

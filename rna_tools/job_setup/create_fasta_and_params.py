@@ -7,6 +7,7 @@ from os.path import exists
 from parse_options import parse_options
 from make_tag import make_tag, make_tag_with_dashes
 import string
+from rosetta_exe import rosetta_exe
 
 # I could make this a little bit smarter:
 # if I look at input_res, I should be able to figure out obligate pairs "on the fly", right? This
@@ -310,7 +311,8 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
 print
 print "Sample command line: "
 
-command = "rna_denovo  -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna" % (params_file, fasta_file, tag )
+command  = rosetta_exe('rna_denovo')
+command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna" % (params_file, fasta_file, tag )
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb

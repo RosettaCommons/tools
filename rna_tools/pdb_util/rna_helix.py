@@ -2,7 +2,7 @@
 import argparse
 import tempfile
 import subprocess
-import os
+import shutil 
 from renumber_pdb_in_place import renumber_pdb
 from parse_options import get_ints
 
@@ -28,12 +28,12 @@ subprocess.check_call(cmdline.split())
 #Renumber the pdb
 if args.resnum is None:
     temp.close()
-    os.rename(temp.name, args.o)
+    shutil.move(temp.name, args.o)
 else: #renumbering
     new_numbers = []
     for i in args.resnum:
         get_ints(i, new_numbers)
     renumber_pdb([temp.name], new_numbers)
     temp.close()
-    os.rename(temp.name, args.o)
+    shutil.move(temp.name, args.o)
 

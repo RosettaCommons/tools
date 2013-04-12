@@ -27,7 +27,7 @@ github_user_name=$1
 github_password=$2
 repo="rosetta"
 
-read -p "Where do you to clone $repo? " path
+read -p "Where would you like to clone $repo? " path
 if [ -z $path ]; then
 	path="."
 fi
@@ -84,8 +84,9 @@ for hook in pre-commit post-commit; do
 done
 
 echo "\033[0;34mConfiguring aliases...\033[0m"
-git config alias.tracked-branch "\!sh -c 'git checkout -b \$1 && git push origin \$1:\$2/\$1 && git branch --set-upstream \$1  origin/\$2/\$1' -"
-git config alias.personal-tracked-branch "\!sh -c 'git tracked-branch \$1 $github_user_name' -"
+git config alias.tracked-branch '!sh -c "git checkout -b $1 && git push origin $1:$2/$1 && git branch --set-upstream $1  origin/$2/$1" -'
+git config alias.personal-tracked-branch '!sh -c "git tracked-branch $1 $github_user_name" -'
+sed -ie "s/\$github_user_name/$github_user_name/g" .git/config
 
 git config --global alias.show-graph "log --graph --abbrev-commit --pretty=oneline"
 
@@ -94,7 +95,7 @@ git config --global color.branch auto
 git config --global color.diff auto
 git config --global color.interactive auto
 git config --global color.status auto
-	
+
 cd $starting_dir
 echo "\033[0;32mDone configuring your Rosetta git repository!\033[0m"
 echo "\033[0;32mRemember to check out rosetta_tools and rosetta_demos repositories!\033[0m"

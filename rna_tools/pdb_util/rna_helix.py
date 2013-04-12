@@ -2,9 +2,10 @@
 import argparse
 import tempfile
 import subprocess
-import shutil 
+import shutil
 from renumber_pdb_in_place import renumber_pdb
 from parse_options import get_ints
+from rosetta_exe import rosetta_exe
 
 parser = argparse.ArgumentParser(description='Run rna_helix to build a helix')
 parser.add_argument('-seq', required=True, help='Sequence of the helix, in the format: ggaa uucc', nargs=2 )
@@ -15,7 +16,8 @@ args = parser.parse_args()
 
 #Build the helix
 temp = tempfile.NamedTemporaryFile(delete=False)
-cmdline = ( 'rna_helix  -rna::corrected_geo  -score::weights rna/rna_helix ' +
+cmdline  = rosetta_exe('rna_helix')
+cmdline += (' -rna::corrected_geo  -score::weights rna/rna_helix ' +
             '-score:rna_torsion_potential RNA11_based_new ' +
             '-geom_sol_correct_acceptor_base -chemical::enlarge_H_lj ')
 cmdline += '-o %s ' % temp.name

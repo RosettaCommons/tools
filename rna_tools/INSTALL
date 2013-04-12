@@ -1,0 +1,7 @@
+#Runs the commands
+python sym_link.py
+
+#Add the following lines to your ~/.bashrc
+export PATH=$PATH:$HOME/src/rosetta/rosetta_tools/rna_tools/bin/
+export PYTHONPATH=$PYTHONPATH:$HOME/src/rosetta/rosetta_tools/rna_tools/bin/
+

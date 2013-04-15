@@ -11,7 +11,8 @@
 # Brief:   This shell script clones repositories from GitHub and configures   #
 #          them to play nicely with how our community is organized.           #
 #                                                                             #
-# Author:  Brian D. Weitzner (brian.weitzner@gmail.com)                       #
+# Authors:  Brian D. Weitzner (brian.weitzner@gmail.com)                      #
+#           Tim Jacobs (TimJacobs2@gmail.com)                                 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 if [ -z "$1" ]; then
@@ -47,8 +48,8 @@ fi
 while true; do
 	read -p "Would you like to clone over ssh (s) or https (h)? Note: ssh keys are required for cloning over ssh (Default: ssh)" protocol
 	case $protocol in
-		[Ss] | [Ss][Ss][Hs] | "" ) url=git@github.com:RosettaCommons/; break;;
-		[Hh] | [Hh][Tt][Tt][Ps][Ss] ) url=https://github.com/RosettaCommons/; break;;
+		[Ss] | [Ss][Ss][Hh] | "" ) url=git@github.com:RosettaCommons/; break;;
+		[Hh] | [Hh][Tt][Tt][Pp][Ss] ) url=https://github.com/RosettaCommons/; break;;
 	*) echo "Please answer ssh (s) or https (h).";;
 	esac
 done
@@ -57,7 +58,7 @@ path="$path/"
 
 echo "\033[0;34mCloning Rosetta...\033[0m"
 hash git >/dev/null && /usr/bin/env git clone $url$repo.git $path$repo || {
-echo "git is not installed!"
+echo "Can't clone! It's likely that git is not installed and/or you are cloning over SSH without ssh keys setup."
 exit
 }
 								

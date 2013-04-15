@@ -58,7 +58,7 @@ path="$path/"
 
 echo "\033[0;34mCloning Rosetta...\033[0m"
 hash git >/dev/null && /usr/bin/env git clone $url$repo.git $path$repo || {
-echo "Can't clone! It's likely that git is not installed and/or you are cloning over SSH without ssh keys setup."
+echo "Can't clone! It's likely that git is not installed and/or you are cloning over SSH without ssh keys setup.\nSee https://help.github.com/articles/error-permission-denied-publickey for instructions on how to setup SSH keys for github."
 exit
 }
 								

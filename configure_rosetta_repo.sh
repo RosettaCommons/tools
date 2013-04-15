@@ -37,17 +37,26 @@ if [ ! -d $path ]; then
 	while true; do
 		read -p "Would you like to create this directory now? " yn
 		case $yn in
-			[Yy]* ) mkdir $path; break;;
-			[Nn]* ) exit;;
-			* ) echo "Please answer yes or no.";;
+			[Yy] | [Yy][Ee][Ss] ) mkdir $path; break;;
+			[Nn] | [Nn][Oo] ) exit;;
+		* ) echo "Please answer yes (y) or no (n).";;
 		esac
 	done
 fi  
 
+while true; do
+	read -p "Would you like to clone over ssh (s) or https (h)? Note: ssh keys are required for cloning over ssh (Default: ssh)" protocol
+	case $protocol in
+		[Ss] | [Ss][Ss][Hs] | "" ) url=git@github.com:RosettaCommons/; break;;
+		[Hh] | [Hh][Tt][Tt][Ps][Ss] ) url=https://github.com/RosettaCommons/; break;;
+	*) echo "Please answer ssh (s) or https (h).";;
+	esac
+done
+
 path="$path/"
 
 echo "\033[0;34mCloning Rosetta...\033[0m"
-hash git >/dev/null && /usr/bin/env git clone git@github.com:RosettaCommons/$repo.git $path$repo || {
+hash git >/dev/null && /usr/bin/env git clone $protocol$repo.git $path$repo || {
 echo "git is not installed!"
 exit
 }

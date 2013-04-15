@@ -56,7 +56,7 @@ done
 path="$path/"
 
 echo "\033[0;34mCloning Rosetta...\033[0m"
-hash git >/dev/null && /usr/bin/env git clone $protocol$repo.git $path$repo || {
+hash git >/dev/null && /usr/bin/env git clone $url$repo.git $path$repo || {
 echo "git is not installed!"
 exit
 }

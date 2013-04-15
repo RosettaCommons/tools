@@ -46,7 +46,7 @@ if [ ! -d $path ]; then
 fi  
 
 while true; do
-	read -p "Would you like to clone over ssh (s) or https (h)? Note: ssh keys are required for cloning over ssh (Default: ssh)" protocol
+	read -p "Would you like to clone over ssh (s) or https (h) - Note that ssh keys are required for cloning over ssh (Default: ssh)? " protocol
 	case $protocol in
 		[Ss] | [Ss][Ss][Hh] | "" ) url=git@github.com:RosettaCommons/; break;;
 		[Hh] | [Hh][Tt][Tt][Pp][Ss] ) url=https://github.com/RosettaCommons/; break;;

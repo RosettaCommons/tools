@@ -14,7 +14,7 @@ except KeyError:
     print "in your .bashrc or .bash_profile script."
 
 
-chdir( dirname( argv[0] ) )
+#chdir( dirname( argv[0] ) )
 
 for f in glob.glob('./bin/*'):
     os.remove(f)

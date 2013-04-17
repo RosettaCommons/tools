@@ -90,13 +90,11 @@ def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstru
 
 def output_stems( stems, fixed_stems = False, input_res = None ):
     outstring = ''
-    print input_res
     for stem_res in stems:
         outstring += 'STEM '
         for pair in stem_res:
              outstring += ' PAIR %d %d W W A ' % (pair[0], pair[1])
         outstring += '\n'
-        print stem_res
         if fixed_stems and input_res is not None:
             for pair in stem_res:
                 if pair[0] in input_res or pair[1] in input_res:

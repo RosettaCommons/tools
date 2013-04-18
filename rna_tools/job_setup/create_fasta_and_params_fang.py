@@ -207,7 +207,7 @@ if len( obligate_pair ) > 0:
         if pos2 not in working_res: continue
         pos1 = working_res.index( pos1 ) + 1
         pos2 = working_res.index( pos2 ) + 1
-        params_file_outstring += "OBLIGATE  PAIR %d %d W W A \n" % (pos1, pos2)
+        params_file_outstring += "OBLIGATE  PAIR %d %d W W X \n" % (pos1, pos2)
 
 
 assert( is_even( len(remove_obligate_pair) ) )

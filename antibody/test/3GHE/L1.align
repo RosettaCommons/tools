@@ -1,0 +1,36 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: L1
+# Database: /home/antibodyserver/simcode/antibody/database/database.l1
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+L1	pdb3mcg_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb2mcg_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcw_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcs_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcr_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcq_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcn_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcl_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mck_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcj_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mci_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mch_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcf_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mce_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcd_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcc_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mcb_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1a8j_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1mco_chothia.pdb	85.71	14	2	0	1	14	1	14	1e-07	39.2
+L1	pdb1dcl_chothia.pdb	78.57	14	3	0	1	14	1	14	7e-07	36.7
+L1	pdb1i7z_chothia.pdb	66.67	9	1	1	4	12	7	13	0.21	18.5
+L1	pdb1lhz_chothia.pdb	57.14	14	6	0	1	14	1	14	0.28	18.0
+L1	pdb1lgv_chothia.pdb	57.14	14	6	0	1	14	1	14	0.28	18.0
+L1	pdb1jvk_chothia.pdb	57.14	14	6	0	1	14	1	14	0.28	18.0
+L1	pdb1nl0_chothia.pdb	83.33	6	1	0	9	14	8	13	0.50	17.2
+L1	pdb1i8k_chothia.pdb	66.67	6	2	0	3	8	2	7	0.67	16.8
+L1	pdb1i8i_chothia.pdb	66.67	6	2	0	3	8	2	7	0.67	16.8
+L1	pdb2rhe_chothia.pdb	57.14	7	3	0	1	7	1	7	1.2	15.9
+L1	pdb1rmf_chothia.pdb	80.00	5	1	0	8	12	10	14	2.2	15.1
+L1	pdb1c5c_chothia.pdb	50.00	8	4	0	3	10	2	9	2.2	15.1
+L1	pdb1c5b_chothia.pdb	50.00	8	4	0	3	10	2	9	2.2	15.1
+L1	pdb32c2_chothia.pdb	100.00	2	0	0	9	10	12	13	   74	10.0

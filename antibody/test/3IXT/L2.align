@@ -1,0 +1,40 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: L2
+# Database: /home/antibodyserver/simcode/antibody/database/database.l2
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+L2	pdb2iff_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1yqv_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1sy6_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1mim_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1eo8_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1bql_chothia.pdb	100.00	7	0	0	1	7	1	7	0.003	23.1
+L2	pdb1otu_chothia.pdb	85.71	7	1	0	1	7	1	7	0.024	20.2
+L2	pdb1ott_chothia.pdb	85.71	7	1	0	1	7	1	7	0.024	20.2
+L2	pdb1ots_chothia.pdb	85.71	7	1	0	1	7	1	7	0.024	20.2
+L2	pdb1baf_chothia.pdb	85.71	7	1	0	1	7	1	7	0.032	19.7
+L2	pdb2fbj_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb1rur_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb1ruq_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb1e6o_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb1e6j_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb1a3l_chothia.pdb	100.00	5	0	0	3	7	3	7	0.25	16.8
+L2	pdb35c8_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb25c8_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1v7n_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1v7m_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1seq_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1ors_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1orq_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1ob1_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1mhp_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1ken_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1hq4_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1fig_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1dqd_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1clo_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1cf8_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1aif_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1ad0_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1a6t_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb15c8_chothia.pdb	83.33	6	1	0	2	7	2	7	0.33	16.3
+L2	pdb1psk_chothia.pdb	83.33	6	1	0	2	7	2	7	0.60	15.5

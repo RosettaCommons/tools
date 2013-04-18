@@ -1,0 +1,35 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: H3
+# Database: /home/antibodyserver/simcode/antibody/database/database.h3
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+H3	pdb8fab_chothia.pdb	70.00	10	3	0	10	19	3	12	0.014	21.8
+H3	pdb2ig2_chothia.pdb	80.00	5	1	0	15	19	13	17	0.26	17.6
+H3	pdb2fb4_chothia.pdb	80.00	5	1	0	15	19	13	17	0.26	17.6
+H3	pdb1qnz_chothia.pdb	50.00	12	4	1	8	19	1	10	1.1	15.5
+H3	pdb4fab_chothia.pdb	80.00	5	1	0	15	19	3	7	2.7	14.2
+H3	pdb2bfv_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1qkz_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1qfu_chothia.pdb	80.00	5	1	0	15	19	9	13	2.7	14.2
+H3	pdb1q0y_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1q0x_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1fe8_chothia.pdb	80.00	5	1	0	15	19	3	7	2.7	14.2
+H3	pdb1cfv_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1bfv_chothia.pdb	80.00	5	1	0	15	19	6	10	2.7	14.2
+H3	pdb1ngq_chothia.pdb	60.00	5	2	0	15	19	4	8	   16	11.7
+H3	pdb1ngp_chothia.pdb	60.00	5	2	0	15	19	4	8	   16	11.7
+H3	pdb1h0d_chothia.pdb	66.67	6	2	0	14	19	7	12	   16	11.7
+H3	pdb1a6w_chothia.pdb	60.00	5	2	0	15	19	4	8	   16	11.7
+H3	pdb1a6v_chothia.pdb	60.00	5	2	0	15	19	4	8	   16	11.7
+H3	pdb1a6u_chothia.pdb	60.00	5	2	0	15	19	4	8	   16	11.7
+H3	pdb1qd0_chothia.pdb	100.00	2	0	0	18	19	15	16	   28	10.8
+H3	pdb1pg7_chothia.pdb	100.00	2	0	0	18	19	7	8	   28	10.8
+H3	pdb1k6q_chothia.pdb	100.00	2	0	0	18	19	7	8	   28	10.8
+H3	pdb1jpt_chothia.pdb	100.00	2	0	0	18	19	7	8	   28	10.8
+H3	pdb1jps_chothia.pdb	100.00	2	0	0	18	19	7	8	   28	10.8
+H3	pdb1ce1_chothia.pdb	100.00	2	0	0	18	19	9	10	   28	10.8
+H3	pdb1bfo_chothia.pdb	100.00	2	0	0	18	19	9	10	   28	10.8
+H3	pdb1bey_chothia.pdb	100.00	2	0	0	18	19	9	10	   28	10.8
+H3	pdb2fbj_chothia.pdb	100.00	2	0	0	14	15	8	9	   51	10.0
+H3	pdb1yy9_chothia.pdb	100.00	2	0	0	14	15	10	11	   51	10.0
+H3	pdb1yy8_chothia.pdb	100.00	2	0	0	14	15	10	11	   51	10.0
+H3	pdb1ct8_chothia.pdb	100.00	2	0	0	14	15	8	9	   51	10.0

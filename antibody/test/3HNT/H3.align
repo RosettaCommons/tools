@@ -1,0 +1,9 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: H3
+# Database: /home/antibodyserver/simcode/antibody/database/database.h3
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+H3	pdb2otu_chothia.pdb	83.33	6	1	0	4	9	4	9	1.4	15.1
+H3	pdb2gsg_chothia.pdb	83.33	6	1	0	4	9	4	9	1.4	15.1
+H3	pdb1j05_chothia.pdb	80.00	5	1	0	1	5	1	5	1.4	15.1
+H3	pdb1i9j_chothia.pdb	66.67	6	2	0	4	9	5	10	4.7	13.4
+H3	pdb1i9i_chothia.pdb	66.67	6	2	0	4	9	5	10	4.7	13.4

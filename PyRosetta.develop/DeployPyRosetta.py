@@ -76,6 +76,14 @@ def main(args):
       help="Default compiler that will be used to build PyRosetta. Default is 'gcc'.",
     )
 
+
+    parser.add_option("--loader",
+      default='curl -OL',
+      action="store",
+      help="Default name of wget/curl like loader programm with extra options if nessesary. Default is 'curl -LO'.",
+    )
+
+
     parser.add_option("-d",
       action="store_true", dest="debug",
       help="Enable DEBUG mode. Disable 30 secons waiting before start working.",
@@ -138,7 +146,7 @@ def main(args):
     execute('Testing source file...', cd_work_env + 'ls')
 
     if not Options.omit_cmake:
-        execute('Downloading CMake...', 'cd %s && curl -O "http://www.cmake.org/files/v2.8/%s.tar.gz"' % (source_dir, i_cmake) )
+        execute('Downloading CMake...', 'cd %s && %s "http://www.cmake.org/files/v2.8/%s.tar.gz"' % (source_dir, Options.loader, i_cmake) )
         execute('Unpacking CMake...', 'cd %s && tar -vzxf %s/%s.tar.gz' % (working_dir, source_dir, i_cmake) )
         execute('Installing CMake...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, i_cmake, prefix, Options.jobs) )
 
@@ -159,7 +167,7 @@ def main(args):
     #execute('Unpacking Py++...', 'cd %s && unzip  %s/%s.zip' % (working_dir, data_dir, i_pyplusplus) )
     #execute('Installing Py++...', cd_work_env + 'cd %s && python setup.py install --prefix=%s' % (i_pyplusplus, prefix) )
 
-    execute('Downloading Boost...', 'cd %s && curl -OL "http://downloads.sourceforge.net/project/boost/boost/1.47.0/%s.tar.bz2"' % (source_dir, i_boost) )
+    execute('Downloading Boost...', 'cd %s && %s "http://downloads.sourceforge.net/project/boost/boost/1.47.0/%s.tar.bz2"' % (source_dir, Options.loader, i_boost) )
     execute('Unpacking Boost...', cd_work_env + 'tar -vjxf %s/%s.tar.bz2' % (source_dir, i_boost) )
     execute('Installing Boost...', cd_work_env + 'cd %s && ./bootstrap.sh --prefix=%s --with-libraries=python && ./bjam install --prefix=%s' % (i_boost, prefix, prefix) )
 

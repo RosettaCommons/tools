@@ -37,6 +37,7 @@ secstruct_file = parse_options( argv, 'secstruct_file', "" )
 input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
+is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
@@ -48,7 +49,7 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [-1] )
-
+print is_cst_gap == True
 #input_res and cutpoint_closed changes to be auto-generated
 
 #print argv
@@ -185,7 +186,7 @@ for m in range( len(working_res)-1 ):
     if ( gap > 1 and gap < 6 ): cst_gaps.append( [ m+1, m+2, gap, working_res[m], working_res[m+1] ] )
 #print "GAPS TO APPLY CST: ", cst_gaps
 
-if len( cst_gaps ) > 0:
+if len( cst_gaps ) > 0 and is_cst_gap:
 
     if len( working_cst_file ) == 0:  working_cst_file = tag+'_closegaps.cst'
     cst_file_outstring += "[ atompairs ]\n"

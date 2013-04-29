@@ -1,0 +1,52 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: L3
+# Database: /home/antibodyserver/simcode/antibody/database/database.l3
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+L3	pdb1nld_chothia.pdb	88.89	9	1	0	1	9	1	9	3e-05	30.8
+L3	pdb1rup_chothia.pdb	88.89	9	1	0	1	9	1	9	6e-05	29.5
+L3	pdb1rum_chothia.pdb	88.89	9	1	0	1	9	1	9	6e-05	29.5
+L3	pdb1ruk_chothia.pdb	88.89	9	1	0	1	9	1	9	6e-05	29.5
+L3	pdb1nd0_chothia.pdb	88.89	9	1	0	1	9	1	9	6e-05	29.5
+L3	pdb1ncw_chothia.pdb	88.89	9	1	0	1	9	1	9	6e-05	29.5
+L3	pdb1cu4_chothia.pdb	100.00	7	0	0	1	7	1	7	1e-04	28.6
+L3	pdb1cr9_chothia.pdb	100.00	7	0	0	1	7	1	7	1e-04	28.6
+L3	pdb1s5i_chothia.pdb	87.50	8	1	0	2	9	2	9	0.001	25.2
+L3	pdb1f90_chothia.pdb	87.50	8	1	0	2	9	2	9	0.001	25.2
+L3	pdb1f8t_chothia.pdb	87.50	8	1	0	2	9	2	9	0.001	25.2
+L3	pdb2a77_chothia.pdb	75.00	8	2	0	2	9	2	9	0.003	24.0
+L3	pdb2a1w_chothia.pdb	75.00	8	2	0	2	9	2	9	0.003	24.0
+L3	pdb1yek_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yej_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yei_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yeh_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yeg_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yef_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yee_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yed_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1yec_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1kn4_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1kn2_chothia.pdb	87.50	8	1	0	2	9	2	9	0.003	24.0
+L3	pdb1lo4_chothia.pdb	75.00	8	2	0	2	9	2	9	0.009	22.3
+L3	pdb4fab_chothia.pdb	75.00	8	2	0	2	9	2	9	0.022	21.0
+L3	pdb2h1p_chothia.pdb	75.00	8	2	0	2	9	2	9	0.022	21.0
+L3	pdb1t66_chothia.pdb	75.00	8	2	0	2	9	2	9	0.022	21.0
+L3	pdb1n4x_chothia.pdb	83.33	6	1	0	2	7	2	7	0.039	20.2
+L3	pdb1lo3_chothia.pdb	83.33	6	1	0	2	7	2	7	0.039	20.2
+L3	pdb1lo2_chothia.pdb	83.33	6	1	0	2	7	2	7	0.039	20.2
+L3	pdb1lo0_chothia.pdb	83.33	6	1	0	2	7	2	7	0.039	20.2
+L3	pdb1cl7_chothia.pdb	83.33	6	1	0	2	7	2	7	0.039	20.2
+L3	pdb1qkz_chothia.pdb	83.33	6	1	0	2	7	2	7	0.052	19.7
+L3	pdb2hmi_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1t03_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1r0a_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1n6q_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1n5y_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1j5o_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1hys_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb1ezv_chothia.pdb	100.00	4	0	0	6	9	6	9	0.094	18.9
+L3	pdb2pcp_chothia.pdb	75.00	8	2	0	2	9	2	9	0.41	16.8
+L3	pdb2cgr_chothia.pdb	75.00	8	2	0	2	9	2	9	0.41	16.8
+L3	pdb1plg_chothia.pdb	75.00	8	2	0	2	9	2	9	0.41	16.8
+L3	pdb1cgs_chothia.pdb	75.00	8	2	0	2	9	2	9	0.41	16.8
+L3	pdb1axt_chothia.pdb	75.00	8	2	0	2	9	2	9	0.41	16.8
+L3	pdb1rjl_chothia.pdb	62.50	8	3	0	2	9	2	9	   10	12.1

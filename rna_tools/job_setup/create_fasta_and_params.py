@@ -3,8 +3,9 @@
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
 from os import system
+from subprocess import Popen, PIPE
 from os.path import exists
-from parse_options import parse_options
+from parse_options import parse_options, get_ints
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -30,7 +31,7 @@ sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 working_res = parse_options( argv, "working_res", [-1] )
 offset = parse_options( argv, "offset", 0 )
-tag = parse_options( argv, 'tag', 'test' )
+tag = parse_options( argv, 'tag', "" )
 fasta = parse_options( argv, 'fasta', "" )
 secstruct_file = parse_options( argv, 'secstruct_file', "" )
 input_pdbs = parse_options( argv, 's', [""] )
@@ -83,6 +84,10 @@ assert( len( sequence ) == len( secstruct ))
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
 
+if len( tag) == '':
+    tag = basename( dirname( argv[0] ) )
+    print 'Using ', tag, 'as tag'
+
 
 assert( is_even( len(remove_pair) ) )
 for m in remove_pair:
@@ -111,6 +116,12 @@ assert( working_secstruct.count('(') == working_secstruct.count(')') )
 assert( working_secstruct.count('[') == working_secstruct.count(']') )
 
 ( fasta_file_outstring, params_file_outstring ) = prepare_fasta_and_params_file_from_sequence_and_secstruct( working_sequence, working_secstruct, fixed_stems )
+
+if len( input_res ) == 0:
+    # currently only works for PDB -- should be easy to generalize to silent files
+    for pdb in input_pdbs:
+        res_num_string = Popen( "get_res_num.py "+pdb, shell=True, stdout=PIPE ).stdout.readlines()[0][1:-1]
+        for res_num_chunk in res_num_string.split(): get_ints( res_num_chunk, input_res )
 
 working_cst_file = ""
 cst_file_outstring = ""

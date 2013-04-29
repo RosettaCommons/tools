@@ -1,0 +1,52 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: H1
+# Database: /home/antibodyserver/simcode/antibody/database/database.h1
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+H1	pdb1sm3_chothia.pdb	70.00	10	3	0	1	10	1	10	0.006	23.1
+H1	pdb1sbs_chothia.pdb	70.00	10	3	0	1	10	1	10	0.006	23.1
+H1	pdb1qfu_chothia.pdb	60.00	10	4	0	1	10	1	10	0.010	22.3
+H1	pdb1e4x_chothia.pdb	66.67	9	3	0	1	9	1	9	0.014	21.8
+H1	pdb1e4w_chothia.pdb	66.67	9	3	0	1	9	1	9	0.014	21.8
+H1	pdb4fab_chothia.pdb	60.00	10	4	0	1	10	1	10	0.034	20.6
+H1	pdb1t66_chothia.pdb	60.00	10	4	0	1	10	1	10	0.034	20.6
+H1	pdb1aif_chothia.pdb	66.67	9	3	0	1	9	1	9	0.034	20.6
+H1	pdb1pz5_chothia.pdb	66.67	9	3	0	1	9	1	9	0.061	19.7
+H1	pdb1m7i_chothia.pdb	66.67	9	3	0	1	9	1	9	0.061	19.7
+H1	pdb1m7d_chothia.pdb	66.67	9	3	0	1	9	1	9	0.061	19.7
+H1	pdb1m71_chothia.pdb	66.67	9	3	0	1	9	1	9	0.061	19.7
+H1	pdb1yy9_chothia.pdb	71.43	7	2	0	1	7	1	7	0.082	19.3
+H1	pdb1yy8_chothia.pdb	71.43	7	2	0	1	7	1	7	0.082	19.3
+H1	pdb1ncd_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1ncc_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1ncb_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1nca_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1iai_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1clo_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1bj1_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1ad0_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1a4k_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb1a4j_chothia.pdb	60.00	10	4	0	1	10	1	10	0.082	19.3
+H1	pdb2a77_chothia.pdb	66.67	9	3	0	1	9	1	9	0.27	17.6
+H1	pdb2a1w_chothia.pdb	66.67	9	3	0	1	9	1	9	0.27	17.6
+H1	pdb1lo4_chothia.pdb	66.67	9	3	0	1	9	1	9	0.27	17.6
+H1	pdb1i7z_chothia.pdb	66.67	9	1	1	2	10	4	10	0.36	17.2
+H1	pdb1c1e_chothia.pdb	66.67	9	1	1	2	10	4	10	0.36	17.2
+H1	pdb8fab_chothia.pdb	66.67	9	3	0	1	9	1	9	0.48	16.8
+H1	pdb1aqk_chothia.pdb	71.43	7	2	0	1	7	1	7	0.48	16.8
+H1	pdb1ce1_chothia.pdb	50.00	10	5	0	1	10	1	10	0.86	15.9
+H1	pdb1bfo_chothia.pdb	50.00	10	5	0	1	10	1	10	0.86	15.9
+H1	pdb1bey_chothia.pdb	50.00	10	5	0	1	10	1	10	0.86	15.9
+H1	pdb1ine_chothia.pdb	100.00	4	0	0	1	4	1	4	1.2	15.5
+H1	pdb1ind_chothia.pdb	100.00	4	0	0	1	4	1	4	1.2	15.5
+H1	pdb1lo3_chothia.pdb	55.56	9	4	0	1	9	1	9	2.1	14.6
+H1	pdb1lo2_chothia.pdb	55.56	9	4	0	1	9	1	9	2.1	14.6
+H1	pdb1lo0_chothia.pdb	55.56	9	4	0	1	9	1	9	2.1	14.6
+H1	pdb2vit_chothia.pdb	80.00	5	1	0	1	5	1	5	6.8	12.9
+H1	pdb2vis_chothia.pdb	80.00	5	1	0	1	5	1	5	6.8	12.9
+H1	pdb2vir_chothia.pdb	80.00	5	1	0	1	5	1	5	6.8	12.9
+H1	pdb1gig_chothia.pdb	80.00	5	1	0	1	5	1	5	6.8	12.9
+H1	pdb3ck0_chothia.pdb	100.00	2	0	0	9	10	9	10	   22	11.2
+H1	pdb2ck0_chothia.pdb	100.00	2	0	0	9	10	9	10	   22	11.2
+H1	pdb1nbv_chothia.pdb	100.00	2	0	0	9	10	9	10	   22	11.2
+H1	pdb1ck0_chothia.pdb	100.00	2	0	0	9	10	9	10	   22	11.2
+H1	pdb1cbv_chothia.pdb	100.00	2	0	0	9	10	9	10	   22	11.2

@@ -1,0 +1,34 @@
+# BLASTP 2.2.12 [Aug-07-2005]
+# Query: L2
+# Database: /home/antibodyserver/simcode/antibody/database/database.l2
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+L2	pdb1rzi_chothia.pdb	100.00	7	0	0	1	7	1	7	0.005	22.3
+L2	pdb1hez_chothia.pdb	100.00	7	0	0	1	7	1	7	0.005	22.3
+L2	pdb1dql_chothia.pdb	100.00	7	0	0	1	7	1	7	0.005	22.3
+L2	pdb1dee_chothia.pdb	100.00	7	0	0	1	7	1	7	0.005	22.3
+L2	pdb1rz7_chothia.pdb	85.71	7	1	0	1	7	1	7	0.032	19.7
+L2	pdb1b6d_chothia.pdb	83.33	6	1	0	1	6	1	6	0.25	16.8
+L2	pdb2f5b_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb2f5a_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u95_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u93_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u92_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u91_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8q_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8p_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8o_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8n_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8m_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8l_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8k_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8j_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8i_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1u8h_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1tji_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1tjh_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1tjg_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1dfb_chothia.pdb	83.33	6	1	0	2	7	2	7	0.25	16.8
+L2	pdb1rzg_chothia.pdb	83.33	6	1	0	2	7	2	7	0.80	15.1
+L2	pdb1rei_chothia.pdb	80.00	5	1	0	2	6	2	6	1.1	14.6
+L2	pdb1bww_chothia.pdb	80.00	5	1	0	2	6	2	6	1.1	14.6
+L2	pdb1uwx_chothia.pdb	80.00	5	1	0	1	5	1	5	1.9	13.8

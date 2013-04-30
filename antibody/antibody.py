@@ -365,7 +365,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
     print "H1 detected: ", H1, " (",len(H1),"residues )"
 
     # H3
-    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)', heavy_second)
+    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
     print "H3 detected: ", H3, " (",len(H3),"residues )"
 

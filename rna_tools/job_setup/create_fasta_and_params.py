@@ -2,9 +2,9 @@
 
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
-from os import system
+from os import system,getcwd
 from subprocess import Popen, PIPE
-from os.path import exists
+from os.path import exists,basename,abspath,dirname
 from parse_options import parse_options, get_ints
 from make_tag import make_tag, make_tag_with_dashes
 import string
@@ -84,8 +84,8 @@ assert( len( sequence ) == len( secstruct ))
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
 
-if len( tag) == '':
-    tag = basename( dirname( argv[0] ) )
+if len( tag) == 0:
+    tag = basename( getcwd() )
     print 'Using ', tag, 'as tag'
 
 

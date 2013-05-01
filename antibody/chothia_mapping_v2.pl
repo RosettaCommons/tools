@@ -127,6 +127,7 @@ sub readpdbfile{
 
 sub findcdrs{
 	#*********L1***************************
+	# C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)
 	$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WYM|WYY)/;
 	if($var){
 		$temp=$&;
@@ -136,6 +137,7 @@ sub findcdrs{
 	#************************************
 
 	#***********L3********************
+	# C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)
 	$var = $lightseq_second =~/C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)/;
 	if($var){
 		$temp=$&;
@@ -150,6 +152,7 @@ sub findcdrs{
 	#****************************
 
 	#**************H1************
+	# C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)
 	$var = $heavyseq_first =~/C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)/; 
 	if($var){
 		$temp=$&;
@@ -171,7 +174,8 @@ sub findcdrs{
 			$lenh1 = 10;
 		}
 	}else{
-		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C)[A-Z](G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
+		# C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)
+		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|Q|G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
 		if($var){
 			$temp=$&;
 			$lenh3=length ($temp)-7;

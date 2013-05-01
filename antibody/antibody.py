@@ -365,7 +365,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
     print "H1 detected: ", H1, " (",len(H1),"residues )"
 
     # H3
-    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)', heavy_second)
+    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
     print "H3 detected: ", H3, " (",len(H3),"residues )"
 
@@ -1049,6 +1049,7 @@ def make_cter_constraint(CDRs, prefix):
 # Various filter function
 def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
     if Options.verbose: print 'filtering by sequence identity...'
+    #print results
 
     for r in results[:]:
         pdb = r['subject-id']
@@ -1070,15 +1071,21 @@ def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
 
 
 def sid_checker(seq_q, seq_t):
-    seq_len = len(seq_q)
+    seq_lenq  = len(seq_q)
+    seq_lent = len(seq_t)
 
-    num_res = 0
-    for i in range(0, seq_len):
-        #print seq_q[i], seq_t[i], cnt
-        if seq_q[i] == seq_t[i]:
-            num_res+=1
+    #print seq_lenq, seq_lent
 
-    ratio = float(num_res) / seq_len * 100
+    if seq_lenq == seq_lent:
+        num_res = 0
+        for i in range(0, seq_lenq):
+            #print seq_q[i], seq_t[i], cnt
+            if seq_q[i] == seq_t[i]:
+                num_res+=1
+        ratio = float(num_res) / seq_lenq * 100
+    else:
+        ratio = 0
+
     return ratio
 
 

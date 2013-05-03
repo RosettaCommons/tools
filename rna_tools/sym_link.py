@@ -1,5 +1,5 @@
 import os
-from os import chdir
+from os import chdir,getcwd
 from os.path import basename,dirname
 import glob
 from sys import argv
@@ -14,7 +14,8 @@ except KeyError:
     print "in your .bashrc or .bash_profile script."
 
 
-#chdir( dirname( argv[0] ) )
+CWD = getcwd()
+chdir( dirname( argv[0] ) )
 
 for f in glob.glob('./bin/*'):
     os.remove(f)
@@ -27,3 +28,5 @@ for dirpath, dirnames, filenames in os.walk('./'):
         if filename[-3:] == '.py':
             #print filename
             os.symlink('../' + filename, './bin/' + f)
+
+chdir( CWD )

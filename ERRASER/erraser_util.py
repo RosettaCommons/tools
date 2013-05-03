@@ -29,7 +29,7 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    exe_folder = rosetta_folder + "/rosetta_source/bin/" #Default Rosetta folder structure
+    exe_folder = rosetta_folder + "/main/source/bin/" #Default Rosetta folder structure
     if not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
@@ -55,7 +55,7 @@ def rosetta_database_path(rosetta_folder = "") :
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    database_folder = rosetta_folder + "/rosetta_database/" #Default Rosetta folder structure
+    database_folder = rosetta_folder + "/main/database/" #Default Rosetta folder structure
     if  not exists(database_folder) : #Otherwise, assume the input folder name is database path
         database_folder = rosetta_folder
     check_path_exist(database_folder)

@@ -1,4 +1,4 @@
-#!/blue/meilerlab/apps/Linux2/x86_64/bin/python2.5
+#!/usr/bin/python
 
 "written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis  from the Meiler Lab."
 

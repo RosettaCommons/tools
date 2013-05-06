@@ -98,8 +98,8 @@ if not scorecol_defined:
 infiles = argv[1:]
 
 rosetta_folder = expandvars("$ROSETTA")
-MINI_DIR = rosetta_folder + '/rosetta_source/bin/'
-DB = rosetta_folder + '/rosetta_database/'
+MINI_DIR = rosetta_folder + '/main/source/bin/'
+DB = rosetta_folder + '/main/database/'
 
 # deprecated -- set up for old CASP runs, but probably
 #  will never be used again...

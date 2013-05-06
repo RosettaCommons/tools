@@ -174,7 +174,7 @@ sub readpdbfile{
 
 				printf CHOTHIAPDB "%6s%5s %-4s%1s%3s %1s%4s%1s   %8.3f%8.3f%8.3f%6.2f%6.2f              \n","ATOM  ",$atomno,$atom,$alt_loc,$residue,$chain,$residueno_new,$insert_code,$x,$y,$z,$stdoccupancy,$bfactor if($newheavynumber{$argument} ne '');
 			}elsif($identifier =~ "ATOM" and $agchains =~ /$chain/){
-				#print CHOTHIAPDB "$line\n";
+				print CHOTHIAPDB "$line\n";
 			}elsif($identifier =~ "HEADER" || $identifier =~ "TITLE" || $line =~ /PH          / || $identifier =~ "COMPND" || $identifier =~ "SOURCE" || $line =~ /RESOLUTION\.   / || $line =~ /R VALUE            \(WORKING SET\)/|| $line =~ /   FREE R VALUE    /){
 				print CHOTHIAPDB "$line\n";
 			}elsif($identifier =~ "HETATM" && $line =~ /HOH/){

@@ -97,7 +97,7 @@ def output_stems( stems, fixed_stems = False, input_res = None ):
         outstring += '\n'
         if fixed_stems and input_res is not None:
             for pair in stem_res:
-                if pair[0] in input_res or pair[1] in input_res:
+                if pair[0] in input_res and pair[1] in input_res:
                     break
             else:
                 pair = stem_res[0]

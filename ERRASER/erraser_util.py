@@ -906,7 +906,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     output.close()
     return True
 ####################################
-def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False) :
+def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False, renumbering=True) :
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
@@ -923,10 +923,10 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                           "HO3'":"3HO'", "HO5'":"5HO'", " H41":"1H4 ",
                           " H42":"2H4 ", " H61":"1H6 ", " H62":"2H6 " }
 
-    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG",
-                         "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA",
-                         "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU",
-                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC",}
+    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG", "rG ":" rG",
+                         "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA", "rA ":" rA",
+                         "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU", "rU ":" rU",
+                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC", "rC ":" rC",}
 
     protein_res_names = ['ALA', 'ARG', 'ASN', 'ASP',
                          'CYS', 'GLU', 'GLN', 'GLY',
@@ -951,7 +951,6 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     for line in open(input_pdb) :
         if len(line) <= 21 :
             continue
-
         if line[0:6] == 'CRYST1' :
             CRYST1_line = line[:-1]
         elif line[0:6] == 'ATOM  ' or line[0:6] == 'HETATM' :
@@ -1034,8 +1033,9 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 line_list[12:16] = atom_name
                 line_list[16] = ' '
                 line_list[17:20] = res_name
-                line_list[21] = 'A'
-                line_list[22:26] = str(res_no).rjust(4)
+                if renumbering:
+                    line_list[21] = 'A'
+                    line_list[22:26] = str(res_no).rjust(4)
                 line_list[26] = ' '
                 line_list[55:60] = " 1.00"
                 output.write( string.join(line_list, '') )

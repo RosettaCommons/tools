@@ -84,6 +84,7 @@ if len( secstruct ) == 0:
 assert( len( sequence ) == len( secstruct ))
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
+assert( secstruct.count('{') == secstruct.count('}') )
 assert( tag != '' )
 
 

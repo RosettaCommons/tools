@@ -28,7 +28,7 @@
 
 ROSETTA=$WORK/git/rosetta
 ROSETTABIN=$ROSETTA/rosetta_source/bin
-ROSETTAEXE=antibody_model_CDR_H3
+ROSETTAEXE=antibody_H3
 COMPILER=mpimkl.linuxiccrelease
 EXE=$ROSETTABIN/$ROSETTAEXE.$COMPILER
 echo Starting MPI job running $EXE

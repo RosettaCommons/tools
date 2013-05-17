@@ -20,7 +20,7 @@ def ValidationError( string ):
     print string
     exit()
 
-def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstruct='', fixed_stems = False ):
+def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstruct='', fixed_stems = False, input_res = None ):
 
     fasta_file_outstring  = ""
     params_file_outstring = ""
@@ -72,21 +72,15 @@ def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstru
             for m in chainbreak_pos: params_file_outstring += " %d" % m
             params_file_outstring += "\n"
 
+        #Changes to meaning of 'fixed_stems' here
         stems = get_stems( secstruct, chainbreak_pos, '(', ')', sequence_for_fasta )
-        if stems == None: return None
-        params_file_outstring += output_stems( 'STEM', stems )
-        if fixed_stems:
-            params_file_outstring += output_stems( 'OBLIGATE', stems )
+        params_file_outstring += output_stems( stems, fixed_stems, input_res )
 
-        obligate_stems = get_stems( secstruct, chainbreak_pos, '[', ']', sequence_for_fasta )
-        if obligate_stems == None: return None
-        params_file_outstring += output_stems( 'STEM', obligate_stems )
-        params_file_outstring += output_stems( 'OBLIGATE', obligate_stems )
+        stems = get_stems( secstruct, chainbreak_pos, '[', ']', sequence_for_fasta )
+        params_file_outstring += output_stems( stems, fixed_stems, input_res )
 
-        obligate_stems = get_stems( secstruct, chainbreak_pos, '{', '}', sequence_for_fasta )
-        if obligate_stems == None: return None
-        params_file_outstring += output_stems( 'STEM', obligate_stems )
-        params_file_outstring += output_stems( 'OBLIGATE', obligate_stems )
+        stems = get_stems( secstruct, chainbreak_pos, '{', '}', sequence_for_fasta )
+        params_file_outstring += output_stems( stems, fixed_stems, input_res )
 
     #assume that 'z' means Mg(2+)
     fasta_file_outstring = fasta_file_outstring.replace( 'z','Z[MG]')
@@ -94,16 +88,20 @@ def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstru
     return ( fasta_file_outstring, params_file_outstring )
 
 
-def output_stems( tag, stems ):
+def output_stems( stems, fixed_stems = False, input_res = None ):
     outstring = ''
-    if len( stems ) == 0: return outstring
-    for i in range( len( stems ) ):
-        stem_res = stems[i]
-        outstring += tag+' '
-        for k in range( len( stem_res )):
-             outstring += ' PAIR %d %d W W A ' % \
-                 ( stem_res[k][ 0 ], stem_res[k][ 1 ] )
+    for stem_res in stems:
+        outstring += 'STEM '
+        for pair in stem_res:
+             outstring += ' PAIR %d %d W W A ' % (pair[0], pair[1])
         outstring += '\n'
+        if fixed_stems and input_res is not None:
+            for pair in stem_res:
+                if pair[0] in input_res and pair[1] in input_res:
+                    break
+            else:
+                pair = stem_res[0]
+                outstring += 'OBLIGATE PAIR %d %d W W A \n' % (pair[0], pair[1])
     return outstring
 
 def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char = ')', sequence_for_fasta='' ):
@@ -119,7 +117,6 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
         if line[i] == right_bracket_char:
             if len( left_brackets ) == 0:
                 raise ValidationError( "Number of right brackets does not match left brackets" )
-                return None
             res1 = left_brackets[-1]
             res2 = count
             del( left_brackets[-1] )
@@ -128,11 +125,9 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             all_pairs.append( [res1,res2] )
             if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
                 raise ValidationError( "Not complementary at positions %d and %d!"  % (res1, res2) )
-                return None
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
-        return None
     numres = count
 
     # Parse out stems

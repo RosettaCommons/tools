@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from rna_server_conversions_fang import prepare_fasta_and_params_file_from_sequence_and_secstruct
+from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
 from os import system
 from subprocess import Popen, PIPE
@@ -36,6 +36,7 @@ fasta = parse_options( argv, 'fasta', "" )
 secstruct_file = parse_options( argv, 'secstruct_file', "" )
 input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
+input_silent_res = parse_options( argv, 'input_silent_res', [-1] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
 is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
@@ -49,7 +50,6 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [-1] )
-print is_cst_gap == True
 #input_res and cutpoint_closed changes to be auto-generated
 
 #print argv
@@ -133,8 +133,15 @@ def get_seq_and_resnum( pdb ):
         raise ValueError('Residue numbers in %s is not sorted!!' % pdb)
     return seq, resnum
 
+def get_silent_seq( silent ):
+    for line in open(silent):
+        if 'SEQUENCE' in line:
+            return line.split()[1].upper()
+    raise ValueError('No sequence info found in the input silent file!')
+
 input_res = []
-cutpoint_closed = []
+
+resnum_list = []
 for pdb in input_pdbs:
     seq, resnum = get_seq_and_resnum(pdb)
     actual_seq = ''
@@ -144,7 +151,27 @@ for pdb in input_pdbs:
         actual_seq += sequence[i-1-offset]
     if seq != actual_seq:
         raise ValueError('The sequence in %s does not match input sequence!!' % pdb)
+    resnum_list.append(resnum)
     input_res += resnum
+
+for silent in input_silent_files:
+    actual_seq = ''
+    seq = get_silent_seq( silent )
+    len_seq = len(seq)
+    if len_seq > len(input_silent_res):
+        raise ValueError('input_silent_res is shorter then the total length of silent files!')
+    resnum = input_silent_res[:len_seq]
+    input_silent_res = input_silent_res[len_seq:]
+    for i in resnum:
+        if i in input_res:
+            raise ValueError('Input residue %s exists in two pdb files!!' % i)
+        actual_seq += sequence[i-1-offset]
+    if seq != actual_seq:
+        raise ValueError('The sequence in %s does not match input sequence!!' % silent)
+    resnum_list.append(resnum)
+    input_res += resnum
+
+for resnum in resnum_list:
     #Find obligate pairs
     chunks = []
     curr_chunk = []
@@ -276,10 +303,6 @@ if len( chain_connection ) > 0:
 #    for i in mg_pos:
 #        cutpoint_open.append( i-1 )
 #        virtual_anchor.append( i )
-
-if len( cutpoint_closed ) > 0:
-    cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )

@@ -102,7 +102,7 @@ def main(args):
 
     parser.add_option('--rosetta-bin',
       action="store", default=None,
-      help="Specify path to 'rosetta_source/bin' dir where antibody_assemble_CDRs', idealize and relax executable expected to be found. Default is '<script location>/bin' (plasce symlink there) and if not found corresponding steps will be skipped.",
+      help="Specify path to 'rosetta/source/bin' dir where antibody_graft', idealize and relax executable expected to be found. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (plasce symlink there) and if not found corresponding steps will be skipped.",
     )
 
     parser.add_option('--rosetta-platform',
@@ -122,7 +122,7 @@ def main(args):
 
     #parser.add_option('--rosetta-options',
     #  action="store", default='',
-    #  help="Specify extra options for antibody_assemble_CDRs run.",
+    #  help="Specify extra options for antibody_graft run.",
     #)
 
     for name in _framework_names_:
@@ -190,11 +190,17 @@ def main(args):
 
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
     if not Options.antibody_database: Options.antibody_database = script_dir + '/antibody_database'
-    if not Options.rosetta_bin:       Options.rosetta_bin       = script_dir + '/bin'
+    if not Options.rosetta_bin:
+        if 'ROSETTA' in os.environ:
+            Options.rosetta_bin = os.path.abspath(os.environ['ROSETTA']) + '/main/source/bin'
+        else: Options.rosetta_bin = script_dir + '/bin'
     if not Options.rosetta_database:
-        if os.path.isdir(script_dir + '/rosetta_database'):           Options.rosetta_database = os.path.abspath( script_dir + '/rosetta_database' )
-        elif 'ROSETTA3_DB' in os.environ:                        Options.rosetta_database = os.path.abspath(os.environ['ROSETTA3_DB'])
-        elif os.path.isdir(os.environ['HOME'] + '/rosetta_database'): Options.rosetta_database = os.path.abspath(os.environ['HOME'] + '/rosetta_database')
+        if os.path.isdir(script_dir + '/rosetta_database'):
+            Options.rosetta_database = os.path.abspath( script_dir + '/rosetta_database' )
+        elif 'ROSETTA3_DB' in os.environ:
+            Options.rosetta_database = os.path.abspath(os.environ['ROSETTA3_DB'])
+        elif os.path.isdir(os.environ['HOME'] + '/rosetta_database'):
+            Options.rosetta_database = os.path.abspath(os.environ['HOME'] + '/rosetta_database')
 
     Options.blast_database    = os.path.abspath( Options.blast_database )
     Options.antibody_database = os.path.abspath( Options.antibody_database )
@@ -947,10 +953,10 @@ def superimpose_templates(CDRs, prefix):
 
 
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
-    antibody_assemble = rosetta_bin + '/antibody_assemble_CDRs.' + rosetta_platform
-    if os.path.isfile( antibody_assemble ):
-        print '\nRunning antibody_assemble as: %s\nWith rosetta_database in:%s' % (antibody_assemble, rosetta_database)
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_assemble, rosetta_database) + \
+    antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
+    if os.path.isfile( antibody_graft ):
+        print '\nRunning antibody_graft as: %s\nWith rosetta_database in:%s' % (antibody_graft, rosetta_database)
+        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
                       ' -antibody::h3_no_stem_graft'
@@ -959,7 +965,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
         model_file_prefix = 'grafted';  shutil.move(prefix+'details/FR_0001.pdb', prefix+model_file_prefix+'.pdb')
     else:
-        print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_assemble
+        print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
         return
 
     if Options.idealize:

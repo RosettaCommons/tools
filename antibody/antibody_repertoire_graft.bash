@@ -6,14 +6,21 @@ target=model.pdb
 
 if [ -z "$1" ]
 then
-    echo Usage: $(basename $0) repertoire_directory [force]
+    echo Usage: $(basename $0) repertoire_directory [force/quick]
     echo run antibody.py on a repertoire to create grafted structures
     echo force option will recaculate antibodies for which $target already exists
+    echo quick option skips rosetta post-processing \(relax/idealize\)
     exit
 fi
 
 repdir=$1
+if [ ! -d "$repdir" ]; then
+	echo directory $repdir does not exist
+	echo have you run antibody_repertoire.py?
+	exit
+fi
 cd $repdir
+
 dirs=`ls -d *`
 echo Processing Repertoire Antibodies: $dirs
 success=0
@@ -21,6 +28,7 @@ failed=0
 skipped=0
 
 if [ "$2" == "force" ]; then force=true; else force=false; fi
+if [ "$2" == "quick" ]; then norelax="--relax=0"; fi
 
 for d in $dirs; do
   if [ -d "$d" ]; then
@@ -29,9 +37,7 @@ for d in $dirs; do
  	if [ $force == true ] || [ ! -f grafting/$target ]
  	then 
 	 	antibody.py --heavy-chain $d\H.fasta --light-chain $d\L.fasta --prefix grafting/ \
-    	            --relax=1 --idealize=0 \
-        	        2>&1 | tee grafting.out
-        	        # --rosetta-platform linuxgccrelease \
+    	            $norelax 2>&1 | tee grafting.out
     	if [ $PIPESTATUS -eq 0 ]; then (( success++ )); else (( failed++ )); fi
 #    	ln -sF grafting/model.pdb $d.pdb
 #    	ln -sF grafting/grafted.pdb $d.grafted.pdb

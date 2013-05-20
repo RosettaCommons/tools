@@ -222,11 +222,12 @@ def main(args):
     light_chain = read_fasta_file(options.light_chain)
     heavy_chain = read_fasta_file(options.heavy_chain)
 
+    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
+
     prefix_details = Options.prefix + 'details/'
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
 
-    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
     print 'Prefix:', Options.prefix
     print 'Blast database:', Options.blast_database
     print 'Antibody database:', Options.antibody_database
@@ -679,7 +680,7 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
 
 
 def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
-    print '\nRunning blast as: %s\nWith database in:%s' % (blast, blast_database)
+    print '\nRunning %s' % (blast)
     cdr_info, legend = {}, ''  # first reading cdr_info table
     for l in file( _script_path_ + '/info/cdr_info' ):
         if l.startswith('# '): legend = l[2:].split()
@@ -763,10 +764,10 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     if len_cdr == int(v[1][check_length]):
                         pdb_random = v[0]
                         break
-                print '\nWARNING: No template avaliable for %s after filtering! A random template of the same length as the query was chosen...\n' % k
+                print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
                 custom_template = pdb_random
                 #sys.exit(1)
-            print "%s template %s:" % k, custom_template
+            print "%s template: %s" % (k, custom_template)
         else: print 'Custom %s template: %s...' % (k, custom_template)
         shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
 
@@ -967,7 +968,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.idealize:
         idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
         if os.path.isfile( idealize_jd2 ):
-            print '\nRunning idealize_jd2 to make %s.pdb' % (model_file_prefix)
+            print '\nRunning idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
@@ -981,7 +982,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.relax:
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
-            print '\nRunning relax with all-atom constraint to make %s.pdb' % (model_file_prefix)
+            print '\nRunning relax with all-atom constraint'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
@@ -1001,7 +1002,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def make_cter_constraint(CDRs, prefix):
-    print '\nPreparing cter_constraint file for H3 modeling...'
+    print '\nPreparing cter_constraint file for H3 modeling'
     L36  = AA_Code[ CDRs['numbering_L']['46'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
     L49  = AA_Code[ CDRs['numbering_L']['49'] ]

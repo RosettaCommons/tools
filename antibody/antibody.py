@@ -968,7 +968,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.idealize:
         idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
         if os.path.isfile( idealize_jd2 ):
-            print '\nRunning idealize_jd2'
+            print 'Running idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
@@ -982,7 +982,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.relax:
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
-            print '\nRunning relax with all-atom constraint'
+            print 'Running relax with all-atom constraint'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
@@ -1012,7 +1012,7 @@ def make_cter_constraint(CDRs, prefix):
     H100 = AA_Code[ CDRs['H3'][-3:-2] ]  # n-2
     H101 = AA_Code[ CDRs['H3'][-2:-1] ]  # n-1
     len_h3 = len( CDRs['H3'] )
-    print 'H3:', len_h3, CDRs['H3'],'\tKey residues: ', L36,L46,L49,H93,H94,H99,H100,H101
+    print 'H3:', len_h3, CDRs['H3'],'\nKey residues: ', L36,L46,L49,H93,H94,H99,H100,H101
 
     # H3-rules
     if ( H93 == 'ARG' or H93 == 'LYS' ) and ( H94 == 'ARG' or H94 == 'LYS' ) and H101 == 'ASP': base = 'KINK'

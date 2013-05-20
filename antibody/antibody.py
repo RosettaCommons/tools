@@ -1003,7 +1003,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def make_cter_constraint(CDRs, prefix):
     print '\nPreparing cter_constraint file for H3 modeling'
-    L36  = AA_Code[ CDRs['numbering_L']['46'] ]
+    L36  = AA_Code[ CDRs['numbering_L']['36'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
     L49  = AA_Code[ CDRs['numbering_L']['49'] ]
     H93  = AA_Code[ CDRs['numbering_H']['93'] ]

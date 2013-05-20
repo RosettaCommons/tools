@@ -245,11 +245,7 @@ def main(args):
 
 
     if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
-        print '\n!!! Homologues will not be excluded during template selection (default)                  !!!'
-        print '!!! Try "--homologue_exclusion <SID_CUTOFF>", if you wish to remove homologue            !!!'
-        print '!!! You can also try "--homologue_exclusion_cdr <SID_CUTOFF1>" or                        !!!'
-        print '!!!                  "--homologue_exclusion_fr <SID_CUTOFF2>",                           !!!'
-        print '!!! if you want to use different values for CDR and FR template selections, respectively !!!'
+        print 'Using full antibody database (no homolog exclusion)'
     elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
         if sid_cutoff_cdr <= 100:
             print '\n!!! Homologues will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
@@ -265,8 +261,8 @@ def main(args):
         sid_cutoff_cdr = sid_cutoff
         sid_cutoff_fr = sid_cutoff
 
-    #print 'Idealize:', Options.idealize, bool(Options.idealize)
-    #print 'Relax:', Options.relax, bool(Options.relax)
+    print 'Idealize:', bool(Options.idealize)
+    print 'Relax:', bool(Options.relax)
 
     for name in _framework_names_:
         if getattr(Options, name): print 'Custom %s template:' % name, getattr(Options, name)
@@ -757,22 +753,22 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
         custom_template = getattr(Options, k)
 
-        if custom_template and not os.path.isfile(custom_template): custom_template = Options.antibody_database + '/pdb%s_chothia.pdb' % custom_template
+        if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
         if not custom_template:
             if table:
-                custom_template = Options.antibody_database+'/'+table[0]['subject-id']
+                custom_template = table[0]['subject-id']
             else:  # if there is no template... table is a list, which has a blast result
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
                     if len_cdr == int(v[1][check_length]):
                         pdb_random = v[0]
                         break
-                print '\nWARNING: There is no template avaliable for %s after filtering! A ramdom template which has the same length as the query was chosen...\n' % k
-                custom_template = Options.antibody_database+'/'+pdb_random
+                print '\nWARNING: No template avaliable for %s after filtering! A random template of the same length as the query was chosen...\n' % k
+                custom_template = pdb_random
                 #sys.exit(1)
-            print "The template for %s is derived from:" % k, custom_template
-        else: print 'Custom tamplete for %s was specified, using: %s...' % (k, custom_template)
-        shutil.copy(custom_template, prefix+'/template.'+k+'.pdb')
+            print "%s template %s:" % k, custom_template
+        else: print 'Custom %s template: %s...' % (k, custom_template)
+        shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
@@ -955,7 +951,7 @@ def superimpose_templates(CDRs, prefix):
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
-        print '\nRunning antibody_graft as: %s\nWith rosetta_database in:%s' % (antibody_graft, rosetta_database)
+        print '\nRunning antibody_graft'
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
@@ -971,12 +967,12 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.idealize:
         idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
         if os.path.isfile( idealize_jd2 ):
-            print '\nRunning idealize as: %s\nWith rosetta_database in:%s and model:%s.pdb' % (idealize_jd2, rosetta_database, model_file_prefix)
+            print '\nRunning idealize_jd2 to make %s.pdb' % (model_file_prefix)
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.idealized.pdb');  model_file_prefix += '.idealized'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % idealize_jd2
@@ -985,13 +981,13 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.relax:
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
-            print '\nRunning relax with all-atom constraint as: %s\nWith rosetta_database in:%s and model:%s.pdb' % (relax, rosetta_database, model_file_prefix)
+            print '\nRunning relax with all-atom constraint to make %s.pdb' % (model_file_prefix)
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.relaxed.pdb');  model_file_prefix += '.relaxed'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
@@ -1005,7 +1001,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def make_cter_constraint(CDRs, prefix):
-    print '\nPreparing the cter_constraint file of the subsequent H3 modeling for the query...'
+    print '\nPreparing cter_constraint file for H3 modeling...'
     L36  = AA_Code[ CDRs['numbering_L']['46'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
     L49  = AA_Code[ CDRs['numbering_L']['49'] ]
@@ -1015,7 +1011,7 @@ def make_cter_constraint(CDRs, prefix):
     H100 = AA_Code[ CDRs['H3'][-3:-2] ]  # n-2
     H101 = AA_Code[ CDRs['H3'][-2:-1] ]  # n-1
     len_h3 = len( CDRs['H3'] )
-    print 'H3:', len_h3, CDRs['H3'],'\tKeys residues: ', L36,L46,L49,H93,H94,H99,H100,H101
+    print 'H3:', len_h3, CDRs['H3'],'\tKey residues: ', L36,L46,L49,H93,H94,H99,H100,H101
 
     # H3-rules
     if ( H93 == 'ARG' or H93 == 'LYS' ) and ( H94 == 'ARG' or H94 == 'LYS' ) and H101 == 'ASP': base = 'KINK'

@@ -39,9 +39,6 @@ for d in $dirs; do
 	 	antibody.py --heavy-chain $d\H.fasta --light-chain $d\L.fasta --prefix grafting/ \
     	            $norelax 2>&1 | tee grafting.out
     	if [ $PIPESTATUS -eq 0 ]; then (( success++ )); else (( failed++ )); fi
-#    	ln -sF grafting/model.pdb $d.pdb
-#    	ln -sF grafting/grafted.pdb $d.grafted.pdb
-#    	ln -sF grafting/grafted.relaxed.pdb $d.grafted.relaxed.pdb
 	else
 		echo $target exists, skipping antibody $d
 		(( skipped++ ))

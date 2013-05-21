@@ -45,12 +45,12 @@ def main(args):
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
-    parser.add_option('--light-chain',
+    parser.add_option('-L','--light-chain',
       action="store",
       help="Specify the light chain.",
     )
 
-    parser.add_option('--heavy-chain',
+    parser.add_option('-H','--heavy-chain',
       action="store",
       help="Specify the heavy chain.",
     )
@@ -706,6 +706,11 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         len_cdr = len(cdr_query[k])
         if k.count('FR') or k.count('heavy') or k.count('light'): db = blast_database + '/database.%s' % k
         else: db = blast_database + '/database.%s.%s' % (k, len_cdr)
+
+        # check that database file exists
+        if (not os.path.isfile(db)):
+            print '\nERROR: No %s templates of length %s (%s)\n' % (k, len_cdr, db)
+            sys.exit(1)
 
         wordsize, e_value, matrix = (2, 0.00001, 'BLOSUM62') if k.count('FR') or k.count('heavy') or k.count('light') else (2, 2000, 'PAM30')
 

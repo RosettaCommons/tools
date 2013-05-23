@@ -325,6 +325,9 @@ def write_results(CDRs, prefix):
             f.write('\n'.join( [ '%s %s' % (CDRs[n][k], k) for k in sorted(CDRs[n].keys(), key=lambda x: (int_(x), x) ) ]) + '\n')
 
 
+def safelen(seq):
+    return 0 if not seq else len(seq)
+
 def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
@@ -334,12 +337,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
     L1 = res.group()[1:-3] if res else False
-    print "L1 detected: ", L1, " (",len(L1),"residues )"
+    print "L1 detected: ", L1, " (",safelen(L1),"residues )"
 
     # L3
     res = re.search( r'C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)', light_second)
     L3 = res.group()[1:-4] if res else False
-    print "L3 detected: ", L3, " (",len(L3),"residues )"
+    print "L3 detected: ", L3, " (",safelen(L3),"residues )"
 
     if L1 and L3:
         L1_start = light_chain.index(L1)
@@ -352,7 +355,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         L3_end = L3_start + len(L3) - 1
 
         L2 = light_chain[L2_start:L2_start+7]  # L2 is identified here. Current implementation can deal with only 7-resiue L2
-        print "L2 detected: ", L2, " (",len(L2),"residues )"
+        print "L2 detected: ", L2, " (",safelen(L2),"residues )"
 
         FR_L1 = light_chain[:L1_start]
         FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
@@ -374,12 +377,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)', heavy_first) # jeff's mod for ATHM set
     #res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
     H1 = res.group()[4:-4] if res else False
-    print "H1 detected: ", H1, " (",len(H1),"residues )"
+    print "H1 detected: ", H1, " (",safelen(H1),"residues )"
 
     # H3
     res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
-    print "H3 detected: ", H3, " (",len(H3),"residues )"
+    print "H3 detected: ", H3, " (",safelen(H3),"residues )"
 
     if H1 and H3:
         H1_start = heavy_chain.index(H1)
@@ -593,7 +596,7 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
          and new_number_FR_H1 and new_number_FR_H2 and new_number_FR_H3 and new_number_FR_H4
          and new_number_FR_L1 and new_number_FR_L2 and new_number_FR_L3 and new_number_FR_L4 )
     except:
-        print "ERROR: Numbering failed.  Exiting."
+        print "Numbering failed.  Exiting."
         sys.exit(1)
 
     # Converting all new_number_* vars in to a lists

@@ -28,7 +28,7 @@ failed=0
 skipped=0
 
 if [ "$2" == "force" ]; then force=true; else force=false; fi
-if [ "$2" == "quick" ]; then norelax="--relax=0"; fi
+if [ "$2" == "quick" ]; then norelax="--quick=1"; fi
 
 for d in $dirs; do
   if [ -d "$d" ]; then
@@ -37,7 +37,7 @@ for d in $dirs; do
  	if [ $force == true ] || [ ! -f grafting/$target ]
  	then 
 	 	antibody.py --heavy-chain $d\H.fasta --light-chain $d\L.fasta --prefix grafting/ \
-    	            $norelax 2>&1 | tee grafting.out
+    	            $norelax 2>&1 | tee grafting.log
     	if [ $PIPESTATUS -eq 0 ]; then (( success++ )); else (( failed++ )); fi
 	else
 		echo $target exists, skipping antibody $d

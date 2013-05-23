@@ -120,6 +120,11 @@ def main(args):
       help="Specify if relax protocol should be running on final model [0/1]. (default: 1, which mean run relax protocol)",
     )
 
+    parser.add_option("--quick","-q",
+      default=0, type="int",
+      help="Specify fast run (structure will have clashes).  Prevents stem optimization and turns off relax, idealize.",
+    )
+
     #parser.add_option('--rosetta-options',
     #  action="store", default='',
     #  help="Specify extra options for antibody_graft run.",
@@ -261,6 +266,10 @@ def main(args):
         print     '\n!!! Homologues will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
         sid_cutoff_cdr = sid_cutoff
         sid_cutoff_fr = sid_cutoff
+
+    if Options.quick:
+        Options.relax = 0
+        Options.idealize = 0
 
     print 'Idealize:', bool(Options.idealize)
     print 'Relax:', bool(Options.relax)
@@ -962,6 +971,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
                       ' -antibody::h3_no_stem_graft'
+        if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)

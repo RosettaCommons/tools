@@ -11,18 +11,16 @@
 ## @file   antibody.py
 ## @brief  Pre-processing script for antibody protocol
 ## @author Sergey Lyskov
-## @modified by Daisuke Kuroda, JKLeman
+## @author Modified by Daisuke Kuroda
 
-import os, sys, re, json, commands, shutil, random
-from rosetta import *
+import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
-rosetta.init()
-
 _framework_names_ = ['FRL', 'FRH', 'light', 'heavy', 'L1', 'L2', 'L3', 'H1', 'H2', 'H3', 'light_heavy']
+
 
 '''
 _alignment_legend_to_pretty_legend = {
@@ -47,14 +45,14 @@ def main(args):
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
-    parser.add_option('--light-chain',
+    parser.add_option('-L','--light-chain',
       action="store",
-      help="Specify the FASTA file containing the light chain sequence.",
+      help="Specify the light chain.",
     )
 
-    parser.add_option('--heavy-chain',
+    parser.add_option('-H','--heavy-chain',
       action="store",
-      help="Specify the FASTA file containing the heavy chain sequence.",
+      help="Specify the heavy chain.",
     )
 
     parser.add_option('--prefix',
@@ -67,14 +65,9 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--superimpose_profit',
-      action="store", default='',
-      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
-    )
-
-    parser.add_option('--superimpose_PyRosetta',
-      action="store", default='./superimpose_interface.py',
-      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
+    parser.add_option('--profit',
+      action="store", default='profit',
+      help="Specify path+name for 'ProFIt' executable. Default is profit.",
     )
 
     parser.add_option('--blast-database',
@@ -92,14 +85,29 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
+    parser.add_option('--homologue_exclusion',
+      default=200, type="int",
+      help="Specify the cut-off for homologue exclusion during template selections.",
+    )
+
+    parser.add_option('--homologue_exclusion_cdr',
+      default=200, type="int",
+      help="Specify the cut-off for homologue exclusion during ***CDR*** template selections.",
+    )
+
+    parser.add_option('--homologue_exclusion_fr',
+      default=200, type="int",
+      help="Specify the cut-off for homologue exclusion during ***FR*** template selections.",
+    )
+
     parser.add_option('--rosetta-bin',
       action="store", default=None,
-      help="Specify path to 'rosetta_source/bin' dir where antibody_assemble_CDRs', idealize and relax executable expected to be found. Default is '<script location>/bin' (place symlink there) and if not found corresponding steps will be skipped.",
+      help="Specify path to 'rosetta/source/bin' dir where antibody_graft', idealize and relax executable expected to be found. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (plasce symlink there) and if not found corresponding steps will be skipped.",
     )
 
     parser.add_option('--rosetta-platform',
       action="store", default=None,
-      help="Specify full extra+compier+build type for rosetta binaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default is dynamic release build of current OS",
+      help="Specify full extra+compier+build type for rosetta biniaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default is dynamic release build of current OS",
     )
 
     parser.add_option("--idealize",
@@ -114,7 +122,7 @@ def main(args):
 
     #parser.add_option('--rosetta-options',
     #  action="store", default='',
-    #  help="Specify extra options for antibody_assemble_CDRs run.",
+    #  help="Specify extra options for antibody_graft run.",
     #)
 
     for name in _framework_names_:
@@ -138,26 +146,61 @@ def main(args):
       help="Generate verbose output.",
     )
 
-    # Filter list of 'filter-function:default state' pairs here, and extend it to add more filters
+    # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True }
+                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homologue:True }
 
-    for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]), help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
+    for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
+                                        help="Boolen option [0/1] that control filetering results with %s function." % f.func_name)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
 
+    global sid_cutoff
+    global sid_cutoff_cdr
+    global sid_cutoff_fr
+
+    sid_cutoff     = Options.homologue_exclusion
+    sid_cutoff_cdr = Options.homologue_exclusion_cdr
+    sid_cutoff_fr  = Options.homologue_exclusion_fr
+
+    global frlh_info
+    global frl_info
+    global frh_info
+
+    frlh_info, legend = {}, ''
+    for l in file( _script_path_ + '/info/frlh_info' ):
+        if l.startswith('# '): legend = l[2:].split()
+        elif len(l)>8: frlh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
+
+    frl_info, legend = {}, ''
+    for l in file( _script_path_ + '/info/frl_info' ):
+        if l.startswith('# '): legend = l[2:].split()
+        elif len(l)>8: frl_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
+
+    frh_info, legend = {}, ''
+    for l in file( _script_path_ + '/info/frh_info' ):
+        if l.startswith('# '): legend = l[2:].split()
+        elif len(l)>8: frh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     #os.getcwd() #os.chdir()
     script_dir = os.path.dirname(__file__)
 
+    if Options.prefix and Options.prefix[-1] != '/': Options.prefix += '/'
+
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
     if not Options.antibody_database: Options.antibody_database = script_dir + '/antibody_database'
-    if not Options.rosetta_bin:       Options.rosetta_bin       = script_dir + '/bin'
+    if not Options.rosetta_bin:
+        if 'ROSETTA' in os.environ:
+            Options.rosetta_bin = os.path.abspath(os.environ['ROSETTA']) + '/main/source/bin'
+        else: Options.rosetta_bin = script_dir + '/bin'
     if not Options.rosetta_database:
-        if os.path.isdir(script_dir + '/rosetta_database'):           Options.rosetta_database = os.path.abspath( script_dir + '/rosetta_database' )
-        elif 'ROSETTA3_DB' in os.environ:                        Options.rosetta_database = os.path.abspath(os.environ['ROSETTA3_DB'])
-        elif os.path.isdir(os.environ['HOME'] + '/rosetta_database'): Options.rosetta_database = os.path.abspath(os.environ['HOME'] + '/rosetta_database')
+        if os.path.isdir(script_dir + '/rosetta_database'):
+            Options.rosetta_database = os.path.abspath( script_dir + '/rosetta_database' )
+        elif 'ROSETTA3_DB' in os.environ:
+            Options.rosetta_database = os.path.abspath(os.environ['ROSETTA3_DB'])
+        elif os.path.isdir(os.environ['HOME'] + '/rosetta_database'):
+            Options.rosetta_database = os.path.abspath(os.environ['HOME'] + '/rosetta_database')
 
     Options.blast_database    = os.path.abspath( Options.blast_database )
     Options.antibody_database = os.path.abspath( Options.antibody_database )
@@ -173,57 +216,76 @@ def main(args):
     if not(options.light_chain and options.heavy_chain):
         print 'Script for preparing detecting antibodys and preparing info for Rosetta protocol.'
         print 'At miminum you need to specify options --light-chain and --heavy-chain.'
-        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specified... exiting...'
+        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
         sys.exit(1)
 
-    #read fasta files
     light_chain = read_fasta_file(options.light_chain)
     heavy_chain = read_fasta_file(options.heavy_chain)
 
-    #create directories
+    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
+
     prefix_details = Options.prefix + 'details/'
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
 
-    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
     print 'Prefix:', Options.prefix
     print 'Blast database:', Options.blast_database
     print 'Antibody database:', Options.antibody_database
     print 'rosetta_bin:', Options.rosetta_bin, ' [platform: %s]' % Options.rosetta_platform
-    print 'rosetta_databse:', Options.rosetta_database
+    print 'rosetta_database:', Options.rosetta_database
 
-    #print 'Idealize:', Options.idealize, bool(Options.idealize)
-    #print 'Relax:', Options.relax, bool(Options.relax)
+
+    antibody_database_files = os.listdir(Options.antibody_database)
+    bz2ipped_files  = [f for f in antibody_database_files if f.endswith('.bz2') and f[:-4] not in antibody_database_files]
+    if bz2ipped_files:
+        print 'Unpacking rosetta_database files (this need to be done only once)...'
+        commandline = 'cd %s && bunzip2 -k %s' % (Options.antibody_database, ' '.join(bz2ipped_files))
+        res, output = commands.getstatusoutput(commandline)
+        if Options.verbose and not res: print commandline+'\n', output
+        if res: print commandline+'\n', 'ERROR: Unpacking antibody database files failed with code %s and message: %s' % (res, output);  sys.exit(1)
+
+
+    if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
+        print 'Using full antibody database (no homolog exclusion)'
+    elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
+        if sid_cutoff_cdr <= 100:
+            print '\n!!! Homologues will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
+        else:
+            print '\n!!! Homologues will not be excluded during ***CDR*** template selection (default)    !!!'
+
+        if sid_cutoff_fr <= 100:
+            print '\n!!! Homologues will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
+        else:
+            print '\n!!! Homologues will not be excluded during ***FR*** template selection (default)    !!!'
+    elif sid_cutoff <= 100:
+        print     '\n!!! Homologues will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
+        sid_cutoff_cdr = sid_cutoff
+        sid_cutoff_fr = sid_cutoff
+
+    print 'Idealize:', bool(Options.idealize)
+    print 'Relax:', bool(Options.relax)
 
     for name in _framework_names_:
         if getattr(Options, name): print 'Custom %s template:' % name, getattr(Options, name)
     print
-    print "Light chain: '%s'" % light_chain
-    print "Heavy chain: '%s'" % heavy_chain
+    print "Light chain: %s" % light_chain
+    print "Heavy chain: %s" % heavy_chain
 
-    #returns dictionary with CDRs as values
     CDRs = IdentifyCDRs(light_chain, heavy_chain)
-    CDRs.update( ExtractFR_Sequences(**CDRs) )
+    CDRs.update( Extract_FR_CDR_Sequences(**CDRs) )
     CDRs['light_heavy'] = CDRs['light'] + CDRs['heavy']
     write_results(CDRs, prefix_details)
 
     if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)
     else:
         c = dict(CDRs);  c.pop('numbering_L');  c.pop('numbering_H')
-        print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
+        #print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
 
-    #creates .align files with header and alignment
-    alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database)
+    alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database, verbose=Options.verbose)
 
     create_virtual_template_pdbs(prefix=prefix_details)
     thread_template_pdbs(CDRs, prefix=prefix_details)
-    print "CDRs: ", CDRs
-
-    if Options.superimpose_profit:
-      superimpose_templates(CDRs, prefix=prefix_details)
-    else: 
-      command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)    
+    superimpose_templates(CDRs, prefix=prefix_details)
 
     if Options.rosetta_database:
         run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database)
@@ -239,7 +301,7 @@ def main(args):
 
 
 def read_fasta_file(file_name):
-    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] )
+    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '')
 
 
 def write_fasta_file(file_name, data, prefix):
@@ -263,10 +325,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
     L1 = res.group()[1:-3] if res else False
+    print "L1 detected: ", L1, " (",len(L1),"residues )"
 
     # L3
     res = re.search( r'C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)', light_second)
     L3 = res.group()[1:-4] if res else False
+    print "L3 detected: ", L3, " (",len(L3),"residues )"
 
     if L1 and L3:
         L1_start = light_chain.index(L1)
@@ -279,11 +343,18 @@ def IdentifyCDRs(light_chain, heavy_chain):
         L3_end = L3_start + len(L3) - 1
 
         L2 = light_chain[L2_start:L2_start+7]  # L2 is identified here. Current implementation can deal with only 7-resiue L2
+        print "L2 detected: ", L2, " (",len(L2),"residues )"
 
         FR_L1 = light_chain[:L1_start]
         FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
         FR_L3 = light_chain[L2_end+1 : L2_end+1 +L3_start - L2_end - 1 ]
         FR_L4 = light_chain[L3_end + 1 : L3_end + 1 + 12]
+
+        print "FR_L1: ", FR_L1
+        print "FR_L2: ", FR_L2
+        print "FR_L3: ", FR_L3
+        print "FR_L4: ", FR_L4
+        print "L segments: ",FR_L1,L1,FR_L2,L2,FR_L3,L3,FR_L4
 
         # Light chain sub-type classification. This is useful in the future. But currently this is not used.
         # ... skipped, see Google doc for details
@@ -291,12 +362,15 @@ def IdentifyCDRs(light_chain, heavy_chain):
         # ... skipped, see Google doc for details
 
     # H1
-    res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
+    res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)', heavy_first) # jeff's mod for ATHM set
+    #res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
     H1 = res.group()[4:-4] if res else False
+    print "H1 detected: ", H1, " (",len(H1),"residues )"
 
     # H3
-    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)', heavy_second)
+    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
+    print "H3 detected: ", H3, " (",len(H3),"residues )"
 
     if H1 and H3:
         H1_start = heavy_chain.index(H1)
@@ -307,23 +381,26 @@ def IdentifyCDRs(light_chain, heavy_chain):
 
         H2_start = H1_end + 15
         H2_end = H3_start - 33
-        #H2_end = H3_start - 34
 
-        H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1+1]
-
-        print "DK\t", H2
+        H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1]
+        print "H2 detected: ", H2, " (",len(H2),"residues )"
 
         FR_H1 = heavy_chain[:H1_start]
         FR_H2 = heavy_chain[H1_end + 1: H1_end + 1 + H2_start - H1_end - 1]
-        FR_H3 = heavy_chain[H2_end + 2: H2_end + 1 + H3_start - H2_end - 1]
+        FR_H3 = heavy_chain[H2_end + 1: H2_end + 1 + H3_start - H2_end - 1]
         FR_H4 = heavy_chain[H3_end + 1: H3_end + 1 + 12]
 
-    if not (L1 and L3):
-        print 'Error: CDR of light chain cannot be recognized !!!'
-        sys.exit(1)
+        print "FR_H1: ", FR_H1
+        print "FR_H2: ", FR_H2
+        print "FR_H3: ", FR_H3
+        print "FR_H4: ", FR_H4
+        print "H segments: ",FR_H1,H1,FR_H2,H2,FR_H3,H3,FR_H4
 
-    if not (H1 and H3):
-        print 'Error: CDR of heavy chain cannot be recognized !!!'
+    if not (L1 and L3 and H1 and H3):
+        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)'
+        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
+        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)'
         sys.exit(1)
 
     res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)
@@ -334,12 +411,11 @@ def IdentifyCDRs(light_chain, heavy_chain):
 
 def int_(s): return int( re.sub('[A-Z]', '', s) )  #v = int( re.sub('[A-Z]', '', new_number_FR_L1) )  # $new_number_FR_L1[$i] =~ s/[A-Z]//     #new_number_FR_L1[i] = string.translate(new_number_FR_L1[i], None, string.ascii_letters)
 
-def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
+def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
     # LIGHT CHAIN
     # FR_L1	How can we handle missing residue in C/N-terminals?
-    if re.search( r'[QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1): # Change G to [A-Z] (3G04)
-        if   len(FR_L1) == 18: new_number_FR_L1="6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 19: new_number_FR_L1="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+    if re.search( r'[A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1): # Change G to [A-Z] (3G04)
+        if   len(FR_L1) == 19: new_number_FR_L1="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 20: new_number_FR_L1="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 21: new_number_FR_L1="3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 22: new_number_FR_L1="2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
@@ -348,10 +424,10 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
             #new_number_FR_L1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
             FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
             new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
 
-    elif re.search( r'[QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1):  # Change G to [A-Z] (3G04)
-        if   len(FR_L1) == 18: new_number_FR_L1="5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 19: new_number_FR_L1="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+    elif re.search( r'[A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1):  # Change G to [A-Z] (3G04)
+        if   len(FR_L1) == 19: new_number_FR_L1="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 20: new_number_FR_L1="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 21: new_number_FR_L1="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 22: new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
@@ -360,9 +436,9 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
             #new_number_FR_L1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
             FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
             new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
     else:
         print 'ERROR: Current code could not assign Chothia numbering of FR_L1 in the query sequence!!! Exiting...'
-        sys.exit(1)
 
     # L1
     if   len(L1) ==  8: new_number_L1="24,25,26,27,28,29,30,34"
@@ -375,9 +451,11 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(L1) == 15: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,31,32,33,34"
     elif len(L1) == 16: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,31,32,33,34"
     elif len(L1) == 17: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,30F,31,32,33,34"
+    else: print "ERROR: L1 length",len(L1),"is not between 8 and 17"
 
     # FR_L2
     if len(FR_L2) == 15: new_number_FR_L2="35,36,37,38,39,40,41,42,43,44,45,46,47,48,49"
+    else: print "ERROR: FR_L2 length",len(FR_L2),"is not 15"
 
     # L2
     if   len(L2) ==  7: new_number_L2="50,51,52,53,54,55,56"
@@ -385,11 +463,13 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(L2) ==  9: new_number_L2="50,51,52,53,54,54A,54B,55,56"
     elif len(L2) == 10: new_number_L2="50,51,52,53,54,54A,54B,54C,55,56"
     elif len(L2) == 11: new_number_L2="50,51,52,53,54,54A,54B,54C,54D,55,56"
+    else: print "ERROR: L2 length",len(L2),"is not between 7 and 11"
 
     # FR_L3
     if   len(FR_L3) == 32: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
     elif len(FR_L3) == 33: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
     elif len(FR_L3) == 34: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,66B,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
+    else: print "ERROR: FR_L3 length",len(FR_L3),"is not between 32 and 34"
 
     # L3
     if   len(L3) ==  5: new_number_L3="89,90,91,92,97"
@@ -403,6 +483,7 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(L3) == 13: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,96,97"
     elif len(L3) == 14: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,96,97"
     elif len(L3) == 15: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,95F,96,97"
+    else: print "ERROR: L3 length",len(L3),"is not between 5 and 15"
 
     # FR_L4
     new_number_FR_L4="98,99,100,101,102,103,104,105,106,107,108,109"
@@ -423,9 +504,7 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
         #new_number_FR_H1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25"
         new_number_FR_H1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25"
         FR_H1 = FR_H1[1:]  # Remove 0th residue 10/24/2012
-    else:
-        print 'ERROR: Current code could not assign Chothia numbering of FR_H1', FR_H1, len(FR_H1), ' in the query sequence!!! Exiting...'
-        sys.exit(1)
+    else: print "ERROR: FR_H1 length",len(FR_H1),"is not between 16 and 26"
 
     # H1
     if   len(H1) ==  6: new_number_H1="26,27,32,33,34,35"
@@ -436,9 +515,11 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(H1) == 11: new_number_H1="26,27,28,29,30,31,31A,32,33,34,35"
     elif len(H1) == 12: new_number_H1="26,27,28,29,30,31,31A,31B,32,33,34,35"
     elif len(H1) == 13: new_number_H1="26,27,28,29,30,31,31A,31B,31C,32,33,34,35"
+    else: print "ERROR: H1 length",len(H1),"is not between 6 and 13"
 
     # FR_H2
     if len(FR_H2) == 14: new_number_FR_H2="36,37,38,39,40,41,42,43,44,45,46,47,48,49"
+    else: print "ERROR: FR_H2 length",len(FR_H2),"is not 14"
 
     # H2
     if   len(H2) == 12: new_number_H2="50,51,52,57,58,59,60,61,62,63,64,65"
@@ -452,12 +533,13 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(H2) == 20: new_number_H2="50,51,52,52A,52B,52C,52D,53,54,55,56,57,58,59,60,61,62,63,64,65"
     elif len(H2) == 21: new_number_H2="50,51,52,52A,52B,52C,52D,52E,53,54,55,56,57,58,59,60,61,62,63,64,65"
     elif len(H2) == 22: new_number_H2="50,51,52,52A,52B,52C,52D,52E,52F,53,54,55,56,57,58,59,60,61,62,63,64,65"
+    else: print "ERROR: H2 length",len(H2),"is not between 12 and 22"
 
     # FR_H3
-    if   len(FR_H3) == 29: new_number_FR_H3="66,67,68,69,70,71,72,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
-    elif len(FR_H3) == 30: new_number_FR_H3="66,67,68,69,70,71,72,73,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
-    elif len(FR_H3) == 31: new_number_FR_H3="66,67,68,69,70,71,72,74,75,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
+    if   len(FR_H3) == 30: new_number_FR_H3="66,67,68,69,70,71,72,73,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
+    elif len(FR_H3) == 31: new_number_FR_H3="66,67,68,69,70,71,72,73,74,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
     elif len(FR_H3) == 32: new_number_FR_H3="66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94"
+    else: print "ERROR: FR_H3 length",len(FR_H3),"is not between 30 and 32"
 
     # H3
     if   len(H3) ==  3: new_number_H3="95,96,97"
@@ -492,30 +574,24 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     elif len(H3) == 32: new_number_H3="95,96,97,98,99,100,100A,100B,100C,100D,100E,100F,100G,100H,100I,100J,100K,100L,100M,100N,100O,100P,100Q,100R,100S,100T,100U,100V,100W,100X,101,102"
     elif len(H3) == 33: new_number_H3="95,96,97,98,99,100,100A,100B,100C,100D,100E,100F,100G,100H,100I,100J,100K,100L,100M,100N,100O,100P,100Q,100R,100S,100T,100U,100V,100W,100X,100Y,101,102"
     elif len(H3) == 34: new_number_H3="95,96,97,98,99,100,100A,100B,100C,100D,100E,100F,100G,100H,100I,100J,100K,100L,100M,100N,100O,100P,100Q,100R,100S,100T,100U,100V,100W,100X,100Y,100Z,101,102"
+    else: print "ERROR: H3 length",len(FR_H3),"is not between 3 and 34"
 
     # FR_H4
     new_number_FR_H4="103,104,105,106,107,108,109,110,111,112,113,114"
 
+    try:
+        (new_number_L1 and new_number_L2 and new_number_L3 and new_number_H1 and new_number_H2 and new_number_H3
+         and new_number_FR_H1 and new_number_FR_H2 and new_number_FR_H3 and new_number_FR_H4
+         and new_number_FR_L1 and new_number_FR_L2 and new_number_FR_L3 and new_number_FR_L4 )
+    except:
+        print "ERROR: Numbering failed.  Exiting."
+        sys.exit(1)
+
     # Converting all new_number_* vars in to a lists
-    new_number_L1=new_number_L1.split(',')
-    new_number_L2=new_number_L2.split(',')  
-    new_number_L3=new_number_L3.split(',')
-    new_number_H1=new_number_H1.split(',')  
-    new_number_H2=new_number_H2.split(',')  
-    new_number_H3=new_number_H3.split(',')
-    new_number_FR_L1=new_number_FR_L1.split(',')
-    new_number_FR_L2=new_number_FR_L2.split(',')
-    print len(FR_L3), "\n\n\n"
-    new_number_FR_L3=new_number_FR_L3.split(',')  
-    new_number_FR_L4=new_number_FR_L4.split(',')
-
-
-#    print "in ExtractFR_sequences\n", new_number_FR_H3, "\n\n"
-
-    new_number_FR_H1=new_number_FR_H1.split(',');  
-    new_number_FR_H2=new_number_FR_H2.split(',');  
-    new_number_FR_H3=new_number_FR_H3.split(',');  
-    new_number_FR_H4=new_number_FR_H4.split(',');
+    new_number_L1=new_number_L1.split(',');  new_number_L2=new_number_L2.split(',');  new_number_L3=new_number_L3.split(',');
+    new_number_H1=new_number_H1.split(',');  new_number_H2=new_number_H2.split(',');  new_number_H3=new_number_H3.split(',');
+    new_number_FR_L1=new_number_FR_L1.split(',');  new_number_FR_L2=new_number_FR_L2.split(',');  new_number_FR_L3=new_number_FR_L3.split(',');  new_number_FR_L4=new_number_FR_L4.split(',');
+    new_number_FR_H1=new_number_FR_H1.split(',');  new_number_FR_H2=new_number_FR_H2.split(',');  new_number_FR_H3=new_number_FR_H3.split(',');  new_number_FR_H4=new_number_FR_H4.split(',');
 
     print_seq_FR_L1, print_seq_FR_L2, print_seq_FR_L3, print_seq_FR_L4, print_seq_FR_L4_extra = '', '', '', '', ''
     print_seq_FR_H1, print_seq_FR_H2, print_seq_FR_H3, print_seq_FR_H4, print_seq_FR_H4_extra = '', '', '', '', ''
@@ -525,7 +601,7 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     for i, s in enumerate(FR_L1): #FR_L1
         numbering_L[ new_number_FR_L1[i] ] = s  #+='%s %s\n' % (s, new_number_FR_L1[i])
         v = int_(new_number_FR_L1[i])
-        if (v >= 1 and v <= 6) or (v >= 10 and v <= 23): print_seq_FR_L1 += s
+        if v >= 10 and v <= 23: print_seq_FR_L1 += s
 
     for i, s in enumerate(L1): numbering_L[ new_number_L1[i] ] = s  # +='%s %s\n' % (s, new_number_L1[i])  # L1
 
@@ -546,7 +622,7 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     for i, s in enumerate(FR_L4):  #FR_L4
         numbering_L[ new_number_FR_L4[i] ] = s  #+='%s %s\n' % (s, new_number_FR_L4[i])
         v = int_(new_number_FR_L4[i])
-        if v >= 98 and v <= 114: print_seq_FR_L4 += s
+        if v >= 98 and v <= 104: print_seq_FR_L4 += s
         if v >= 98 and v <= 101: print_seq_FR_L4_extra += s
 
 
@@ -554,7 +630,7 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     for i, s in enumerate(FR_H1):  #FR_H1
         numbering_H[ new_number_FR_H1[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H1[i])
         v = int_(new_number_FR_H1[i])
-        if (v >= 1 and v <= 6) or (v >= 10 and v <= 25): print_seq_FR_H1 += s
+        if v >= 10 and v <= 25: print_seq_FR_H1 += s
 
     for i, s in enumerate(H1): numbering_H[ new_number_H1[i] ] = s  #+='%s %s\n' % (s, new_number_H1[i])  # H1
 
@@ -575,11 +651,26 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
     for i, s in enumerate(FR_H4):  #FR_H4
         numbering_H[ new_number_FR_H4[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H4[i])
         v = int_(new_number_FR_H4[i])
-        if v >= 103 and v <= 114: print_seq_FR_H4 += s
+        if v >= 103 and v <= 109: print_seq_FR_H4 += s
         if v >= 103 and v <= 106: print_seq_FR_H4_extra += s
 
     #if Options.verbose: print 'numbering_L:\n', numbering_L
     #if Options.verbose: print 'numbering_H:\n', numbering_H
+
+    FRL = print_seq_FR_L1 + print_seq_FR_L2 + print_seq_FR_L3 + print_seq_FR_L4
+    FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4
+
+    if len(FRL) != 58 and len(FRL) != 60:
+        print "ERROR: Current DB does not cover the length of FRL of your query."
+        print "ERROR: FRL length of your query:", len(FRL)
+        print "ERROR: DB: 61 or 63"
+        sys.exit(1)
+
+    if len(FRH) != 63 and len(FRH) != 65:
+        print "ERORR: Current DB does not cover the length of FRL of your query."
+        print "ERORR: FRH length of your query:", len(FRH)
+        print "ERORR: DB: 63 or 65"
+        sys.exit(1)
 
     return dict(FRL = print_seq_FR_L1 + print_seq_FR_L2 + print_seq_FR_L3 + print_seq_FR_L4,
                 FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4,
@@ -588,19 +679,20 @@ def ExtractFR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L
                 numbering_L=numbering_L, numbering_H=numbering_H)
 
 
-def run_blast(cdr_query, prefix, blast, blast_database):
-    print '\nRunning blast as: %s\nWith datbase in:%s' % (blast, blast_database)
+def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
+    print '\nRunning %s' % (blast)
     cdr_info, legend = {}, ''  # first reading cdr_info table
     for l in file( _script_path_ + '/info/cdr_info' ):
         if l.startswith('# '): legend = l[2:].split()
         elif len(l)>8: cdr_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
+
 
     for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
 
     # cdr_info consistency check
     for name, i in cdr_info.items():
         if sum( [ i[k]!='none' and int(i[k+'_length'])!= len(i[k]) for k in ['L1', 'L2', 'L3', 'H1', 'H2', 'H3'] ]):
-            print 'ERROR: cdr_info length info is inconsistent ofr line: %s' % name;
+            print 'ERROR: cdr_info length info is inconsistent for line: %s' % name;
             for k in ['L1' , 'L2' , 'L3' , 'H1' , 'H2' , 'H3']:
                 print k, i[k], i[k+'_length'], len(i[k])
             sys.exit(1)
@@ -612,19 +704,22 @@ def run_blast(cdr_query, prefix, blast, blast_database):
 
 		# if CDRs, use length-depend DBs for BLAST
         len_cdr = len(cdr_query[k])
-        if k.count('FR') or k.count('heavy') or k.count('light'):
-            db = blast_database + '/database.' + k
-        else:
-            db = blast_database + '/database.' + k + '.' + str(len_cdr)
+        if k.count('FR') or k.count('heavy') or k.count('light'): db = blast_database + '/database.%s' % k
+        else: db = blast_database + '/database.%s.%s' % (k, len_cdr)
+
+        # check that database file exists
+        if (not os.path.isfile(db)):
+            print '\nERROR: No %s templates of length %s (%s)\n' % (k, len_cdr, db)
+            sys.exit(1)
 
         wordsize, e_value, matrix = (2, 0.00001, 'BLOSUM62') if k.count('FR') or k.count('heavy') or k.count('light') else (2, 2000, 'PAM30')
 
         commandline = 'cd %s && ' % '\ '.join(os.path.dirname(prefix).split()) + blast + \
                       (' -db %(db)s -query %(input_query)s -out %(output)s -evalue %(e_value)s -matrix %(matrix)s' + \
                        ' -word_size %(wordsize)s -outfmt 7 -max_target_seqs 600') % vars()
-        print commandline
 
         res, output = commands.getstatusoutput(commandline)
+        if verbose and not res: print commandline+'\n', output
         if res: print commandline+'\n', 'ERROR: Blast execution faild with code %s and message: %s' % (res, output);  sys.exit(1)
 
         #print 'Filtering results...'
@@ -658,28 +753,28 @@ def run_blast(cdr_query, prefix, blast, blast_database):
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
                 sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-
         sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 
         custom_template = getattr(Options, k)
 
-        if custom_template and not os.path.isfile(custom_template): custom_template = Options.antibody_database + '/pdb%s_chothia.pdb' % custom_template
+        if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
         if not custom_template:
             if table:
-                custom_template = Options.antibody_database+'/'+table[0]['subject-id']
+                custom_template = table[0]['subject-id']
             else:  # if there is no template... table is a list, which has a blast result
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
-                    if len_cdr == int(v[1][check_length]): pdb_random = v[0]
-
-                print '\nWARNING: There is no template avaliable for %s after filtering! A ramdom template which has the same length as the query was chosen...\n' % k
-                custom_template = Options.antibody_database+'/'+pdb_random
+                    if len_cdr == int(v[1][check_length]):
+                        pdb_random = v[0]
+                        break
+                print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
+                custom_template = pdb_random
                 #sys.exit(1)
-            print "The template for %s is derived from:" % k, custom_template
-        else: print 'Custom tamplete for %s was specified, using: %s...' % (k, custom_template)
-        shutil.copy(custom_template, prefix+'/template.'+k+'.pdb')
+            print "%s template: %s" % (k, custom_template)
+        else: print 'Custom %s template: %s...' % (k, custom_template)
+        shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
@@ -722,20 +817,20 @@ def create_virtual_template_pdbs(prefix):
                             check = 1
                             o.write( line2 )
 
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 + 0.01)
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 + 0.02)
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 + 0.03)
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 + 0.04)
+                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2)
+                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2)
+                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2)
+                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2)
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 + 0.09)
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 + 0.08)
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 + 0.07)
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 + 0.06)
+                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2)
+                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2)
+                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2)
+                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2)
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 + 0.01)
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 + 0.03)
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 + 0.06)
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 + 0.09)
+                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2)
+                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2)
+                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2)
+                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2)
 
                 #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
                 #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
@@ -842,7 +937,6 @@ write "%(prefix)s/fitted.H.pdb"
 quit''' }
 
 def superimpose_templates(CDRs, prefix):
-    print "profit_templates: ", profit_templates
     for chain in profit_templates:
         f_name = prefix + 'profit-%s' % chain
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
@@ -859,32 +953,32 @@ def superimpose_templates(CDRs, prefix):
     #res, output = commands.getstatusoutput('cat %(prefix)s/fitted.L.pdb %(prefix)s/fitted.H.pdb > %(prefix)s/FR.pdb' % vars())
     if res: print output;  sys.exit(1)
 
+
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
-    antibody_assemble = rosetta_bin + '/antibody_assemble_CDRs.' + rosetta_platform
-    if os.path.isfile( antibody_assemble ):
-        print '\nRunning antibody_assemble as: %s\nWith rosetta_datbase in:%s' % (antibody_assemble, rosetta_database)
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_assemble, rosetta_database) + \
+    antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
+    if os.path.isfile( antibody_graft ):
+        print '\nRunning antibody_graft'
+        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
                       ' -antibody::h3_no_stem_graft'
-        print commandline
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
         model_file_prefix = 'grafted';  shutil.move(prefix+'details/FR_0001.pdb', prefix+model_file_prefix+'.pdb')
     else:
-        print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_assemble
+        print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
         return
 
     if Options.idealize:
         idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
         if os.path.isfile( idealize_jd2 ):
-            print '\nRunning idealize as: %s\nWith rosetta_datbase in:%s and model:%s.pdb' % (idealize_jd2, rosetta_database, model_file_prefix)
+            print 'Running idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.idealized.pdb');  model_file_prefix += '.idealized'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % idealize_jd2
@@ -893,13 +987,13 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.relax:
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
-            print '\nRunning relax as: %s\nWith rosetta_datbase in:%s and model:%s.pdb' % (relax, rosetta_database, model_file_prefix)
+            print 'Running relax with all-atom constraint'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.relaxed.pdb');  model_file_prefix += '.relaxed'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
@@ -913,8 +1007,8 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def make_cter_constraint(CDRs, prefix):
-    print '\nPreparing the cter_constraint file of the subsequent H3 modeling for the query...'
-    L36  = AA_Code[ CDRs['numbering_L']['46'] ]
+    print '\nPreparing cter_constraint file for H3 modeling'
+    L36  = AA_Code[ CDRs['numbering_L']['36'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
     L49  = AA_Code[ CDRs['numbering_L']['49'] ]
     H93  = AA_Code[ CDRs['numbering_H']['93'] ]
@@ -923,7 +1017,7 @@ def make_cter_constraint(CDRs, prefix):
     H100 = AA_Code[ CDRs['H3'][-3:-2] ]  # n-2
     H101 = AA_Code[ CDRs['H3'][-2:-1] ]  # n-1
     len_h3 = len( CDRs['H3'] )
-    print 'H3:', len_h3, CDRs['H3'],'\tKeys residues: ', L36,L46,L49,H93,H94,H99,H100,H101
+    print 'H3:', len_h3, CDRs['H3'],'\nKey residues: ', L36,L46,L49,H93,H94,H99,H100,H101
 
     # H3-rules
     if ( H93 == 'ARG' or H93 == 'LYS' ) and ( H94 == 'ARG' or H94 == 'LYS' ) and H101 == 'ASP': base = 'KINK'
@@ -961,19 +1055,68 @@ def make_cter_constraint(CDRs, prefix):
     print 'Predicted base conformation is', base
 
 # Various filter function
+def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
+    if Options.verbose: print 'filtering by sequence identity...'
+    #print results
+
+    for r in results[:]:
+        pdb = r['subject-id']
+
+        if k in ['L1','L2','L3','H1','H2','H3'] and sid_checker(cdr_query[k], cdr_info[pdb][k]) >= sid_cutoff_cdr:
+            results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_identity (%s%% cut-off), removing:%s %s_query:%s %s_info:%s %s%% identity' % (sid_cutoff_cdr, pdb, k, len(cdr_query[k]), k, len( cdr_info[pdb][k] ), round(sid_checker(cdr_query[k], cdr_info[pdb][k]), 2) )
+
+        elif  k in ['FRL'] and sid_checker(cdr_query[k], frl_info[pdb][k]) >= sid_cutoff_fr:
+            results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_identity (%s%% cut-off), removing:%s %s_query:%s %s_info:%s %s%% identity' % (sid_cutoff_fr, pdb, k, len(cdr_query[k]), k, len( frl_info[pdb][k] ), round(sid_checker(cdr_query[k], frl_info[pdb][k]), 2) )
+
+        elif  k in ['FRH'] and sid_checker(cdr_query[k], frh_info[pdb][k]) >= sid_cutoff_fr:
+            results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_identity (%s%% cut-off), removing:%s %s_query:%s %s_info:%s %s%% identity' % (sid_cutoff_fr, pdb, k, len(cdr_query[k]), k, len( frh_info[pdb][k] ), round(sid_checker(cdr_query[k], frh_info[pdb][k]), 2) )
+        elif  k in ['light_heavy'] and float(r['%-identity'])  >= sid_cutoff_fr - 5:
+            results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_identity (%s%% cut-off), removing:%s %s %s%% identity' % (sid_cutoff_fr, pdb, k, r['%-identity'])
+
+
+def sid_checker(seq_q, seq_t):
+    seq_lenq  = len(seq_q)
+    seq_lent = len(seq_t)
+
+    #print seq_lenq, seq_lent
+
+    if seq_lenq == seq_lent:
+        num_res = 0
+        for i in range(0, seq_lenq):
+            #print seq_q[i], seq_t[i], cnt
+            if seq_q[i] == seq_t[i]:
+                num_res+=1
+        ratio = float(num_res) / seq_lenq * 100
+    else:
+        ratio = 0
+
+    return ratio
+
+
 def filter_by_sequence_length(k, results, cdr_query, cdr_info):
     if Options.verbose: print 'filtering by sequence length...'
+
     for r in results[:]:
         pdb = r['subject-id']
         if   k in ['heavy','light_heavy']: return
-        elif k in ['L1','L2','L3','H1','H2','H3'] and  len(cdr_query[k]) != len( cdr_info[pdb][k] ): results.remove(r)
+        elif k in ['L1','L2','L3','H1','H2','H3'] and  len(cdr_query[k]) != len( cdr_info[pdb][k] ):
+            results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, len( cdr_info[pdb][k] ))
         elif k == 'light' and 'light_lenght' in cdr_info[pdb]  and  len(cdr_query[k]) != int( cdr_info[pdb]['light_lenght'] ): results.remove(r)
-        elif k == 'FRH'  and  (not  len(cdr_query[k])-8 <= 67 <= len(cdr_query[k])+8): results.remove(r)
+        elif k == 'FRH':
+            template_length = 61 if pdb == 'pdb2x7l_chothia.pdb' else 63
+            if not len(cdr_query[k]) == template_length: results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, template_length)
+            #elif k == 'FRH'  and  (not  len(cdr_query[k])-8 <= 67 <= len(cdr_query[k])+8): results.remove(r)
         elif k == 'FRL':
-            template_length = 64 if pdb == 'pdb3h0t_chothia.pdb' else 62
-            if not  len(cdr_query[k])-8 <= template_length <= len(cdr_query[k])+8: results.remove(r)
-
-        if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, len( cdr_info[pdb][k] ))
+            template_length = 60 if pdb == 'pdb3h0t_chothia.pdb' else 58
+            if not len(cdr_query[k]) == template_length: results.remove(r)
+            if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, template_length)
+            #if not  len(cdr_query[k])-8 <= template_length <= len(cdr_query[k])+8: results.remove(r)
 
 
 def filter_by_alignment_length(k, results, cdr_query, cdr_info):
@@ -1079,7 +1222,7 @@ def self_test():
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)
-        CDRs.update( ExtractFR_Sequences(**CDRs) )
+        CDRs.update( Extract_FR_CDR_Sequences(**CDRs) )
 
         write_results(CDRs, prefix=test_dir)
         CDRs['numbering_L'] = file(test_dir+'/numbering_L.txt').read()
@@ -1132,4 +1275,3 @@ if __name__ == "__main__": main(sys.argv)
     for t in T:
         f = file('test/%s/%s.json' % (t, t), 'w');  f.write( json.dumps(T[t], sort_keys=True, indent=2) );  f.close()
 '''
-

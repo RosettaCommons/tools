@@ -11,7 +11,7 @@
 ## @file   antibody.py
 ## @brief  Pre-processing script for antibody protocol
 ## @author Sergey Lyskov
-## @author Modified by Daisuke Kuroda
+## @author Modified by Daisuke Kuroda, JKLeman
 
 import os, sys, re, json, commands, shutil
 
@@ -65,9 +65,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--profit',
-      action="store", default='profit',
-      help="Specify path+name for 'ProFIt' executable. Default is profit.",
+    parser.add_option('--superimpose_profit',
+      action="store", default='',
+      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
+    )
+
+    parser.add_option('--superimpose_PyRosetta',
+      action="store", default='./superimpose_interface.py',
+      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
     )
 
     parser.add_option('--blast-database',
@@ -186,6 +191,7 @@ def main(args):
     #os.getcwd() #os.chdir()
     script_dir = os.path.dirname(__file__)
 
+    #Options
     if Options.prefix and Options.prefix[-1] != '/': Options.prefix += '/'
 
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
@@ -219,11 +225,13 @@ def main(args):
         print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
         sys.exit(1)
 
+    #read fasta files
     light_chain = read_fasta_file(options.light_chain)
     heavy_chain = read_fasta_file(options.heavy_chain)
 
     print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
 
+    #create directories
     prefix_details = Options.prefix + 'details/'
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
@@ -234,7 +242,7 @@ def main(args):
     print 'rosetta_bin:', Options.rosetta_bin, ' [platform: %s]' % Options.rosetta_platform
     print 'rosetta_database:', Options.rosetta_database
 
-
+    #unpacking database files
     antibody_database_files = os.listdir(Options.antibody_database)
     bz2ipped_files  = [f for f in antibody_database_files if f.endswith('.bz2') and f[:-4] not in antibody_database_files]
     if bz2ipped_files:
@@ -244,7 +252,7 @@ def main(args):
         if Options.verbose and not res: print commandline+'\n', output
         if res: print commandline+'\n', 'ERROR: Unpacking antibody database files failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
-
+    #print cutoffs for sequence IDs
     if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
         print 'Using full antibody database (no homolog exclusion)'
     elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
@@ -271,6 +279,7 @@ def main(args):
     print "Light chain: %s" % light_chain
     print "Heavy chain: %s" % heavy_chain
 
+    #returns dictionary with CDRs as values
     CDRs = IdentifyCDRs(light_chain, heavy_chain)
     CDRs.update( Extract_FR_CDR_Sequences(**CDRs) )
     CDRs['light_heavy'] = CDRs['light'] + CDRs['heavy']
@@ -281,12 +290,23 @@ def main(args):
         c = dict(CDRs);  c.pop('numbering_L');  c.pop('numbering_H')
         #print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
 
+    #run Blast
     alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database, verbose=Options.verbose)
 
+    #create and thread template
     create_virtual_template_pdbs(prefix=prefix_details)
     thread_template_pdbs(CDRs, prefix=prefix_details)
-    superimpose_templates(CDRs, prefix=prefix_details)
 
+    #superimpose template PDBs
+    if Options.superimpose_profit:
+      print "\nRunning ProFit..."
+      superimpose_templates(CDRs, prefix=prefix_details)
+    else: 
+      print "\nRunning " + Options.superimpose_PyRosetta + "..."
+      command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
+      status, output = commands.getstatusoutput(command)    
+
+    #run Rosetta assemble CDRs
     if Options.rosetta_database:
         run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database)
     else:
@@ -299,7 +319,7 @@ def main(args):
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'
 
-
+########################################################
 def read_fasta_file(file_name):
     return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '')
 
@@ -817,20 +837,21 @@ def create_virtual_template_pdbs(prefix):
                             check = 1
                             o.write( line2 )
 
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2)
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2)
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2)
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2)
+                #                                                               v needed to circumvent collinearity!
+                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 + 0.01)
+                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 + 0.02)
+                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 + 0.03)
+                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 + 0.04)
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2)
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2)
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2)
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2)
+                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 + 0.09)
+                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 + 0.07)
+                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 + 0.07)
+                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 + 0.06)
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2)
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2)
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2)
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2)
+                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 + 0.01)
+                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 + 0.03)
+                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 + 0.06)
+                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 + 0.09)
 
                 #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
                 #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
@@ -942,7 +963,7 @@ def superimpose_templates(CDRs, prefix):
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
 
         f_name = '\ '.join(f_name.split())
-        commandline = '%s < %s.in > %s.out' % (Options.profit, f_name, f_name)
+        commandline = '%s < %s.in > %s.out' % (Options.superimpose_profit, f_name, f_name)
         res, output = commands.getstatusoutput(commandline);
         if res: print commandline, output; sys.exit(1)
 
@@ -955,7 +976,7 @@ def superimpose_templates(CDRs, prefix):
 
 
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
-    antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
+    antibody_graft = rosetta_bin + '/antibody_assemble_CDRs.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \

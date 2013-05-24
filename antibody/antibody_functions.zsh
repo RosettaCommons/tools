@@ -102,6 +102,6 @@ pp_zip_set () {
 		echo Zip the top structures, fastas, and grafting log
 		return
 	fi	
-	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*fasta $1/*/grafting.out
+	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*fasta $1/*/grafting.log
 }
 

@@ -26,13 +26,13 @@ then
 	launchscript=abH3.sbatch
 fi
 
-if [ ! -f flags ] || [ ! -f $launchscript ]
+if [ ! -f abH3.flags ] || [ ! -f $launchscript ]
 then
-	echo Missing flags or $launchscript, exiting...
+	echo Missing abH3.flags or $launchscript, exiting...
 	exit 1
 fi
 
-lastdecoynum=`grep -E '^-nstruct' flags | awk {'print $2'}`
+lastdecoynum=`grep -E '^-nstruct' abH3.flags | awk {'print $2'}`
 lastdecoyfile=pdbs/model_$lastdecoynum.pdb
 echo Seeking $lastdecoynum decoys for each antibody
 echo Allowing a maximum of $maxjobs jobs in the queue
@@ -51,7 +51,8 @@ for d in $dirs; do
 			cd ../
 			continue
 		fi
-    	squeue -u $USER | grep -q $d
+		jobname=$repdir-$d
+    	squeue -u $USER | grep -q $jobname
     	jobinqueue=$?
     	if [ $jobinqueue = 0 ] 
     	then
@@ -61,7 +62,7 @@ for d in $dirs; do
  	  		echo
  	  		if [ ! -d outerr ]; then mkdir outerr; fi
  	  		if [ ! -d pdbs ]; then mkdir pdbs; fi
- 	   		sed 's/ABNAME0000/'$d'/' ../$launchscript > $launchscript
+ 	   		sed 's/ABNAME0000/'$jobname'/' ../$launchscript > $launchscript
  	    	sbatch $launchscript
  	    	echo
  	    	(( queued++ ))

@@ -26,10 +26,10 @@
 #SBATCH -t 24:00:00           # Run time (hh:mm:ss)
 #SBATCH -p normal             # Queue name
 
-ROSETTA=$WORK/git/rosetta
-ROSETTABIN=$ROSETTA/rosetta_source/bin
+ROSETTA=$WORK/git/Rosetta
+ROSETTABIN=$ROSETTA/main/source/bin
 ROSETTAEXE=antibody_H3
-COMPILER=mpimkl.linuxiccrelease
+COMPILER=mklmpi.linuxiccrelease
 EXE=$ROSETTABIN/$ROSETTAEXE.$COMPILER
 echo Starting MPI job running $EXE
 

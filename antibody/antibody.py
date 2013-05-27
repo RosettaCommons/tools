@@ -988,7 +988,7 @@ def superimpose_templates(CDRs, prefix):
 
 
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
-    antibody_graft = rosetta_bin + '/antibody_assemble_CDRs.' + rosetta_platform
+    antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \

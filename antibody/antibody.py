@@ -16,6 +16,7 @@
 import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
+from time import time
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -42,6 +43,7 @@ _alignment_legend_to_pretty_legend = {
 def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
+    starttime = time()
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
@@ -304,6 +306,10 @@ def main(args):
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
     for n in [i for i in CDRs if i.startswith('numbering_')]: results['numbering'][n] = CDRs[n]
+
+    #report run time
+    endtime=time()
+    print 'Run time %2.2f s' % (endtime-starttime)
 
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'

@@ -765,13 +765,16 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     table[i] = dict( [(k, try_to_float(v[k])) for k in v] )
 
 
+        prefix_filters = prefix + 'filters/'
+        if not os.path.isdir(prefix_filters): print 'Could not find %s... creating it...' % prefix_filters;  os.makedirs(prefix_filters)
+
         for f in Filters:
             if getattr(Options, f.func_name):
                 f(k, table, cdr_query, cdr_info)
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
-                sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
+                sort_and_write_results([i for i in table_original if i not in t], prefix_filters +'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-        sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
+        sort_and_write_results(table, prefix_filters + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 

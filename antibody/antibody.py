@@ -65,14 +65,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--superimpose_profit',
+    parser.add_option('--superimpose-profit',
       action="store", default='',
-      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
+      help="Override PyRosetta superimposition with ProFit.  Use 'profit' as argumument variable, or specify path+name if not in same directory.",
     )
 
-    parser.add_option('--superimpose_PyRosetta',
-      action="store", default='./superimpose_interface.py',
-      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
+    parser.add_option('--superimpose-PyRosetta',
+      action="store", default=None,
+      help="Specify path to superimpose_interface.py.  Default is %prog script directory",
     )
 
     parser.add_option('--blast-database',
@@ -201,6 +201,7 @@ def main(args):
 
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
     if not Options.antibody_database: Options.antibody_database = script_dir + '/antibody_database'
+    if not Options.superimpose_PyRosetta: Options.superimpose_PyRosetta = script_dir + '/superimpose_interface.py'
     if not Options.rosetta_bin:
         if 'ROSETTA' in os.environ:
             Options.rosetta_bin = os.path.abspath(os.environ['ROSETTA']) + '/main/source/bin'
@@ -310,10 +311,11 @@ def main(args):
     if Options.superimpose_profit:
       print "\nRunning ProFit..."
       superimpose_templates(CDRs, prefix=prefix_details)
-    else: 
+    else:
       print "\nRunning " + Options.superimpose_PyRosetta + "..."
       command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)    
+      status, output = commands.getstatusoutput(command)
+      if Options.verbose or status: print command, output;  sys.exit(1)
 
     #run Rosetta assemble CDRs
     if Options.rosetta_database:

@@ -1,0 +1,24 @@
+
+                  PPPPP                FFFFFF ii   tt
+                  PP  PP               FF          tt
+                  PP  PP rrrrr   oooo  FF     ii  ttttt
+                  PPPPP  rr  rr oo  oo FFFF   ii   tt
+                  PP     rr     oo  oo FF     ii   tt
+                  PP     rr     oo  oo FF     ii   tt
+                  PP     rr      oooo  FF      ii   ttt
+
+                      Protein Least Squares Fitting
+
+                               Version 3.1
+
+      Copyright (c) Dr. Andrew C.R. Martin, SciTech Software 1992-2009
+              Copyright (c) Dr. Craig T. Porter, UCL 2008-2009
+
+ProFit>    Reading reference structure...
+   Warning==> Reference protein contains insertions.
+ProFit>    Reading mobile structure...
+   Warning==> Mobile protein contains insertions.
+ProFit> ProFit> ProFit> ProFit> ProFit> ProFit> ProFit> ProFit>    Fitting structures...
+   RMS: 0.346
+ProFit>    Writing coordinates...
+ProFit> 

@@ -1,0 +1,39 @@
+# BLASTP 2.2.27+
+# Query: L1
+# Database: /Users/julialeman/Documents/julia/git_final/Rosetta/tools/antibody/blast_database/database.L1.12
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 33 hits found
+Query_1	pdb1fig_chothia.pdb	91.67	12	1	0	1	12	1	12	8e-05	22.3
+Query_1	pdb1orq_chothia.pdb	91.67	12	1	0	1	12	1	12	2e-04	21.4
+Query_1	pdb2a0l_chothia.pdb	100.00	11	0	0	2	12	2	12	4e-04	20.6
+Query_1	pdb1ors_chothia.pdb	100.00	11	0	0	2	12	2	12	4e-04	20.6
+Query_1	pdb1ob1_chothia.pdb	81.82	11	2	0	2	12	2	12	0.004	18.0
+Query_1	pdb2v7n_chothia.pdb	81.82	11	2	0	1	11	1	11	0.004	18.0
+Query_1	pdb3hi1_chothia.pdb	81.82	11	2	0	1	11	1	11	0.008	17.2
+Query_1	pdb1u6a_chothia.pdb	81.82	11	2	0	1	11	1	11	0.008	17.2
+Query_1	pdb3sdy_chothia.pdb	72.73	11	3	0	1	11	1	11	0.017	16.8
+Query_1	pdb3eo1_chothia.pdb	72.73	11	3	0	1	11	1	11	0.025	15.9
+Query_1	pdb3eo0_chothia.pdb	72.73	11	3	0	1	11	1	11	0.025	15.9
+Query_1	pdb1iqd_chothia.pdb	81.82	11	2	0	1	11	1	11	0.027	15.9
+Query_1	pdb1qlr_chothia.pdb	80.00	10	2	0	2	11	2	11	0.042	15.5
+Query_1	pdb1dn0_chothia.pdb	80.00	10	2	0	2	11	2	11	0.042	15.5
+Query_1	pdb1ken_chothia.pdb	54.55	11	5	0	2	12	2	12	0.093	14.6
+Query_1	pdb3tcl_chothia.pdb	63.64	11	4	0	1	11	1	11	0.13	14.2
+Query_1	pdb2b4c_chothia.pdb	72.73	11	3	0	1	11	1	11	0.14	14.2
+Query_1	pdb1rhh_chothia.pdb	72.73	11	3	0	1	11	1	11	0.14	14.2
+Query_1	pdb3lh2_chothia.pdb	54.55	11	5	0	1	11	1	11	0.29	13.4
+Query_1	pdb2fx9_chothia.pdb	54.55	11	5	0	1	11	1	11	0.29	13.4
+Query_1	pdb2fx8_chothia.pdb	54.55	11	5	0	1	11	1	11	0.29	13.4
+Query_1	pdb2fx7_chothia.pdb	54.55	11	5	0	1	11	1	11	0.29	13.4
+Query_1	pdb1tzg_chothia.pdb	54.55	11	5	0	1	11	1	11	0.29	13.4
+Query_1	pdb2agj_chothia.pdb	62.50	8	3	0	1	8	1	8	1.1	11.7
+Query_1	pdb3ls5_chothia.pdb	80.00	5	1	0	8	12	8	12	3.2	10.4
+Query_1	pdb3ls4_chothia.pdb	80.00	5	1	0	8	12	8	12	3.2	10.4
+Query_1	pdb35c8_chothia.pdb	90.91	11	1	0	2	12	2	12	   35	 7.9
+Query_1	pdb25c8_chothia.pdb	90.91	11	1	0	2	12	2	12	   35	 7.9
+Query_1	pdb15c8_chothia.pdb	90.91	11	1	0	2	12	2	12	   35	 7.9
+Query_1	pdb1aif_chothia.pdb	75.00	4	1	0	9	12	9	12	   53	 7.4
+Query_1	pdb1hq4_chothia.pdb	50.00	6	3	0	7	12	7	12	  125	 6.2
+Query_1	pdb1cf8_chothia.pdb	50.00	6	3	0	7	12	7	12	  125	 6.2
+Query_1	pdb3eot_chothia.pdb	60.00	5	2	0	7	11	7	11	  838	 4.0
+# BLAST processed 1 queries

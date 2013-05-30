@@ -1,0 +1,23 @@
+# BLASTP 2.2.27+
+# Query: H3
+# Database: /Users/julialeman/Documents/julia/git_final/Rosetta/tools/antibody/blast_database/database.H3.14
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 17 hits found
+Query_1	pdb2qhr_chothia.pdb	76.92	13	2	1	2	14	3	14	0.013	17.6
+Query_1	pdb2vit_chothia.pdb	57.14	14	6	0	1	14	1	14	0.11	15.1
+Query_1	pdb2vis_chothia.pdb	57.14	14	6	0	1	14	1	14	0.11	15.1
+Query_1	pdb2vir_chothia.pdb	57.14	14	6	0	1	14	1	14	0.11	15.1
+Query_1	pdb1gig_chothia.pdb	57.14	14	6	0	1	14	1	14	0.11	15.1
+Query_1	pdb1dqd_chothia.pdb	64.29	14	3	1	1	14	3	14	0.59	13.4
+Query_1	pdb1bj1_chothia.pdb	41.67	12	7	0	1	12	3	14	0.86	12.9
+Query_1	pdb1uwx_chothia.pdb	66.67	9	3	0	2	10	4	12	1.1	12.5
+Query_1	pdb1zan_chothia.pdb	55.56	9	4	0	5	13	5	13	1.2	12.5
+Query_1	pdb3cfk_chothia.pdb	57.14	7	3	0	8	14	8	14	1.6	12.1
+Query_1	pdb3cfj_chothia.pdb	57.14	7	3	0	8	14	8	14	1.6	12.1
+Query_1	pdb1y18_chothia.pdb	57.14	7	3	0	8	14	8	14	1.6	12.1
+Query_1	pdb1y0l_chothia.pdb	57.14	7	3	0	8	14	8	14	1.6	12.1
+Query_1	pdb2a1w_chothia.pdb	60.00	10	3	1	1	10	3	11	2.0	11.7
+Query_1	pdb1oak_chothia.pdb	80.00	5	1	0	10	14	10	14	3.8	11.2
+Query_1	pdb1fns_chothia.pdb	80.00	5	1	0	10	14	10	14	3.8	11.2
+Query_1	pdb1cz8_chothia.pdb	100.00	4	0	0	7	10	1	4	7.2	10.4
+# BLAST processed 1 queries

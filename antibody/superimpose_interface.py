@@ -18,20 +18,20 @@ _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 from rosetta import *
 rosetta.init()
 
-LH_info = {'ref_tmpl': "template.light_heavy.pdb", 
-            'ref':       {'L': "template.light_heavy_onlyL.pdb", 
-                          'H': "template.light_heavy_onlyH.pdb"}, 
-            'mob_tmpl':  {'L': "template.threaded.FRL.pdb", 
-                          'H': "template.threaded.FRH.pdb"}, 
-            'mob':       {'L': "template.threaded.FRL_onlyL.pdb", 
+LH_info = {'ref_tmpl': "template.light_heavy.pdb",
+            'ref':       {'L': "template.light_heavy_onlyL.pdb",
+                          'H': "template.light_heavy_onlyH.pdb"},
+            'mob_tmpl':  {'L': "template.threaded.FRL.pdb",
+                          'H': "template.threaded.FRH.pdb"},
+            'mob':       {'L': "template.threaded.FRL_onlyL.pdb",
                           'H': "template.threaded.FRH_onlyH.pdb"},
-            'out_indiv': {'L': "template.superimposed.FRL.pdb", 
-                          'H': "template.superimposed.FRH.pdb"}, 
-            'out': "FR.pdb", 
+            'out_indiv': {'L': "template.superimposed.FRL.pdb",
+                          'H': "template.superimposed.FRH.pdb"},
+            'out': "FR.pdb",
 #            contains CDR loops, this fails when superimposition before grafting
-#            'interface': {'L': [34, 36, 38, 43, 44, 46, 87, 89, 98, 100], 
+#            'interface': {'L': [34, 36, 38, 43, 44, 46, 87, 89, 98, 100],
 #                          'H': [35, 37, 39, 44, 45, 47, 91, 93, 103, 105]}
-            'interface': {'L': [36, 38, 43, 44, 46, 87, 98, 100], 
+            'interface': {'L': [36, 38, 43, 44, 46, 87, 98, 100],
                           'H': [37, 39, 44, 45, 47, 91, 93, 103, 105]}
 }
 
@@ -94,10 +94,11 @@ def main(args):
 
       #superimpose mobile pose onto ref pose using atommap
       core.scoring.superimpose_pose(mob_pose, ref_pose, atom_map)
-      out = mob_pose.dump_pdb(prefix + '/' + LH_info['out_indiv'][chain])    
+      out = mob_pose.dump_pdb(prefix + '/' + LH_info['out_indiv'][chain])
 
     #combine L and H chains into FR.pdb
     command = "cat " + prefix + "/" + LH_info['out_indiv']['L'] + " " + prefix +  "/" + LH_info['out_indiv']['H'] + " > " + prefix + "/" + LH_info['out']
+    print 'COMMAND', command
     os.system(command)
 
 

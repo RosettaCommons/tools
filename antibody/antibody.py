@@ -16,6 +16,7 @@
 import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
+from time import time
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -42,6 +43,7 @@ _alignment_legend_to_pretty_legend = {
 def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
+    starttime = time()
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
@@ -65,14 +67,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--superimpose_profit',
+    parser.add_option('--superimpose-profit',
       action="store", default='',
-      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
+      help="Override PyRosetta superimposition with ProFit.  Use 'profit' as argumument variable, or specify path+name if not in same directory.",
     )
 
-    parser.add_option('--superimpose_PyRosetta',
-      action="store", default='./superimpose_interface.py',
-      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
+    parser.add_option('--superimpose-PyRosetta',
+      action="store", default=None,
+      help="Specify path to superimpose_interface.py.  Default is %prog script directory",
     )
 
     parser.add_option('--blast-database',
@@ -201,6 +203,7 @@ def main(args):
 
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
     if not Options.antibody_database: Options.antibody_database = script_dir + '/antibody_database'
+    if not Options.superimpose_PyRosetta: Options.superimpose_PyRosetta = script_dir + '/superimpose_interface.py'
     if not Options.rosetta_bin:
         if 'ROSETTA' in os.environ:
             Options.rosetta_bin = os.path.abspath(os.environ['ROSETTA']) + '/main/source/bin'
@@ -310,10 +313,11 @@ def main(args):
     if Options.superimpose_profit:
       print "\nRunning ProFit..."
       superimpose_templates(CDRs, prefix=prefix_details)
-    else: 
+    else:
       print "\nRunning " + Options.superimpose_PyRosetta + "..."
       command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)    
+      status, output = commands.getstatusoutput(command)
+      if Options.verbose or status: print command, output;  sys.exit(1)
 
     #run Rosetta assemble CDRs
     if Options.rosetta_database:
@@ -324,6 +328,10 @@ def main(args):
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
     for n in [i for i in CDRs if i.startswith('numbering_')]: results['numbering'][n] = CDRs[n]
+
+    #report run time
+    endtime=time()
+    print 'Run time %2.2f s' % (endtime-starttime)
 
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'
@@ -779,13 +787,16 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     table[i] = dict( [(k, try_to_float(v[k])) for k in v] )
 
 
+        prefix_filters = prefix + 'filters/'
+        if not os.path.isdir(prefix_filters): print 'Could not find %s... creating it...' % prefix_filters;  os.makedirs(prefix_filters)
+
         for f in Filters:
             if getattr(Options, f.func_name):
                 f(k, table, cdr_query, cdr_info)
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
-                sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
+                sort_and_write_results([i for i in table_original if i not in t], prefix_filters +'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-        sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
+        sort_and_write_results(table, prefix_filters + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 

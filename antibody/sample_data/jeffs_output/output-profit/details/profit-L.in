@@ -1,0 +1,11 @@
+reference "output/details//template.light_heavy.pdb"
+mobile "output/details//template.threaded.FRL.pdb"
+atoms ca
+zone L10-L23
+zone L35-L49
+zone L57-L66
+zone L69-L88
+zone L98-L100
+fit
+write "output/details//fitted.L.pdb"
+quit

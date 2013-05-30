@@ -1,0 +1,10 @@
+# BLASTP 2.2.27+
+# Query: H3
+# Database: /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.H3.18
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 4 hits found
+Query_1	pdb3ru8_chothia.pdb	37.50	16	10	0	3	18	3	18	0.13	13.8
+Query_1	pdb2ny7_chothia.pdb	37.50	16	10	0	3	18	3	18	0.13	13.8
+Query_1	pdb1n0x_chothia.pdb	37.50	16	10	0	3	18	3	18	0.13	13.8
+Query_1	pdb1hzh_chothia.pdb	37.50	16	10	0	3	18	3	18	0.13	13.8
+# BLAST processed 1 queries

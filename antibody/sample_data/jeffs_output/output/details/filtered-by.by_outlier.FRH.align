@@ -1,0 +1,4 @@
+# Fields: query-id subject-id %-identity alignment-length mismatches gap-opens q.start q.end s.start s.end evalue bit-score
+Query_1	pdb1dl7_chothia.pdb	66.67	63	21	0	1	63	1	63	4e-28	92.0
+Query_1	pdb1b2w_chothia.pdb	60.32	63	25	0	1	63	1	63	2e-26	88.2
+Query_1	pdb1pg7_chothia.pdb	60.32	63	25	0	1	63	1	63	2e-26	87.8

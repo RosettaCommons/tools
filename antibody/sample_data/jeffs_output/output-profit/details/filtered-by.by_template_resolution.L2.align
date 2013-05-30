@@ -1,0 +1,20 @@
+# Fields: query-id subject-id %-identity alignment-length mismatches gap-opens q.start q.end s.start s.end evalue bit-score
+Query_1	pdb1rzi_chothia.pdb	71.43	7	2	0	1	7	1	7	9.6	11.7
+Query_1	pdb3hmx_chothia.pdb	71.43	7	2	0	1	7	1	7	9.6	11.7
+Query_1	pdb3hmw_chothia.pdb	71.43	7	2	0	1	7	1	7	9.6	11.7
+Query_1	pdb2jix_chothia.pdb	71.43	7	2	0	1	7	1	7	9.6	11.7
+Query_1	pdb3klh_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb1n6q_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb1hys_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb1t03_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb1n5y_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb1j5o_chothia.pdb	66.67	6	2	0	2	7	2	7	35	10.4
+Query_1	pdb3ivk_chothia.pdb	57.14	7	3	0	1	7	1	7	54	10.0
+Query_1	pdb3n85_chothia.pdb	57.14	7	3	0	1	7	1	7	54	10.0
+Query_1	pdb2qr0_chothia.pdb	57.14	7	3	0	1	7	1	7	54	10.0
+Query_1	pdb1u8o_chothia.pdb	66.67	6	2	0	2	7	2	7	93	9.5
+Query_1	pdb1u8p_chothia.pdb	66.67	6	2	0	2	7	2	7	93	9.5
+Query_1	pdb3ve0_chothia.pdb	66.67	6	2	0	2	7	2	7	95	9.5
+Query_1	pdb3s88_chothia.pdb	66.67	6	2	0	2	7	2	7	95	9.5
+Query_1	pdb2r29_chothia.pdb	66.67	6	2	0	2	7	2	7	102	9.1
+Query_1	pdb2qad_chothia.pdb	66.67	6	2	0	2	7	2	7	109	9.1

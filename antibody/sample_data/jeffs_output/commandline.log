@@ -1,0 +1,2747 @@
+Rosetta Antibody script [Python, version 2.0]. Starting...
+Prefix: output/
+Blast database: /Users/jeff/git/Rosetta/tools/antibody/blast_database
+Antibody database: /Users/jeff/git/Rosetta/tools/antibody/antibody_database
+rosetta_bin: /Users/jeff/git/Rosetta/main/source/bin  [platform: macosgccrelease]
+rosetta_database: /Users/jeff/git/Rosetta/main/database
+Using full antibody database (no homolog exclusion)
+Idealize: False
+Relax: False
+
+Light chain: DIRLTQSPSSLSASVGDRVTITCRSSQTISTYLNWYQQKPGEAPKILIYAASSLHTGVPSRFSGSGSGTDFTLTITSLQPEDFAIYHCQQSYSTPYTFGQGTKVEIKTVAAPSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC
+Heavy chain: QVQLQESGPGLVKPSETLSLTCTVSGGSINSYYWSWIRQSPGKGLEWIGYIYYTGINKYNPSLKSRVTISMDTSKRQVSLKVTSLTPADTAVYFCARLHPTCASTRCPENYGMDVWGQGTTVAVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSCDKTHTCPPCPAPELLGGPSVFLFPPKPKDTLMISRTPEVTCVVVDVSHEDPEVKFNWYVDGVEVHNAKTKPREEQYNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKALPAPIEKTISKAKGQPREPQVYTLPPSRDELTKNQVSLTCLVKGFYPSDIAVEWESNGQPENNYKTTPPVLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK
+L1 detected:  RSSQTISTYLN  ( 11 residues )
+L3 detected:  QQSYSTPYT  ( 9 residues )
+L2 detected:  AASSLHT  ( 7 residues )
+FR_L1:  DIRLTQSPSSLSASVGDRVTITC
+FR_L2:  WYQQKPGEAPKILIY
+FR_L3:  GVPSRFSGSGSGTDFTLTITSLQPEDFAIYHC
+FR_L4:  FGQGTKVEIKTV
+L segments:  DIRLTQSPSSLSASVGDRVTITC RSSQTISTYLN WYQQKPGEAPKILIY AASSLHT GVPSRFSGSGSGTDFTLTITSLQPEDFAIYHC QQSYSTPYT FGQGTKVEIKTV
+H1 detected:  GGSINSYYWS  ( 10 residues )
+H3 detected:  LHPTCASTRCPENYGMDV  ( 18 residues )
+H2 detected:  YIYYTGINKYNPSLKS  ( 16 residues )
+FR_H1:  QVQLQESGPGLVKPSETLSLTCTVS
+FR_H2:  WIRQSPGKGLEWIG
+FR_H3:  RVTISMDTSKRQVSLKVTSLTPADTAVYFCAR
+FR_H4:  WGQGTTVAVSSA
+H segments:  QVQLQESGPGLVKPSETLSLTCTVS GGSINSYYWS WIRQSPGKGLEWIG YIYYTGINKYNPSLKS RVTISMDTSKRQVSLKVTSLTPADTAVYFCAR LHPTCASTRCPENYGMDV WGQGTTVAVSSA
+CDR: {
+  "FRH": "GLVKPSETLSLTCTVSWIRQEWIGRVTISMDTSKRQVSLKVTSLTPADTAVYFCARWGQGTTV", 
+  "FRL": "SLSASVGDRVTITCWYQQKILIYGVPSRFSGSGFTLTITSLQPEDFAIYHCFGQGTKV", 
+  "FR_H1": "QVQLQESGPGLVKPSETLSLTCTVS", 
+  "FR_H2": "WIRQSPGKGLEWIG", 
+  "FR_H3": "RVTISMDTSKRQVSLKVTSLTPADTAVYFCAR", 
+  "FR_H4": "WGQGTTVAVSSA", 
+  "FR_L1": "DIRLTQSPSSLSASVGDRVTITC", 
+  "FR_L2": "WYQQKPGEAPKILIY", 
+  "FR_L3": "GVPSRFSGSGSGTDFTLTITSLQPEDFAIYHC", 
+  "FR_L4": "FGQGTKVEIKTV", 
+  "H1": "GGSINSYYWS", 
+  "H2": "YIYYTGINKYNPSLKS", 
+  "H3": "LHPTCASTRCPENYGMDV", 
+  "L1": "RSSQTISTYLN", 
+  "L2": "AASSLHT", 
+  "L3": "QQSYSTPYT", 
+  "heavy": "QVQLQESGPGLVKPSETLSLTCTVSGGSINSYYWSWIRQSPGKGLEWIGYIYYTGINKYNPSLKSRVTISMDTSKRQVSLKVTSLTPADTAVYFCARLHPTCASTRCPENYGMDVWGQG", 
+  "light": "DIRLTQSPSSLSASVGDRVTITCRSSQTISTYLNWYQQKPGEAPKILIYAASSLHTGVPSRFSGSGSGTDFTLTITSLQPEDFAIYHCQQSYSTPYTFGQG", 
+  "light_heavy": "DIRLTQSPSSLSASVGDRVTITCRSSQTISTYLNWYQQKPGEAPKILIYAASSLHTGVPSRFSGSGSGTDFTLTITSLQPEDFAIYHCQQSYSTPYTFGQGQVQLQESGPGLVKPSETLSLTCTVSGGSINSYYWSWIRQSPGKGLEWIGYIYYTGINKYNPSLKSRVTISMDTSKRQVSLKVTSLTPADTAVYFCARLHPTCASTRCPENYGMDVWGQG", 
+  "numbering_H": {
+    "1": "Q", 
+    "10": "G", 
+    "100": "A", 
+    "100A": "S", 
+    "100B": "T", 
+    "100C": "R", 
+    "100D": "C", 
+    "100E": "P", 
+    "100F": "E", 
+    "100G": "N", 
+    "100H": "Y", 
+    "100I": "G", 
+    "100J": "M", 
+    "101": "D", 
+    "102": "V", 
+    "103": "W", 
+    "104": "G", 
+    "105": "Q", 
+    "106": "G", 
+    "107": "T", 
+    "108": "T", 
+    "109": "V", 
+    "11": "L", 
+    "110": "A", 
+    "111": "V", 
+    "112": "S", 
+    "113": "S", 
+    "114": "A", 
+    "12": "V", 
+    "13": "K", 
+    "14": "P", 
+    "15": "S", 
+    "16": "E", 
+    "17": "T", 
+    "18": "L", 
+    "19": "S", 
+    "2": "V", 
+    "20": "L", 
+    "21": "T", 
+    "22": "C", 
+    "23": "T", 
+    "24": "V", 
+    "25": "S", 
+    "26": "G", 
+    "27": "G", 
+    "28": "S", 
+    "29": "I", 
+    "3": "Q", 
+    "30": "N", 
+    "31": "S", 
+    "32": "Y", 
+    "33": "Y", 
+    "34": "W", 
+    "35": "S", 
+    "36": "W", 
+    "37": "I", 
+    "38": "R", 
+    "39": "Q", 
+    "4": "L", 
+    "40": "S", 
+    "41": "P", 
+    "42": "G", 
+    "43": "K", 
+    "44": "G", 
+    "45": "L", 
+    "46": "E", 
+    "47": "W", 
+    "48": "I", 
+    "49": "G", 
+    "5": "Q", 
+    "50": "Y", 
+    "51": "I", 
+    "52": "Y", 
+    "53": "Y", 
+    "54": "T", 
+    "55": "G", 
+    "56": "I", 
+    "57": "N", 
+    "58": "K", 
+    "59": "Y", 
+    "6": "E", 
+    "60": "N", 
+    "61": "P", 
+    "62": "S", 
+    "63": "L", 
+    "64": "K", 
+    "65": "S", 
+    "66": "R", 
+    "67": "V", 
+    "68": "T", 
+    "69": "I", 
+    "7": "S", 
+    "70": "S", 
+    "71": "M", 
+    "72": "D", 
+    "73": "T", 
+    "74": "S", 
+    "75": "K", 
+    "76": "R", 
+    "77": "Q", 
+    "78": "V", 
+    "79": "S", 
+    "8": "G", 
+    "80": "L", 
+    "81": "K", 
+    "82": "V", 
+    "82A": "T", 
+    "82B": "S", 
+    "82C": "L", 
+    "83": "T", 
+    "84": "P", 
+    "85": "A", 
+    "86": "D", 
+    "87": "T", 
+    "88": "A", 
+    "89": "V", 
+    "9": "P", 
+    "90": "Y", 
+    "91": "F", 
+    "92": "C", 
+    "93": "A", 
+    "94": "R", 
+    "95": "L", 
+    "96": "H", 
+    "97": "P", 
+    "98": "T", 
+    "99": "C"
+  }, 
+  "numbering_L": {
+    "1": "D", 
+    "10": "S", 
+    "100": "Q", 
+    "101": "G", 
+    "102": "T", 
+    "103": "K", 
+    "104": "V", 
+    "105": "E", 
+    "106": "I", 
+    "107": "K", 
+    "108": "T", 
+    "109": "V", 
+    "11": "L", 
+    "12": "S", 
+    "13": "A", 
+    "14": "S", 
+    "15": "V", 
+    "16": "G", 
+    "17": "D", 
+    "18": "R", 
+    "19": "V", 
+    "2": "I", 
+    "20": "T", 
+    "21": "I", 
+    "22": "T", 
+    "23": "C", 
+    "24": "R", 
+    "25": "S", 
+    "26": "S", 
+    "27": "Q", 
+    "28": "T", 
+    "29": "I", 
+    "3": "R", 
+    "30": "S", 
+    "31": "T", 
+    "32": "Y", 
+    "33": "L", 
+    "34": "N", 
+    "35": "W", 
+    "36": "Y", 
+    "37": "Q", 
+    "38": "Q", 
+    "39": "K", 
+    "4": "L", 
+    "40": "P", 
+    "41": "G", 
+    "42": "E", 
+    "43": "A", 
+    "44": "P", 
+    "45": "K", 
+    "46": "I", 
+    "47": "L", 
+    "48": "I", 
+    "49": "Y", 
+    "5": "T", 
+    "50": "A", 
+    "51": "A", 
+    "52": "S", 
+    "53": "S", 
+    "54": "L", 
+    "55": "H", 
+    "56": "T", 
+    "57": "G", 
+    "58": "V", 
+    "59": "P", 
+    "6": "Q", 
+    "60": "S", 
+    "61": "R", 
+    "62": "F", 
+    "63": "S", 
+    "64": "G", 
+    "65": "S", 
+    "66": "G", 
+    "67": "S", 
+    "68": "G", 
+    "69": "T", 
+    "7": "S", 
+    "70": "D", 
+    "71": "F", 
+    "72": "T", 
+    "73": "L", 
+    "74": "T", 
+    "75": "I", 
+    "76": "T", 
+    "77": "S", 
+    "78": "L", 
+    "79": "Q", 
+    "8": "P", 
+    "80": "P", 
+    "81": "E", 
+    "82": "D", 
+    "83": "F", 
+    "84": "A", 
+    "85": "I", 
+    "86": "Y", 
+    "87": "H", 
+    "88": "C", 
+    "89": "Q", 
+    "9": "S", 
+    "90": "Q", 
+    "91": "S", 
+    "92": "Y", 
+    "93": "S", 
+    "94": "T", 
+    "95": "P", 
+    "96": "Y", 
+    "97": "T", 
+    "98": "F", 
+    "99": "G"
+  }
+}
+
+Running blastp
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.FRL -query FRL.fasta -out FRL.align -evalue 1e-05 -matrix BLOSUM62 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter outlier, removing:pdb1pg7_chothia.pdb
+Filter outlier, removing:pdb1b2w_chothia.pdb
+Filter outlier, removing:pdb1ngx_chothia.pdb
+Filter outlier, removing:pdb1pg7_chothia.pdb
+Filter outlier, removing:pdb1b2w_chothia.pdb
+Filter outlier, removing:pdb1ngx_chothia.pdb
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ubx_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3opz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1fig_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ob1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3i50_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1e6j_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ncy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3iu3_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4v_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2w9e_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ejz_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ejy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2r9h_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2htl_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2htk_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2ht4_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2ht3_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ht2_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2hlf_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2h2s_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2h2p_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fee_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2fed_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ez0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2exy_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2exw_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1otu_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1ott_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ubx_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3opz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1fig_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ob1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3i50_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1e6j_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ncy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3iu3_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4v_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2w9e_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ejz_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ejy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2r9h_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2htl_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2htk_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2ht4_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2ht3_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ht2_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2hlf_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2h2s_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2h2p_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fee_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2fed_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ez0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2exy_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2exw_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1otu_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1ott_chothia.pdb resolution:3.0
+FRL template: pdb3ncj_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.FRH -query FRH.fasta -out FRH.align -evalue 1e-05 -matrix BLOSUM62 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter outlier, removing:pdb1dl7_chothia.pdb
+Filter outlier, removing:pdb1b2w_chothia.pdb
+Filter outlier, removing:pdb1pg7_chothia.pdb
+Filter outlier, removing:pdb1dl7_chothia.pdb
+Filter outlier, removing:pdb1b2w_chothia.pdb
+Filter outlier, removing:pdb1pg7_chothia.pdb
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3mj9_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3mj8_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vit_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vis_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vir_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3tyg_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2j5l_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3g6d_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2vdn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2adj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2a9n_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ae6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dag_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3piq_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1yuh_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1z3g_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1v7n_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2op4_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2ntf_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3hpl_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3gb7_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3fb8_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3fb7_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3fb6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3f7y_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3f7v_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3f5w_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2itc_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3mj9_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3mj8_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vit_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vis_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vir_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3tyg_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2j5l_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3g6d_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2vdn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2adj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2a9n_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ae6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dag_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3piq_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1yuh_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1z3g_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1v7n_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2op4_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2ntf_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3hpl_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3gb7_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3fb8_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3fb7_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3fb6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3f7y_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3f7v_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3f5w_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2itc_chothia.pdb resolution:3.2
+FRH template: pdb1u6a_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.light -query light.fasta -out light.align -evalue 1e-05 -matrix BLOSUM62 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ubx_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2uud_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2cjv_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3v4v_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ubx_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2uud_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2cjv_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3v4v_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3v4p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+light template: pdb1hez_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.heavy -query heavy.fasta -out heavy.align -evalue 1e-05 -matrix BLOSUM62 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3mj9_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3mj8_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vit_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vis_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vir_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tyg_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ae6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dag_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3g6d_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1rvf_chothia.pdb resolution:4.0
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vdn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fl5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a9n_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1yed_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1adq_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ejz_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ejy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2r9h_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2htl_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2htk_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2ht4_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2ht3_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ht2_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2hlf_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2h2s_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2h2p_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fee_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2fed_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ez0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2exy_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2exw_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1otu_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1ott_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2ig2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1z3g_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1fig_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1yuh_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2j5l_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ncy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2adj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1e6j_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3rif_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ri5_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3rhw_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3mj9_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3mj8_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vit_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vis_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2vir_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tyg_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ae6_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb4dag_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3g6d_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1rvf_chothia.pdb resolution:4.0
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vdn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fl5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a9n_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1yed_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ab0_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1adq_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ejz_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ejy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2r9h_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2htl_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2htk_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2ht4_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2ht3_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ht2_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2hlf_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2h2s_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2h2p_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2fee_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2fed_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2ez0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb2exy_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2exw_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1otu_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1ott_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2ig2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1z3g_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1fig_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1yuh_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2j5l_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ncy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2adj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1e6j_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3rif_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ri5_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3rhw_chothia.pdb resolution:3.3
+heavy template: pdb1u6a_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.L1.11 -query L1.fasta -out L1.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter B-factor50, removing:pdb2a6k_chothia.pdb
+Filter B-factor50, removing:pdb1ynt_chothia.pdb
+Filter B-factor50, removing:pdb2v7h_chothia.pdb
+Filter B-factor50, removing:pdb3r06_chothia.pdb
+Filter B-factor50, removing:pdb2qsc_chothia.pdb
+Filter B-factor50, removing:pdb3jwd_chothia.pdb
+Filter B-factor50, removing:pdb3cxh_chothia.pdb
+Filter B-factor50, removing:pdb3cx5_chothia.pdb
+Filter B-factor50, removing:pdb2ibz_chothia.pdb
+Filter B-factor50, removing:pdb1p84_chothia.pdb
+Filter B-factor50, removing:pdb1kyo_chothia.pdb
+Filter B-factor50, removing:pdb1kb9_chothia.pdb
+Filter B-factor50, removing:pdb1ezv_chothia.pdb
+Filter B-factor50, removing:pdb3kym_chothia.pdb
+Filter B-factor50, removing:pdb1d5b_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb1bfo_chothia.pdb
+Filter B-factor50, removing:pdb1bey_chothia.pdb
+Filter B-factor50, removing:pdb1cz8_chothia.pdb
+Filter B-factor50, removing:pdb3nac_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5y_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb2hh0_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter B-factor50, removing:pdb3idy_chothia.pdb
+Filter B-factor50, removing:pdb3idx_chothia.pdb
+Filter B-factor50, removing:pdb1rih_chothia.pdb
+Filter B-factor50, removing:pdb1opg_chothia.pdb
+Filter B-factor50, removing:pdb1dqm_chothia.pdb
+Filter B-factor50, removing:pdb3uc0_chothia.pdb
+Filter B-factor50, removing:pdb3uaj_chothia.pdb
+Filter B-factor50, removing:pdb3eyo_chothia.pdb
+Filter B-factor50, removing:pdb3eyf_chothia.pdb
+Filter B-factor50, removing:pdb3kj6_chothia.pdb
+Filter B-factor50, removing:pdb2r4s_chothia.pdb
+Filter B-factor50, removing:pdb2r4r_chothia.pdb
+Filter B-factor50, removing:pdb3sqo_chothia.pdb
+Filter B-factor50, removing:pdb2x7l_chothia.pdb
+Filter B-factor50, removing:pdb3rvx_chothia.pdb
+Filter B-factor50, removing:pdb3rvu_chothia.pdb
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb4dke_chothia.pdb
+Filter B-factor50, removing:pdb3r1g_chothia.pdb
+Filter B-factor50, removing:pdb3k2u_chothia.pdb
+Filter B-factor50, removing:pdb2wub_chothia.pdb
+Filter B-factor50, removing:pdb2qqk_chothia.pdb
+Filter B-factor50, removing:pdb2fjg_chothia.pdb
+Filter B-factor50, removing:pdb3dif_chothia.pdb
+Filter B-factor50, removing:pdb3t3m_chothia.pdb
+Filter B-factor50, removing:pdb3nig_chothia.pdb
+Filter B-factor50, removing:pdb3nif_chothia.pdb
+Filter B-factor50, removing:pdb3nid_chothia.pdb
+Filter B-factor50, removing:pdb2vdo_chothia.pdb
+Filter B-factor50, removing:pdb2vdn_chothia.pdb
+Filter B-factor50, removing:pdb2vdm_chothia.pdb
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter B-factor50, removing:pdb2a6k_chothia.pdb
+Filter B-factor50, removing:pdb1ynt_chothia.pdb
+Filter B-factor50, removing:pdb2v7h_chothia.pdb
+Filter B-factor50, removing:pdb3r06_chothia.pdb
+Filter B-factor50, removing:pdb2qsc_chothia.pdb
+Filter B-factor50, removing:pdb3jwd_chothia.pdb
+Filter B-factor50, removing:pdb3cxh_chothia.pdb
+Filter B-factor50, removing:pdb3cx5_chothia.pdb
+Filter B-factor50, removing:pdb2ibz_chothia.pdb
+Filter B-factor50, removing:pdb1p84_chothia.pdb
+Filter B-factor50, removing:pdb1kyo_chothia.pdb
+Filter B-factor50, removing:pdb1kb9_chothia.pdb
+Filter B-factor50, removing:pdb1ezv_chothia.pdb
+Filter B-factor50, removing:pdb3kym_chothia.pdb
+Filter B-factor50, removing:pdb1d5b_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb1bfo_chothia.pdb
+Filter B-factor50, removing:pdb1bey_chothia.pdb
+Filter B-factor50, removing:pdb1cz8_chothia.pdb
+Filter B-factor50, removing:pdb3nac_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5y_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb2hh0_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter B-factor50, removing:pdb3idy_chothia.pdb
+Filter B-factor50, removing:pdb3idx_chothia.pdb
+Filter B-factor50, removing:pdb1rih_chothia.pdb
+Filter B-factor50, removing:pdb1opg_chothia.pdb
+Filter B-factor50, removing:pdb1dqm_chothia.pdb
+Filter B-factor50, removing:pdb3uc0_chothia.pdb
+Filter B-factor50, removing:pdb3uaj_chothia.pdb
+Filter B-factor50, removing:pdb3eyo_chothia.pdb
+Filter B-factor50, removing:pdb3eyf_chothia.pdb
+Filter B-factor50, removing:pdb3kj6_chothia.pdb
+Filter B-factor50, removing:pdb2r4s_chothia.pdb
+Filter B-factor50, removing:pdb2r4r_chothia.pdb
+Filter B-factor50, removing:pdb3sqo_chothia.pdb
+Filter B-factor50, removing:pdb2x7l_chothia.pdb
+Filter B-factor50, removing:pdb3rvx_chothia.pdb
+Filter B-factor50, removing:pdb3rvu_chothia.pdb
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb4dke_chothia.pdb
+Filter B-factor50, removing:pdb3r1g_chothia.pdb
+Filter B-factor50, removing:pdb3k2u_chothia.pdb
+Filter B-factor50, removing:pdb2wub_chothia.pdb
+Filter B-factor50, removing:pdb2qqk_chothia.pdb
+Filter B-factor50, removing:pdb2fjg_chothia.pdb
+Filter B-factor50, removing:pdb3dif_chothia.pdb
+Filter B-factor50, removing:pdb3t3m_chothia.pdb
+Filter B-factor50, removing:pdb3nig_chothia.pdb
+Filter B-factor50, removing:pdb3nif_chothia.pdb
+Filter B-factor50, removing:pdb3nid_chothia.pdb
+Filter B-factor50, removing:pdb2vdo_chothia.pdb
+Filter B-factor50, removing:pdb2vdn_chothia.pdb
+Filter B-factor50, removing:pdb2vdm_chothia.pdb
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fgw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1rzi_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2fgw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3bgf_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2x7l_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+L1 template: pdb1ikf_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.L2.7 -query L2.fasta -out L2.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb1igt_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1oak_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb3pnw_chothia.pdb
+Filter B-factor50, removing:pdb3n85_chothia.pdb
+Filter B-factor50, removing:pdb3ivk_chothia.pdb
+Filter B-factor50, removing:pdb3efd_chothia.pdb
+Filter B-factor50, removing:pdb3lev_chothia.pdb
+Filter B-factor50, removing:pdb1h8o_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb1igt_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1oak_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb3pnw_chothia.pdb
+Filter B-factor50, removing:pdb3n85_chothia.pdb
+Filter B-factor50, removing:pdb3ivk_chothia.pdb
+Filter B-factor50, removing:pdb3efd_chothia.pdb
+Filter B-factor50, removing:pdb3lev_chothia.pdb
+Filter B-factor50, removing:pdb1h8o_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter template_resolution, removing:pdb1rzi_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1rzi_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+L2 template: pdb3skj_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.L3.9 -query L3.fasta -out L3.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb3dif_chothia.pdb
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter B-factor50, removing:pdb1fsk_chothia.pdb
+Filter B-factor50, removing:pdb3s88_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb2fjg_chothia.pdb
+Filter B-factor50, removing:pdb2xa8_chothia.pdb
+Filter B-factor50, removing:pdb1igy_chothia.pdb
+Filter B-factor50, removing:pdb1kcs_chothia.pdb
+Filter B-factor50, removing:pdb3tt1_chothia.pdb
+Filter B-factor50, removing:pdb2zcl_chothia.pdb
+Filter B-factor50, removing:pdb2zck_chothia.pdb
+Filter B-factor50, removing:pdb4ag4_chothia.pdb
+Filter B-factor50, removing:pdb3ivk_chothia.pdb
+Filter B-factor50, removing:pdb1tzi_chothia.pdb
+Filter B-factor50, removing:pdb1jnn_chothia.pdb
+Filter B-factor50, removing:pdb1jnl_chothia.pdb
+Filter B-factor50, removing:pdb3l95_chothia.pdb
+Filter B-factor50, removing:pdb3inu_chothia.pdb
+Filter B-factor50, removing:pdb1ynt_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter B-factor50, removing:pdb3be1_chothia.pdb
+Filter B-factor50, removing:pdb3ztn_chothia.pdb
+Filter B-factor50, removing:pdb1kcu_chothia.pdb
+Filter B-factor50, removing:pdb1kc5_chothia.pdb
+Filter B-factor50, removing:pdb3sqo_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb3l5w_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb3na9_chothia.pdb
+Filter B-factor50, removing:pdb3u4b_chothia.pdb
+Filter B-factor50, removing:pdb3u46_chothia.pdb
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb2b4c_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter B-factor50, removing:pdb3dif_chothia.pdb
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter B-factor50, removing:pdb1fsk_chothia.pdb
+Filter B-factor50, removing:pdb3s88_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb2fjg_chothia.pdb
+Filter B-factor50, removing:pdb2xa8_chothia.pdb
+Filter B-factor50, removing:pdb1igy_chothia.pdb
+Filter B-factor50, removing:pdb1kcs_chothia.pdb
+Filter B-factor50, removing:pdb3tt1_chothia.pdb
+Filter B-factor50, removing:pdb2zcl_chothia.pdb
+Filter B-factor50, removing:pdb2zck_chothia.pdb
+Filter B-factor50, removing:pdb4ag4_chothia.pdb
+Filter B-factor50, removing:pdb3ivk_chothia.pdb
+Filter B-factor50, removing:pdb1tzi_chothia.pdb
+Filter B-factor50, removing:pdb1jnn_chothia.pdb
+Filter B-factor50, removing:pdb1jnl_chothia.pdb
+Filter B-factor50, removing:pdb3l95_chothia.pdb
+Filter B-factor50, removing:pdb3inu_chothia.pdb
+Filter B-factor50, removing:pdb1ynt_chothia.pdb
+Filter B-factor50, removing:pdb2qad_chothia.pdb
+Filter B-factor50, removing:pdb3be1_chothia.pdb
+Filter B-factor50, removing:pdb3ztn_chothia.pdb
+Filter B-factor50, removing:pdb1kcu_chothia.pdb
+Filter B-factor50, removing:pdb1kc5_chothia.pdb
+Filter B-factor50, removing:pdb3sqo_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb3l5w_chothia.pdb
+Filter B-factor50, removing:pdb3nab_chothia.pdb
+Filter B-factor50, removing:pdb3na9_chothia.pdb
+Filter B-factor50, removing:pdb3u4b_chothia.pdb
+Filter B-factor50, removing:pdb3u46_chothia.pdb
+Filter B-factor50, removing:pdb1yjd_chothia.pdb
+Filter B-factor50, removing:pdb2b4c_chothia.pdb
+Filter B-factor50, removing:pdb3hmx_chothia.pdb
+Filter B-factor50, removing:pdb3hmw_chothia.pdb
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1rzi_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1aif_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2qad_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3cvh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1fpt_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+L3 template: pdb3nzh_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.H1.10 -query H1.fasta -out H1.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb3hi1_chothia.pdb
+Filter B-factor50, removing:pdb3uc0_chothia.pdb
+Filter B-factor50, removing:pdb3uaj_chothia.pdb
+Filter B-factor50, removing:pdb3fn0_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb1ic7_chothia.pdb
+Filter B-factor50, removing:pdb1ic4_chothia.pdb
+Filter B-factor50, removing:pdb2yss_chothia.pdb
+Filter B-factor50, removing:pdb3mac_chothia.pdb
+Filter B-factor50, removing:pdb1dqd_chothia.pdb
+Filter B-factor50, removing:pdb2g75_chothia.pdb
+Filter B-factor50, removing:pdb2dd8_chothia.pdb
+Filter B-factor50, removing:pdb3qot_chothia.pdb
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb3hi1_chothia.pdb
+Filter B-factor50, removing:pdb3uc0_chothia.pdb
+Filter B-factor50, removing:pdb3uaj_chothia.pdb
+Filter B-factor50, removing:pdb3fn0_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb1ic7_chothia.pdb
+Filter B-factor50, removing:pdb1ic4_chothia.pdb
+Filter B-factor50, removing:pdb2yss_chothia.pdb
+Filter B-factor50, removing:pdb3mac_chothia.pdb
+Filter B-factor50, removing:pdb1dqd_chothia.pdb
+Filter B-factor50, removing:pdb2g75_chothia.pdb
+Filter B-factor50, removing:pdb2dd8_chothia.pdb
+Filter B-factor50, removing:pdb3qot_chothia.pdb
+Filter B-factor50, removing:pdb1rzi_chothia.pdb
+Filter outlier, removing:pdb3hfm_chothia.pdb
+Filter outlier, removing:pdb1ndm_chothia.pdb
+Filter outlier, removing:pdb3hfm_chothia.pdb
+Filter outlier, removing:pdb1ndm_chothia.pdb
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1rzi_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+H1 template: pdb1u6a_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.H2.16 -query H2.fasta -out H2.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb3hi1_chothia.pdb
+Filter B-factor50, removing:pdb1bgx_chothia.pdb
+Filter B-factor50, removing:pdb2a0l_chothia.pdb
+Filter B-factor50, removing:pdb3rvx_chothia.pdb
+Filter B-factor50, removing:pdb3rvu_chothia.pdb
+Filter B-factor50, removing:pdb3rvt_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb1kc5_chothia.pdb
+Filter B-factor50, removing:pdb1ken_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb3nn8_chothia.pdb
+Filter B-factor50, removing:pdb3mck_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5y_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb3l5w_chothia.pdb
+Filter B-factor50, removing:pdb1orq_chothia.pdb
+Filter B-factor50, removing:pdb2ak1_chothia.pdb
+Filter B-factor50, removing:pdb2ajy_chothia.pdb
+Filter B-factor50, removing:pdb2agj_chothia.pdb
+Filter B-factor50, removing:pdb2z91_chothia.pdb
+Filter B-factor50, removing:pdb3cxh_chothia.pdb
+Filter B-factor50, removing:pdb3cx5_chothia.pdb
+Filter B-factor50, removing:pdb2ibz_chothia.pdb
+Filter B-factor50, removing:pdb1p84_chothia.pdb
+Filter B-factor50, removing:pdb1kyo_chothia.pdb
+Filter B-factor50, removing:pdb1kb9_chothia.pdb
+Filter B-factor50, removing:pdb1ezv_chothia.pdb
+Filter B-factor50, removing:pdb2j6e_chothia.pdb
+Filter B-factor50, removing:pdb1qlr_chothia.pdb
+Filter B-factor50, removing:pdb2yss_chothia.pdb
+Filter B-factor50, removing:pdb1dqm_chothia.pdb
+Filter B-factor50, removing:pdb1p4i_chothia.pdb
+Filter B-factor50, removing:pdb2aj3_chothia.pdb
+Filter B-factor50, removing:pdb1jrh_chothia.pdb
+Filter B-factor50, removing:pdb2xa8_chothia.pdb
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb2dqf_chothia.pdb
+Filter B-factor50, removing:pdb2vq1_chothia.pdb
+Filter B-factor50, removing:pdb43ca_chothia.pdb
+Filter B-factor50, removing:pdb43c9_chothia.pdb
+Filter B-factor50, removing:pdb3b9k_chothia.pdb
+Filter B-factor50, removing:pdb1uac_chothia.pdb
+Filter B-factor50, removing:pdb3mob_chothia.pdb
+Filter B-factor50, removing:pdb3lev_chothia.pdb
+Filter B-factor50, removing:pdb2p8p_chothia.pdb
+Filter B-factor50, removing:pdb1oak_chothia.pdb
+Filter B-factor50, removing:pdb1dl7_chothia.pdb
+Filter B-factor50, removing:pdb3mj9_chothia.pdb
+Filter B-factor50, removing:pdb3mj8_chothia.pdb
+Filter B-factor50, removing:pdb1c5d_chothia.pdb
+Filter B-factor50, removing:pdb3hi1_chothia.pdb
+Filter B-factor50, removing:pdb1bgx_chothia.pdb
+Filter B-factor50, removing:pdb2a0l_chothia.pdb
+Filter B-factor50, removing:pdb3rvx_chothia.pdb
+Filter B-factor50, removing:pdb3rvu_chothia.pdb
+Filter B-factor50, removing:pdb3rvt_chothia.pdb
+Filter B-factor50, removing:pdb3klh_chothia.pdb
+Filter B-factor50, removing:pdb1t03_chothia.pdb
+Filter B-factor50, removing:pdb1r0a_chothia.pdb
+Filter B-factor50, removing:pdb1n6q_chothia.pdb
+Filter B-factor50, removing:pdb1n5y_chothia.pdb
+Filter B-factor50, removing:pdb1kc5_chothia.pdb
+Filter B-factor50, removing:pdb1ken_chothia.pdb
+Filter B-factor50, removing:pdb3ldb_chothia.pdb
+Filter B-factor50, removing:pdb3ld8_chothia.pdb
+Filter B-factor50, removing:pdb3nn8_chothia.pdb
+Filter B-factor50, removing:pdb3mck_chothia.pdb
+Filter B-factor50, removing:pdb3l7e_chothia.pdb
+Filter B-factor50, removing:pdb3l5y_chothia.pdb
+Filter B-factor50, removing:pdb3l5x_chothia.pdb
+Filter B-factor50, removing:pdb3l5w_chothia.pdb
+Filter B-factor50, removing:pdb1orq_chothia.pdb
+Filter B-factor50, removing:pdb2ak1_chothia.pdb
+Filter B-factor50, removing:pdb2ajy_chothia.pdb
+Filter B-factor50, removing:pdb2agj_chothia.pdb
+Filter B-factor50, removing:pdb2z91_chothia.pdb
+Filter B-factor50, removing:pdb3cxh_chothia.pdb
+Filter B-factor50, removing:pdb3cx5_chothia.pdb
+Filter B-factor50, removing:pdb2ibz_chothia.pdb
+Filter B-factor50, removing:pdb1p84_chothia.pdb
+Filter B-factor50, removing:pdb1kyo_chothia.pdb
+Filter B-factor50, removing:pdb1kb9_chothia.pdb
+Filter B-factor50, removing:pdb1ezv_chothia.pdb
+Filter B-factor50, removing:pdb2j6e_chothia.pdb
+Filter B-factor50, removing:pdb1qlr_chothia.pdb
+Filter B-factor50, removing:pdb2yss_chothia.pdb
+Filter B-factor50, removing:pdb1dqm_chothia.pdb
+Filter B-factor50, removing:pdb1p4i_chothia.pdb
+Filter B-factor50, removing:pdb2aj3_chothia.pdb
+Filter B-factor50, removing:pdb1jrh_chothia.pdb
+Filter B-factor50, removing:pdb2xa8_chothia.pdb
+Filter B-factor50, removing:pdb2jix_chothia.pdb
+Filter B-factor50, removing:pdb2dqf_chothia.pdb
+Filter B-factor50, removing:pdb2vq1_chothia.pdb
+Filter B-factor50, removing:pdb43ca_chothia.pdb
+Filter B-factor50, removing:pdb43c9_chothia.pdb
+Filter B-factor50, removing:pdb3b9k_chothia.pdb
+Filter B-factor50, removing:pdb1uac_chothia.pdb
+Filter B-factor50, removing:pdb3mob_chothia.pdb
+Filter B-factor50, removing:pdb3lev_chothia.pdb
+Filter B-factor50, removing:pdb2p8p_chothia.pdb
+Filter B-factor50, removing:pdb1oak_chothia.pdb
+Filter B-factor50, removing:pdb1dl7_chothia.pdb
+Filter B-factor50, removing:pdb3mj9_chothia.pdb
+Filter B-factor50, removing:pdb3mj8_chothia.pdb
+Filter B-factor50, removing:pdb1c5d_chothia.pdb
+Filter outlier, removing:pdb1dl7_chothia.pdb
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3mj9_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3mj8_chothia.pdb resolution:2.9
+H2 template: pdb1u6a_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.H3.18 -query H3.fasta -out H3.align -evalue 2000 -matrix PAM30 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter B-factor50, removing:pdb3ru8_chothia.pdb
+Filter B-factor50, removing:pdb2ny7_chothia.pdb
+Filter B-factor50, removing:pdb1hzh_chothia.pdb
+Filter B-factor50, removing:pdb3ru8_chothia.pdb
+Filter B-factor50, removing:pdb2ny7_chothia.pdb
+Filter B-factor50, removing:pdb1hzh_chothia.pdb
+H3 template: pdb1n0x_chothia.pdb
+cd output/details && blastp -db /Users/jeff/git/Rosetta/tools/antibody/blast_database/database.light_heavy -query light_heavy.fasta -out light_heavy.align -evalue 1e-05 -matrix BLOSUM62 -word_size 2 -outfmt 7 -max_target_seqs 600
+
+filtering by sequence length...
+filtering by sequence length...
+filtering by sequence identity...
+filtering by sequence identity...
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3uaj_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb2jix_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3hi1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1bey_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1bvl_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2fjh_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1kyo_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3cfe_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qql_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1u8p_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1u8o_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ivk_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2wub_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3be1_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1nsn_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1kcr_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3n85_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3idy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1s78_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb4dke_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1za3_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3hfm_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2arj_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3klh_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1t03_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1n6q_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1n5y_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1j5o_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1hys_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1b2w_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3hmx_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3hmw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2qr0_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb32c2_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3raj_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1acy_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3s36_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3kj4_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3ifp_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1t04_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a0l_chothia.pdb resolution:3.9
+Filter template_resolution, removing:pdb2j6e_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ncd_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3ztn_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3ztj_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3nfp_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kyk_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3ve0_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3s88_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1orq_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3tt1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2a6k_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2a6d_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3csy_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2zjs_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3qa3_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1nld_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1fbi_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ken_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb1nma_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ahw_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3fmg_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1zlw_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1op5_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2zcl_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb2zck_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3c09_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1rzk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1mco_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1g9n_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1i9r_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb3nn8_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2vwe_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb3ck0_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1f11_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2b4c_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb1hin_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1him_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2i9l_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2r29_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb2aeq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1ynt_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1baf_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1qle_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3v7a_chothia.pdb resolution:3.3
+Filter template_resolution, removing:pdb3eo1_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2mcp_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1igy_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3vga_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1jnn_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb1jnl_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1qnz_chothia.pdb resolution:5.0
+Filter template_resolution, removing:pdb2vdm_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2vc2_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1pkq_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb3bsz_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1fsk_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1afv_chothia.pdb resolution:3.7
+Filter template_resolution, removing:pdb1r24_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb1b4j_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb2gfb_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1kno_chothia.pdb resolution:3.2
+Filter template_resolution, removing:pdb3sdy_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb1xct_chothia.pdb resolution:3.0
+Filter template_resolution, removing:pdb1xcq_chothia.pdb resolution:3.5
+Filter template_resolution, removing:pdb3u4b_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3u46_chothia.pdb resolution:2.9
+Filter template_resolution, removing:pdb3kj6_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4s_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb2r4r_chothia.pdb resolution:3.4
+Filter template_resolution, removing:pdb1bbj_chothia.pdb resolution:3.1
+Filter template_resolution, removing:pdb2hh0_chothia.pdb resolution:2.9
+light_heavy template: pdb3uc0_chothia.pdb
+
+Running /Users/jeff/git/Rosetta/tools/antibody/superimpose_interface.py...
+/Users/jeff/git/Rosetta/tools/antibody/superimpose_interface.py --prefix output/details/ PYROSETTA_DATABASE environment variable was set to: /Users/jeff/local/pyrosetta/rosetta_database; using it....
+PyRosetta 3.4.0 [Rosetta-3.4.r] retrieved from: 
+(C) Copyright Rosetta Commons Member Institutions.
+Created in JHU by Sergey Lyskov and PyRosetta Team.
+
+core.init: Mini-Rosetta version  from 
+core.init: command: app -database /Users/jeff/local/pyrosetta/rosetta_database -ex1 -ex2aro 
+core.init: 'RNG device' seed mode, using '/dev/urandom', seed=1428131850 seed_offset=0 real_seed=1428131850
+core.init.random: RandomGenerator:init: Normal mode, seed=1428131850 RG_type=mt19937
+core.chemical.ResidueTypeSet: Finished initializing fa_standard residue type set.  Created 6400 residue types
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue THR_p:CtermProteinFull 109
+core.conformation.Conformation: Found disulfide between residues 23 88
+core.conformation.Conformation: current variant for 23 CYS
+core.conformation.Conformation: current variant for 88 CYS
+core.conformation.Conformation: current variant for 23 CYD
+core.conformation.Conformation: current variant for 88 CYD
+core.pack.task: Packer task: initialize from command line() 
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 3
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue LEU 4
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LEU 4
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue LEU 4
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue LEU 4
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue SER 25
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 25
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue SER 30
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 30
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 31
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 31
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 31
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ASN 34
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASN 34
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASN 34
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND2 on residue ASN 34
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue GLU 42
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 42
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 42
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 42
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 42
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ILE 46
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG1 on residue ILE 46
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue ILE 46
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue ILE 46
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND1 on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE1 on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE2 on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue HIS 55
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 56
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 56
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 56
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 72
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 72
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ILE 85
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG1 on residue ILE 85
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue ILE 85
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue ILE 85
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND1 on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE1 on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE2 on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue HIS 87
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue SER 91
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 91
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE1 on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE2 on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OH  on residue TYR 92
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue SER 93
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 93
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 94
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 94
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 94
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue THR 108
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG1 on residue THR 108
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue THR 108
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue VAL_p:CtermProteinFull 109
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue VAL_p:CtermProteinFull 109
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG1 on residue VAL_p:CtermProteinFull 109
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue VAL_p:CtermProteinFull 109
+core.conformation.Conformation: Found disulfide between residues 23 88
+core.conformation.Conformation: current variant for 23 CYS
+core.conformation.Conformation: current variant for 88 CYS
+core.conformation.Conformation: current variant for 23 CYD
+core.conformation.Conformation: current variant for 88 CYD
+core.pack.task: Packer task: initialize from command line() 
+core.pack.pack_missing_sidechains: packing residue number 3 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 4 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 25 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 28 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 30 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 31 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 34 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 42 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 46 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 55 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 56 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 72 because of missing atom number 6 atom name  OG1
+core.pack.pack_missing_sidechains: packing residue number 76 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 85 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 87 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 91 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 92 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 93 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 94 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 108 because of missing atom number 5 atom name  CB 
+core.pack.pack_missing_sidechains: packing residue number 109 because of missing atom number 6 atom name  CB 
+core.scoring.etable: Starting energy table calculation
+core.scoring.etable: smooth_etable: changing atr/rep split to bottom of energy well
+core.scoring.etable: smooth_etable: spline smoothing lj etables (maxdis = 6)
+core.scoring.etable: smooth_etable: spline smoothing solvation etables (max_dis = 6)
+core.scoring.etable: Finished calculating energy tables.
+basic.io.database: Database file opened: scoring/score_functions/PairEPotential/pdb_pair_stats_fine
+basic.io.database: Database file opened: scoring/score_functions/hbonds/standard_params/HBPoly1D.csv
+basic.io.database: Database file opened: scoring/score_functions/hbonds/standard_params/HBFadeIntervals.csv
+basic.io.database: Database file opened: scoring/score_functions/hbonds/standard_params/HBEval.csv
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/env_log.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/cbeta_den.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/pair_log.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/cenpack_log.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/env_log.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/cbeta_den.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/pair_log.txt
+basic.io.database: Database file opened: scoring/score_functions/EnvPairPotential/cenpack_log.txt
+basic.io.database: Database file opened: scoring/score_functions/MembranePotential/CEN6_mem_env_log.txt
+basic.io.database: Database file opened: scoring/score_functions/MembranePotential/CEN10_mem_env_log.txt
+basic.io.database: Database file opened: scoring/score_functions/MembranePotential/memcbeta_den.txt
+basic.io.database: Database file opened: scoring/score_functions/MembranePotential/mem_pair_log.txt
+basic.io.database: Database file opened: scoring/score_functions/P_AA_pp/P_AA
+basic.io.database: Database file opened: scoring/score_functions/P_AA_pp/P_AA_n
+basic.io.database: Database file opened: scoring/score_functions/P_AA_pp/P_AA_pp
+basic.io.database: Database file opened: scoring/score_functions/rama/Rama_smooth_dyn.dat_ss_6.4
+basic.io.database: Database file opened: scoring/score_functions/disulfides/fa_SS_distance_score
+core.pack.dunbrack: Dunbrack library took 0.032434 seconds to load from binary
+core.pack.interaction_graph.interaction_graph_factory: Instantiating DensePDInteractionGraph
+core.pack.pack_rotamers: built 179 rotamers at 21 positions.
+core.pack.pack_rotamers: IG: 20044 bytes
+109 109
+L 36 36 36
+L 38 38 38
+L 43 43 43
+L 44 44 44
+L 46 46 46
+L 87 87 87
+L 98 98 98
+L 100 100 100
+1 N  atomno= 0 rsd= 0 
+1 CA  atomno= 0 rsd= 0 
+1 C  atomno= 0 rsd= 0 
+1 O  atomno= 0 rsd= 0 
+2 N  atomno= 0 rsd= 0 
+2 CA  atomno= 0 rsd= 0 
+2 C  atomno= 0 rsd= 0 
+2 O  atomno= 0 rsd= 0 
+3 N  atomno= 0 rsd= 0 
+3 CA  atomno= 0 rsd= 0 
+3 C  atomno= 0 rsd= 0 
+3 O  atomno= 0 rsd= 0 
+4 N  atomno= 0 rsd= 0 
+4 CA  atomno= 0 rsd= 0 
+4 C  atomno= 0 rsd= 0 
+4 O  atomno= 0 rsd= 0 
+5 N  atomno= 0 rsd= 0 
+5 CA  atomno= 0 rsd= 0 
+5 C  atomno= 0 rsd= 0 
+5 O  atomno= 0 rsd= 0 
+6 N  atomno= 0 rsd= 0 
+6 CA  atomno= 0 rsd= 0 
+6 C  atomno= 0 rsd= 0 
+6 O  atomno= 0 rsd= 0 
+7 N  atomno= 0 rsd= 0 
+7 CA  atomno= 0 rsd= 0 
+7 C  atomno= 0 rsd= 0 
+7 O  atomno= 0 rsd= 0 
+8 N  atomno= 0 rsd= 0 
+8 CA  atomno= 0 rsd= 0 
+8 C  atomno= 0 rsd= 0 
+8 O  atomno= 0 rsd= 0 
+9 N  atomno= 0 rsd= 0 
+9 CA  atomno= 0 rsd= 0 
+9 C  atomno= 0 rsd= 0 
+9 O  atomno= 0 rsd= 0 
+10 N  atomno= 0 rsd= 0 
+10 CA  atomno= 0 rsd= 0 
+10 C  atomno= 0 rsd= 0 
+10 O  atomno= 0 rsd= 0 
+11 N  atomno= 0 rsd= 0 
+11 CA  atomno= 0 rsd= 0 
+11 C  atomno= 0 rsd= 0 
+11 O  atomno= 0 rsd= 0 
+12 N  atomno= 0 rsd= 0 
+12 CA  atomno= 0 rsd= 0 
+12 C  atomno= 0 rsd= 0 
+12 O  atomno= 0 rsd= 0 
+13 N  atomno= 0 rsd= 0 
+13 CA  atomno= 0 rsd= 0 
+13 C  atomno= 0 rsd= 0 
+13 O  atomno= 0 rsd= 0 
+14 N  atomno= 0 rsd= 0 
+14 CA  atomno= 0 rsd= 0 
+14 C  atomno= 0 rsd= 0 
+14 O  atomno= 0 rsd= 0 
+15 N  atomno= 0 rsd= 0 
+15 CA  atomno= 0 rsd= 0 
+15 C  atomno= 0 rsd= 0 
+15 O  atomno= 0 rsd= 0 
+16 N  atomno= 0 rsd= 0 
+16 CA  atomno= 0 rsd= 0 
+16 C  atomno= 0 rsd= 0 
+16 O  atomno= 0 rsd= 0 
+17 N  atomno= 0 rsd= 0 
+17 CA  atomno= 0 rsd= 0 
+17 C  atomno= 0 rsd= 0 
+17 O  atomno= 0 rsd= 0 
+18 N  atomno= 0 rsd= 0 
+18 CA  atomno= 0 rsd= 0 
+18 C  atomno= 0 rsd= 0 
+18 O  atomno= 0 rsd= 0 
+19 N  atomno= 0 rsd= 0 
+19 CA  atomno= 0 rsd= 0 
+19 C  atomno= 0 rsd= 0 
+19 O  atomno= 0 rsd= 0 
+20 N  atomno= 0 rsd= 0 
+20 CA  atomno= 0 rsd= 0 
+20 C  atomno= 0 rsd= 0 
+20 O  atomno= 0 rsd= 0 
+21 N  atomno= 0 rsd= 0 
+21 CA  atomno= 0 rsd= 0 
+21 C  atomno= 0 rsd= 0 
+21 O  atomno= 0 rsd= 0 
+22 N  atomno= 0 rsd= 0 
+22 CA  atomno= 0 rsd= 0 
+22 C  atomno= 0 rsd= 0 
+22 O  atomno= 0 rsd= 0 
+23 N  atomno= 0 rsd= 0 
+23 CA  atomno= 0 rsd= 0 
+23 C  atomno= 0 rsd= 0 
+23 O  atomno= 0 rsd= 0 
+24 N  atomno= 0 rsd= 0 
+24 CA  atomno= 0 rsd= 0 
+24 C  atomno= 0 rsd= 0 
+24 O  atomno= 0 rsd= 0 
+25 N  atomno= 0 rsd= 0 
+25 CA  atomno= 0 rsd= 0 
+25 C  atomno= 0 rsd= 0 
+25 O  atomno= 0 rsd= 0 
+26 N  atomno= 0 rsd= 0 
+26 CA  atomno= 0 rsd= 0 
+26 C  atomno= 0 rsd= 0 
+26 O  atomno= 0 rsd= 0 
+27 N  atomno= 0 rsd= 0 
+27 CA  atomno= 0 rsd= 0 
+27 C  atomno= 0 rsd= 0 
+27 O  atomno= 0 rsd= 0 
+28 N  atomno= 0 rsd= 0 
+28 CA  atomno= 0 rsd= 0 
+28 C  atomno= 0 rsd= 0 
+28 O  atomno= 0 rsd= 0 
+29 N  atomno= 0 rsd= 0 
+29 CA  atomno= 0 rsd= 0 
+29 C  atomno= 0 rsd= 0 
+29 O  atomno= 0 rsd= 0 
+30 N  atomno= 0 rsd= 0 
+30 CA  atomno= 0 rsd= 0 
+30 C  atomno= 0 rsd= 0 
+30 O  atomno= 0 rsd= 0 
+31 N  atomno= 0 rsd= 0 
+31 CA  atomno= 0 rsd= 0 
+31 C  atomno= 0 rsd= 0 
+31 O  atomno= 0 rsd= 0 
+32 N  atomno= 0 rsd= 0 
+32 CA  atomno= 0 rsd= 0 
+32 C  atomno= 0 rsd= 0 
+32 O  atomno= 0 rsd= 0 
+33 N  atomno= 0 rsd= 0 
+33 CA  atomno= 0 rsd= 0 
+33 C  atomno= 0 rsd= 0 
+33 O  atomno= 0 rsd= 0 
+34 N  atomno= 0 rsd= 0 
+34 CA  atomno= 0 rsd= 0 
+34 C  atomno= 0 rsd= 0 
+34 O  atomno= 0 rsd= 0 
+35 N  atomno= 0 rsd= 0 
+35 CA  atomno= 0 rsd= 0 
+35 C  atomno= 0 rsd= 0 
+35 O  atomno= 0 rsd= 0 
+36 N  atomno= 1 rsd= 36 
+36 CA  atomno= 2 rsd= 36 
+36 C  atomno= 3 rsd= 36 
+36 O  atomno= 4 rsd= 36 
+37 N  atomno= 0 rsd= 0 
+37 CA  atomno= 0 rsd= 0 
+37 C  atomno= 0 rsd= 0 
+37 O  atomno= 0 rsd= 0 
+38 N  atomno= 1 rsd= 38 
+38 CA  atomno= 2 rsd= 38 
+38 C  atomno= 3 rsd= 38 
+38 O  atomno= 4 rsd= 38 
+39 N  atomno= 0 rsd= 0 
+39 CA  atomno= 0 rsd= 0 
+39 C  atomno= 0 rsd= 0 
+39 O  atomno= 0 rsd= 0 
+40 N  atomno= 0 rsd= 0 
+40 CA  atomno= 0 rsd= 0 
+40 C  atomno= 0 rsd= 0 
+40 O  atomno= 0 rsd= 0 
+41 N  atomno= 0 rsd= 0 
+41 CA  atomno= 0 rsd= 0 
+41 C  atomno= 0 rsd= 0 
+41 O  atomno= 0 rsd= 0 
+42 N  atomno= 0 rsd= 0 
+42 CA  atomno= 0 rsd= 0 
+42 C  atomno= 0 rsd= 0 
+42 O  atomno= 0 rsd= 0 
+43 N  atomno= 1 rsd= 43 
+43 CA  atomno= 2 rsd= 43 
+43 C  atomno= 3 rsd= 43 
+43 O  atomno= 4 rsd= 43 
+44 N  atomno= 1 rsd= 44 
+44 CA  atomno= 2 rsd= 44 
+44 C  atomno= 3 rsd= 44 
+44 O  atomno= 4 rsd= 44 
+45 N  atomno= 0 rsd= 0 
+45 CA  atomno= 0 rsd= 0 
+45 C  atomno= 0 rsd= 0 
+45 O  atomno= 0 rsd= 0 
+46 N  atomno= 1 rsd= 46 
+46 CA  atomno= 2 rsd= 46 
+46 C  atomno= 3 rsd= 46 
+46 O  atomno= 4 rsd= 46 
+47 N  atomno= 0 rsd= 0 
+47 CA  atomno= 0 rsd= 0 
+47 C  atomno= 0 rsd= 0 
+47 O  atomno= 0 rsd= 0 
+48 N  atomno= 0 rsd= 0 
+48 CA  atomno= 0 rsd= 0 
+48 C  atomno= 0 rsd= 0 
+48 O  atomno= 0 rsd= 0 
+49 N  atomno= 0 rsd= 0 
+49 CA  atomno= 0 rsd= 0 
+49 C  atomno= 0 rsd= 0 
+49 O  atomno= 0 rsd= 0 
+50 N  atomno= 0 rsd= 0 
+50 CA  atomno= 0 rsd= 0 
+50 C  atomno= 0 rsd= 0 
+50 O  atomno= 0 rsd= 0 
+51 N  atomno= 0 rsd= 0 
+51 CA  atomno= 0 rsd= 0 
+51 C  atomno= 0 rsd= 0 
+51 O  atomno= 0 rsd= 0 
+52 N  atomno= 0 rsd= 0 
+52 CA  atomno= 0 rsd= 0 
+52 C  atomno= 0 rsd= 0 
+52 O  atomno= 0 rsd= 0 
+53 N  atomno= 0 rsd= 0 
+53 CA  atomno= 0 rsd= 0 
+53 C  atomno= 0 rsd= 0 
+53 O  atomno= 0 rsd= 0 
+54 N  atomno= 0 rsd= 0 
+54 CA  atomno= 0 rsd= 0 
+54 C  atomno= 0 rsd= 0 
+54 O  atomno= 0 rsd= 0 
+55 N  atomno= 0 rsd= 0 
+55 CA  atomno= 0 rsd= 0 
+55 C  atomno= 0 rsd= 0 
+55 O  atomno= 0 rsd= 0 
+56 N  atomno= 0 rsd= 0 
+56 CA  atomno= 0 rsd= 0 
+56 C  atomno= 0 rsd= 0 
+56 O  atomno= 0 rsd= 0 
+57 N  atomno= 0 rsd= 0 
+57 CA  atomno= 0 rsd= 0 
+57 C  atomno= 0 rsd= 0 
+57 O  atomno= 0 rsd= 0 
+58 N  atomno= 0 rsd= 0 
+58 CA  atomno= 0 rsd= 0 
+58 C  atomno= 0 rsd= 0 
+58 O  atomno= 0 rsd= 0 
+59 N  atomno= 0 rsd= 0 
+59 CA  atomno= 0 rsd= 0 
+59 C  atomno= 0 rsd= 0 
+59 O  atomno= 0 rsd= 0 
+60 N  atomno= 0 rsd= 0 
+60 CA  atomno= 0 rsd= 0 
+60 C  atomno= 0 rsd= 0 
+60 O  atomno= 0 rsd= 0 
+61 N  atomno= 0 rsd= 0 
+61 CA  atomno= 0 rsd= 0 
+61 C  atomno= 0 rsd= 0 
+61 O  atomno= 0 rsd= 0 
+62 N  atomno= 0 rsd= 0 
+62 CA  atomno= 0 rsd= 0 
+62 C  atomno= 0 rsd= 0 
+62 O  atomno= 0 rsd= 0 
+63 N  atomno= 0 rsd= 0 
+63 CA  atomno= 0 rsd= 0 
+63 C  atomno= 0 rsd= 0 
+63 O  atomno= 0 rsd= 0 
+64 N  atomno= 0 rsd= 0 
+64 CA  atomno= 0 rsd= 0 
+64 C  atomno= 0 rsd= 0 
+64 O  atomno= 0 rsd= 0 
+65 N  atomno= 0 rsd= 0 
+65 CA  atomno= 0 rsd= 0 
+65 C  atomno= 0 rsd= 0 
+65 O  atomno= 0 rsd= 0 
+66 N  atomno= 0 rsd= 0 
+66 CA  atomno= 0 rsd= 0 
+66 C  atomno= 0 rsd= 0 
+66 O  atomno= 0 rsd= 0 
+67 N  atomno= 0 rsd= 0 
+67 CA  atomno= 0 rsd= 0 
+67 C  atomno= 0 rsd= 0 
+67 O  atomno= 0 rsd= 0 
+68 N  atomno= 0 rsd= 0 
+68 CA  atomno= 0 rsd= 0 
+68 C  atomno= 0 rsd= 0 
+68 O  atomno= 0 rsd= 0 
+69 N  atomno= 0 rsd= 0 
+69 CA  atomno= 0 rsd= 0 
+69 C  atomno= 0 rsd= 0 
+69 O  atomno= 0 rsd= 0 
+70 N  atomno= 0 rsd= 0 
+70 CA  atomno= 0 rsd= 0 
+70 C  atomno= 0 rsd= 0 
+70 O  atomno= 0 rsd= 0 
+71 N  atomno= 0 rsd= 0 
+71 CA  atomno= 0 rsd= 0 
+71 C  atomno= 0 rsd= 0 
+71 O  atomno= 0 rsd= 0 
+72 N  atomno= 0 rsd= 0 
+72 CA  atomno= 0 rsd= 0 
+72 C  atomno= 0 rsd= 0 
+72 O  atomno= 0 rsd= 0 
+73 N  atomno= 0 rsd= 0 
+73 CA  atomno= 0 rsd= 0 
+73 C  atomno= 0 rsd= 0 
+73 O  atomno= 0 rsd= 0 
+74 N  atomno= 0 rsd= 0 
+74 CA  atomno= 0 rsd= 0 
+74 C  atomno= 0 rsd= 0 
+74 O  atomno= 0 rsd= 0 
+75 N  atomno= 0 rsd= 0 
+75 CA  atomno= 0 rsd= 0 
+75 C  atomno= 0 rsd= 0 
+75 O  atomno= 0 rsd= 0 
+76 N  atomno= 0 rsd= 0 
+76 CA  atomno= 0 rsd= 0 
+76 C  atomno= 0 rsd= 0 
+76 O  atomno= 0 rsd= 0 
+77 N  atomno= 0 rsd= 0 
+77 CA  atomno= 0 rsd= 0 
+77 C  atomno= 0 rsd= 0 
+77 O  atomno= 0 rsd= 0 
+78 N  atomno= 0 rsd= 0 
+78 CA  atomno= 0 rsd= 0 
+78 C  atomno= 0 rsd= 0 
+78 O  atomno= 0 rsd= 0 
+79 N  atomno= 0 rsd= 0 
+79 CA  atomno= 0 rsd= 0 
+79 C  atomno= 0 rsd= 0 
+79 O  atomno= 0 rsd= 0 
+80 N  atomno= 0 rsd= 0 
+80 CA  atomno= 0 rsd= 0 
+80 C  atomno= 0 rsd= 0 
+80 O  atomno= 0 rsd= 0 
+81 N  atomno= 0 rsd= 0 
+81 CA  atomno= 0 rsd= 0 
+81 C  atomno= 0 rsd= 0 
+81 O  atomno= 0 rsd= 0 
+82 N  atomno= 0 rsd= 0 
+82 CA  atomno= 0 rsd= 0 
+82 C  atomno= 0 rsd= 0 
+82 O  atomno= 0 rsd= 0 
+83 N  atomno= 0 rsd= 0 
+83 CA  atomno= 0 rsd= 0 
+83 C  atomno= 0 rsd= 0 
+83 O  atomno= 0 rsd= 0 
+84 N  atomno= 0 rsd= 0 
+84 CA  atomno= 0 rsd= 0 
+84 C  atomno= 0 rsd= 0 
+84 O  atomno= 0 rsd= 0 
+85 N  atomno= 0 rsd= 0 
+85 CA  atomno= 0 rsd= 0 
+85 C  atomno= 0 rsd= 0 
+85 O  atomno= 0 rsd= 0 
+86 N  atomno= 0 rsd= 0 
+86 CA  atomno= 0 rsd= 0 
+86 C  atomno= 0 rsd= 0 
+86 O  atomno= 0 rsd= 0 
+87 N  atomno= 1 rsd= 87 
+87 CA  atomno= 2 rsd= 87 
+87 C  atomno= 3 rsd= 87 
+87 O  atomno= 4 rsd= 87 
+88 N  atomno= 0 rsd= 0 
+88 CA  atomno= 0 rsd= 0 
+88 C  atomno= 0 rsd= 0 
+88 O  atomno= 0 rsd= 0 
+89 N  atomno= 0 rsd= 0 
+89 CA  atomno= 0 rsd= 0 
+89 C  atomno= 0 rsd= 0 
+89 O  atomno= 0 rsd= 0 
+90 N  atomno= 0 rsd= 0 
+90 CA  atomno= 0 rsd= 0 
+90 C  atomno= 0 rsd= 0 
+90 O  atomno= 0 rsd= 0 
+91 N  atomno= 0 rsd= 0 
+91 CA  atomno= 0 rsd= 0 
+91 C  atomno= 0 rsd= 0 
+91 O  atomno= 0 rsd= 0 
+92 N  atomno= 0 rsd= 0 
+92 CA  atomno= 0 rsd= 0 
+92 C  atomno= 0 rsd= 0 
+92 O  atomno= 0 rsd= 0 
+93 N  atomno= 0 rsd= 0 
+93 CA  atomno= 0 rsd= 0 
+93 C  atomno= 0 rsd= 0 
+93 O  atomno= 0 rsd= 0 
+94 N  atomno= 0 rsd= 0 
+94 CA  atomno= 0 rsd= 0 
+94 C  atomno= 0 rsd= 0 
+94 O  atomno= 0 rsd= 0 
+95 N  atomno= 0 rsd= 0 
+95 CA  atomno= 0 rsd= 0 
+95 C  atomno= 0 rsd= 0 
+95 O  atomno= 0 rsd= 0 
+96 N  atomno= 0 rsd= 0 
+96 CA  atomno= 0 rsd= 0 
+96 C  atomno= 0 rsd= 0 
+96 O  atomno= 0 rsd= 0 
+97 N  atomno= 0 rsd= 0 
+97 CA  atomno= 0 rsd= 0 
+97 C  atomno= 0 rsd= 0 
+97 O  atomno= 0 rsd= 0 
+98 N  atomno= 1 rsd= 98 
+98 CA  atomno= 2 rsd= 98 
+98 C  atomno= 3 rsd= 98 
+98 O  atomno= 4 rsd= 98 
+99 N  atomno= 0 rsd= 0 
+99 CA  atomno= 0 rsd= 0 
+99 C  atomno= 0 rsd= 0 
+99 O  atomno= 0 rsd= 0 
+100 N  atomno= 1 rsd= 100 
+100 CA  atomno= 2 rsd= 100 
+100 C  atomno= 3 rsd= 100 
+100 O  atomno= 4 rsd= 100 
+101 N  atomno= 0 rsd= 0 
+101 CA  atomno= 0 rsd= 0 
+101 C  atomno= 0 rsd= 0 
+101 O  atomno= 0 rsd= 0 
+102 N  atomno= 0 rsd= 0 
+102 CA  atomno= 0 rsd= 0 
+102 C  atomno= 0 rsd= 0 
+102 O  atomno= 0 rsd= 0 
+103 N  atomno= 0 rsd= 0 
+103 CA  atomno= 0 rsd= 0 
+103 C  atomno= 0 rsd= 0 
+103 O  atomno= 0 rsd= 0 
+104 N  atomno= 0 rsd= 0 
+104 CA  atomno= 0 rsd= 0 
+104 C  atomno= 0 rsd= 0 
+104 O  atomno= 0 rsd= 0 
+105 N  atomno= 0 rsd= 0 
+105 CA  atomno= 0 rsd= 0 
+105 C  atomno= 0 rsd= 0 
+105 O  atomno= 0 rsd= 0 
+106 N  atomno= 0 rsd= 0 
+106 CA  atomno= 0 rsd= 0 
+106 C  atomno= 0 rsd= 0 
+106 O  atomno= 0 rsd= 0 
+107 N  atomno= 0 rsd= 0 
+107 CA  atomno= 0 rsd= 0 
+107 C  atomno= 0 rsd= 0 
+107 O  atomno= 0 rsd= 0 
+108 N  atomno= 0 rsd= 0 
+108 CA  atomno= 0 rsd= 0 
+108 C  atomno= 0 rsd= 0 
+108 O  atomno= 0 rsd= 0 
+109 N  atomno= 0 rsd= 0 
+109 CA  atomno= 0 rsd= 0 
+109 C  atomno= 0 rsd= 0 
+109 O  atomno= 0 rsd= 0 
+atom_id.atomno()= 4554714608 coords_[2].size()= 19
+
+ERROR: atom_id.atomno()4554714608 is out of range!
+ERROR:: Exit from: src/core/pose/MiniPose.cc line: 119
+Traceback (most recent call last):
+  File "/Users/jeff/git/Rosetta/tools/antibody/superimpose_interface.py", line 105, in <module>
+    if __name__ == "__main__": main(sys.argv)
+  File "/Users/jeff/git/Rosetta/tools/antibody/superimpose_interface.py", line 96, in main
+    core.scoring.superimpose_pose(mob_pose, ref_pose, atom_map)
+RuntimeError: unidentifiable C++ exception

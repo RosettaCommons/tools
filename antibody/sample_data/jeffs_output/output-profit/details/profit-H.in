@@ -1,0 +1,12 @@
+reference "output/details//template.light_heavy.pdb"
+mobile "output/details//template.threaded.FRH.pdb"
+atoms ca
+zone H10-H25
+zone H36-H49
+zone H66-H72
+zone H74-H82
+zone H83-H94
+zone H103-H105
+fit
+write "output/details//fitted.H.pdb"
+quit

@@ -16,6 +16,7 @@
 import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
+from time import time
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -42,6 +43,7 @@ _alignment_legend_to_pretty_legend = {
 def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
+    starttime = time()
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
@@ -326,6 +328,10 @@ def main(args):
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
     for n in [i for i in CDRs if i.startswith('numbering_')]: results['numbering'][n] = CDRs[n]
+
+    #report run time
+    endtime=time()
+    print 'Run time %2.2f s' % (endtime-starttime)
 
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'
@@ -781,13 +787,16 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     table[i] = dict( [(k, try_to_float(v[k])) for k in v] )
 
 
+        prefix_filters = prefix + 'filters/'
+        if not os.path.isdir(prefix_filters): print 'Could not find %s... creating it...' % prefix_filters;  os.makedirs(prefix_filters)
+
         for f in Filters:
             if getattr(Options, f.func_name):
                 f(k, table, cdr_query, cdr_info)
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
-                sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
+                sort_and_write_results([i for i in table_original if i not in t], prefix_filters +'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-        sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
+        sort_and_write_results(table, prefix_filters + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 

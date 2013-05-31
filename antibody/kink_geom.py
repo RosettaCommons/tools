@@ -14,7 +14,11 @@ def kink_end(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
     return H3_end + 1
 
+def kink_R(abinfo):
+    return abinfo.get_CDR_loop(h3).start() - 1
 
+def kink_D(abinfo):
+    return abinfo.get_CDR_loop(h3).stop() - 1
 
 def kink_geom(pose):
     poseAI = AntibodyInfo(pose)
@@ -67,8 +71,17 @@ def antibody_kink_geometry(filename, debug=False):
 
     q = (CA0 - CA3).magnitude
     qbase = dihedral(CA0,CA1,CA2,CA3)
-    print "q = %f, qbase = %f degrees" % (q,qbase)
-    return (q,qbase)
+
+    D = pose.residue(kink_D(abinfo))
+    R = pose.residue(kink_R(abinfo))
+    DO1 = D.xyz("OD1")
+    DO2 = D.xyz("OD2")
+    RN  = R.xyz("NE")
+
+    HBdist = min( (RN - DO1).norm, (RN - DO2).norm )
+
+    print "q = %f, qbase = %f degrees, HBond_dist = %f Angstrom" % (q,qbase,HBdist)
+    return (q,qbase,HBdist)
 
 def main(args):
     '''Calculate kink geometry for a set of antibodies.  Usage: python kink_geom.py [pdb_files]
@@ -77,15 +90,15 @@ def main(args):
     if len(sys.argv) == 1:
         print
         print main.__doc__
-        exit()
+        return
 
     outf = file('kink_geom.dat', 'w')
-    outf.write("file       \t%10s\t%10s\n" % ("q","qbase") )
+    outf.write("file       \t%10s\t%10s\t%10s\n" % ("q","qbase","HBdist") )
     for f in args[1:]:
         print f
         q = antibody_kink_geometry(f)
         if q:
-            outf.write("%s\t%10.3f\t%10.3f\n" % (f,q[0],q[1]) )
+           outf.write("%s\t%10.3f\t%10.3f\t%10.3f\n" % (f,q[0],q[1],q[2]) )
 
 
 if __name__ == "__main__": main(sys.argv)

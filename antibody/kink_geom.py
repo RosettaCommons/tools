@@ -1,15 +1,10 @@
 #!/usr/bin/python
 
 from rosetta import *
-init('','-ex1 -ex2aro -in:ignore_unrecognized_res -database /Users/jeff/local/pyrosetta/rosetta_database')
-
-#init()
-
 from rosetta.protocols.antibody import *
 import math
 import sys
-#from numpy import matrix
-
+rosetta.init(extra_options='-in:ignore_unrecognized_res')
 
 def kink_begin(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
@@ -76,8 +71,13 @@ def antibody_kink_geometry(filename, debug=False):
     return (q,qbase)
 
 def main(args):
-    '''Calculate kink geometry for a set of antibodies.  Give filenames as arguments
+    '''Calculate kink geometry for a set of antibodies.  Usage: python kink_geom.py [pdb_files]
     '''
+
+    if len(sys.argv) == 1:
+        print
+        print main.__doc__
+        exit()
 
     outf = file('kink_geom.dat', 'w')
     outf.write("file       \t%10s\t%10s\n" % ("q","qbase") )

@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 from rosetta import *
-init()
+init('','-ex1 -ex2aro -in:ignore_unrecognized_res -database /Users/jeff/local/pyrosetta/rosetta_database')
+
+#init()
 
 from rosetta.protocols.antibody import *
 import math
@@ -11,11 +13,11 @@ import sys
 
 def kink_begin(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
-    return H3_end - 1
+    return H3_end - 2
 
 def kink_end(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
-    return H3_end + 2
+    return H3_end + 1
 
 
 
@@ -38,10 +40,14 @@ def dihedral(p1,p2,p3,p4):
     return angle
 
 
-def antibody_kink_geometry(filename):
+def antibody_kink_geometry(filename, debug=False):
 
-    pose = pose_from_pdb(filename)
-    abinfo = AntibodyInfo(pose)
+    try:
+        pose = pose_from_pdb(filename)
+        abinfo = AntibodyInfo(pose)
+    except:
+        print 'Problems reading %s, skipping.' % filename
+        return
     print abinfo
 
     kb=kink_begin(abinfo)
@@ -53,6 +59,11 @@ def antibody_kink_geometry(filename):
     kr3=pose.residue(kb+3)
     kseq = kr0.name1() + kr1.name1() + kr2.name1() + kr3.name1()
     print "Kink is defined from pose residues %i-%i: %s" % (kb,ke,kseq)
+
+    if debug:
+        pinfo = pose.pdb_info()
+        print kr0, kr1, kr2, kr3
+        print pinfo.number(kb),pinfo.number(kb+1),pinfo.number(kb+2),pinfo.number(kb+3)
 
     CA0=kr0.xyz("CA")
     CA1=kr1.xyz("CA")
@@ -69,11 +80,12 @@ def main(args):
     '''
 
     outf = file('kink_geom.dat', 'w')
-    outf.write("file\tq\tqbase\n")
+    outf.write("file       \t%10s\t%10s\n" % ("q","qbase") )
     for f in args[1:]:
         print f
         q = antibody_kink_geometry(f)
-        outf.write("%s\t%f\t%f\n" % (f,q[0],q[1]) )
+        if q:
+            outf.write("%s\t%10.3f\t%10.3f\n" % (f,q[0],q[1]) )
 
 
 if __name__ == "__main__": main(sys.argv)

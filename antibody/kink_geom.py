@@ -14,11 +14,23 @@ def kink_end(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
     return H3_end + 1
 
-def kink_R(abinfo):
-    return abinfo.get_CDR_loop(h3).start() - 1
+def kink_cation(pose,abinfo):
+    resi = abinfo.get_CDR_loop(h3).start() - 1
+    res = pose.residue(resi)
+    atoms = []
+    if res.name1 == "R":
+        atoms.push_back(res.xyz("NE"))
+    return atoms
 
-def kink_D(abinfo):
-    return abinfo.get_CDR_loop(h3).stop() - 1
+def kink_anion(pose,abinfo):
+    resi = abinfo.get_CDR_loop(h3).stop() - 1
+    res = pose.residue(resi)
+    atoms = []
+    if res.name1 == "D":
+        atoms.push_back(res.xyz("OD1"))
+        atoms.push_back(res.xyz("OD2"))
+    return atoms
+
 
 def kink_geom(pose):
     poseAI = AntibodyInfo(pose)
@@ -39,6 +51,19 @@ def dihedral(p1,p2,p3,p4):
     return angle
 
 
+def antibody_kink_Hbond(pose,abinfo):
+
+    Aatoms = kink_anion(pose,abinfo)
+    Catoms = kink_cation(pose,abinfo)
+
+    HBdist = 100.0
+    for Aa in Aatoms:
+        for Ca in Catoms:
+            HBdist = min( HBdist, (Aa - Ca).norm)
+
+    return HBdist
+
+
 def antibody_kink_geometry(filename, debug=False):
 
     try:
@@ -47,17 +72,19 @@ def antibody_kink_geometry(filename, debug=False):
     except:
         print 'Problems reading %s, skipping.' % filename
         return
+
+    print pose
     print abinfo
 
     kb=kink_begin(abinfo)
-    ke=kink_end(abinfo)
 
     kr0=pose.residue(kb)
     kr1=pose.residue(kb+1)
     kr2=pose.residue(kb+2)
     kr3=pose.residue(kb+3)
     kseq = kr0.name1() + kr1.name1() + kr2.name1() + kr3.name1()
-    print "Kink is defined from pose residues %i-%i: %s" % (kb,ke,kseq)
+
+    print "Kink is defined from pose residues %i-%i: %s" % (kb,kb+4,kseq)
 
     if debug:
         pinfo = pose.pdb_info()
@@ -72,13 +99,7 @@ def antibody_kink_geometry(filename, debug=False):
     q = (CA0 - CA3).magnitude
     qbase = dihedral(CA0,CA1,CA2,CA3)
 
-    D = pose.residue(kink_D(abinfo))
-    R = pose.residue(kink_R(abinfo))
-    DO1 = D.xyz("OD1")
-    DO2 = D.xyz("OD2")
-    RN  = R.xyz("NE")
-
-    HBdist = min( (RN - DO1).norm, (RN - DO2).norm )
+    HBdist = antibody_kink_Hbond(pose,abinfo)
 
     print "q = %f, qbase = %f degrees, HBond_dist = %f Angstrom" % (q,qbase,HBdist)
     return (q,qbase,HBdist)

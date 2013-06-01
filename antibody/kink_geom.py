@@ -17,18 +17,23 @@ def kink_end(abinfo):
 def kink_cation(pose,abinfo):
     resi = abinfo.get_CDR_loop(h3).start() - 1
     res = pose.residue(resi)
+    print "H3_0:   ", res.name3()
     atoms = []
-    if res.name1 == "R":
-        atoms.push_back(res.xyz("NE"))
+    if res.name1() == "R":
+        atoms.append(res.xyz("NH1"))
+        atoms.append(res.xyz("NH2"))
+    if res.name1() == "K":
+        atoms.append(res.xyz("NZ"))
     return atoms
 
 def kink_anion(pose,abinfo):
     resi = abinfo.get_CDR_loop(h3).stop() - 1
     res = pose.residue(resi)
     atoms = []
-    if res.name1 == "D":
-        atoms.push_back(res.xyz("OD1"))
-        atoms.push_back(res.xyz("OD2"))
+    print "H3_N-1: ", res.name3()
+    if res.name1() == "D":
+        atoms.append(res.xyz("OD1"))
+        atoms.append(res.xyz("OD2"))
     return atoms
 
 
@@ -52,7 +57,6 @@ def dihedral(p1,p2,p3,p4):
 
 
 def antibody_kink_Hbond(pose,abinfo):
-
     Aatoms = kink_anion(pose,abinfo)
     Catoms = kink_cation(pose,abinfo)
 
@@ -60,12 +64,12 @@ def antibody_kink_Hbond(pose,abinfo):
     for Aa in Aatoms:
         for Ca in Catoms:
             HBdist = min( HBdist, (Aa - Ca).norm)
+    if HBdist == 100.0: HBdist = 0
 
     return HBdist
 
 
 def antibody_kink_geometry(filename, debug=False):
-
     try:
         pose = pose_from_pdb(filename)
         abinfo = AntibodyInfo(pose)
@@ -107,7 +111,6 @@ def antibody_kink_geometry(filename, debug=False):
 def main(args):
     '''Calculate kink geometry for a set of antibodies.  Usage: python kink_geom.py [pdb_files]
     '''
-
     if len(sys.argv) == 1:
         print
         print main.__doc__

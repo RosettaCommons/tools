@@ -17,7 +17,7 @@ def kink_end(abinfo):
 def kink_cation(pose,abinfo):
     resi = abinfo.get_CDR_loop(h3).start() - 1
     res = pose.residue(resi)
-    print "H3_0:   ", res.name3()
+    print "H3_0   (%i): %s" % (resi,res.name3())
     atoms = []
     if res.name1() == "R":
         atoms.append(res.xyz("NH1"))
@@ -30,7 +30,7 @@ def kink_anion(pose,abinfo):
     resi = abinfo.get_CDR_loop(h3).stop() - 1
     res = pose.residue(resi)
     atoms = []
-    print "H3_N-1: ", res.name3()
+    print "H3_N-1 (%i): %s" % (resi,res.name3())
     if res.name1() == "D":
         atoms.append(res.xyz("OD1"))
         atoms.append(res.xyz("OD2"))
@@ -73,7 +73,7 @@ def antibody_kink_geometry(pose, abinfo, debug=False):
     kr3=pose.residue(kb+3)
     kseq = kr0.name1() + kr1.name1() + kr2.name1() + kr3.name1()
 
-    print "Kink is defined from pose residues %i-%i: %s" % (kb,kb+4,kseq)
+    print "Kink is defined from pose residues %i-%i: %s" % (kb,kb+3,kseq)
 
     if debug:
         pinfo = pose.pdb_info()

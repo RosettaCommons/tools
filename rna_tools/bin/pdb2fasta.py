@@ -1,1 +1,0 @@
-.././pdb_util/pdb2fasta.py

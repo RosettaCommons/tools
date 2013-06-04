@@ -1,1 +1,0 @@
-.././pdb_util/make_rna_rosetta_ready.py

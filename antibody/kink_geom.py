@@ -66,15 +66,18 @@ def antibody_kink_Hbond(pose,abinfo):
 
 def antibody_kink_bb_Hbond(pose,abinfo):
 
-    Di= abinfo.get_CDR_loop(h3).stop() - 1
+    Di = abinfo.get_CDR_loop(h3).stop() - 1
     D  = pose.residue(Di)
-    DN =D.xyz("N")
+    DN = D.xyz("N")
 
     Ri = abinfo.get_CDR_loop(h3).start() - 1
-    R  = pose.residue(resi)
+    R  = pose.residue(Ri)
     RO = R.xyz("O")
 
-    bbHbdist = ( DN - RO ).norm
+    print "H3_DN   (%i): %s - %s" % (Di,D.name3(),DN)
+    print "H3_RO   (%i): %s - %s" % (Ri,R.name3(),RO)
+
+    bbHBdist = ( DN - RO ).norm
 
     return bbHBdist
 
@@ -130,9 +133,8 @@ def main(args):
         print abinfo
 
         q = antibody_kink_geometry(pose,abinfo)
-        HBdist = antibody_kink_Hbond(pose,abinfo)
-        bbHBdist = antibody_kink_Hbond(pose,abinfo)
-        #HBbb = antibody_kink_bb_HBs(pose,abinfo)
+        HBdist   = antibody_kink_Hbond(pose,abinfo)
+        bbHBdist = antibody_kink_bb_Hbond(pose,abinfo)
 
         print "%s:\tq = %.3f, qbase = %.3f degrees, HBond_dist = %.3f Angstrom, bb_Hbond_dist = %.3f Angstrom" \
             % (filename,q[0],q[1],HBdist,bbHBdist)

@@ -14,6 +14,16 @@ def kink_end(abinfo):
     H3_end = abinfo.get_CDR_loop(h3).stop()
     return H3_end + 1
 
+def kink_anion(pose,abinfo):
+    resi = abinfo.get_CDR_loop(h3).stop() - 1
+    res = pose.residue(resi)
+    atoms = []
+    print "H3_N-1 (%i): %s" % (resi,res.name3())
+    if res.name1() == "D":
+        atoms.append(res.xyz("OD1"))
+        atoms.append(res.xyz("OD2"))
+    return atoms
+
 def kink_cation(pose,abinfo):
     resi = abinfo.get_CDR_loop(h3).start() - 1
     res = pose.residue(resi)
@@ -24,16 +34,6 @@ def kink_cation(pose,abinfo):
         atoms.append(res.xyz("NH2"))
     if res.name1() == "K":
         atoms.append(res.xyz("NZ"))
-    return atoms
-
-def kink_anion(pose,abinfo):
-    resi = abinfo.get_CDR_loop(h3).stop() - 1
-    res = pose.residue(resi)
-    atoms = []
-    print "H3_N-1 (%i): %s" % (resi,res.name3())
-    if res.name1() == "D":
-        atoms.append(res.xyz("OD1"))
-        atoms.append(res.xyz("OD2"))
     return atoms
 
 
@@ -62,6 +62,21 @@ def antibody_kink_Hbond(pose,abinfo):
     if HBdist == 100.0: HBdist = 0
 
     return HBdist
+
+
+def antibody_kink_bb_Hbond(pose,abinfo):
+
+    Di= abinfo.get_CDR_loop(h3).stop() - 1
+    D  = pose.residue(Di)
+    DN =D.xyz("N")
+
+    Ri = abinfo.get_CDR_loop(h3).start() - 1
+    R  = pose.residue(resi)
+    RO = R.xyz("O")
+
+    bbHbdist = ( DN - RO ).norm
+
+    return bbHBdist
 
 
 def antibody_kink_geometry(pose, abinfo, debug=False):
@@ -116,10 +131,12 @@ def main(args):
 
         q = antibody_kink_geometry(pose,abinfo)
         HBdist = antibody_kink_Hbond(pose,abinfo)
+        bbHBdist = antibody_kink_Hbond(pose,abinfo)
         #HBbb = antibody_kink_bb_HBs(pose,abinfo)
 
-        print "%s:\tq = %f, qbase = %f degrees, HBond_dist = %f Angstrom" % (filename,q[0],q[1],HBdist)
-        outf.write( "%s\t%10.3f\t%10.3f\t%10.3f\n" % (filename,q[0],q[1],HBdist) )
+        print "%s:\tq = %.3f, qbase = %.3f degrees, HBond_dist = %.3f Angstrom, bb_Hbond_dist = %.3f Angstrom" \
+            % (filename,q[0],q[1],HBdist,bbHBdist)
+        outf.write( "%s\t%10.3f\t%10.3f\t%10.3f\t%10.3f\n" % (filename,q[0],q[1],HBdist,bbHBdist) )
 
 
 if __name__ == "__main__": main(sys.argv)

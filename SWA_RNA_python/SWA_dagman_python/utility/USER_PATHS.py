@@ -1,4 +1,7 @@
 #!/usr/bin/python
 
-USER_ROSETTA_BIN_FOLDER="~/ROSETTA/rosetta_UPDATE_V3/rosetta_source/bin/"    
-USER_ROSETTA_DATABASE_FOLDER="~/ROSETTA/rosetta_UPDATE_V3/rosetta_database/" 
+import os
+
+rosetta_folder = os.environ["ROSETTA"]
+USER_ROSETTA_BIN_FOLDER=rosetta_folder+"/main/source/bin/"
+USER_ROSETTA_DATABASE_FOLDER=rosetta_folder+"/main/database/"

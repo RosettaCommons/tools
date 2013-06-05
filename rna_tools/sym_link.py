@@ -1,4 +1,4 @@
-import os
+import os, errno
 from os import chdir,getcwd
 from os.path import basename,dirname
 import glob
@@ -27,6 +27,13 @@ for dirpath, dirnames, filenames in os.walk('./'):
         filename = os.path.join(dirpath, f)
         if filename[-3:] == '.py':
             #print filename
-            os.symlink('../' + filename, './bin/' + f)
+            file1 = '../' + filename
+            file2 = './bin/' + f
+            try:
+                os.symlink(file1, file2)
+            except OSError, e:
+                if e.errno == errno.EEXIST:
+                    os.remove(file2)
+                    os.symlink(file1, file2)
 
 chdir( CWD )

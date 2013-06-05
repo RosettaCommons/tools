@@ -118,7 +118,7 @@ def main(args):
         return
 
     outf = file('kink_geom.dat', 'w')
-    outf.write("file       \t%10s\t%10s\t%10s\n" % ("q","qbase","HBdist") )
+    outf.write("file       \t%10s\t%10s\t%10s\t%10s\n" % ("q","qbase","HBdist","bbHBdist") )
     for filename in args[1:]:
         print filename
 

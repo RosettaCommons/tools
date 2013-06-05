@@ -87,19 +87,24 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
+    parser.add_option('--exclude-homologs',
+        default=False, type="bool",
+        help="Exclude homologs with default cutoffs",
+    )
+
     parser.add_option('--homolog_exclusion',
       default=200, type="int",
-      help="Specify the cut-off for homolog exclusion during template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR or FR template selections.",
     )
 
     parser.add_option('--homolog_exclusion_cdr',
       default=200, type="int",
-      help="Specify the cut-off for homolog exclusion during ***CDR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR template selections.",
     )
 
     parser.add_option('--homolog_exclusion_fr',
       default=200, type="int",
-      help="Specify the cut-off for homolog exclusion during ***FR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during FR template selections.",
     )
 
     parser.add_option('--rosetta-bin',
@@ -158,18 +163,10 @@ def main(args):
                                  filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
-                                        help="Boolen option [0/1] that control filetering results with %s function." % f.func_name)
+                                        help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
-
-    global sid_cutoff
-    global sid_cutoff_cdr
-    global sid_cutoff_fr
-
-    sid_cutoff     = Options.homolog_exclusion
-    sid_cutoff_cdr = Options.homolog_exclusion_cdr
-    sid_cutoff_fr  = Options.homolog_exclusion_fr
 
     global frlh_info
     global frl_info
@@ -252,22 +249,33 @@ def main(args):
         if res: print commandline+'\n', 'ERROR: Unpacking antibody database files failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
 
-    if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
+    ##### Homolog exclusions settings #####
+    global sid_cutoff_cdr
+    global sid_cutoff_fr
+
+    if Options.exclude_homologs: # default exclusion settings if option is set
+        if Options.homolog_exclusion     == 200: Options.homolog_exclusion     = 80
+
+    # override default settings
+    sid_cutoff     = Options.homolog_exclusion
+    sid_cutoff_cdr = Options.homolog_exclusion_cdr
+    sid_cutoff_fr  = Options.homolog_exclusion_fr
+
+    if sid_cutoff_cdr > 100 and sid_cutoff_fr > 100 and sid_cutoff < 100:
+        sid_cutoff_cdr = sid_cutoff
+        sid_cutoff_fr = sid_cutoff
+    if sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
         print 'Using full antibody database (no homolog exclusion)'
     elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
         if sid_cutoff_cdr <= 100:
             print '\n!!! Homologs will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
         else:
             print '\n!!! Homologs will not be excluded during ***CDR*** template selection (default)    !!!'
-
         if sid_cutoff_fr <= 100:
             print '\n!!! Homologs will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
         else:
             print '\n!!! Homologs will not be excluded during ***FR*** template selection (default)    !!!'
-    elif sid_cutoff <= 100:
-        print     '\n!!! Homologs will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
-        sid_cutoff_cdr = sid_cutoff
-        sid_cutoff_fr = sid_cutoff
+    ### end Homolog exclusion settings
 
     if Options.quick:
         Options.relax = 0

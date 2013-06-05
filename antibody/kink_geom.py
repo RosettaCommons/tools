@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-from rosetta import *
-from rosetta.protocols.antibody import *
 import math
 import sys
+from rosetta import *
+from rosetta.protocols.antibody import *
 rosetta.init(extra_options='-in:ignore_unrecognized_res')
 
 def kink_begin(abinfo):

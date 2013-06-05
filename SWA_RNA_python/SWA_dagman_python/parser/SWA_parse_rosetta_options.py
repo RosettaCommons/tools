@@ -16,15 +16,15 @@ def get_general_rosetta_common_args_option(argv): #These are shared with FARFAR!
 	#option.add( basic::options::OptionKeys::out::file::output_virtual, "Output virtual atoms in output of PDB" ).def(false);
 	#option.add( basic::options::OptionKeys::in::file::silent_struct_type, "Type of SilentStruct object to use in silent-file input" ).def("protein");
 
-	common_args += ' -in:file:silent_struct_type binary_rna ' 
+	common_args += ' -in:file:silent_struct_type binary_rna '
 
 	if(is_release_mode()==False):	#Consistency check!
- 
+
 		common_args += ' -output_virtual true '
 		common_args += ' -silent_read_through_errors false '  #silent_read_through_errors used to be true for clusterer! #move this option to common_args on Sept 21, 2011
 		common_args += ' -output_extra_RMSDs true ' #For extra check.
 
-	force_field_file=parse_options( argv, "force_field_file", "rna/rna_hires_07232011_with_intra_base_phosphate.wts" ) 
+	force_field_file=parse_options( argv, "force_field_file", "rna/rna_hires_07232011_with_intra_base_phosphate.wts" )
 	force_syn_chi_res_list= parse_options( argv, "force_syn_chi_res_list", [ -1 ] ) #May 01, 2011
 	force_north_ribose_list=parse_options(argv, "force_north_ribose_list", [-1] ) #May 03, 2011
 	force_south_ribose_list=parse_options(argv, "force_south_ribose_list", [-1] ) #May 03, 2011
@@ -35,8 +35,10 @@ def get_general_rosetta_common_args_option(argv): #These are shared with FARFAR!
 
 
 	if(force_field_file==""): error_exit_with_message("User need to specify force_field_file!")
-		
+
 	common_args += ' -score:weights %s ' %(force_field_file) #April 9th, 2011
+
+	common_args += ' -analytic_etable_evaluation 0 ' # 2013 -- due to Rosetta refactoring. Need this for lk_nonpolar to work.
 
 	if(len(force_syn_chi_res_list)>0): common_args += ' -force_syn_chi_res_list %s ' %( list_to_string(force_syn_chi_res_list) )
 
@@ -46,14 +48,14 @@ def get_general_rosetta_common_args_option(argv): #These are shared with FARFAR!
 
 	if(len(protonated_H1_adenosine_list)>0): common_args += ' -protonated_H1_adenosine_list %s ' %( list_to_string(protonated_H1_adenosine_list) )
 
-	if(rna_torsion_potential_folder!=""): 
+	if(rna_torsion_potential_folder!=""):
 		if(use_new_src_code()):
 			common_args += ' -score:rna_torsion_potential %s ' %(rna_torsion_potential_folder)
 		else:
 			common_args += ' -score:rna_torsion_folder %s ' %(rna_torsion_potential_folder)
 
 	if(len(native_virtual_res) > 0):	common_args += ' -native_virtual_res %s ' %(list_to_string(native_virtual_res) )
-	
+
 	return common_args
 
 ################################################################################
@@ -73,9 +75,9 @@ def get_rosetta_common_args_option(argv):
 	virtual_res = parse_options( argv, "virtual_res", [ -1 ]  )
 	rmsd_res = parse_seq_num_list_option( argv, "rmsd_res" )
 	native_alignment_res = parse_seq_num_list_option( argv, "native_alignment_res" )
-	jump_point_pair_list = parse_options( argv, "jump_point_pair_list", [""] ) 
+	jump_point_pair_list = parse_options( argv, "jump_point_pair_list", [""] )
 	alignment_res_list = parse_options( argv, "alignment_res_list", [""]  )
-	fa_stack_base_base_only=parse_options( argv, "fa_stack_base_base_only", "true" ) 
+	fa_stack_base_base_only=parse_options( argv, "fa_stack_base_base_only", "true" )
 	allow_chain_boundary_jump_partner_right_at_fixed_BP= parse_options( argv, "allow_chain_boundary_jump_partner_right_at_fixed_BP", "false"  )  #Hacky...need this to get square RNA to work! Nov 6, 2010
 	allow_fixed_res_at_moving_res= parse_options( argv, "allow_fixed_res_at_moving_res", "false"  )  #Hacky...need this to get Hermann Duplex working!, Nov 15, 2010
 
@@ -85,7 +87,7 @@ def get_rosetta_common_args_option(argv):
 	VDW_rep_delete_matching_res = parse_options( argv, "VDW_rep_delete_matching_res", [""]  ) #delete residues in VDW_rep_pose that exist in the working_pose
 
 
-	if(FAST=="true"): common_args += ' -fast true' 
+	if(FAST=="true"): common_args += ' -fast true'
 
 	if (PARIN_FAVORITE_OUTPUT=="false"): error_exit_with_message('PARIN_FAVORITE_OUTPUT=="false"!')
 
@@ -99,11 +101,11 @@ def get_rosetta_common_args_option(argv):
 	if(len(terminal_res) > 0): common_args += ' -terminal_res %s ' %(list_to_string(terminal_res) )
 
 	if(len(virtual_res) > 0): common_args += ' -virtual_res %s ' %(list_to_string(virtual_res) )
-		
+
 	if(len( rmsd_res ) > 0): common_args += ' -rmsd_res %s ' %(list_to_string(rmsd_res) )
 
-	if(jump_point_pair_list!=[""]): 
-		
+	if(jump_point_pair_list!=[""]):
+
 		if(use_new_src_code()):
 			common_args += ' -jump_point_pairs %s ' %(list_to_string(jump_point_pair_list))
 		else:
@@ -112,7 +114,7 @@ def get_rosetta_common_args_option(argv):
 	if(alignment_res_list!=[""]): common_args += ' -alignment_res %s ' %(list_to_string(alignment_res_list))
 
 	if( len(native_alignment_res)>0 ):
-			common_args += ' -native_alignment_res %s ' %(list_to_string(native_alignment_res))	
+			common_args += ' -native_alignment_res %s ' %(list_to_string(native_alignment_res))
 
 	if(fa_stack_base_base_only=="false"): common_args += ' -score::fa_stack_base_base_only false '
 
@@ -123,16 +125,16 @@ def get_rosetta_common_args_option(argv):
 	########################################################################################
 	if(VDW_rep_screen_info!=[""]):
 		check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info)
-						
-		VDW_rep_screen_info_command= ' -VDW_rep_screen_info '	
+
+		VDW_rep_screen_info_command= ' -VDW_rep_screen_info '
 		for k in VDW_rep_screen_info: VDW_rep_screen_info_command += '%s ' % k
 		print VDW_rep_screen_info_command
-		common_args += VDW_rep_screen_info_command 
+		common_args += VDW_rep_screen_info_command
 
 		if(VDW_rep_alignment_RMSD_CUTOFF!="0.001"):
 			common_args += ' -VDW_rep_alignment_RMSD_CUTOFF %s ' %(VDW_rep_alignment_RMSD_CUTOFF)
 
-		if(VDW_rep_delete_matching_res!=[""]): 
+		if(VDW_rep_delete_matching_res!=[""]):
 			common_args += ' -VDW_rep_delete_matching_res %s ' %(list_to_string(VDW_rep_delete_matching_res) )
 	########################################################################################
 
@@ -161,7 +163,7 @@ def get_rosetta_samplerer_args_option(argv):
 
 	sampling_args=' '
 
-	if (native_rmsd_screen=="true"): 
+	if (native_rmsd_screen=="true"):
 		sampling_args += ' -sampler_native_rmsd_screen true '
 		sampling_args += ' -sampler_native_screen_rmsd_cutoff %s ' %(sampler_native_screen_rmsd_cutoff) #move this into if loop on April 9th, 2011
 
@@ -177,17 +179,17 @@ def get_rosetta_samplerer_args_option(argv):
 
 	if(sampler_include_torsion_value_in_tag=="false"): sampling_args += ' -sampler_include_torsion_value_in_tag false '
 
-	if(allow_base_pair_only_centroid_screen=="true"): sampling_args += ' -allow_base_pair_only_centroid_screen true ' 
+	if(allow_base_pair_only_centroid_screen=="true"): sampling_args += ' -allow_base_pair_only_centroid_screen true '
 
-	if(do_not_sample_multiple_virtual_sugar=="true"): sampling_args += ' -do_not_sample_multiple_virtual_sugar true ' 
+	if(do_not_sample_multiple_virtual_sugar=="true"): sampling_args += ' -do_not_sample_multiple_virtual_sugar true '
 
-	if(sample_ONLY_multiple_virtual_sugar=="true"): sampling_args += ' -sample_ONLY_multiple_virtual_sugar true ' 
+	if(sample_ONLY_multiple_virtual_sugar=="true"): sampling_args += ' -sample_ONLY_multiple_virtual_sugar true '
 
 	if(allow_bulge_at_chainbreak=="false"): sampling_args += ' -allow_bulge_at_chainbreak false '
 
-	if(include_syn_chi=="false"): sampling_args += ' -include_syn_chi false'	
+	if(include_syn_chi=="false"): sampling_args += ' -include_syn_chi false'
 
-	if(sampler_perform_o2star_pack=="false"): sampling_args +=  ' -sampler_perform_o2star_pack false'		
+	if(sampler_perform_o2star_pack=="false"): sampling_args +=  ' -sampler_perform_o2star_pack false'
 
 	return sampling_args
 
@@ -197,10 +199,10 @@ def get_rosetta_clusterer_args_option(argv):
 
 	suite_cluster_radius = parse_options( argv, "suite_cluster_radius", "1.0"  )
 	loop_cluster_radius = parse_options( argv, "loop_cluster_radius", "0.7"  )
-	clusterer_quick_alignment=parse_options( argv, "clusterer_quick_alignment", "false" ) 
-	clusterer_optimize_memory_usage=parse_options( argv, "clusterer_optimize_memory_usage", "false" ) 
-	clusterer_keep_pose_in_memory=parse_options( argv, "clusterer_keep_pose_in_memory", "true" ) 
-	clusterer_two_stage_clustering=parse_options( argv, "clusterer_two_stage_clustering", "false" ) #Change default to true on Oct 11, 2010 #change to false on April 9th, 2011 
+	clusterer_quick_alignment=parse_options( argv, "clusterer_quick_alignment", "false" )
+	clusterer_optimize_memory_usage=parse_options( argv, "clusterer_optimize_memory_usage", "false" )
+	clusterer_keep_pose_in_memory=parse_options( argv, "clusterer_keep_pose_in_memory", "true" )
+	clusterer_two_stage_clustering=parse_options( argv, "clusterer_two_stage_clustering", "false" ) #Change default to true on Oct 11, 2010 #change to false on April 9th, 2011
 
 
 	cluster_args=' '
@@ -219,6 +221,6 @@ def get_rosetta_clusterer_args_option(argv):
 
 	if(clusterer_two_stage_clustering=="true"):
 		cluster_args += ' -clusterer_two_stage_clustering true '
-	
+
 	return cluster_args
 

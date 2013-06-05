@@ -87,19 +87,19 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
-    parser.add_option('--homologue_exclusion',
+    parser.add_option('--homolog_exclusion',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during template selections.",
+      help="Specify the cut-off for homolog exclusion during template selections.",
     )
 
-    parser.add_option('--homologue_exclusion_cdr',
+    parser.add_option('--homolog_exclusion_cdr',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***CDR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during ***CDR*** template selections.",
     )
 
-    parser.add_option('--homologue_exclusion_fr',
+    parser.add_option('--homolog_exclusion_fr',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***FR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during ***FR*** template selections.",
     )
 
     parser.add_option('--rosetta-bin',
@@ -155,7 +155,7 @@ def main(args):
 
     # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homologue:True }
+                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
                                         help="Boolen option [0/1] that control filetering results with %s function." % f.func_name)
@@ -167,9 +167,9 @@ def main(args):
     global sid_cutoff_cdr
     global sid_cutoff_fr
 
-    sid_cutoff     = Options.homologue_exclusion
-    sid_cutoff_cdr = Options.homologue_exclusion_cdr
-    sid_cutoff_fr  = Options.homologue_exclusion_fr
+    sid_cutoff     = Options.homolog_exclusion
+    sid_cutoff_cdr = Options.homolog_exclusion_cdr
+    sid_cutoff_fr  = Options.homolog_exclusion_fr
 
     global frlh_info
     global frl_info
@@ -256,16 +256,16 @@ def main(args):
         print 'Using full antibody database (no homolog exclusion)'
     elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
         if sid_cutoff_cdr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
         else:
-            print '\n!!! Homologues will not be excluded during ***CDR*** template selection (default)    !!!'
+            print '\n!!! Homologs will not be excluded during ***CDR*** template selection (default)    !!!'
 
         if sid_cutoff_fr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
         else:
-            print '\n!!! Homologues will not be excluded during ***FR*** template selection (default)    !!!'
+            print '\n!!! Homologs will not be excluded during ***FR*** template selection (default)    !!!'
     elif sid_cutoff <= 100:
-        print     '\n!!! Homologues will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
+        print     '\n!!! Homologs will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
         sid_cutoff_cdr = sid_cutoff
         sid_cutoff_fr = sid_cutoff
 
@@ -1077,7 +1077,7 @@ def make_cter_constraint(CDRs, prefix):
     print 'Predicted base conformation is', base
 
 # Various filter function
-def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
+def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):
     if Options.verbose: print 'filtering by sequence identity...'
     #print results
 

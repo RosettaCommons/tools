@@ -79,7 +79,7 @@ def main(args):
 
     parser.add_option('--antibody-database',
       action="store", default=None,
-      help="Specify path of antibody database dir.",
+      help="Specify path of antibody database dir. Default: script_dir/antibody_database.",
     )
 
     parser.add_option('--rosetta-database',
@@ -118,17 +118,27 @@ def main(args):
     )
 
     parser.add_option("--idealize",
-      default=0, type="int",
-      help="Specify if idealize protocol should be running on final model [0/1]. (default: 0, which mean do not run idealize protocol)",
+      action="store_true", default=False, dest="idealize",
+      help="Use idealize protocol on final model.",
+    )
+
+    parser.add_option("--idealizeoff","--noidealize",
+      action="store_false", dest="idealize",
+      help="Do not use idealize protocol on final model. (default)",
     )
 
     parser.add_option("--relax",
-      default=1, type="int",
-      help="Specify if relax protocol should be running on final model [0/1]. (default: 1, which mean run relax protocol)",
+      action="store_true", default=True, dest="relax",
+      help="Use relax protocol on final model. (default)",
+    )
+
+    parser.add_option("--relaxoff","--norelax",
+      action="store_false", dest="relax",
+      help="Do not use relax protocol on final model.",
     )
 
     parser.add_option("--quick","-q",
-      default=0, type="int",
+      action="store_true", default=False,
       help="Specify fast run (structure will have clashes).  Prevents stem optimization and turns off relax, idealize.",
     )
 

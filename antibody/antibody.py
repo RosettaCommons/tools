@@ -58,8 +58,8 @@ def main(args):
     )
 
     parser.add_option('--prefix',
-      action="store", default='output/',
-      help="Prefix for output files. Should be dir name. Default is ./ string.",
+      action="store", default='grafting/',
+      help="Prefix for output files (directory name). Default is grafting/.",
     )
 
     parser.add_option('--blast',
@@ -87,7 +87,7 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
-    parser.add_option('--exclude-homologs',
+    parser.add_option('--exclude-homologs','-x',
         action="store_true", default=False,
         help="Exclude homologs with default cutoffs",
     )
@@ -242,7 +242,7 @@ def main(args):
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
 
-    print 'Prefix:', Options.prefix
+    print 'Output prefix:', Options.prefix
     print 'Blast database:', Options.blast_database
     print 'Antibody database:', Options.antibody_database
     print 'rosetta_bin:', Options.rosetta_bin, ' [platform: %s]' % Options.rosetta_platform

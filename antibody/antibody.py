@@ -88,7 +88,7 @@ def main(args):
     )
 
     parser.add_option('--exclude-homologs',
-        default=False, type="bool",
+        action="store_true", default=False,
         help="Exclude homologs with default cutoffs",
     )
 

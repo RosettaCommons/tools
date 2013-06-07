@@ -81,6 +81,22 @@ def antibody_kink_bb_Hbond(pose,abinfo):
 
     return bbHBdist
 
+def antibody_kink_trp_Hbond(pose,abinfo):
+
+    Wi = abinfo.get_CDR_loop(h3).stop() + 1
+    W  = pose.residue(Wi)
+    if W.name3() != "TRP":
+        return 0.0
+    W_NE1 = W.xyz("NE1")
+
+    kb1 = kink_begin(abinfo)
+    kb  = pose.residue(kb1)
+    kb_O = kb.xyz("O")
+
+    WHBdist = ( W_NE1 - kb_O ).norm
+
+    return WHBdist
+
 
 def antibody_kink_geometry(pose, abinfo, debug=False):
 
@@ -135,10 +151,11 @@ def main(args):
         q = antibody_kink_geometry(pose,abinfo)
         HBdist   = antibody_kink_Hbond(pose,abinfo)
         bbHBdist = antibody_kink_bb_Hbond(pose,abinfo)
+        trpHBdist = antibody_kink_trp_Hbond(pose,abinfo)
 
-        print "%s:\tq = %.3f, qbase = %.3f degrees, HBond_dist = %.3f Angstrom, bb_Hbond_dist = %.3f Angstrom" \
-            % (filename,q[0],q[1],HBdist,bbHBdist)
-        outf.write( "%s\t%10.3f\t%10.3f\t%10.3f\t%10.3f\n" % (filename,q[0],q[1],HBdist,bbHBdist) )
+        print "%s:\tq = %.3f, qbase = %.3f degrees, HBond_dist = %.3f Angstrom, bb_Hbond_dist = %.3f Angstrom, trp_HBond_dist = %.3f Angstrom" \
+            % (filename,q[0],q[1],HBdist,bbHBdist,trpHBdist)
+        outf.write( "%s\t%10.3f\t%10.3f\t%10.3f\t%10.3f\t%10.3f\n" % (filename,q[0],q[1],HBdist,bbHBdist,trpHBdist) )
 
 
 if __name__ == "__main__": main(sys.argv)

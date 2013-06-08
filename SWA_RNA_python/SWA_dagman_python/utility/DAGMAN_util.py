@@ -22,7 +22,7 @@ import copy
 #############################################################################################################
 def create_generic_README_SUB(num_slave_nodes):
 
-	if(isinstance( num_slave_nodes, int )==False): 
+	if(isinstance( num_slave_nodes, int )==False):
 		print "PROBLEM num_slave_nodes=", num_slave_nodes
 		error_exit_with_message("num_slave_nodes object is not an int!")
 
@@ -46,7 +46,7 @@ def create_generic_README_SUB(num_slave_nodes):
 
 	README_SUB.write( 'command_act=' + "\"" + command_1 + "\" + " + '(\" -J %s \" %(master_tag))' " + \"" + command_2 + "\"" + '\n')
 
-	#README_SUB.write('print "command_act=", command_act') 
+	#README_SUB.write('print "command_act=", command_act')
 	README_SUB.write( 'system(command_act)\n' )
 	README_SUB.close()
 
@@ -73,11 +73,11 @@ def parse_chemical_shift_args( chemical_shift_args_file ):
 #############################################################################################################
 def setup_chemical_shift_args( argv ):
 
-	chemical_shift_H5_prime_mode = parse_options( argv, "chemical_shift_H5_prime_mode", "LEAST_SQUARE_IGNORE_DUPLICATE" ) #Before Nov 19, 2011. Default is LEAST_SQUARE 
+	chemical_shift_H5_prime_mode = parse_options( argv, "chemical_shift_H5_prime_mode", "LEAST_SQUARE_IGNORE_DUPLICATE" ) #Before Nov 19, 2011. Default is LEAST_SQUARE
 
 	chemical_shift_args_file=get_chemical_shift_args_file()
 
-	if(exists(chemical_shift_args_file)): 
+	if(exists(chemical_shift_args_file)):
 		print "Warning chemical_shift_args_file (%s) already exist......removing!" %(chemical_shift_args_file)
 		submit_subprocess("rm %s" %(chemical_shift_args_file) )
 		#error_exit_with_message("chemical_shift_args_file (%s) already exist!" %(chemical_shift_args_file))
@@ -113,26 +113,35 @@ def get_DAG_log_foldername(dag_job_filename):
 
 def make_dag_job_submit_file( dag_job_filename, EXE, arguments, mapper_infiles, mapper_outfiles, reducer_infiles, reducer_outfiles):
 
-	if(dag_job_filename[-7:]!='.condor'): error_exit_with_message("dag_job_filename (%s) need to have a '.condor' extension!" %(dag_job_filename) ) 
+	if(dag_job_filename[-7:]!='.condor'): error_exit_with_message("dag_job_filename (%s) need to have a '.condor' extension!" %(dag_job_filename) )
 
 	if exists( dag_job_filename ):
-		print 'rm %s' %(dag_job_filename) 
-		system( 'rm %s' %(dag_job_filename) ) #remove a old version of the condor_submit_file if it happens to exist		
+		print 'rm %s' %(dag_job_filename)
+		system( 'rm %s' %(dag_job_filename) ) #remove a old version of the condor_submit_file if it happens to exist
 
-	log_foldername = get_DAG_log_foldername(dag_job_filename)	
+	log_foldername = get_DAG_log_foldername(dag_job_filename)
 
 	if not exists( log_foldername ): system( 'mkdir -p ' + log_foldername )
-
 
 	fid = open( dag_job_filename, 'w' )
 
 	fid.write('executable = %s\n' % EXE )
 	fid.write('arguments = %s\n' % arguments)
-	fid.write('mapper_infiles = %s\n' % mapper_infiles) #currently used only in SWA2
-	fid.write('mapper_outfiles = %s\n' % mapper_outfiles) 
-	fid.write('reducer_infiles = %s\n' % reducer_infiles) #currently used only in SWA2
-	fid.write('reducer_outfiles = %s\n' % reducer_outfiles) 
-	fid.write('log_foldername = %s\n' % log_foldername)
+
+	# New: needed for 'regular' condor DAGMAN submission
+	job_info = get_job_info( log_foldername, '$(Process)' )
+	fid.write('output = %s\n' % job_info[ 'out_log_filename'] )
+	fid.write('error = %s\n' % job_info[ 'err_log_filename' ] )
+	fid.write('log = %s\n' % 'condor.log' )
+	fid.write('Notification = error\n' )
+
+	# Note from rhiju -- adding hashtag at beginning permits these files to be used by condor DAGman (condor_submit_dag)
+	fid.write('#mapper_infiles = %s\n' % mapper_infiles) #currently used only in SWA2
+	fid.write('#mapper_outfiles = %s\n' % mapper_outfiles)
+	fid.write('#reducer_infiles = %s\n' % reducer_infiles) #currently used only in SWA2
+	fid.write('#reducer_outfiles = %s\n' % reducer_outfiles)
+	fid.write('#log_foldername = %s\n' % log_foldername)
+
 	fid.write('Queue %d\n' % 1 )
 	fid.close()
 
@@ -150,7 +159,7 @@ def update_CONDOR_file_with_actual_job_queue_num(condor_submit_file, N_JOBS): #U
 
 	submit_subprocess("rm %s" %(condor_submit_file) )
 
-	fid = open( condor_submit_file, 'w' ) 
+	fid = open( condor_submit_file, 'w' )
 
 	num_queue_line=0
 
@@ -179,18 +188,18 @@ def update_CONDOR_file_with_actual_job_queue_num(condor_submit_file, N_JOBS): #U
 ##############################################################################################################################
 def make_common_args_file( specific_common_args, input_filename ):
 
-	foldername='COMMON_ARGS/'	
+	foldername='COMMON_ARGS/'
 	filename= foldername + input_filename
 
 	if (exists( foldername )==False):
-		system( 'mkdir -p ' + foldername ) 
+		system( 'mkdir -p ' + foldername )
 
 	if (exists( filename )):
 		system( 'rm ' + filename ) #Actually not necessary
-		
+
 	fid = open( filename, 'w' )
 	fid.write( specific_common_args )
-	fid.close()				
+	fid.close()
 
 
 ################################################################################################################################################
@@ -210,7 +219,7 @@ def setup_final_rebuild_bulge_dag_job_file(fid_dag, input_silent_file, rebuild_b
 	if(exists(common_args_file)==False): error_exit_with_message("common_args_file (%s) doesn't exist!" %(common_args_file) )
 
 
-	condor_submit_file=get_condor_submit_file(rebuild_bulge_job_tag, "REBUILD_BULGE") 
+	condor_submit_file=get_condor_submit_file(rebuild_bulge_job_tag, "REBUILD_BULGE")
 
 	log_foldername = get_DAG_log_foldername(condor_submit_file)
 
@@ -243,13 +252,13 @@ def setup_final_rebuild_bulge_dag_job_file(fid_dag, input_silent_file, rebuild_b
 	reducer_outfile="%s/rebuild_bulge_%s" %(outfolder, basename(input_silent_file))
 
 	######OK DAG is done! Important, cannot submit DAG that already done, since DAG_continuous.py will raise error if reducer_done_signal_filename already exist!####
-	if( exists(reducer_job_info['done_signal_filename']) ): 
+	if( exists(reducer_job_info['done_signal_filename']) ):
 		if(exists(reducer_outfile)==False): error_exit_with_message("reducer_outfile (%s) doesn't exist!" %(reducer_outfile) )
 		return False
 
 	#####OK if reducer_outfile exist then assume that job is done#####Note that this behavior differ from job-types to job-types####
 	#####See create_sampled_virt_ribose_silent_file() for the oppositve behavior####################################################
-	if( exists(reducer_outfile) ): 
+	if( exists(reducer_outfile) ):
 		print "reducer_outfile (%s) already exist! Will not submit job (%s) " %(reducer_outfile, rebuild_bulge_job_tag)
 		return False
 
@@ -268,7 +277,7 @@ def setup_final_rebuild_bulge_dag_job_file(fid_dag, input_silent_file, rebuild_b
 	fid_dag.write('SCRIPT POST %s %s \n' % (rebuild_bulge_job_tag, reducer_command ) )
 
 	queue_tag = 'S_$(Process)'  ###umm this specific form is assumed in SWA_sampling_pre_process.py
-	
+
 	##################MAPPER#######################
 
 	mapper_outfolder="%s/%s/" %(outfolder, queue_tag)
@@ -282,7 +291,7 @@ def setup_final_rebuild_bulge_dag_job_file(fid_dag, input_silent_file, rebuild_b
 	if(BMRB_chemical_shift_file!=""):
 		mapper_arguments+=" -BMRB_chemical_shift_file %s " %(BMRB_chemical_shift_file)
 
-		mapper_arguments+=" -chemical_shift_args_file %s " %( get_chemical_shift_args_file() ) 
+		mapper_arguments+=" -chemical_shift_args_file %s " %( get_chemical_shift_args_file() )
 
 	#########Should always include the mapper_outfile before the mapper_outfolder???#####################
 	make_dag_job_submit_file( condor_submit_file, DAG_REBUILD_BULGE_MAPPER, mapper_arguments, '', "%s FOLDER:%s " %(mapper_outfile, mapper_outfolder) , '', reducer_outfile)

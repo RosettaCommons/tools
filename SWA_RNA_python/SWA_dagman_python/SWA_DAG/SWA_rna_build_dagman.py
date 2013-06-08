@@ -26,7 +26,7 @@ print "print len(argv)=", len(argv)
 # Define sequence
 fasta_file = parse_options( argv, "fasta", "" )
 
-if(fasta_file==""): error_exit_with_message("fasta_file==\"\"") 
+if(fasta_file==""): error_exit_with_message("fasta_file==\"\"")
 
 assert( exists( fasta_file ) )
 sequence = open( fasta_file  ).readlines()[1][:-1]
@@ -34,21 +34,21 @@ sequence = open( fasta_file  ).readlines()[1][:-1]
 native_pdb = parse_options( argv, "native", "" )
 input_pdbs = parse_options( argv, "s", [""] ) #These are the already build residues...such as WC basepair...
 input_silent_file_list = parse_options( argv, "input_silent_file", [""] ) #Substitute a input_pdb with a silent_file..for now assume that it is the first input_pdb
-input_res_full = parse_seq_num_list_option( argv, "input_res", sort_list=False ) 
+input_res_full = parse_seq_num_list_option( argv, "input_res", sort_list=False )
 clusterer_num_pose_kept = parse_options( argv, "clusterer_num_pose_kept", 1000 )
 cutpoints_open = parse_options( argv, "cutpoint_open", [ -1 ] )
 input_pathway = parse_options( argv, "input_pathway", "" )
 pathway_file = parse_options( argv, "pathway_file", "" )
 pathway_bulge_res = parse_options( argv, "pathway_bulge_res", [ -1 ] )
-allow_normal_move_at_pathway_bulge_res = parse_options( argv, "allow_normal_move_at_pathway_bulge_res", "False"  ) 
-allow_bulge_move_at_non_pathway_bulge_res = parse_options( argv, "allow_bulge_move_at_non_pathway_bulge_res", "False"  ) 
+allow_normal_move_at_pathway_bulge_res = parse_options( argv, "allow_normal_move_at_pathway_bulge_res", "False"  )
+allow_bulge_move_at_non_pathway_bulge_res = parse_options( argv, "allow_bulge_move_at_non_pathway_bulge_res", "False"  )
 build_from_helix_to_helix_mode = parse_options( argv, "build_from_helix_to_helix_mode", "True"  ) #Change default to True on Oct 10, 2010
 allow_bulge = parse_options( argv, "allow_bulge", "True" ) #Python boolean #change to True on April 9th, 2011
 starting_elements = parse_options( argv, "starting_elements", [ -1 ]  )
 allow_build_from_scratch = parse_options( argv, "allow_build_from_scratch", "False"  )
 allow_bulge_right_next_to_input_helix = parse_options( argv, "allow_bulge_right_next_to_input_helix", "True"  ) #Change to true on Nov 12, 2011
 dinucleotide_at_single_element_cc= parse_options( argv, "dinucleotide_at_single_element_cc", "all" )
-floating_base=parse_options( argv, "floating_base", "True" ) #change to true on April 9th 2011 
+floating_base=parse_options( argv, "floating_base", "True" ) #change to true on April 9th 2011
 optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False")
 OLLM_chain_closure_only=  parse_options (argv, "OLLM_chain_closure_only", "False") # a simplify + FAST version of optimize_long_loop_mode
 pure_append_prepend_only=  parse_options (argv, "pure_append_prepend_only", "False")
@@ -68,13 +68,13 @@ sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DA
 final_rebuild_bulge_step_only= parse_options(argv, "final_rebuild_bulge_step_only", "False") #New option Oct 22, 2011.
 BMRB_chemical_shift_file= parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
 
-allow_combine_DS_regions=parse_options(argv, "allow_combine_DS_regions", "False") 
+allow_combine_DS_regions=parse_options(argv, "allow_combine_DS_regions", "False")
 
-if(len(duplex_frame_BP)!=0 and len(duplex_frame_BP)!=2): 
+if(len(duplex_frame_BP)!=0 and len(duplex_frame_BP)!=2):
 	error_exit_with_message("len(duplex_frame_BP)!=0 and len(duplex_frame_BP)!=2, duplex_frame_BP=%s " %(list_to_string(duplex_frame_BP)) )
 
 if(len(pathway_bulge_res)!=0 and allow_bulge==False ): error_exit_with_message("len(pathway_bulge_res)!=0 but allow_bulge==False")
-	
+
 
 enforce_path_base_pair_list=[]
 for base_pair_string in enforce_path_base_pairs:
@@ -84,7 +84,7 @@ for base_pair_string in enforce_path_base_pairs:
 		base_pair[n]=int(base_pair[n])
 	if(len(base_pair)!=2): error_exit_with_message("len(base_pair (%s) )!=2" %(base_pair_string) )
 	if((base_pair[0]<base_pair[1])==False): error_exit_with_message("(base_pair[0]<base_pair[1])==False, base_pair_string=%s" %(base_pair_string) )
-			
+
 	#print "base_pair= ", base_pair
 	enforce_path_base_pair_list.append(base_pair)
 print "enforce_path_base_pair_list= ", enforce_path_base_pair_list
@@ -97,7 +97,7 @@ chemical_shift_run=True #Jan 23, 2012 Temporary/HACKY!
 
 if(chemical_shift_run==False):
 
-	full_length_clusterer_num_pose_kept=clusterer_num_pose_kept 
+	full_length_clusterer_num_pose_kept=clusterer_num_pose_kept
 
 	full_length_post_process_filtered_nstruct=25*full_length_clusterer_num_pose_kept  #Keep enough for clustering
 
@@ -107,7 +107,7 @@ else: #Chemical shift run require keeping higher energies full-length structures
 
 	#Since full length regions, not much computational cost to keep more structures.
 	#Feb 13, 2012: Cap at 10000 due to memory issue.
-	full_length_clusterer_num_pose_kept=min(10000, 10*clusterer_num_pose_kept) 
+	full_length_clusterer_num_pose_kept=min(10000, 10*clusterer_num_pose_kept)
 
 	full_length_post_process_filtered_nstruct=int(7.5*full_length_clusterer_num_pose_kept)
 	#Could be 25*full_length_clusterer_num_pose_kept, but the problem is not there is not much structure from the sampler, which only keep a maximum of 108 from each job
@@ -116,7 +116,7 @@ else: #Chemical shift run require keeping higher energies full-length structures
 	final_clusterer_num_pose_kept=full_length_clusterer_num_pose_kept #Want to keep more but 10,000 structures is probably already a sizable fraction of the total memory!
 
 print "------------------------------------------------------------------------------------"
-print "clusterer_num_pose_kept=%d | full_length_clusterer_num_pose_kept=%d | final_clusterer_num_pose_kept=%d" %(clusterer_num_pose_kept, full_length_clusterer_num_pose_kept, final_clusterer_num_pose_kept) 
+print "clusterer_num_pose_kept=%d | full_length_clusterer_num_pose_kept=%d | final_clusterer_num_pose_kept=%d" %(clusterer_num_pose_kept, full_length_clusterer_num_pose_kept, final_clusterer_num_pose_kept)
 print "post_process_filtered_nstruct=%d | full_length_post_process_filtered_nstruct=%d " %(post_process_filtered_nstruct, full_length_post_process_filtered_nstruct)
 print "------------------------------------------------------------------------------------"
 ##################################################################
@@ -136,13 +136,13 @@ if(exists("CONDOR/")): #This ensures that everything inside this folder is from 
 	print "CONDOR/ folder already exist ...removing!"
 	submit_subprocess("rm -r CONDOR/")
 
-system( "mkdir CONDOR/" )  
+system( "mkdir CONDOR/" )
 
 if(exists("COMMON_ARGS/")): #This ensures that everything inside this folder is from the latest call to SWA_rna_build_dagman.py
 	print "COMMON_ARGS/ folder already exist ...removing!"
 	submit_subprocess("rm -r COMMON_ARGS/")
 
-system( "mkdir COMMON_ARGS/" )  
+system( "mkdir COMMON_ARGS/" )
 
 if(exists(final_common_args_file())): error_exit_with_message("final_common_args_file (%s) already exist!" %(final_common_args_file()))
 
@@ -179,7 +179,7 @@ if(len( cutpoints_open ) > 0): common_args += ' -cutpoint_open %s ' %(list_to_st
 sampling_args = ' -algorithm rna_sample  -database %s  %s ' %(DB, sampling_args)
 
 
-if( native_pdb!="" ): 
+if( native_pdb!="" ):
 	if(exists( native_pdb )==False): error_exit_with_message("exists( native_pdb (%s) )==False" %(native_pdb))
 	sampling_args += '-native %s ' %(native_pdb)
 
@@ -192,7 +192,7 @@ filterer_args = ' -algorithm filter_combine_long_loop -database %s -clusterer_nu
 #pdb info/pose_info is a map#
 #member variables
 #pdb_info["tag"]   lower_elements.pdb if pdb, S_0 if in silent_file
-#pdb_info["element"]=0 
+#pdb_info["element"]=0
 #pdb_info["residue_list"]=[1,2,3,4,5]
 
 user_input_pdb_info_list=get_user_input_pdb_info_list(input_pdbs, input_silent_file_list, input_res_full, sequence)
@@ -208,9 +208,9 @@ input_res_full=[]  #Will not uses this variable after this point, so EMPTY THEM
 coloring = []  #maps seq_num to user_input_pdb ID
 for i in range( len( sequence ) ): # sequence contain every residues, the pre-builts and the one that will be build. 	 # Be careful range(10) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 	color = -1
-	for j in range( len( user_input_pdb_info_list ) ): 
+	for j in range( len( user_input_pdb_info_list ) ):
 		input_pdb_info=user_input_pdb_info_list[j]
-		if (i+1) in input_pdb_info["residue_list"]: color = j 			
+		if (i+1) in input_pdb_info["residue_list"]: color = j
 	coloring.append( color )
 
 
@@ -226,7 +226,7 @@ colors_so_far = []
 num_elements = -1  #Start with -1 since want first member of assign_element to be zero.
 color_to_element = {}  #rename to user_input_pdb_ID_to_element
 element_to_color = {}  #rename to element_to_user_input_pdb_ID
-element_definition = {} #map from assign_element to corresponding seq_list 
+element_definition = {} #map from assign_element to corresponding seq_list
 assigned_element = []  #map from Seq_num to assigned_element
 for i in range( len(sequence ) ): #goes from 0 len(sequence) -1
 
@@ -244,7 +244,7 @@ for i in range( len(sequence ) ): #goes from 0 len(sequence) -1
 
     if assign_element not in element_definition:
         element_definition[ assign_element ] = []
-    element_definition[ assign_element ].append( i+1  ) 
+    element_definition[ assign_element ].append( i+1  )
 
     assigned_element.append( assign_element )
 
@@ -279,7 +279,7 @@ all_job_tags = [] #input_pdb_tags or clusterer_job_tags
 jobs_done = []  	 #input_pdb_tags or (clusterer_job_tags that were generated in a prior BIOX run).
 
 last_jobs = []     #The clusterer_job_tags associated with full length pose
-last_outfiles = [] #The clusterer_outfiles associate with full length pose 
+last_outfiles = [] #The clusterer_outfiles associate with full length pose
 
 
 # Tags, etc. are now indexed by "element", 0, 1, 2, 3, etc...
@@ -298,16 +298,16 @@ if(allow_build_from_scratch):
 		input_file_tag = get_job_tag(k, k)
 		all_job_tags.append(input_file_tag )
 		jobs_done.append( input_file_tag )
-		build_from_scratch_tags.append( input_file_tag ) 
+		build_from_scratch_tags.append( input_file_tag )
 
 for pdb_info in user_input_pdb_info_list:
 
 	element=pdb_info["element"]
-	input_pdb_tag = get_job_tag(element, element) 
-  
+	input_pdb_tag = get_job_tag(element, element)
+
 	#if specify starting_elements, that use the only starting_elements as the starting point
 	if( (len(starting_elements) > 0) and (element not in starting_elements) ): continue
-	
+
 	all_job_tags.append( input_pdb_tag )
 	jobs_done.append( input_pdb_tag )
 
@@ -318,7 +318,7 @@ print "starting_regions: ", get_region_tags(user_input_pdb_info_list), " build_f
 combine_DS_regions=False
 
 if(allow_combine_DS_regions==True): #Feb 07, 2012
-	
+
 	#The two modes are not compatible!
 	if( (optimize_long_loop_mode) ): error_exit_with_message("BOTH optimize_long_loop_mode and allow_combine_DS_regions EQUALS True!")
 
@@ -328,7 +328,7 @@ if(allow_combine_DS_regions==True): #Feb 07, 2012
 	#Not yet tested if the two modes are compatible!
 	if( allow_build_from_scratch ):  error_exit_with_message("BOTH allow_build_from_scratch and allow_combine_DS_regions EQUALS True!")
 
-	combine_DS_regions= ( len(cutpoints_open)!=0 )  
+	combine_DS_regions= ( len(cutpoints_open)!=0 )
 
 	if(combine_DS_regions):
 
@@ -339,16 +339,16 @@ print "allow_combine_DS_regions=%s | combine_DS_regions=%s " %(allow_combine_DS_
 ############################################################################################################################################
 
 
-####################################################################################################################################		
+####################################################################################################################################
 specified_pathway=False
 
 num_elements_actual=num_elements
 
 if(pathway_file!=""):
 	if(len(pathway_bulge_res)!=0):error_exit_with_message("input_path!="" and pathway_file!="" ")
-	specified_pathway=True	
+	specified_pathway=True
 	(step_list, num_elements_actual)=import_step_list_from_file(pathway_file,num_elements)
-		
+
 	if(num_elements_actual!=num_elements and num_elements_actual!=num_elements-1):
 		print "WARNING!: num_elements_check(%d)!=num_elements(%d) or num_elements-1" %(num_elements_actual,num_elements)
 	else:
@@ -356,7 +356,7 @@ if(pathway_file!=""):
 
 if(combine_DS_regions):
 	num_elements_actual=num_elements #revert back num_elements_actual..since combine_DS_regions guarantee that every element is build.
-####################################################################################################################################		
+####################################################################################################################################
 #STILL NEED TO Parallelize "the first building res" job....
 
 ###############################################################
@@ -365,7 +365,7 @@ if(combine_DS_regions):
 fid_dag = open( "rna_build.dag", 'w' ) #Where the dag commands are ouputted.
 fid_dag.write("DOT dag.dot\n")
 
-total_samplerer_jobs = 0 
+total_samplerer_jobs = 0
 num_bulge_moves=0
 
 CREATED_COMMON_ARGS_FINAL=False #Feb 07, 2012: For consistency check!
@@ -383,7 +383,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 			first_seq_num=0
 			last_seq_num=len(assigned_element)-1
 			if(assigned_element[first_seq_num]!=assigned_element[last_seq_num]): continue
- 
+
 		##############
 		if(satisfy_duplex_frame_slip(i,j, num_elements, max_duplex_frame_slip, duplex_frame_BP)==False): continue
 
@@ -397,32 +397,32 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 				if( i==int(element_pairs[0]) and j==int(element_pairs[1]) ):
 					kill_this_path=True
-			
+
 			if(kill_this_path==True):
 				print "kill path at i=%d, j=%d " %(i,j)
-				continue	
+				continue
 		##############
 
-			 
+
 		if(pure_append_prepend_only):
 			if(i!=0 and j!=0): continue
-      
+
 		normal_move=True
 		bulge_move=allow_bulge
-		
+
 		if(specified_pathway==True):
 			good_pathway=False
 			normal_move=False
 			bulge_move=False
-		
+
 			for step in step_list:
-				if(step['i']==i and step['j']==j): 
+				if(step['i']==i and step['j']==j):
 					good_pathway=True
 					normal_move=step['normal_move']
 					bulge_move=step['bulge_move']
-					break    
-			if(good_pathway==False): continue        
-           
+					break
+			if(good_pathway==False): continue
+
 		prefix = 'region_%d_%d_' % (i,j)
 
 		clusterer_job_tag = get_job_tag(i,j)
@@ -430,12 +430,12 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 		###########################################
 		# OUTPUT DIRECTORY
-		outdir = get_job_tag(i,j)  
-        
+		outdir = get_job_tag(i,j)
+
 		###########################################
 
 		# DO THE JOBS
-		start_regions = []  # a list of seq_num pair 
+		start_regions = []  # a list of seq_num pair
 
 		check_attach_verbose=False
 
@@ -462,7 +462,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 		####Build bulge#############################
 		if (bulge_move ==True):
-			
+
 			i_prev = (i + 2) % num_elements #(i + 2) because will prepend + 1 bulge here
 			j_prev = j
 
@@ -470,17 +470,17 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
 														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
 														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
-					
-					
+
+
 			i_prev = i
 			j_prev = (j - 2) % num_elements #(j - 2) becaues will append + 1 bulge here
-	
+
 			if(Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
 														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
 														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
 														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
 
- 
+
 		############################################
 
 		samplerer_post_process_outfile_list = []
@@ -506,8 +506,8 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				if(optimize_long_loop_mode==False and mode_num==2): continue
 
 				combine_long_loop=False
-	
-				if(mode_num==2): 
+
+				if(mode_num==2):
 					combine_long_loop=True
 					if( get_job_tag(0,j_prev) not in all_job_tags):
 						print "combine_long_loop=True, early break starting_region: %s is not in all_job_tags " %(get_job_tag(0,j_prev))
@@ -516,11 +516,11 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					if( get_job_tag(i_prev,0) not in all_job_tags):
 						print "combine_long_loop=True, early break starting_region: %s is not in all_job_tags " %(get_job_tag(i_prev,0))
 						continue
-						
+
 				parent_job_tag=get_job_tag(i_prev,j_prev)
 
 				if(combine_long_loop):
-					start_region_string= '0_%d_AND_%d_0' %(j_prev,i_prev)			
+					start_region_string= '0_%d_AND_%d_0' %(j_prev,i_prev)
 				else:
 					start_region_string= '%d_%d' % (i_prev, j_prev)
 
@@ -537,7 +537,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					if(len(no_combine_file_EITHER_element_list)!=0):
 						Is_valid_element_pair=True
 						for element_1 in no_combine_file_EITHER_element_list:
-							for element_2 in range(num_elements):								
+							for element_2 in range(num_elements):
 								if( ('0_%d_AND_%d_0' %(element_1,element_2))==start_region_string): Is_valid_element_pair=False
 								if( ('0_%d_AND_%d_0' %(element_2,element_1))==start_region_string): Is_valid_element_pair=False
 						if(Is_valid_element_pair==False): continue
@@ -556,12 +556,12 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				# Start with "fixed", pre-constructed pose
 				######################################################
 				# Job input depends on whether we are starting from pdb, silent file, etc.
-			
-				job_specific_common_args = common_args 
+
+				job_specific_common_args = common_args
 				job_specific_sampling_args= sampling_args
 				job_specific_filterer_args= filterer_args
 
-				
+
 				if(sample_both_sugar_base_rotamer!=[""]):
 					for jj in range(len(sample_both_sugar_base_rotamer)):
 
@@ -580,17 +580,17 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				else:
 
 					pose_info_list=[get_modeled_pose_info(i, j ,i_prev, j_prev, num_elements, build_from_scratch_tags, user_input_pdb_info_list, element_definition)]
-					
-					if(optimize_long_loop_mode):		
+
+					if(optimize_long_loop_mode):
 
 						#Prevent building from BOTH side (will be taken care of by the combine_long_loop step).
 						if( (i_prev == 0 and j_prev == 0)==False ): #not the first building step.
-							if( i!=0 and i_prev==0): pose_info_list=[] 
+							if( i!=0 and i_prev==0): pose_info_list=[]
 							if( j!=0 and j_prev==0): pose_info_list=[]
 
 						#STRICTER CONDITION, ONLY pure append or pure prepend..
-						if(OLLM_chain_closure_only): 
-							if( i!= 0 and j != 0): pose_info_list=[] 
+						if(OLLM_chain_closure_only):
+							if( i!= 0 and j != 0): pose_info_list=[]
 
 
 				if(len(pose_info_list)==0 ): #this is mainly for the optimize_long_loop_mode...
@@ -602,7 +602,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				######################################################
 				if ( i == i_prev ):
 					moving_element = j
-				elif ( j == j_prev): 
+				elif ( j == j_prev):
 					moving_element = i
 				else:
 					error_exit_with_message("(i != i_prev) and  (j != j_prev)")
@@ -643,15 +643,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				else: #OK as a consistency check, check that the building step is a normal append or prepend (no bulge res)
 
 					Bulge_res=False
-					if( (( i_prev == i and j_prev == (j - 1) % num_elements ) or ( i_prev == (i + 1) % num_elements and j_prev == j ) ) == False): 
+					if( (( i_prev == i and j_prev == (j - 1) % num_elements ) or ( i_prev == (i + 1) % num_elements and j_prev == j ) ) == False):
 						error_exit_with_message("Invalid i(%d) , j(%d)" %(i,j) )
-				
+
 				job_specific_common_args += ' -sample_res %s ' %(list_to_string(sample_res_list) )
 
 				if(Bulge_res and floating_base): job_specific_common_args += ' -floating_base true '
 
 				#July 21, 2011 For special case of -floating_base true,  code had been optimized such that no speed gained parallelization from seperating the VIRT ribose
-				if( (Bulge_res and floating_base)==False): #For the other cases sampling the parallelization does speed up the code.  
+				if( (Bulge_res and floating_base)==False): #For the other cases sampling the parallelization does speed up the code.
 					if ( i == i_prev ):
 						sample_virtual_ribose_list.append("%d-%s" %( element_definition[ (j_prev) % num_elements ][-1], 'A' ) )
 					else:
@@ -674,16 +674,16 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 				filterer_mode=""
 
-				if(combine_long_loop):         	  
+				if(combine_long_loop):
 
 					Is_combine_long_loop_chain_closure_step=False
 					if( ( i% num_elements) == ( (j+1) % num_elements ) ): Is_combine_long_loop_chain_closure_step=True
-					
-					print "region i=%d j=%d, Is_combine_long_loop_chain_closure_step= %s" %(i,j,Is_combine_long_loop_chain_closure_step) 	
+
+					print "region i=%d j=%d, Is_combine_long_loop_chain_closure_step= %s" %(i,j,Is_combine_long_loop_chain_closure_step)
 
 					####CHANGE to filter for clash instead of contact at Closure closure step even if OLLM_chain_closure_only==False Nov 13, 2010
-					if(OLLM_chain_closure_only or Is_combine_long_loop_chain_closure_step): 
-						filterer_mode="combine_long_loop_clash"					
+					if(OLLM_chain_closure_only or Is_combine_long_loop_chain_closure_step):
+						filterer_mode="combine_long_loop_clash"
 					else:
 						filterer_mode="combine_long_loop_contact"
 
@@ -692,15 +692,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				job_specific_common_args=add_input_res_to_common_args(job_specific_common_args, pose_info_list)
 
 				#########################################################################################################################
-				if(job_specific_common_args_INSTANCE==""): 
+				if(job_specific_common_args_INSTANCE==""):
 					job_specific_common_args_INSTANCE=job_specific_common_args
 					make_common_args_file(job_specific_common_args_INSTANCE, 'common_args_' + basename(clusterer_outfile) )
 
 				if( (L == num_elements_actual) and (CREATED_COMMON_ARGS_FINAL==False ) ):
 
 						if( exists(final_common_args_file()) ): error_exit_with_message("final_common_args_file (%s) already exist!" %(final_common_args_file())) #Simple consistency check
-	
-						make_common_args_file(job_specific_common_args_INSTANCE, 'common_args_region_FINAL.out' )			
+
+						make_common_args_file(job_specific_common_args_INSTANCE, 'common_args_region_FINAL.out' )
 
 						CREATED_COMMON_ARGS_FINAL=True
 
@@ -711,12 +711,12 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					submit_DAG=False
 
 					if(clusterer_job_tag not in all_job_tags): all_job_tags.append(  clusterer_job_tag )
-					if(clusterer_job_tag not in jobs_done): jobs_done.append( clusterer_job_tag ) 
+					if(clusterer_job_tag not in jobs_done): jobs_done.append( clusterer_job_tag )
 
 					if ( L == num_elements ):  #The case where the element wrap into 1 exact cycle
 						if(clusterer_job_tag not in last_jobs): 		  last_jobs.append( clusterer_job_tag )
 						if(clusterer_outfile not in last_outfiles): last_outfiles.append( clusterer_outfile )
-		
+
 				job_tag = 'REGION_%d_%d_START_FROM_REGION_%s' % ( i, j, start_region_string)
 
 				output_foldername='%s/START_FROM_REGION_%s' %(outdir , start_region_string)
@@ -733,7 +733,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					samplerer_parent_job_tag_list=[]
 
 					################################################################################################################################################################
-					if( (sample_virt_ribose_in_sep_DAG) and (len(sample_virtual_ribose_list)>0 ) ): 
+					if( (sample_virt_ribose_in_sep_DAG) and (len(sample_virtual_ribose_list)>0 ) ):
 
 						num_silent_files=get_num_silent_files(pose_info_list)
 
@@ -754,13 +754,14 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					create_samplerer_dag_job_file(job_specific_common_args, job_specific_sampling_args, job_specific_filterer_args, \
 																			filterer_mode, pose_info_list, output_foldername, job_tag, prefix)
 
-					
-					if( L == num_elements_actual ): 
+
+					if( L == num_elements_actual ):
 						ACT_post_process_filtered_nstruct=full_length_post_process_filtered_nstruct
 					else:
-						ACT_post_process_filtered_nstruct=post_process_filtered_nstruct 
+						ACT_post_process_filtered_nstruct=post_process_filtered_nstruct
 
-					submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct) 
+					# PRE and POST scripts should be defined after JOB declaration in condor DAGman file!
+					#submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct)
 
 
 					if(combine_long_loop):
@@ -777,11 +778,13 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 						samplerer_parent_job_tag_list.append(parent_job_tag)
 
-					
+
 					update_dag_dependency( fid_dag, job_tag, pose_info_list, filterer_parent_job_tag_list, samplerer_parent_job_tag_list, all_job_tags, jobs_done)
 
+					submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct)
+
 					samplerer_tag_list.append(job_tag)
-					
+
 					if(Bulge_res==True): num_bulge_moves+=1
 
 				################################################################################################
@@ -793,27 +796,27 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 		if( len(samplerer_tag_list)>0 and exists(clusterer_outfile) ):
 			error_exit_with_message( "len(samplerer_tag_list)>0 but clusterer_outfile (%s) already exists!" %(clusterer_outfile) )
 
-		if( len(samplerer_post_process_outfile_list)>0 and exists(clusterer_outfile)==False ): 
+		if( len(samplerer_post_process_outfile_list)>0 and exists(clusterer_outfile)==False ):
 
 			modeled_elements = get_modeled_elements( i, j , num_elements)  #This is a list that runs from i to j in the modolus num_elements sense
 
 			print '\n Modeling elements: ', modeled_elements, '\n job_specific_common_args_INSTANCE: ', job_specific_common_args_INSTANCE
 
 			#consistency check
-			if(clusterer_outfile != prefix+'sample.cluster.out'): 
+			if(clusterer_outfile != prefix+'sample.cluster.out'):
 				error_exit_with_message("clusterer_outfile=%s=!=%s=prefix+'sample.cluster.out" %(clusterer_outfile,prefix+'sample.cluster.out') )
 
 			condor_submit_cluster_file = get_condor_submit_file(clusterer_job_tag+ "_cluster", "CLUSTERER")
 
-			
-			if( L == num_elements_actual ): 
+
+			if( L == num_elements_actual ):
 				ACT_clusterer_num_pose_kept=full_length_clusterer_num_pose_kept
 			else:
-				ACT_clusterer_num_pose_kept=clusterer_num_pose_kept 
+				ACT_clusterer_num_pose_kept=clusterer_num_pose_kept
 			#############################
-			
+
 			create_clusterer_dag_job_file( cluster_args, job_specific_common_args_INSTANCE, samplerer_post_process_outfile_list, \
-																	  clusterer_outfile, condor_submit_cluster_file, ACT_clusterer_num_pose_kept)  						
+																	  clusterer_outfile, condor_submit_cluster_file, ACT_clusterer_num_pose_kept)
 			#update clustere dag dependency
 			fid_dag.write('\nJOB %s %s\n' % (clusterer_job_tag ,condor_submit_cluster_file) )
 			fid_dag.write('PARENT %s CHILD %s\n' % (string.join( samplerer_tag_list ), clusterer_job_tag) )
@@ -827,10 +830,10 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 
 if(CREATED_COMMON_ARGS_FINAL==False): error_exit_with_message("CREATED_COMMON_ARGS_FINAL==False!")
-		
+
 #################################Clusterer of region_FINAL.out##########################################################
 
-if(len(last_jobs)!=0): 
+if(len(last_jobs)!=0):
 
 	final_outfile = standard_region_FINAL()
 	final_job_tag = standard_final_job_tag()
@@ -839,15 +842,15 @@ if(len(last_jobs)!=0):
 
 		if(final_rebuild_bulge_step_only==False):
 
-			if( len(all_job_tags)!=len(jobs_done) ): 
-				error_exit_with_message("len(all_job_tags)=(%s)!=(%s)=len(jobs_done) but final_outfile (%s) already exist!" %(len(all_job_tags),len(jobs_done), final_outfile)) 
+			if( len(all_job_tags)!=len(jobs_done) ):
+				error_exit_with_message("len(all_job_tags)=(%s)!=(%s)=len(jobs_done) but final_outfile (%s) already exist!" %(len(all_job_tags),len(jobs_done), final_outfile))
 
 			for clusterer_outfile in last_outfiles:
 				if(exists(clusterer_outfile)==False): error_exit_with_message("final_outfile (%s) exist but clusterer_outfile (%s) doesn't exist!" %(final_outfile, clusterer_outfile) )
 
 		print "WARNING: final_outfile (%s) already exists!" %(final_outfile)
 
-	else: 
+	else:
 
 		print '\nFINAL_COMMON_ARGS_LINE: ', get_FINAL_COMMON_ARGS_LINE()
 
@@ -863,7 +866,7 @@ if(len(last_jobs)!=0):
 
 			if( clusterer_job_tag not in all_job_tags): error_exit_with_message("clusterer_job_tag (%s) is not in all_job_tags" %(clusterer_job_tag) )
 			if( clusterer_job_tag not in jobs_done ): fid_dag.write('PARENT %s  CHILD %s\n' % (clusterer_job_tag, final_job_tag) )
-		 
+
 
 #####################################################################################################################
 print
@@ -871,10 +874,10 @@ print "Total number of samplerer_jobs to run = %d" %(total_samplerer_jobs)
 print "Total number of 'other' jobs to run = %d" %(len( all_job_tags )-len(jobs_done) ) #This is not accurate!
 print "Num bulge move = %d"  %(num_bulge_moves)
 
-print	
-print "jobs_already_done   = ", jobs_done	
-print	
-print	
+print
+print "jobs_already_done   = ", jobs_done
+print
+print
 print "all_job_tags        = ", all_job_tags
 print
 
@@ -892,12 +895,12 @@ if(combine_DS_regions):
 	DS_clusterer_outfile_list=[]
 
 
-	#if(len(user_input_pdb_info_list)!=2): error_exit_with_message("combine_DS_regions but len(user_input_pdb_info_list)!=2)" ) 
+	#if(len(user_input_pdb_info_list)!=2): error_exit_with_message("combine_DS_regions but len(user_input_pdb_info_list)!=2)" )
 
 
 	region_list=[]
 	create_input_silent_for_DS_combine_job_tags=[]
-	
+
 	combine_DS_folder="COMBINE_DS_REGIONS/"
 
 	submit_subprocess("mkdir -p %s" %(combine_DS_folder))
@@ -906,8 +909,8 @@ if(combine_DS_regions):
 
 		if(sample_virt_ribose_in_sep_DAG and clusterer_job_tags[0:20]=="VIRT_RIBOSE_SAMPLER_"): continue
 
-		if(clusterer_job_tags.split("_")[0]!="REGION"): 
-			error_exit_with_message('clusterer_job_tags.split("_")[0]!="REGION", job_tags.split("_")[0]=%s ' %(clusterer_job_tags.split("_")[0]) ) 
+		if(clusterer_job_tags.split("_")[0]!="REGION"):
+			error_exit_with_message('clusterer_job_tags.split("_")[0]!="REGION", job_tags.split("_")[0]=%s ' %(clusterer_job_tags.split("_")[0]) )
 
 		i=int(clusterer_job_tags.split("_")[1])
 		j=int(clusterer_job_tags.split("_")[2])
@@ -943,17 +946,17 @@ if(combine_DS_regions):
 
 			print "lower_region= ", lower_region, " upper_region= ", upper_region
 
-			if(upper_region[0]==upper_region[1]):	
+			if(upper_region[0]==upper_region[1]):
 				if(upper_region[0]==0): error_exit_with_message("upper_region[0]==0" )
 
 				#if(user_input_pdb_info_list[1]['element']!=upper_region[0]):
-				#	error_exit_with_message("user_input_pdb_info_list[1]['element']=(%s)!=(%s)=upper_region[0]" %(user_input_pdb_info_list[1]['element'], upper_region[0] ) ) 
+				#	error_exit_with_message("user_input_pdb_info_list[1]['element']=(%s)!=(%s)=upper_region[0]" %(user_input_pdb_info_list[1]['element'], upper_region[0] ) )
 
-			if(lower_region[0]==lower_region[1]):	
+			if(lower_region[0]==lower_region[1]):
 				if(lower_region[0]!=0): error_exit_with_message("lower_region[0]!=0, lower_region[0]=%s" %(lower_region[0]) )
 
 				if(user_input_pdb_info_list[0]['element']!=0):
-					error_exit_with_message("user_input_pdb_info_list[0]['element']=(%s)!=(%s)=0" %(user_input_pdb_info_list[0]['element'], 0 ) ) 
+					error_exit_with_message("user_input_pdb_info_list[0]['element']=(%s)!=(%s)=0" %(user_input_pdb_info_list[0]['element'], 0 ) )
 
 
 			##treat case where lower_region is lower_element_pdb or upper_region is upper_region_pdb seperately.
@@ -966,7 +969,7 @@ if(combine_DS_regions):
 
 			submit_subprocess("mkdir -p %s " %(combine_DS_folder) )
 
-			outdir = '%s/%s/' % (combine_DS_folder, clusterer_job_tag)  
+			outdir = '%s/%s/' % (combine_DS_folder, clusterer_job_tag)
 
 			#if(exists( outdir )==False): submit_subprocess( 'mkdir -p '+outdir ) #March 18, 2011
 
@@ -975,7 +978,7 @@ if(combine_DS_regions):
 			###check if job is already done###
 			if exists( clusterer_outfile ):
 				all_job_tags.append( clusterer_job_tag )
-				jobs_done.append( clusterer_job_tag ) 
+				jobs_done.append( clusterer_job_tag )
 
 				DS_clusterer_job_tag_list.append( clusterer_job_tag )
 				DS_clusterer_outfile_list.append( clusterer_outfile )
@@ -988,7 +991,7 @@ if(combine_DS_regions):
 			cluster_silent_file_before_DS_combine=True
 
 			if(cluster_silent_file_before_DS_combine):
-				##June 13, 2011...OK might not want to use region_silent file directly since too structs combination. 
+				##June 13, 2011...OK might not want to use region_silent file directly since too structs combination.
 				##For example if clusterer_num_pose_kept=1000, then could contain 1000*1000=1 millions structs combination.
 				##So instead cluster the silent_region that will be used as input for the DS_combine sampling!
 				lower_pose_info['silent_file']=	\
@@ -997,8 +1000,8 @@ if(combine_DS_regions):
 				upper_pose_info['silent_file']=	\
 							create_input_silent_file_for_DS_combine(upper_region, upper_pose_info, cluster_args, all_job_tags, jobs_done, \
 																										create_input_silent_for_DS_combine_job_tags, fid_dag, clusterer_num_pose_kept, global_sample_res_plus_bound)
-	
-			###################################	
+
+			###################################
 
 			attach_side_list=["append", "prepend"]
 
@@ -1012,25 +1015,25 @@ if(combine_DS_regions):
 
 
 			for side in attach_side_list:
-	
+
 				lower_pose_info=copy.deepcopy(PRISTINE_lower_pose_info)
 				upper_pose_info=copy.deepcopy(PRISTINE_upper_pose_info)
 
 				job_tag = '%s_BY_%s' % ( clusterer_job_tag, side.upper()) #samplerer job_tag
-		
+
 				output_foldername='%s/BY_%s' %(outdir ,  side.upper())
 
-				job_specific_common_args = common_args 
+				job_specific_common_args = common_args
 				job_specific_sampling_args= sampling_args + " -minimizer_move_map_option DS_COMBINE "
 				job_specific_filterer_args= filterer_args
 
 				if(cluster_silent_file_before_DS_combine):
 					lower_input_region_job_tag=get_create_input_ds_combine_region_job_tag(lower_region)
-					upper_input_region_job_tag=get_create_input_ds_combine_region_job_tag(upper_region) 
+					upper_input_region_job_tag=get_create_input_ds_combine_region_job_tag(upper_region)
 
 				else:
 					lower_input_region_job_tag=get_job_tag(lower_region[0] ,lower_region[1] )
-					upper_input_region_job_tag=get_job_tag(upper_region[0] ,upper_region[1] ) 
+					upper_input_region_job_tag=get_job_tag(upper_region[0] ,upper_region[1] )
 
 				parent_job_tag_list=[lower_input_region_job_tag, upper_input_region_job_tag]
 
@@ -1041,9 +1044,9 @@ if(combine_DS_regions):
 					if( is_release_mode()==False ): job_specific_sampling_args += ' -sampler_assert_no_virt_ribose_sampling true '
 
 					num_silent_files=get_num_silent_files([lower_pose_info, upper_pose_info])
-					
+
 					if(num_silent_files!=2): error_exit_with_message("num_silent_files=(%s)!=2" %(num_silent_files))
- 
+
 					######################################
 					sample_virtual_ribose_list=[]
 					sample_virtual_ribose_list.append("%d-%s" %(element_definition[ lower_region[0] ][ 0], 'P') )
@@ -1062,7 +1065,7 @@ if(combine_DS_regions):
 
 					(upper_pose_info['silent_file'], sample_virt_ribose_DAG_already_done)=create_sampled_virt_ribose_silent_file(upper_pose_info, job_tag, upper_input_region_job_tag ,   \
 																																					  all_job_tags, jobs_done, sample_virtual_ribose_list, native_pdb, fid_dag, num_silent_files)
-						
+
 					if(not sample_virt_ribose_DAG_already_done): parent_job_tag_list.append( get_virt_ribose_sampler_job_tag(upper_pose_info, job_tag) )
 					######################################
 
@@ -1073,7 +1076,7 @@ if(combine_DS_regions):
 				#assigned_element = []  #map from Seq_num to assigned_element
 
 				if(side=="append"):
-		
+
 					sample_res     = element_definition[ upper_region[0] ][0]
 					cutpoint_closed = element_definition[ upper_region[1] ][-1]
 
@@ -1082,8 +1085,8 @@ if(combine_DS_regions):
 					sample_res     = element_definition[ lower_region[0] ][0]
 					cutpoint_closed = element_definition[ lower_region[1] ][-1]
 
-				job_specific_common_args += ' -sample_res %s ' %(sample_res) 
-				job_specific_common_args += ' -cutpoint_closed %s ' %(cutpoint_closed) 
+				job_specific_common_args += ' -sample_res %s ' %(sample_res)
+				job_specific_common_args += ' -cutpoint_closed %s ' %(cutpoint_closed)
 
 
 				################################################################################################################################
@@ -1099,20 +1102,23 @@ if(combine_DS_regions):
 					create_samplerer_dag_job_file(job_specific_common_args, job_specific_sampling_args, job_specific_filterer_args, \
 																			"combine_DS_regions", pose_info_list, output_foldername, job_tag, clusterer_job_tag.lower() + "_" )
 
-					if( L == num_elements_actual ): 
+					if( L == num_elements_actual ):
 						ACT_post_process_filtered_nstruct=full_length_post_process_filtered_nstruct
 					else:
 						ACT_post_process_filtered_nstruct=post_process_filtered_nstruct
 
-					submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct) 
+					# PRE and POST scripts should be defined after JOB declaration in condor DAGman file!
+					#submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct)
 
 					update_dag_dependency( fid_dag, job_tag, pose_info_list, parent_job_tag_list, parent_job_tag_list, all_job_tags, jobs_done)
 					samplerer_tag_list.append( job_tag )
 
+					submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct)
+
 					if(len(job_specific_common_args_INSTANCE)==0): job_specific_common_args_INSTANCE=job_specific_common_args
 				################################################################################################################################
-					
-				
+
+
 			#############################Clusterer of COMBINE_REGION_lower_i_lower_j_and_upper_i_upper_j#####################################
 			total_DS_samplerer_jobs+=len(samplerer_tag_list)
 
@@ -1125,7 +1131,7 @@ if(combine_DS_regions):
 
 				create_clusterer_dag_job_file( cluster_args, job_specific_common_args_INSTANCE, samplerer_post_process_outfile_list, \
 																		 clusterer_outfile, condor_submit_cluster_file, full_length_clusterer_num_pose_kept)
-  						
+
 				#update clustere dag dependency
 				fid_dag.write('\nJOB %s %s\n' % (clusterer_job_tag ,condor_submit_cluster_file) )
 				fid_dag.write('PARENT %s CHILD %s\n' % (string.join( samplerer_tag_list ), clusterer_job_tag) )
@@ -1146,14 +1152,14 @@ if(combine_DS_regions):
 
 		if(final_rebuild_bulge_step_only==False):
 
-			for DS_clusterer_outfile in DS_clusterer_outfile_list:  
-				if(exists(DS_clusterer_outfile)==False): 
+			for DS_clusterer_outfile in DS_clusterer_outfile_list:
+				if(exists(DS_clusterer_outfile)==False):
 					error_exit_with_message("combine_DS_final_outfile (%s) already exist BUT DS_clusterer_outfile (%s) doesn't exist!" %(combine_DS_final_outfile, DS_clusterer_outfile) )
 
 
 		print "WARNING: combine_DS_final_outfile (%s) already exists!" %(combine_DS_final_outfile)
 
-	else: 
+	else:
 
 		combine_DS_final_job_tag = "COMBINE_DS_REGION_FINAL"
 
@@ -1171,17 +1177,17 @@ if(combine_DS_regions):
 
 			if( clusterer_job_tag not in all_job_tags): error_exit_with_message("clusterer_job_tag (%s) is not in all_job_tags" %(clusterer_job_tag) )
 			if( clusterer_job_tag not in jobs_done ): fid_dag.write('PARENT %s  CHILD %s\n' % (clusterer_job_tag, combine_DS_final_job_tag) )
-	 
+
 	#################################Clusterer of ALL_region_FINAL.out##########################################################
 
 	if(exists(ALL_region_FINAL())):
 
 		if(final_rebuild_bulge_step_only==False):
 
-			if(exists(combine_DS_final_outfile)==False): 
+			if(exists(combine_DS_final_outfile)==False):
 				error_exit_with_message("ALL_final_outfile (%s) already exist BUT combine_DS_final_outfile (%s) doesn't exist!" %(ALL_region_FINAL(), combine_DS_final_outfile))
 
-			if(exists(standard_region_FINAL())==False): 
+			if(exists(standard_region_FINAL())==False):
 				error_exit_with_message("ALL_final_outfile (%s) already exist BUT standard_region_FINAL() (%s)  doesn't exist!" %(ALL_region_FINAL(), standard_region_FINAL()))
 
 
@@ -1207,13 +1213,13 @@ if(combine_DS_regions):
 
 	################################################################################################################################
 
-	print	"INCLUDING COMBINE_DS_STEPS: " 
+	print	"INCLUDING COMBINE_DS_STEPS: "
 	print "Total number of DS_samplerer_jobs to run = %d" %(total_DS_samplerer_jobs)
 	print "Total number of 'other' jobs to run = %d" %(len( all_job_tags )-len(jobs_done) )
-	print	
-	print "jobs_already_done   = ", jobs_done	
-	print	
-	print	
+	print
+	print "jobs_already_done   = ", jobs_done
+	print
+	print
 	print "all_job_tags        = ", all_job_tags
 	print
 
@@ -1224,10 +1230,10 @@ if(is_release_mode()==False): #This is not yet ready for RELEASE.
 	final_outfile=standard_region_FINAL()
 	final_job_tag=standard_final_job_tag()
 
-	if(combine_DS_regions): 
+	if(combine_DS_regions):
 		final_outfile=ALL_region_FINAL()
 		final_job_tag=ALL_final_job_tag()
-	
+
 	if(final_rebuild_bulge_step_only): #Oct 22, 2011: Hacky!
 
 		fid_dag.close()
@@ -1245,7 +1251,7 @@ if(is_release_mode()==False): #This is not yet ready for RELEASE.
 																			 							final_common_args_file(), "SWA", "")
 
 	if((exists(final_outfile)==False) and job_submitted):
-		fid_dag.write('PARENT %s CHILD %s\n' %(final_job_tag, final_rebuild_bulge_job_tag) ) 
+		fid_dag.write('PARENT %s CHILD %s\n' %(final_job_tag, final_rebuild_bulge_job_tag) )
 
 	#############################################################################################################
 	if(BMRB_chemical_shift_file!=""):
@@ -1258,7 +1264,7 @@ if(is_release_mode()==False): #This is not yet ready for RELEASE.
 																				 							final_common_args_file(), "SWA", BMRB_chemical_shift_file)
 
 		if((exists(final_outfile)==False) and job_submitted):
-			fid_dag.write('PARENT %s CHILD %s\n' %(final_job_tag, final_rebuild_bulge_job_tag_with_chem_shift) ) 
+			fid_dag.write('PARENT %s CHILD %s\n' %(final_job_tag, final_rebuild_bulge_job_tag_with_chem_shift) )
 
 
 print "-------------------------------------------------------------------------------------------"

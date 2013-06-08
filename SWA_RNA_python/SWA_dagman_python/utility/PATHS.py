@@ -22,7 +22,7 @@ from SWA_dagman_python.utility.list_operations import *
 #NOT yet tested and probably won't work with Windows. For example currently uses SLASH (/) for directory seperation and not BACK-SLASH (for Windows)
 
 ######################################################################
-HOMEDIR = expanduser('~') 
+HOMEDIR = expanduser('~')
 
 
 RELEASE_MODE=True
@@ -32,7 +32,7 @@ if(RELEASE_MODE==True):
 	NO_GRAPHIC_ROSETTA_BIN_FOLDER  = os.path.expanduser(USER_PATHS.USER_ROSETTA_BIN_FOLDER)
 	ROSETTA_DATABASE_FOLDER        = os.path.expanduser(USER_PATHS.USER_ROSETTA_DATABASE_FOLDER)
 	NEW_SRC_CODE                   = True
-	NO_GRAPHIC                     = True 
+	NO_GRAPHIC                     = True
 
 else:
 
@@ -57,7 +57,7 @@ else:
 ######################################################################
 
 #This assumes that as PATHS.py in located in a folder one level deeper than the main python folder.
-SWA_DAGMAN_PYTHON_MAIN_FOLDER=list_to_string(__file__.split('/')[:-2],'/')[1:]+'/' 
+SWA_DAGMAN_PYTHON_MAIN_FOLDER=list_to_string(__file__.split('/')[:-2],'/')[1:]+'/'
 
 SWA_dagman_python_PATHS=['', 'SWA_DAG/', 'FARFAR_DAG/', 'dagman/', 'misc/']
 if(RELEASE_MODE==False): SWA_dagman_python_PATHS.extend(['chemical_shift/', 'projects/'])
@@ -83,7 +83,7 @@ if(Do_update_PATHS):
 
 	#print "BEFORE os.environ[\"PATH\"]=", os.environ["PATH"]
 
-	os.environ["PATH"]=os.pathsep.join(SWA_dagman_python_PATHS) 
+	os.environ["PATH"]=os.pathsep.join(SWA_dagman_python_PATHS)
 
 	for n in range(len(Existing_PATHS)):
 
@@ -132,12 +132,12 @@ def is_release_mode():
 
 ##################################################################################################
 
-def SWA_unexpanduser(path_name_expanduser): 
+def SWA_unexpanduser(path_name_expanduser):
 	#The reason why we need to unexpand the path is because while testing, I usually perform SWA and FARFAR setup locally and then rsync to cluster for job submission
 
 	if(exists(path_name_expanduser)==False): error_exit_with_message("path_name_expanduser (%s) doesn't exists!" %(path_name_expanduser))
 
-	if(path_name_expanduser[:len(HOMEDIR)]!=HOMEDIR): 
+	if(path_name_expanduser[:len(HOMEDIR)]!=HOMEDIR):
 		error_exit_with_message("path_name_expanduser[:len(HOMEDIR)]=(%s)!=(%s)=HOMEDIR" %(path_name_expanduser[:len(HOMEDIR)], HOMEDIR))
 
 	path_name_with_tilde='~' + path_name_expanduser[len(HOMEDIR):]
@@ -163,7 +163,7 @@ def get_rosetta_EXE(EXE_name, no_graphic=NO_GRAPHIC):   #EXE=get_rosetta_EXE("pa
 
 	if(no_graphic): exe_folder=NO_GRAPHIC_ROSETTA_BIN_FOLDER
 
-	exe_folder=SWA_unexpanduser(exe_folder)
+	#exe_folder=SWA_unexpanduser(exe_folder) # what?
 
 	if( PATH_exists(exe_folder)==False):  error_exit_with_message("Cannot find exe_folder: %s " %(exe_folder) )
 
@@ -195,9 +195,9 @@ def get_rosetta_EXE(EXE_name, no_graphic=NO_GRAPHIC):   #EXE=get_rosetta_EXE("pa
 		error_exit_with_message("possible_EXE_count=(%s)=!=1 for EXE_name (%s)" %(possible_EXE_count, EXE_name))
 
 	if(PATH_exists(LINUX_EXE)):  return LINUX_EXE
-		
+
 	if(PATH_exists(MACOS_EXE)):  return MACOS_EXE
-		
+
 	error_exit_with_message("Should not reach this point of the function!")
 
 ######Since the exist condition checks below are alway called, will there slow down codes that call SWA_Util.py very often?######################
@@ -216,7 +216,7 @@ if(exists(SWA_DAGMAN_PYTHON_MAIN_FOLDER)==False): error_exit_with_message("SWA_D
 #		get_rosetta_EXE(POSSIBLE_ROSETTA_EXES[n], no_graphic=True) #This checks that the EXE exist!
 
 ##################################################################################################
-def get_rosetta_EXE_specified_no_graphic_string(EXE_name, no_graphic_string): 
+def get_rosetta_EXE_specified_no_graphic_string(EXE_name, no_graphic_string):
 
 	if(no_graphic_string==""): #no no_graphic_string specified
 		return get_rosetta_EXE(EXE_name)
@@ -232,34 +232,37 @@ def get_rosetta_EXE_specified_no_graphic_string(EXE_name, no_graphic_string):
 
 ##################################################################################################
 
-def get_rosetta_database_folder(): 
+def get_rosetta_database_folder():
 
 	if(exists( ROSETTA_DATABASE_FOLDER )==False ): error_exit_with_message("ROSETTA_DATABASE_FOLDER (%s) doesn't exist!" %(ROSETTA_DATABASE_FOLDER))
 
-	rosetta_database_with_tilde=SWA_unexpanduser(ROSETTA_DATABASE_FOLDER)
+	#rosetta_database_with_tilde=SWA_unexpanduser(ROSETTA_DATABASE_FOLDER)
 
-	if(PATH_exists( rosetta_database_with_tilde )==False ): error_exit_with_message("rosetta_database_with_tilde (%s) doesn't exist!" %(rosetta_database_with_tilde))
+	#if(PATH_exists( rosetta_database_with_tilde )==False ): error_exit_with_message("rosetta_database_with_tilde (%s) doesn't exist!" %(rosetta_database_with_tilde))
 
-	return rosetta_database_with_tilde
+	#return rosetta_database_with_tilde
+	return ROSETTA_DATABASE_FOLDER
 
-##################################################################################################	
-	
+##################################################################################################
+
 def get_PYDIR():
 
-	pydir_with_tilde=SWA_unexpanduser(SWA_DAGMAN_PYTHON_MAIN_FOLDER)
-	
-	if(PATH_exists(pydir_with_tilde)==False): error_exit_with_message("pydir_with_tilde (%s) doesn't exist" %(pydir_with_tilde))
+	#pydir_with_tilde=SWA_unexpanduser(SWA_DAGMAN_PYTHON_MAIN_FOLDER)
 
-	return pydir_with_tilde
+	#if(PATH_exists(pydir_with_tilde)==False): error_exit_with_message("pydir_with_tilde (%s) doesn't exist" %(pydir_with_tilde))
+
+	#return pydir_with_tilde
+
+	return SWA_DAGMAN_PYTHON_MAIN_FOLDER
 
 ##################################################################################################
 def get_PYPATH(rel_path):
 
-	if(isinstance( rel_path, str )==False): 
-		print "rel_path=", rel_path  
+	if(isinstance( rel_path, str )==False):
+		print "rel_path=", rel_path
 		error_exit_with_message("rel_pathis not a instance of str!")
 
-	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH 
+	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH
 
 	pypath_with_tilde=get_PYDIR() + rel_path
 
@@ -271,18 +274,18 @@ def get_PYPATH(rel_path):
 
 def get_PYEXE(EXE_name):
 
-	if(isinstance( EXE_name, str )==False): 
-		print "EXE_name=", EXE_name  
+	if(isinstance( EXE_name, str )==False):
+		print "EXE_name=", EXE_name
 		error_exit_with_message("EXE_name is not a instance of str!")
 
-	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH 
+	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH
 
 	pyexe_with_tilde=get_PYDIR() + EXE_name
 
 	if(PATH_exists(pyexe_with_tilde)==False): error_exit_with_message("pyexe_with_tilde (%s) doesn't exist!" %(pyexe_with_tilde))
 
 	return pyexe_with_tilde
-	
+
 ##################################################################################################
 '''
 def get_PYDIR_with_tilde():
@@ -294,15 +297,15 @@ def get_PYDIR_with_tilde():
 ##################################################################################################
 def get_PYEXE_with_tilde(EXE_name):
 
-	if(isinstance( EXE_name, str )==False): 
-		print "EXE_name=", EXE_name  
+	if(isinstance( EXE_name, str )==False):
+		print "EXE_name=", EXE_name
 		error_exit_with_message("EXE_name is not a instance of str!")
 
-	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH 
+	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH
 
 	pyexe_with_tilde=get_PYDIR_with_tilde()+EXE_name
 
-	if(exists(os.path.expanduser(pyexe_with_tilde)==False)): 
+	if(exists(os.path.expanduser(pyexe_with_tilde)==False)):
 		error_exit_with_message("os.path.expanduser(pyexe_with_tilde) (%s) doesn't exist!" %(os.path.expanduser(pyexe_with_tilde)))
 
 	return pyexe_with_tilde

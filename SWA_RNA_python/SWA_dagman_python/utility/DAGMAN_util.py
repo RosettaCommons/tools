@@ -135,15 +135,21 @@ def make_dag_job_submit_file( dag_job_filename, EXE, arguments, mapper_infiles, 
 	fid.write('log = %s\n' % 'condor.log' )
 	fid.write('Notification = error\n' )
 
+	fid.write('Queue %d\n' % 1 )
+
 	# Note from rhiju -- adding hashtag at beginning permits these files to be used by condor DAGman (condor_submit_dag)
+	fid.write('\n')
+	fid.write('################################################################\n')
+	fid.write('# Below lines are commented so that they don''t disrupt runs \n' )
+	fid.write('# that are queued by condor DAGman. But they are in-use by other scripts. \n' )
+	fid.write('################################################################\n')
 	fid.write('#mapper_infiles = %s\n' % mapper_infiles) #currently used only in SWA2
 	fid.write('#mapper_outfiles = %s\n' % mapper_outfiles)
 	fid.write('#reducer_infiles = %s\n' % reducer_infiles) #currently used only in SWA2
 	fid.write('#reducer_outfiles = %s\n' % reducer_outfiles)
 	fid.write('#log_foldername = %s\n' % log_foldername)
-
-	fid.write('Queue %d\n' % 1 )
 	fid.close()
+
 
 ##########This is used in the pre_process scripts#################################
 def update_CONDOR_file_with_actual_job_queue_num(condor_submit_file, N_JOBS): #Updated on FEB 08, 2012

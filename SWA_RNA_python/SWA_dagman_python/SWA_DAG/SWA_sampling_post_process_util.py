@@ -72,7 +72,7 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		cols=line.split()
 
-		if(len(cols)<2): error_exit_with_message("len(cols)<2 for line (%s)" %(line))
+		if(len(cols)<2): continue # error_exit_with_message("len(cols)<2 for line (%s)" %(line))
 
 		if(cols[0] == 'Queue'):
 

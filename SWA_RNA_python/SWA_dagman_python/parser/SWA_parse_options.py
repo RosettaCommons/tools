@@ -17,16 +17,22 @@ def parse_options( argv, tag, default, Verbose=True):
 
 		pos = argv.index( "-"+tag )   ###Position of the option name
 
-		if ( ( pos == (len( argv )-1) or argv[ pos+1 ][0] == '-' ) ):
+		if (default=="False" or default=="True" or isinstance( default, bool ) ): # Python boolean
+			# flag is 'solo' --> activate to True
+			if ( pos == (len( argv )-1) or argv[ pos+1 ][0] == '-' ):
+				if(Verbose): print "%s=%s" % (tag, "True")
+				value = True
+				actual_offset -= 1
+			else: # value is given explicitly as True or False.
+				if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
+				if ( argv[ pos + 1 ] == "True"):
+					value=True
+				elif ( argv[ pos + 1 ] == "False"):
+					value=False
+				else:
+					error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))
+		elif ( ( pos == (len( argv )-1) or argv[ pos+1 ][0] == '-' ) ):
 			error_exit_with_message("Invalid parse_option input")
-		elif (default=="False" or default=="True" or isinstance( default, bool ) ): # Python boolean
-			if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
-			if ( argv[ pos + 1 ] == "True"):
-				value=True
-			elif ( argv[ pos + 1 ] == "False"):
-				value=False
-			else:
-				error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))
 		elif (default=="false" or default=="true"): # C++ boolean string
 			if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
 			if ( argv[ pos + 1 ] == "true"):

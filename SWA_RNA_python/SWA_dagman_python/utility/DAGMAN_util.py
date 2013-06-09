@@ -173,7 +173,7 @@ def update_CONDOR_file_with_actual_job_queue_num(condor_submit_file, N_JOBS): #U
 
 		cols=line.split()
 
-		if( len(cols)<2 ): error_exit_with_message("len(cols)<2 for line (%s)" %(line))
+		if( len(cols)<2 ): continue # error_exit_with_message("len(cols)<2 for line (%s)" %(line))
 
 		if(cols[0] == 'Queue'):
 

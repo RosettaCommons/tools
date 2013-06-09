@@ -15,12 +15,13 @@ from SWA_dagman_python.utility.DAGMAN_util import update_CONDOR_file_with_actual
 ###Example: /home/sripakpa/SWA_dagman_python/SWA_sampling_pre_process.py REGION_5_1 REGION_5_0 CONDOR/REGION_5_1_START_FROM_REGION_5_0.condor
 
 # random delay -- needed for condor_dagman which sometimes launches pre_process scripts at exactly the same time which try to read the same files!
+print "Random delay of about 2 seconds..."
 sleep( 2 * random() )
 
 python_command = get_python_command(argv)
 print_title_text("Enter: " + python_command)
 
-input_silent_file = argv[1]
+input_silent_file  = argv[1]
 condor_submit_file = argv[2]
 
 #check that there is the string input_silent_file is a single filename

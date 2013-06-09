@@ -94,15 +94,15 @@ def get_rosetta_common_args_option(argv):
 	if( len( fixed_res )==0 and len( minimize_res )==0):
 		error_exit_with_message("User need to specify either fixed_res or minimize_res")
 
-	if(len( fixed_res ) > 0): common_args += ' -fixed_res %s ' %(list_to_string(fixed_res) )
+	if(len( fixed_res ) > 0): common_args += ' -fixed_res %s ' %(list_to_string_with_dashes(fixed_res) )
 
-	if(len(minimize_res) > 0): common_args += ' -minimize_res %s ' %(list_to_string(minimize_res) )
+	if(len(minimize_res) > 0): common_args += ' -minimize_res %s ' %(list_to_string_with_dashes(minimize_res) )
 
-	if(len(terminal_res) > 0): common_args += ' -terminal_res %s ' %(list_to_string(terminal_res) )
+	if(len(terminal_res) > 0): common_args += ' -terminal_res %s ' %(list_to_string_with_dashes(terminal_res) )
 
-	if(len(virtual_res) > 0): common_args += ' -virtual_res %s ' %(list_to_string(virtual_res) )
+	if(len(virtual_res) > 0): common_args += ' -virtual_res %s ' %(list_to_string_with_dashes(virtual_res) )
 
-	if(len( rmsd_res ) > 0): common_args += ' -rmsd_res %s ' %(list_to_string(rmsd_res) )
+	if(len( rmsd_res ) > 0): common_args += ' -rmsd_res %s ' %(list_to_string_with_dashes(rmsd_res) )
 
 	if(jump_point_pair_list!=[""]):
 
@@ -114,7 +114,7 @@ def get_rosetta_common_args_option(argv):
 	if(alignment_res_list!=[""]): common_args += ' -alignment_res %s ' %(list_to_string(alignment_res_list))
 
 	if( len(native_alignment_res)>0 ):
-			common_args += ' -native_alignment_res %s ' %(list_to_string(native_alignment_res))
+			common_args += ' -native_alignment_res %s ' %(list_to_string_with_dashes(native_alignment_res))
 
 	if(fa_stack_base_base_only=="false"): common_args += ' -score::fa_stack_base_base_only false '
 

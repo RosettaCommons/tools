@@ -8,33 +8,33 @@ from SWA_dagman_python.utility.SWA_util import *
 
 ################################################################
 def parse_options( argv, tag, default, Verbose=True):
-	
+
 	if(argv.count( "-"+tag )>1): error_exit_with_message("argv.count( %s )>1 " %("-"+tag) ) #June 13, 2011
-    
+
 	if(argv.count( "-"+tag )):  ###Found the option
 
 		actual_offset=1
 
-		pos = argv.index( "-"+tag )   ###Position of the option name 
+		pos = argv.index( "-"+tag )   ###Position of the option name
 
 		if ( ( pos == (len( argv )-1) or argv[ pos+1 ][0] == '-' ) ):
 			error_exit_with_message("Invalid parse_option input")
-		elif (default=="False" or default=="True"): # Python boolean
+		elif (default=="False" or default=="True" or isinstance( default, bool ) ): # Python boolean
 			if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
 			if ( argv[ pos + 1 ] == "True"):
 				value=True
 			elif ( argv[ pos + 1 ] == "False"):
 				value=False
-			else: 
-				error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))	
+			else:
+				error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))
 		elif (default=="false" or default=="true"): # C++ boolean string
 			if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
 			if ( argv[ pos + 1 ] == "true"):
 				value="true"
 			elif ( argv[ pos + 1 ] == "false"):
 				value="false"
-			else: 
-				error_exit_with_message('(%s != "true") and  (%s != "false")' % (tag, tag))	
+			else:
+				error_exit_with_message('(%s != "true") and  (%s != "false")' % (tag, tag))
 
 		elif( isinstance( default, str ) ): #normal string
 			if(Verbose): print "%s=%s" %(tag, argv[ pos + 1 ])
@@ -58,14 +58,14 @@ def parse_options( argv, tag, default, Verbose=True):
 			value = float( argv[ pos + 1 ] )
 		else:
 			value = argv[ pos + 1 ]
-			
+
 		for index in range(pos+actual_offset, pos-1, -1):  #index from pos+actual_offset to pos
 			del(argv[index])
 
-		return value	
-			
+		return value
+
 	else: #Return the default value
-#		print "OUTSIDE %s is list, default= " %tag, default  
+#		print "OUTSIDE %s is list, default= " %tag, default
 
 		if(default=="False" or default=="True"): # Python boolean
 			if(Verbose): print "%s=%s" %(tag, default)
@@ -73,11 +73,11 @@ def parse_options( argv, tag, default, Verbose=True):
 				return True
 			elif( default == "False"):
 				return False
-			else: 
-				error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))	
-		elif( isinstance( default, list ) and isinstance( default[0], int ) ): 
+			else:
+				error_exit_with_message('(%s != "True") and  (%s != "False")' % (tag, tag))
+		elif( isinstance( default, list ) and isinstance( default[0], int ) ):
 			default = [] #A empty list, why do we need this??
-			if(Verbose): print "%s is list, default= " %tag, default  
+			if(Verbose): print "%s is list, default= " %tag, default
 
 			return default
 		else:
@@ -85,7 +85,7 @@ def parse_options( argv, tag, default, Verbose=True):
 
 
 ################################################################
-##Find a specific arg_tag in a string of args and replace the value. 
+##Find a specific arg_tag in a string of args and replace the value.
 def replace_arg_value(args_string, arg_tag, new_value, allow_missing=False):
 
 	args_list=args_string.split()
@@ -105,7 +105,7 @@ def replace_arg_value(args_string, arg_tag, new_value, allow_missing=False):
 	#check that args_tag is removed from the args_list!
 	if(args_list.count( "-"+arg_tag )>0): error_exit_with_message("args_list.count( %s )>0 AFTER removal!" %("-"+arg_tag) )
 
-	if(found_arg_tag==False): 
+	if(found_arg_tag==False):
 		print "found_arg_tag (%s)==False" %(arg_tag)
 		insert_pos=len(args_list)
 
@@ -142,7 +142,7 @@ def parse_seq_num_list_option( argv, tag, sort_list=True ):
 ##############################################################################################################################
 def ensure_no_duplicate_options(option_list_string, extra_existing_option_list=[]): #To should work for both python and Rosetta (C++) commands
 
-	if(isinstance( option_list_string, str )==False): 
+	if(isinstance( option_list_string, str )==False):
 		print "\n\nERROR option_list_string=", option_list_string
 		error_exit_with_message("option_list_string is not a str!")
 
@@ -155,14 +155,14 @@ def ensure_no_duplicate_options(option_list_string, extra_existing_option_list=[
 
 			option_name=option_list[n]
 
-			if(option_names_so_far.count(option_name)>0): 
+			if(option_names_so_far.count(option_name)>0):
 				exit_message ="\n\nERROR option_list_string=%s \n" %(option_list_string)
 				exit_message+="option_name (%s) already exist in the option_names_so_far ( %s )\n" %(option_name, list_to_string(option_names_so_far, " | ") )
 				error_exit_with_message(exit_message)
 
-			if(extra_existing_option_list.count(option_name[1:])>0): 
+			if(extra_existing_option_list.count(option_name[1:])>0):
 				exit_message ="\n\nERROR option_list_string=%s \n" %(option_list_string)
-				exit_message+="option_name (%s) is in extra_existing_option_list (%s)\n!" %(option_name, list_to_string(extra_existing_option_list) ) 
+				exit_message+="option_name (%s) is in extra_existing_option_list (%s)\n!" %(option_name, list_to_string(extra_existing_option_list) )
 				error_exit_with_message(exit_message)
 
 			option_names_so_far.append(option_name)
@@ -170,7 +170,7 @@ def ensure_no_duplicate_options(option_list_string, extra_existing_option_list=[
 ##############################################################################################################################
 def option_name_exist(option_list_string, option_name):
 
-	if(isinstance( option_list_string, str )==False): 
+	if(isinstance( option_list_string, str )==False):
 		print "\n\nERROR option_list_string=", option_list_string
 		error_exit_with_message("option_list_string is not a str!")
 
@@ -186,16 +186,16 @@ def option_name_exist(option_list_string, option_name):
 ##############################################################################################################################
 def get_option_name_args_safe(option_list_string, option_name, defualt): #get the option_args without removing the args from the option_list!
 
-	if(isinstance( option_list_string, str )==False): 
+	if(isinstance( option_list_string, str )==False):
 		print "\n\nERROR option_list_string=", option_list_string
 		error_exit_with_message("option_list_string is not a str!")
 
-	if(option_name_exist(option_list_string, option_name)==False): 
+	if(option_name_exist(option_list_string, option_name)==False):
 		error_exit_with_message("option_name (%s) doesn't exist in option_list_string (%s) " %(option_name, option_list_string) )
 
 	option_list=option_list_string.split()
 
-	args_value=parse_options(option_list, option_name, defualt, Verbose=False) 
+	args_value=parse_options(option_list, option_name, defualt, Verbose=False)
 
 	return args_value
 

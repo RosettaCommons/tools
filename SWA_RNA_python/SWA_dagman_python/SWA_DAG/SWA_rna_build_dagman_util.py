@@ -961,7 +961,9 @@ def add_input_res_to_common_args(job_specific_common_args, pose_info_list):
 				job_specific_common_args += ' -input_res '
 			else:
 				job_specific_common_args += ' -input_res2 '
-			for k in pose_info["residue_list"]: job_specific_common_args += '%d ' % k
+
+			job_specific_common_args += list_to_string_with_dashes( pose_info[ "residue_list" ] )
+
 
 		return job_specific_common_args
 

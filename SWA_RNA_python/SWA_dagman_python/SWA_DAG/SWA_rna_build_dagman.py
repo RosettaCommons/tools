@@ -64,7 +64,9 @@ sample_both_sugar_base_rotamer=parse_options(argv, "sample_both_sugar_base_rotam
 
 Is_valid_value_dinucleotide_at_single_element_cc(dinucleotide_at_single_element_cc)
 
-sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True") #Change this to True on Jan 29, 2012!
+#sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True") #Change this to True on Jan 29, 2012!
+sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG",  floating_base ) # virt_ribose sampling should not be required if no floating base moves?
+
 final_rebuild_bulge_step_only= parse_options(argv, "final_rebuild_bulge_step_only", "False") #New option Oct 22, 2011.
 BMRB_chemical_shift_file= parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
 
@@ -178,7 +180,6 @@ if(len( cutpoints_open ) > 0): common_args += ' -cutpoint_open %s ' %(list_to_st
 
 sampling_args = ' -algorithm rna_sample  -database %s  %s ' %(DB, sampling_args)
 
-
 if( native_pdb!="" ):
 	if(exists( native_pdb )==False): error_exit_with_message("exists( native_pdb (%s) )==False" %(native_pdb))
 	sampling_args += '-native %s ' %(native_pdb)
@@ -250,7 +251,6 @@ for i in range( len(sequence ) ): #goes from 0 len(sequence) -1
 
 num_elements += 1  #This is compensate for the fact that num_elements starts out at -1....with this num_elements REALLY equal the number of elements in the system
 
-
 element_definition=reorder_element_definition(element_definition, cutpoints_open, num_elements, len(sequence ))
 
 print "#################################"
@@ -260,7 +260,6 @@ print element_definition
 print " or: "
 print assigned_element
 print
-
 
 for pdb_num in range(len(user_input_pdb_info_list) ):
 	user_input_pdb_info_list[pdb_num]['element']=color_to_element[pdb_num]
@@ -453,7 +452,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 			###################
 
 			i_prev = i
-			j_prev = (j - 1) % num_elements #(j - 1) becaues will append here
+			j_prev = (j - 1) % num_elements #(j - 1) because will append here
 
 			if(Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
 														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
@@ -501,6 +500,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 			######################################################################################
 
+			# Modes: (1) regular addition of a residue; (2) combine long loop.
 			for mode_num in [1,2]:
 
 				if(optimize_long_loop_mode==False and mode_num==2): continue
@@ -613,14 +613,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 				sample_res = -1
 				if ( i == i_prev ):
-					sample_res_list.append(element_definition[ moving_element ][0])
+					sample_res_list.append(element_definition[ moving_element ][0]) # append: beginning residue of moving element
 				else:
-					sample_res_list.append(element_definition[ moving_element ][-1])
+					sample_res_list.append(element_definition[ moving_element ][-1]) # prepend: last residue of moving element
 
 
 				if(len( element_definition[ moving_element ] ) != 1): # A user input chunk!
 					pose_info_list.append( user_input_pdb_info_list[ element_to_color[ moving_element ] ] )
 
+					# P = prepend, A = append. Perhaps should make this more explicit in the command line.
 					if ( i == i_prev ): #This is the VIRT ribose 'built from the other side'.
 						sample_virtual_ribose_list.append("%d-%s" %(element_definition[ moving_element ][ 0], 'P' ) ) #Corrected from -1 to 0 on Sept 17, 2011
 					else:
@@ -650,8 +651,8 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 				if(Bulge_res and floating_base): job_specific_common_args += ' -floating_base true '
 
-				#July 21, 2011 For special case of -floating_base true,  code had been optimized such that no speed gained parallelization from seperating the VIRT ribose
-				if( (Bulge_res and floating_base)==False): #For the other cases sampling the parallelization does speed up the code.
+				#July 21, 2011 For special case of -floating_base true, code has been optimized such that no speed gained parallelization from separating the VIRT ribose
+				if( (Bulge_res and floating_base)==False): #For the other sampling cases, the parallelization does speed up the code.
 					if ( i == i_prev ):
 						sample_virtual_ribose_list.append("%d-%s" %( element_definition[ (j_prev) % num_elements ][-1], 'A' ) )
 					else:
@@ -735,13 +736,13 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					################################################################################################################################################################
 					if( (sample_virt_ribose_in_sep_DAG) and (len(sample_virtual_ribose_list)>0 ) ):
 
-						num_silent_files=get_num_silent_files(pose_info_list)
+						num_silent_files = get_num_silent_files(pose_info_list)
 
 						for n in range(len(pose_info_list)):
 
-							prev_clusterer_job_tag=get_job_tag(pose_info_list[n]['i_prev'], pose_info_list[n]['j_prev'])
+							prev_clusterer_job_tag = get_job_tag(pose_info_list[n]['i_prev'], pose_info_list[n]['j_prev'])
 
-							(pose_info_list[n]['silent_file'], sample_virt_ribose_DAG_already_done)=create_sampled_virt_ribose_silent_file(pose_info_list[n], job_tag, prev_clusterer_job_tag, all_job_tags, jobs_done, sample_virtual_ribose_list, native_pdb, fid_dag, num_silent_files)
+							(pose_info_list[n]['silent_file'], sample_virt_ribose_DAG_already_done) = create_sampled_virt_ribose_silent_file(pose_info_list[n], job_tag, prev_clusterer_job_tag, all_job_tags, jobs_done, sample_virtual_ribose_list, native_pdb, fid_dag, num_silent_files)
 
 							if(sample_virt_ribose_DAG_already_done==False):
 								virt_ribose_sampler_job_tag=get_virt_ribose_sampler_job_tag(pose_info_list[n], job_tag)
@@ -756,13 +757,12 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 
 					if( L == num_elements_actual ):
-						ACT_post_process_filtered_nstruct=full_length_post_process_filtered_nstruct
+						ACT_post_process_filtered_nstruct = full_length_post_process_filtered_nstruct
 					else:
-						ACT_post_process_filtered_nstruct=post_process_filtered_nstruct
+						ACT_post_process_filtered_nstruct = post_process_filtered_nstruct
 
 					# PRE and POST scripts should be defined after JOB declaration in condor DAGman file!
 					#submit_sampling_pre_and_post_process(fid_dag, job_tag, pose_info_list, output_foldername, ACT_post_process_filtered_nstruct)
-
 
 					if(combine_long_loop):
 
@@ -791,14 +791,14 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 		#############################Clusterer of region_i_j#####################################
 
-		total_samplerer_jobs+=len(samplerer_tag_list)
+		total_samplerer_jobs += len(samplerer_tag_list)
 
 		if( len(samplerer_tag_list)>0 and exists(clusterer_outfile) ):
 			error_exit_with_message( "len(samplerer_tag_list)>0 but clusterer_outfile (%s) already exists!" %(clusterer_outfile) )
 
 		if( len(samplerer_post_process_outfile_list)>0 and exists(clusterer_outfile)==False ):
 
-			modeled_elements = get_modeled_elements( i, j , num_elements)  #This is a list that runs from i to j in the modolus num_elements sense
+			modeled_elements = get_modeled_elements( i, j , num_elements)  #This is a list that runs from i to j in the modulo num_elements sense
 
 			print '\n Modeling elements: ', modeled_elements, '\n job_specific_common_args_INSTANCE: ', job_specific_common_args_INSTANCE
 
@@ -817,7 +817,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 			create_clusterer_dag_job_file( cluster_args, job_specific_common_args_INSTANCE, samplerer_post_process_outfile_list, \
 																	  clusterer_outfile, condor_submit_cluster_file, ACT_clusterer_num_pose_kept)
-			#update clustere dag dependency
+			#update clusterer dag dependency
 			fid_dag.write('\nJOB %s %s\n' % (clusterer_job_tag ,condor_submit_cluster_file) )
 			fid_dag.write('PARENT %s CHILD %s\n' % (string.join( samplerer_tag_list ), clusterer_job_tag) )
 
@@ -856,9 +856,7 @@ if(len(last_jobs)!=0):
 
 		condor_submit_cluster_file = get_condor_submit_file(final_job_tag+ "_cluster", "CLUSTERER")
 
-		create_clusterer_dag_job_file( cluster_args, get_FINAL_COMMON_ARGS_LINE(), last_outfiles, \
-																 final_outfile, condor_submit_cluster_file, final_clusterer_num_pose_kept )
-
+		create_clusterer_dag_job_file( cluster_args, get_FINAL_COMMON_ARGS_LINE(), last_outfiles, final_outfile, condor_submit_cluster_file, final_clusterer_num_pose_kept )
 
 		fid_dag.write('\nJOB %s %s\n' % ( final_job_tag, condor_submit_cluster_file) )
 

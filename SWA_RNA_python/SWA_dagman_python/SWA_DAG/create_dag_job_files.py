@@ -422,7 +422,7 @@ if(is_release_mode()==False): #Not yet RELEASED!
 
 if ( not no_bulge ): README_SETUP.write( "command+= '-sample_virt_ribose_in_sep_DAG %s '\n\n" %(sample_virt_ribose_in_sep_DAG) )
 
-if ( no_bulge ): README_SETUP.write( "command+= '-floating_base False' \n\n" )
+if ( no_bulge ): README_SETUP.write( "command+= '-floating_base False -allow_bulge_at_chainbreak false ' \n\n" )
 
 README_SETUP.write( "command+= '>LOG_SWA_rna_build_dagman.out '\n\n" )
 

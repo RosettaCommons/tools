@@ -22,7 +22,7 @@ def kink_cation_res(abinfo):
     return resi
 
 
-def make_kink_constraints(pose, abinfo, outf = sys.stdout):
+def kink_constraints(pose, abinfo, outf = sys.stdout):
     kb=kink_begin(abinfo)
     kr0=kb
     kr1=kb+1
@@ -37,6 +37,7 @@ def make_kink_constraints(pose, abinfo, outf = sys.stdout):
     # KD Hbond
     outf.write("AtomPair N %i O %i FLAT_HARMONIC 2.0 2.0 2.0\n" % (kan,kcat) )
     return
+
 
 
 def main(args):
@@ -62,7 +63,7 @@ def main(args):
 
         outfname = filename[:-4]+'.constr'
         outf = file(outfname, 'w')
-        constraint = make_kink_constraints(pose,abinfo,outf)
+        constraint = kink_constraints(pose,abinfo,outf)
         print "Constraints file %s:" % outfname
         outf.close()
         with open(outfname, 'r') as fin:

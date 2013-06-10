@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+#from rosetta import rosetta,Pose,pose_from_pdb # no time improvement
 from rosetta import *
 from rosetta.protocols.antibody import *
 rosetta.init(extra_options='-in:ignore_unrecognized_res')

@@ -198,6 +198,7 @@ def main(args):
         elif len(l)>8: frh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     #os.getcwd() #os.chdir()
+    global script_dir
     script_dir = os.path.dirname(__file__)
 
     if Options.prefix and Options.prefix[-1] != '/': Options.prefix += '/'
@@ -1080,6 +1081,7 @@ def kink_or_extend(CDRs):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def output_cter_constraint(base,prefix):
+    # Jianqing's original
     cnt=0
     f=open(prefix+'cter_constraint', 'w')
     for line in file(prefix+'/model.pdb'):
@@ -1098,6 +1100,12 @@ def output_cter_constraint(base,prefix):
                 if base == 'KINK': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 0.523 0.698 200' )
                 elif base == 'EXTEND': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 2.704 0.523 100' )
     f.close()
+    # new python script
+    commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
+    res, output = commands.getstatusoutput(commandline)
+    if Options.verbose and not res: print commandline+'\n', output
+    if res: print commandline+'\n', 'ERROR making constraint file: %s\n%s' % (res, output);  sys.exit(1)
+
 
 
 # Various filter function

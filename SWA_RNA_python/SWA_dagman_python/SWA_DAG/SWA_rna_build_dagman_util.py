@@ -1277,6 +1277,7 @@ def get_virt_ribose_sampler_job_tag(pose_info, standard_sampler_job_tag):
 
 ##################################################################################
 def create_sampled_virt_ribose_silent_file(pose_info, standard_sampler_job_tag, prev_clusterer_job_tag, all_job_tags, jobs_done, sample_virtual_ribose_list, native_pdb, fid_dag, num_silent_files):
+	"TODO (sripakpa): explain why have to sample virt ribose for each seperate build step that uses a particular outfile.
 
 	verbose=True
 

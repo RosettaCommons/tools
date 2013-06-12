@@ -42,7 +42,9 @@ pathway_file = parse_options( argv, "pathway_file", "" )
 pathway_bulge_res = parse_options( argv, "pathway_bulge_res", [ -1 ] )
 allow_normal_move_at_pathway_bulge_res = parse_options( argv, "allow_normal_move_at_pathway_bulge_res", "False"  )
 allow_bulge_move_at_non_pathway_bulge_res = parse_options( argv, "allow_bulge_move_at_non_pathway_bulge_res", "False"  )
-build_from_helix_to_helix_mode = parse_options( argv, "build_from_helix_to_helix_mode", "True"  ) #Change default to True on Oct 10, 2010
+build_from_helix_to_helix_mode = parse_options( argv, "build_from_helix_to_helix_mode", "True"  )
+# TODO (sripakpa): add detail Prevent cycles.
+
 allow_bulge = parse_options( argv, "allow_bulge", "True" ) #Python boolean #change to True on April 9th, 2011
 starting_elements = parse_options( argv, "starting_elements", [ -1 ]  )
 allow_build_from_scratch = parse_options( argv, "allow_build_from_scratch", "False"  )
@@ -52,6 +54,7 @@ floating_base=parse_options( argv, "floating_base", "True" ) #change to true on 
 
 optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False")
 # optimize_long_loop_mode:
+#   This is used in Sripakdeevong et al. 2011 PNAS
 #   Built long loop in potentially O(n) instead of O(n**2) steps.
 #   Consider the following 6 nucleotides loop:
 #           N-A1-A2-A3-U4-U5-U6-N
@@ -98,8 +101,12 @@ optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False
 #           N-A1-A2-U3-U4-U5-U6-N
 
 OLLM_chain_closure_only = parse_options (argv, "OLLM_chain_closure_only", "False")
-# OLLM_chain_closure_only : 
-#   A strict extension of optimize_long_loop_mode. Should be run only in
+# OLLM_chain_closure_only :
+#   This is used in Sripakdeevong et al. 2011 PNAS
+#   OLLM is abbreviation for optimize_long_loop_mode
+#   A strict extension of optimize_long_loop_mode (strictly run in O(n) steps
+#   rather than O(n**2) steps where n is the number of loop nucleotides).
+#   Should be run only in
 #   conjunction with optimize_long_loop_mode.
 #   
 #   (1) Modifies the behavior of the combine_long_loop mode:
@@ -126,13 +133,18 @@ duplex_frame_BP= parse_options(argv, "duplex_frame_BP", [ 0 ]) # these are eleme
 Is_valid_value_dinucleotide_at_single_element_cc(dinucleotide_at_single_element_cc)
 
 #sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True") #Change this to True on Jan 29, 2012!
-sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG",  floating_base ) # virt_ribose sampling should not be required if no floating base moves.
+sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG",  floating_base )
+# TODO (sripakpa): add details virt_ribose sampling should not be required if no floating base moves.
+# Allow better parallelization of sampler step (prevent bottleneck)
+# "TODO (sripakpa): explain why have to sample virt ribose for each seperate build step that uses a particular outfile.
+
 
 final_rebuild_bulge_step_only = parse_options(argv, "final_rebuild_bulge_step_only", "False") #New option Oct 22, 2011.
 BMRB_chemical_shift_file = parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
 
 allow_combine_DS_regions = parse_options(argv, "allow_combine_DS_regions", "False")
 # allow_combine_DS_regions : 
+#   DS is abbreviation for 'double-stranded'
 #   This option provides additional building steps when building double-
 #   stranded-motifs (e.g. activates combine_DS_regions mode.)
 #
@@ -267,9 +279,11 @@ if ( native_pdb!="" ):
 	sampling_args += '-native %s ' %(native_pdb)
 
 cluster_args = ' -algorithm rna_cluster  -database %s  %s ' %(DB, cluster_args)
+#TODO (sripakpa): Describe clusterer use cases (RMSD base comparision)
 
 filterer_args = ' -algorithm filter_combine_long_loop -database %s -clusterer_num_pose_kept %d ' %(DB, clusterer_num_pose_kept)
-
+#TODO (sripakpa): Describe filterer use cases (takes input two silent_files and output
+#       combined structures that pass certain filters)
 
 #########################################################
 #pdb info/pose_info is a map#
@@ -730,6 +744,8 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 						sample_virtual_ribose_list.append("%d-%s" %( element_definition[ (i_prev) % num_elements ][ 0], 'P' ) )
 
 				if not is_release_mode():
+					# Release_mode specifies that features have been tested and
+					# is release for usage by the wider community.
 					# Features such as consistency check should only be while
 					# testing the code and not in the released version of the
 					# code.

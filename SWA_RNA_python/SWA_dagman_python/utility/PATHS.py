@@ -127,7 +127,7 @@ def use_new_src_code():
 
 ##################################################################################################
 def is_release_mode():
-	"""Release_mode specify that features have been tested and
+	"""Release_mode specifies that features have been tested and
 	is release for usage by the wider community."""
 
 	return RELEASE_MODE

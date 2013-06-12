@@ -1,0 +1,75 @@
+PDB manipulations:
+
+The argument usage for these scripts can be found by running the
+scripts with no arguments.
+
+* addChain.pl:  add a new chain to a pdb file that previously did not
+  have one extractChains.pl:  extract given chains from a pdb file,
+  followed by a TER.  You can extract multiple chains at once, but
+  there will be only one TER at the end.
+
+* changeChain.pl:  change a the chainID of a given chain.
+
+* listChains.pl:  list chains in a pdb file, with the position of
+  existing TERs marked by a '-' after the appropriate chain. 
+
+* openPDB.pl:  Separate two docking partners (delimited by TERs) along
+  the line of centers by a given distance. 
+
+* pdb_detail.pl:  Breaks pdb file down completely by chains and
+  residue numbers.
+
+* pdb_fasta.pl:  Generate a FASTA format sequence file from a pdb.
+
+* pdb_remove_missing_bb.bl:  remove missing backbone atoms from a
+  pdb.  Missing backbone atoms in a pdb will cause Rosetta to crash.
+
+* renumberPDB.pl:  change the numbering in a pdb, starting over at
+  TERs.  Warning:  discontinuous numbering (e.g. chain breaks) will
+  become continuous.
+
+* translate_xyz.pl:  translate given chain of a pdb file by given
+  deltaX, deltaY, and deltaZ.
+
+* truncate.pl:  truncate a given chain of a pdb before or after a
+  given residue number.
+
+* zapHs.pl:  Removes hydrogens from a pdb (usually to remove Hs that
+  Rosetta has inserted).
+
+Disulfides:
+
+* makefixdisulf.py:  python script to make .fixdisulf files for using
+  -fix_disulf option in RosettaDock
+
+* calccontacts.py, coordlib.py, and loadPDB.py are python scripts upon which
+  makefixdisulf.py depends.  do not remove them.   
+
+More:
+
+* zapChain.pl - remove a chain from a pdb file
+ 
+* pdb_sequence.pl - extract the sequence from the pdb
+
+* pdb_add_insert_codes.pl - add insert letters to repeated pdb residue
+  numbers
+
+* orientPDB.pl - rotate the PDB based on a particular residue
+
+* renumberPDBandchains.pl - starts each chain numbering at res 1
+
+* renumberPDBatoms.pl - renumber the atoms from 1
+
+* homogenizeChain.pl - identifies all ATOMs with given chain and
+  removes TERs
+
+* pdb_subtract_scores.pl - Compare scores residue by residue
+
+* pdb_only_ATOM_TER.pl - remove everything from file except ATOM and
+  TER lines
+
+* truncateFABs.pl [-LH|-H] [-truncL x] [-truncH x] 
+	Truncate light chain L at 112 and heavy chain H at 119
+
+
+Several others have been deleted from CVS -- checkout -r 1.1 to view

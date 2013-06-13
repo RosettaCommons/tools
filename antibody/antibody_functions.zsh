@@ -9,7 +9,7 @@ function calcdecoytime(){
 
 # note: ${1+$1/} expands to $1/ if $1 exists, otherwise empty.  allows a directory prefix or not
 function lastpdb() {
-	for d in ${1+$1/}*/pdbs; do echo -n $d/; ls $d | tail -1; done	
+	for d in ${1+$1/}*/pdbs; do echo -n $d/; 'ls' $d | tail -1; done
 }
 
 function H3lengths() {
@@ -17,7 +17,7 @@ function H3lengths() {
 }
 
 function H3list() {
-	for f in ${1+$1/}*/grafting/details/H3.fasta; do echo -n $f\ ;tail -1 $f; done 
+	for f in ${1+$1/}*/grafting/details/H3.fasta; do echo -n $f\ ;tail -1 $f; done
 }
 
 function H3lengthshist() {
@@ -29,7 +29,7 @@ function L1lengths() {
 }
 
 function L1list() {
-	for f in ${1+$1/}*/grafting/details/L1.fasta; do echo -n $f\ ;tail -1 $f; done 
+	for f in ${1+$1/}*/grafting/details/L1.fasta; do echo -n $f\ ;tail -1 $f; done
 }
 
 function L1lengthshist() {
@@ -63,7 +63,7 @@ function pp_H3 () {
 	filenamecol=$(findColumn.pl description remodel_h3.fasc.sort | awk '{print $4}')
 	(( filenamecol ++ ))
 
-	head     remodel_h3.fasc.sort | awk '{print $1, $2, $'$filenamecol'}' > top10.scores     
+	head     remodel_h3.fasc.sort | awk '{print $1, $2, $'$filenamecol'}' > top10.scores
 	head -11 remodel_h3.fasc.sort | tail | awk '{print $'$filenamecol'}' > top10.models
 	mkdir top10
 	i=0;for d in `tail -10 top10.models`; do ; (( i += 1 )) ;  ln -s ../pdbs/$d.pdb.gz top10/$ab-m$i.pdb.gz; done
@@ -78,7 +78,7 @@ pp_H3_set () {
 		echo Post-processes the repertoire by sorting Abs by score and extracting the top10
 		return
 	fi
-	owd=$PWD 
+	owd=$PWD
 	cd $1
 	for d in *(/)
 	do
@@ -100,7 +100,32 @@ pp_zip_set () {
 		echo Usage: $0 repertoire_directory
 		echo Zip the top structures, fastas, and grafting log
 		return
-	fi	
-	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*fasta $1/*/grafting.log
+	fi
+	#tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*fasta $1/*/grafting.log
+	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*constr $1/*/*pdb
+}
+
+pp_kink_testset() {
+	if [ -z "$1" ]
+	then
+		echo Usage: $0 repertoire_directory
+		echo Post-processes for kink plots
+		return
+	fi
+	owd=$PWD
+	cd $1
+	for d in *(/)
+	do
+		if [ -d "$d" ]
+		then
+			echo "Antibody $d..."
+			cd $d
+			kink_geom.py LH_renumbered.pdb
+			head -11 remodel_h3.fasc.sort > remodel_h3.fasc.sort.top10
+			echo done
+			cd ../
+		fi
+	done
+	cd $owd
 }
 

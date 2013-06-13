@@ -11,7 +11,7 @@ fi
 
 repdir=$1
 if [ "$2" == "force" ]; then force=true; else force=false; fi
-maxjobs=7
+maxjobs=20
 
 cd $repdir
 dirs=`ls -dp * | grep '/' | sed 's/\///'`
@@ -37,7 +37,7 @@ lastdecoyfile=pdbs/model_$lastdecoynum.pdb
 echo Seeking $lastdecoynum decoys for each antibody
 echo Allowing a maximum of $maxjobs jobs in the queue
 
-export SQUEUE_FORMAT="%.7i %.9P %.14j %.8u %.2t %.10M %.6D %R" 
+export SQUEUE_FORMAT="%.7i %.9P %.21j %.8u %.2t %.10M %.6D %R" 
 
 
 for d in $dirs; do

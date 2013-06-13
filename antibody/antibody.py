@@ -127,6 +127,11 @@ def main(args):
       help="Use idealize protocol on final model.",
     )
 
+    parser.add_option("--constant-seed",
+      action="store_true", default=False, dest="constant_seed",
+      help="Use constant-seed flag in Rosetta grafting run (for debugging).",
+    )
+
     parser.add_option("--idealizeoff","--noidealize",
       action="store_false", dest="idealize",
       help="Do not use idealize protocol on final model. (default)",
@@ -1020,7 +1025,8 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
-                      ' -antibody::h3_no_stem_graft -run:constant_seed'
+                      ' -antibody::h3_no_stem_graft'
+        if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output

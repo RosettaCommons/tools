@@ -9,7 +9,7 @@
 # J. Gray - 2013 March 1
 #----------------------------------------------------
 
-#SBATCH -J Khan-naive          # Job name
+#SBATCH -J ABNAME0000             # Job name
 #SBATCH -o outerr/H3.%j.out       # Name of stdout output file (%j expands to jobId)
 #SBATCH -e outerr/H3.%j.err       # Name of stdout output file (%j expands to jobId)
 #SBATCH --mail-user=jeffreyjgray@gmail.com

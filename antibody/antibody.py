@@ -67,14 +67,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--superimpose_profit',
-      action="store", default='',
-      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
+    parser.add_option('--superimpose-profit',
+      action="store", default='profit',
+      help="(default).  Add full path as argument if necessary.",
     )
 
-    parser.add_option('--superimpose_PyRosetta',
-      action="store", default='./superimpose_interface.py',
-      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
+    parser.add_option('--superimpose-PyRosetta','--superimpose-pyrosetta',
+      action="store_true", default=False,
+      help="Use PyRosetta to superimpose interface (boolean)",
     )
 
     parser.add_option('--blast-database',
@@ -208,6 +208,7 @@ def main(args):
         elif len(l)>8: frh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     #os.getcwd() #os.chdir()
+    global script_dir
     script_dir = os.path.dirname(__file__)
 
     #Options
@@ -331,13 +332,15 @@ def main(args):
     thread_template_pdbs(CDRs, prefix=prefix_details)
 
     #superimpose template PDBs
-    if Options.superimpose_profit:
+    if Options.superimpose_PyRosetta:
+      print "\nRunning superimpose_PyRosetta..."
+      command = script_dir + "/superimpose_interface.py --prefix " + prefix_details
+      res, output = commands.getstatusoutput(command)
+      if Options.verbose and not res: print command+'\n', output
+      if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
+    else:
       print "\nRunning ProFit..."
       superimpose_templates(CDRs, prefix=prefix_details)
-    else:
-      print "\nRunning " + Options.superimpose_PyRosetta + "..."
-      command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)
 
     #run Rosetta assemble CDRs
     if Options.rosetta_database:

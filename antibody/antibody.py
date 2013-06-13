@@ -11,7 +11,9 @@
 ## @file   antibody.py
 ## @brief  Pre-processing script for antibody protocol
 ## @author Sergey Lyskov
-## @author Modified by Daisuke Kuroda, JKLeman
+## @author Daisuke Kuroda
+## @author JKLeman
+## @author Jeff Gray
 
 import os, sys, re, json, commands, shutil
 
@@ -1026,8 +1028,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
-                      ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
-                      ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
+                      ' -restore_pre_talaris_2013_behavior' + \
                       ' -antibody::h3_no_stem_graft'
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
@@ -1069,13 +1070,12 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             return
 
     shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.pdb')
-    make_cter_constraint(CDRs, prefix)
+    cter = kink_or_extend(CDRs)
+    output_cter_constraint(cter, prefix)
 
 
-
-# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
-# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
-def make_cter_constraint(CDRs, prefix):
+def kink_or_extend(CDRs):
+    """Daisuke's H3 kink rules [citation]"""
     print '\nPreparing cter_constraint file for H3 modeling'
     L36  = AA_Code[ CDRs['numbering_L']['36'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
@@ -1102,7 +1102,14 @@ def make_cter_constraint(CDRs, prefix):
     elif H100 == 'ASP' or H100 == 'ASN' or H100 == 'LYS' or H100 == 'ARG': base = 'EXTEND'
     elif len_h3 == 7: base = 'EXTEND'
     else: base = 'KINK'
+    print 'Predicted base conformation is', base
+    return base
 
+
+# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
+# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
+def output_cter_constraint(base,prefix):
+    # Jianqing's original
     cnt=0
     f=open(prefix+'cter_constraint', 'w')
     for line in file(prefix+'/model.pdb'):
@@ -1121,7 +1128,13 @@ def make_cter_constraint(CDRs, prefix):
                 if base == 'KINK': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 0.523 0.698 200' )
                 elif base == 'EXTEND': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 2.704 0.523 100' )
     f.close()
-    print 'Predicted base conformation is', base
+    # new python script
+    commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
+    res, output = commands.getstatusoutput(commandline)
+    if Options.verbose and not res: print commandline+'\n', output
+    if res: print commandline+'\n', 'ERROR making constraint file: %s\n%s' % (res, output);  sys.exit(1)
+
+
 
 # Various filter function
 def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):

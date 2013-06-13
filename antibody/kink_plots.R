@@ -8,7 +8,7 @@ rect.qbase = function() { rect(-10,6.5,70,7.75, border="blue") } #0.523 0.698 = 
 plot.qbase = function(scfile,top10,native,...){
 	plot( scfile$kink_qbase,scfile$kink_q, col="black", pch=".",ylim=c(0,10), 	
 		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$kink_q, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$kink_qbase, top10$kink_q, col="green", pch=18, cex=0.5) # blue diamond
 	points(native$qbase,native$q, col="red", pch=4) # red X
 	rect.qbase()
 }
@@ -26,7 +26,7 @@ rect.HB = function() { rect(-10,2,70,4, border="blue") } #0.523 0.698 = 30+/-40
 plot.bbHB = function(scfile,top10,native,...){
 	plot( scfile$kink_qbase,scfile$kink_bb_HB, col="black", pch=".",ylim=c(0,10), 	
 		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$kink_bb_HB, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$kink_qbase, top10$kink_bb_HB, col="green", pch=18, cex=0.5) # blue diamond
 	points(native$qbase,native$bbHBdist, col="red", pch=4) # red X
 	rect.HB()
 }
@@ -41,7 +41,7 @@ plot.native.bbHB = function(native){
 plot.RDHB = function(scfile,top10,native,...){
 	plot( scfile$kink_qbase,scfile$kink_RD_HB, col="black", pch=".",ylim=c(0,10), 	
 		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$kink_RD_HB, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$kink_qbase, top10$kink_RD_HB, col="green", pch=18, cex=0.5) # blue diamond
 	points(native$qbase,native$HBdist, col="red", pch=4) # red X
 	rect.HB()
 }
@@ -57,7 +57,7 @@ plot.native.RDHB = function(native){
 plot.TrpHB = function(scfile,top10,native,...){
 	plot( scfile$kink_qbase,scfile$kink_Trp_HB, col="black", pch=".",ylim=c(0,10), 	
 		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$kink_Trp_HB, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$kink_qbase, top10$kink_Trp_HB, col="green", pch=18, cex=0.5) # blue diamond
 	points(native$qbase,native$W_HBdist, col="red", pch=4) # red X
 	rect.HB()
 }
@@ -75,7 +75,7 @@ plot.scoreVrmsd = function(scfile,top10,...){
 	sc = scfile$total_score - 600 * (scfile$total_score>0)
 	plot( scfile$H3_RMS,sc, col="black", pch=".", 	
 		xlim=c(0,18),...)
-	points( top10$H3_RMS, top10$total_score, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$H3_RMS, top10$total_score, col="green", pch=18, cex=0.5) # blue diamond
 }
 
 
@@ -86,7 +86,7 @@ plot.scoreVqbase = function(scfile,top10,...){
 	sc = scfile$total_score - 600 * (scfile$total_score>0)
 	plot( scfile$kink_qbase,sc, col="black", pch=".", 	
 		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$total_score, col="pink", pch=18, cex=0.5) # blue diamond
+	points( top10$kink_qbase, top10$total_score, col="green", pch=18, cex=0.5) # blue diamond
 }
 
 

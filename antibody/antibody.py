@@ -850,20 +850,20 @@ def create_virtual_template_pdbs(prefix):
                             o.write( line2 )
 
                 #                                                               v needed to circumvent collinearity!
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 + 0.01)
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 + 0.02)
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 + 0.03)
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 + 0.04)
+                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 )
+                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 )
+                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 )
+                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 )
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 + 0.09)
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 + 0.07)
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 + 0.07)
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 + 0.06)
+                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 )
+                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 )
+                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 )
+                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 )
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 + 0.01)
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 + 0.03)
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 + 0.06)
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 + 0.09)
+                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 )
+                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 )
+                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 )
+                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 )
 
                 #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
                 #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )

@@ -16,6 +16,7 @@
 import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
+from time import time
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -42,6 +43,7 @@ _alignment_legend_to_pretty_legend = {
 def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
+    starttime = time()
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
@@ -56,8 +58,8 @@ def main(args):
     )
 
     parser.add_option('--prefix',
-      action="store", default='output/',
-      help="Prefix for output files. Should be dir name. Default is ./ string.",
+      action="store", default='grafting/',
+      help="Prefix for output files (directory name). Default is grafting/.",
     )
 
     parser.add_option('--blast',
@@ -65,14 +67,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--superimpose_profit',
-      action="store", default='',
-      help="If ProFit is used for superimposition, then use 'profit' as argumument variable for the executable of ProFit. Specify path+name if not in same directory.",
+    parser.add_option('--superimpose-profit',
+      action="store", default='profit',
+      help="(default).  Add full path as argument if necessary.",
     )
 
-    parser.add_option('--superimpose_PyRosetta',
-      action="store", default='./superimpose_interface.py',
-      help="If PyRosetta is used for superimposition, then use './superimpose_interface.py' as argument variable. Default is './superimpose_interface.py'.",
+    parser.add_option('--superimpose-PyRosetta','--superimpose-pyrosetta',
+      action="store_true", default=False,
+      help="Use PyRosetta to superimpose interface (boolean)",
     )
 
     parser.add_option('--blast-database',
@@ -82,7 +84,7 @@ def main(args):
 
     parser.add_option('--antibody-database',
       action="store", default=None,
-      help="Specify path of antibody database dir.",
+      help="Specify path of antibody database dir. Default: script_dir/antibody_database.",
     )
 
     parser.add_option('--rosetta-database',
@@ -90,19 +92,24 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
-    parser.add_option('--homologue_exclusion',
-      default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during template selections.",
+    parser.add_option('--exclude-homologs','-x',
+        action="store_true", default=False,
+        help="Exclude homologs with default cutoffs",
     )
 
-    parser.add_option('--homologue_exclusion_cdr',
+    parser.add_option('--homolog_exclusion',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***CDR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR or FR template selections.",
     )
 
-    parser.add_option('--homologue_exclusion_fr',
+    parser.add_option('--homolog_exclusion_cdr',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***FR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR template selections.",
+    )
+
+    parser.add_option('--homolog_exclusion_fr',
+      default=200, type="int",
+      help="Specify the cut-off for homolog exclusion during FR template selections.",
     )
 
     parser.add_option('--rosetta-bin',
@@ -116,17 +123,32 @@ def main(args):
     )
 
     parser.add_option("--idealize",
-      default=0, type="int",
-      help="Specify if idealize protocol should be running on final model [0/1]. (default: 0, which mean do not run idealize protocol)",
+      action="store_true", default=False, dest="idealize",
+      help="Use idealize protocol on final model.",
+    )
+
+    parser.add_option("--constant-seed",
+      action="store_true", default=False, dest="constant_seed",
+      help="Use constant-seed flag in Rosetta grafting run (for debugging).",
+    )
+
+    parser.add_option("--idealizeoff","--noidealize",
+      action="store_false", dest="idealize",
+      help="Do not use idealize protocol on final model. (default)",
     )
 
     parser.add_option("--relax",
-      default=1, type="int",
-      help="Specify if relax protocol should be running on final model [0/1]. (default: 1, which mean run relax protocol)",
+      action="store_true", default=True, dest="relax",
+      help="Use relax protocol on final model. (default)",
+    )
+
+    parser.add_option("--relaxoff","--norelax",
+      action="store_false", dest="relax",
+      help="Do not use relax protocol on final model.",
     )
 
     parser.add_option("--quick","-q",
-      default=0, type="int",
+      action="store_true", default=False,
       help="Specify fast run (structure will have clashes).  Prevents stem optimization and turns off relax, idealize.",
     )
 
@@ -158,21 +180,13 @@ def main(args):
 
     # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homologue:True }
+                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
-                                        help="Boolen option [0/1] that control filetering results with %s function." % f.func_name)
+                                        help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
-
-    global sid_cutoff
-    global sid_cutoff_cdr
-    global sid_cutoff_fr
-
-    sid_cutoff     = Options.homologue_exclusion
-    sid_cutoff_cdr = Options.homologue_exclusion_cdr
-    sid_cutoff_fr  = Options.homologue_exclusion_fr
 
     global frlh_info
     global frl_info
@@ -194,6 +208,7 @@ def main(args):
         elif len(l)>8: frh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     #os.getcwd() #os.chdir()
+    global script_dir
     script_dir = os.path.dirname(__file__)
 
     #Options
@@ -241,7 +256,7 @@ def main(args):
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
 
-    print 'Prefix:', Options.prefix
+    print 'Output prefix:', Options.prefix
     print 'Blast database:', Options.blast_database
     print 'Antibody database:', Options.antibody_database
     print 'rosetta_bin:', Options.rosetta_bin, ' [platform: %s]' % Options.rosetta_platform
@@ -257,23 +272,33 @@ def main(args):
         if Options.verbose and not res: print commandline+'\n', output
         if res: print commandline+'\n', 'ERROR: Unpacking antibody database files failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
-    #print cutoffs for sequence IDs
-    if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
+    ##### Homolog exclusions settings #####
+    global sid_cutoff_cdr
+    global sid_cutoff_fr
+
+    if Options.exclude_homologs: # default exclusion settings if option is set
+        if Options.homolog_exclusion     == 200: Options.homolog_exclusion     = 80
+
+    # override default settings
+    sid_cutoff     = Options.homolog_exclusion
+    sid_cutoff_cdr = Options.homolog_exclusion_cdr
+    sid_cutoff_fr  = Options.homolog_exclusion_fr
+
+    if sid_cutoff_cdr > 100 and sid_cutoff_fr > 100 and sid_cutoff < 100:
+        sid_cutoff_cdr = sid_cutoff
+        sid_cutoff_fr = sid_cutoff
+    if sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
         print 'Using full antibody database (no homolog exclusion)'
     elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
         if sid_cutoff_cdr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
         else:
-            print '\n!!! Homologues will not be excluded during ***CDR*** template selection (default)    !!!'
-
+            print '\n!!! Homologs will not be excluded during ***CDR*** template selection (default)    !!!'
         if sid_cutoff_fr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
         else:
-            print '\n!!! Homologues will not be excluded during ***FR*** template selection (default)    !!!'
-    elif sid_cutoff <= 100:
-        print     '\n!!! Homologues will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
-        sid_cutoff_cdr = sid_cutoff
-        sid_cutoff_fr = sid_cutoff
+            print '\n!!! Homologs will not be excluded during ***FR*** template selection (default)    !!!'
+    ### end Homolog exclusion settings
 
     if Options.quick:
         Options.relax = 0
@@ -307,13 +332,15 @@ def main(args):
     thread_template_pdbs(CDRs, prefix=prefix_details)
 
     #superimpose template PDBs
-    if Options.superimpose_profit:
+    if Options.superimpose_PyRosetta:
+      print "\nRunning superimpose_PyRosetta..."
+      command = script_dir + "/superimpose_interface.py --prefix " + prefix_details
+      res, output = commands.getstatusoutput(command)
+      if Options.verbose and not res: print command+'\n', output
+      if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
+    else:
       print "\nRunning ProFit..."
       superimpose_templates(CDRs, prefix=prefix_details)
-    else: 
-      print "\nRunning " + Options.superimpose_PyRosetta + "..."
-      command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)    
 
     #run Rosetta assemble CDRs
     if Options.rosetta_database:
@@ -324,6 +351,10 @@ def main(args):
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
     for n in [i for i in CDRs if i.startswith('numbering_')]: results['numbering'][n] = CDRs[n]
+
+    #report run time
+    endtime=time()
+    print 'Run time %2.2f s' % (endtime-starttime)
 
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'
@@ -779,13 +810,16 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     table[i] = dict( [(k, try_to_float(v[k])) for k in v] )
 
 
+        prefix_filters = prefix + 'filters/'
+        if not os.path.isdir(prefix_filters): print 'Could not find %s... creating it...' % prefix_filters;  os.makedirs(prefix_filters)
+
         for f in Filters:
             if getattr(Options, f.func_name):
                 f(k, table, cdr_query, cdr_info)
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
-                sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
+                sort_and_write_results([i for i in table_original if i not in t], prefix_filters +'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-        sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
+        sort_and_write_results(table, prefix_filters + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 
@@ -850,20 +884,20 @@ def create_virtual_template_pdbs(prefix):
                             o.write( line2 )
 
                 #                                                               v needed to circumvent collinearity!
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 + 0.01)
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 + 0.02)
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 + 0.03)
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 + 0.04)
+                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 )
+                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 )
+                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 )
+                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 )
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 + 0.09)
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 + 0.07)
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 + 0.07)
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 + 0.06)
+                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 )
+                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 )
+                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 )
+                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 )
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 + 0.01)
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 + 0.03)
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 + 0.06)
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 + 0.09)
+                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 )
+                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 )
+                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 )
+                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 )
 
                 #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
                 #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
@@ -995,6 +1029,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
                       ' -antibody::h3_no_stem_graft'
+        if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
@@ -1089,7 +1124,7 @@ def make_cter_constraint(CDRs, prefix):
     print 'Predicted base conformation is', base
 
 # Various filter function
-def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
+def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):
     if Options.verbose: print 'filtering by sequence identity...'
     #print results
 

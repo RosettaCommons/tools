@@ -21,14 +21,14 @@ if [ ! -d "$repdir" ]; then
 fi
 cd $repdir
 
+if [ "$2" == "force" ]; then force=true; else force=false; fi
+if [ "$2" == "quick" ]; then norelax="--quick=1"; fi
+
 dirs=`ls -d *`
-echo Processing Repertoire Antibodies: $dirs
+echo Processing Repertoire Antibodies: $dirs $norelax
 success=0
 failed=0
 skipped=0
-
-if [ "$2" == "force" ]; then force=true; else force=false; fi
-if [ "$2" == "quick" ]; then norelax="--quick=1"; fi
 
 for d in $dirs; do
   if [ -d "$d" ]; then

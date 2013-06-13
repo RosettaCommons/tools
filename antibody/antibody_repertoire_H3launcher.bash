@@ -11,7 +11,7 @@ fi
 
 repdir=$1
 if [ "$2" == "force" ]; then force=true; else force=false; fi
-maxjobs=7
+maxjobs=20
 
 cd $repdir
 dirs=`ls -dp * | grep '/' | sed 's/\///'`

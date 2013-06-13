@@ -89,3 +89,10 @@ echo $queued Jobs enqueued
 echo $abovemax Jobs remain unlaunched
 echo "-------------------------------------------------------------------------------------------------"
 squeue -u $USER
+
+
+##Restarting with power!
+#cd ../3GI9
+#sed 's/ABNAME0000/'$(basename $pwd)'/' ../abH3.power.sbatch > abH3.power.sbatch
+#sbatch abH3.power.sbatch
+

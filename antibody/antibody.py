@@ -310,10 +310,10 @@ def main(args):
     if Options.superimpose_profit:
       print "\nRunning ProFit..."
       superimpose_templates(CDRs, prefix=prefix_details)
-    else: 
+    else:
       print "\nRunning " + Options.superimpose_PyRosetta + "..."
       command = Options.superimpose_PyRosetta + " --prefix " + prefix_details
-      status, output = commands.getstatusoutput(command)    
+      status, output = commands.getstatusoutput(command)
 
     #run Rosetta assemble CDRs
     if Options.rosetta_database:
@@ -994,7 +994,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
                       ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
                       ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
-                      ' -antibody::h3_no_stem_graft'
+                      ' -antibody::h3_no_stem_graft -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output

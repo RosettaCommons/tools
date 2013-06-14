@@ -65,6 +65,8 @@ function pp_H3 () {
 
 	head     remodel_h3.fasc.sort | awk '{print $1, $2, $'$filenamecol'}' > top10.scores
 	head -11 remodel_h3.fasc.sort | tail | awk '{print $'$filenamecol'}' > top10.models
+	head -11 remodel_h3.fasc.sort > remodel_h3.fasc.sort.top10
+
 	mkdir top10
 	i=0;for d in `tail -10 top10.models`; do ; (( i += 1 )) ;  ln -s ../pdbs/$d.pdb.gz top10/$ab-m$i.pdb.gz; done
 	#scp -r top10 jeff@$SSH_CLIENT_IP:$(basename $PWD)
@@ -102,7 +104,7 @@ pp_zip_set () {
 		return
 	fi
 	#tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*fasta $1/*/grafting.log
-	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*constr $1/*/*pdb
+	tar -cvzhf $1-top.tgz $1/*/top10 $1/*/*fasc* $1/*/top10* $1/*/*constr* $1/*/*pdb
 }
 
 pp_kink_testset() {

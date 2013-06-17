@@ -8,7 +8,7 @@ import hashlib
 
 def make_path(directory,name):
     sha1 = hashlib.sha1()
-    sha1 = hashlib.update(name)
+    sha1.update(name)
     digest = sha1.hexdigest()
     subdir = digest[0:2]
     path = "%(dir)s/%(subdir)s/%(digest)s.mol" % {"dir":directory,"subdir":subdir,"digest":digest}
@@ -21,15 +21,16 @@ def main():
     parser.add_option("-d",dest="descriptor",default="")
     parser.add_option("--make_uuid_names",dest="uuid",default=False, action="store_true")
     (options,args) = parser.parse_args()
-    if len(args) != 2:
-        parser.error("specify an input sdf file and an output directory")
+    if len(args) != 3:
+        parser.error("specify an input sdf file, an output directory, and a path to a path map file")
     infile = open(args[0],'r')
-    path_map = open(args[2],'w')
+    path_map = open(args[2],'a')
     line_counter=1
     current_record = ""
     outfile = None
     record_count = 0
     line_buffer = []
+    path_tuples = set()
     found_descriptor = False
     for line in infile:
         subdir,output_path = make_path(args[1],current_record)
@@ -53,7 +54,8 @@ def main():
             if(outfile):
                 outfile.write("$$$$\n")
                 outfile.close()
-                path_map.write(current_record+","+output_path+"\n")
+                path_tuples.add( (current_record,output_path) )
+                #path_map.write(current_record+","+output_path+"\n")
             line_buffer = []
         elif(line_counter is 1 and options.descriptor is ""):
             if options.uuid:
@@ -81,6 +83,8 @@ def main():
             #outfile.write(line)
         line_counter +=1
     print str(record_count) + " records processed"
+    for current_record,output_path in path_tuples:
+        path_map.write(current_record+","+output_path+"\n")
     path_map.close()
 
 if __name__ == "__main__":

@@ -18,13 +18,29 @@ def write_data(db_name,table,columns,data_list):
     '''Given a data map, list of columns and a table name, write data to the database'''
     column_inserts = "(" + ",".join(["?" for x in range(len(columns))]) + ")"
     column_names = "(" + ",".join(columns) + ")"
-    print column_names,column_inserts
     insert_string = "INSERT INTO " + table + " " + column_names + " VALUES " + column_inserts
-    print insert_string
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for record in data_list:
         data_list = [record[key] for key in columns]
         cursor.execute(insert_string,data_list)
+    connection.commit()
+    connection.close()
+    
+
+def get_all_file_names(db_name):
+    select_string = "SELECT record_id,filename FROM sdf_input_data"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    for record_id,filename in cursor.execute(select_string):
+        yield (record_id,filename)
+        
+    connection.close()
+    
+def update_filename(db_name, record_id,new_filename ):
+    update_string = "UPDATE sdf_input_data SET filename = ? WHERE record_id = ?"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(update_string,(new_filename,record_id))
     connection.commit()
     connection.close()

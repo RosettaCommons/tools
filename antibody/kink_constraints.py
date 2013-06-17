@@ -32,7 +32,7 @@ def kink_constraints(pose, abinfo, outf = sys.stdout):
     kan=kink_anion_res(abinfo)
     kcat=kink_cation_res(abinfo)
     # CTER kink dihedral angle q
-    outf.write("Dihedral CA %i CA %i CA %i CA %i SQUARE_WELL2 0.523 0.698 600\n" % (kr0,kr1,kr2,kr3) )
+    outf.write("Dihedral CA %i CA %i CA %i CA %i SQUARE_WELL2 30 40 600 DEGREES\n" % (kr0,kr1,kr2,kr3) )
     # CTER kink q bond distance
     #outf.write("AtomPair CA %i CA %i FLAT_HARMONIC 7.125 0.5 0.625\n" % (kr0,kr3) )
     # KD Hbond

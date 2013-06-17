@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-#definitely not the best script ive ever written, sorry guys
+#definitely not the best script ive ever written
+
+'''Split up an SDF file such that conformers of each individual ligand are in seperate files.
+Output filenames will be hashed and split into directories by the first two digits of the hash
+a path map with the original ligand ID and the new file path is output.
+
+Author: Sam DeLuca'''
+
 from optparse import OptionParser
 import os
 import re

@@ -15,7 +15,7 @@ def setup_input_schema(db_name,header):
     connection.close()
     
 def write_data(db_name,table,columns,data_list):
-    
+    '''Given a data map, list of columns and a table name, write data to the database'''
     column_inserts = "(" + ",".join(["?" for x in range(len(columns))]) + ")"
     column_names = "(" + ",".join(columns) + ")"
     print column_names,column_inserts

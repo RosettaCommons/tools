@@ -6,8 +6,18 @@ def setup_input_schema(db_name,header):
     
     schema_fields = ",".join([key + " "+ header[key] for key in header])
     
-    schema_string = "CREATE TABLE sdf_input_data (record_id INTEGER PRIMARY KEY AUTOINCREMENT," + schema_fields + ")"
+    schema_string = "CREATE TABLE IF NOT EXISTS sdf_input_data (record_id INTEGER PRIMARY KEY AUTOINCREMENT," + schema_fields + ")"
     
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(schema_string)
+    connection.commit()
+    connection.close()
+    
+def setup_tag_schema(db_name):
+    '''given a db name, set up the tag schema'''
+    
+    schema_string = "CREATE TABLE IF NOT EXISTS activity_tags (record_id INTEGER REFERENCES sdf_input_data(record_id), tag string,value float)"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     cursor.execute(schema_string)

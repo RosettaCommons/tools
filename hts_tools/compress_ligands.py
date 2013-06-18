@@ -4,6 +4,7 @@
 
 Author: Sam DeLuca'''
 
+import sys
 import gzip
 import os
 from ligand_database import *
@@ -35,6 +36,8 @@ if __name__ == "__main__":
     if len(args) != 1:
         parser.error("you must specify both an input database")
     database_path = args[0]
+    if not os.path.exists(database_path):
+        sys.exit(database_path+" does not exist")
     
     processor_pool = Pool(int(options.nprocs))
     

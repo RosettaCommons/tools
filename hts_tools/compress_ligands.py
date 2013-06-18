@@ -33,7 +33,7 @@ def init_options():
 if __name__ == "__main__":
     options,args = init_options().parse_args()
     if len(args) != 1:
-        parser.error("you must specify both an input csv file and an output database")
+        parser.error("you must specify both an input database")
     database_path = args[0]
     
     processor_pool = Pool(int(options.nprocs))

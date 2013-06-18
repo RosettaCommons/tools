@@ -17,7 +17,7 @@ def setup_input_schema(db_name,header):
 def setup_tag_schema(db_name):
     '''given a db name, set up the tag schema'''
     
-    schema_string = "CREATE TABLE IF NOT EXISTS activity_tags (record_id INTEGER REFERENCES sdf_input_data(record_id), tag string,value float)"
+    schema_string = "CREATE TABLE IF NOT EXISTS activity_tags (tag_id INTEGER PRIMARY KEY AUTOINCREMENT,record_id INTEGER REFERENCES sdf_input_data(record_id), tag string,value float)"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     cursor.execute(schema_string)
@@ -34,6 +34,27 @@ def write_data(db_name,table,columns,data_list):
     for record in data_list:
         data_list = [record[key] for key in columns]
         cursor.execute(insert_string,data_list)
+    connection.commit()
+    connection.close()
+    
+def write_tag_data(db_name,data_list):
+    insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+    query_string = "SELECT record_id FROM sdf_input_data WHERE ligand_id = ?"
+    
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    
+    query_record_id_map = {}
+    for record in data_list:
+        ligand_id = record["ligand_id"]
+        for row in cursor.execute(query_string,(ligand_id,)):
+            query_record_id_map[ligand_id] =row[0]
+    
+    for record in data_list:
+        record_id = query_record_id_map[record["ligand_id"]]
+        tag = record["tag"]
+        value = record["value"]
+        cursor.execute(insert_string,(record_id,tag,value))
     connection.commit()
     connection.close()
     

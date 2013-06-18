@@ -37,10 +37,11 @@ def get_all_file_names(db_name):
         
     connection.close()
     
-def update_filename(db_name, record_id,new_filename ):
+def update_filenames(db_name, filename_update_data):
     update_string = "UPDATE sdf_input_data SET filename = ? WHERE record_id = ?"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
-    cursor.execute(update_string,(new_filename,record_id))
-    connection.commit()
+    for record_id,path in filename_update_data:
+        cursor.execute(update_string,(path,record_id))
+        connection.commit()
     connection.close()

@@ -10,7 +10,7 @@ import csv
 import sys
 from ligand_database import *
 from os.path import exists
-from hts_utils import parse_input_file
+from hts_util import parse_input_file
         
 def all_files_exist(data_list):
     for record in data_list:

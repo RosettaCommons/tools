@@ -1,4 +1,5 @@
 import csv
+import sys
 
 def parse_input_file(input_path,required_headers):
     '''Parse the CSV input file into a list of dicts.  Return the header and '''

@@ -12,8 +12,26 @@ from ligand_database import *
 from optparse import OptionParser
 from multiprocessing import Pool
 import shutil 
+
+def already_processed(input_file):
+    in_handle = open(input_file)
+    for i, line in enumerate(in_handle):
+        if i == 1:
+            fields = line.split()
+            if fields[0] == "SDcorina":
+                #print "skipping", input_file.split("/")[-1]
+                in_handle.close()
+                return True
+                
+            else:
+                print "processing",input_file.split("/")[-1]
+                in_handle.close()
+                return False
+                
 def add_hydrogens(input_file):
     '''Run corina to add hydrogens'''
+    if already_processed(input_file):
+        return
     out_file = input_file+".tmp"
     corina_command = "corina -d wh,no3d %(infile)s %(outfile)s"
     #print corina_command % {"infile": input_file,"outfile" : out_file}

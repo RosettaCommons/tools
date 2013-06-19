@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-program_description="Run with option -h to view help. Script to generate a report of recent commits. If the appropriate LaTeX packages are installed, can also be used to generate slides using beamer. Requires python-git, python-gitdb, python-bs4, python-feedparser and (probably) Python 2.7."
+program_description="Run with option -h to view help. Script to generate a report of recent commits. If the appropriate LaTeX packages are installed, can also be used to generate slides using beamer. Requires python-git, python-gitdb, python-bs4, python-feedparser and (probably) Python 2.7. Suggested LaTeX packages: latex-beamer texlive"
 
 __author__="Kyle Barlow"
 
@@ -251,6 +251,11 @@ def mark_interesting(rev_dict,only_new=True):
             print '\n'*50
             print 'REVISION:'
             print '%d %s'%(rev.rev_id,rev.author)
+
+            # print link if in dict
+            if rev.rev_id-1 in rev_dict:
+                parent_hash=rev_dict[rev.rev_id-1].sha1
+                print github_compare+parent_hash+'...'+rev.sha1
             if rev.status==None:
                 print 'Test status: unavailable'
             elif rev.status=='':

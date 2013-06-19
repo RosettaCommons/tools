@@ -20,8 +20,9 @@ def all_files_exist(data_list):
 
 def init_options():
     usage = "%prog input_file.csv output.db3"
-    parser=OptionParser(usage)
     
+    parser=OptionParser(usage)
+    parser.add_option("--no_verify",dest="no_verify",help="Don't check that paths in input csv exist before writing db",default=False, action="store_true")
     return parser
 
 if __name__ == "__main__":
@@ -35,9 +36,10 @@ if __name__ == "__main__":
     #parse input file
     header, data_list = parse_input_file(input_file,["filename","ligand_id"])
     
-    status, record = all_files_exist(data_list)
-    if status == False:
-        sys.exit("ERROR: %(filename)s does not exist" % {"filename" : record["filename"]})
+    if not options.no_verify:
+        status, record = all_files_exist(data_list)
+        if status == False:
+            sys.exit("ERROR: %(filename)s does not exist" % {"filename" : record["filename"]})
     
     setup_input_schema(output_db,header)
     

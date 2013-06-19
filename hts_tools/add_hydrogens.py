@@ -14,13 +14,11 @@ from multiprocessing import Pool
 import shutil 
 def add_hydrogens(input_file):
     '''Run corina to add hydrogens'''
-    outhandle,out_file = tempfile.mkstemp()
-    
+    out_file = input_file+".tmp"
     corina_command = "corina -d wh,no3d %(infile)s %(outfile)s"
-    
+    #print corina_command % {"infile": input_file,"outfile" : out_file}
     subprocess.call(corina_command % {"infile": input_file,"outfile" : out_file}, shell=True)
-    
-    shutil.move(out_file,input_file)
+    os.rename(out_file,input_file)
     
 def init_options():
     usage = "%prog -jn ligands.db3"

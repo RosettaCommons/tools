@@ -42,7 +42,7 @@ def init_options():
     usage = "%prog -jn ligands.db3"
     parser=OptionParser(usage)
     parser.add_option("-j",dest="nprocs",default=2)
-    parser.add_option("--only_tagged",dest="only_tagged",help="Only add hydrogens for ligands with activity tags",default=False,action="show_true")
+    parser.add_option("--only_tagged",dest="only_tagged",help="Only add hydrogens for ligands with activity tags",default=False,action="store_true")
     return parser
     
 if __name__ == "__main__":

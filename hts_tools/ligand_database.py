@@ -45,17 +45,29 @@ def write_tag_data(db_name,data_list):
     cursor = connection.cursor()
     
     query_record_id_map = {}
+    #print "getting ids for",len(data_list),"values"
+    #for record in data_list:
+    #    ligand_id = record["ligand_id"]
+    #    for row in cursor.execute(query_string,(ligand_id,)):
+    #        query_record_id_map[ligand_id] =row[0]
+    #print "writing activity tags"
+    skip_count = 0
     for record in data_list:
         ligand_id = record["ligand_id"]
-        for row in cursor.execute(query_string,(ligand_id,)):
-            query_record_id_map[ligand_id] =row[0]
-    
-    for record in data_list:
-        record_id = query_record_id_map[record["ligand_id"]]
+        record_id = None
+        cursor.execute(query_string,(ligand_id,))
+        try:
+            record_id = cursor.fetchone()[0]
+        except TypeError:
+            print "skipping",ligand_id
+            skip_count += 1
+            continue
+        print "found",ligand_id
         tag = record["tag"]
         value = record["value"]
         cursor.execute(insert_string,(record_id,tag,value))
-    connection.commit()
+        connection.commit()
+    print "skippped",skip_count
     connection.close()
     
 

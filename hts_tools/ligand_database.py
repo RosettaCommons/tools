@@ -71,8 +71,11 @@ def write_tag_data(db_name,data_list):
     connection.close()
     
 
-def get_all_file_names(db_name):
-    select_string = "SELECT record_id,filename FROM sdf_input_data"
+def get_all_file_names(db_name,only_tagged=False):
+    if only_tagged:
+        select_string = "SELECT record_id,filename FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
+    else:
+        select_string = "SELECT record_id,filename FROM sdf_input_data"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for record_id,filename in cursor.execute(select_string):

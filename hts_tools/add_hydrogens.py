@@ -24,6 +24,7 @@ def init_options():
     usage = "%prog -jn ligands.db3"
     parser=OptionParser(usage)
     parser.add_option("-j",dest="nprocs",default=2)
+    parser.add_option("--only_tagged",dest="only_tagged",help="Only add hydrogens for ligands with activity tags",default=False,action="show_true")
     return parser
     
 if __name__ == "__main__":
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     processor_pool = Pool(int(options.nprocs))
 
     filenames = []
-    for data in get_all_file_names(database_path):
+    for data in get_all_file_names(database_path,only_tagged=options.only_tagged):
         if data[1].split(".")[-1] == "gz":
             sys.exit("Some or all of the files in the database are compressed.  Corina doesn't work on gzipped files")
         filenames.append(data[1])

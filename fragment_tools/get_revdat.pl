@@ -19,7 +19,7 @@ if (!-s $pdbrevdat) {
 my $RCSB_PDB = "http://www.rcsb.org/pdb/files";
 
 # optional path to hierarchical PDB directory from RCSB
-my $LAB_PDB = $ENV{'PDB_DIR'} if (exists $ENV{'PDB_DIR'});;
+my $LAB_PDB = $ENV{'PDB_DIR'} if (exists $ENV{'PDB_DIR'});
 #system("rsync -auvz --port=33444 rsync.wwpdb.org::ftp/data/structures/divided/pdb/ $LAB_PDB > rsync_divided_pdb.log 2>/dev/null");
 
 # current date

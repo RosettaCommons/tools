@@ -1,0 +1,90 @@
+
+BASIC INSTALLATION
+
+1. Run install_dependencies.pl in fragment_tools.
+   This will take a long time so please be patient. Requires ~73+ Gigs of free disk space.
+
+	./install_dependencies.pl
+
+2. Build DEPTH executable
+
+	cd pdb2vall/structure_profile_scripts/DEPTH-CLONE-2.8.7
+	make
+	cd ../../
+
+3. Build the Rosetta fragment_picker application
+
+   cd ../../../main/source/
+   scons mode=release extras=boost_thread bin/fragment_picker.boost_thread.linuxgccrelease
+	 or
+	 scons mode=release bin/fragment_picker.linuxgccrelease
+
+4. Install BioPerl module Bio::AlignIO (http://doc.bioperl.org/)
+
+
+CUSTOM INSTALLATION
+
+1. If necessary, install external dependencies (see 'EXTERNAL DEPENDENCIES' below)
+2. If necessary, install the NCBI nr database (keep in mind it is very large)
+
+  wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz -O database/ncbi/
+  gunzip database/ncbi/nr.gz
+  formatdb -o T -i database/ncbi/nr
+
+3. Build DEPTH executable
+
+	cd structure_profile_scripts/DEPTH-CLONE-2.8.7
+	make
+	cd ../../
+
+4. Build the Rosetta fragment_picker application
+
+   cd ../../../main/source/
+   scons mode=release extras=boost_thread bin/fragment_picker.boost_thread.linuxgccrelease
+   or
+   scons mode=release bin/fragment_picker.linuxgccrelease
+
+5. Set optional environment variables in .cshrc
+
+  Example:
+
+	# set the name of a host that is open to the outside (public) network
+	setenv INET_HOST ws0
+
+	# pdb directory (hierarchical directory from RCSB)
+	setenv PDB_DIR /lab/databases/wwpdb
+
+6. Edit pdb2vall.cfg
+
+
+
+EXTERNAL DEPENDENCIES
+  (script(s) that use the software/package)
+
+  BioPerl module Bio::AlignIO (http://doc.bioperl.org/):
+    structure_profile_scripts/create_checkpoint_from_fasta_alignment.pl
+
+  DEPTH for residue depth (http://mspc.bii.a-star.edu.sg/tankp/download.html):
+    structure_profile_scripts/make_depthfile.py
+
+  BLAST, non-blast+ NCBI version (ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/):
+    sequence_profile_scripts/run_psiblast_filtnr_tight.pl
+    structure_profile_scripts/create_checkpoint_from_fasta_alignment.pl
+
+  DSSP (ftp://ftp.cmbi.ru.nl/pub/software/dssp/):
+    structure_profile_scripts/dssp2threestateSS.pl
+
+
+
+Databases which may need to be updated in the future:
+
+  database/ncbi/nr
+
+  database/rcsb_data:
+  derived_data ss_dis.txt
+
+  structure_profile_scripts/residue_depth_vall:
+  residue_depth_full_cullpdb_pc30_res2.0_R0.3_d110930_chains6280.4278.vall
+
+
+

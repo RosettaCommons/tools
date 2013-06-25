@@ -1,0 +1,127 @@
+*	RESIDUE DEPTH CLONE 
+*	Version:	2.8.6
+*	Author:	 	KuanPern Tan
+*	Institute: 	Bioinformatics Institute A*STAR Singapore
+
+INSTALLATION & USAGE
+The program comes with precompiled executables for Linux 64-bit machine. 
+To compile from source,
+% cd DEPTH-CLONE-2.8.6
+% make
+To install in /usr/local/bin,
+% make install
+To uninstall from local directory,
+% make clean
+To uninstall from /usr/local/bin,
+% make remove
+
+makefile uses GNU C++ compiler (gcc). Please modify accordingly if you wish to use other compiler.
+
+DEPTH
+Usage: Calculate atomic depth for an input pdb file.
+OPTION
+	-i input.pdb 
+	-o output 
+	[-n] iteration-number (Default 25) 
+	[-survive] minimum-number-of-neighbouring-solvent (Default 2) 
+	[-keep] minimally-solvated-models-filename (Default NULL) 
+	[-cavity] cavity-size (Default 4.2)  
+	[-w] solvent_box.pdb (Default ($PWD)/water_models/spc216.pdb)
+	[-box_x] length of solvation box in x-dimenson (Default 19)
+	[-box_y] length of solvation box in y-dimension (Default 19)
+	[-box_z] length of solvation box in z-dimension (Default 19)
+	[-sol_diameter] solvent-diameter (Default 2.8) 
+	[-clash_dist] vdw-distance(solvent, solute) (Default 2.6)
+	[-thread] number-of-threads (Default 2)
+
+
+Explanation
+For algorithm, see 
+'Suvobrata Chakravarty and Raghavan Varadarajan(1999). "Residue depth: a novel parameter for the analysis of protein structure and stability". Structure 7,723-732.'
+[?] Server paper (for modification of original algorithm)
+
+Input: input PDB file.
+Output: output PDB file, with beta-factor column replaced with depth of the atom
+
+solvent type default to water, SPC216 model. User can submit their own solvation box. But the following parameters have to be reconfigured:
+	[-w] [-box_x] [-box_y] [-box_z] [-sol_diameter] [-clash_dist] 
+
+Number of iteration default to 25. Normally a smaller number (around 10) is sufficient.
+Cavity size default to 4.2 Angstrom (1.5 hydration shell). 
+Vdw-distance from protein atom to solvent atom default to 2.6 Angstrom.
+Minimum number of neighbouring bulk solvents to define a bulk solvent default to 2.
+To visually inspect multiple solvent configuration, use -keep flag. Argument to the flag will be the filename to save for each configuration.
+
+example: 
+% ./DEPTH -i 1MVT.pdb -o 1MVT -n 10 -survive 3 -keep 1MVT-sol
+# compute residue depth for 1MVT.pdb, 10 iterations, cavity-size = 3 solvents, keep minimally solvated structures
+output files:
+1MVT-atom.depth: atomistic depth
+1MVT-residue.depth: residue depth
+1MVT-atomic_depth.pdb: PDB file with beta value column replaced with atomistic depth
+1MVT-residue_depth.pdb: PDB file with beta value column replaced with residue depth
+1MVT-sol-?.pdb: minimally solvated structure files
+
+complex-depth
+Usage: Calculate change of residue depth value upon proteins forming complexes
+OPTION
+	-i input.pdb 
+	-o output 
+	[-n] iteration-number (Default 25) 
+	[-survive] minimum-number-of-neighbouring-solvent (Default 2) 
+	[-keep] minimally-solvated-models-filename (Default NULL) 
+	[-cavity] cavity-size (Default 4.2)  
+	[-w] solvent_box.pdb (Default ($PWD)/water_models/spc216.pdb)
+	[-box_x] length of solvation box in x-dimenson (Default 19)
+	[-box_y] length of solvation box in y-dimension (Default 19)
+	[-box_z] length of solvation box in z-dimension (Default 19)
+	[-sol_diameter] solvent-diameter (Default 2.8) 
+	[-clash_dist] vdw-distance(solvent, solute) (Default 2.6)
+	[-thread] number-of-threads
+
+Explanation:
+All parameters and algorithms are the same with DEPTH, except that the program takes in a PDB files with multiple chains. It generates residue depth for individual chains (before) and complexes (after), their difference and standard deviation
+input: PDB file (with multiple chains)
+
+example:
+% ./complex-depth -i 1LXY.pdb -o 1LXY.depth_dif
+output:
+atomistic, residue depth and corresponding PDB files (see explanation of DEPTH)
+1LXY.depth_dif: change of residue depth upon chains forming complexes
+
+
+ASA
+Usage: Calculate residue solvent accessibility
+syntax: ./ASA input.pdb resolution probe-size output
+Option:
+	resolution: number of points placed on sphere (recommended value = 92)
+	probe-size: radius of solvent (in Angstrom). For water, use 1.4
+
+Explanation
+For algorithm, see 'Shrake A, Rupley JA. (1973). Environment and exposure to solvent of protein atoms. Lysozyme and insulin. J Mol Biol 79(2):351-71'
+
+example:
+./ASA 1MVT.pdb 92 1.4 1MVT.asa
+
+
+predict-binding-site
+Usage: Predict binding cavity of small ligand(s) for input structure
+Option:
+	-d depth-profile 
+	-a asa-profile 
+	-p parameter-file 
+	-o output 
+	-c input.pdb 
+	[-y] output.pdb
+	[-e] output.depth-asa
+
+Explanation:
+Discrepancy between residue depth and corresponding accessible surface area suggests a cavity on protein surface, potentially a binding site of small ligand. Bayesian probability of involvent of a binding site of each amino-acid type within such cavity is computed.
+
+example:
+./predict-binding-site -d 1MVT-residue.depth -a 1MVT.asa -p par/:3 -o 1MVT.cavity3.prediction -c 1MVT.pdb -y 1MVT.cavity3.pdb
+* take note of how parameter-file is specified. For cavity of size 4 solvents, use -p par/:4, etc.
+
+output files:
+1MVT.cavity3.prediction:list of residue and its probability value of involvement in binding cavity
+1MVT.cavity3.pdb:		PDB file with beta factor column replaced by probability value

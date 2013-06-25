@@ -1,0 +1,260 @@
+Documentation for MaxSprout.
+__________________________________________________________________________
+
+This set of programs constructs full atomic coordinates of a protein
+from a given C(alpha) trace ('buildbackbone') and optimizes side 
+chain geometry ('torso').
+
+Copyright by Liisa Holm and Chris Sander, 1989-1991.
+No redistribution, no program changes, no commercial use.
+
+For details, see J.Mol.Biol. 218, 183-194 (1991).
+
+___________________________________________________________________________
+___________________________________________________________________________
+Installation on UNIX
+
+The MaxSprout package comes in a tar file.  To unpack:
+
+	tar -xvf MaxSprout.tar
+
+To compile 'buildbackbone' (Pascal/C source): type 'make' to use the Makefile. 
+
+To install the fragment database, run CreateMainDB script after modifying the
+pathnames in dglp.list.
+
+To compile and link side chain optimizer 'torso' (FORTRAN source):
+
+	f77 -c torsotool.f
+	f77 -c u3b.f
+	f77 torso.f torsotool.o u3b.o -o torso
+
+The rotamer library is in ./rotlib.
+
+Files required by torso in your working directory:
+fort.71 (rotamer library);
+fort.81 (Monte Carlo parameters);
+rotamer library file (fort.71 - edit to correct path names).
+
+___________________________________________________________________________
+Running MaxSprout on Unix
+
+Torso requires over 20 Mbytes of memory.  In case of a segmentation fault,
+modify sizes.for, recompile and relink, or increase the stack size:
+
+	limit stacksize 30M
+
+___________________________________________________________________________
+___________________________________________________________________________
+Detailed information
+
+PROGRAM		MAXSPROUT
+
+FUNCTION
+	MaxSprout is three programs:
+	(0) readbrk converts PDB files to a binary format for use in buildbackbone
+	(1) buildbackbone builds backbone coordinates given CA coordinates
+	(2) torso builds sidechain coordinates given backbone coordinates
+
+DESCRIPTION
+	To construct backbones, a protein structure database is first scanned
+	for fragments that locally fit the chain trace according to distance
+	criteria.  A best path algorithm then sifts through these segments
+	and selects an optimal path with minimal mismatch at fragment joints.
+
+	Sidechains are added from a library of frequently occurring rotamers 
+	using a simple and fast Monte Carlo procedure with simulated annealing.
+
+	MaxSprout reads PDB files as input and output coordinates are also
+	in PDB format.
+
+PROGRAM WRITTEN BY
+	Liisa Holm
+	EMBL, Structures and Biocomputing programme, Meyerhofstrasse 1,
+	D-6900 Heidelberg, FRG
+
+EXAMPLE
+	Set the logicals used by MaxSprout:
+	$ @prepare-maxsprout
+
+	If you want to build backbone coordinates to a CA trace, type
+	$ @sprout$:maxsprout-bb {ca.brk}
+
+	If you want to build sidechain coordinates to a given backbone, type
+	$ @sprout$:maxsprout-sc {polyala.brk}
+
+	The com files ask for a PDB file name if it is not given, the rest 
+	is automatic !
+
+	Example output listings (for 1ubq, 1ppt) are provided in 
+	sprout-example$:*.*
+
+OUTPUT
+	Output from buildbackbone is in files: 
+	1ubq.brk_mod (backbone+CB coordinates) 
+	1ubq.stat (some statistics on fragment lengths)
+	1ubq.log (log of which fragments are used in the reconstructed model)
+	maxsprout-bb.log (screen output for '@maxsprout-bb 1ubq.brk')
+
+	output from torso is in files:
+	1ppt_sc.brk (backbone with sidechain coordinates added)
+	maxsprout-sc.log (screen output for '@maxsprout-sc 1ppt.brk')
+
+RESTRICTIONS
+	Non-standard amino acid names in the input file can create problems.
+	The sidechain builder only recognizes the twenty standard amino acids,
+	and the first atom in each residue must be N.
+
+	Unix device-dependent peculiarities running torso: 
+	On the DECstation, an empty string for the dssp file is not accepted.
+	On the Sun-4/Sparc, the restart file for Monte Carlo optimization is not used.
+
+ALGORITHM
+	The algorithms are described in Holm&Sander, J.Mol.Biol. 218, 183-194 
+	(1991).
+
+CONSIDERATIONS
+	If the program crashes, check the input format carefully.
+
+SUGGESTIONS
+	Advanced use of buildbackbone:
+	It is not recommended, but if you do answer 'N' to the question 
+	'Use default parameters ?' in buildbackbone, then you can change a 
+	number of parameters.  Do not try to understand their meaning without 
+	reading the description of the algorithm first.  You can change: 
+	range of residues to build (default is whole protein)
+	repair zone (number of residues used as starting point for fragments
+	when trying to seal a gap)	
+	maxscores (max # of candidate fragments at a given residue which are 
+	extracted from the database)
+	distance deviation cutoffs: first the algorithm does a 'greedy' search
+	(QuickSearch), then a more relaxed one (FullSearch); a minimum
+	fragment length and maximal CA-CA distance deviation [unit=0.01 A]
+	are defined here.
+	minlooplen: minimal fragment length (at least 4 is recomended)
+	tolerance [unit=A]: fragments are superposed onto the given CA trace, 
+	but their joining is checked by a distance criterion
+        applied to overlapping fragment ends, specified in terms of 'tolerance'.
+	Finally, the names of the coordinate, statistics and log files can be
+	changed.
+
+	Advanced use of torso:
+	Parameters which control the Monte Carlo optimization are given in the
+	file mc_param.dat.  The optimization has two parts, an initialization
+	step where the energy lookup tables are calculated and written to disk
+	to a binary file (unit for080).  The optimization can be restarted 
+	from the this file using a different set of parameters, if you answer
+	'y' to the question 'start directly from tmp file Y/N ?'. 
+	Torso has an option to fix sidechains, meaning that the coordinates 
+	of fixed sidechains are taken from the input file.  The program then 
+	asks for a sequence file.  Only lines which start with the string 
+	'FIXED ' (capital letters obligatory) are read.  '-' stands for a 
+	non-fixed residue and '*' stands for fixed residues.  "!" marks the 
+	end of the sequence. An example of this is in file 1PPT.SEQ.
+
+DEVICES REQUIRED
+	All programs run on VAX/VMS.
+
+	Torso runs at least on the following Unix machines: DECstation,
+	Iris and Sun-4/Sparc.
+
+INPUT FILE
+	Readbrk and torso read input coordinates in PDB format.
+
+	Buildbackbone ignores all except CA coordinates.
+	Torso ignores all except CA,C,N,O and CB coordinates and sidechain
+	coordinates which are defined as fixed.
+
+LOCAL DATA FILES
+	readbrk, buildbackbone:
+	The backbone builder uses a structural database which is created
+	from PDB files using the program readbrk. Buildbackbone asks for a file
+	with a list of names of proteins in the database (dglp.list in the
+	example).
+
+	torso:
+	The rotamer library is defined as khi angles of each rotamer.  
+	The rotamer library needs prototype amino acid coordinate files in
+	PDB format (each amino acid type in a separate file), the names of 
+	which are given in the rotamer library file (for071).  Parameters
+	controlling the Monte Carlo optimization are read from for081.
+
+	The Unix version of torso reads the rotamer library from fort.71 and 
+	the Monte Carlo parameters from fort.81.
+
+___________________________________________________________________________
+____________________________________________________________________________________
+Contents of tape for UNIX machines:
+
+  28 -rw-r--r--    1 holm     sander     13919 May  2 15:50 ./1ppt.brk_mod
+  18 -rw-r--r--    1 holm     sander      8928 May  2 15:50 ./1ppt.dist
+   7 -rw-r--r--    1 holm     sander      3079 May  2 15:50 ./1ppt.log
+   9 -rw-r--r--    1 holm     sander      4608 May  2 15:50 ./1ppt.main
+   6 -rw-r--r--    1 holm     sander      2948 May  2 15:50 ./1ppt.side
+   2 -rw-r--r--    1 holm     sander       764 May  2 15:50 ./1ppt.stat
+  17 -rw-r--r--    1 holm     sander      8320 May  2 15:50 ./2sn3.main
+  23 -rw-r--r--    1 holm     sander     11632 May  2 15:50 ./2sn3.side
+   2 -rwxr-xr-x    1 holm     sander       912 May  2 15:50 ./CreateMainDB
+   1 -rw-r--r--    1 holm     sander       473 May  2 15:50 ./Makefile
+  10 -rw-r--r--    1 holm     sander      5037 May  2 15:51 ./TAGS
+ 187 -rwxr-xr-x    1 holm     sander     95680 May  2 15:51 ./buildbackbone
+ 234 -rwxr-xr-x    1 holm     sander    119808 May  2 15:51 ./buildbackbone.IRIS64
+ 161 -rw-r--r--    1 holm     sander     82069 May  2 15:51 ./buildbackbone.c
+ 133 -rw-r--r--    1 holm     sander     67748 May  2 15:51 ./buildbackbone.o
+ 124 -rw-r--r--    1 holm     sander     63222 May  2 15:51 ./buildbackbone.pas
+   2 -rw-r--r--    1 holm     sander       960 May  2 15:51 ./dglp.list
+   1 -rw-r--r--    1 holm     sander        48 May  2 15:51 ./fbind.h
+   6 -rw-r--r--    1 holm     sander      2569 May  2 15:58 ./fort.71
+  20 -rw-r--r--    1 holm     sander      9849 May  2 15:58 ./fort.72
+   4 -rw-r--r--    1 holm     sander      1550 May  2 15:58 ./fort.81
+  54 -rwxr-xr-x    1 holm     sander     27448 May  2 15:51 ./ftest
+  55 -rw-r--r--    1 holm     sander     27932 May  2 15:51 ./libp2c.a
+  84 -rw-r--r--    1 holm     sander     42780 May  2 15:51 ./libp2c.a64
+  17 -rw-r--r--    1 holm     sander      8685 May  2 15:51 ./maxd.c
+   8 -rw-r--r--    1 holm     sander      3732 May  2 15:51 ./maxd.h
+  62 -rw-r--r--    1 holm     sander     31417 May  2 15:51 ./maxd.pas
+   2 -rw-r--r--    1 holm     sander       725 May  2 15:51 ./maxd_toolbox.h
+ 100 -rw-r--r--    1 holm     sander     50748 May  2 15:51 ./maxdtool.c
+  71 -rw-r--r--    1 holm     sander     35888 May  2 15:51 ./maxdtool.pas
+  18 -rw-r--r--    1 holm     sander      8900 May  2 16:02 ./maxsprout.doc
+  64 -rw-r--r--    1 holm     sander     32608 May  2 15:51 ./out.log
+  27 -rw-r--r--    1 holm     sander     13483 May  2 15:51 ./p2c.h
+ 122 -rwxr-xr-x    1 holm     sander     62292 May  2 15:51 ./readbrk
+ 171 -rwxr-xr-x    1 holm     sander     87504 May  2 15:52 ./readbrk.IRIS64
+ 101 -rw-r--r--    1 holm     sander     51449 May  2 15:52 ./readbrk.c
+  55 -rw-r--r--    1 holm     sander     28152 May  2 15:52 ./readbrk.o
+  72 -rw-r--r--    1 holm     sander     36636 May  2 15:52 ./readbrk.pas
+   3 -rw-r--r--    1 holm     sander      1239 May  2 15:54 ./sizes.for
+  12 -rw-r--r--    1 holm     sander      5852 May  2 15:52 ./test.f
+  36 -rw-r--r--    1 holm     sander     18279 May  2 15:55 ./torso.f
+   1 -rw-r--r--    1 holm     sander        44 May  2 15:55 ./torso.in
+ 407 -rwxr-xr-x    1 holm     sander    207992 May  2 15:57 ./torso2
+   6 -rw-r--r--    1 holm     sander      2569 May  2 15:53 ./torso_fort.71
+  20 -rw-r--r--    1 holm     sander      9849 May  2 15:53 ./torso_fort.72
+   4 -rw-r--r--    1 holm     sander      1550 May  2 15:53 ./torso_fort.81
+ 159 -rw-r--r--    1 holm     sander     81141 May  2 15:55 ./torsotool.f
+  15 -rw-r--r--    1 holm     sander      7527 May  2 15:55 ./u3b.f
+  14 -rw-r--r--    1 holm     sander      6884 May  2 15:52 ./u3b.o
+
+./rotlib:
+total 38
+   2 -rw-r--r--    1 holm     sander       616 May  2 15:53 ala0001.brk
+   3 -rw-r--r--    1 holm     sander      1166 May  2 15:53 arg0001.brk
+   2 -rw-r--r--    1 holm     sander       616 May  2 15:53 asn0001.brk
+   2 -rw-r--r--    1 holm     sander       616 May  2 15:53 asp0001.brk
+   1 -rw-r--r--    1 holm     sander       462 May  2 15:53 cys0001.brk
+   2 -rw-r--r--    1 holm     sander       693 May  2 15:53 gln0001.brk
+   2 -rw-r--r--    1 holm     sander       693 May  2 15:53 glu0001.brk
+   2 -rw-r--r--    1 holm     sander       770 May  2 15:53 his0001.brk
+   2 -rw-r--r--    1 holm     sander       616 May  2 15:53 ile0001.brk
+   2 -rw-r--r--    1 holm     sander       935 May  2 15:53 leu0001.brk
+   2 -rw-r--r--    1 holm     sander      1012 May  2 15:53 lys0001.brk
+   2 -rw-r--r--    1 holm     sander       616 May  2 15:53 met0001.brk
+   2 -rw-r--r--    1 holm     sander       847 May  2 15:53 phe0001.brk
+   2 -rw-r--r--    1 holm     sander       539 May  2 15:53 pro0001.brk
+   1 -rw-r--r--    1 holm     sander       462 May  2 15:53 ser0001.brk
+   2 -rw-r--r--    1 holm     sander       539 May  2 15:53 thr0001.brk
+   3 -rw-r--r--    1 holm     sander      1397 May  2 15:53 trp0001.brk
+   2 -rw-r--r--    1 holm     sander       924 May  2 15:53 tyr0001.brk
+   2 -rw-r--r--    1 holm     sander       539 May  2 15:53 val0001.brk
+

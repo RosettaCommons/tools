@@ -1,0 +1,1868 @@
+HEADER    HYDROLASE (SERINE PROTEINASE)           26-OCT-81   2PTN      2PTN   3
+COMPND    TRYPSIN (ORTHORHOMBIC, 2.4 M AMMONIUM SULFATE)                2PTN   4
+COMPND   2 (E.C.3.4.21.4)                                               2PTN   5
+SOURCE    BOVINE (BOS TAURUS) PANCREAS                                  2PTN   6
+AUTHOR    J.WALTER,W.STEIGEMANN,T.P.SINGH,H.BARTUNIK,W.BODE,R.HUBER     2PTN   7
+REVDAT   6   15-APR-91 2PTNE   2       CONECT                           2PTNE  1
+REVDAT   5   09-APR-85 2PTND   1       JRNL                             2PTND  1
+REVDAT   4   14-MAR-85 2PTNC   3       SEQRES ATOM                      2PTNC  1
+REVDAT   3   23-FEB-84 2PTNB   1       REMARK                           2PTNB  1
+REVDAT   2   30-SEP-83 2PTNA   1       REVDAT                           2PTNA  1
+REVDAT   1   04-MAR-82 2PTN    0                                        2PTNA  2
+SPRSDE     04-MAR-82 2PTN      1PTN                                     2PTNA  3
+JRNL        AUTH   J.WALTER,W.STEIGEMANN,T.P.SINGH,H.BARTUNIK,W.BODE,   2PTN   8
+JRNL        AUTH 2 R.HUBER                                              2PTN   9
+JRNL        TITL   ON THE DISORDERED ACTIVATION DOMAIN IN               2PTN  10
+JRNL        TITL 2 TRYPSINOGEN. CHEMICAL LABELLING AND                  2PTND  2
+JRNL        TITL 3 LOW-*TEMPERATURE CRYSTALLOGRAPHY                     2PTND  3
+JRNL        REF    ACTA CRYSTALLOGR.,SECT.B      V.  38  1462 1982      2PTND  4
+JRNL        REFN   ASTM ACBCAR  DK ISSN 0567-7408                  107  2PTND  5
+REMARK   1                                                              2PTN  15
+REMARK   1 REFERENCE 1                                                  2PTNB  2
+REMARK   1  AUTH   M.MARQUART,J.WALTER,J.DEISENHOFER,W.BODE,R.HUBER     2PTNB  3
+REMARK   1  TITL   THE GEOMETRY OF THE REACTIVE SITE AND OF THE         2PTNB  4
+REMARK   1  TITL 2 PEPTIDE GROUPS IN TRYPSIN, TRYPSINOGEN AND ITS       2PTNB  5
+REMARK   1  TITL 3 COMPLEXES WITH INHIBITORS                            2PTNB  6
+REMARK   1  REF    ACTA CRYSTALLOGR.,SECT.B      V.  39   480 1983      2PTNB  7
+REMARK   1  REFN   ASTM ASBSDK  DK ISSN 0108-7681                  622  2PTNB  8
+REMARK   1 REFERENCE 2                                                  2PTNB  9
+REMARK   1  AUTH   W.BODE,P.SCHWAGER,R.HUBER                            2PTN  17
+REMARK   1  TITL   STRUCTURAL STUDIES ON THE PANCREATIC TRYPSIN         2PTN  18
+REMARK   1  TITL 2 INHIBITOR-TRYPSIN COMPLEX AND ITS FREE COMPONENTS.   2PTN  19
+REMARK   1  TITL 3 STRUCTURE AND FUNCTION RELATIONSHIPS IN SERINE       2PTN  20
+REMARK   1  TITL 4 PROTEASE INHIBITION AND CATALYSIS                    2PTN  21
+REMARK   1  REF    MIAMI WINTER SYMP.            V.  11    43 1976      2PTN  22
+REMARK   1  REFN   ASTM MIWSAE  US ISSN 0097-0808                  926  2PTN  23
+REMARK   1 REFERENCE 3                                                  2PTNB 10
+REMARK   1  AUTH   W.BODE,P.SCHWAGER                                    2PTN  25
+REMARK   1  TITL   THE REFINED CRYSTAL STRUCTURE OF BOVINE              2PTN  26
+REMARK   1  TITL 2 BETA-*TRYPSIN AT 1.8 ANGSTROMS RESOLUTION.           2PTN  27
+REMARK   1  TITL 3 /II$. CRYSTALLOGRAPHIC REFINEMENT, CALCIUM BINDING   2PTN  28
+REMARK   1  TITL 4 SITE, BENZAMIDINE BINDING SITE AND ACTIVE SITE AT    2PTN  29
+REMARK   1  TITL 5 $P*H 7.0                                             2PTN  30
+REMARK   1  REF    J.MOL.BIOL.                   V.  98   693 1975      2PTN  31
+REMARK   1  REFN   ASTM JMOBAK  UK ISSN 0022-2836                  070  2PTN  32
+REMARK   1 REFERENCE 4                                                  2PTNB 11
+REMARK   1  AUTH   H.FEHLHAMMER,W.BODE                                  2PTN  34
+REMARK   1  TITL   THE REFINED CRYSTAL STRUCTURE OF BOVINE              2PTN  35
+REMARK   1  TITL 2 BETA-*TRYPSIN AT 1.8 ANGSTROMS RESOLUTION.           2PTN  36
+REMARK   1  TITL 3 I. CRYSTALLIZATION, DATA COLLECTION AND APPLICATION  2PTN  37
+REMARK   1  TITL 4 OF PATTERSON SEARCH TECHNIQUES                       2PTN  38
+REMARK   1  REF    J.MOL.BIOL.                   V.  98   683 1975      2PTN  39
+REMARK   1  REFN   ASTM JMOBAK  UK ISSN 0022-2836                  070  2PTN  40
+REMARK   1 REFERENCE 5                                                  2PTNB 12
+REMARK   1  AUTH   W.BODE,P.SCHWAGER                                    2PTN  42
+REMARK   1  TITL   THE SINGLE CALCIUM-BINDING SITE OF CRYSTALLINE       2PTN  43
+REMARK   1  TITL 2 BOVINE BETA-TRYPSIN                                  2PTN  44
+REMARK   1  REF    /FEBS$ LETT.                  V.  56   139 1975      2PTN  45
+REMARK   1  REFN   ASTM FEBLAL  NE ISSN 0014-5793                  165  2PTN  46
+REMARK   1 REFERENCE 6                                                  2PTNB 13
+REMARK   1  EDIT   M.O.DAYHOFF                                          2PTN  48
+REMARK   1  REF    ATLAS OF PROTEIN SEQUENCE     V.   5   105 1972      2PTN  49
+REMARK   1  REF  2 AND STRUCTURE (DATA SECTION)                         2PTN  50
+REMARK   1  PUBL   NATIONAL BIOMEDICAL RESEARCH FOUNDATION,             2PTN  51
+REMARK   1  PUBL 2 SILVER SPRING,MD.                                    2PTN  52
+REMARK   1  REFN                   ISBN 0-912466-02-2              435  2PTN  53
+REMARK   2                                                              2PTN  54
+REMARK   2 RESOLUTION. 1.55 ANGSTROMS.                                  2PTN  55
+REMARK   3                                                              2PTN  56
+REMARK   3 REFINEMENT. DEISENHOFER*S VERSION OF THE JACK AND LEVITT     2PTN  57
+REMARK   3  REFINEMENT PROCEDURE COMBINING CRYSTALLOGRAPHIC AND ENERGY  2PTN  58
+REMARK   3  REFINEMENT.  THE DIAGONAL-MATRIX LEAST-SQUARES METHOD WAS   2PTN  59
+REMARK   3  ALSO USED TO REFINE ISOTROPIC TEMPERATURE FACTORS.          2PTN  60
+REMARK   3  (A.JACK,M.LEVITT,ACTA CRYST.,A34,931-935,1978).             2PTN  61
+REMARK   3  THE R-VALUE FOR REFLECTIONS WITHIN THE SHELL 1.55 TO 6.5    2PTN  62
+REMARK   3  ANGSTROMS IS 0.193.                                         2PTN  63
+REMARK   4                                                              2PTN  64
+REMARK   4 AN OCCUPANCY OF 0.0 INDICATES THAT NO SIGNIFICANT ELECTRON   2PTN  65
+REMARK   4 DENSITY WAS FOUND IN THE FINAL FOURIER MAP.                  2PTN  66
+REMARK   5                                                              2PTNA  4
+REMARK   5 CORRECTION. INSERT REVDAT RECORDS. 30-SEP-83.                2PTNA  5
+REMARK   6                                                              2PTNB 14
+REMARK   6 CORRECTION. INSERT NEW PUBLICATION AS REFERENCE 1 AND        2PTNB 15
+REMARK   6  RENUMBER THE OTHERS.  23-FEB-84.                            2PTNB 16
+REMARK   7                                                              2PTNC  2
+REMARK   7 CORRECTION. CHANGE RESIDUE 165 FROM ASN TO ASP AND CHANGE    2PTNC  3
+REMARK   7  RESIDUE 186 FROM GLN TO GLU, UPON DEPOSITORS INSTRUCTIONS.  2PTNC  4
+REMARK   7  REVISE ATOM AND SEQRES RECORDS ACCORDINGLY.  14-MAR-85.     2PTNC  5
+REMARK   8                                                              2PTND  6
+REMARK   8 CORRECTION. UPDATE JRNL REFERENCE TO REFLECT PUBLICATION.    2PTND  7
+REMARK   8  09-APR-85.                                                  2PTND  8
+REMARK   9                                                              2PTNE  2
+REMARK   9 CORRECTION. CORRECT CONECT RECORDS FOR HETATM CA.            2PTNE  3
+REMARK   9  15-APR-91.                                                  2PTNE  4
+SEQRES   1    223  ILE VAL GLY GLY TYR THR CYS GLY ALA ASN THR VAL PRO  2PTN  67
+SEQRES   2    223  TYR GLN VAL SER LEU ASN SER GLY TYR HIS PHE CYS GLY  2PTN  68
+SEQRES   3    223  GLY SER LEU ILE ASN SER GLN TRP VAL VAL SER ALA ALA  2PTN  69
+SEQRES   4    223  HIS CYS TYR LYS SER GLY ILE GLN VAL ARG LEU GLY GLU  2PTN  70
+SEQRES   5    223  ASP ASN ILE ASN VAL VAL GLU GLY ASN GLU GLN PHE ILE  2PTN  71
+SEQRES   6    223  SER ALA SER LYS SER ILE VAL HIS PRO SER TYR ASN SER  2PTN  72
+SEQRES   7    223  ASN THR LEU ASN ASN ASP ILE MET LEU ILE LYS LEU LYS  2PTN  73
+SEQRES   8    223  SER ALA ALA SER LEU ASN SER ARG VAL ALA SER ILE SER  2PTN  74
+SEQRES   9    223  LEU PRO THR SER CYS ALA SER ALA GLY THR GLN CYS LEU  2PTN  75
+SEQRES  10    223  ILE SER GLY TRP GLY ASN THR LYS SER SER GLY THR SER  2PTN  76
+SEQRES  11    223  TYR PRO ASP VAL LEU LYS CYS LEU LYS ALA PRO ILE LEU  2PTN  77
+SEQRES  12    223  SER ASP SER SER CYS LYS SER ALA TYR PRO GLY GLN ILE  2PTNC  6
+SEQRES  13    223  THR SER ASN MET PHE CYS ALA GLY TYR LEU GLU GLY GLY  2PTNC  7
+SEQRES  14    223  LYS ASP SER CYS GLN GLY ASP SER GLY GLY PRO VAL VAL  2PTN  80
+SEQRES  15    223  CYS SER GLY LYS LEU GLN GLY ILE VAL SER TRP GLY SER  2PTN  81
+SEQRES  16    223  GLY CYS ALA GLN LYS ASN LYS PRO GLY VAL TYR THR LYS  2PTN  82
+SEQRES  17    223  VAL CYS ASN TYR VAL SER TRP ILE LYS GLN THR ILE ALA  2PTN  83
+SEQRES  18    223  SER ASN                                              2PTN  84
+FTNOTE   1                                                              2PTN  85
+FTNOTE   1 SEE REMARK 4.                                                2PTN  86
+HET     CA    480       1     CALCIUM (II) ION                          2PTN  87
+FORMUL   2   CA    CA1 ++                                               2PTN  88
+FORMUL   3  HOH   *82(H2 O1)                                            2PTN  89
+HELIX    1  H1 SER    164  ILE    176  1 SNGL ALPHA TURN,REST IRREG.    2PTN  90
+HELIX    2  H2 LYS    230  VAL    235  5 CONTIGUOUS WITH H3             2PTN  91
+HELIX    3  H3 SER    236  ASN    245  1 CONTIGUOUS WITH H2             2PTN  92
+SSBOND   1 CYS     22    CYS    157                                     2PTN  93
+SSBOND   2 CYS     42    CYS     58                                     2PTN  94
+SSBOND   3 CYS    128    CYS    232                                     2PTN  95
+SSBOND   4 CYS    136    CYS    201                                     2PTN  96
+SSBOND   5 CYS    168    CYS    182                                     2PTN  97
+SSBOND   6 CYS    191    CYS    220                                     2PTN  98
+CRYST1   54.890   58.520   67.630  90.00  90.00  90.00 P 21 21 21    4  2PTN  99
+ORIGX1      1.000000  0.000000  0.000000        0.00000                 2PTN 100
+ORIGX2      0.000000  1.000000  0.000000        0.00000                 2PTN 101
+ORIGX3      0.000000  0.000000  1.000000        0.00000                 2PTN 102
+SCALE1       .018218  0.000000  0.000000        0.00000                 2PTN 103
+SCALE2      0.000000   .017088  0.000000        0.00000                 2PTN 104
+SCALE3      0.000000  0.000000   .014786        0.00000                 2PTN 105
+ATOM      1  N   ILE    16      -8.155   9.648  20.365  1.00 10.68      2PTN 106
+ATOM      2  CA  ILE    16      -8.150   8.766  19.179  1.00 10.68      2PTN 107
+ATOM      3  C   ILE    16      -9.405   9.018  18.348  1.00 10.68      2PTN 108
+ATOM      4  O   ILE    16     -10.533   8.888  18.870  1.00 10.68      2PTN 109
+ATOM      5  CB  ILE    16      -8.091   7.261  19.602  1.00 10.68      2PTN 110
+ATOM      6  CG1 ILE    16      -6.898   6.882  20.508  1.00  7.42      2PTN 111
+ATOM      7  CG2 ILE    16      -8.178   6.281  18.408  1.00  7.42      2PTN 112
+ATOM      8  CD1 ILE    16      -5.555   6.893  19.773  1.00  7.42      2PTN 113
+ATOM      9  N   VAL    17      -9.224   9.305  17.090  1.00  9.63      2PTN 114
+ATOM     10  CA  VAL    17     -10.351   9.448  16.157  1.00  9.63      2PTN 115
+ATOM     11  C   VAL    17     -10.500   8.184  15.315  1.00  9.63      2PTN 116
+ATOM     12  O   VAL    17      -9.496   7.688  14.748  1.00  9.63      2PTN 117
+ATOM     13  CB  VAL    17     -10.123  10.665  15.222  1.00  9.63      2PTN 118
+ATOM     14  CG1 VAL    17     -11.319  10.915  14.278  1.00 11.95      2PTN 119
+ATOM     15  CG2 VAL    17      -9.737  11.970  15.970  1.00 11.95      2PTN 120
+ATOM     16  N   GLY    18     -11.714   7.720  15.167  1.00 15.04      2PTN 121
+ATOM     17  CA  GLY    18     -12.021   6.630  14.259  1.00 15.04      2PTN 122
+ATOM     18  C   GLY    18     -11.505   5.285  14.769  1.00 15.04      2PTN 123
+ATOM     19  O   GLY    18     -11.200   4.401  13.936  1.00 15.04      2PTN 124
+ATOM     20  N   GLY    19     -11.365   5.149  16.084  1.00 15.64      2PTN 125
+ATOM     21  CA  GLY    19     -10.902   3.899  16.684  1.00 15.64      2PTN 126
+ATOM     22  C   GLY    19     -12.042   3.149  17.365  1.00 15.64      2PTN 127
+ATOM     23  O   GLY    19     -13.226   3.308  16.977  1.00 15.64      2PTN 128
+ATOM     24  N   TYR    20     -11.706   2.303  18.306  1.00  6.47      2PTN 129
+ATOM     25  CA  TYR    20     -12.651   1.442  19.016  1.00  6.47      2PTN 130
+ATOM     26  C   TYR    20     -12.322   1.436  20.500  1.00  6.47      2PTN 131
+ATOM     27  O   TYR    20     -11.176   1.776  20.861  1.00  6.47      2PTN 132
+ATOM     28  CB  TYR    20     -12.641   -.007  18.432  1.00  6.47      2PTN 133
+ATOM     29  CG  TYR    20     -11.281   -.749  18.494  1.00 12.69      2PTN 134
+ATOM     30  CD1 TYR    20     -11.024  -1.687  19.480  1.00 12.69      2PTN 135
+ATOM     31  CD2 TYR    20     -10.309   -.466  17.558  1.00 12.69      2PTN 136
+ATOM     32  CE1 TYR    20      -9.795  -2.328  19.533  1.00 12.69      2PTN 137
+ATOM     33  CE2 TYR    20      -9.078  -1.102  17.604  1.00 12.69      2PTN 138
+ATOM     34  CZ  TYR    20      -8.824  -2.032  18.587  1.00 12.69      2PTN 139
+ATOM     35  OH  TYR    20      -7.557  -2.695  18.599  1.00 12.69      2PTN 140
+ATOM     36  N   THR    21     -13.243   1.039  21.318  1.00 14.11      2PTN 141
+ATOM     37  CA  THR    21     -13.018    .938  22.760  1.00 14.11      2PTN 142
+ATOM     38  C   THR    21     -12.198   -.307  23.074  1.00 14.11      2PTN 143
+ATOM     39  O   THR    21     -12.617  -1.432  22.679  1.00 14.11      2PTN 144
+ATOM     40  CB  THR    21     -14.381    .808  23.469  1.00 14.11      2PTN 145
+ATOM     41  OG1 THR    21     -15.157   1.954  23.162  1.00 16.38      2PTN 146
+ATOM     42  CG2 THR    21     -14.265    .650  25.000  1.00 16.38      2PTN 147
+ATOM     43  N   CYS    22     -10.996   -.088  23.549  1.00 12.69      2PTN 148
+ATOM     44  CA  CYS    22     -10.020  -1.163  23.760  1.00 12.69      2PTN 149
+ATOM     45  C   CYS    22     -10.594  -2.317  24.576  1.00 12.69      2PTN 150
+ATOM     46  O   CYS    22     -10.275  -3.492  24.305  1.00 12.69      2PTN 151
+ATOM     47  CB  CYS    22      -8.825   -.632  24.567  1.00 12.69      2PTN 152
+ATOM     48  SG  CYS    22      -7.877    .698  23.833  1.00 10.24      2PTN 153
+ATOM     49  N   GLY    23     -11.235  -1.963  25.664  1.00 11.73      2PTN 154
+ATOM     50  CA  GLY    23     -11.683  -2.865  26.714  1.00 11.73      2PTN 155
+ATOM     51  C   GLY    23     -10.787  -2.713  27.929  1.00 11.73      2PTN 156
+ATOM     52  O   GLY    23      -9.588  -2.375  27.760  1.00 11.73      2PTN 157
+ATOM     53  N   ALA    24     -11.381  -2.822  29.105  1.00 15.79      2PTN 158
+ATOM     54  CA  ALA    24     -10.648  -2.627  30.361  1.00 15.79      2PTN 159
+ATOM     55  C   ALA    24      -9.410  -3.521  30.490  1.00 15.79      2PTN 160
+ATOM     56  O   ALA    24      -9.524  -4.773  30.444  1.00 15.79      2PTN 161
+ATOM     57  CB  ALA    24     -11.575  -2.793  31.574  1.00 15.79      2PTN 162
+ATOM     58  N   ASN    25      -8.279  -2.868  30.729  1.00 15.60      2PTN 163
+ATOM     59  CA  ASN    25      -6.970  -3.437  31.020  1.00 15.60      2PTN 164
+ATOM     60  C   ASN    25      -6.468  -4.331  29.907  1.00 15.60      2PTN 165
+ATOM     61  O   ASN    25      -5.579  -5.180  30.152  1.00 15.60      2PTN 166
+ATOM     62  CB  ASN    25      -6.943  -4.200  32.354  1.00 15.60      2PTN 167
+ATOM     63  CG  ASN    25      -7.427  -3.305  33.496  1.00 20.23      2PTN 168
+ATOM     64  OD1 ASN    25      -6.945  -2.147  33.622  1.00 20.23      2PTN 169
+ATOM     65  ND2 ASN    25      -8.616  -3.631  33.942  1.00 20.23      2PTN 170
+ATOM     66  N   THR    26      -6.964  -4.091  28.709  1.00 11.92      2PTN 171
+ATOM     67  CA  THR    26      -6.452  -4.845  27.559  1.00 11.92      2PTN 172
+ATOM     68  C   THR    26      -5.144  -4.297  27.022  1.00 11.92      2PTN 173
+ATOM     69  O   THR    26      -4.485  -4.969  26.193  1.00 11.92      2PTN 174
+ATOM     70  CB  THR    26      -7.471  -4.878  26.415  1.00 11.92      2PTN 175
+ATOM     71  OG1 THR    26      -7.700  -3.530  25.981  1.00 14.63      2PTN 176
+ATOM     72  CG2 THR    26      -8.780  -5.571  26.849  1.00 14.63      2PTN 177
+ATOM     73  N   VAL    27      -4.776  -3.102  27.469  1.00 11.94      2PTN 178
+ATOM     74  CA  VAL    27      -3.486  -2.470  27.110  1.00 11.94      2PTN 179
+ATOM     75  C   VAL    27      -2.651  -2.155  28.353  1.00 11.94      2PTN 180
+ATOM     76  O   VAL    27      -2.793  -1.048  28.920  1.00 11.94      2PTN 181
+ATOM     77  CB  VAL    27      -3.752  -1.167  26.319  1.00 11.94      2PTN 182
+ATOM     78  CG1 VAL    27      -2.446   -.578  25.770  1.00 12.20      2PTN 183
+ATOM     79  CG2 VAL    27      -4.792  -1.378  25.189  1.00 12.20      2PTN 184
+ATOM     80  N   PRO    28      -2.126  -3.183  28.968  1.00 11.99      2PTN 185
+ATOM     81  CA  PRO    28      -1.697  -3.165  30.389  1.00 11.99      2PTN 186
+ATOM     82  C   PRO    28       -.544  -2.205  30.682  1.00 11.99      2PTN 187
+ATOM     83  O   PRO    28       -.281  -1.914  31.867  1.00 11.99      2PTN 188
+ATOM     84  CB  PRO    28      -1.261  -4.595  30.753  1.00 11.99      2PTN 189
+ATOM     85  CG  PRO    28      -1.314  -5.427  29.473  1.00 12.97      2PTN 190
+ATOM     86  CD  PRO    28      -1.897  -4.523  28.373  1.00 12.97      2PTN 191
+ATOM     87  N   TYR    29        .146  -1.780  29.647  1.00  9.58      2PTN 192
+ATOM     88  CA  TYR    29       1.314   -.892  29.735  1.00  9.58      2PTN 193
+ATOM     89  C   TYR    29        .935    .582  29.590  1.00  9.58      2PTN 194
+ATOM     90  O   TYR    29       1.825   1.463  29.743  1.00  9.58      2PTN 195
+ATOM     91  CB  TYR    29       2.382  -1.281  28.679  1.00  9.58      2PTN 196
+ATOM     92  CG  TYR    29       1.776  -1.415  27.269  1.00 14.20      2PTN 197
+ATOM     93  CD1 TYR    29       1.597   -.302  26.473  1.00 14.20      2PTN 198
+ATOM     94  CD2 TYR    29       1.380  -2.658  26.819  1.00 14.20      2PTN 199
+ATOM     95  CE1 TYR    29        .993   -.417  25.227  1.00 14.20      2PTN 200
+ATOM     96  CE2 TYR    29        .774  -2.790  25.569  1.00 14.20      2PTN 201
+ATOM     97  CZ  TYR    29        .580  -1.667  24.778  1.00 14.20      2PTN 202
+ATOM     98  OH  TYR    29       -.021  -1.807  23.494  1.00 14.20      2PTN 203
+ATOM     99  N   GLN    30       -.325    .821  29.298  1.00  8.75      2PTN 204
+ATOM    100  CA  GLN    30       -.820   2.197  29.094  1.00  8.75      2PTN 205
+ATOM    101  C   GLN    30       -.922   2.937  30.427  1.00  8.75      2PTN 206
+ATOM    102  O   GLN    30      -1.568   2.427  31.377  1.00  8.75      2PTN 207
+ATOM    103  CB  GLN    30      -2.203   2.193  28.412  1.00  8.75      2PTN 208
+ATOM    104  CG  GLN    30      -2.824   3.613  28.276  1.00 11.57      2PTN 209
+ATOM    105  CD  GLN    30      -2.175   4.443  27.163  1.00 11.57      2PTN 210
+ATOM    106  OE1 GLN    30      -1.910   5.660  27.373  1.00 11.57      2PTN 211
+ATOM    107  NE2 GLN    30      -2.366   3.991  25.966  1.00 11.57      2PTN 212
+ATOM    108  N   VAL    31       -.300   4.090  30.462  1.00 11.59      2PTN 213
+ATOM    109  CA  VAL    31       -.289   4.992  31.630  1.00 11.59      2PTN 214
+ATOM    110  C   VAL    31      -1.121   6.247  31.345  1.00 11.59      2PTN 215
+ATOM    111  O   VAL    31      -1.052   6.811  30.223  1.00 11.59      2PTN 216
+ATOM    112  CB  VAL    31       1.210   5.317  31.884  1.00 11.59      2PTN 217
+ATOM    113  CG1 VAL    31       1.572   6.646  32.548  1.00 10.42      2PTN 218
+ATOM    114  CG2 VAL    31       1.985   4.124  32.453  1.00 10.42      2PTN 219
+ATOM    115  N   SER    32      -1.728   6.788  32.369  1.00  9.67      2PTN 220
+ATOM    116  CA  SER    32      -2.230   8.158  32.287  1.00  9.67      2PTN 221
+ATOM    117  C   SER    32      -1.368   9.067  33.164  1.00  9.67      2PTN 222
+ATOM    118  O   SER    32      -1.122   8.734  34.349  1.00  9.67      2PTN 223
+ATOM    119  CB  SER    32      -3.692   8.239  32.758  1.00  9.67      2PTN 224
+ATOM    120  OG  SER    32      -4.099   9.606  32.958  1.00 10.76      2PTN 225
+ATOM    121  N   LEU    33       -.969  10.207  32.628  1.00 10.04      2PTN 226
+ATOM    122  CA  LEU    33       -.245  11.235  33.385  1.00 10.04      2PTN 227
+ATOM    123  C   LEU    33      -1.219  12.296  33.899  1.00 10.04      2PTN 228
+ATOM    124  O   LEU    33      -2.056  12.796  33.115  1.00 10.04      2PTN 229
+ATOM    125  CB  LEU    33        .837  11.939  32.542  1.00 10.04      2PTN 230
+ATOM    126  CG  LEU    33       1.917  11.000  31.979  1.00 10.67      2PTN 231
+ATOM    127  CD1 LEU    33       3.021  11.829  31.295  1.00 10.67      2PTN 232
+ATOM    128  CD2 LEU    33       2.514  10.102  33.081  1.00 10.67      2PTN 233
+ATOM    129  N   ASN    34      -1.260  12.421  35.208  1.00 10.91      2PTN 234
+ATOM    130  CA  ASN    34      -2.257  13.204  35.920  1.00 10.91      2PTN 235
+ATOM    131  C   ASN    34      -1.612  14.333  36.708  1.00 10.91      2PTN 236
+ATOM    132  O   ASN    34       -.677  14.080  37.506  1.00 10.91      2PTN 237
+ATOM    133  CB  ASN    34      -3.084  12.306  36.868  1.00 10.91      2PTN 238
+ATOM    134  CG  ASN    34      -4.293  13.065  37.414  1.00 12.48      2PTN 239
+ATOM    135  OD1 ASN    34      -4.156  13.894  38.353  1.00 12.48      2PTN 240
+ATOM    136  ND2 ASN    34      -5.456  12.795  36.851  1.00 12.48      2PTN 241
+ATOM    137  N   SER    37      -2.175  15.511  36.544  1.00 13.62      2PTN 242
+ATOM    138  CA  SER    37      -1.745  16.658  37.346  1.00 13.62      2PTN 243
+ATOM    139  C   SER    37      -2.948  17.383  37.928  1.00 13.62      2PTN 244
+ATOM    140  O   SER    37      -3.066  18.622  37.797  1.00 13.62      2PTN 245
+ATOM    141  CB  SER    37       -.854  17.613  36.519  1.00 13.62      2PTN 246
+ATOM    142  OG  SER    37      -1.611  18.149  35.428  1.00 19.75      2PTN 247
+ATOM    143  N   GLY    38      -3.893  16.622  38.395  1.00 11.51      2PTN 248
+ATOM    144  CA  GLY    38      -5.215  17.115  38.801  1.00 11.51      2PTN 249
+ATOM    145  C   GLY    38      -6.257  16.737  37.761  1.00 11.51      2PTN 250
+ATOM    146  O   GLY    38      -7.493  16.834  37.988  1.00 11.51      2PTN 251
+ATOM    147  N   TYR    39      -5.717  16.309  36.637  1.00 10.02      2PTN 252
+ATOM    148  CA  TYR    39      -6.448  15.903  35.436  1.00 10.02      2PTN 253
+ATOM    149  C   TYR    39      -5.538  15.126  34.484  1.00 10.02      2PTN 254
+ATOM    150  O   TYR    39      -4.296  15.257  34.564  1.00 10.02      2PTN 255
+ATOM    151  CB  TYR    39      -7.045  17.143  34.703  1.00 10.02      2PTN 256
+ATOM    152  CG  TYR    39      -5.999  18.241  34.412  1.00 17.15      2PTN 257
+ATOM    153  CD1 TYR    39      -5.793  19.248  35.338  1.00 17.15      2PTN 258
+ATOM    154  CD2 TYR    39      -5.267  18.222  33.238  1.00 17.15      2PTN 259
+ATOM    155  CE1 TYR    39      -4.815  20.204  35.117  1.00 17.15      2PTN 260
+ATOM    156  CE2 TYR    39      -4.292  19.179  33.008  1.00 17.15      2PTN 261
+ATOM    157  CZ  TYR    39      -4.055  20.146  33.960  1.00 17.15      2PTN 262
+ATOM    158  OH  TYR    39      -3.013  21.108  33.764  1.00 17.15      2PTN 263
+ATOM    159  N   HIS    40      -6.135  14.347  33.608  1.00 10.77      2PTN 264
+ATOM    160  CA  HIS    40      -5.398  13.635  32.562  1.00 10.77      2PTN 265
+ATOM    161  C   HIS    40      -4.880  14.635  31.525  1.00 10.77      2PTN 266
+ATOM    162  O   HIS    40      -5.692  15.406  30.950  1.00 10.77      2PTN 267
+ATOM    163  CB  HIS    40      -6.325  12.608  31.854  1.00 10.77      2PTN 268
+ATOM    164  CG  HIS    40      -5.649  12.054  30.580  1.00  9.19      2PTN 269
+ATOM    165  ND1 HIS    40      -4.644  11.079  30.657  1.00  9.19      2PTN 270
+ATOM    166  CD2 HIS    40      -5.808  12.423  29.293  1.00  9.19      2PTN 271
+ATOM    167  CE1 HIS    40      -4.218  10.837  29.365  1.00  9.19      2PTN 272
+ATOM    168  NE2 HIS    40      -4.929  11.688  28.516  1.00  9.19      2PTN 273
+ATOM    169  N   PHE    41      -3.586  14.654  31.309  1.00 14.77      2PTN 274
+ATOM    170  CA  PHE    41      -3.028  15.563  30.304  1.00 14.77      2PTN 275
+ATOM    171  C   PHE    41      -2.265  14.877  29.172  1.00 14.77      2PTN 276
+ATOM    172  O   PHE    41      -2.205  15.416  28.037  1.00 14.77      2PTN 277
+ATOM    173  CB  PHE    41      -2.233  16.739  30.913  1.00 14.77      2PTN 278
+ATOM    174  CG  PHE    41       -.916  16.325  31.589  1.00 13.10      2PTN 279
+ATOM    175  CD1 PHE    41        .265  16.349  30.888  1.00 13.10      2PTN 280
+ATOM    176  CD2 PHE    41       -.911  15.931  32.900  1.00 13.10      2PTN 281
+ATOM    177  CE1 PHE    41       1.450  15.952  31.496  1.00 13.10      2PTN 282
+ATOM    178  CE2 PHE    41        .275  15.549  33.512  1.00 13.10      2PTN 283
+ATOM    179  CZ  PHE    41       1.457  15.551  32.811  1.00 13.10      2PTN 284
+ATOM    180  N   CYS    42      -1.708  13.713  29.461  1.00 12.54      2PTN 285
+ATOM    181  CA  CYS    42       -.943  12.943  28.477  1.00 12.54      2PTN 286
+ATOM    182  C   CYS    42       -.963  11.456  28.798  1.00 12.54      2PTN 287
+ATOM    183  O   CYS    42      -1.130  11.094  29.987  1.00 12.54      2PTN 288
+ATOM    184  CB  CYS    42        .534  13.410  28.471  1.00 12.54      2PTN 289
+ATOM    185  SG  CYS    42        .938  14.837  27.445  1.00 10.16      2PTN 290
+ATOM    186  N   GLY    43       -.594  10.654  27.807  1.00  9.26      2PTN 291
+ATOM    187  CA  GLY    43       -.399   9.224  28.003  1.00  9.26      2PTN 292
+ATOM    188  C   GLY    43       1.057   8.915  28.307  1.00  9.26      2PTN 293
+ATOM    189  O   GLY    43       1.913   9.827  28.269  1.00  9.26      2PTN 294
+ATOM    190  N   GLY    44       1.364   7.641  28.441  1.00 10.15      2PTN 295
+ATOM    191  CA  GLY    44       2.729   7.140  28.612  1.00 10.15      2PTN 296
+ATOM    192  C   GLY    44       2.753   5.616  28.545  1.00 10.15      2PTN 297
+ATOM    193  O   GLY    44       1.665   4.996  28.442  1.00 10.15      2PTN 298
+ATOM    194  N   SER    45       3.947   5.060  28.603  1.00 12.74      2PTN 299
+ATOM    195  CA  SER    45       4.150   3.604  28.570  1.00 12.74      2PTN 300
+ATOM    196  C   SER    45       5.023   3.123  29.711  1.00 12.74      2PTN 301
+ATOM    197  O   SER    45       6.148   3.652  29.883  1.00 12.74      2PTN 302
+ATOM    198  CB  SER    45       4.771   3.135  27.240  1.00 12.74      2PTN 303
+ATOM    199  OG  SER    45       3.897   3.464  26.177  1.00 13.94      2PTN 304
+ATOM    200  N   LEU    46       4.564   2.073  30.369  1.00 11.48      2PTN 305
+ATOM    201  CA  LEU    46       5.324   1.446  31.443  1.00 11.48      2PTN 306
+ATOM    202  C   LEU    46       6.386    .499  30.889  1.00 11.48      2PTN 307
+ATOM    203  O   LEU    46       6.021   -.445  30.142  1.00 11.48      2PTN 308
+ATOM    204  CB  LEU    46       4.332    .660  32.327  1.00 11.48      2PTN 309
+ATOM    205  CG  LEU    46       4.929    .228  33.679  1.00 14.63      2PTN 310
+ATOM    206  CD1 LEU    46       5.251   1.445  34.571  1.00 14.63      2PTN 311
+ATOM    207  CD2 LEU    46       3.989   -.771  34.386  1.00 14.63      2PTN 312
+ATOM    208  N   ILE    47       7.647    .819  31.078  1.00 16.16      2PTN 313
+ATOM    209  CA  ILE    47       8.727    .011  30.479  1.00 16.16      2PTN 314
+ATOM    210  C   ILE    47       9.472   -.863  31.479  1.00 16.16      2PTN 315
+ATOM    211  O   ILE    47      10.138  -1.844  31.078  1.00 16.16      2PTN 316
+ATOM    212  CB  ILE    47       9.709    .852  29.651  1.00 16.16      2PTN 317
+ATOM    213  CG1 ILE    47      10.460   1.890  30.514  1.00 13.39      2PTN 318
+ATOM    214  CG2 ILE    47       8.993   1.463  28.426  1.00 13.39      2PTN 319
+ATOM    215  CD1 ILE    47      11.566   2.613  29.730  1.00 13.39      2PTN 320
+ATOM    216  N   ASN    48       9.198   -.630  32.738  1.00 15.67      2PTN 321
+ATOM    217  CA  ASN    48       9.543  -1.539  33.837  1.00 15.67      2PTN 322
+ATOM    218  C   ASN    48       8.851  -1.085  35.107  1.00 15.67      2PTN 323
+ATOM    219  O   ASN    48       8.040   -.138  35.008  1.00 15.67      2PTN 324
+ATOM    220  CB  ASN    48      11.056  -1.729  34.053  1.00 15.67      2PTN 325
+ATOM    221  CG  ASN    48      11.767   -.415  34.363  1.00 22.23      2PTN 326
+ATOM    222  OD1 ASN    48      12.859   -.182  33.789  1.00 22.23      2PTN 327
+ATOM    223  ND2 ASN    48      11.405    .209  35.444  1.00 22.23      2PTN 328
+ATOM    224  N   SER    49       9.036  -1.791  36.203  1.00 15.57      2PTN 329
+ATOM    225  CA  SER    49       8.257  -1.530  37.429  1.00 15.57      2PTN 330
+ATOM    226  C   SER    49       8.423   -.121  38.000  1.00 15.57      2PTN 331
+ATOM    227  O   SER    49       7.543    .359  38.747  1.00 15.57      2PTN 332
+ATOM    228  CB  SER    49       8.592  -2.579  38.511  1.00 15.57      2PTN 333
+ATOM    229  OG  SER    49       9.912  -2.327  38.975  1.00 18.22      2PTN 334
+ATOM    230  N   GLN    50       9.477    .578  37.625  1.00 12.60      2PTN 335
+ATOM    231  CA  GLN    50       9.725   1.936  38.148  1.00 12.60      2PTN 336
+ATOM    232  C   GLN    50       9.844   3.046  37.102  1.00 12.60      2PTN 337
+ATOM    233  O   GLN    50      10.083   4.216  37.496  1.00 12.60      2PTN 338
+ATOM    234  CB  GLN    50      10.982   1.981  39.046  1.00 12.60      2PTN 339
+ATOM    235  CG  GLN    50      10.582   1.896  40.532  1.00 34.17      2PTN 340
+ATOM    236  CD  GLN    50      11.700   2.344  41.476  1.00 34.17      2PTN 341
+ATOM    237  OE1 GLN    50      11.486   3.288  42.290  1.00 34.17      2PTN 342
+ATOM    238  NE2 GLN    50      12.834   1.677  41.396  1.00 34.17      2PTN 343
+ATOM    239  N   TRP    51       9.757   2.723  35.812  1.00  7.80      2PTN 344
+ATOM    240  CA  TRP    51       9.995   3.712  34.754  1.00  7.80      2PTN 345
+ATOM    241  C   TRP    51       8.906   3.790  33.692  1.00  7.80      2PTN 346
+ATOM    242  O   TRP    51       8.412   2.746  33.210  1.00  7.80      2PTN 347
+ATOM    243  CB  TRP    51      11.364   3.527  34.076  1.00  7.80      2PTN 348
+ATOM    244  CG  TRP    51      12.572   3.850  34.993  1.00 15.69      2PTN 349
+ATOM    245  CD1 TRP    51      13.222   3.036  35.857  1.00 15.69      2PTN 350
+ATOM    246  CD2 TRP    51      13.258   5.073  35.060  1.00 15.69      2PTN 351
+ATOM    247  NE1 TRP    51      14.291   3.728  36.448  1.00 15.69      2PTN 352
+ATOM    248  CE2 TRP    51      14.318   4.912  35.980  1.00 15.69      2PTN 353
+ATOM    249  CE3 TRP    51      13.047   6.272  34.392  1.00 15.69      2PTN 354
+ATOM    250  CZ2 TRP    51      15.217   5.930  36.261  1.00 15.69      2PTN 355
+ATOM    251  CZ3 TRP    51      13.948   7.298  34.679  1.00 15.69      2PTN 356
+ATOM    252  CH2 TRP    51      15.003   7.135  35.583  1.00 15.69      2PTN 357
+ATOM    253  N   VAL    52       8.573   5.015  33.338  1.00  9.56      2PTN 358
+ATOM    254  CA  VAL    52       7.590   5.365  32.303  1.00  9.56      2PTN 359
+ATOM    255  C   VAL    52       8.225   6.182  31.180  1.00  9.56      2PTN 360
+ATOM    256  O   VAL    52       9.004   7.119  31.478  1.00  9.56      2PTN 361
+ATOM    257  CB  VAL    52       6.396   6.134  32.931  1.00  9.56      2PTN 362
+ATOM    258  CG1 VAL    52       5.500   6.889  31.919  1.00  9.92      2PTN 363
+ATOM    259  CG2 VAL    52       5.547   5.221  33.846  1.00  9.92      2PTN 364
+ATOM    260  N   VAL    53       7.906   5.855  29.943  1.00 11.01      2PTN 365
+ATOM    261  CA  VAL    53       8.350   6.683  28.808  1.00 11.01      2PTN 366
+ATOM    262  C   VAL    53       7.201   7.472  28.163  1.00 11.01      2PTN 367
+ATOM    263  O   VAL    53       6.046   6.976  28.050  1.00 11.01      2PTN 368
+ATOM    264  CB  VAL    53       9.146   5.853  27.778  1.00 11.01      2PTN 369
+ATOM    265  CG1 VAL    53       8.268   4.775  27.123  1.00 15.21      2PTN 370
+ATOM    266  CG2 VAL    53       9.847   6.741  26.739  1.00 15.21      2PTN 371
+ATOM    267  N   SER    54       7.422   8.764  27.999  1.00  8.44      2PTN 372
+ATOM    268  CA  SER    54       6.417   9.666  27.430  1.00  8.44      2PTN 373
+ATOM    269  C   SER    54       7.054  10.618  26.415  1.00  8.44      2PTN 374
+ATOM    270  O   SER    54       8.246  10.457  26.078  1.00  8.44      2PTN 375
+ATOM    271  CB  SER    54       5.692  10.481  28.536  1.00  8.44      2PTN 376
+ATOM    272  OG  SER    54       4.456  11.083  28.055  1.00  6.34      2PTN 377
+ATOM    273  N   ALA    55       6.294  11.611  25.982  1.00  9.30      2PTN 378
+ATOM    274  CA  ALA    55       6.778  12.670  25.099  1.00  9.30      2PTN 379
+ATOM    275  C   ALA    55       7.329  13.864  25.883  1.00  9.30      2PTN 380
+ATOM    276  O   ALA    55       6.747  14.218  26.934  1.00  9.30      2PTN 381
+ATOM    277  CB  ALA    55       5.636  13.154  24.190  1.00  9.30      2PTN 382
+ATOM    278  N   ALA    56       8.461  14.383  25.454  1.00  7.97      2PTN 383
+ATOM    279  CA  ALA    56       9.069  15.522  26.129  1.00  7.97      2PTN 384
+ATOM    280  C   ALA    56       8.143  16.740  26.167  1.00  7.97      2PTN 385
+ATOM    281  O   ALA    56       8.162  17.496  27.169  1.00  7.97      2PTN 386
+ATOM    282  CB  ALA    56      10.414  15.918  25.506  1.00  7.97      2PTN 387
+ATOM    283  N   HIS    57       7.291  16.893  25.158  1.00 11.38      2PTN 388
+ATOM    284  CA  HIS    57       6.317  17.989  25.192  1.00 11.38      2PTN 389
+ATOM    285  C   HIS    57       5.203  17.844  26.235  1.00 11.38      2PTN 390
+ATOM    286  O   HIS    57       4.478  18.819  26.529  1.00 11.38      2PTN 391
+ATOM    287  CB  HIS    57       5.745  18.308  23.810  1.00 11.38      2PTN 392
+ATOM    288  CG  HIS    57       4.596  17.385  23.379  1.00 12.19      2PTN 393
+ATOM    289  ND1 HIS    57       4.815  16.252  22.598  1.00 12.19      2PTN 394
+ATOM    290  CD2 HIS    57       3.276  17.511  23.584  1.00 12.19      2PTN 395
+ATOM    291  CE1 HIS    57       3.578  15.653  22.343  1.00 12.19      2PTN 396
+ATOM    292  NE2 HIS    57       2.615  16.450  22.957  1.00 12.19      2PTN 397
+ATOM    293  N   CYS    58       5.184  16.712  26.907  1.00 12.09      2PTN 398
+ATOM    294  CA  CYS    58       4.290  16.466  28.021  1.00 12.09      2PTN 399
+ATOM    295  C   CYS    58       4.901  16.878  29.353  1.00 12.09      2PTN 400
+ATOM    296  O   CYS    58       4.303  16.548  30.401  1.00 12.09      2PTN 401
+ATOM    297  CB  CYS    58       3.920  14.975  28.069  1.00 12.09      2PTN 402
+ATOM    298  SG  CYS    58       2.798  14.431  26.757  1.00 10.32      2PTN 403
+ATOM    299  N   TYR    59       6.118  17.397  29.336  1.00 11.54      2PTN 404
+ATOM    300  CA  TYR    59       6.784  17.748  30.602  1.00 11.54      2PTN 405
+ATOM    301  C   TYR    59       5.953  18.745  31.410  1.00 11.54      2PTN 406
+ATOM    302  O   TYR    59       5.542  19.806  30.879  1.00 11.54      2PTN 407
+ATOM    303  CB  TYR    59       8.209  18.292  30.371  1.00 11.54      2PTN 408
+ATOM    304  CG  TYR    59       8.848  18.880  31.651  1.00 17.77      2PTN 409
+ATOM    305  CD1 TYR    59       8.800  20.240  31.861  1.00 17.77      2PTN 410
+ATOM    306  CD2 TYR    59       9.413  18.064  32.607  1.00 17.77      2PTN 411
+ATOM    307  CE1 TYR    59       9.305  20.798  33.033  1.00 17.77      2PTN 412
+ATOM    308  CE2 TYR    59       9.928  18.608  33.784  1.00 17.77      2PTN 413
+ATOM    309  CZ  TYR    59       9.870  19.979  33.987  1.00 17.77      2PTN 414
+ATOM    310  OH  TYR    59      10.355  20.574  35.200  1.00 17.77      2PTN 415
+ATOM    311  N   LYS    60       5.729  18.385  32.658  1.00 17.07      2PTN 416
+ATOM    312  CA  LYS    60       5.099  19.173  33.728  1.00 17.07      2PTN 417
+ATOM    313  C   LYS    60       5.829  18.868  35.030  1.00 17.07      2PTN 418
+ATOM    314  O   LYS    60       6.312  17.721  35.240  1.00 17.07      2PTN 419
+ATOM    315  CB  LYS    60       3.625  18.731  33.958  1.00 17.07      2PTN 420
+ATOM    316  CG  LYS    60       2.581  19.228  32.943  1.00 29.91      2PTN 421
+ATOM    317  CD  LYS    60       1.398  19.815  33.736  1.00 29.91      2PTN 422
+ATOM    318  CE  LYS    60        .013  19.610  33.095  1.00 29.91      2PTN 423
+ATOM    319  NZ  LYS    60       -.155  20.518  31.953  0.00  0.00   1  2PTN 424
+ATOM    320  N   SER    61       5.679  19.754  35.987  1.00 27.08      2PTN 425
+ATOM    321  CA  SER    61       6.012  19.427  37.388  1.00 27.08      2PTN 426
+ATOM    322  C   SER    61       4.780  18.877  38.096  1.00 27.08      2PTN 427
+ATOM    323  O   SER    61       3.628  19.280  37.772  1.00 27.08      2PTN 428
+ATOM    324  CB  SER    61       6.511  20.674  38.154  1.00 27.08      2PTN 429
+ATOM    325  OG  SER    61       6.774  20.324  39.521  0.00  0.00   1  2PTN 430
+ATOM    326  N   GLY    62       5.015  18.045  39.073  1.00 26.85      2PTN 431
+ATOM    327  CA  GLY    62       3.930  17.493  39.888  1.00 26.85      2PTN 432
+ATOM    328  C   GLY    62       3.086  16.470  39.132  1.00 26.85      2PTN 433
+ATOM    329  O   GLY    62       1.836  16.467  39.265  1.00 26.85      2PTN 434
+ATOM    330  N   ILE    63       3.743  15.573  38.438  1.00 19.41      2PTN 435
+ATOM    331  CA  ILE    63       3.070  14.442  37.783  1.00 19.41      2PTN 436
+ATOM    332  C   ILE    63       2.759  13.307  38.763  1.00 19.41      2PTN 437
+ATOM    333  O   ILE    63       3.686  12.728  39.377  1.00 19.41      2PTN 438
+ATOM    334  CB  ILE    63       3.943  13.924  36.607  1.00 19.41      2PTN 439
+ATOM    335  CG1 ILE    63       4.305  15.063  35.631  1.00 16.64      2PTN 440
+ATOM    336  CG2 ILE    63       3.295  12.732  35.864  1.00 16.64      2PTN 441
+ATOM    337  CD1 ILE    63       5.146  14.589  34.423  1.00 16.64      2PTN 442
+ATOM    338  N   GLN    64       1.539  12.840  38.698  1.00 15.63      2PTN 443
+ATOM    339  CA  GLN    64       1.147  11.539  39.243  1.00 15.63      2PTN 444
+ATOM    340  C   GLN    64        .873  10.540  38.129  1.00 15.63      2PTN 445
+ATOM    341  O   GLN    64        .030  10.816  37.237  1.00 15.63      2PTN 446
+ATOM    342  CB  GLN    64       -.115  11.654  40.118  1.00 15.63      2PTN 447
+ATOM    343  CG  GLN    64       -.391  10.316  40.843  1.00 19.06      2PTN 448
+ATOM    344  CD  GLN    64      -1.661  10.433  41.679  1.00 19.06      2PTN 449
+ATOM    345  OE1 GLN    64      -1.591  10.312  42.931  1.00 19.06      2PTN 450
+ATOM    346  NE2 GLN    64      -2.751  10.770  41.039  1.00 19.06      2PTN 451
+ATOM    347  N   VAL    65       1.563   9.430  38.184  1.00 12.75      2PTN 452
+ATOM    348  CA  VAL    65       1.353   8.373  37.172  1.00 12.75      2PTN 453
+ATOM    349  C   VAL    65        .222   7.426  37.578  1.00 12.75      2PTN 454
+ATOM    350  O   VAL    65        .188   6.941  38.737  1.00 12.75      2PTN 455
+ATOM    351  CB  VAL    65       2.668   7.614  36.924  1.00 12.75      2PTN 456
+ATOM    352  CG1 VAL    65       2.500   6.463  35.914  1.00 12.98      2PTN 457
+ATOM    353  CG2 VAL    65       3.781   8.589  36.504  1.00 12.98      2PTN 458
+ATOM    354  N   ARG    66       -.739   7.271  36.680  1.00 11.93      2PTN 459
+ATOM    355  CA  ARG    66      -1.891   6.404  36.930  1.00 11.93      2PTN 460
+ATOM    356  C   ARG    66      -1.889   5.142  36.081  1.00 11.93      2PTN 461
+ATOM    357  O   ARG    66      -2.012   5.223  34.837  1.00 11.93      2PTN 462
+ATOM    358  CB  ARG    66      -3.210   7.182  36.784  1.00 11.93      2PTN 463
+ATOM    359  CG  ARG    66      -3.255   8.334  37.806  1.00 12.31      2PTN 464
+ATOM    360  CD  ARG    66      -4.632   9.023  37.816  1.00 12.31      2PTN 465
+ATOM    361  NE  ARG    66      -4.766   9.809  39.057  1.00 12.31      2PTN 466
+ATOM    362  CZ  ARG    66      -5.886  10.031  39.692  1.00 12.31      2PTN 467
+ATOM    363  NH1 ARG    66      -7.041   9.645  39.201  1.00 12.31      2PTN 468
+ATOM    364  NH2 ARG    66      -5.839  10.637  40.875  1.00 12.31      2PTN 469
+ATOM    365  N   LEU    67      -1.676   4.028  36.759  1.00 13.63      2PTN 470
+ATOM    366  CA  LEU    67      -1.613   2.705  36.128  1.00 13.63      2PTN 471
+ATOM    367  C   LEU    67      -2.936   1.963  36.264  1.00 13.63      2PTN 472
+ATOM    368  O   LEU    67      -3.714   2.239  37.206  1.00 13.63      2PTN 473
+ATOM    369  CB  LEU    67       -.503   1.848  36.769  1.00 13.63      2PTN 474
+ATOM    370  CG  LEU    67        .877   2.538  36.820  1.00 20.42      2PTN 475
+ATOM    371  CD1 LEU    67       1.930   1.670  37.520  1.00 20.42      2PTN 476
+ATOM    372  CD2 LEU    67       1.366   2.882  35.414  1.00 20.42      2PTN 477
+ATOM    373  N   GLY    69      -3.130    .959  35.431  1.00 15.51      2PTN 478
+ATOM    374  CA  GLY    69      -4.282    .072  35.586  1.00 15.51      2PTN 479
+ATOM    375  C   GLY    69      -5.609    .771  35.315  1.00 15.51      2PTN 480
+ATOM    376  O   GLY    69      -6.675    .250  35.731  1.00 15.51      2PTN 481
+ATOM    377  N   GLU    70      -5.550   1.892  34.607  1.00 13.56      2PTN 482
+ATOM    378  CA  GLU    70      -6.774   2.646  34.290  1.00 13.56      2PTN 483
+ATOM    379  C   GLU    70      -7.544   2.076  33.105  1.00 13.56      2PTN 484
+ATOM    380  O   GLU    70      -6.918   1.725  32.081  1.00 13.56      2PTN 485
+ATOM    381  CB  GLU    70      -6.480   4.134  33.993  1.00 13.56      2PTN 486
+ATOM    382  CG  GLU    70      -5.956   4.906  35.219  1.00 10.95      2PTN 487
+ATOM    383  CD  GLU    70      -7.139   5.272  36.106  1.00 10.95      2PTN 488
+ATOM    384  OE1 GLU    70      -8.286   4.817  35.856  1.00 10.95      2PTN 489
+ATOM    385  OE2 GLU    70      -7.056   6.301  36.816  1.00 10.95      2PTN 490
+ATOM    386  N   ASP    71      -8.847   2.238  33.163  1.00  8.47      2PTN 491
+ATOM    387  CA  ASP    71      -9.728   2.176  32.006  1.00  8.47      2PTN 492
+ATOM    388  C   ASP    71     -10.595   3.430  31.954  1.00  8.47      2PTN 493
+ATOM    389  O   ASP    71     -10.186   4.430  31.305  1.00  8.47      2PTN 494
+ATOM    390  CB  ASP    71     -10.594    .912  32.014  1.00  8.47      2PTN 495
+ATOM    391  CG  ASP    71     -11.337    .847  30.693  1.00 10.54      2PTN 496
+ATOM    392  OD1 ASP    71     -10.732   1.011  29.613  1.00 10.54      2PTN 497
+ATOM    393  OD2 ASP    71     -12.535    .496  30.660  1.00 10.54      2PTN 498
+ATOM    394  N   ASN    72     -11.589   3.503  32.819  1.00  9.61      2PTN 499
+ATOM    395  CA  ASN    72     -12.302   4.755  33.029  1.00  9.61      2PTN 500
+ATOM    396  C   ASN    72     -11.524   5.687  33.961  1.00  9.61      2PTN 501
+ATOM    397  O   ASN    72     -11.316   5.346  35.154  1.00  9.61      2PTN 502
+ATOM    398  CB  ASN    72     -13.717   4.511  33.554  1.00  9.61      2PTN 503
+ATOM    399  CG  ASN    72     -14.557   5.781  33.407  1.00 12.34      2PTN 504
+ATOM    400  OD1 ASN    72     -14.179   6.877  33.896  1.00 12.34      2PTN 505
+ATOM    401  ND2 ASN    72     -15.766   5.588  32.920  1.00 12.34      2PTN 506
+ATOM    402  N   ILE    73     -10.986   6.752  33.407  1.00 12.65      2PTN 507
+ATOM    403  CA  ILE    73     -10.173   7.698  34.189  1.00 12.65      2PTN 508
+ATOM    404  C   ILE    73     -10.963   8.579  35.158  1.00 12.65      2PTN 509
+ATOM    405  O   ILE    73     -10.336   9.309  35.967  1.00 12.65      2PTN 510
+ATOM    406  CB  ILE    73      -9.305   8.608  33.295  1.00 12.65      2PTN 511
+ATOM    407  CG1 ILE    73     -10.142   9.458  32.321  1.00 11.97      2PTN 512
+ATOM    408  CG2 ILE    73      -8.154   7.840  32.607  1.00 11.97      2PTN 513
+ATOM    409  CD1 ILE    73      -9.235  10.427  31.543  1.00 11.97      2PTN 514
+ATOM    410  N   ASN    74     -12.278   8.503  35.111  1.00  9.31      2PTN 515
+ATOM    411  CA  ASN    74     -13.145   9.263  36.002  1.00  9.31      2PTN 516
+ATOM    412  C   ASN    74     -13.758   8.400  37.094  1.00  9.31      2PTN 517
+ATOM    413  O   ASN    74     -14.360   8.974  38.038  1.00  9.31      2PTN 518
+ATOM    414  CB  ASN    74     -14.240  10.050  35.253  1.00  9.31      2PTN 519
+ATOM    415  CG  ASN    74     -13.673  11.355  34.684  1.00  9.87      2PTN 520
+ATOM    416  OD1 ASN    74     -12.814  12.006  35.324  1.00  9.87      2PTN 521
+ATOM    417  ND2 ASN    74     -14.157  11.733  33.519  1.00  9.87      2PTN 522
+ATOM    418  N   VAL    75     -13.619   7.083  36.995  1.00 12.48      2PTN 523
+ATOM    419  CA  VAL    75     -14.114   6.195  38.063  1.00 12.48      2PTN 524
+ATOM    420  C   VAL    75     -13.125   5.156  38.578  1.00 12.48      2PTN 525
+ATOM    421  O   VAL    75     -12.358   4.572  37.782  1.00 12.48      2PTN 526
+ATOM    422  CB  VAL    75     -15.521   5.629  37.740  1.00 12.48      2PTN 527
+ATOM    423  CG1 VAL    75     -16.212   6.157  36.473  1.00 15.11      2PTN 528
+ATOM    424  CG2 VAL    75     -15.892   4.191  38.179  1.00 15.11      2PTN 529
+ATOM    425  N   VAL    76     -13.078   5.001  39.885  1.00 16.02      2PTN 530
+ATOM    426  CA  VAL    76     -12.215   4.006  40.504  1.00 16.02      2PTN 531
+ATOM    427  C   VAL    76     -12.846   2.622  40.389  1.00 16.02      2PTN 532
+ATOM    428  O   VAL    76     -13.973   2.398  40.907  1.00 16.02      2PTN 533
+ATOM    429  CB  VAL    76     -11.939   4.367  41.977  1.00 16.02      2PTN 534
+ATOM    430  CG1 VAL    76     -11.171   3.264  42.728  1.00 14.95      2PTN 535
+ATOM    431  CG2 VAL    76     -11.202   5.711  42.058  1.00 14.95      2PTN 536
+ATOM    432  N   GLU    77     -12.259   1.846  39.491  1.00 17.24      2PTN 537
+ATOM    433  CA  GLU    77     -12.797    .545  39.090  1.00 17.24      2PTN 538
+ATOM    434  C   GLU    77     -12.085   -.631  39.728  1.00 17.24      2PTN 539
+ATOM    435  O   GLU    77     -12.622  -1.764  39.683  1.00 17.24      2PTN 540
+ATOM    436  CB  GLU    77     -12.762    .375  37.566  1.00 17.24      2PTN 541
+ATOM    437  CG  GLU    77     -13.556   1.498  36.881  1.00 21.02      2PTN 542
+ATOM    438  CD  GLU    77     -13.573   1.238  35.382  1.00 21.02      2PTN 543
+ATOM    439  OE1 GLU    77     -12.564   1.473  34.675  1.00 21.02      2PTN 544
+ATOM    440  OE2 GLU    77     -14.638    .864  34.837  1.00 21.02      2PTN 545
+ATOM    441  N   GLY    78     -10.980   -.390  40.375  1.00 20.82      2PTN 546
+ATOM    442  CA  GLY    78     -10.426  -1.471  41.203  1.00 20.82      2PTN 547
+ATOM    443  C   GLY    78      -9.044  -1.968  40.829  1.00 20.82      2PTN 548
+ATOM    444  O   GLY    78      -8.474  -2.778  41.598  1.00 20.82      2PTN 549
+ATOM    445  N   ASN    79      -8.572  -1.648  39.655  1.00 16.03      2PTN 550
+ATOM    446  CA  ASN    79      -7.259  -2.133  39.215  1.00 16.03      2PTN 551
+ATOM    447  C   ASN    79      -6.190  -1.036  39.164  1.00 16.03      2PTN 552
+ATOM    448  O   ASN    79      -5.068  -1.281  38.662  1.00 16.03      2PTN 553
+ATOM    449  CB  ASN    79      -7.347  -2.780  37.822  1.00 16.03      2PTN 554
+ATOM    450  CG  ASN    79      -8.276  -3.988  37.897  1.00 26.76      2PTN 555
+ATOM    451  OD1 ASN    79      -7.899  -4.953  38.602  1.00 26.76      2PTN 556
+ATOM    452  ND2 ASN    79      -9.554  -3.711  37.679  1.00 26.76      2PTN 557
+ATOM    453  N   GLU    80      -6.530    .143  39.637  1.00 17.55      2PTN 558
+ATOM    454  CA  GLU    80      -5.613   1.300  39.600  1.00 17.55      2PTN 559
+ATOM    455  C   GLU    80      -4.444   1.212  40.575  1.00 17.55      2PTN 560
+ATOM    456  O   GLU    80      -4.645    .823  41.752  1.00 17.55      2PTN 561
+ATOM    457  CB  GLU    80      -6.346   2.635  39.857  1.00 17.55      2PTN 562
+ATOM    458  CG  GLU    80      -7.430   2.960  38.811  1.00 12.11      2PTN 563
+ATOM    459  CD  GLU    80      -8.801   2.409  39.205  1.00 12.11      2PTN 564
+ATOM    460  OE1 GLU    80      -8.959   1.602  40.170  1.00 12.11      2PTN 565
+ATOM    461  OE2 GLU    80      -9.813   2.843  38.606  1.00 12.11      2PTN 566
+ATOM    462  N   GLN    81      -3.336   1.775  40.150  1.00 11.03      2PTN 567
+ATOM    463  CA  GLN    81      -2.191   2.149  40.990  1.00 11.03      2PTN 568
+ATOM    464  C   GLN    81      -1.777   3.594  40.717  1.00 11.03      2PTN 569
+ATOM    465  O   GLN    81      -1.435   3.931  39.555  1.00 11.03      2PTN 570
+ATOM    466  CB  GLN    81       -.978   1.242  40.729  1.00 11.03      2PTN 571
+ATOM    467  CG  GLN    81      -1.301   -.221  41.061  1.00 17.52      2PTN 572
+ATOM    468  CD  GLN    81       -.102  -1.085  40.710  1.00 17.52      2PTN 573
+ATOM    469  OE1 GLN    81       1.024   -.804  41.180  1.00 17.52      2PTN 574
+ATOM    470  NE2 GLN    81       -.382  -2.182  40.059  1.00 17.52      2PTN 575
+ATOM    471  N   PHE    82      -1.849   4.431  41.743  1.00 16.50      2PTN 576
+ATOM    472  CA  PHE    82      -1.501   5.853  41.612  1.00 16.50      2PTN 577
+ATOM    473  C   PHE    82       -.180   6.144  42.302  1.00 16.50      2PTN 578
+ATOM    474  O   PHE    82       -.076   5.951  43.536  1.00 16.50      2PTN 579
+ATOM    475  CB  PHE    82      -2.550   6.786  42.250  1.00 16.50      2PTN 580
+ATOM    476  CG  PHE    82      -3.974   6.658  41.664  1.00 18.28      2PTN 581
+ATOM    477  CD1 PHE    82      -5.051   7.105  42.397  1.00 18.28      2PTN 582
+ATOM    478  CD2 PHE    82      -4.179   6.102  40.416  1.00 18.28      2PTN 583
+ATOM    479  CE1 PHE    82      -6.338   7.005  41.879  1.00 18.28      2PTN 584
+ATOM    480  CE2 PHE    82      -5.460   5.992  39.894  1.00 18.28      2PTN 585
+ATOM    481  CZ  PHE    82      -6.544   6.448  40.627  1.00 18.28      2PTN 586
+ATOM    482  N   ILE    83        .826   6.436  41.523  1.00 14.93      2PTN 587
+ATOM    483  CA  ILE    83       2.176   6.624  42.038  1.00 14.93      2PTN 588
+ATOM    484  C   ILE    83       2.769   7.936  41.544  1.00 14.93      2PTN 589
+ATOM    485  O   ILE    83       2.792   8.171  40.311  1.00 14.93      2PTN 590
+ATOM    486  CB  ILE    83       3.063   5.441  41.580  1.00 14.93      2PTN 591
+ATOM    487  CG1 ILE    83       2.389   4.069  41.824  1.00 12.33      2PTN 592
+ATOM    488  CG2 ILE    83       4.470   5.510  42.190  1.00 12.33      2PTN 593
+ATOM    489  CD1 ILE    83       3.162   2.888  41.223  1.00 12.33      2PTN 594
+ATOM    490  N   SER    84       3.258   8.772  42.453  1.00 18.57      2PTN 595
+ATOM    491  CA  SER    84       3.905  10.034  42.042  1.00 18.57      2PTN 596
+ATOM    492  C   SER    84       5.269   9.838  41.378  1.00 18.57      2PTN 597
+ATOM    493  O   SER    84       5.998   8.858  41.674  1.00 18.57      2PTN 598
+ATOM    494  CB  SER    84       4.017  11.020  43.235  1.00 18.57      2PTN 599
+ATOM    495  OG  SER    84       2.712  11.273  43.774  0.00  0.00   1  2PTN 600
+ATOM    496  N   ALA    85       5.625  10.764  40.521  1.00 12.70      2PTN 601
+ATOM    497  CA  ALA    85       6.950  10.769  39.903  1.00 12.70      2PTN 602
+ATOM    498  C   ALA    85       8.002  11.314  40.866  1.00 12.70      2PTN 603
+ATOM    499  O   ALA    85       7.745  12.324  41.571  1.00 12.70      2PTN 604
+ATOM    500  CB  ALA    85       6.938  11.637  38.628  1.00 12.70      2PTN 605
+ATOM    501  N   SER    86       9.121  10.636  40.943  1.00 12.29      2PTN 606
+ATOM    502  CA  SER    86      10.294  11.020  41.737  1.00 12.29      2PTN 607
+ATOM    503  C   SER    86      11.155  11.987  40.929  1.00 12.29      2PTN 608
+ATOM    504  O   SER    86      11.802  12.911  41.486  1.00 12.29      2PTN 609
+ATOM    505  CB  SER    86      11.154   9.750  42.018  1.00 12.29      2PTN 610
+ATOM    506  OG  SER    86      12.400  10.132  42.618  0.00  0.00   1  2PTN 611
+ATOM    507  N   LYS    87      11.271  11.673  39.657  1.00 14.91      2PTN 612
+ATOM    508  CA  LYS    87      12.227  12.342  38.759  1.00 14.91      2PTN 613
+ATOM    509  C   LYS    87      11.721  12.279  37.322  1.00 14.91      2PTN 614
+ATOM    510  O   LYS    87      11.128  11.255  36.896  1.00 14.91      2PTN 615
+ATOM    511  CB  LYS    87      13.587  11.596  38.844  1.00 14.91      2PTN 616
+ATOM    512  CG  LYS    87      14.734  12.324  38.132  1.00 28.16      2PTN 617
+ATOM    513  CD  LYS    87      16.148  11.839  38.513  0.00  0.00   1  2PTN 618
+ATOM    514  CE  LYS    87      16.424  10.370  38.142  0.00  0.00   1  2PTN 619
+ATOM    515  NZ  LYS    87      16.137   9.468  39.263  0.00  0.00   1  2PTN 620
+ATOM    516  N   SER    88      11.924  13.361  36.608  1.00 13.00      2PTN 621
+ATOM    517  CA  SER    88      11.642  13.410  35.179  1.00 13.00      2PTN 622
+ATOM    518  C   SER    88      12.853  13.883  34.392  1.00 13.00      2PTN 623
+ATOM    519  O   SER    88      13.594  14.786  34.858  1.00 13.00      2PTN 624
+ATOM    520  CB  SER    88      10.409  14.274  34.872  1.00 13.00      2PTN 625
+ATOM    521  OG  SER    88      10.176  14.219  33.460  0.00  0.00   1  2PTN 626
+ATOM    522  N   ILE    89      13.143  13.172  33.318  1.00 11.63      2PTN 627
+ATOM    523  CA  ILE    89      14.302  13.437  32.470  1.00 11.63      2PTN 628
+ATOM    524  C   ILE    89      13.914  13.632  31.007  1.00 11.63      2PTN 629
+ATOM    525  O   ILE    89      13.619  12.646  30.280  1.00 11.63      2PTN 630
+ATOM    526  CB  ILE    89      15.331  12.296  32.567  1.00 11.63      2PTN 631
+ATOM    527  CG1 ILE    89      15.687  12.015  34.034  1.00 15.81      2PTN 632
+ATOM    528  CG2 ILE    89      16.590  12.573  31.721  1.00 15.81      2PTN 633
+ATOM    529  CD1 ILE    89      16.450  10.692  34.210  1.00 15.81      2PTN 634
+ATOM    530  N   VAL    90      13.989  14.861  30.571  1.00  9.43      2PTN 635
+ATOM    531  CA  VAL    90      13.733  15.161  29.167  1.00  9.43      2PTN 636
+ATOM    532  C   VAL    90      15.003  14.907  28.368  1.00  9.43      2PTN 637
+ATOM    533  O   VAL    90      16.101  15.175  28.902  1.00  9.43      2PTN 638
+ATOM    534  CB  VAL    90      13.262  16.634  29.051  1.00  9.43      2PTN 639
+ATOM    535  CG1 VAL    90      13.224  17.155  27.598  1.00  7.11      2PTN 640
+ATOM    536  CG2 VAL    90      11.937  16.864  29.805  1.00  7.11      2PTN 641
+ATOM    537  N   HIS    91      14.858  14.323  27.177  1.00 12.05      2PTN 642
+ATOM    538  CA  HIS    91      15.990  14.059  26.277  1.00 12.05      2PTN 643
+ATOM    539  C   HIS    91      16.870  15.299  26.096  1.00 12.05      2PTN 644
+ATOM    540  O   HIS    91      16.325  16.422  25.923  1.00 12.05      2PTN 645
+ATOM    541  CB  HIS    91      15.450  13.628  24.894  1.00 12.05      2PTN 646
+ATOM    542  CG  HIS    91      16.583  13.023  24.050  1.00 11.94      2PTN 647
+ATOM    543  ND1 HIS    91      17.435  13.822  23.307  1.00 11.94      2PTN 648
+ATOM    544  CD2 HIS    91      16.979  11.748  23.941  1.00 11.94      2PTN 649
+ATOM    545  CE1 HIS    91      18.397  12.999  22.717  1.00 11.94      2PTN 650
+ATOM    546  NE2 HIS    91      18.106  11.701  23.122  1.00 11.94      2PTN 651
+ATOM    547  N   PRO    92      18.162  15.130  26.275  1.00 10.88      2PTN 652
+ATOM    548  CA  PRO    92      19.142  16.216  26.260  1.00 10.88      2PTN 653
+ATOM    549  C   PRO    92      19.063  17.091  25.021  1.00 10.88      2PTN 654
+ATOM    550  O   PRO    92      19.497  18.267  25.092  1.00 10.88      2PTN 655
+ATOM    551  CB  PRO    92      20.545  15.610  26.376  1.00 10.88      2PTN 656
+ATOM    552  CG  PRO    92      20.335  14.108  26.577  1.00 15.23      2PTN 657
+ATOM    553  CD  PRO    92      18.825  13.850  26.550  1.00 15.23      2PTN 658
+ATOM    554  N   SER    93      18.562  16.530  23.927  1.00 11.23      2PTN 659
+ATOM    555  CA  SER    93      18.483  17.257  22.649  1.00 11.23      2PTN 660
+ATOM    556  C   SER    93      17.071  17.588  22.201  1.00 11.23      2PTN 661
+ATOM    557  O   SER    93      16.867  17.948  21.013  1.00 11.23      2PTN 662
+ATOM    558  CB  SER    93      19.244  16.535  21.526  1.00 11.23      2PTN 663
+ATOM    559  OG  SER    93      20.631  16.461  21.886  1.00 21.90      2PTN 664
+ATOM    560  N   TYR    94      16.153  17.568  23.125  1.00  8.08      2PTN 665
+ATOM    561  CA  TYR    94      14.786  17.939  22.806  1.00  8.08      2PTN 666
+ATOM    562  C   TYR    94      14.700  19.377  22.286  1.00  8.08      2PTN 667
+ATOM    563  O   TYR    94      15.133  20.329  22.988  1.00  8.08      2PTN 668
+ATOM    564  CB  TYR    94      13.862  17.757  24.025  1.00  8.08      2PTN 669
+ATOM    565  CG  TYR    94      12.430  18.280  23.777  1.00 10.92      2PTN 670
+ATOM    566  CD1 TYR    94      11.916  19.259  24.596  1.00 10.92      2PTN 671
+ATOM    567  CD2 TYR    94      11.667  17.779  22.730  1.00 10.92      2PTN 672
+ATOM    568  CE1 TYR    94      10.622  19.735  24.392  1.00 10.92      2PTN 673
+ATOM    569  CE2 TYR    94      10.374  18.244  22.509  1.00 10.92      2PTN 674
+ATOM    570  CZ  TYR    94       9.844  19.217  23.354  1.00 10.92      2PTN 675
+ATOM    571  OH  TYR    94       8.526  19.699  23.139  1.00 10.92      2PTN 676
+ATOM    572  N   ASN    95      14.111  19.512  21.106  1.00 11.42      2PTN 677
+ATOM    573  CA  ASN    95      13.794  20.825  20.505  1.00 11.42      2PTN 678
+ATOM    574  C   ASN    95      12.291  21.093  20.397  1.00 11.42      2PTN 679
+ATOM    575  O   ASN    95      11.587  20.469  19.566  1.00 11.42      2PTN 680
+ATOM    576  CB  ASN    95      14.445  20.928  19.115  1.00 11.42      2PTN 681
+ATOM    577  CG  ASN    95      14.380  22.374  18.626  1.00 23.13      2PTN 682
+ATOM    578  OD1 ASN    95      13.273  22.938  18.482  1.00 23.13      2PTN 683
+ATOM    579  ND2 ASN    95      15.420  22.720  17.909  1.00 23.13      2PTN 684
+ATOM    580  N   SER    96      11.802  21.948  21.259  1.00  8.23      2PTN 685
+ATOM    581  CA  SER    96      10.369  22.194  21.354  1.00  8.23      2PTN 686
+ATOM    582  C   SER    96       9.776  22.883  20.129  1.00  8.23      2PTN 687
+ATOM    583  O   SER    96       8.534  22.879  19.961  1.00  8.23      2PTN 688
+ATOM    584  CB  SER    96      10.055  23.039  22.603  1.00  8.23      2PTN 689
+ATOM    585  OG  SER    96      10.670  24.322  22.495  1.00 20.46      2PTN 690
+ATOM    586  N   ASN    97      10.589  23.495  19.324  1.00 11.27      2PTN 691
+ATOM    587  CA  ASN    97      10.067  24.156  18.122  1.00 11.27      2PTN 692
+ATOM    588  C   ASN    97       9.858  23.172  16.989  1.00 11.27      2PTN 693
+ATOM    589  O   ASN    97       8.850  23.303  16.250  1.00 11.27      2PTN 694
+ATOM    590  CB  ASN    97      11.029  25.237  17.613  1.00 11.27      2PTN 695
+ATOM    591  CG  ASN    97      11.010  26.413  18.587  1.00 15.97      2PTN 696
+ATOM    592  OD1 ASN    97      12.103  26.948  18.886  1.00 15.97      2PTN 697
+ATOM    593  ND2 ASN    97       9.857  26.686  19.166  1.00 15.97      2PTN 698
+ATOM    594  N   THR    98      10.762  22.213  16.879  1.00 11.29      2PTN 699
+ATOM    595  CA  THR    98      10.696  21.201  15.816  1.00 11.29      2PTN 700
+ATOM    596  C   THR    98      10.100  19.864  16.239  1.00 11.29      2PTN 701
+ATOM    597  O   THR    98       9.768  19.011  15.376  1.00 11.29      2PTN 702
+ATOM    598  CB  THR    98      12.097  20.961  15.245  1.00 11.29      2PTN 703
+ATOM    599  OG1 THR    98      12.908  20.349  16.249  1.00 11.06      2PTN 704
+ATOM    600  CG2 THR    98      12.726  22.273  14.736  1.00 11.06      2PTN 705
+ATOM    601  N   LEU    99      10.007  19.687  17.536  1.00 12.25      2PTN 706
+ATOM    602  CA  LEU    99       9.599  18.429  18.188  1.00 12.25      2PTN 707
+ATOM    603  C   LEU    99      10.565  17.281  17.914  1.00 12.25      2PTN 708
+ATOM    604  O   LEU    99      10.256  16.101  18.215  1.00 12.25      2PTN 709
+ATOM    605  CB  LEU    99       8.149  18.040  17.853  1.00 12.25      2PTN 710
+ATOM    606  CG  LEU    99       7.125  19.029  18.438  1.00 18.18      2PTN 711
+ATOM    607  CD1 LEU    99       5.695  18.554  18.168  1.00 18.18      2PTN 712
+ATOM    608  CD2 LEU    99       7.323  19.236  19.952  1.00 18.18      2PTN 713
+ATOM    609  N   ASN   100      11.752  17.625  17.477  1.00 11.03      2PTN 714
+ATOM    610  CA  ASN   100      12.788  16.618  17.315  1.00 11.03      2PTN 715
+ATOM    611  C   ASN   100      13.257  16.117  18.677  1.00 11.03      2PTN 716
+ATOM    612  O   ASN   100      13.381  16.949  19.608  1.00 11.03      2PTN 717
+ATOM    613  CB  ASN   100      13.980  17.180  16.514  1.00 11.03      2PTN 718
+ATOM    614  CG  ASN   100      14.950  16.064  16.119  1.00 14.17      2PTN 719
+ATOM    615  OD1 ASN   100      16.139  16.374  15.865  1.00 14.17      2PTN 720
+ATOM    616  ND2 ASN   100      14.432  14.906  15.800  1.00 14.17      2PTN 721
+ATOM    617  N   ASN   101      13.409  14.804  18.804  1.00  9.65      2PTN 722
+ATOM    618  CA  ASN   101      13.781  14.101  20.049  1.00  9.65      2PTN 723
+ATOM    619  C   ASN   101      12.704  14.232  21.123  1.00  9.65      2PTN 724
+ATOM    620  O   ASN   101      13.034  14.498  22.302  1.00  9.65      2PTN 725
+ATOM    621  CB  ASN   101      15.128  14.586  20.651  1.00  9.65      2PTN 726
+ATOM    622  CG  ASN   101      16.291  14.465  19.672  1.00 11.02      2PTN 727
+ATOM    623  OD1 ASN   101      16.801  15.526  19.232  1.00 11.02      2PTN 728
+ATOM    624  ND2 ASN   101      16.508  13.288  19.145  1.00 11.02      2PTN 729
+ATOM    625  N   ASP   102      11.457  14.134  20.721  1.00  9.30      2PTN 730
+ATOM    626  CA  ASP   102      10.296  14.297  21.626  1.00  9.30      2PTN 731
+ATOM    627  C   ASP   102      10.041  13.074  22.526  1.00  9.30      2PTN 732
+ATOM    628  O   ASP   102       9.149  12.226  22.272  1.00  9.30      2PTN 733
+ATOM    629  CB  ASP   102       9.045  14.630  20.793  1.00  9.30      2PTN 734
+ATOM    630  CG  ASP   102       7.866  14.997  21.682  1.00  9.70      2PTN 735
+ATOM    631  OD1 ASP   102       8.047  15.445  22.842  1.00  9.70      2PTN 736
+ATOM    632  OD2 ASP   102       6.713  15.010  21.193  1.00  9.70      2PTN 737
+ATOM    633  N   ILE   103      10.918  12.906  23.477  1.00 10.98      2PTN 738
+ATOM    634  CA  ILE   103      10.897  11.762  24.393  1.00 10.98      2PTN 739
+ATOM    635  C   ILE   103      11.393  12.154  25.788  1.00 10.98      2PTN 740
+ATOM    636  O   ILE   103      12.308  13.009  25.940  1.00 10.98      2PTN 741
+ATOM    637  CB  ILE   103      11.734  10.586  23.789  1.00 10.98      2PTN 742
+ATOM    638  CG1 ILE   103      11.598   9.274  24.603  1.00 11.64      2PTN 743
+ATOM    639  CG2 ILE   103      13.204  10.976  23.503  1.00 11.64      2PTN 744
+ATOM    640  CD1 ILE   103      12.268   8.083  23.895  1.00 11.64      2PTN 745
+ATOM    641  N   MET   104      10.737  11.595  26.778  1.00  9.82      2PTN 746
+ATOM    642  CA  MET   104      10.982  11.869  28.191  1.00  9.82      2PTN 747
+ATOM    643  C   MET   104      10.859  10.591  29.030  1.00  9.82      2PTN 748
+ATOM    644  O   MET   104       9.905   9.800  28.808  1.00  9.82      2PTN 749
+ATOM    645  CB  MET   104       9.904  12.887  28.626  1.00  9.82      2PTN 750
+ATOM    646  CG  MET   104       9.945  13.272  30.109  1.00 22.23      2PTN 751
+ATOM    647  SD  MET   104       8.680  14.472  30.581  1.00 22.23      2PTN 752
+ATOM    648  CE  MET   104       7.235  13.625  29.993  1.00 22.23      2PTN 753
+ATOM    649  N   LEU   105      11.687  10.484  30.060  1.00  8.34      2PTN 754
+ATOM    650  CA  LEU   105      11.663   9.386  31.052  1.00  8.34      2PTN 755
+ATOM    651  C   LEU   105      11.159   9.887  32.401  1.00  8.34      2PTN 756
+ATOM    652  O   LEU   105      11.561  10.980  32.854  1.00  8.34      2PTN 757
+ATOM    653  CB  LEU   105      13.086   8.836  31.269  1.00  8.34      2PTN 758
+ATOM    654  CG  LEU   105      13.444   7.590  30.416  1.00 20.80      2PTN 759
+ATOM    655  CD1 LEU   105      12.557   7.357  29.184  1.00 20.80      2PTN 760
+ATOM    656  CD2 LEU   105      14.949   7.462  30.118  1.00 20.80      2PTN 761
+ATOM    657  N   ILE   106      10.278   9.114  33.005  1.00  8.77      2PTN 762
+ATOM    658  CA  ILE   106       9.711   9.418  34.324  1.00  8.77      2PTN 763
+ATOM    659  C   ILE   106       9.919   8.261  35.289  1.00  8.77      2PTN 764
+ATOM    660  O   ILE   106       9.376   7.158  35.059  1.00  8.77      2PTN 765
+ATOM    661  CB  ILE   106       8.214   9.681  34.190  1.00  8.77      2PTN 766
+ATOM    662  CG1 ILE   106       7.965  10.871  33.237  1.00 11.94      2PTN 767
+ATOM    663  CG2 ILE   106       7.555   9.902  35.558  1.00 11.94      2PTN 768
+ATOM    664  CD1 ILE   106       6.481  11.032  32.886  1.00 11.94      2PTN 769
+ATOM    665  N   LYS   107      10.674   8.504  36.343  1.00 10.95      2PTN 770
+ATOM    666  CA  LYS   107      10.850   7.504  37.409  1.00 10.95      2PTN 771
+ATOM    667  C   LYS   107       9.784   7.633  38.496  1.00 10.95      2PTN 772
+ATOM    668  O   LYS   107       9.554   8.757  39.009  1.00 10.95      2PTN 773
+ATOM    669  CB  LYS   107      12.243   7.633  38.051  1.00 10.95      2PTN 774
+ATOM    670  CG  LYS   107      12.540   6.429  38.971  1.00 12.24      2PTN 775
+ATOM    671  CD  LYS   107      13.931   6.517  39.601  1.00 12.24      2PTN 776
+ATOM    672  CE  LYS   107      14.293   5.223  40.353  1.00 12.24      2PTN 777
+ATOM    673  NZ  LYS   107      15.627   5.353  40.937  1.00 12.24      2PTN 778
+ATOM    674  N   LEU   108       9.190   6.521  38.856  1.00 13.61      2PTN 779
+ATOM    675  CA  LEU   108       8.191   6.423  39.928  1.00 13.61      2PTN 780
+ATOM    676  C   LEU   108       8.835   6.453  41.312  1.00 13.61      2PTN 781
+ATOM    677  O   LEU   108       9.948   5.900  41.494  1.00 13.61      2PTN 782
+ATOM    678  CB  LEU   108       7.392   5.099  39.792  1.00 13.61      2PTN 783
+ATOM    679  CG  LEU   108       6.695   4.915  38.429  1.00 14.32      2PTN 784
+ATOM    680  CD1 LEU   108       6.036   3.538  38.290  1.00 14.32      2PTN 785
+ATOM    681  CD2 LEU   108       5.699   6.044  38.145  1.00 14.32      2PTN 786
+ATOM    682  N   LYS   109       8.156   7.061  42.258  1.00 19.62      2PTN 787
+ATOM    683  CA  LYS   109       8.618   7.095  43.662  1.00 19.62      2PTN 788
+ATOM    684  C   LYS   109       8.736   5.701  44.279  1.00 19.62      2PTN 789
+ATOM    685  O   LYS   109       9.685   5.428  45.059  1.00 19.62      2PTN 790
+ATOM    686  CB  LYS   109       7.633   7.891  44.538  1.00 19.62      2PTN 791
+ATOM    687  CG  LYS   109       7.853   9.400  44.388  1.00 31.83      2PTN 792
+ATOM    688  CD  LYS   109       6.922  10.214  45.304  0.00  0.00   1  2PTN 793
+ATOM    689  CE  LYS   109       7.156  11.730  45.161  0.00  0.00   1  2PTN 794
+ATOM    690  NZ  LYS   109       6.267  12.464  46.070  0.00  0.00   1  2PTN 795
+ATOM    691  N   SER   110       7.843   4.835  43.851  1.00 19.52      2PTN 796
+ATOM    692  CA  SER   110       7.813   3.422  44.243  1.00 19.52      2PTN 797
+ATOM    693  C   SER   110       7.562   2.530  43.039  1.00 19.52      2PTN 798
+ATOM    694  O   SER   110       6.907   2.980  42.074  1.00 19.52      2PTN 799
+ATOM    695  CB  SER   110       6.688   3.178  45.273  1.00 19.52      2PTN 800
+ATOM    696  OG  SER   110       6.913   3.989  46.434  0.00  0.00   1  2PTN 801
+ATOM    697  N   ALA   111       8.027   1.308  43.107  1.00 16.60      2PTN 802
+ATOM    698  CA  ALA   111       7.790    .327  42.046  1.00 16.60      2PTN 803
+ATOM    699  C   ALA   111       6.337   -.118  41.994  1.00 16.60      2PTN 804
+ATOM    700  O   ALA   111       5.711   -.416  43.046  1.00 16.60      2PTN 805
+ATOM    701  CB  ALA   111       8.705   -.896  42.223  1.00 16.60      2PTN 806
+ATOM    702  N   ALA   112       5.830   -.152  40.789  1.00 13.03      2PTN 807
+ATOM    703  CA  ALA   112       4.499   -.676  40.465  1.00 13.03      2PTN 808
+ATOM    704  C   ALA   112       4.410  -2.185  40.701  1.00 13.03      2PTN 809
+ATOM    705  O   ALA   112       5.417  -2.911  40.503  1.00 13.03      2PTN 810
+ATOM    706  CB  ALA   112       4.187   -.395  38.979  1.00 13.03      2PTN 811
+ATOM    707  N   SER   113       3.239  -2.640  41.075  1.00 18.10      2PTN 812
+ATOM    708  CA  SER   113       2.946  -4.066  41.235  1.00 18.10      2PTN 813
+ATOM    709  C   SER   113       2.442  -4.677  39.926  1.00 18.10      2PTN 814
+ATOM    710  O   SER   113       1.332  -4.328  39.442  1.00 18.10      2PTN 815
+ATOM    711  CB  SER   113       1.893  -4.272  42.345  1.00 18.10      2PTN 816
+ATOM    712  OG  SER   113       2.275  -3.532  43.512  0.00  0.00   1  2PTN 817
+ATOM    713  N   LEU   114       3.311  -5.431  39.295  1.00 22.44      2PTN 818
+ATOM    714  CA  LEU   114       3.034  -5.923  37.947  1.00 22.44      2PTN 819
+ATOM    715  C   LEU   114       2.222  -7.211  37.938  1.00 22.44      2PTN 820
+ATOM    716  O   LEU   114       2.722  -8.247  38.438  1.00 22.44      2PTN 821
+ATOM    717  CB  LEU   114       4.337  -6.104  37.150  1.00 22.44      2PTN 822
+ATOM    718  CG  LEU   114       5.117  -4.785  36.981  1.00 20.45      2PTN 823
+ATOM    719  CD1 LEU   114       6.429  -5.010  36.234  1.00 20.45      2PTN 824
+ATOM    720  CD2 LEU   114       4.297  -3.713  36.262  1.00 20.45      2PTN 825
+ATOM    721  N   ASN   115       1.050  -7.157  37.313  1.00 34.02      2PTN 826
+ATOM    722  CA  ASN   115        .175  -8.331  37.047  1.00 34.02      2PTN 827
+ATOM    723  C   ASN   115       -.290  -8.452  35.591  1.00 34.02      2PTN 828
+ATOM    724  O   ASN   115        .346  -7.871  34.682  1.00 34.02      2PTN 829
+ATOM    725  CB  ASN   115      -1.029  -8.381  38.016  1.00 34.02      2PTN 830
+ATOM    726  CG  ASN   115      -1.985  -7.209  37.821  0.00  0.00   1  2PTN 831
+ATOM    727  OD1 ASN   115      -1.591  -6.194  37.201  0.00  0.00   1  2PTN 832
+ATOM    728  ND2 ASN   115      -2.880  -7.123  38.784  0.00  0.00   1  2PTN 833
+ATOM    729  N   SER   116      -1.272  -9.276  35.315  1.00 24.69      2PTN 834
+ATOM    730  CA  SER   116      -1.802  -9.411  33.946  1.00 24.69      2PTN 835
+ATOM    731  C   SER   116      -2.442  -8.110  33.443  1.00 24.69      2PTN 836
+ATOM    732  O   SER   116      -2.478  -7.834  32.215  1.00 24.69      2PTN 837
+ATOM    733  CB  SER   116      -2.886 -10.520  33.907  1.00 24.69      2PTN 838
+ATOM    734  OG  SER   116      -3.957 -10.152  34.811  1.00 35.47      2PTN 839
+ATOM    735  N   ARG   117      -2.968  -7.355  34.370  1.00 20.38      2PTN 840
+ATOM    736  CA  ARG   117      -3.645  -6.091  34.070  1.00 20.38      2PTN 841
+ATOM    737  C   ARG   117      -2.738  -4.870  34.093  1.00 20.38      2PTN 842
+ATOM    738  O   ARG   117      -3.055  -3.865  33.414  1.00 20.38      2PTN 843
+ATOM    739  CB  ARG   117      -4.841  -5.885  35.002  1.00 20.38      2PTN 844
+ATOM    740  CG  ARG   117      -5.939  -6.924  34.713  1.00 35.06      2PTN 845
+ATOM    741  CD  ARG   117      -7.117  -6.809  35.694  1.00 35.06      2PTN 846
+ATOM    742  NE  ARG   117      -8.218  -7.670  35.240  1.00 35.06      2PTN 847
+ATOM    743  CZ  ARG   117      -9.114  -8.162  36.071  1.00 35.06      2PTN 848
+ATOM    744  NH1 ARG   117      -9.063  -7.822  37.345  0.00  0.00   1  2PTN 849
+ATOM    745  NH2 ARG   117     -10.085  -8.929  35.619  0.00  0.00   1  2PTN 850
+ATOM    746  N   VAL   118      -1.608  -4.989  34.765  1.00 16.05      2PTN 851
+ATOM    747  CA  VAL   118       -.552  -3.969  34.779  1.00 16.05      2PTN 852
+ATOM    748  C   VAL   118        .802  -4.576  34.455  1.00 16.05      2PTN 853
+ATOM    749  O   VAL   118       1.383  -5.297  35.294  1.00 16.05      2PTN 854
+ATOM    750  CB  VAL   118       -.475  -3.186  36.119  1.00 16.05      2PTN 855
+ATOM    751  CG1 VAL   118        .704  -2.187  36.154  1.00 18.01      2PTN 856
+ATOM    752  CG2 VAL   118      -1.804  -2.480  36.467  1.00 18.01      2PTN 857
+ATOM    753  N   ALA   119       1.235  -4.397  33.256  1.00 10.85      2PTN 858
+ATOM    754  CA  ALA   119       2.469  -4.983  32.773  1.00 10.85      2PTN 859
+ATOM    755  C   ALA   119       3.377  -3.968  32.104  1.00 10.85      2PTN 860
+ATOM    756  O   ALA   119       2.887  -2.934  31.599  1.00 10.85      2PTN 861
+ATOM    757  CB  ALA   119       2.130  -6.109  31.773  1.00 10.85      2PTN 862
+ATOM    758  N   SER   120       4.622  -4.298  31.962  1.00 13.14      2PTN 863
+ATOM    759  CA  SER   120       5.519  -3.444  31.162  1.00 13.14      2PTN 864
+ATOM    760  C   SER   120       5.535  -3.858  29.696  1.00 13.14      2PTN 865
+ATOM    761  O   SER   120       5.293  -5.044  29.387  1.00 13.14      2PTN 866
+ATOM    762  CB  SER   120       6.947  -3.487  31.714  1.00 13.14      2PTN 867
+ATOM    763  OG  SER   120       7.401  -4.838  31.675  1.00 20.56      2PTN 868
+ATOM    764  N   ILE   121       5.901  -2.963  28.832  1.00 14.46      2PTN 869
+ATOM    765  CA  ILE   121       6.080  -3.243  27.410  1.00 14.46      2PTN 870
+ATOM    766  C   ILE   121       7.563  -3.281  27.054  1.00 14.46      2PTN 871
+ATOM    767  O   ILE   121       8.356  -2.461  27.593  1.00 14.46      2PTN 872
+ATOM    768  CB  ILE   121       5.335  -2.188  26.561  1.00 14.46      2PTN 873
+ATOM    769  CG1 ILE   121       5.251  -2.562  25.062  1.00 13.00      2PTN 874
+ATOM    770  CG2 ILE   121       5.859   -.747  26.785  1.00 13.00      2PTN 875
+ATOM    771  CD1 ILE   121       4.419  -3.841  24.836  1.00 13.00      2PTN 876
+ATOM    772  N   SER   122       7.943  -4.243  26.224  1.00 12.93      2PTN 877
+ATOM    773  CA  SER   122       9.344  -4.366  25.830  1.00 12.93      2PTN 878
+ATOM    774  C   SER   122       9.803  -3.246  24.903  1.00 12.93      2PTN 879
+ATOM    775  O   SER   122       9.090  -2.888  23.946  1.00 12.93      2PTN 880
+ATOM    776  CB  SER   122       9.623  -5.738  25.159  1.00 12.93      2PTN 881
+ATOM    777  OG  SER   122       9.272  -6.801  26.052  0.00  0.00   1  2PTN 882
+ATOM    778  N   LEU   123      11.036  -2.886  25.080  1.00 16.51      2PTN 883
+ATOM    779  CA  LEU   123      11.771  -1.999  24.190  1.00 16.51      2PTN 884
+ATOM    780  C   LEU   123      12.227  -2.791  22.967  1.00 16.51      2PTN 885
+ATOM    781  O   LEU   123      12.509  -4.008  23.083  1.00 16.51      2PTN 886
+ATOM    782  CB  LEU   123      13.014  -1.512  24.952  1.00 16.51      2PTN 887
+ATOM    783  CG  LEU   123      12.932   -.049  25.403  1.00 18.57      2PTN 888
+ATOM    784  CD1 LEU   123      11.504    .502  25.511  1.00 18.57      2PTN 889
+ATOM    785  CD2 LEU   123      13.776    .208  26.656  1.00 18.57      2PTN 890
+ATOM    786  N   PRO   124      12.244  -2.159  21.828  1.00 18.84      2PTN 891
+ATOM    787  CA  PRO   124      12.583  -2.833  20.571  1.00 18.84      2PTN 892
+ATOM    788  C   PRO   124      14.060  -3.205  20.487  1.00 18.84      2PTN 893
+ATOM    789  O   PRO   124      14.913  -2.480  21.056  1.00 18.84      2PTN 894
+ATOM    790  CB  PRO   124      12.272  -1.845  19.435  1.00 18.84      2PTN 895
+ATOM    791  CG  PRO   124      11.936   -.514  20.100  1.00 13.08      2PTN 896
+ATOM    792  CD  PRO   124      11.906   -.747  21.621  1.00 13.08      2PTN 897
+ATOM    793  N   THR   125      14.353  -4.209  19.673  1.00 21.05      2PTN 898
+ATOM    794  CA  THR   125      15.722  -4.583  19.309  1.00 21.05      2PTN 899
+ATOM    795  C   THR   125      16.046  -3.985  17.949  1.00 21.05      2PTN 900
+ATOM    796  O   THR   125      17.232  -3.736  17.625  1.00 21.05      2PTN 901
+ATOM    797  CB  THR   125      15.837  -6.116  19.177  1.00 21.05      2PTN 902
+ATOM    798  OG1 THR   125      15.061  -6.563  18.056  0.00  0.00   1  2PTN 903
+ATOM    799  CG2 THR   125      15.350  -6.813  20.461  1.00 27.73      2PTN 904
+ATOM    800  N   SER   127      15.019  -3.878  17.149  1.00 22.28      2PTN 905
+ATOM    801  CA  SER   127      15.098  -3.430  15.752  1.00 22.28      2PTN 906
+ATOM    802  C   SER   127      14.056  -2.362  15.474  1.00 22.28      2PTN 907
+ATOM    803  O   SER   127      12.994  -2.348  16.139  1.00 22.28      2PTN 908
+ATOM    804  CB  SER   127      14.802  -4.633  14.835  1.00 22.28      2PTN 909
+ATOM    805  OG  SER   127      13.477  -5.109  15.103  0.00  0.00   1  2PTN 910
+ATOM    806  N   CYS   128      14.279  -1.563  14.461  1.00 17.65      2PTN 911
+ATOM    807  CA  CYS   128      13.260   -.583  14.039  1.00 17.65      2PTN 912
+ATOM    808  C   CYS   128      12.205  -1.245  13.178  1.00 17.65      2PTN 913
+ATOM    809  O   CYS   128      12.565  -2.040  12.283  1.00 17.65      2PTN 914
+ATOM    810  CB  CYS   128      13.904    .568  13.244  1.00 17.65      2PTN 915
+ATOM    811  SG  CYS   128      15.125   1.524  14.164  1.00 17.76      2PTN 916
+ATOM    812  N   ALA   129      10.962   -.947  13.421  1.00 19.14      2PTN 917
+ATOM    813  CA  ALA   129       9.890  -1.491  12.588  1.00 19.14      2PTN 918
+ATOM    814  C   ALA   129       9.833   -.776  11.238  1.00 19.14      2PTN 919
+ATOM    815  O   ALA   129      10.120    .447  11.139  1.00 19.14      2PTN 920
+ATOM    816  CB  ALA   129       8.535  -1.388  13.306  1.00 19.14      2PTN 921
+ATOM    817  N   SER   130       9.501  -1.522  10.224  1.00 18.73      2PTN 922
+ATOM    818  CA  SER   130       9.456  -1.022   8.851  1.00 18.73      2PTN 923
+ATOM    819  C   SER   130       8.059   -.586   8.425  1.00 18.73      2PTN 924
+ATOM    820  O   SER   130       7.048  -1.017   9.032  1.00 18.73      2PTN 925
+ATOM    821  CB  SER   130       9.923  -2.150   7.895  1.00 18.73      2PTN 926
+ATOM    822  OG  SER   130      11.258  -2.576   8.237  1.00 35.62      2PTN 927
+ATOM    823  N   ALA   132       8.022    .199   7.359  1.00 16.30      2PTN 928
+ATOM    824  CA  ALA   132       6.782    .593   6.703  1.00 16.30      2PTN 929
+ATOM    825  C   ALA   132       5.950   -.624   6.310  1.00 16.30      2PTN 930
+ATOM    826  O   ALA   132       6.501  -1.631   5.794  1.00 16.30      2PTN 931
+ATOM    827  CB  ALA   132       7.113   1.384   5.427  1.00 16.30      2PTN 932
+ATOM    828  N   GLY   133       4.681   -.556   6.600  1.00 15.63      2PTN 933
+ATOM    829  CA  GLY   133       3.769  -1.645   6.294  1.00 15.63      2PTN 934
+ATOM    830  C   GLY   133       3.412  -2.453   7.530  1.00 15.63      2PTN 935
+ATOM    831  O   GLY   133       2.357  -3.135   7.531  1.00 15.63      2PTN 936
+ATOM    832  N   THR   134       4.209  -2.308   8.563  1.00 18.06      2PTN 937
+ATOM    833  CA  THR   134       3.904  -2.949   9.858  1.00 18.06      2PTN 938
+ATOM    834  C   THR   134       2.668  -2.336  10.520  1.00 18.06      2PTN 939
+ATOM    835  O   THR   134       2.625  -1.096  10.717  1.00 18.06      2PTN 940
+ATOM    836  CB  THR   134       5.124  -2.830  10.809  1.00 18.06      2PTN 941
+ATOM    837  OG1 THR   134       6.310  -3.380  10.194  1.00 20.31      2PTN 942
+ATOM    838  CG2 THR   134       4.900  -3.515  12.174  1.00 20.31      2PTN 943
+ATOM    839  N   GLN   135       1.749  -3.191  10.922  1.00 17.00      2PTN 944
+ATOM    840  CA  GLN   135        .546  -2.803  11.645  1.00 17.00      2PTN 945
+ATOM    841  C   GLN   135        .796  -2.659  13.149  1.00 17.00      2PTN 946
+ATOM    842  O   GLN   135       1.442  -3.532  13.781  1.00 17.00      2PTN 947
+ATOM    843  CB  GLN   135       -.572  -3.833  11.402  1.00 17.00      2PTN 948
+ATOM    844  CG  GLN   135      -1.955  -3.323  11.881  1.00 26.15      2PTN 949
+ATOM    845  CD  GLN   135      -2.992  -4.441  11.807  1.00 26.15      2PTN 950
+ATOM    846  OE1 GLN   135      -2.960  -5.374  12.649  0.00  0.00   1  2PTN 951
+ATOM    847  NE2 GLN   135      -3.999  -4.220  10.985  0.00  0.00   1  2PTN 952
+ATOM    848  N   CYS   136        .385  -1.535  13.695  1.00 11.76      2PTN 953
+ATOM    849  CA  CYS   136        .636  -1.189  15.097  1.00 11.76      2PTN 954
+ATOM    850  C   CYS   136       -.628   -.821  15.857  1.00 11.76      2PTN 955
+ATOM    851  O   CYS   136      -1.666   -.491  15.249  1.00 11.76      2PTN 956
+ATOM    852  CB  CYS   136       1.665   -.039  15.175  1.00 11.76      2PTN 957
+ATOM    853  SG  CYS   136       3.204   -.318  14.270  1.00 15.62      2PTN 958
+ATOM    854  N   LEU   137       -.539   -.818  17.150  1.00  9.41      2PTN 959
+ATOM    855  CA  LEU   137      -1.660   -.440  18.003  1.00  9.41      2PTN 960
+ATOM    856  C   LEU   137      -1.326    .851  18.753  1.00  9.41      2PTN 961
+ATOM    857  O   LEU   137       -.306    .921  19.490  1.00  9.41      2PTN 962
+ATOM    858  CB  LEU   137      -1.872  -1.539  19.044  1.00  9.41      2PTN 963
+ATOM    859  CG  LEU   137      -3.071  -1.257  19.962  1.00 13.78      2PTN 964
+ATOM    860  CD1 LEU   137      -4.384  -1.236  19.174  1.00 13.78      2PTN 965
+ATOM    861  CD2 LEU   137      -3.119  -2.241  21.146  1.00 13.78      2PTN 966
+ATOM    862  N   ILE   138      -2.182   1.823  18.538  1.00 10.25      2PTN 967
+ATOM    863  CA  ILE   138      -2.088   3.139  19.158  1.00 10.25      2PTN 968
+ATOM    864  C   ILE   138      -3.263   3.334  20.095  1.00 10.25      2PTN 969
+ATOM    865  O   ILE   138      -4.387   2.906  19.756  1.00 10.25      2PTN 970
+ATOM    866  CB  ILE   138      -2.083   4.240  18.072  1.00 10.25      2PTN 971
+ATOM    867  CG1 ILE   138       -.985   3.988  17.022  1.00 14.63      2PTN 972
+ATOM    868  CG2 ILE   138      -1.963   5.665  18.664  1.00 14.63      2PTN 973
+ATOM    869  CD1 ILE   138      -1.151   4.872  15.769  1.00 14.63      2PTN 974
+ATOM    870  N   SER   139      -3.024   3.820  21.293  1.00  9.72      2PTN 975
+ATOM    871  CA  SER   139      -4.111   3.933  22.285  1.00  9.72      2PTN 976
+ATOM    872  C   SER   139      -4.027   5.206  23.139  1.00  9.72      2PTN 977
+ATOM    873  O   SER   139      -2.945   5.810  23.268  1.00  9.72      2PTN 978
+ATOM    874  CB  SER   139      -4.096   2.679  23.191  1.00  9.72      2PTN 979
+ATOM    875  OG  SER   139      -2.769   2.483  23.682  1.00  4.63      2PTN 980
+ATOM    876  N   GLY   140      -5.144   5.639  23.666  1.00  6.94      2PTN 981
+ATOM    877  CA  GLY   140      -5.177   6.814  24.531  1.00  6.94      2PTN 982
+ATOM    878  C   GLY   140      -6.574   7.327  24.818  1.00  6.94      2PTN 983
+ATOM    879  O   GLY   140      -7.575   6.821  24.259  1.00  6.94      2PTN 984
+ATOM    880  N   TRP   141      -6.601   8.349  25.649  1.00 13.72      2PTN 985
+ATOM    881  CA  TRP   141      -7.826   8.998  26.113  1.00 13.72      2PTN 986
+ATOM    882  C   TRP   141      -8.056  10.355  25.454  1.00 13.72      2PTN 987
+ATOM    883  O   TRP   141      -8.830  11.177  25.994  1.00 13.72      2PTN 988
+ATOM    884  CB  TRP   141      -7.762   9.191  27.648  1.00 13.72      2PTN 989
+ATOM    885  CG  TRP   141      -7.911   7.869  28.428  1.00 12.42      2PTN 990
+ATOM    886  CD1 TRP   141      -9.050   7.220  28.732  1.00 12.42      2PTN 991
+ATOM    887  CD2 TRP   141      -6.889   7.124  29.021  1.00 12.42      2PTN 992
+ATOM    888  NE1 TRP   141      -8.762   6.088  29.502  1.00 12.42      2PTN 993
+ATOM    889  CE2 TRP   141      -7.501   6.028  29.665  1.00 12.42      2PTN 994
+ATOM    890  CE3 TRP   141      -5.514   7.336  29.078  1.00 12.42      2PTN 995
+ATOM    891  CZ2 TRP   141      -6.772   5.080  30.364  1.00 12.42      2PTN 996
+ATOM    892  CZ3 TRP   141      -4.780   6.387  29.788  1.00 12.42      2PTN 997
+ATOM    893  CH2 TRP   141      -5.390   5.288  30.414  1.00 12.42      2PTN 998
+ATOM    894  N   GLY   142      -7.415  10.576  24.326  1.00 10.56      2PTN 999
+ATOM    895  CA  GLY   142      -7.516  11.862  23.607  1.00 10.56      2PTN1000
+ATOM    896  C   GLY   142      -8.837  12.089  22.883  1.00 10.56      2PTN1001
+ATOM    897  O   GLY   142      -9.708  11.184  22.825  1.00 10.56      2PTN1002
+ATOM    898  N   ASN   143      -8.964  13.286  22.339  1.00 13.47      2PTN1003
+ATOM    899  CA  ASN   143     -10.145  13.723  21.579  1.00 13.47      2PTN1004
+ATOM    900  C   ASN   143     -10.505  12.759  20.446  1.00 13.47      2PTN1005
+ATOM    901  O   ASN   143      -9.591  12.239  19.748  1.00 13.47      2PTN1006
+ATOM    902  CB  ASN   143      -9.880  15.149  21.026  1.00 13.47      2PTN1007
+ATOM    903  CG  ASN   143     -11.097  15.733  20.316  1.00 15.97      2PTN1008
+ATOM    904  OD1 ASN   143     -12.260  15.333  20.546  1.00 15.97      2PTN1009
+ATOM    905  ND2 ASN   143     -10.827  16.824  19.625  1.00 15.97      2PTN1010
+ATOM    906  N   THR   144     -11.780  12.461  20.371  1.00 11.95      2PTN1011
+ATOM    907  CA  THR   144     -12.314  11.508  19.390  1.00 11.95      2PTN1012
+ATOM    908  C   THR   144     -12.940  12.169  18.165  1.00 11.95      2PTN1013
+ATOM    909  O   THR   144     -13.400  11.443  17.243  1.00 11.95      2PTN1014
+ATOM    910  CB  THR   144     -13.360  10.580  20.009  1.00 11.95      2PTN1015
+ATOM    911  OG1 THR   144     -14.490  11.351  20.427  1.00 10.34      2PTN1016
+ATOM    912  CG2 THR   144     -12.786   9.756  21.185  1.00 10.34      2PTN1017
+ATOM    913  N   LYS   145     -12.897  13.491  18.123  1.00 20.67      2PTN1018
+ATOM    914  CA  LYS   145     -13.427  14.216  16.961  1.00 20.67      2PTN1019
+ATOM    915  C   LYS   145     -12.383  15.028  16.187  1.00 20.67      2PTN1020
+ATOM    916  O   LYS   145     -11.455  15.626  16.793  1.00 20.67      2PTN1021
+ATOM    917  CB  LYS   145     -14.614  15.106  17.374  1.00 20.67      2PTN1022
+ATOM    918  CG  LYS   145     -15.724  14.287  18.058  1.00 20.72      2PTN1023
+ATOM    919  CD  LYS   145     -16.226  13.113  17.196  0.00  0.00   1  2PTN1024
+ATOM    920  CE  LYS   145     -17.049  12.115  18.030  0.00  0.00   1  2PTN1025
+ATOM    921  NZ  LYS   145     -17.276  10.886  17.261  0.00  0.00   1  2PTN1026
+ATOM    922  N   SER   146     -12.495  14.994  14.865  1.00 27.34      2PTN1027
+ATOM    923  CA  SER   146     -11.565  15.707  13.977  1.00 27.34      2PTN1028
+ATOM    924  C   SER   146     -11.959  17.173  13.856  1.00 27.34      2PTN1029
+ATOM    925  O   SER   146     -11.108  18.063  13.600  1.00 27.34      2PTN1030
+ATOM    926  CB  SER   146     -11.579  15.083  12.575  1.00 27.34      2PTN1031
+ATOM    927  OG  SER   146     -12.829  15.384  11.939  0.00  0.00   1  2PTN1032
+ATOM    928  N   SER   147     -13.222  17.409  14.098  1.00 28.20      2PTN1033
+ATOM    929  CA  SER   147     -13.797  18.753  14.167  1.00 28.20      2PTN1034
+ATOM    930  C   SER   147     -14.663  18.861  15.413  1.00 28.20      2PTN1035
+ATOM    931  O   SER   147     -15.521  17.970  15.647  1.00 28.20      2PTN1036
+ATOM    932  CB  SER   147     -14.645  19.023  12.909  1.00 28.20      2PTN1037
+ATOM    933  OG  SER   147     -13.838  18.818  11.740  0.00  0.00   1  2PTN1038
+ATOM    934  N   GLY   148     -14.278  19.750  16.286  1.00 26.15      2PTN1039
+ATOM    935  CA  GLY   148     -14.910  19.854  17.602  1.00 26.15      2PTN1040
+ATOM    936  C   GLY   148     -14.240  18.954  18.637  1.00 26.15      2PTN1041
+ATOM    937  O   GLY   148     -13.088  18.489  18.418  1.00 26.15      2PTN1042
+ATOM    938  N   THR   149     -14.845  18.930  19.802  1.00 25.37      2PTN1043
+ATOM    939  CA  THR   149     -14.257  18.389  21.032  1.00 25.37      2PTN1044
+ATOM    940  C   THR   149     -15.145  17.354  21.720  1.00 25.37      2PTN1045
+ATOM    941  O   THR   149     -16.282  17.682  22.148  1.00 25.37      2PTN1046
+ATOM    942  CB  THR   149     -14.047  19.584  21.979  1.00 25.37      2PTN1047
+ATOM    943  OG1 THR   149     -13.247  20.578  21.323  0.00  0.00   1  2PTN1048
+ATOM    944  CG2 THR   149     -13.399  19.191  23.318  0.00  0.00   1  2PTN1049
+ATOM    945  N   SER   150     -14.593  16.168  21.917  1.00 16.63      2PTN1050
+ATOM    946  CA  SER   150     -15.243  15.111  22.706  1.00 16.63      2PTN1051
+ATOM    947  C   SER   150     -14.282  14.078  23.279  1.00 16.63      2PTN1052
+ATOM    948  O   SER   150     -13.710  13.253  22.528  1.00 16.63      2PTN1053
+ATOM    949  CB  SER   150     -16.298  14.363  21.898  1.00 16.63      2PTN1054
+ATOM    950  OG  SER   150     -16.914  13.420  22.769  1.00 25.78      2PTN1055
+ATOM    951  N   TYR   151     -14.056  14.204  24.558  1.00 13.44      2PTN1056
+ATOM    952  CA  TYR   151     -13.096  13.376  25.263  1.00 13.44      2PTN1057
+ATOM    953  C   TYR   151     -13.786  12.191  25.921  1.00 13.44      2PTN1058
+ATOM    954  O   TYR   151     -14.781  12.402  26.657  1.00 13.44      2PTN1059
+ATOM    955  CB  TYR   151     -12.362  14.216  26.317  1.00 13.44      2PTN1060
+ATOM    956  CG  TYR   151     -11.330  15.159  25.673  1.00 21.92      2PTN1061
+ATOM    957  CD1 TYR   151      -9.994  14.825  25.712  1.00 21.92      2PTN1062
+ATOM    958  CD2 TYR   151     -11.727  16.328  25.065  1.00 21.92      2PTN1063
+ATOM    959  CE1 TYR   151      -9.047  15.652  25.122  1.00 21.92      2PTN1064
+ATOM    960  CE2 TYR   151     -10.790  17.162  24.473  1.00 21.92      2PTN1065
+ATOM    961  CZ  TYR   151      -9.450  16.813  24.499  1.00 21.92      2PTN1066
+ATOM    962  OH  TYR   151      -8.470  17.677  23.902  1.00 21.92      2PTN1067
+ATOM    963  N   PRO   152     -13.292  11.000  25.634  1.00 16.13      2PTN1068
+ATOM    964  CA  PRO   152     -13.799   9.727  26.186  1.00 16.13      2PTN1069
+ATOM    965  C   PRO   152     -13.349   9.567  27.637  1.00 16.13      2PTN1070
+ATOM    966  O   PRO   152     -12.228  10.005  28.006  1.00 16.13      2PTN1071
+ATOM    967  CB  PRO   152     -13.098   8.606  25.387  1.00 16.13      2PTN1072
+ATOM    968  CG  PRO   152     -11.938   9.261  24.623  1.00 13.21      2PTN1073
+ATOM    969  CD  PRO   152     -12.112  10.775  24.785  1.00 13.21      2PTN1074
+ATOM    970  N   ASP   153     -14.102   8.838  28.401  1.00 15.37      2PTN1075
+ATOM    971  CA  ASP   153     -13.623   8.481  29.733  1.00 15.37      2PTN1076
+ATOM    972  C   ASP   153     -12.858   7.154  29.740  1.00 15.37      2PTN1077
+ATOM    973  O   ASP   153     -12.047   6.916  30.669  1.00 15.37      2PTN1078
+ATOM    974  CB  ASP   153     -14.781   8.449  30.760  1.00 15.37      2PTN1079
+ATOM    975  CG  ASP   153     -15.345   9.854  30.945  1.00 27.78      2PTN1080
+ATOM    976  OD1 ASP   153     -14.574  10.831  30.842  1.00 27.78      2PTN1081
+ATOM    977  OD2 ASP   153     -16.577  10.067  30.836  1.00 27.78      2PTN1082
+ATOM    978  N   VAL   154     -13.101   6.320  28.739  1.00 13.21      2PTN1083
+ATOM    979  CA  VAL   154     -12.439   5.003  28.606  1.00 13.21      2PTN1084
+ATOM    980  C   VAL   154     -11.417   4.929  27.477  1.00 13.21      2PTN1085
+ATOM    981  O   VAL   154     -11.448   5.785  26.559  1.00 13.21      2PTN1086
+ATOM    982  CB  VAL   154     -13.454   3.864  28.415  1.00 13.21      2PTN1087
+ATOM    983  CG1 VAL   154     -14.353   3.656  29.645  1.00 15.07      2PTN1088
+ATOM    984  CG2 VAL   154     -14.279   4.050  27.126  1.00 15.07      2PTN1089
+ATOM    985  N   LEU   155     -10.505   3.998  27.598  1.00 13.02      2PTN1090
+ATOM    986  CA  LEU   155      -9.362   3.858  26.681  1.00 13.02      2PTN1091
+ATOM    987  C   LEU   155      -9.827   3.530  25.261  1.00 13.02      2PTN1092
+ATOM    988  O   LEU   155     -10.595   2.552  25.076  1.00 13.02      2PTN1093
+ATOM    989  CB  LEU   155      -8.482   2.676  27.148  1.00 13.02      2PTN1094
+ATOM    990  CG  LEU   155      -6.965   2.951  27.232  1.00 12.63      2PTN1095
+ATOM    991  CD1 LEU   155      -6.079   1.707  27.122  1.00 12.63      2PTN1096
+ATOM    992  CD2 LEU   155      -6.412   4.129  26.431  1.00 12.63      2PTN1097
+ATOM    993  N   LYS   156      -9.335   4.295  24.307  1.00  9.96      2PTN1098
+ATOM    994  CA  LYS   156      -9.602   4.069  22.879  1.00  9.96      2PTN1099
+ATOM    995  C   LYS   156      -8.375   3.525  22.158  1.00  9.96      2PTN1100
+ATOM    996  O   LYS   156      -7.230   3.799  22.576  1.00  9.96      2PTN1101
+ATOM    997  CB  LYS   156     -10.068   5.362  22.182  1.00  9.96      2PTN1102
+ATOM    998  CG  LYS   156     -11.377   5.932  22.743  1.00 14.57      2PTN1103
+ATOM    999  CD  LYS   156     -12.562   5.030  22.388  1.00 14.57      2PTN1104
+ATOM   1000  CE  LYS   156     -13.883   5.634  22.891  1.00 14.57      2PTN1105
+ATOM   1001  NZ  LYS   156     -15.011   4.775  22.500  0.00  0.00   1  2PTN1106
+ATOM   1002  N   CYS   157      -8.610   2.648  21.211  1.00  9.43      2PTN1107
+ATOM   1003  CA  CYS   157      -7.555   1.946  20.471  1.00  9.43      2PTN1108
+ATOM   1004  C   CYS   157      -7.681   2.140  18.960  1.00  9.43      2PTN1109
+ATOM   1005  O   CYS   157      -8.791   2.407  18.461  1.00  9.43      2PTN1110
+ATOM   1006  CB  CYS   157      -7.616    .424  20.760  1.00  9.43      2PTN1111
+ATOM   1007  SG  CYS   157      -6.808   -.087  22.282  1.00 11.45      2PTN1112
+ATOM   1008  N   LEU   158      -6.579   2.033  18.263  1.00  9.56      2PTN1113
+ATOM   1009  CA  LEU   158      -6.521   2.202  16.797  1.00  9.56      2PTN1114
+ATOM   1010  C   LEU   158      -5.422   1.319  16.226  1.00  9.56      2PTN1115
+ATOM   1011  O   LEU   158      -4.248   1.493  16.627  1.00  9.56      2PTN1116
+ATOM   1012  CB  LEU   158      -6.204   3.687  16.458  1.00  9.56      2PTN1117
+ATOM   1013  CG  LEU   158      -6.125   3.972  14.937  1.00 14.56      2PTN1118
+ATOM   1014  CD1 LEU   158      -7.413   3.593  14.192  1.00 14.56      2PTN1119
+ATOM   1015  CD2 LEU   158      -5.731   5.426  14.620  1.00 14.56      2PTN1120
+ATOM   1016  N   LYS   159      -5.753    .483  15.268  1.00 11.89      2PTN1121
+ATOM   1017  CA  LYS   159      -4.719   -.230  14.515  1.00 11.89      2PTN1122
+ATOM   1018  C   LYS   159      -4.361    .522  13.239  1.00 11.89      2PTN1123
+ATOM   1019  O   LYS   159      -5.279    .969  12.507  1.00 11.89      2PTN1124
+ATOM   1020  CB  LYS   159      -5.166  -1.652  14.163  1.00 11.89      2PTN1125
+ATOM   1021  CG  LYS   159      -5.313  -2.520  15.425  1.00 17.26      2PTN1126
+ATOM   1022  CD  LYS   159      -5.791  -3.936  15.050  1.00 17.26      2PTN1127
+ATOM   1023  CE  LYS   159      -6.037  -4.820  16.281  1.00 17.26      2PTN1128
+ATOM   1024  NZ  LYS   159      -6.402  -6.181  15.836  1.00 17.26      2PTN1129
+ATOM   1025  N   ALA   160      -3.098    .829  13.091  1.00 13.13      2PTN1130
+ATOM   1026  CA  ALA   160      -2.620   1.652  11.966  1.00 13.13      2PTN1131
+ATOM   1027  C   ALA   160      -1.261   1.185  11.466  1.00 13.13      2PTN1132
+ATOM   1028  O   ALA   160       -.398    .785  12.279  1.00 13.13      2PTN1133
+ATOM   1029  CB  ALA   160      -2.509   3.117  12.427  1.00 13.13      2PTN1134
+ATOM   1030  N   PRO   161      -1.053   1.243  10.181  1.00 12.11      2PTN1135
+ATOM   1031  CA  PRO   161        .243    .933   9.543  1.00 12.11      2PTN1136
+ATOM   1032  C   PRO   161       1.270   2.051   9.716  1.00 12.11      2PTN1137
+ATOM   1033  O   PRO   161        .941   3.252   9.541  1.00 12.11      2PTN1138
+ATOM   1034  CB  PRO   161       -.023    .845   8.027  1.00 12.11      2PTN1139
+ATOM   1035  CG  PRO   161      -1.440   1.395   7.801  1.00 17.00      2PTN1140
+ATOM   1036  CD  PRO   161      -2.069   1.631   9.183  1.00 17.00      2PTN1141
+ATOM   1037  N   ILE   162       2.506   1.658   9.799  1.00 13.65      2PTN1142
+ATOM   1038  CA  ILE   162       3.612   2.584   9.615  1.00 13.65      2PTN1143
+ATOM   1039  C   ILE   162       3.758   2.900   8.137  1.00 13.65      2PTN1144
+ATOM   1040  O   ILE   162       3.781   1.953   7.311  1.00 13.65      2PTN1145
+ATOM   1041  CB  ILE   162       4.933   2.009  10.161  1.00 13.65      2PTN1146
+ATOM   1042  CG1 ILE   162       4.807   1.723  11.674  1.00 13.48      2PTN1147
+ATOM   1043  CG2 ILE   162       6.141   2.936   9.868  1.00 13.48      2PTN1148
+ATOM   1044  CD1 ILE   162       6.099   1.156  12.282  1.00 13.48      2PTN1149
+ATOM   1045  N   LEU   163       3.723   4.170   7.811  1.00 16.69      2PTN1150
+ATOM   1046  CA  LEU   163       3.889   4.653   6.436  1.00 16.69      2PTN1151
+ATOM   1047  C   LEU   163       5.351   4.750   6.022  1.00 16.69      2PTN1152
+ATOM   1048  O   LEU   163       6.270   4.809   6.884  1.00 16.69      2PTN1153
+ATOM   1049  CB  LEU   163       3.244   6.053   6.295  1.00 16.69      2PTN1154
+ATOM   1050  CG  LEU   163       1.737   6.006   6.621  1.00 19.17      2PTN1155
+ATOM   1051  CD1 LEU   163       1.083   7.390   6.569  1.00 19.17      2PTN1156
+ATOM   1052  CD2 LEU   163        .972   5.017   5.726  1.00 19.17      2PTN1157
+ATOM   1053  N   SER   164       5.579   4.772   4.733  1.00 15.50      2PTN1158
+ATOM   1054  CA  SER   164       6.935   4.962   4.238  1.00 15.50      2PTN1159
+ATOM   1055  C   SER   164       7.476   6.354   4.550  1.00 15.50      2PTN1160
+ATOM   1056  O   SER   164       6.695   7.336   4.563  1.00 15.50      2PTN1161
+ATOM   1057  CB  SER   164       6.981   4.772   2.707  1.00 15.50      2PTN1162
+ATOM   1058  OG  SER   164       6.202   5.796   2.074  1.00 21.89      2PTN1163
+ATOM   1059  N   ASP   165       8.778   6.408   4.722  1.00 24.78      2PTNC  8
+ATOM   1060  CA  ASP   165       9.557   7.637   4.878  1.00 24.78      2PTNC  9
+ATOM   1061  C   ASP   165       9.210   8.667   3.803  1.00 24.78      2PTNC 10
+ATOM   1062  O   ASP   165       9.016   9.871   4.104  1.00 24.78      2PTNC 11
+ATOM   1063  CB  ASP   165      11.028   7.228   4.718  1.00 24.78      2PTNC 12
+ATOM   1064  CG  ASP   165      11.909   8.467   4.639  0.00  0.00   1  2PTNC 13
+ATOM   1065  OD1 ASP   165      12.700   8.702   5.586  0.00  0.00   1  2PTNC 14
+ATOM   1066  OD2 ASP   165      12.111   8.896   3.410  0.00  0.00   1  2PTNC 15
+ATOM   1067  N   SER   166       9.079   8.167   2.590  1.00 18.03      2PTN1172
+ATOM   1068  CA  SER   166       8.729   8.948   1.404  1.00 18.03      2PTN1173
+ATOM   1069  C   SER   166       7.372   9.609   1.543  1.00 18.03      2PTN1174
+ATOM   1070  O   SER   166       7.258  10.846   1.340  1.00 18.03      2PTN1175
+ATOM   1071  CB  SER   166       8.716   8.029    .152  1.00 18.03      2PTN1176
+ATOM   1072  OG  SER   166       9.979   7.359    .044  0.00  0.00   1  2PTN1177
+ATOM   1073  N   SER   167       6.391   8.820   1.902  1.00 14.21      2PTN1178
+ATOM   1074  CA  SER   167       5.037   9.330   2.064  1.00 14.21      2PTN1179
+ATOM   1075  C   SER   167       4.949  10.290   3.247  1.00 14.21      2PTN1180
+ATOM   1076  O   SER   167       4.218  11.307   3.182  1.00 14.21      2PTN1181
+ATOM   1077  CB  SER   167       3.992   8.196   2.186  1.00 14.21      2PTN1182
+ATOM   1078  OG  SER   167       4.212   7.438   3.382  0.00  0.00   1  2PTN1183
+ATOM   1079  N   CYS   168       5.783  10.036   4.228  1.00 13.93      2PTN1184
+ATOM   1080  CA  CYS   168       5.812  10.878   5.424  1.00 13.93      2PTN1185
+ATOM   1081  C   CYS   168       6.394  12.268   5.130  1.00 13.93      2PTN1186
+ATOM   1082  O   CYS   168       5.789  13.313   5.492  1.00 13.93      2PTN1187
+ATOM   1083  CB  CYS   168       6.617  10.168   6.538  1.00 13.93      2PTN1188
+ATOM   1084  SG  CYS   168       6.487  10.899   8.184  1.00 13.66      2PTN1189
+ATOM   1085  N   LYS   169       7.550  12.274   4.499  1.00 16.40      2PTN1190
+ATOM   1086  CA  LYS   169       8.253  13.507   4.158  1.00 16.40      2PTN1191
+ATOM   1087  C   LYS   169       7.508  14.286   3.085  1.00 16.40      2PTN1192
+ATOM   1088  O   LYS   169       7.569  15.539   3.069  1.00 16.40      2PTN1193
+ATOM   1089  CB  LYS   169       9.711  13.220   3.710  1.00 16.40      2PTN1194
+ATOM   1090  CG  LYS   169      10.570  12.656   4.855  1.00 27.28      2PTN1195
+ATOM   1091  CD  LYS   169      12.059  12.575   4.484  1.00 27.28      2PTN1196
+ATOM   1092  CE  LYS   169      12.916  11.931   5.588  0.00  0.00   1  2PTN1197
+ATOM   1093  NZ  LYS   169      12.843  12.708   6.828  0.00  0.00   1  2PTN1198
+ATOM   1094  N   SER   170       6.721  13.591   2.302  1.00 18.43      2PTN1199
+ATOM   1095  CA  SER   170       5.917  14.267   1.289  1.00 18.43      2PTN1200
+ATOM   1096  C   SER   170       4.642  14.875   1.854  1.00 18.43      2PTN1201
+ATOM   1097  O   SER   170       4.217  15.961   1.379  1.00 18.43      2PTN1202
+ATOM   1098  CB  SER   170       5.583  13.324    .119  1.00 18.43      2PTN1203
+ATOM   1099  OG  SER   170       4.737  12.267    .579  0.00  0.00   1  2PTN1204
+ATOM   1100  N   ALA   171       4.160  14.314   2.942  1.00 14.92      2PTN1205
+ATOM   1101  CA  ALA   171       3.036  14.905   3.687  1.00 14.92      2PTN1206
+ATOM   1102  C   ALA   171       3.468  16.134   4.489  1.00 14.92      2PTN1207
+ATOM   1103  O   ALA   171       2.666  17.082   4.643  1.00 14.92      2PTN1208
+ATOM   1104  CB  ALA   171       2.394  13.886   4.646  1.00 14.92      2PTN1209
+ATOM   1105  N   TYR   172       4.669  16.086   5.036  1.00 10.63      2PTN1210
+ATOM   1106  CA  TYR   172       5.229  17.140   5.907  1.00 10.63      2PTN1211
+ATOM   1107  C   TYR   172       6.593  17.626   5.446  1.00 10.63      2PTN1212
+ATOM   1108  O   TYR   172       7.608  17.364   6.128  1.00 10.63      2PTN1213
+ATOM   1109  CB  TYR   172       5.399  16.632   7.350  1.00 10.63      2PTN1214
+ATOM   1110  CG  TYR   172       4.039  16.293   7.994  1.00 12.66      2PTN1215
+ATOM   1111  CD1 TYR   172       3.612  14.981   8.122  1.00 12.66      2PTN1216
+ATOM   1112  CD2 TYR   172       3.248  17.324   8.452  1.00 12.66      2PTN1217
+ATOM   1113  CE1 TYR   172       2.401  14.708   8.751  1.00 12.66      2PTN1218
+ATOM   1114  CE2 TYR   172       2.042  17.064   9.061  1.00 12.66      2PTN1219
+ATOM   1115  CZ  TYR   172       1.634  15.759   9.235  1.00 12.66      2PTN1220
+ATOM   1116  OH  TYR   172        .412  15.509   9.910  1.00 12.66      2PTN1221
+ATOM   1117  N   PRO   173       6.647  18.293   4.301  1.00 19.42      2PTN1222
+ATOM   1118  CA  PRO   173       7.912  18.734   3.712  1.00 19.42      2PTN1223
+ATOM   1119  C   PRO   173       8.739  19.587   4.671  1.00 19.42      2PTN1224
+ATOM   1120  O   PRO   173       8.191  20.546   5.259  1.00 19.42      2PTN1225
+ATOM   1121  CB  PRO   173       7.573  19.529   2.435  1.00 19.42      2PTN1226
+ATOM   1122  CG  PRO   173       6.045  19.539   2.301  1.00 15.89      2PTN1227
+ATOM   1123  CD  PRO   173       5.501  18.748   3.490  1.00 15.89      2PTN1228
+ATOM   1124  N   GLY   174       9.982  19.200   4.848  1.00 23.95      2PTN1229
+ATOM   1125  CA  GLY   174      10.940  19.924   5.691  1.00 23.95      2PTN1230
+ATOM   1126  C   GLY   174      10.782  19.716   7.192  1.00 23.95      2PTN1231
+ATOM   1127  O   GLY   174      11.457  20.428   7.979  1.00 23.95      2PTN1232
+ATOM   1128  N   GLN   175       9.821  18.904   7.592  1.00 13.14      2PTN1233
+ATOM   1129  CA  GLN   175       9.507  18.747   9.012  1.00 13.14      2PTN1234
+ATOM   1130  C   GLN   175       9.883  17.385   9.581  1.00 13.14      2PTN1235
+ATOM   1131  O   GLN   175       9.974  17.243  10.823  1.00 13.14      2PTN1236
+ATOM   1132  CB  GLN   175       8.012  18.995   9.227  1.00 13.14      2PTN1237
+ATOM   1133  CG  GLN   175       7.682  20.462   8.850  1.00 19.24      2PTN1238
+ATOM   1134  CD  GLN   175       6.205  20.638   8.530  1.00 19.24      2PTN1239
+ATOM   1135  OE1 GLN   175       5.824  20.610   7.327  1.00 19.24      2PTN1240
+ATOM   1136  NE2 GLN   175       5.404  20.657   9.559  1.00 19.24      2PTN1241
+ATOM   1137  N   ILE   176      10.056  16.381   8.747  1.00 13.92      2PTN1242
+ATOM   1138  CA  ILE   176      10.361  15.062   9.302  1.00 13.92      2PTN1243
+ATOM   1139  C   ILE   176      11.860  14.820   9.438  1.00 13.92      2PTN1244
+ATOM   1140  O   ILE   176      12.606  14.940   8.440  1.00 13.92      2PTN1245
+ATOM   1141  CB  ILE   176       9.695  13.968   8.462  1.00 13.92      2PTN1246
+ATOM   1142  CG1 ILE   176       8.197  14.275   8.260  1.00 11.02      2PTN1247
+ATOM   1143  CG2 ILE   176       9.955  12.546   9.025  1.00 11.02      2PTN1248
+ATOM   1144  CD1 ILE   176       7.387  14.282   9.570  1.00 11.02      2PTN1249
+ATOM   1145  N   THR   177      12.295  14.439  10.615  1.00 10.37      2PTN1250
+ATOM   1146  CA  THR   177      13.680  14.048  10.877  1.00 10.37      2PTN1251
+ATOM   1147  C   THR   177      13.819  12.531  10.987  1.00 10.37      2PTN1252
+ATOM   1148  O   THR   177      12.779  11.824  10.992  1.00 10.37      2PTN1253
+ATOM   1149  CB  THR   177      14.158  14.649  12.214  1.00 10.37      2PTN1254
+ATOM   1150  OG1 THR   177      13.602  13.922  13.333  1.00  8.84      2PTN1255
+ATOM   1151  CG2 THR   177      13.869  16.163  12.310  1.00  8.84      2PTN1256
+ATOM   1152  N   SER   178      15.040  12.073  11.116  1.00 14.27      2PTN1257
+ATOM   1153  CA  SER   178      15.364  10.643  11.273  1.00 14.27      2PTN1258
+ATOM   1154  C   SER   178      14.670  10.001  12.469  1.00 14.27      2PTN1259
+ATOM   1155  O   SER   178      14.686   8.754  12.611  1.00 14.27      2PTN1260
+ATOM   1156  CB  SER   178      16.880  10.499  11.504  1.00 14.27      2PTN1261
+ATOM   1157  OG  SER   178      17.195  11.009  12.807  0.00  0.00   1  2PTN1262
+ATOM   1158  N   ASN   179      14.311  10.844  13.420  1.00  9.08      2PTN1263
+ATOM   1159  CA  ASN   179      13.822  10.411  14.734  1.00  9.08      2PTN1264
+ATOM   1160  C   ASN   179      12.311  10.386  14.766  1.00  9.08      2PTN1265
+ATOM   1161  O   ASN   179      11.701  10.287  15.864  1.00  9.08      2PTN1266
+ATOM   1162  CB  ASN   179      14.304  11.383  15.804  1.00  9.08      2PTN1267
+ATOM   1163  CG  ASN   179      15.826  11.324  15.832  1.00 19.11      2PTN1268
+ATOM   1164  OD1 ASN   179      16.387  10.202  15.826  1.00 19.11      2PTN1269
+ATOM   1165  ND2 ASN   179      16.453  12.471  16.034  1.00 19.11      2PTN1270
+ATOM   1166  N   MET   180      11.738  10.490  13.588  1.00  9.94      2PTN1271
+ATOM   1167  CA  MET   180      10.281  10.472  13.464  1.00  9.94      2PTN1272
+ATOM   1168  C   MET   180       9.807   9.395  12.494  1.00  9.94      2PTN1273
+ATOM   1169  O   MET   180      10.456   9.196  11.435  1.00  9.94      2PTN1274
+ATOM   1170  CB  MET   180       9.745  11.827  12.958  1.00  9.94      2PTN1275
+ATOM   1171  CG  MET   180      10.155  13.012  13.849  1.00 12.77      2PTN1276
+ATOM   1172  SD  MET   180       9.700  14.645  13.222  1.00 12.77      2PTN1277
+ATOM   1173  CE  MET   180      10.471  15.638  14.515  1.00 12.77      2PTN1278
+ATOM   1174  N   PHE   181       8.576   9.001  12.678  1.00 10.82      2PTN1279
+ATOM   1175  CA  PHE   181       7.849   8.275  11.634  1.00 10.82      2PTN1280
+ATOM   1176  C   PHE   181       6.385   8.668  11.546  1.00 10.82      2PTN1281
+ATOM   1177  O   PHE   181       5.800   9.117  12.557  1.00 10.82      2PTN1282
+ATOM   1178  CB  PHE   181       8.027   6.729  11.687  1.00 10.82      2PTN1283
+ATOM   1179  CG  PHE   181       7.344   6.024  12.881  1.00 10.66      2PTN1284
+ATOM   1180  CD1 PHE   181       6.037   5.600  12.791  1.00 10.66      2PTN1285
+ATOM   1181  CD2 PHE   181       8.050   5.793  14.032  1.00 10.66      2PTN1286
+ATOM   1182  CE1 PHE   181       5.426   4.957  13.858  1.00 10.66      2PTN1287
+ATOM   1183  CE2 PHE   181       7.447   5.157  15.106  1.00 10.66      2PTN1288
+ATOM   1184  CZ  PHE   181       6.137   4.740  15.022  1.00 10.66      2PTN1289
+ATOM   1185  N   CYS   182       5.798   8.417  10.387  1.00 11.55      2PTN1290
+ATOM   1186  CA  CYS   182       4.361   8.590  10.208  1.00 11.55      2PTN1291
+ATOM   1187  C   CYS   182       3.665   7.244  10.274  1.00 11.55      2PTN1292
+ATOM   1188  O   CYS   182       4.183   6.222   9.755  1.00 11.55      2PTN1293
+ATOM   1189  CB  CYS   182       3.957   9.263   8.878  1.00 11.55      2PTN1294
+ATOM   1190  SG  CYS   182       4.490  10.976   8.582  1.00 13.06      2PTN1295
+ATOM   1191  N   ALA   183       2.508   7.287  10.849  1.00 13.97      2PTN1296
+ATOM   1192  CA  ALA   183       1.607   6.139  10.891  1.00 13.97      2PTN1297
+ATOM   1193  C   ALA   183        .163   6.588  10.760  1.00 13.97      2PTN1298
+ATOM   1194  O   ALA   183       -.195   7.707  11.198  1.00 13.97      2PTN1299
+ATOM   1195  CB  ALA   183       1.796   5.308  12.179  1.00 13.97      2PTN1300
+ATOM   1196  N   GLY   184A      -.626   5.755  10.137  1.00 10.58      2PTN1301
+ATOM   1197  CA  GLY   184A     -2.016   6.103   9.946  1.00 10.58      2PTN1302
+ATOM   1198  C   GLY   184A     -2.407   5.979   8.486  1.00 10.58      2PTN1303
+ATOM   1199  O   GLY   184A     -1.974   5.012   7.802  1.00 10.58      2PTN1304
+ATOM   1200  N   TYR   184      -3.361   6.800   8.146  1.00 19.95      2PTN1305
+ATOM   1201  CA  TYR   184      -4.097   6.744   6.875  1.00 19.95      2PTN1306
+ATOM   1202  C   TYR   184      -4.089   8.094   6.159  1.00 19.95      2PTN1307
+ATOM   1203  O   TYR   184      -4.515   9.121   6.743  1.00 19.95      2PTN1308
+ATOM   1204  CB  TYR   184      -5.561   6.328   7.151  1.00 19.95      2PTN1309
+ATOM   1205  CG  TYR   184      -5.638   4.965   7.865  1.00 20.94      2PTN1310
+ATOM   1206  CD1 TYR   184      -5.696   4.898   9.245  1.00 20.94      2PTN1311
+ATOM   1207  CD2 TYR   184      -5.610   3.805   7.122  1.00 20.94      2PTN1312
+ATOM   1208  CE1 TYR   184      -5.715   3.667   9.892  1.00 20.94      2PTN1313
+ATOM   1209  CE2 TYR   184      -5.643   2.569   7.759  1.00 20.94      2PTN1314
+ATOM   1210  CZ  TYR   184      -5.686   2.507   9.143  1.00 20.94      2PTN1315
+ATOM   1211  OH  TYR   184      -5.709   1.239   9.800  1.00 20.94      2PTN1316
+ATOM   1212  N   LEU   185      -3.529   8.105   4.980  1.00 21.05      2PTN1317
+ATOM   1213  CA  LEU   185      -3.410   9.318   4.158  1.00 21.05      2PTN1318
+ATOM   1214  C   LEU   185      -4.789   9.809   3.717  1.00 21.05      2PTN1319
+ATOM   1215  O   LEU   185      -4.985  11.012   3.413  1.00 21.05      2PTN1320
+ATOM   1216  CB  LEU   185      -2.557   8.991   2.912  1.00 21.05      2PTN1321
+ATOM   1217  CG  LEU   185      -1.085   8.672   3.242  1.00 22.69      2PTN1322
+ATOM   1218  CD1 LEU   185       -.384   7.937   2.085  0.00  0.00   1  2PTN1323
+ATOM   1219  CD2 LEU   185       -.306   9.931   3.675  0.00  0.00   1  2PTN1324
+ATOM   1220  N   GLU   186      -5.754   8.910   3.770  1.00 26.16      2PTNC 16
+ATOM   1221  CA  GLU   186      -7.166   9.210   3.492  1.00 26.16      2PTNC 17
+ATOM   1222  C   GLU   186      -7.801   9.986   4.643  1.00 26.16      2PTNC 18
+ATOM   1223  O   GLU   186      -8.841  10.672   4.477  1.00 26.16      2PTNC 19
+ATOM   1224  CB  GLU   186      -7.907   7.873   3.289  1.00 26.16      2PTNC 20
+ATOM   1225  CG  GLU   186      -9.375   8.068   2.884  1.00 50.77      2PTNC 21
+ATOM   1226  CD  GLU   186      -9.937   6.736   2.396  1.00 50.77      2PTNC 22
+ATOM   1227  OE1 GLU   186      -9.363   6.126   1.457  0.00  0.00   1  2PTNC 23
+ATOM   1228  OE2 GLU   186     -11.160   6.467   2.803  0.00  0.00   1  2PTNC 24
+ATOM   1229  N   GLY   187      -7.155   9.910   5.784  1.00 24.17      2PTN1334
+ATOM   1230  CA  GLY   187      -7.676  10.526   7.006  1.00 24.17      2PTN1335
+ATOM   1231  C   GLY   187      -8.747   9.659   7.674  1.00 24.17      2PTN1336
+ATOM   1232  O   GLY   187      -8.883   8.451   7.347  1.00 24.17      2PTN1337
+ATOM   1233  N   GLY   188A     -9.500  10.264   8.564  1.00 17.64      2PTN1338
+ATOM   1234  CA  GLY   188A    -10.601   9.606   9.275  1.00 17.64      2PTN1339
+ATOM   1235  C   GLY   188A    -10.178   8.882  10.552  1.00 17.64      2PTN1340
+ATOM   1236  O   GLY   188A    -11.027   8.663  11.443  1.00 17.64      2PTN1341
+ATOM   1237  N   LYS   188      -8.960   8.397  10.576  1.00 16.48      2PTN1342
+ATOM   1238  CA  LYS   188      -8.417   7.612  11.700  1.00 16.48      2PTN1343
+ATOM   1239  C   LYS   188      -7.039   8.124  12.101  1.00 16.48      2PTN1344
+ATOM   1240  O   LYS   188      -6.118   8.170  11.244  1.00 16.48      2PTN1345
+ATOM   1241  CB  LYS   188      -8.283   6.113  11.339  1.00 16.48      2PTN1346
+ATOM   1242  CG  LYS   188      -9.615   5.465  10.900  1.00 21.61      2PTN1347
+ATOM   1243  CD  LYS   188      -9.447   3.954  10.631  1.00 21.61      2PTN1348
+ATOM   1244  CE  LYS   188     -10.759   3.251  10.247  0.00  0.00   1  2PTN1349
+ATOM   1245  NZ  LYS   188     -10.503   1.818  10.052  0.00  0.00   1  2PTN1350
+ATOM   1246  N   ASP   189      -6.914   8.542  13.355  1.00 14.31      2PTN1351
+ATOM   1247  CA  ASP   189      -5.656   9.124  13.831  1.00 14.31      2PTN1352
+ATOM   1248  C   ASP   189      -5.567   9.116  15.363  1.00 14.31      2PTN1353
+ATOM   1249  O   ASP   189      -6.626   9.048  16.035  1.00 14.31      2PTN1354
+ATOM   1250  CB  ASP   189      -5.642  10.595  13.323  1.00 14.31      2PTN1355
+ATOM   1251  CG  ASP   189      -4.251  11.201  13.168  1.00 10.75      2PTN1356
+ATOM   1252  OD1 ASP   189      -4.119  12.307  12.590  1.00 10.75      2PTN1357
+ATOM   1253  OD2 ASP   189      -3.217  10.602  13.519  1.00 10.75      2PTN1358
+ATOM   1254  N   SER   190      -4.434   9.542  15.859  1.00 12.64      2PTN1359
+ATOM   1255  CA  SER   190      -4.342  10.030  17.240  1.00 12.64      2PTN1360
+ATOM   1256  C   SER   190      -4.657  11.535  17.309  1.00 12.64      2PTN1361
+ATOM   1257  O   SER   190      -4.709  12.231  16.257  1.00 12.64      2PTN1362
+ATOM   1258  CB  SER   190      -2.930   9.771  17.754  1.00 12.64      2PTN1363
+ATOM   1259  OG  SER   190      -2.005  10.522  16.961  1.00 14.83      2PTN1364
+ATOM   1260  N   CYS   191      -4.971  12.027  18.489  1.00 15.53      2PTN1365
+ATOM   1261  CA  CYS   191      -5.410  13.417  18.673  1.00 15.53      2PTN1366
+ATOM   1262  C   CYS   191      -4.969  14.015  20.015  1.00 15.53      2PTN1367
+ATOM   1263  O   CYS   191      -4.113  13.413  20.711  1.00 15.53      2PTN1368
+ATOM   1264  CB  CYS   191      -6.937  13.484  18.455  1.00 15.53      2PTN1369
+ATOM   1265  SG  CYS   191      -7.625  15.069  17.907  1.00 18.99      2PTN1370
+ATOM   1266  N   GLN   192      -5.379  15.238  20.288  1.00 12.95      2PTN1371
+ATOM   1267  CA  GLN   192      -5.006  15.959  21.501  1.00 12.95      2PTN1372
+ATOM   1268  C   GLN   192      -5.399  15.135  22.715  1.00 12.95      2PTN1373
+ATOM   1269  O   GLN   192      -6.584  14.761  22.857  1.00 12.95      2PTN1374
+ATOM   1270  CB  GLN   192      -5.769  17.294  21.558  1.00 12.95      2PTN1375
+ATOM   1271  CG  GLN   192      -5.529  18.125  20.276  1.00 34.57      2PTN1376
+ATOM   1272  CD  GLN   192      -6.893  18.497  19.691  1.00 34.57      2PTN1377
+ATOM   1273  OE1 GLN   192      -7.040  18.587  18.447  0.00  0.00   1  2PTN1378
+ATOM   1274  NE2 GLN   192      -7.815  18.833  20.577  0.00  0.00   1  2PTN1379
+ATOM   1275  N   GLY   193      -4.452  14.909  23.559  1.00 11.43      2PTN1380
+ATOM   1276  CA  GLY   193      -4.683  14.140  24.775  1.00 11.43      2PTN1381
+ATOM   1277  C   GLY   193      -4.089  12.746  24.661  1.00 11.43      2PTN1382
+ATOM   1278  O   GLY   193      -3.897  12.081  25.701  1.00 11.43      2PTN1383
+ATOM   1279  N   ASP   194      -3.830  12.305  23.431  1.00  8.46      2PTN1384
+ATOM   1280  CA  ASP   194      -3.166  11.018  23.177  1.00  8.46      2PTN1385
+ATOM   1281  C   ASP   194      -1.661  11.123  23.326  1.00  8.46      2PTN1386
+ATOM   1282  O   ASP   194       -.950  10.085  23.376  1.00  8.46      2PTN1387
+ATOM   1283  CB  ASP   194      -3.449  10.526  21.750  1.00  8.46      2PTN1388
+ATOM   1284  CG  ASP   194      -4.910  10.129  21.636  1.00  8.06      2PTN1389
+ATOM   1285  OD1 ASP   194      -5.518  10.287  20.558  1.00  8.06      2PTN1390
+ATOM   1286  OD2 ASP   194      -5.476   9.545  22.586  1.00  8.06      2PTN1391
+ATOM   1287  N   SER   195      -1.189  12.357  23.322  1.00 11.55      2PTN1392
+ATOM   1288  CA  SER   195        .262  12.692  23.360  1.00 11.55      2PTN1393
+ATOM   1289  C   SER   195       1.045  11.945  24.426  1.00 11.55      2PTN1394
+ATOM   1290  O   SER   195        .572  11.825  25.580  1.00 11.55      2PTN1395
+ATOM   1291  CB  SER   195        .472  14.185  23.672  1.00 11.55      2PTN1396
+ATOM   1292  OG  SER   195        .018  14.954  22.559  1.00 21.87      2PTN1397
+ATOM   1293  N   GLY   196       2.192  11.458  24.050  1.00  7.62      2PTN1398
+ATOM   1294  CA  GLY   196       3.032  10.700  24.979  1.00  7.62      2PTN1399
+ATOM   1295  C   GLY   196       2.702   9.209  25.027  1.00  7.62      2PTN1400
+ATOM   1296  O   GLY   196       3.483   8.440  25.623  1.00  7.62      2PTN1401
+ATOM   1297  N   GLY   197       1.574   8.808  24.453  1.00  8.27      2PTN1402
+ATOM   1298  CA  GLY   197       1.135   7.404  24.499  1.00  8.27      2PTN1403
+ATOM   1299  C   GLY   197       1.854   6.474  23.519  1.00  8.27      2PTN1404
+ATOM   1300  O   GLY   197       2.681   6.932  22.700  1.00  8.27      2PTN1405
+ATOM   1301  N   PRO   198       1.631   5.181  23.677  1.00 10.83      2PTN1406
+ATOM   1302  CA  PRO   198       2.341   4.105  22.950  1.00 10.83      2PTN1407
+ATOM   1303  C   PRO   198       1.893   3.918  21.498  1.00 10.83      2PTN1408
+ATOM   1304  O   PRO   198        .672   3.841  21.220  1.00 10.83      2PTN1409
+ATOM   1305  CB  PRO   198       1.979   2.782  23.670  1.00 10.83      2PTN1410
+ATOM   1306  CG  PRO   198        .847   3.102  24.657  1.00 10.65      2PTN1411
+ATOM   1307  CD  PRO   198        .698   4.634  24.674  1.00 10.65      2PTN1412
+ATOM   1308  N   VAL   199       2.848   3.498  20.706  1.00 10.62      2PTN1413
+ATOM   1309  CA  VAL   199       2.617   2.820  19.437  1.00 10.62      2PTN1414
+ATOM   1310  C   VAL   199       3.369   1.486  19.430  1.00 10.62      2PTN1415
+ATOM   1311  O   VAL   199       4.624   1.484  19.547  1.00 10.62      2PTN1416
+ATOM   1312  CB  VAL   199       3.083   3.654  18.221  1.00 10.62      2PTN1417
+ATOM   1313  CG1 VAL   199       2.737   2.961  16.894  1.00  8.51      2PTN1418
+ATOM   1314  CG2 VAL   199       2.577   5.107  18.251  1.00  8.51      2PTN1419
+ATOM   1315  N   VAL   200       2.614    .424  19.577  1.00  9.65      2PTN1420
+ATOM   1316  CA  VAL   200       3.173   -.921  19.800  1.00  9.65      2PTN1421
+ATOM   1317  C   VAL   200       2.974  -1.816  18.592  1.00  9.65      2PTN1422
+ATOM   1318  O   VAL   200       1.815  -2.003  18.150  1.00  9.65      2PTN1423
+ATOM   1319  CB  VAL   200       2.535  -1.556  21.038  1.00  9.65      2PTN1424
+ATOM   1320  CG1 VAL   200       2.875  -3.052  21.192  1.00  8.72      2PTN1425
+ATOM   1321  CG2 VAL   200       2.931   -.746  22.288  1.00  8.72      2PTN1426
+ATOM   1322  N   CYS   201       4.075  -2.294  18.073  1.00 13.20      2PTN1427
+ATOM   1323  CA  CYS   201       4.105  -3.151  16.881  1.00 13.20      2PTN1428
+ATOM   1324  C   CYS   201       4.768  -4.472  17.226  1.00 13.20      2PTN1429
+ATOM   1325  O   CYS   201       5.886  -4.442  17.792  1.00 13.20      2PTN1430
+ATOM   1326  CB  CYS   201       4.940  -2.448  15.789  1.00 13.20      2PTN1431
+ATOM   1327  SG  CYS   201       4.691   -.659  15.643  1.00 15.38      2PTN1432
+ATOM   1328  N   SER   202       4.086  -5.564  16.936  1.00 21.74      2PTN1433
+ATOM   1329  CA  SER   202       4.606  -6.902  17.253  1.00 21.74      2PTN1434
+ATOM   1330  C   SER   202       5.113  -7.049  18.685  1.00 21.74      2PTN1435
+ATOM   1331  O   SER   202       6.191  -7.659  18.889  1.00 21.74      2PTN1436
+ATOM   1332  CB  SER   202       5.751  -7.298  16.295  1.00 21.74      2PTN1437
+ATOM   1333  OG  SER   202       5.351  -7.090  14.932  1.00 33.04      2PTN1438
+ATOM   1334  N   GLY   203       4.360  -6.504  19.616  1.00 16.57      2PTN1439
+ATOM   1335  CA  GLY   203       4.641  -6.632  21.046  1.00 16.57      2PTN1440
+ATOM   1336  C   GLY   203       5.796  -5.771  21.551  1.00 16.57      2PTN1441
+ATOM   1337  O   GLY   203       6.197  -5.899  22.742  1.00 16.57      2PTN1442
+ATOM   1338  N   LYS   204       6.303  -4.880  20.720  1.00 15.51      2PTN1443
+ATOM   1339  CA  LYS   204       7.376  -3.969  21.172  1.00 15.51      2PTN1444
+ATOM   1340  C   LYS   204       6.954  -2.502  21.037  1.00 15.51      2PTN1445
+ATOM   1341  O   LYS   204       6.162  -2.163  20.117  1.00 15.51      2PTN1446
+ATOM   1342  CB  LYS   204       8.674  -4.167  20.360  1.00 15.51      2PTN1447
+ATOM   1343  CG  LYS   204       9.168  -5.633  20.340  1.00 30.50      2PTN1448
+ATOM   1344  CD  LYS   204       9.613  -6.189  21.712  1.00 30.50      2PTN1449
+ATOM   1345  CE  LYS   204      11.066  -6.724  21.644  1.00 30.50      2PTN1450
+ATOM   1346  NZ  LYS   204      11.496  -7.282  22.927  0.00  0.00   1  2PTN1451
+ATOM   1347  N   LEU   209       7.472  -1.668  21.925  1.00 11.77      2PTN1452
+ATOM   1348  CA  LEU   209       7.198   -.228  21.861  1.00 11.77      2PTN1453
+ATOM   1349  C   LEU   209       7.995    .439  20.742  1.00 11.77      2PTN1454
+ATOM   1350  O   LEU   209       9.199    .727  20.937  1.00 11.77      2PTN1455
+ATOM   1351  CB  LEU   209       7.551    .435  23.213  1.00 11.77      2PTN1456
+ATOM   1352  CG  LEU   209       7.194   1.946  23.267  1.00  9.01      2PTN1457
+ATOM   1353  CD1 LEU   209       5.687   2.214  23.207  1.00  9.01      2PTN1458
+ATOM   1354  CD2 LEU   209       7.861   2.629  24.480  1.00  9.01      2PTN1459
+ATOM   1355  N   GLN   210       7.349    .736  19.631  1.00  9.05      2PTN1460
+ATOM   1356  CA  GLN   210       8.028   1.402  18.509  1.00  9.05      2PTN1461
+ATOM   1357  C   GLN   210       7.872   2.920  18.432  1.00  9.05      2PTN1462
+ATOM   1358  O   GLN   210       8.757   3.605  17.865  1.00  9.05      2PTN1463
+ATOM   1359  CB  GLN   210       7.656    .784  17.154  1.00  9.05      2PTN1464
+ATOM   1360  CG  GLN   210       8.100   -.695  17.024  1.00 12.07      2PTN1465
+ATOM   1361  CD  GLN   210       9.618   -.846  16.828  1.00 12.07      2PTN1466
+ATOM   1362  OE1 GLN   210      10.103  -2.001  16.764  1.00 12.07      2PTN1467
+ATOM   1363  NE2 GLN   210      10.247    .154  16.295  1.00 12.07      2PTN1468
+ATOM   1364  N   GLY   211       6.765   3.424  18.931  1.00 10.32      2PTN1469
+ATOM   1365  CA  GLY   211       6.482   4.858  18.819  1.00 10.32      2PTN1470
+ATOM   1366  C   GLY   211       5.939   5.508  20.089  1.00 10.32      2PTN1471
+ATOM   1367  O   GLY   211       5.382   4.831  20.988  1.00 10.32      2PTN1472
+ATOM   1368  N   ILE   212       5.981   6.821  20.059  1.00 10.14      2PTN1473
+ATOM   1369  CA  ILE   212       5.364   7.721  21.040  1.00 10.14      2PTN1474
+ATOM   1370  C   ILE   212       4.566   8.791  20.307  1.00 10.14      2PTN1475
+ATOM   1371  O   ILE   212       5.149   9.472  19.423  1.00 10.14      2PTN1476
+ATOM   1372  CB  ILE   212       6.438   8.412  21.925  1.00 10.14      2PTN1477
+ATOM   1373  CG1 ILE   212       7.362   7.396  22.620  1.00 11.13      2PTN1478
+ATOM   1374  CG2 ILE   212       5.793   9.340  22.973  1.00 11.13      2PTN1479
+ATOM   1375  CD1 ILE   212       8.535   8.098  23.300  1.00 11.13      2PTN1480
+ATOM   1376  N   VAL   213       3.296   8.896  20.643  1.00  9.81      2PTN1481
+ATOM   1377  CA  VAL   213       2.406   9.925  20.067  1.00  9.81      2PTN1482
+ATOM   1378  C   VAL   213       2.951  11.345  20.253  1.00  9.81      2PTN1483
+ATOM   1379  O   VAL   213       3.205  11.802  21.400  1.00  9.81      2PTN1484
+ATOM   1380  CB  VAL   213        .983   9.811  20.624  1.00  9.81      2PTN1485
+ATOM   1381  CG1 VAL   213        .058  10.840  19.961  1.00  7.98      2PTN1486
+ATOM   1382  CG2 VAL   213        .392   8.381  20.568  1.00  7.98      2PTN1487
+ATOM   1383  N   SER   214       3.390  11.914  19.145  1.00 10.63      2PTN1488
+ATOM   1384  CA  SER   214       4.158  13.158  19.174  1.00 10.63      2PTN1489
+ATOM   1385  C   SER   214       3.412  14.354  18.586  1.00 10.63      2PTN1490
+ATOM   1386  O   SER   214       3.067  15.294  19.341  1.00 10.63      2PTN1491
+ATOM   1387  CB  SER   214       5.518  12.981  18.484  1.00 10.63      2PTN1492
+ATOM   1388  OG  SER   214       6.253  14.198  18.606  1.00 13.51      2PTN1493
+ATOM   1389  N   TRP   215       3.207  14.383  17.287  1.00 12.40      2PTN1494
+ATOM   1390  CA  TRP   215       2.499  15.516  16.676  1.00 12.40      2PTN1495
+ATOM   1391  C   TRP   215       1.771  15.202  15.371  1.00 12.40      2PTN1496
+ATOM   1392  O   TRP   215       1.645  14.022  14.977  1.00 12.40      2PTN1497
+ATOM   1393  CB  TRP   215       3.445  16.716  16.451  1.00 12.40      2PTN1498
+ATOM   1394  CG  TRP   215       4.626  16.449  15.499  1.00 13.18      2PTN1499
+ATOM   1395  CD1 TRP   215       5.798  15.858  15.766  1.00 13.18      2PTN1500
+ATOM   1396  CD2 TRP   215       4.736  16.891  14.172  1.00 13.18      2PTN1501
+ATOM   1397  NE1 TRP   215       6.627  15.892  14.640  1.00 13.18      2PTN1502
+ATOM   1398  CE2 TRP   215       6.007  16.501  13.712  1.00 13.18      2PTN1503
+ATOM   1399  CE3 TRP   215       3.845  17.586  13.365  1.00 13.18      2PTN1504
+ATOM   1400  CZ2 TRP   215       6.444  16.771  12.425  1.00 13.18      2PTN1505
+ATOM   1401  CZ3 TRP   215       4.291  17.859  12.075  1.00 13.18      2PTN1506
+ATOM   1402  CH2 TRP   215       5.550  17.464  11.623  1.00 13.18      2PTN1507
+ATOM   1403  N   GLY   216       1.179  16.239  14.792  1.00 18.37      2PTN1508
+ATOM   1404  CA  GLY   216        .442  16.141  13.533  1.00 18.37      2PTN1509
+ATOM   1405  C   GLY   216       -.158  17.495  13.180  1.00 18.37      2PTN1510
+ATOM   1406  O   GLY   216       -.147  18.418  14.030  1.00 18.37      2PTN1511
+ATOM   1407  N   SER   217       -.705  17.603  12.002  1.00 14.27      2PTN1512
+ATOM   1408  CA  SER   217      -1.401  18.832  11.652  1.00 14.27      2PTN1513
+ATOM   1409  C   SER   217      -2.904  18.665  11.791  1.00 14.27      2PTN1514
+ATOM   1410  O   SER   217      -3.530  17.996  10.939  1.00 14.27      2PTN1515
+ATOM   1411  CB  SER   217      -1.031  19.287  10.236  1.00 14.27      2PTN1516
+ATOM   1412  OG  SER   217      -1.696  20.538  10.030  1.00 31.31      2PTN1517
+ATOM   1413  N   GLY   219      -3.402  18.998  12.949  1.00 15.10      2PTN1518
+ATOM   1414  CA  GLY   219      -4.770  18.626  13.330  1.00 15.10      2PTN1519
+ATOM   1415  C   GLY   219      -4.899  17.115  13.552  1.00 15.10      2PTN1520
+ATOM   1416  O   GLY   219      -3.886  16.436  13.835  1.00 15.10      2PTN1521
+ATOM   1417  N   CYS   220      -6.085  16.585  13.404  1.00 14.49      2PTN1522
+ATOM   1418  CA  CYS   220      -6.343  15.143  13.590  1.00 14.49      2PTN1523
+ATOM   1419  C   CYS   220      -7.164  14.593  12.438  1.00 14.49      2PTN1524
+ATOM   1420  O   CYS   220      -8.247  15.156  12.152  1.00 14.49      2PTN1525
+ATOM   1421  CB  CYS   220      -7.139  14.912  14.894  1.00 14.49      2PTN1526
+ATOM   1422  SG  CYS   220      -6.417  15.667  16.360  1.00 17.25      2PTN1527
+ATOM   1423  N   ALA   221A     -6.780  13.430  11.981  1.00 14.52      2PTN1528
+ATOM   1424  CA  ALA   221A     -7.550  12.597  11.049  1.00 14.52      2PTN1529
+ATOM   1425  C   ALA   221A     -7.889  13.330   9.756  1.00 14.52      2PTN1530
+ATOM   1426  O   ALA   221A     -8.883  12.991   9.064  1.00 14.52      2PTN1531
+ATOM   1427  CB  ALA   221A     -8.843  12.090  11.713  1.00 14.52      2PTN1532
+ATOM   1428  N   GLN   221      -7.105  14.355   9.460  1.00 21.50      2PTN1533
+ATOM   1429  CA  GLN   221      -7.271  15.100   8.214  1.00 21.50      2PTN1534
+ATOM   1430  C   GLN   221      -6.545  14.380   7.068  1.00 21.50      2PTN1535
+ATOM   1431  O   GLN   221      -5.500  13.709   7.280  1.00 21.50      2PTN1536
+ATOM   1432  CB  GLN   221      -6.750  16.554   8.392  1.00 21.50      2PTN1537
+ATOM   1433  CG  GLN   221      -7.854  17.642   8.575  1.00 32.73      2PTN1538
+ATOM   1434  CD  GLN   221      -8.764  17.392   9.778  1.00 32.73      2PTN1539
+ATOM   1435  OE1 GLN   221      -9.766  16.641   9.659  0.00  0.00   1  2PTN1540
+ATOM   1436  NE2 GLN   221      -8.526  18.124  10.850  0.00  0.00   1  2PTN1541
+ATOM   1437  N   LYS   222      -7.104  14.528   5.879  1.00 16.86      2PTN1542
+ATOM   1438  CA  LYS   222      -6.561  13.987   4.634  1.00 16.86      2PTN1543
+ATOM   1439  C   LYS   222      -5.138  14.461   4.392  1.00 16.86      2PTN1544
+ATOM   1440  O   LYS   222      -4.860  15.677   4.528  1.00 16.86      2PTN1545
+ATOM   1441  CB  LYS   222      -7.448  14.491   3.463  1.00 16.86      2PTN1546
+ATOM   1442  CG  LYS   222      -7.100  13.821   2.124  1.00 22.41      2PTN1547
+ATOM   1443  CD  LYS   222      -7.936  14.402    .967  0.00  0.00   1  2PTN1548
+ATOM   1444  CE  LYS   222      -7.577  13.756   -.385  0.00  0.00   1  2PTN1549
+ATOM   1445  NZ  LYS   222      -8.353  14.375  -1.466  0.00  0.00   1  2PTN1550
+ATOM   1446  N   ASN   223      -4.275  13.533   4.091  1.00 18.82      2PTN1551
+ATOM   1447  CA  ASN   223      -2.845  13.743   3.804  1.00 18.82      2PTN1552
+ATOM   1448  C   ASN   223      -2.065  14.334   4.971  1.00 18.82      2PTN1553
+ATOM   1449  O   ASN   223       -.928  14.835   4.773  1.00 18.82      2PTN1554
+ATOM   1450  CB  ASN   223      -2.607  14.592   2.537  1.00 18.82      2PTN1555
+ATOM   1451  CG  ASN   223      -2.898  13.751   1.288  1.00 30.77      2PTN1556
+ATOM   1452  OD1 ASN   223      -2.033  12.936    .880  0.00  0.00   1  2PTN1557
+ATOM   1453  ND2 ASN   223      -3.907  14.176    .560  0.00  0.00   1  2PTN1558
+ATOM   1454  N   LYS   224      -2.636  14.229   6.163  1.00 16.66      2PTN1559
+ATOM   1455  CA  LYS   224      -1.949  14.703   7.375  1.00 16.66      2PTN1560
+ATOM   1456  C   LYS   224      -1.937  13.665   8.496  1.00 16.66      2PTN1561
+ATOM   1457  O   LYS   224      -2.693  13.835   9.481  1.00 16.66      2PTN1562
+ATOM   1458  CB  LYS   224      -2.615  15.989   7.911  1.00 16.66      2PTN1563
+ATOM   1459  CG  LYS   224      -2.441  17.197   6.965  1.00 29.70      2PTN1564
+ATOM   1460  CD  LYS   224       -.944  17.540   6.806  1.00 29.70      2PTN1565
+ATOM   1461  CE  LYS   224       -.721  18.711   5.825  1.00 29.70      2PTN1566
+ATOM   1462  NZ  LYS   224        .703  19.045   5.741  1.00 29.70      2PTN1567
+ATOM   1463  N   PRO   225      -1.155  12.602   8.341  1.00 15.56      2PTN1568
+ATOM   1464  CA  PRO   225      -1.122  11.482   9.304  1.00 15.56      2PTN1569
+ATOM   1465  C   PRO   225       -.479  11.901  10.620  1.00 15.56      2PTN1570
+ATOM   1466  O   PRO   225        .297  12.886  10.639  1.00 15.56      2PTN1571
+ATOM   1467  CB  PRO   225       -.258  10.374   8.681  1.00 15.56      2PTN1572
+ATOM   1468  CG  PRO   225        .394  10.969   7.430  1.00 17.09      2PTN1573
+ATOM   1469  CD  PRO   225       -.210  12.360   7.227  1.00 17.09      2PTN1574
+ATOM   1470  N   GLY   226       -.623  11.069  11.636  1.00 11.55      2PTN1575
+ATOM   1471  CA  GLY   226        .110  11.272  12.879  1.00 11.55      2PTN1576
+ATOM   1472  C   GLY   226       1.608  11.072  12.720  1.00 11.55      2PTN1577
+ATOM   1473  O   GLY   226       2.024  10.196  11.924  1.00 11.55      2PTN1578
+ATOM   1474  N   VAL   227       2.365  11.853  13.475  1.00  9.59      2PTN1579
+ATOM   1475  CA  VAL   227       3.824  11.772  13.569  1.00  9.59      2PTN1580
+ATOM   1476  C   VAL   227       4.302  11.354  14.963  1.00  9.59      2PTN1581
+ATOM   1477  O   VAL   227       3.717  11.778  15.991  1.00  9.59      2PTN1582
+ATOM   1478  CB  VAL   227       4.505  13.085  13.134  1.00  9.59      2PTN1583
+ATOM   1479  CG1 VAL   227       6.037  12.930  12.965  1.00  9.35      2PTN1584
+ATOM   1480  CG2 VAL   227       3.847  13.680  11.869  1.00  9.35      2PTN1585
+ATOM   1481  N   TYR   228       5.149  10.351  14.967  1.00  7.52      2PTN1586
+ATOM   1482  CA  TYR   228       5.505   9.602  16.178  1.00  7.52      2PTN1587
+ATOM   1483  C   TYR   228       7.010   9.585  16.388  1.00  7.52      2PTN1588
+ATOM   1484  O   TYR   228       7.785   9.501  15.406  1.00  7.52      2PTN1589
+ATOM   1485  CB  TYR   228       4.986   8.137  16.024  1.00  7.52      2PTN1590
+ATOM   1486  CG  TYR   228       3.451   8.095  15.897  1.00  8.09      2PTN1591
+ATOM   1487  CD1 TYR   228       2.672   8.155  17.024  1.00  8.09      2PTN1592
+ATOM   1488  CD2 TYR   228       2.855   8.096  14.648  1.00  8.09      2PTN1593
+ATOM   1489  CE1 TYR   228       1.296   8.198  16.927  1.00  8.09      2PTN1594
+ATOM   1490  CE2 TYR   228       1.470   8.161  14.530  1.00  8.09      2PTN1595
+ATOM   1491  CZ  TYR   228        .695   8.215  15.676  1.00  8.09      2PTN1596
+ATOM   1492  OH  TYR   228       -.718   8.264  15.579  1.00  8.09      2PTN1597
+ATOM   1493  N   THR   229       7.422   9.651  17.623  1.00  8.38      2PTN1598
+ATOM   1494  CA  THR   229       8.825   9.538  17.986  1.00  8.38      2PTN1599
+ATOM   1495  C   THR   229       9.310   8.108  17.749  1.00  8.38      2PTN1600
+ATOM   1496  O   THR   229       8.617   7.159  18.174  1.00  8.38      2PTN1601
+ATOM   1497  CB  THR   229       9.040   9.967  19.472  1.00  8.38      2PTN1602
+ATOM   1498  OG1 THR   229       8.510  11.286  19.683  1.00  9.05      2PTN1603
+ATOM   1499  CG2 THR   229      10.521   9.962  19.873  1.00  9.05      2PTN1604
+ATOM   1500  N   LYS   230      10.428   7.973  17.063  1.00  7.12      2PTN1605
+ATOM   1501  CA  LYS   230      10.997   6.654  16.685  1.00  7.12      2PTN1606
+ATOM   1502  C   LYS   230      11.856   6.053  17.784  1.00  7.12      2PTN1607
+ATOM   1503  O   LYS   230      13.077   6.305  17.834  1.00  7.12      2PTN1608
+ATOM   1504  CB  LYS   230      11.825   6.837  15.413  1.00  7.12      2PTN1609
+ATOM   1505  CG  LYS   230      12.039   5.547  14.606  1.00 16.38      2PTN1610
+ATOM   1506  CD  LYS   230      12.673   5.932  13.257  1.00 16.38      2PTN1611
+ATOM   1507  CE  LYS   230      12.614   4.795  12.238  1.00 16.38      2PTN1612
+ATOM   1508  NZ  LYS   230      13.233   5.227  10.979  0.00  0.00   1  2PTN1613
+ATOM   1509  N   VAL   231      11.200   5.371  18.696  1.00 10.63      2PTN1614
+ATOM   1510  CA  VAL   231      11.800   4.832  19.921  1.00 10.63      2PTN1615
+ATOM   1511  C   VAL   231      13.060   3.988  19.695  1.00 10.63      2PTN1616
+ATOM   1512  O   VAL   231      13.980   4.005  20.543  1.00 10.63      2PTN1617
+ATOM   1513  CB  VAL   231      10.718   4.059  20.729  1.00 10.63      2PTN1618
+ATOM   1514  CG1 VAL   231      11.256   3.338  21.991  1.00  7.81      2PTN1619
+ATOM   1515  CG2 VAL   231       9.515   4.950  21.090  1.00  7.81      2PTN1620
+ATOM   1516  N   CYS   232      13.133   3.266  18.582  1.00 12.53      2PTN1621
+ATOM   1517  CA  CYS   232      14.294   2.404  18.345  1.00 12.53      2PTN1622
+ATOM   1518  C   CYS   232      15.614   3.173  18.304  1.00 12.53      2PTN1623
+ATOM   1519  O   CYS   232      16.670   2.585  18.640  1.00 12.53      2PTN1624
+ATOM   1520  CB  CYS   232      14.140   1.576  17.055  1.00 12.53      2PTN1625
+ATOM   1521  SG  CYS   232      14.061   2.556  15.556  1.00 15.53      2PTN1626
+ATOM   1522  N   ASN   233      15.548   4.483  18.038  1.00  9.19      2PTN1627
+ATOM   1523  CA  ASN   233      16.746   5.330  18.003  1.00  9.19      2PTN1628
+ATOM   1524  C   ASN   233      17.247   5.698  19.400  1.00  9.19      2PTN1629
+ATOM   1525  O   ASN   233      18.362   6.265  19.530  1.00  9.19      2PTN1630
+ATOM   1526  CB  ASN   233      16.471   6.648  17.232  1.00  9.19      2PTN1631
+ATOM   1527  CG  ASN   233      16.294   6.404  15.736  1.00 16.86      2PTN1632
+ATOM   1528  OD1 ASN   233      16.448   5.261  15.259  1.00 16.86      2PTN1633
+ATOM   1529  ND2 ASN   233      16.101   7.479  15.004  1.00 16.86      2PTN1634
+ATOM   1530  N   TYR   234      16.407   5.460  20.378  1.00 10.78      2PTN1635
+ATOM   1531  CA  TYR   234      16.648   5.928  21.748  1.00 10.78      2PTN1636
+ATOM   1532  C   TYR   234      16.952   4.848  22.778  1.00 10.78      2PTN1637
+ATOM   1533  O   TYR   234      17.073   5.165  23.984  1.00 10.78      2PTN1638
+ATOM   1534  CB  TYR   234      15.467   6.778  22.251  1.00 10.78      2PTN1639
+ATOM   1535  CG  TYR   234      15.241   8.027  21.375  1.00 11.78      2PTN1640
+ATOM   1536  CD1 TYR   234      16.063   9.125  21.502  1.00 11.78      2PTN1641
+ATOM   1537  CD2 TYR   234      14.235   8.023  20.435  1.00 11.78      2PTN1642
+ATOM   1538  CE1 TYR   234      15.909  10.215  20.665  1.00 11.78      2PTN1643
+ATOM   1539  CE2 TYR   234      14.073   9.109  19.589  1.00 11.78      2PTN1644
+ATOM   1540  CZ  TYR   234      14.925  10.193  19.697  1.00 11.78      2PTN1645
+ATOM   1541  OH  TYR   234      14.737  11.311  18.839  1.00 11.78      2PTN1646
+ATOM   1542  N   VAL   235      16.933   3.613  22.350  1.00 13.48      2PTN1647
+ATOM   1543  CA  VAL   235      17.059   2.476  23.284  1.00 13.48      2PTN1648
+ATOM   1544  C   VAL   235      18.313   2.558  24.156  1.00 13.48      2PTN1649
+ATOM   1545  O   VAL   235      18.223   2.344  25.389  1.00 13.48      2PTN1650
+ATOM   1546  CB  VAL   235      16.987   1.132  22.514  1.00 13.48      2PTN1651
+ATOM   1547  CG1 VAL   235      17.316   -.058  23.429  1.00 12.78      2PTN1652
+ATOM   1548  CG2 VAL   235      15.613    .929  21.833  1.00 12.78      2PTN1653
+ATOM   1549  N   SER   236      19.419   2.917  23.552  1.00 14.40      2PTN1654
+ATOM   1550  CA  SER   236      20.701   3.027  24.241  1.00 14.40      2PTN1655
+ATOM   1551  C   SER   236      20.644   4.119  25.299  1.00 14.40      2PTN1656
+ATOM   1552  O   SER   236      21.069   3.874  26.456  1.00 14.40      2PTN1657
+ATOM   1553  CB  SER   236      21.865   3.310  23.266  1.00 14.40      2PTN1658
+ATOM   1554  OG  SER   236      21.905   2.286  22.264  0.00  0.00   1  2PTN1659
+ATOM   1555  N   TRP   237      20.017   5.214  24.940  1.00 11.05      2PTN1660
+ATOM   1556  CA  TRP   237      19.836   6.344  25.871  1.00 11.05      2PTN1661
+ATOM   1557  C   TRP   237      18.958   5.946  27.051  1.00 11.05      2PTN1662
+ATOM   1558  O   TRP   237      19.374   6.174  28.217  1.00 11.05      2PTN1663
+ATOM   1559  CB  TRP   237      19.226   7.567  25.163  1.00 11.05      2PTN1664
+ATOM   1560  CG  TRP   237      18.872   8.695  26.155  1.00 10.71      2PTN1665
+ATOM   1561  CD1 TRP   237      19.701   9.505  26.838  1.00 10.71      2PTN1666
+ATOM   1562  CD2 TRP   237      17.581   9.082  26.529  1.00 10.71      2PTN1667
+ATOM   1563  NE1 TRP   237      18.954  10.386  27.633  1.00 10.71      2PTN1668
+ATOM   1564  CE2 TRP   237      17.716  10.138  27.454  1.00 10.71      2PTN1669
+ATOM   1565  CE3 TRP   237      16.337   8.630  26.125  1.00 10.71      2PTN1670
+ATOM   1566  CZ2 TRP   237      16.623  10.765  28.029  1.00 10.71      2PTN1671
+ATOM   1567  CZ3 TRP   237      15.232   9.283  26.684  1.00 10.71      2PTN1672
+ATOM   1568  CH2 TRP   237      15.374  10.322  27.619  1.00 10.71      2PTN1673
+ATOM   1569  N   ILE   238      17.868   5.276  26.727  1.00 10.54      2PTN1674
+ATOM   1570  CA  ILE   238      16.955   4.744  27.739  1.00 10.54      2PTN1675
+ATOM   1571  C   ILE   238      17.644   3.789  28.714  1.00 10.54      2PTN1676
+ATOM   1572  O   ILE   238      17.562   4.004  29.947  1.00 10.54      2PTN1677
+ATOM   1573  CB  ILE   238      15.727   4.069  27.098  1.00 10.54      2PTN1678
+ATOM   1574  CG1 ILE   238      14.881   5.101  26.340  1.00  9.92      2PTN1679
+ATOM   1575  CG2 ILE   238      14.867   3.351  28.145  1.00  9.92      2PTN1680
+ATOM   1576  CD1 ILE   238      13.701   4.444  25.628  1.00  9.92      2PTN1681
+ATOM   1577  N   LYS   239      18.364   2.828  28.189  1.00 12.80      2PTN1682
+ATOM   1578  CA  LYS   239      19.025   1.866  29.065  1.00 12.80      2PTN1683
+ATOM   1579  C   LYS   239      20.087   2.487  29.965  1.00 12.80      2PTN1684
+ATOM   1580  O   LYS   239      20.117   2.177  31.189  1.00 12.80      2PTN1685
+ATOM   1581  CB  LYS   239      19.649    .725  28.256  1.00 12.80      2PTN1686
+ATOM   1582  CG  LYS   239      18.633   -.035  27.392  1.00 16.36      2PTN1687
+ATOM   1583  CD  LYS   239      19.209  -1.375  26.894  0.00  0.00   1  2PTN1688
+ATOM   1584  CE  LYS   239      20.597  -1.217  26.244  0.00  0.00   1  2PTN1689
+ATOM   1585  NZ  LYS   239      20.515   -.394  25.031  0.00  0.00   1  2PTN1690
+ATOM   1586  N   GLN   240      20.881   3.368  29.387  1.00 17.53      2PTN1691
+ATOM   1587  CA  GLN   240      21.962   4.059  30.121  1.00 17.53      2PTN1692
+ATOM   1588  C   GLN   240      21.412   4.900  31.274  1.00 17.53      2PTN1693
+ATOM   1589  O   GLN   240      21.956   4.868  32.408  1.00 17.53      2PTN1694
+ATOM   1590  CB  GLN   240      22.761   4.947  29.138  1.00 17.53      2PTN1695
+ATOM   1591  CG  GLN   240      23.722   5.964  29.798  0.00  0.00   1  2PTN1696
+ATOM   1592  CD  GLN   240      24.806   5.267  30.617  0.00  0.00   1  2PTN1697
+ATOM   1593  OE1 GLN   240      25.463   4.324  30.110  0.00  0.00   1  2PTN1698
+ATOM   1594  NE2 GLN   240      24.740   5.508  31.913  0.00  0.00   1  2PTN1699
+ATOM   1595  N   THR   241      20.338   5.600  30.957  1.00 13.50      2PTN1700
+ATOM   1596  CA  THR   241      19.691   6.497  31.915  1.00 13.50      2PTN1701
+ATOM   1597  C   THR   241      19.079   5.728  33.073  1.00 13.50      2PTN1702
+ATOM   1598  O   THR   241      19.316   6.089  34.257  1.00 13.50      2PTN1703
+ATOM   1599  CB  THR   241      18.626   7.384  31.238  1.00 13.50      2PTN1704
+ATOM   1600  OG1 THR   241      19.240   8.164  30.218  1.00 10.40      2PTN1705
+ATOM   1601  CG2 THR   241      17.955   8.340  32.219  1.00 10.40      2PTN1706
+ATOM   1602  N   ILE   242      18.375   4.676  32.720  1.00 12.42      2PTN1707
+ATOM   1603  CA  ILE   242      17.716   3.839  33.717  1.00 12.42      2PTN1708
+ATOM   1604  C   ILE   242      18.742   3.174  34.625  1.00 12.42      2PTN1709
+ATOM   1605  O   ILE   242      18.529   3.131  35.866  1.00 12.42      2PTN1710
+ATOM   1606  CB  ILE   242      16.824   2.762  33.051  1.00 12.42      2PTN1711
+ATOM   1607  CG1 ILE   242      15.387   3.219  32.787  1.00 29.25      2PTN1712
+ATOM   1608  CG2 ILE   242      16.761   1.476  33.903  1.00 29.25      2PTN1713
+ATOM   1609  CD1 ILE   242      15.256   4.536  32.018  1.00 29.25      2PTN1714
+ATOM   1610  N   ALA   243      19.876   2.821  34.064  1.00 15.56      2PTN1715
+ATOM   1611  CA  ALA   243      20.955   2.157  34.825  1.00 15.56      2PTN1716
+ATOM   1612  C   ALA   243      21.625   3.065  35.850  1.00 15.56      2PTN1717
+ATOM   1613  O   ALA   243      22.318   2.561  36.768  1.00 15.56      2PTN1718
+ATOM   1614  CB  ALA   243      22.033   1.650  33.864  1.00 15.56      2PTN1719
+ATOM   1615  N   SER   244      21.520   4.358  35.641  1.00 19.56      2PTN1720
+ATOM   1616  CA  SER   244      22.243   5.314  36.474  1.00 19.56      2PTN1721
+ATOM   1617  C   SER   244      21.367   6.240  37.294  1.00 19.56      2PTN1722
+ATOM   1618  O   SER   244      21.883   7.208  37.906  1.00 19.56      2PTN1723
+ATOM   1619  CB  SER   244      23.207   6.152  35.622  1.00 19.56      2PTN1724
+ATOM   1620  OG  SER   244      24.083   5.250  34.925  1.00 35.64      2PTN1725
+ATOM   1621  N   ASN   245      20.074   6.038  37.224  1.00 18.57      2PTN1726
+ATOM   1622  CA  ASN   245      19.126   6.947  37.890  1.00 18.57      2PTN1727
+ATOM   1623  C   ASN   245      18.083   6.203  38.704  1.00 18.57      2PTN1728
+ATOM   1624  O   ASN   245      17.319   6.853  39.455  1.00 18.57      2PTN1729
+ATOM   1625  CB  ASN   245      18.394   7.853  36.880  1.00 18.57      2PTN1730
+ATOM   1626  CG  ASN   245      19.315   8.949  36.343  1.00 16.51      2PTN1731
+ATOM   1627  OD1 ASN   245      19.585   9.905  37.110  1.00 16.51      2PTN1732
+ATOM   1628  ND2 ASN   245      20.096   8.605  35.338  1.00 16.51      2PTN1733
+ATOM   1629  OXT ASN   245      18.181   4.969  38.876  1.00 16.51      2PTN1734
+TER    1630      ASN   245                                              2PTN1735
+HETATM 1631  O   HOH   406       4.843   5.948  25.310  1.00 13.92      2PTN1736
+HETATM 1632  O   HOH   408       8.789  13.772  17.222  1.00 15.47      2PTN1737
+HETATM 1633  O   HOH   410      -3.952   9.395  26.434  1.00  8.80      2PTN1738
+HETATM 1634  O   HOH   412     -11.426    .628  26.943  1.00 10.15      2PTN1739
+HETATM 1635  O   HOH   414      -2.255  14.492  12.493  1.00 22.80      2PTN1740
+HETATM 1636  O   HOH   415      -4.634  15.330  10.722  1.00 17.73      2PTN1741
+HETATM 1637  O   HOH   416        .816  11.717  16.464  1.00 22.56      2PTN1742
+HETATM 1638  O   HOH   429     -12.138   6.624  18.385  1.00 18.59      2PTN1743
+HETATM 1639  O   HOH   430      -9.194   8.467  22.680  1.00  8.68      2PTN1744
+HETATM 1640  O   HOH   457      -5.897  10.662  34.932  1.00  8.88      2PTN1745
+HETATM 1641  O   HOH   470      -8.653    .140  14.308  1.00 11.95      2PTN1746
+HETATM 1642  O   HOH   473       7.202   7.227   8.156  1.00 14.35      2PTN1747
+HETATM 1643 CA    CA   480     -10.276   4.363  36.930  1.00 11.80      2PTN1748
+HETATM 1644  O   HOH   516      -4.355  -1.552  32.447  1.00 17.88      2PTN1749
+HETATM 1645  O   HOH   530       2.046  11.879   1.537  1.00 34.93      2PTN1750
+HETATM 1646  O   HOH   562      -4.787  11.698   9.416  1.00 16.91      2PTN1751
+HETATM 1647  O   HOH   583     -16.668    .642  28.000  1.00 29.90      2PTN1752
+HETATM 1648  O   HOH   604      -8.099    .030  29.995  1.00 13.58      2PTN1753
+HETATM 1649  O   HOH   700      -8.171  13.795  37.850  1.00 13.04      2PTN1754
+HETATM 1650  O   HOH   701      -2.009   7.965  24.912  1.00  5.96      2PTN1755
+HETATM 1651  O   HOH   702      -1.464  17.473  22.992  1.00 31.54      2PTN1756
+HETATM 1652  O   HOH   703      11.520  12.946  17.598  1.00 10.47      2PTN1757
+HETATM 1653  O   HOH   704      -2.067   8.058  13.183  1.00  9.78      2PTN1758
+HETATM 1654  O   HOH   705      -3.717   8.994  10.103  1.00 13.67      2PTN1759
+HETATM 1655  O   HOH   706      -9.179    .092  37.062  1.00 14.23      2PTN1760
+HETATM 1656  O   HOH   707      -7.629   9.007  36.502  1.00 12.17      2PTN1761
+HETATM 1657  O   HOH   708      -3.440   3.333  33.225  1.00 10.09      2PTN1762
+HETATM 1658  O   HOH   709      -4.332    .919  31.087  1.00 11.20      2PTN1763
+HETATM 1659  O   HOH   710       1.991  17.973  19.752  1.00 24.02      2PTN1764
+HETATM 1660  O   HOH   711      -9.604   6.271  38.112  1.00 15.39      2PTN1765
+HETATM 1661  O   HOH   712      12.771  15.783  38.079  1.00 23.19      2PTN1766
+HETATM 1662  O   HOH   713      16.467   2.836  38.224  1.00 21.03      2PTN1767
+HETATM 1663  O   HOH   714     -10.279   2.442  35.698  1.00 12.55      2PTN1768
+HETATM 1664  O   HOH   715      -8.961  13.705  34.015  1.00 18.47      2PTN1769
+HETATM 1665  O   HOH   716      -1.390    .362  33.175  1.00 15.69      2PTN1770
+HETATM 1666  O   HOH   717      -5.700  -1.099  29.314  1.00 12.70      2PTN1771
+HETATM 1667  O   HOH   718     -13.830   -.069  28.327  1.00 13.45      2PTN1772
+HETATM 1668  O   HOH   719      12.304  22.864  26.025  1.00 21.21      2PTN1773
+HETATM 1669  O   HOH   720      13.531  22.630  23.445  1.00 16.34      2PTN1774
+HETATM 1670  O   HOH   721       -.858    .679  22.372  1.00  7.34      2PTN1775
+HETATM 1671  O   HOH   722      11.053   2.758  16.676  1.00  9.13      2PTN1776
+HETATM 1672  O   HOH   723      10.038  19.436  12.548  1.00 22.04      2PTN1777
+HETATM 1673  O   HOH   724      14.027  18.482   9.083  1.00 35.67      2PTN1778
+HETATM 1674  O   HOH   725      10.157  16.265   5.799  1.00 18.34      2PTN1779
+HETATM 1675  O   HOH   726       2.470   1.627   4.772  1.00 19.79      2PTN1780
+HETATM 1676  O   HOH   727       3.462   3.977   2.961  1.00 25.22      2PTN1781
+HETATM 1677  O   HOH   728     -14.076   8.855  16.552  1.00 25.92      2PTN1782
+HETATM 1678  O   HOH   729       8.435  -4.351  16.668  1.00 21.62      2PTN1783
+HETATM 1679  O   HOH   730     -11.188   1.531  14.420  1.00 25.56      2PTN1784
+HETATM 1680  O   HOH   731       3.996  21.839   4.280  1.00 26.48      2PTN1785
+HETATM 1681  O   HOH   732      18.973   1.414  37.910  1.00 25.23      2PTN1786
+HETATM 1682  O   HOH   733     -10.284   8.291  39.853  1.00 21.09      2PTN1787
+HETATM 1683  O   HOH   734     -10.369  12.151  36.724  1.00 28.89      2PTN1788
+HETATM 1684  O   HOH   735     -10.320  -2.013  35.518  1.00 22.68      2PTN1789
+HETATM 1685  O   HOH   736     -15.954    .464  20.282  1.00 27.96      2PTN1790
+HETATM 1686  O   HOH   737      -2.955  13.801  40.863  1.00 23.30      2PTN1791
+HETATM 1687  O   HOH   738     -10.314  11.028  39.345  1.00 23.04      2PTN1792
+HETATM 1688  O   HOH   739     -16.313   8.421  40.081  1.00 21.25      2PTN1793
+HETATM 1689  O   HOH   740      -9.975   8.818  42.782  1.00 17.83      2PTN1794
+HETATM 1690  O   HOH   741      -3.254  -3.080  39.908  1.00 24.62      2PTN1795
+HETATM 1691  O   HOH   742       5.427  -6.892  33.179  1.00 24.44      2PTN1796
+HETATM 1692  O   HOH   743       3.141  -8.407  34.545  1.00 29.74      2PTN1797
+HETATM 1693  O   HOH   744      16.473  20.022  15.858  1.00 20.84      2PTN1798
+HETATM 1694  O   HOH   745     -11.931  22.519  16.055  1.00 16.87      2PTN1799
+HETATM 1695  O   HOH   746      -2.347   3.483   5.336  1.00 25.08      2PTN1800
+HETATM 1696  O   HOH   747       7.385  21.498  24.995  1.00 19.78      2PTN1801
+HETATM 1697  O   HOH   748       1.613  -6.056  19.223  1.00 28.49      2PTN1802
+HETATM 1698  O   HOH   749      -5.965  18.242   4.859  1.00 27.07      2PTN1803
+HETATM 1699  O   HOH   750      19.181   9.202  19.282  1.00 32.82      2PTN1804
+HETATM 1700  O   HOH   751      19.996   6.304  21.969  1.00 21.41      2PTN1805
+HETATM 1701  O   HOH   752      19.711   9.365  22.121  1.00 23.88      2PTN1806
+HETATM 1702  O   HOH   753      22.217  18.139  23.738  1.00 27.54      2PTN1807
+HETATM 1703  O   HOH   754      12.785  -4.088  27.068  1.00 27.46      2PTN1808
+HETATM 1704  O   HOH   755      10.619   1.968  13.718  1.00 25.06      2PTN1809
+HETATM 1705  O   HOH   800      23.167   -.060  37.384  1.00 30.09      2PTN1810
+HETATM 1706  O   HOH   801      10.804  -3.002  28.676  1.00 29.29      2PTN1811
+HETATM 1707  O   HOH   802       8.359  20.461  27.503  1.00 25.12      2PTN1812
+HETATM 1708  O   HOH   803      14.592  24.469  21.570  1.00 26.77      2PTN1813
+HETATM 1709  O   HOH   804       2.273  -8.781  18.836  1.00 28.23      2PTN1814
+HETATM 1710  O   HOH   805      -2.150  13.200  15.312  1.00 28.58      2PTN1815
+HETATM 1711  O   HOH   806      -7.964    .594  11.506  1.00 29.58      2PTN1816
+HETATM 1712  O   HOH   807      -8.812  24.803  22.958  1.00 28.72      2PTN1817
+HETATM 1713  O   HOH   808      -1.987  22.980  23.007  1.00 28.46      2PTN1818
+CONECT   48   47 1007                                                   2PTN1819
+CONECT  185  184  298                                                   2PTN1820
+CONECT  298  185  297                                                   2PTN1821
+CONECT  384  383 1643                                                   2PTNE  5
+CONECT  397  396 1643                                                   2PTNE  6
+CONECT  421  420 1643                                                   2PTNE  7
+CONECT  461  459 1643                                                   2PTNE  8
+CONECT  811  810 1521                                                   2PTN1826
+CONECT  853  852 1327                                                   2PTN1827
+CONECT 1007   48 1006                                                   2PTN1828
+CONECT 1084 1083 1190                                                   2PTN1829
+CONECT 1190 1084 1189                                                   2PTN1830
+CONECT 1265 1264 1422                                                   2PTN1831
+CONECT 1327  853 1326                                                   2PTN1832
+CONECT 1422 1265 1421                                                   2PTN1833
+CONECT 1521  811 1520                                                   2PTN1834
+CONECT 1643  384  397  421  461                                         2PTNE  9
+CONECT 1643 1666 1669                                                   2PTNE 10
+CONECT 1666 1645                                                        2PTN1837
+CONECT 1669 1645                                                        2PTN1838
+MASTER       74    2    1    3    0    0    0    6 1712    1   20   18  2PTNE 11
+END                                                                     2PTN1840
+

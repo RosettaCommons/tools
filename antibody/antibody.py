@@ -839,9 +839,12 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
             else:  # if there is no template... table is a list, which has a blast result
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
-                    if len_cdr == int(v[1][check_length]):
-                        pdb_random = v[0]
-                        break
+		    try:
+                        if len_cdr == int(v[1][check_length]):
+                            pdb_random = v[0]
+                            break
+		    except KeyError:
+		        print 'WARNING: Catching something that may be a programming error, could not find index "%s".\n' % check_length
                 print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
                 custom_template = pdb_random
                 #sys.exit(1)

@@ -3,9 +3,24 @@
 my $pwd=`pwd`;
 chomp $pwd;
 
-print "\n";
-print "This script installs blast, psipred, sparks-x, and the ncbi non-redundant (nr) database.\n";
-print "Requires ~73+ Gigs of free disk space.\n"; 
+if (!scalar@ARGV || $ARGV[0] ne 'force') {
+	print "\n";
+	print "USAGE: $0 <force>\n\n";
+	print "This script installs blast, psipred, sparks-x, and the NCBI non-redundant (nr) database.\n";
+	print "Install locations: \n";
+	print " $pwd/blast\n";
+	print " $pwd/psipred\n";
+	print " $pwd/sparks-x\n";
+	print " $pwd/databases/nr\n";
+	print " $pwd/databases/nr_pfilt\n";
+	print "\n";
+	print "Requires ~73+ Gigs of free disk space.\n";
+	print "The NCBI sequence databases are very large.\n";
+	print "Please be patient when running this script.\n";
+	print "\n";
+	print "FOR ACADEMIC USE ONLY.\n\n";
+	exit(1);
+}
 
 # blast binaries
 # from ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
@@ -25,6 +40,15 @@ if (!-d "$pwd/blast/bin" || !-d "$pwd/blast/data") {
 	system("mv blast-2.2.17 blast");
 	(-d "$pwd/blast/bin" && -d "$pwd/blast/data") or die "ERROR! blast installation failed!\n";
 }
+my $blast_credit =<<BLASTCREDIT;
+
+>>>> PLEASE CITE THE FOLLOWING FOR BLAST <<<<
+
+Altschul, S.F., Madden, T.L., Schäffer, A.A., Zhang, J., Zhang, Z., Miller
+W. & Lipman, D.J (1997) "Gapped BLAST and PSI-BLAST: a new generation of
+protein database search programs." Nucleic Acids Res. 25:3389-3402.
+
+BLASTCREDIT
 chdir($pwd);
 
 # psipred
@@ -58,8 +82,8 @@ my $psipred_credit =<<PSIPREDCREDIT;
 
 Jones, D.T. (1999) Protein secondary structure prediction based on
 position-specific scoring matrices. J. Mol. Biol. 292:195-202.
+
 PSIPREDCREDIT
-print $psipred_credit;
 chdir($pwd);
 
 # SPARKS-X/SPINE-X
@@ -80,8 +104,6 @@ if (!-d "$pwd/sparks-x/bin" || !-d "$pwd/sparks-x/data") {
 			if ($l =~ /^spxdir=/) {
 				print NF "spxdir=$pwd/sparks-x\n";
 				next;
-			} elsif ($l =~ /buildinp\.py/) {
-				next; # skip this step
 			}
 			print NF $l;
 		}
@@ -103,11 +125,10 @@ predicted one-dimensional structural properties of the query and corresponding
 native properties of templates. Bioinformatics 27, 2076-2082 (2011)
 
 SPARKSXCREDIT
-print $sparksx_credit;
 chdir($pwd);
 
 # NR database
-my $datdir = "$pwd/databases";
+our $datdir = "$pwd/databases";
 (-d $datdir || mkdir($datdir)) or die "ERROR! cannot mkdir $datdir: $!\n";
 if (!-s "$datdir/nr.pal") {
 	chdir($datdir);
@@ -147,8 +168,10 @@ if (!-s "$datdir/nr_pfilt.pal") {
 	print "Formatting nr_pfilt fasta. Be very very very very patient ......\n";
 	system("$pwd/blast/bin/formatdb -o T -i nr_pfilt");
 	(-s "$datdir/nr_pfilt.pal") or die "ERROR! nr_pfilt database installation failed!\n";
+	$SIG{INT} = 'DEFAULT';
 }
 
+print "\n";
 print " Installed\n";
 print "     blast: $pwd/blast\n";
 print "   psipred: $pwd/psipred\n";
@@ -157,6 +180,11 @@ print "        nr: $pwd/databases/nr\n";
 print "  nr_pfilt: $pwd/databases/nr_pfilt\n";
 print "\nDone!\n";
 
+print $blast_credit;
+print $psipred_credit;
+print $sparksx_credit;
+
+print "FOR ACADEMIC USE ONLY.\n\n";
 
 ## catch ctrl-c
 sub clean_nr_tgz {

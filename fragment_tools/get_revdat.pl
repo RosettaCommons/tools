@@ -7,24 +7,20 @@ my $PDB_ENTRIES = "entries.idx";
 unlink $PDB_ENTRIES;
 system("wget ftp://ftp.wwpdb.org/pub/pdb/derived_data/index/$PDB_ENTRIES");
 
-# get latest pdbrevdat.txt if it doesn't exist
+# get latest pdb_revdat.txt if it doesn't exist
 my $pdbrevdat = "$Bin/pdb_revdat.txt";
 if (!-s $pdbrevdat) {
 	system("wget http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
 	system("gunzip pdb_revdat.txt.gz");
-	system("mv pdb_revdat.txt $pdbrevdat");
+	system("mv pdb_revdat.txt $pdbrevdat") if (!-s $pdbrevdat);
 }
 
 # http location of rcsb pdb files
 my $RCSB_PDB = "http://www.rcsb.org/pdb/files";
 
 # optional path to hierarchical PDB directory from RCSB
-my $LAB_PDB = $ENV{'PDB_DIR'};
-
-# Rsync only the PDB format coordinates  /pub/pdb/data/structures/divided/pdb (Aproximately 9 GB)
-#system("rsync -rlpt -v -z --delete --port=33444 rsync.wwpdb.org::ftp/data/structures/divided/pdb/ $LAB_PDB > rsync_divided_pdb.log 2>/dev/null");
-
-
+my $LAB_PDB = $ENV{'PDB_DIR'} if (exists $ENV{'PDB_DIR'});;
+#system("rsync -auvz --port=33444 rsync.wwpdb.org::ftp/data/structures/divided/pdb/ $LAB_PDB > rsync_divided_pdb.log 2>/dev/null");
 
 # current date
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
@@ -69,7 +65,8 @@ foreach my $code (keys %entries) {
 	} else {
 		system("wget $RCSB_PDB/$code.pdb");
 		if (!-s "$code.pdb") {
-			warn "WARNING! cannot get REVDAT since $code.pdb does not exist at $RCSB_PDB/$code.pdb: odd error!\n";
+			warn "WARNING! cannot get REVDAT since $code.pdb does not exist at $RCSB_PDB/$code.pdb.\n";
+			next;
 		} else {
 			@revdat = &get_REVDAT( $code, "$code.pdb" );
 		}

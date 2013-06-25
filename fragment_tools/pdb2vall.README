@@ -1,10 +1,12 @@
 
+FOR ACADEMIC USE ONLY.
+
 BASIC INSTALLATION
 
 1. Run install_dependencies.pl in fragment_tools.
    This will take a long time so please be patient. Requires ~73+ Gigs of free disk space.
 
-	./install_dependencies.pl
+	./install_dependencies.pl force
 
 2. Build DEPTH executable
 
@@ -74,7 +76,9 @@ EXTERNAL DEPENDENCIES
   DSSP (ftp://ftp.cmbi.ru.nl/pub/software/dssp/):
     structure_profile_scripts/dssp2threestateSS.pl
 
-
+  MAXSPROUT for building backbone and sidechains from a C(alpha) trace.
+	(http://ekhidna.biocenter.helsinki.fi/maxsprout/downloads/download.html)
+    pdb2vall/pdb_scripts/rebuild_pdb_from_CA.sh 
 
 Databases which may need to be updated in the future:
 
@@ -86,5 +90,47 @@ Databases which may need to be updated in the future:
   structure_profile_scripts/residue_depth_vall:
   residue_depth_full_cullpdb_pc30_res2.0_R0.3_d110930_chains6280.4278.vall
 
+
+REFERENCES:
+
+Rosetta fragment picker reference:
+
+ Gront, D., Kulp, D.W., Vernon, R.M., Strauss, C.E.M. & Baker, D. Generalized fragment picking in Rosetta:
+ design, protocols and applications. PLoS ONE 6, e23294 (2011).
+
+
+Please use the following references for external dependencies:
+
+- NCBI Blast (http://www.ncbi.nlm.nih.gov/blast/blast_references.shtml)
+
+ Altschul, S.F., Madden, T.L., Schäffer, A.A., Zhang, J., Zhang, Z., Miller, W. & Lipman, D.J (1997) "Gapped
+ BLAST and PSI-BLAST: a new generation of protein database search programs." Nucleic Acids Res. 25:3389-3402
+
+- SPARKS-X (http://sparks.informatics.iupui.edu/sparks-x/)
+
+ Yuedong Yang, Eshel Faraggi, Huiying Zhao, Yaoqi Zhou. Improving protein fold recognition and template-based
+ modeling by employing probabilistic-based matching between predicted one-dimensional structural properties of
+ the query and corresponding native properties of templates. Bioinformatics 27:2076-82(2011)
+
+- DSSP (http://swift.cmbi.ru.nl/gv/dssp/)
+
+ Dictionary of protein secondary structure: pattern recognition of hydrogen-bonded and geometrical features.
+ Kabsch W, Sander C, Biopolymers. 1983 22 2577-2637. PMID: 6667333; UI: 84128824.
+
+ A series of PDB related databases for everyday needs. Joosten RP, Te Beek TAH, Krieger E, Hekkelman ML, Hooft
+ RWW, Schneider R, Sander C, Vriend G, NAR 2010; doi: 10.1093/nar/gkq1105.
+
+- DEPTH (http://mspc.bii.a-star.edu.sg/tankp/reference.html)
+
+ DEPTH: a web server to compute depth and predict small-molecule binding cavities in proteins Kuan Pern Tan;
+ Raghavan Varadarajan; M. S. Madhusudhan Nucleic Acids Research 2011; doi: 10.1093/nar/gkr356
+
+ Residue depth: a novel parameter for the analysis of protein structure and stability.
+ Suvobrata Chakravarty and Raghavan Varadarajan(1999). Structure 7,723-732.
+
+-- MAXSPROUT (http://ekhidna.biocenter.helsinki.fi/maxsprout/downloads/download.html)
+
+ Holm L & Sander C (1991). Database algorithm for generating protein backbone and side chain co-ordinates from
+ a Ca trace. Application to model building and detection of co-ordinate errors. J Mol Biol 218:183-194.
 
 

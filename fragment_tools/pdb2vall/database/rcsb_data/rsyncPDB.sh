@@ -24,8 +24,8 @@
 # You should CHANGE THE NEXT THREE LINES to suit your local setup
 ############################################################################
 
-MIRRORDIR=/work/robetta/src/rosetta_server/cm_scripts/bin/pdb2vall/database/rcsb_data    # your top level rsync directory
-RSYNC=/usr/bin/rsync                                                            # location of local rsync
+MIRRORDIR=$( cd $( dirname -- "$0" ) > /dev/null ; pwd )		# your top level rsync directory
+RSYNC=/usr/bin/rsync																				# location of local rsync
 
 if [ -z "$1" ] ; then
     echo "usage: $0 <full path to mirror directory>"

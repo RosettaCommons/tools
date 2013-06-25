@@ -41,7 +41,7 @@ if options.dry_run:
 PDB2VALL_PATH = path.abspath(path.dirname(__file__)) + "/"
 
 ## read config
-config = ConfigParser.RawConfigParser()
+config = ConfigParser.RawConfigParser(allow_no_value=True)
 config.read(PDB2VALL_PATH + "pdb2vall.cfg")
 
 ## EXTERNAL PROGRAMS PATHES 
@@ -53,14 +53,14 @@ script_get_structure_profile_checkpoint = PDB2VALL_PATH + "structure_profile_scr
 relax_sequence_file = PDB2VALL_PATH + "relax_seqeuence_file.txt"
 
 ## ROSETTA APP
-ROSETTA_PATH = config.get('pdb2vall', 'rosetta_path')
-if not ROSETTA_PATH:
-    stderr.write("ERROR: you should specify the rosetta app path first.\n"); exit()
+ROSETTA_PATH = PDB2VALL_PATH + "../../../"; 
+if config.get('pdb2vall', 'rosetta_path'):
+    ROSETTA_PATH = config.get('pdb2vall', 'rosetta_path')
 if not ROSETTA_PATH.endswith(path.sep):
     ROSETTA_PATH += path.sep
-idealization_app = ROSETTA_PATH + "rosetta_source/bin/idealize.linuxgccrelease"
-relax_app = ROSETTA_PATH + "rosetta_source/bin/relax.linuxgccrelease"
-rosetta_database = ROSETTA_PATH + "rosetta_database/"
+idealization_app = ROSETTA_PATH + "main/source/bin/idealize_jd2.linuxgccrelease"
+relax_app = ROSETTA_PATH + "main/source/bin/relax.linuxgccrelease"
+rosetta_database = ROSETTA_PATH + "main/database/"
 
 ####################
 

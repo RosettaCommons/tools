@@ -1,48 +1,64 @@
-#!/usr/bin/perl
-
+#!/usr/bin/perl -w
 use strict;
-use warnings;
-
-use File::Path;
-use File::Copy qw/ copy /;
-use File::Basename;
-use Sys::Hostname;
-use Time::Local;
-
 use FindBin qw( $Bin );
+use constant VERSION => 3.10;
+$| = 1; # disable stdout buffering
 
-#http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
-use Parallel::ForkManager;
+# Install and build Rosetta and that's it. See fragments.README.
+#
+# This script initially installs all other dependencies. The installation takes
+# a long time due to downloading and formatting the NCBI non-redundant sequence
+# database. If you have any dependencies already installed, you can optionally
+# modify the configuration below. The installation requires ~73+ Gigs of free
+# disk space.
 
-our $host = hostname;
 ###############################################################################
-# USER CONFIGURATION  -- ONLY CHANGE THIS SECTION.
-#                        YOU MUST EDIT THESE PATHS BEFORE USING
+# OPTIONAL USER CONFIGURATION  -- ONLY CHANGE THIS SECTION IF NECESSARY
 ###############################################################################
 
-# change the following paths to point to the locations of your copies of these
-# files, databases or directories.
+# REQUIRED
+#  Rosetta				https://www.rosettacommons.org
+#
+#  The script "install_dependencies.pl" installs external dependencies:
+#    ./blast               ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
+#    ./databases/nr        ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
+#    ./psipred             http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/
+#    ./databases/nr_pfilt  from ./databases/nr using ./psipred/bin/pfilt
+#    ./sparks-x            http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
 
-# BLAST install path (Requires non-blast+ NCBI version)
-# recommended: blast-2.2.17
-# ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
-my $BLAST_DIR = "/work/robetta/src/shareware/blast"
-  ;    # "/my_src_dir/blast-2.2.17_x64/blast-2.2.17";
+# ROSETTA
+my $FRAGMENT_PICKER = "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
+my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
+my $ROSETTA_DATABASE = "$Bin/../../main/database"; # rosetta database
+my $VALL = "$Bin/vall.jul19.2011"; # template database
+
+# BLAST path (Requires non-blast+ NCBI version)
+my $BLAST_DIR = "$Bin/../../../../src/blast";
 my $BLAST_NUM_CPUS = 8;    # number of processors to use (blastpgp -a option)
 
-# NR blast database filename
-# Create blast db files using 'formatdb  -o T -i nr'
-# ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
-my $NR = "/work/robetta/databases/local_db/nr/nr"; #"/my_database_dir/blast/nr";
+# NR database path
+my $NR = "$Bin/../../../databases/nr/nr";
 
-# RCSB PDB files for homolog detection and date filtering when benchmarking
-my $PDB_SEQRES      = "/work/robetta/databases/pdb/pdb_seqres.txt";
-my $PDB_ENTRIES_IDX = "/work/robetta/databases/pdb/entries.idx";
+# spine-x/sparks (for phi, psi, and solvent accessibility predictions)
+my $SPARKS = "$Bin/../../../../src/sparks-x/bin/buildinp_query.sh";
 
-# DEFAULT PDB STRUCTURE, PSSM, and SPARTA (chemical shift) DATABASE (VALL)
-# note: vall.jul19.2011 does not yet include SPARTA data
-# '-vall_files' option overrides this
-my $VALL = "$Bin/vall.jul19.2011"; #"/my_database_dir/vall.apr24.2008.extended";
+# PSIPRED (for secondary structure prediction)
+my $PSIPRED_DIR = "$Bin/../../../../src/psipred";
+my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
+
+# pfilt filtered NR database used for PSIPRED (see PSIPRED readme)
+# $NR will be used if empty
+my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
+
+### EXTRA OPTIONAL FEATURES ###################################################
+###############################################################################
+
+# This is an optional script that YOU must provide to launch parallel jobs on
+# your cluster. The script should take any command as the argument(s).
+# If the script does not exist, jobs will run serially.
+# Requires: http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
+my $SLAVE_LAUNCHER = "$Bin/../../../../bin/launch_on_slave.py";
+my $SLAVE_LAUNCHER_MAX_JOBS = 40;    # depends on your available machines/cpus
 
 # pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
 #  --no_structure_profile option is added to reduce the run time
@@ -50,118 +66,62 @@ my $VALL = "$Bin/vall.jul19.2011"; #"/my_database_dir/vall.apr24.2008.extended";
 my $PDB2VALL = "$Bin/pdb2vall/pdb2vall.py --no_structure_profile";
 my $PDB2VALL_IGNORE_ERRORS = 1;    # ignore pdb2vall jobs that fail
 
-# ROSETTA FRAGMENT PICKER
-my $FRAGMENT_PICKER =
-  "/work/robetta/src/rosetta/rosetta_source/bin/fragment_picker.linuxgccrelease"
-  ;    #"/my_src_dir/mini/bin/picker.linuxgccrelease";
-
-# fragment_picker must be built with extras=boost_thread for multiple threads
-my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
-
-my $ROSETTA_DATABASE = "/work/robetta/src/rosetta/rosetta_database"
-  ;                                  #"/my_database_dir/rosetta_database";
-
-# This is an optional script that you can provide to launch picker and pdb2vall jobs on
-# free nodes to run them in parallel. If left as an empty string, jobs will run serially.
-# Make sure your script will run the command passed to it on another machine. If it is
-# set up to run parallel jobs on the local machine, the local machine may run into CPU
-# and memory issues when running multiple picker and pdb2vall jobs in parallel, the
-# fragment_picker and blastpgp may be cpu and memory intense.
-my $SLAVE_LAUNCHER =
-  "/work/robetta/src/rosetta_server/python/launch_on_slave_strict.py";
-my $SLAVE_LAUNCHER_MAX_JOBS = 40;    # depends on your available machines/cpus
-
-# spine-x/sparks (for phi, psi, and solvent accessibility predictions)
-# http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
-# Uses Spine-X for solvent accessibility, phi, and psi predictions.
-# If left as an empty string, solvent accessibility, phi, and psi scores
-# will not be used which may reduce fragment quality.
-my $SPARKS =
-  "/work/robetta/src/rosetta_server/bin/sparks-x/bin/buildinp_query.sh"
-  ;    #"/work/robetta/src/sparks/sparks-x/bin/buildinp_query.sh";
-
-# THE FOLLOWING IS NOT REQUIRED IF YOU RUN SECONDARY STRUCTURE PREDICTION(S)
-# MANUALLY AND USE THE FOLLOWING OPTIONS:
-# -psipredfile <psipred file>
-# -porterfile  <porter file>
-# -samfile     <sam file>
-# The porter and sam files should be in psipred_ss2 format using
-# 'ss_pred_converter.py'.
-
-# PSIPRED install path (secondary structure prediction software)
-# http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/
-my $PSIPRED_DIR = "/work/robetta/src/shareware/psipred"
-  ;    # "/my_src_dir/psipred";    # psipred installation directory
-
-my $PSIPRED_USE_weights_dat4 = 1;    # set to 0 if using psipred version 3.2+
-
-# pfilt filtered NR blast database filename used for PSIPRED (see PSIPRED readme)
-my $PFILTNR = "/work/robetta/databases/local_db/nr/nr_pfilt"
-  ;                                  #"/my_database_dir/blast/nr_pfilt";
-
-
-
-# BY DEFAULT, Psipred is used only and the following can be ignored unless
-# you want to use the secondary structure prediction quota system with SAM
-# and Porter.
-
+# The following can be ignored unless you want to use the secondary structure prediction
+# quota system with Psipred, SAM, and Porter. The porter should be in psipred_ss2 format
+# using 'ss_pred_converter.py'.
 
 # SAM install path
 # http://compbio.soe.ucsc.edu/sam2src/
-my $SAM_DIR =
-  "/work/robetta/src/shareware/sam"; #"/my_src_dir/sam3.5.x86_64-linux_current";
+my $SAM_DIR = "";
 
 # SAM predict-2nd install path
 # Secondary structure prediction software using SAM sequence alignment
 # http://users.soe.ucsc.edu/~karplus/predict-2nd/
-my $SAM_PREDICT_2ND_DIR = "/work/robetta/src/shareware/sam.predict2nd"
-  ;    # "/my_src_dir/predict-2nd";    # sam predict-2nd directory
+my $SAM_PREDICT_2ND_DIR = "";
 
 # PORTER (secondary structure prediction software)
 # http://distill.ucd.ie/porter/
-my $PORTER = "/work/robetta/src/shareware/porter/runPorter.pl"
-  ;    # "/my_src_dir/porter_current/runPorter.pl";
+my $PORTER = "";
 
-if ( $host =~ /nrb/ ) {
-    $NR              = "/scratch/robetta/local_db/nr/nr";
-    $PFILTNR         = "/scratch/robetta/local_db/nr/nr_pfilt";
-    $PDB_SEQRES      = "/scratch/shared/genomes/pdb_seqres.txt";
-    $PDB_ENTRIES_IDX = "/scratch/shared/genomes/entries.idx";
+### YOU CAN IGNORE THE REST ###################################################
+###############################################################################
+
+# check for dependencies and install if necessary
+$BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
+$SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh" if (!-s $SPARKS);
+$PSIPRED_DIR = "$Bin/psipred" if (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data");
+$NR = "$Bin/databases/nr" if (!-s "$NR.pal");
+$PFILTNR = "$Bin/databases/nr_pfilt" if (!-s "$PFILTNR.pal");
+my $must_install = 0;
+if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
+	print "Dependency 'blast' does not exist!\n";
+	$must_install = 1;
+} elsif (!-s $SPARKS) {
+	print "Dependency 'sparks-x' does not exist!\n";
+	$must_install = 1;
+} elsif (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data") {
+	print "Dependency 'psipred' does not exist!\n";
+	$must_install = 1;
+} elsif (!-s "$NR.pal") {
+	print "Dependency 'nr' does not exist!\n";
+	$must_install = 1;
+} elsif (!-s "$PFILTNR.pal") {
+	print "Dependency 'nr_pfilt' does not exist!\n";
+	$must_install = 1;
+}
+if ($must_install) {
+	print "\n";
+	print "Running install_dependencies.pl\n";
+	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
+	print "Please be patient.....\n";
+	system("$Bin/install_dependencies.pl force");
+	print "\n";
 }
 
-###############################################################################
-#
-# MAKE_FRAGMENTS.PL -- THE (PEN)ULTIMATE IN HOME FRAGMENT-PICKING SOFTWARE!
-#
-# CAUTION:  NO USER SERVICEABLE PARTS BELOW!
-#
-#           TO REDUCE RISK OF ELECTRIC SHOCK, DO NOT REMOVE THE COVER!
-#           DO NOT ATTEMPT REPAIRS!  REFER SERVICING TO YOUR AUTHORIZED DEALER!
-#           AVOID PROLONGED EXPOSURE TO HEAT OR SUNLIGHT!
-#           TO REDUCE THE RISK OF FIRE OR ELECTRIC SHOCK, DO NOT EXPOSE THE
-#            PRODUCT TO RAIN AND/OR MOISTURE!
-#           DO NOT MOVE THE PRODUCT WHILE IN USE!
-#           DO NOT LOOK AT THE PRODUCT WHILE IN USE!
-#           DO NOT COMPLAIN ABOUT THE PRODUCT WHILE IN USE!
-#           DO NOT DISCUSS THE PRODUCT WHILE IN USE!
-#           DO NOT THINK ABOUT THE PRODUCT WHILE IN USE!
-#           CLEAN ONLY WITH MILD DETERGENTS AND A SOFT CLOTH!
-#           USE ONLY IN WELL-VENTILATED AREAS!
-#
-#           FOR EXTERNAL USE ONLY!  DO NOT TAKE INTERNALLY!
-#           MAY PRODUCE STRONG MAGNETIC FIELDS!
-#
-#           DO NOT REMOVE THIS TAG UNDER PENALTY OF LAW.
-#
-#           THIS ARTICLE CONTAINS NEW MATERIAL ONLY.
-#
-#           THIS LABEL IS AFFIXED IN COMPLAINCE WITH THE UPHOLSTERED AND
-#            STUFFED ARTICLES ACT.
-#
-#
-# (IN OTHER WORDS:  DON'T EVEN *THINK* ABOUT CHANGING THINGS BELOW THIS POINT!)
-#
-###############################################################################
+use File::Path;
+use File::Copy qw/ copy /;
+use File::Basename;
+use Time::Local;
 
 ## THESE FILE LOCATIONS DEPEND ON THE SOFTWARE PACKAGE
 my $PSIBLAST = "$BLAST_DIR/bin/blastpgp -a $BLAST_NUM_CPUS ";
@@ -169,26 +129,19 @@ my $MAKEMAT = "$BLAST_DIR/bin/makemat";   # makemat utility (part of NCBI tools)
 my $PSIPRED = "$PSIPRED_DIR/bin/psipred"; # psipred
 my $PSIPASS2 = "$PSIPRED_DIR/bin/psipass2";    # psipass2 (part of psipred pkg)
 my $PSIPRED_DATA = "$PSIPRED_DIR/data";    # dir containing psipred data files.
-
 my $SAM           = "$SAM_DIR/bin/target99";     # sam target99
 my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
-
-my $VALL_BLAST_DB =
-  "$VALL.blast";    # blast database of VALL sequences for homolog detection
-$VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 
 ## for SLAVE_LAUNCHER parallel jobs
 my $SLAVE_MAX_WAIT     = 96 * 60 * 60;
 my $SLAVE_MAX_ATTEMPTS = 2;
+
 
 use Cwd qw/ cwd abs_path /;
 use bytes;
 
 my %options;
 $options{DEBUG} = 1;
-use constant VERSION => 3.01;    # works with standard & warnings
-
-$| = 1;                          # disable stdout buffering
 
 # initialize options
 my %opts = &getCommandLineOptions();
@@ -228,6 +181,50 @@ if ( $options{verbose} ) {
     $options{DEBUG} = 1;
     print_debug("Run options:");
     print_debug("be verbose.");
+}
+
+# check for picker
+if (!-s $FRAGMENT_PICKER) {
+  warn "WARNING! $FRAGMENT_PICKER does not exist. Trying default.\n";
+  $FRAGMENT_PICKER =~ s/fragment_picker[^\/]*(\.[^\.]+)$/fragment_picker$1/;
+	if (!-s $FRAGMENT_PICKER) {
+		$FRAGMENT_PICKER =~ s/fragment_picker(\.[^\.]+)$/fragment_picker.default$1/;
+	}
+  die "ERROR! $FRAGMENT_PICKER does not exist.\n" if (!-s $FRAGMENT_PICKER);
+}
+
+# check nr database
+if (!-s "$NR.pal") {
+  warn "WARNING! $NR does not seem to be formated. Trying to format. Be patient.\n";
+  system("$BLAST_DIR/bin/formatdb  -o T -i $NR");
+}
+if (-s $PFILTNR) {
+  if (!-s "$PFILTNR.pal") {
+    warn "WARNING! $PFILTNR does not seem to be formated. Trying to format. Be patient.\n";
+    system("$BLAST_DIR/bin/formatdb  -o T -i $PFILTNR");
+  }
+} else {
+	$PFILTNR = $NR;
+}
+(-s $NR) or die "ERROR! $NR does not exist. It is available at ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz\n";
+
+# for homolog detection
+my $VALL_BLAST_DB = "$VALL.blast";
+$VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
+my $PDB_SEQRES      = "$Bin/pdb_seqres.txt";
+if ( !$options{homs} ) {
+	if (!-s "$VALL_BLAST_DB.phr") {
+		system("gunzip $VALL_BLAST_DB.gz") if (-s "$VALL_BLAST_DB.gz");
+		system("$BLAST_DIR/bin/formatdb -i $VALL_BLAST_DB") if (-s $VALL_BLAST_DB);
+	}
+	if (!-s $PDB_SEQRES) {
+		system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
+		system("mv pdb_seqres.txt $PDB_SEQRES") if (!-s $PDB_SEQRES);
+	}
+	if (!-s "$PDB_SEQRES.phr") {
+		warn "WARNING! $PDB_SEQRES does not seem to be formated. Trying to format.\n";
+		system("$BLAST_DIR/bin/formatdb -i $PDB_SEQRES");
+	}
 }
 
 if ( defined( $opts{frag_sizes} ) ) {
@@ -456,7 +453,7 @@ if ( $options{psipred}
         unless ( &nonempty_file_exists("$options{runid}.psipred_ss2") ) {
             if (
                 !&try_try_again(
-"$PSIPASS2 $PSIPRED_DATA/weights_p2.dat 1 1 1 psipred_ss2 psipred_ss > psipred_horiz",
+"$PSIPASS2 $PSIPRED_DATA/weights_p2.dat 1 1.0 1.0 psipred_ss2 psipred_ss > psipred_horiz",
                     2,
                     [ "psipred_ss2", "psipred_horiz" ],
                     [ "psipred_ss2", "psipred_horiz" ]
@@ -501,36 +498,60 @@ if ( $options{psipred}
 }
 
 if ( $options{porter} || ( $options{porterfile} && -s $options{porterfile} ) ) {
-    print_debug("running porter.");
     if ( $options{porterfile} && -s $options{porterfile} ) {
         $options{porter} = 1;
-        system("cp $options{porterfile} $options{runid}.porter_ss2");
+				if (&is_ss2_format($options{porterfile})) {
+          system("cp $options{porterfile} $options{runid}.porter_ss2");
+				} else {
+					(system("$Bin/ss_pred_converter.py -p $options{porterfile} > $options{runid}.porter_ss2") == 0 && -s "$options{runid}.porter_ss2") or
+						die "ERROR! $options{porterfile} conversion to ss2 format failed. Check porter file format.\n";
+				}
     }
     if ( &nonempty_file_exists("$options{runid}.porter_ss2") ) {
         print_debug("porter file ok.");
     }
-    elsif (
+    else {
+    	print_debug("running porter.");
+			if (
         !&try_try_again(
             "$PORTER $options{fastafile}", 2,
             ["$options{runid}.porter_ss2"], ["$options{runid}.porter_ss2"]
         )
-      )
-    {
-        die("porter failed!\n");
-    }
+      ) { die("porter failed!\n"); }
+		}
 }
 
 # sam -- target99 alignment and predict2nd with 6 state neural net - condensed output to 3 state
 if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
-    print_debug("running sam.");
     if ( $options{samfile} && -s $options{samfile} ) {
         $options{sam} = 1;
-        system("cp $options{samfile} $options{runid}.rdb_ss2");
+        if (&is_ss2_format($options{samfile})) {
+          system("cp $options{samfile} $options{runid}.rdb_ss2");
+        } elsif (&is_sam_6state($options{samfile})) {
+          # condense to 3 state prediction
+          my $rows;
+          open IN, "<$options{samfile}" or die "Cannot open file $options{samfile}: $!\n";
+          @{$rows} = <IN>;
+          close(IN);
+          $rows = &condense_rdb6_rdb($rows);
+          open OUT, ">$options{runid}.rdb"
+            or die "Cannot open file $options{runid}.rdb: $!\n";
+          print OUT @{$rows};
+          close(OUT);
+
+          # convert rdb to rdb_ss2
+          &convert_sam_ss("$options{runid}.rdb");
+          die("SAM failed!\n") if ( !-s "$options{runid}.rdb_ss2" );
+				} else {
+          (system("$Bin/ss_pred_converter.py -s $options{samfile} > $options{runid}.rdb_ss2") == 0 && -s "$options{runid}.rdb_ss2") or
+            die "ERROR! $options{samfile} conversion to ss2 format failed. Check sam file format.\n";
+				}
     }
     if ( &nonempty_file_exists("$options{runid}.rdb_ss2") ) {
         print_debug("sam file ok.");
     }
     else {
+    		print_debug("running sam.");
         my $target99_out      = "$options{runid}.target99";
         my $target99_a2m_file = $target99_out . ".a2m";
 
@@ -597,7 +618,6 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
         chdir $options{rundir};
 
         # condense to 3 state prediction
-        # formerly a separate perl script: condense_6state.pl
         my $rows;
         open IN, "<$sam_6state" or die "Cannot open file $sam_6state: $!\n";
         @{$rows} = <IN>;
@@ -662,60 +682,91 @@ if ( !$options{homs} ) {
 }
 
 if ( $options{exclude_homologs_by_pdb_date} ) {
-    my $exclude_homologs_by_pdb_date_epoch;
-    my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
-    print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
-    if ( $exclude_homologs_by_pdb_date =~ /^(\d\d)\/(\d\d)\/(\d\d)$/ ) {
-        my @dt = split( /\//, $exclude_homologs_by_pdb_date );
-        $dt[0] =~ s/^0//;
-        $dt[1] =~ s/^0//;
-        $dt[2] =~ s/^0//;
-        if ( $dt[2] < 30 ) {    # good till 2030
-            $dt[2] += 2000;
-        }
-        else {
-            $dt[2] += 1900;
-        }
-        $exclude_homologs_by_pdb_date_epoch =
-          timelocal( 0, 0, 0, $dt[1], $dt[0] - 1, $dt[2] - 1900 );
-        open( HOMF, ">>$options{runid}.homolog" );
-        print HOMF
-"# excluded by date $options{exclude_homologs_by_pdb_date} from $PDB_ENTRIES_IDX\n";
-        open( F, $PDB_ENTRIES_IDX )
-          or die "ERROR! cannot open $PDB_ENTRIES_IDX: $!\n";
-        foreach my $l (<F>) {
-            chomp $l;
-            my @cols = split( /\t/, $l );
-            if ( $#cols > 2 && $cols[2] =~ /^(\d\d)\/(\d\d)\/(\d\d)$/ ) {
-                my $m = $1;
-                my $d = $2;
-                my $y = $3;
-                $m =~ s/^0//;
-                $d =~ s/^0//;
-                $y =~ s/^0//;
-                if ( $y < 30 ) {    # good till 2030
-                    $y += 2000;
-                }
-                else {
-                    $y += 1900;
-                }
-                my $epoch = timelocal( 0, 0, 0, $d, $m - 1, $y - 1900 );
-                if ( $epoch > $exclude_homologs_by_pdb_date_epoch ) {
-                    my $hit_pdb = lc $cols[0];    # pdb code
-                    print HOMF "$hit_pdb\n";
-                }
-            }
-            else {
-                warn "Skipping line from $PDB_ENTRIES_IDX: $l\n";
-            }
-        }
-        close(HOMF);
-        close(F);
-    }
-    else {
-        die
-"ERROR! $exclude_homologs_by_pdb_date date format is incorrect: must be mm/dd/yy\n";
-    }
+	my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
+	print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
+	my ($cutoff_m,$cutoff_d,$cutoff_y);
+	# mm/dd/yy format
+	if ( $exclude_homologs_by_pdb_date =~ /^(\d\d)\/(\d\d)\/(\d\d)$/ ) {
+		$cutoff_m = $1;
+		$cutoff_d = $2;
+		$cutoff_y = $3;
+	} elsif ( $exclude_homologs_by_pdb_date =~ /^(\d\d\d*)(\d\d)(\d\d)$/ ) {
+		$cutoff_y = $1;
+		$cutoff_m = $2;
+		$cutoff_d = $3;
+	} else {
+		die "ERROR! $exclude_homologs_by_pdb_date date format is incorrect: must be mm/dd/yy or yyyymmdd\n";
+	}
+	# try to convert 2 digit year to full calendar year - hacky
+	my $cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
+	
+	# update pdb_revdat.txt
+	print_debug("Getting latest pdb_revdat.txt....");
+	system("$Bin/get_revdat.pl");
+
+	my %month_str_to_num = (
+		'JAN' => '01',
+		'FEB' => '02',
+		'MAR' => '03',
+		'APR' => '04',
+		'MAY' => '05',
+		'JUN' => '06',
+		'JUL' => '07',
+		'AUG' => '08',
+		'SEP' => '09',
+		'OCT' => '10',
+		'NOV' => '11',
+		'DEC' => '12');
+
+	open( HOMF, ">>$options{runid}.homolog" );
+	print HOMF "# excluded by release date $options{exclude_homologs_by_pdb_date}\n";
+	open( F, "$Bin/pdb_revdat.txt" )
+		or die "ERROR! cannot open $Bin/pdb_revdat.txt: $!\n";
+	foreach my $l (<F>) {
+		if ($l =~ /^(\S{4})\s+REVDAT\s+(\d+)\s+(\d+)\-(\w\w\w)\-(\d+)\s+\S{4}\s+(\d+)/) {
+			#2w6x REVDAT   1   22-DEC-09 2W6X    0
+			my $rcode = $1;
+			my $rnum = $2;
+			my $rday = $3;
+			my $rmonth = $month_str_to_num{$4};
+			my $ryear = $5;
+			my $rstatus = $6;
+			$rday = "00$rday";
+			$rday =~ s/^.*(\d\d)\s*$/$1/gs;
+			# try to convert 2 digit year to full calendar year - hacky
+			my $rtmpdate = &convert_twodigit_to_full_calendar_year( $ryear, $rmonth, $rday );
+			if ($rstatus eq '0' && $rtmpdate > $cutoff_date_str  ) {
+				my $hit_pdb = lc $rcode;
+				print_debug("excluding $hit_pdb release date: $rtmpdate");
+				print HOMF "$hit_pdb\n";
+			}
+		}
+	}
+	close(HOMF);
+	close(F);
+}
+
+sub convert_twodigit_to_full_calendar_year {
+	my ($twodigit, $tmpmonth, $tmpday) = @_;
+	# try to convert 2 digit year to full calendar year - hacky
+
+	# current date GMT  (UTC)  PDB gets updated Wed UTC +0  (-8/7 PST depending on daylight savings)
+	my ($sec,$min,$hour,$currentmday,$currentmonth,$currentyear,$wday,$yday,$isdst) = gmtime(time);
+	$currentyear += 1900;
+	$currentmonth++;
+	my $mday = "00$currentmday";
+	my $mmonth = "00$currentmonth";
+	$mday =~ s/^.*(\d\d)\s*$/$1/gs;
+	$mmonth =~ s/^.*(\d\d)\s*$/$1/gs;
+	my $current_date_str = $currentyear.$mmonth.$mday;
+
+	my $tmpyear = ($twodigit < 100) ? $twodigit + 2000 : $twodigit;
+	my $tmpdate = $tmpyear.$tmpmonth.$tmpday;
+	if ($tmpdate > $current_date_str) {
+		$tmpyear = ($twodigit < 100) ? $twodigit + 1900 : $twodigit;
+		$tmpdate = $tmpyear.$tmpmonth.$tmpday;
+	}
+	return $tmpdate;
 }
 
 if ( !$options{frags} ) {
@@ -745,7 +796,7 @@ if ( scalar @pdbs_to_vall ) {
     chdir($pdbs2valldir);
 
     if ( !-s "$options{runid}\_pdbs_to_vall.vall" ) {
-        if ( !$SLAVE_LAUNCHER ) {    # run in series
+        if ( !-s $SLAVE_LAUNCHER ) {    # run in series
             foreach my $pdb (@pdbs_to_vall) {
                 my $cmd = "$PDB2VALL -p $pdb";
                 produce_output_with_cmd( $cmd, "$pdb.vall",
@@ -939,7 +990,7 @@ CMDTXT
     print PATH_DEFS $cmdtxt;
     close(PATH_DEFS);
 
-    if ( !$SLAVE_LAUNCHER ) {    # run in series
+    if ( !-s $SLAVE_LAUNCHER ) {    # run in series
         my $cmd =
 "$FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS";
         produce_output_with_cmd( $cmd,
@@ -947,7 +998,7 @@ CMDTXT
     }
 }
 
-if ($SLAVE_LAUNCHER) {           # run in parallel
+if (-s $SLAVE_LAUNCHER) {           # run in parallel
     my ( @commands, @results );
     foreach my $size (@fragsizes) {
         push( @results, "$options{runid}.$options{n_frags}.$size" . "mers" );
@@ -1024,7 +1075,7 @@ sub getCommandLineOptions {
 		\t-sam  run sam.
 		\t-porter  run porter.
 		\t-nohoms  specify to omit homologs from search
-		\t-exclude_homologs_by_pdb_date <mm/dd/yy>
+		\t-exclude_homologs_by_pdb_date <mm/dd/yy or yyyymmdd>
 		\t-psipredfile  <path to file containing psipred ss prediction>
 		\t-samfile  <path to file containing sam ss prediction>
 		\t-porterfile  <path to file containing porter ss prediction>
@@ -1504,6 +1555,24 @@ sub condense_rdb6_rdb {
     return $outrows;
 }
 
+sub is_sam_6state {
+	my $file = shift;
+	chomp $file;
+	my $returnval = 0;
+	open(F, $file) or die "ERROR! cannot open $file: $!\n";
+	while (<F>) {
+		if (/^[0-9]/) {
+			my @parts = split;
+			if ($#parts == 7) {
+				$returnval = 1;
+				last;
+			}
+		}
+	}
+	return $returnval;
+}
+
+
 sub convert_sam_ss {
     my $ss_pred = shift;
     my ( $e, $h, $c, @ss );
@@ -1687,6 +1756,9 @@ sub run_in_parallel {
       or die
       "ERROR! number of commands does not match results in run_in_parallel\n";
 
+		use Parallel::ForkManager;
+		use Sys::Hostname;
+		my $host = hostname;
     my $logprefix = "$runid-$host";
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
@@ -1752,3 +1824,23 @@ sub run_in_parallel {
         }
     }
 }
+
+sub is_ss2_format {
+	my $file = shift;
+	chomp $file;
+	my $returnval = 0;
+	open(F, $file) or do {
+		warn "WARNING! cannot open $file: $!\n";
+		return 0;
+	};
+	while (<F>) {
+		if (/^# PSIPRED VFORMAT/) {
+			$returnval = 1;
+			last;
+		}
+	}
+	close(F);
+	return $returnval;
+}
+
+

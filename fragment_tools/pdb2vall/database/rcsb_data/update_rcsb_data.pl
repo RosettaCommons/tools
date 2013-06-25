@@ -5,8 +5,8 @@ use Fcntl ':flock';
 
 # The PDB archive is updated on Wednesday 00:00 UTC which is Tuesday 4:00 PM PST
 # Return if it's not Tuesday-Thursday (to cover all timezones)
-
-if (!scalar@ARGV) {
+my $log = "$Bin/logs";
+if (!scalar@ARGV && -s $log) {
   my $wday = (localtime(time))[6]; # 0 is Sunday, 1 is Monday, 2 is Tuesday ....
   exit(0) if ($wday < 2 || $wday > 4);
 }
@@ -15,7 +15,6 @@ if (!scalar@ARGV) {
 my $min_interval = 60 * 30; # 30 minutes
 
 my $ss_dis = "http://www.rcsb.org/pdb/files/ss_dis.txt.gz";
-my $log = "$Bin/logs";
 my $lockfile = "$Bin/update_rcsb_data.lock";
 
 # get an exclusive lock
@@ -25,7 +24,7 @@ flock(LOCKF, LOCK_EX) or die "Could not lock '$lockfile' - $!";
 my $epoch = time();
 
 ## get the age of the rsyncPDB.sh log file
-my $diff = $epoch - (stat($log))[8];
+my $diff = (-s $log) ? $epoch - (stat($log))[8] :  $min_interval+1;
 
 ## get the size of the last rsyncPDB.sh update
 my $prevsize = &gettotalsizefromlog($log);

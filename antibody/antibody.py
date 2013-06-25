@@ -51,12 +51,12 @@ def main(args):
 
     parser.add_option('-L','--light-chain',
       action="store",
-      help="Specify the light chain.",
+      help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('-H','--heavy-chain',
       action="store",
-      help="Specify the heavy chain.",
+      help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('--prefix',

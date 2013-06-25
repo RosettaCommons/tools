@@ -50,13 +50,13 @@ def main(args):
     parser.set_description(main.__doc__)
 
     parser.add_option('-L','--light-chain',
-      action="store",
-      help="Specify the light chain.",
+        action="store",
+        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('-H','--heavy-chain',
-      action="store",
-      help="Specify the heavy chain.",
+        action="store",
+        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('--prefix',
@@ -144,9 +144,14 @@ def main(args):
       help="Use relax protocol on final model. (default)",
     )
 
-    parser.add_option("--relaxoff","--norelax",
+    parser.add_option("--relaxoff", "--norelax",
       action="store_false", dest="relax",
       help="Do not use relax protocol on final model.",
+    )
+
+    parser.add_option("--timeout",
+      default=900, type="int",
+      help="Maximum runtime for rosetta relax run (use 0 for unlimit), default is 900 - 15min limit",
     )
 
     parser.add_option("--quick","-q",
@@ -1058,7 +1063,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
             print 'Running relax with all-atom constraint'
-            commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
+            commandline = 'cd "%s" && %s "%s" -database %s -overwrite' % (os.path.dirname(prefix), 'ulimit -t %s &&' % Options.timeout if Options.timeout else '', relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
             res, output = commands.getstatusoutput(commandline)

@@ -50,13 +50,13 @@ def main(args):
     parser.set_description(main.__doc__)
 
     parser.add_option('-L','--light-chain',
-      action="store",
-      help="Specify the light chain.",
+        action="store",
+        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('-H','--heavy-chain',
-      action="store",
-      help="Specify the heavy chain.",
+        action="store",
+        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('--prefix',

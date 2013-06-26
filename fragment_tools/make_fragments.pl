@@ -143,7 +143,6 @@ use Cwd qw/ cwd abs_path /;
 use bytes;
 
 my %options;
-$options{DEBUG} = 1;
 
 # initialize options
 my %opts = &getCommandLineOptions();
@@ -178,12 +177,7 @@ foreach my $key ( keys %opts ) {
     $options{$key} = $opts{$key};
 }
 
-# special option parsing
-if ( $options{verbose} ) {
-    $options{DEBUG} = 1;
-    print_debug("Run options:");
-    print_debug("be verbose.");
-}
+$options{DEBUG} = 1 if ( $options{verbose} );
 
 # check for picker
 if (!-s $FRAGMENT_PICKER) {

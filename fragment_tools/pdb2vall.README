@@ -6,7 +6,7 @@ BASIC INSTALLATION
 1. Run install_dependencies.pl in fragment_tools.
    This will take a long time so please be patient. Requires ~73+ Gigs of free disk space.
 
-  ./install_dependencies.pl overwrite
+  ./install_dependencies.pl standard
 
 2. Build DEPTH executable
 

@@ -118,9 +118,9 @@ if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 				print NF "spxdir=\${spxdir\%/*}\n";
 				next;
 			}
-			if ($l =~ /[`"']\s*cp\s+\-r\s+/) { # replace cp -r with cp since -r option may not exist
+			if ($l !~ /^\s*#/ && $l =~ /[\`"']\s*cp\s+\-n\s+/) { # replace cp -n with cp since -n option may not exist
 				my $nl = $l;
-				$nl =s/([`"']\s*)cp\s+\-r\s+/$1cp /gs;
+				$nl =~ s/([\`"']\s*)cp\s+\-n\s+/$1cp /gs;
 				chomp $nl;
 				print NF "#".$l;
 				print NF "# the following line was added by Rosetta/tools/fragment_tools/install_dependencies.pl\n";

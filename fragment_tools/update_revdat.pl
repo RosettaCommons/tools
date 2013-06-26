@@ -23,7 +23,7 @@ my $current_date_str = $year.sprintf("%2.2d", $mon).sprintf("%2.2d",$mday);
 
 # get latest pdb_revdat.txt if it doesn't exist
 my $pdbrevdat = "$Bin/pdb_revdat.txt";
-if (!-s $pdbrevdat) {
+if (!-s $pdbrevdat || (scalar@ARGV && $ARGV[0] eq 'overwrite')) {
 	system("cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
 	system("gunzip -c $Bin/pdb_revdat.txt.gz > $pdbrevdat.$current_date_str");
 	system("mv $pdbrevdat.$current_date_str $pdbrevdat");

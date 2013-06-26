@@ -6,20 +6,20 @@ BASIC INSTALLATION
 1. Run install_dependencies.pl in fragment_tools.
    This will take a long time so please be patient. Requires ~73+ Gigs of free disk space.
 
-	./install_dependencies.pl force
+  ./install_dependencies.pl overwrite
 
 2. Build DEPTH executable
 
-	cd pdb2vall/structure_profile_scripts/DEPTH-CLONE-2.8.7
-	make
-	cd ../../
+   cd pdb2vall/structure_profile_scripts/DEPTH-CLONE-2.8.7
+   make
+   cd ../../
 
 3. Build the Rosetta fragment_picker application
 
    cd ../../../main/source/
    scons mode=release extras=boost_thread bin/fragment_picker.boost_thread.linuxgccrelease
-	 or
-	 scons mode=release bin/fragment_picker.linuxgccrelease
+    or
+   scons mode=release bin/fragment_picker.linuxgccrelease
 
 4. Install BioPerl module Bio::AlignIO (http://doc.bioperl.org/)
 
@@ -29,15 +29,15 @@ CUSTOM INSTALLATION
 1. If necessary, install external dependencies (see 'EXTERNAL DEPENDENCIES' below)
 2. If necessary, install the NCBI nr database (keep in mind it is very large)
 
-  wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz -O database/ncbi/
-  gunzip database/ncbi/nr.gz
-  formatdb -o T -i database/ncbi/nr
+   wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz -O database/ncbi/
+   gunzip database/ncbi/nr.gz
+   formatdb -o T -i database/ncbi/nr
 
 3. Build DEPTH executable
 
-	cd structure_profile_scripts/DEPTH-CLONE-2.8.7
-	make
-	cd ../../
+   cd structure_profile_scripts/DEPTH-CLONE-2.8.7
+   make
+   cd ../../
 
 4. Build the Rosetta fragment_picker application
 
@@ -48,13 +48,13 @@ CUSTOM INSTALLATION
 
 5. Set optional environment variables in .cshrc
 
-  Example:
+   Example:
 
-	# set the name of a host that is open to the outside (public) network
-	setenv INET_HOST ws0
+   # set the name of a host that is open to the outside (public) network
+   setenv INET_HOST ws0
 
-	# pdb directory (hierarchical directory from RCSB)
-	setenv PDB_DIR /lab/databases/wwpdb
+   # pdb directory (hierarchical directory from RCSB)
+   setenv PDB_DIR /lab/databases/wwpdb
 
 6. Edit pdb2vall.cfg
 
@@ -78,7 +78,7 @@ EXTERNAL DEPENDENCIES
 
   MAXSPROUT for building backbone and sidechains from a C(alpha) trace.
 	(http://ekhidna.biocenter.helsinki.fi/maxsprout/downloads/download.html)
-    pdb2vall/pdb_scripts/rebuild_pdb_from_CA.sh 
+    pdb2vall/pdb_scripts/rebuild_pdb_from_CA.sh
 
 Databases which may need to be updated in the future:
 

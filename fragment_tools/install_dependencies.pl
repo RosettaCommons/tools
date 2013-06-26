@@ -152,9 +152,16 @@ chdir($Bin);
 # clean up
 foreach my $pkg (@packages_to_clean) { unlink $pkg; }
 
-# NR database
 our $datdir = "$Bin/databases";
 (-d $datdir || mkdir($datdir)) or die "ERROR! cannot mkdir $datdir: $!\n";
+
+# may want to add options here for lighter weight sequence databases like:
+#  ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz  90% clustering
+#  ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz  50% clustering
+#
+#  Sequence searches would be much faster
+
+# NR database
 if ($overwrite || !-s "$datdir/nr.pal") {
 	chdir($datdir);
 	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");

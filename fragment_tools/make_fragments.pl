@@ -53,8 +53,6 @@ my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
 
-my $install_dependencies_option = "overwrite"; # "standard";
-
 # This is an optional script that YOU must provide to launch parallel jobs on
 # your cluster. The script should take any command as the argument(s).
 # If the script does not exist, jobs will run serially.
@@ -87,6 +85,8 @@ my $PORTER = "";
 
 ### YOU CAN IGNORE THE REST ###################################################
 ###############################################################################
+
+my $install_dependencies_option = "standard"; # "overwrite";
 
 # check for dependencies and install if necessary
 $BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
@@ -1115,7 +1115,7 @@ sub getCommandLineOptions {
 		\t-frag_sizes <size1,size2,...n>
 		\t-n_frags <number of fragments>
 		\t-n_candidates <number of candidates>
-		\t-nofrags specify to not make fragments and just run SS predictions
+		\t-nofrags specify to not make fragments but run everything else
 		\t-old_name_format  use old name format e.g. aa1tum_05.200_v1_3
 		\t<fasta file>
 	};

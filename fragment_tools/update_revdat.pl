@@ -29,7 +29,7 @@ if (!-s $pdbrevdat || (scalar@ARGV && $ARGV[0] eq 'overwrite')) {
 	system("mv $pdbrevdat.$current_date_str $pdbrevdat");
 } else {
 	my $epoch_timestamp = (stat("$Bin/pdb_revdat.txt.gz"))[9];
-	# Subtract an hour to account for time Robetta may take to update the file on Wednesdays
+	# Subtract an hour to account for time Robetta may take to update the file on Wednesdays.
 	# There's a time window when the RCSB will be updated before pdb_revdat.txt.gz, but this
 	# is most likely never going to be an issue when date filtering for benchmarking.
 	my $check_timestamp = $epoch_timestamp-3600;
@@ -50,7 +50,7 @@ if (!scalar@ARGV || $ARGV[0] ne 'force') {
 	exit(0);
 }
 
-# If called with -force, download new PDBs from the RCSB if they exist and add them to pdb_revdat.txt
+# If called with <force>, download new PDBs from the RCSB if they exist and add them to pdb_revdat.txt
 
 # get latest entries.idx
 my $PDB_ENTRIES = "entries.idx";

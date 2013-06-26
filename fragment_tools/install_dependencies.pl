@@ -1,7 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
+use strict;
+use FindBin qw( $Bin );
 $| = 1; # disable stdout buffering
-my $pwd=`pwd`;
-chomp $pwd;
 
 if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	print "\n";
@@ -10,11 +10,11 @@ if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	print "The <standard> option will only install what is missing.\n";
 	print "The <overwrite> option will do a fresh installation.\n\n";
 	print "Install locations: \n";
-	print " $pwd/blast\n";
-	print " $pwd/psipred\n";
-	print " $pwd/sparks-x\n";
-	print " $pwd/databases/nr\n";
-	print " $pwd/databases/nr_pfilt\n";
+	print " $Bin/blast\n";
+	print " $Bin/psipred\n";
+	print " $Bin/sparks-x\n";
+	print " $Bin/databases/nr\n";
+	print " $Bin/databases/nr_pfilt\n";
 	print "\n";
 	print "Requires ~73+ Gigs of free disk space.\n";
 	print "The NCBI sequence databases are very large.\n";
@@ -24,12 +24,12 @@ if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	exit(1);
 }
 my $overwrite = ($ARGV[0] eq 'overwrite') ? 1 : 0;
-
 my @packages_to_clean;
+chdir($Bin);
 
 # blast binaries
 # from ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
-if ($overwrite || !-d "$pwd/blast/bin" || !-d "$pwd/blast/data") {
+if ($overwrite || !-d "$Bin/blast/bin" || !-d "$Bin/blast/data") {
 	# try to figure out what package to install
 	my $package = "blast-2.2.17-ia32-linux.tar.gz";
 	my $proc = `uname -m`;
@@ -43,9 +43,9 @@ if ($overwrite || !-d "$pwd/blast/bin" || !-d "$pwd/blast/data") {
 	system("rm -rf blast") if (-d "blast");  # clean up interrupted attempts
 	system("wget -N $url");
 	system("tar -zxvf $package");
-	push(@packages_to_clean, "$pwd/$package");
+	push(@packages_to_clean, "$Bin/$package");
 	system("mv blast-2.2.17 blast");
-	(-d "$pwd/blast/bin" && -d "$pwd/blast/data") or die "ERROR! blast installation failed!\n";
+	(-d "$Bin/blast/bin" && -d "$Bin/blast/data") or die "ERROR! blast installation failed!\n";
 }
 my $blast_credit =<<BLASTCREDIT;
 
@@ -56,17 +56,17 @@ W. & Lipman, D.J (1997) "Gapped BLAST and PSI-BLAST: a new generation of
 protein database search programs." Nucleic Acids Res. 25:3389-3402.
 
 BLASTCREDIT
-chdir($pwd);
+chdir($Bin);
 
 # psipred
 # from http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/psipred3.3.tar.gz
-if ($overwrite || !-d "$pwd/psipred/bin" || !-d "$pwd/psipred/data") {
+if ($overwrite || !-d "$Bin/psipred/bin" || !-d "$Bin/psipred/data") {
 	my $package = "psipred3.3.tar.gz";
 	my $url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/$package";
 	print "INSTALLING PSIPRED from $url ....\n";
-	system("rm -rf $pwd/psipred") if (-d "$pwd/psipred"); # clean up interrupted attempts
-	(mkdir("$pwd/psipred")) or die "ERROR! cannot mkdir $pwd/psipred: $!\n";
-	chdir("$pwd/psipred/");
+	system("rm -rf $Bin/psipred") if (-d "$Bin/psipred"); # clean up interrupted attempts
+	(mkdir("$Bin/psipred")) or die "ERROR! cannot mkdir $Bin/psipred: $!\n";
+	chdir("$Bin/psipred/");
 	system("wget -N $url");
 	if (!-s $package ) {
 		$url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old/$package";
@@ -74,14 +74,14 @@ if ($overwrite || !-d "$pwd/psipred/bin" || !-d "$pwd/psipred/data") {
 		system("wget -N $url");
 	}
 	system("tar -zxvf $package");
-	push(@packages_to_clean, "$pwd/psipred/$package");
-	chdir("$pwd/psipred/src");
+	push(@packages_to_clean, "$Bin/psipred/$package");
+	chdir("$Bin/psipred/src");
 	system("make"); # build from src
 	my @binaries = qw( chkparse pfilt psipass2 psipred seq2mtx );
 	foreach my $binary (@binaries) {
-		system("mv $binary $pwd/psipred/bin/");
+		system("mv $binary $Bin/psipred/bin/");
 	}
-	(-d "$pwd/psipred/bin" && -d "$pwd/psipred/data") or die "ERROR! psipred installation failed!\n";
+	(-d "$Bin/psipred/bin" && -d "$Bin/psipred/data") or die "ERROR! psipred installation failed!\n";
 }
 my $psipred_credit =<<PSIPREDCREDIT;
 
@@ -91,29 +91,40 @@ Jones, D.T. (1999) Protein secondary structure prediction based on
 position-specific scoring matrices. J. Mol. Biol. 292:195-202.
 
 PSIPREDCREDIT
-chdir($pwd);
+chdir($Bin);
 
 # SPARKS-X/SPINE-X
 # from http://sparks.informatics.iupui.edu/yueyang/download/SPARKS-X/sparksx-1.tgz
-if ($overwrite || !-d "$pwd/sparks-x/bin" || !-d "$pwd/sparks-x/data") {
+if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 	my $package = "sparksx-1.tgz";
 	my $url = "http://sparks.informatics.iupui.edu/yueyang/download/SPARKS-X/$package";
 	print "INSTALLING SPARKS-X from $url ....\n";
 	system("rm -rf sparks-x") if (-d "sparks-x"); # clean up interrupted attempts
 	system("wget -N $url");
 	system("tar -zxvf $package");
-	push(@packages_to_clean, "$pwd/$package");
+	push(@packages_to_clean, "$Bin/$package");
 	# update paths to sparks-x directory in sparks-x scripts
 	# instead of using the SPARKSXDIR environment variable.
-	my @scripts = qw( buildinp_query.sh psiblast.sh scan1.sh scan_multi.sh );
+	my @scripts = qw( SPINE-X/spineX.pl bin/buildinp_query.sh bin/psiblast.sh bin/scan1.sh bin/scan_multi.sh );
 	foreach my $script (@scripts) {
-		system("cp $pwd/sparks-x/bin/$script $pwd/sparks-x/bin/$script.orig");
-		open(F, "$pwd/sparks-x/bin/$script.orig") or die "ERROR! cannot open $pwd/sparks-x/bin/$script.orig: $!\n";
-		open(NF, ">$pwd/sparks-x/bin/$script") or die "ERROR! cannot open $pwd/sparks-x/bin/$script: $!\n";
+		system("cp $Bin/sparks-x/$script $Bin/sparks-x/$script.orig");
+		open(F, "$Bin/sparks-x/$script.orig") or die "ERROR! cannot open $Bin/sparks-x/$script.orig: $!\n";
+		open(NF, ">$Bin/sparks-x/$script") or die "ERROR! cannot open $Bin/sparks-x/$script: $!\n";
 		while (my $l = <F>) {
 			if ($l =~ /^spxdir=/) {
-				print NF "# the following line was modified by Rosetta/tools/fragment_tools/install_dependencies.pl\n";
-				print NF "spxdir=\$(dirname \$(readlink -f \$0))/..\n";
+				print NF "#".$l;
+				print NF "# the following 2 lines were added by Rosetta/tools/fragment_tools/install_dependencies.pl\n";
+				print NF "spxdir=\$(dirname \$(readlink -f \$0))\n";
+				print NF "spxdir=\${spxdir\%/*}\n";
+				next;
+			}
+			if ($l =~ /[`"']\s*cp\s+\-r\s+/) { # replace cp -r with cp since -r option may not exist
+				my $nl = $l;
+				$nl =s/([`"']\s*)cp\s+\-r\s+/$1cp /gs;
+				chomp $nl;
+				print NF "#".$l;
+				print NF "# the following line was added by Rosetta/tools/fragment_tools/install_dependencies.pl\n";
+				print NF "$nl\n";
 				next;
 			}
 			print NF $l;
@@ -121,10 +132,10 @@ if ($overwrite || !-d "$pwd/sparks-x/bin" || !-d "$pwd/sparks-x/data") {
 		close(F);
 		close(NF);
 	}
-	chdir("$pwd/sparks-x");
+	chdir("$Bin/sparks-x");
 	system("ln -sf ../blast ./");
 	system("ln -sf ../databases/ ./blast-NR");
-	(-d "$pwd/sparks-x/bin" && -d "$pwd/sparks-x/data") or die "ERROR! sparks-x installation failed!\n";
+	(-d "$Bin/sparks-x/bin" && -d "$Bin/sparks-x/data") or die "ERROR! sparks-x installation failed!\n";
 }
 my $sparksx_credit =<<SPARKSXCREDIT;
 
@@ -136,13 +147,13 @@ predicted one-dimensional structural properties of the query and corresponding
 native properties of templates. Bioinformatics 27, 2076-2082 (2011)
 
 SPARKSXCREDIT
-chdir($pwd);
+chdir($Bin);
 
 # clean up
 foreach my $pkg (@packages_to_clean) { unlink $pkg; }
 
 # NR database
-our $datdir = "$pwd/databases";
+our $datdir = "$Bin/databases";
 (-d $datdir || mkdir($datdir)) or die "ERROR! cannot mkdir $datdir: $!\n";
 if ($overwrite || !-s "$datdir/nr.pal") {
 	chdir($datdir);
@@ -164,34 +175,34 @@ if ($overwrite || !-s "$datdir/nr.pal") {
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr.pal") or die "ERROR! nr database installation failed!\n";
 }
-chdir($pwd);
+chdir($Bin);
 
 # p_filt NR database
 if ($overwrite || !-s "$datdir/nr_pfilt.pal") {
 	chdir($datdir);
 	print "Generating nr fasta. Be very very patient ......\n";
-	my $cmd = "$pwd/blast/bin/fastacmd -D 1 > nr";
+	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > nr";
 	print "$cmd\n";
 	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
 	print "Generating nr_pfilt fasta. Be very very very patient ......\n";
-	$cmd = "$pwd/psipred/bin/pfilt nr > nr_pfilt";
+	$cmd = "$Bin/psipred/bin/pfilt nr > nr_pfilt";
 	print "$cmd\n";
 	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
 	print "Formatting nr_pfilt fasta. Be very very very very patient ......\n";
 	system("rm nr_pfilt.*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_pfilt;
-	(system("$pwd/blast/bin/formatdb -o T -i nr_pfilt") == 0) or do { &clean_nr_pfilt; };
+	(system("$Bin/blast/bin/formatdb -o T -i nr_pfilt") == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr_pfilt.pal") or die "ERROR! nr_pfilt database installation failed!\n";
 }
 
 print "\n";
 print " Installed\n";
-print "     blast: $pwd/blast\n";
-print "   psipred: $pwd/psipred\n";
-print "  sparks-x: $pwd/sparks-x\n";
-print "        nr: $pwd/databases/nr\n";
-print "  nr_pfilt: $pwd/databases/nr_pfilt\n";
+print "     blast: $Bin/blast\n";
+print "   psipred: $Bin/psipred\n";
+print "  sparks-x: $Bin/sparks-x\n";
+print "        nr: $Bin/databases/nr\n";
+print "  nr_pfilt: $Bin/databases/nr_pfilt\n";
 print "\nDone!\n";
 
 print $blast_credit;

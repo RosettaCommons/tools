@@ -378,8 +378,7 @@ unless ( &nonempty_file_exists("$options{runid}.checkpoint") ) {
         @checkpoint_matrix );
 }
 
-push( @cleanup_files,
-    ( "$options{runid}.blast", "$options{runid}.pssm", "error.log" ) );
+push( @cleanup_files, ( "$options{runid}.pssm", "error.log" ) );
 
 # Secondary Structure Prediction methods
 if ( $options{psipred}
@@ -641,6 +640,19 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
 }
 
 # Vall and homolog searches
+my %excluded_homologs;
+if (-s "$options{runid}.homolog") {
+	open(F, "$options{runid}.homolog") or die "ERROR! cannot open $options{runid}.homolog: $!\n";
+	while (<F>) {
+		if (/^(\S{5})/) {
+			$excluded_homologs{$1} = 1;
+		} elsif (/^(\S{4})/) {
+			$excluded_homologs{$1} = 1;
+		}
+	}
+	close(F);
+}
+
 if ( !$options{homs} ) {
 
     print_debug("excluding homologs.");
@@ -677,6 +689,7 @@ if ( !$options{homs} ) {
     &exclude_outn( $options{runid} );
 }
 
+my %exclude_homologs_by_pdb_date_pdbs;
 my %exclude_homologs_by_pdb_date_checked_pdbs;
 if ( $options{exclude_homologs_by_pdb_date} ) {
 	my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
@@ -716,8 +729,6 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		'NOV' => '11',
 		'DEC' => '12');
 
-	open( HOMF, ">>$options{runid}.homolog" );
-	print HOMF "# excluded by release date $options{exclude_homologs_by_pdb_date}\n";
 	open( F, "$Bin/pdb_revdat.txt" )
 		or die "ERROR! cannot open $Bin/pdb_revdat.txt: $!\n";
 	foreach my $l (<F>) {
@@ -734,14 +745,11 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 			# try to convert 2 digit year to full calendar year
 			my $rtmpdate = &convert_twodigit_to_full_calendar_year( $ryear, $rmonth, $rday );
 			if ($rstatus eq '0' && $rtmpdate > $cutoff_date_str  ) {
-				my $hit_pdb = $rcode;
-				print_debug("excluding $hit_pdb release date: $rtmpdate");
-				print HOMF "$hit_pdb\n";
+				$exclude_homologs_by_pdb_date_pdbs{$rcode} = $rtmpdate;
 			}
 			$exclude_homologs_by_pdb_date_checked_pdbs{$rcode} = 1;
 		}
 	}
-	close(HOMF);
 	close(F);
 }
 
@@ -846,14 +854,22 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 	open( HOMF, ">>$options{runid}.homolog" );
 	print HOMF "# excluded because missing in pdb_revdat.txt\n";
 	foreach my $v (@valls) {
-		open(F, $v) or die "ERROR! cannot open $v: $!\n";
+		if (-s "$v.gz") {
+			open(F, "gzip -dc $v.gz |") or die "ERROR! cannot open $v.gz: $!\n";
+		} else {
+			open(F, $v) or die "ERROR! cannot open $v: $!\n";
+		}
 		while (<F>) {
 			next if (/^#/);
 			if (/^(\S{4})\S\s+\S/) {
-				my $pdbcode = $1;
-				next if (exists $appended{$pdbcode} && $appended{$pdbcode});
-				if (!exists $exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode} || !$exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode}) {
-					warn "WARNING! adding $pdbcode to exclude homolog list because it is missing in pdb_revdat.txt\n";
+				my $pdbcode = lc $1;
+				next if (exists $appended{$pdbcode} || exists $excluded_homologs{$pdbcode});
+				if (!exists $exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode}) {
+					print_debug("excluding $pdbcode because it is missing in pdb_revdat.txt");
+					print HOMF "$pdbcode\n";
+					$appended{$pdbcode} = 1;
+				} elsif (exists $exclude_homologs_by_pdb_date_pdbs{$pdbcode}) {
+					print_debug("excluding $pdbcode released: $exclude_homologs_by_pdb_date_pdbs{$pdbcode}");
 					print HOMF "$pdbcode\n";
 					$appended{$pdbcode} = 1;
 				}
@@ -1282,7 +1298,7 @@ sub exclude_outn {
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
         print EXCL "$hit_pdb$hit_chain\n";
-        print EXCL2 "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
     }
 
     close(EXCL);
@@ -1319,7 +1335,7 @@ sub exclude_pdbblast {
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
         print EXCL "$hit_pdb$hit_chain\n";
-        print EXCL2 "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
     }
 
     close(EXCL);
@@ -1355,7 +1371,7 @@ sub exclude_blast {
             $hit_chain = '_' if ( $hit_chain =~ /^\s*$/ );
 
             print EXCL "$hit_pdb$hit_chain\n";
-            print EXCL2 "$hit_pdb$hit_chain\n";
+            print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
         }
     }
 

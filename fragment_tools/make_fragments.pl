@@ -259,10 +259,10 @@ if ( !defined( $opts{id} ) ) {
     print_debug("no id specified. parsing filename instead.");
 
     ( $options{id} ) = $options{fastafile} =~ /(\w+\.\w+)$/;
-    print_debug("INTERMEDIATE: $options{id}");
     ( $options{id} ) = $options{id} =~ /^(\w+)/;
 
     if ( length( $options{id} ) != 5 ) {
+	print_debug("cannot parse id from filename so using 't001_'");
         $options{id} = 't001_';
     }
 
@@ -507,7 +507,7 @@ if ( $options{porter} || ( $options{porterfile} && -s $options{porterfile} ) ) {
         print_debug("porter file ok.");
     }
     else {
-    	print_debug("running porter.");
+	print_debug("running porter.");
 			if (
         !&try_try_again(
             "$PORTER $options{fastafile}", 2,
@@ -547,7 +547,7 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
         print_debug("sam file ok.");
     }
     else {
-    		print_debug("running sam.");
+	print_debug("running sam.");
         my $target99_out      = "$options{runid}.target99";
         my $target99_a2m_file = $target99_out . ".a2m";
 

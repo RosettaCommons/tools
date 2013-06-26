@@ -691,6 +691,7 @@ if ( !$options{homs} ) {
 
 my %exclude_homologs_by_pdb_date_pdbs;
 my %exclude_homologs_by_pdb_date_checked_pdbs;
+my $cutoff_date_str;
 if ( $options{exclude_homologs_by_pdb_date} ) {
 	my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
 	print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
@@ -709,7 +710,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		die "ERROR! $exclude_homologs_by_pdb_date date format is incorrect: must be mm/dd/yy or yyyymmdd\n";
 	}
 	# try to convert 2 digit year to full calendar year - hacky
-	my $cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
+	$cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
 
 	# update pdb_revdat.txt
 	print_debug("Getting latest pdb_revdat.txt....");
@@ -776,12 +777,6 @@ sub convert_twodigit_to_full_calendar_year {
 	return $tmpdate;
 }
 
-if ( !$options{frags} ) {
-    cleanup(@cleanup_files);
-    exit 0;
-}
-
-# picker
 my @valls = ($VALL);
 if ( scalar @use_vall_files ) {
     @valls = @use_vall_files;
@@ -851,8 +846,9 @@ if ( scalar @pdbs_to_vall ) {
 # check valls for date filtering
 if ( $options{exclude_homologs_by_pdb_date} ) {
 	my %appended;
-	open( HOMF, ">>$options{runid}.homolog" );
-	print HOMF "# excluded because missing in pdb_revdat.txt\n";
+	open( EXCL,  ">$options{runid}.homolog_by_pdb_date_$cutoff_date_str" ) or die "ERROR! cannot open!\n";;
+	open( EXCL2, ">>$options{runid}.homolog" );
+	print EXCL "# excluded because release date > $cutoff_date_str or missing in pdb_revdat.txt\n";
 	foreach my $v (@valls) {
 		if (-s "$v.gz") {
 			open(F, "gzip -dc $v.gz |") or die "ERROR! cannot open $v.gz: $!\n";
@@ -863,27 +859,37 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 			next if (/^#/);
 			if (/^(\S{4})\S\s+\S/) {
 				my $pdbcode = lc $1;
-				next if (exists $appended{$pdbcode} || exists $excluded_homologs{$pdbcode});
+				next if (exists $appended{$pdbcode});
 				if (!exists $exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode}) {
 					print_debug("excluding $pdbcode because it is missing in pdb_revdat.txt");
-					print HOMF "$pdbcode\n";
+					print EXCL "$pdbcode\n";
+					print EXCL2 "$pdbcode\n" if (!exists $excluded_homologs{$pdbcode});
 					$appended{$pdbcode} = 1;
 				} elsif (exists $exclude_homologs_by_pdb_date_pdbs{$pdbcode}) {
 					print_debug("excluding $pdbcode released: $exclude_homologs_by_pdb_date_pdbs{$pdbcode}");
-					print HOMF "$pdbcode\n";
+					print EXCL "$pdbcode\n";
+					print EXCL2 "$pdbcode\n" if (!exists $excluded_homologs{$pdbcode});
 					$appended{$pdbcode} = 1;
 				}
 			}
 		}
 		close(F);
 	}
-	close(HOMF);
+	close(EXCL);
+	close(EXCL2);
 }
 
 my $valls_str = join ' ', @valls;
 
 chdir("$options{rundir}");
 
+
+if ( !$options{frags} ) {
+	cleanup(@cleanup_files);
+	exit 0;
+}
+
+# picker
 foreach my $size (@fragsizes) {
     my $ss_pred_cnt = 0;
     my $score_def;
@@ -1299,6 +1305,7 @@ sub exclude_outn {
 
         print EXCL "$hit_pdb$hit_chain\n";
         print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
+	$excluded_homologs{$hit_pdb.$hit_chain} = 1;
     }
 
     close(EXCL);
@@ -1336,6 +1343,7 @@ sub exclude_pdbblast {
 
         print EXCL "$hit_pdb$hit_chain\n";
         print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
+	$excluded_homologs{$hit_pdb.$hit_chain} = 1;
     }
 
     close(EXCL);
@@ -1372,7 +1380,8 @@ sub exclude_blast {
 
             print EXCL "$hit_pdb$hit_chain\n";
             print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
-        }
+	    $excluded_homologs{$hit_pdb.$hit_chain} = 1;
+	}
     }
 
     close(EXCL);

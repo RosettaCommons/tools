@@ -53,6 +53,8 @@ my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
 
+my $install_dependencies_option = "overwrite"; # "standard";
+
 # This is an optional script that YOU must provide to launch parallel jobs on
 # your cluster. The script should take any command as the argument(s).
 # If the script does not exist, jobs will run serially.
@@ -113,8 +115,8 @@ if ($must_install) {
 	print "\n";
 	print "Running install_dependencies.pl\n";
 	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
-	print "Please be patient.....\n";
-	system("$Bin/install_dependencies.pl force");
+	print "Please be patient.....\n\n";
+	system("$Bin/install_dependencies.pl $install_dependencies_option");
 	print "\n";
 }
 
@@ -681,6 +683,7 @@ if ( !$options{homs} ) {
     &exclude_outn( $options{runid} );
 }
 
+my %exclude_homologs_by_pdb_date_checked_pdbs;
 if ( $options{exclude_homologs_by_pdb_date} ) {
 	my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
 	print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
@@ -690,6 +693,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		$cutoff_m = $1;
 		$cutoff_d = $2;
 		$cutoff_y = $3;
+	# yyyymmdd format
 	} elsif ( $exclude_homologs_by_pdb_date =~ /^(\d\d\d*)(\d\d)(\d\d)$/ ) {
 		$cutoff_y = $1;
 		$cutoff_m = $2;
@@ -699,10 +703,10 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 	}
 	# try to convert 2 digit year to full calendar year - hacky
 	my $cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
-	
+
 	# update pdb_revdat.txt
 	print_debug("Getting latest pdb_revdat.txt....");
-	system("$Bin/get_revdat.pl");
+	system("$Bin/update_revdat.pl");
 
 	my %month_str_to_num = (
 		'JAN' => '01',
@@ -725,7 +729,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 	foreach my $l (<F>) {
 		if ($l =~ /^(\S{4})\s+REVDAT\s+(\d+)\s+(\d+)\-(\w\w\w)\-(\d+)\s+\S{4}\s+(\d+)/) {
 			#2w6x REVDAT   1   22-DEC-09 2W6X    0
-			my $rcode = $1;
+			my $rcode = lc $1;
 			my $rnum = $2;
 			my $rday = $3;
 			my $rmonth = $month_str_to_num{$4};
@@ -733,13 +737,14 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 			my $rstatus = $6;
 			$rday = "00$rday";
 			$rday =~ s/^.*(\d\d)\s*$/$1/gs;
-			# try to convert 2 digit year to full calendar year - hacky
+			# try to convert 2 digit year to full calendar year
 			my $rtmpdate = &convert_twodigit_to_full_calendar_year( $ryear, $rmonth, $rday );
 			if ($rstatus eq '0' && $rtmpdate > $cutoff_date_str  ) {
-				my $hit_pdb = lc $rcode;
+				my $hit_pdb = $rcode;
 				print_debug("excluding $hit_pdb release date: $rtmpdate");
 				print HOMF "$hit_pdb\n";
 			}
+			$exclude_homologs_by_pdb_date_checked_pdbs{$rcode} = 1;
 		}
 	}
 	close(HOMF);
@@ -839,6 +844,30 @@ if ( scalar @pdbs_to_vall ) {
         warn
 "WARNING! pdb2vall output $options{runid}\_pdbs_to_vall.vall does not exist.\n";
     }
+}
+
+# check valls for date filtering
+if ( $options{exclude_homologs_by_pdb_date} ) {
+	my %appended;
+	open( HOMF, ">>$options{runid}.homolog" );
+	print HOMF "# excluded because missing in pdb_revdat.txt\n";
+	foreach my $v (@valls) {
+		open(F, $v) or die "ERROR! cannot open $v: $!\n";
+		while (<F>) {
+			next if (/^#/);
+			if (/^(\S{4})\S\s+\S/) {
+				my $pdbcode = $1;
+				next if (exists $appended{$pdbcode} && $appended{$pdbcode});
+				if (!exists $exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode} || !$exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode}) {
+					warn "WARNING! adding $pdbcode to exclude homolog list because it is missing in pdb_revdat.txt\n";
+					print HOMF "$pdbcode\n";
+					$appended{$pdbcode} = 1;
+				}
+			}
+		}
+		close(F);
+	}
+	close(HOMF);
 }
 
 my $valls_str = join ' ', @valls;

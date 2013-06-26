@@ -3,9 +3,9 @@
 my $pwd=`pwd`;
 chomp $pwd;
 
-if (!scalar@ARGV || $ARGV[0] ne 'force') {
+if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	print "\n";
-	print "USAGE: $0 <force>\n\n";
+	print "USAGE: $0 <standard|overwrite>\n\n";
 	print "This script installs blast, psipred, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "Install locations: \n";
 	print " $pwd/blast\n";
@@ -21,6 +21,7 @@ if (!scalar@ARGV || $ARGV[0] ne 'force') {
 	print "FOR ACADEMIC USE ONLY.\n\n";
 	exit(1);
 }
+my $overwrite = ($ARGV[0] eq 'overwrite') ? 1 : 0;
 
 # blast binaries
 # from ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/
@@ -34,6 +35,10 @@ if (!-d "$pwd/blast/bin" || !-d "$pwd/blast/data") {
 	}
 	my $url = "ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/$package";
 	print "INSTALLING BLAST from $url ....\n";
+	if ($overwrite) {
+		unlink "$package" if (-f $package);
+		system("rm -rf blast") if (-d "blast");
+	}
 	system("wget $url");
 	system("tar -zxvf $package");
 	unlink "$package";
@@ -57,10 +62,14 @@ if (!-d "$pwd/psipred/bin" || !-d "$pwd/psipred/data") {
 	my $package = "psipred3.3.tar.gz";
 	my $url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/$package";
 	print "INSTALLING PSIPRED from $url ....\n";
+	if ($overwrite) {
+		unlink $package if (-f $package);
+		system("rm -rf psipred") if (-d "psipred");
+	}
 	system("wget $url");
 	if (!-s $package ) {
 		$url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old/$package";
- 		print "wget failed, trying $url ....\n";
+		print "wget failed, trying $url ....\n";
 		system("wget $url");
 	}
 	(-d "$pwd/psipred" || mkdir("$pwd/psipred")) or die "ERROR! cannot mkdir $pwd/psipred: $!\n";
@@ -92,6 +101,10 @@ if (!-d "$pwd/sparks-x/bin" || !-d "$pwd/sparks-x/data") {
 	my $package = "sparksx-1.tgz";
 	my $url = "http://sparks.informatics.iupui.edu/yueyang/download/SPARKS-X/$package";
 	print "INSTALLING SPARKS-X from $url ....\n";
+	if ($overwrite) {
+		unlink $package if (-f $package);
+		system("rm -rf sparks-x") if (-d "sparks-x");
+	}
 	system("wget $url");
 	system("tar -zxvf $package");
 	unlink $package;
@@ -132,17 +145,21 @@ our $datdir = "$pwd/databases";
 (-d $datdir || mkdir($datdir)) or die "ERROR! cannot mkdir $datdir: $!\n";
 if (!-s "$datdir/nr.pal") {
 	chdir($datdir);
+	unlink "update_blastdb.pl" if ($overwrite && -f "upate_blastdb.pl");
 	if (!-s "update_blastdb.pl") {
 		system("wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
 	}
+	system("rm nr.*") if ($overwrite);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
 	$SIG{INT} = \&clean_nr_tgz; # make sure we cleanup partially downloaded files if CTRL+C'd
-	system("perl update_blastdb.pl nr");
+	(system("perl update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
 	$SIG{INT} = \&clean_nr; # make sure we cleanup partially downloaded files if CTRL+C'd
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
 		my $unzipped = $f;
 		$unzipped =~ s/\.tar\.gz$//;
-		system("tar -zxvf $f") if (!-s $unzipped);
+		if (!-s $unzipped) {
+			(system("tar -zxvf $f") == 0) or do { &clean_nr; };
+		}
 	}
 	(-s "$datdir/nr.pal") or die "ERROR! nr database installation failed!\n";
 	system("rm $datdir/nr.*tar.gz"); # save disk space
@@ -152,23 +169,26 @@ chdir($pwd);
 # p_filt NR database
 if (!-s "$datdir/nr_pfilt.pal") {
 	chdir($datdir);
+	system("rm nr") if ($overwrite && -f "nr");
 	if (!-s "nr") {
 		print "Generating nr fasta. Be very very patient ......\n";
 		$SIG{INT} = \&clean_nr_fasta;
 		print "$pwd/blast/bin/fastacmd -D 1 > nr\n";
-		system("$pwd/blast/bin/fastacmd -D 1 > nr");
+		(system("$pwd/blast/bin/fastacmd -D 1 > nr") == 0) or do { &clean_nr_fasta; };
 	}
+	system("rm nr_pfilt") if ($overwrite && -f "nr_pfilt");
 	if (!-s "nr_pfilt") {
 		print "Generating nr_pfilt fasta. Be very very very patient ......\n";
 		$SIG{INT} = \&clean_nr_pfilt_fasta;
 		print "$pwd/psipred/bin/pfilt nr > nr_pfilt\n";
-		system("$pwd/psipred/bin/pfilt nr > nr_pfilt");
+		(system("$pwd/psipred/bin/pfilt nr > nr_pfilt") == 0) or do { &clean_nr_pfilt_fasta; };
 	}
 	$SIG{INT} = \&clean_nr_pfilt;
 	print "Formatting nr_pfilt fasta. Be very very very very patient ......\n";
-	system("$pwd/blast/bin/formatdb -o T -i nr_pfilt");
-	(-s "$datdir/nr_pfilt.pal") or die "ERROR! nr_pfilt database installation failed!\n";
+	system("rm nr_pfilt.*") if ($overwrite);
+	(system("$pwd/blast/bin/formatdb -o T -i nr_pfilt") == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
+	(-s "$datdir/nr_pfilt.pal") or die "ERROR! nr_pfilt database installation failed!\n";
 }
 
 print "\n";

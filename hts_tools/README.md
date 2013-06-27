@@ -16,11 +16,16 @@ Prerequisites
    * each conformer must have hydrogens and 3D coordinates
 * a list file
    * The list file maps filenames to ligands.  It is a CSV format file that is in a format like this:
+   
    ```
       ligand_id,filename
+      
       string,string
+      
       ligand_1,path/to/ligand1
+      
       ligand_2,path/to/ligand2
+      
    ```
 * CORINA (optional)
    * if you want to add hydrogens using the included script you will need a copy of corina
@@ -31,6 +36,7 @@ Scripts
 * sdf_split_organize.py 
    * This is a helper script for producing a directory of sdf files.  It takes as input a single sdf file, and will split that file into multiple files, each file containing all the conformers for 1 ligand.  Different ligands must have different names in the sdf records, and all conformers for one ligand must have the same name.  output filenames are based on the sha1 hash of the input filename, and are placed in a directory hashed structure. Thus, a ligand with the name "Written by BCL::WriteToMDL,CHEMBL29197" will be placed in the path ```/41/412d1d751ff3d83acf0734a2c870faaa77c28c6c.mol```.  The script will also output a list file in the format described in the prerequisites section above. 
    * To run the script:
+   
    ```
       sdf_split_organize.py input.sdf output_dir/ output_file_list.csv
    ```
@@ -38,11 +44,13 @@ Scripts
    * This is the first script you use, it takes as input a csv list file and outputs an sqlite3 database that will act as both the input and output for the remaining scripts
    * by default this script will check that every file in the input list exists.  This can be very time consuming and can be disabled with ```--no-verify``` 
    * to run the script:
+   
    ```
       setup_screening_project.py input.csv output.db3
    ``` 
 * add_activity_tags_to_database.py
    * This script will add activity data to the database. It requires a tag file, in the following format:
+   
    ```
       ligand_id,tag,value
       string,string,float
@@ -51,6 +59,7 @@ Scripts
    ```
    * ligand IDs should match the ligand IDs in the database. only ligand IDs that exist in both the database and the tag file will be processed.
    * to run the script:
+   
    ```
       add_activity_tags_to_database.py database.db3 tag_file.csv
    ```
@@ -60,6 +69,7 @@ Scripts
    * The script is multithreaded.  use -j to specify the number of threads you want to use.
    * molfiles must be decompressed prior to use
    * to run the script:
+   
    ```
       add_hydrogens.py -j 4 database.db3
    ```
@@ -73,6 +83,7 @@ Scripts
    * the tag name and tag value are written as string and numeric properties respectively to the params file
    * the database is updated with the paths to the newly created ligands.  If one ligand has more than one activity tag, two params files will be generated and referenced in the database.  This allows for the possibility of a ligand having measured activity in more than one system.
    * to run the script:
+   
    ```
-   make_params.py -j 4 --database path/to/Rosetta/main/database --path_to_params path/to/molfile_to_params.py database.db3 output_dir/
+      make_params.py -j 4 --database path/to/Rosetta/main/database --path_to_params path/to/molfile_to_params.py database.db3 output_dir/
    ```

@@ -19,11 +19,8 @@ Prerequisites
    
    ```
       ligand_id,filename
-      
       string,string
-      
       ligand_1,path/to/ligand1
-      
       ligand_2,path/to/ligand2
       
    ```

@@ -6,6 +6,7 @@ Author: Sam DeLuca'''
 
 from optparse import OptionParser
 import json
+from ligand_database import *
 
 def init_options():
     usage = "%prog ligands.db3 input_screening_file.js output_screening_file.js"
@@ -30,6 +31,7 @@ if __name__ == "__main__":
         ligand_file = params_data["params_file"]
         for index,job in enumerate(input_job_data):
             if system == input_job_data[index]["group_name"]:
+                ligand_file = ligand_file.replace(".params",".pdb")
                 try:
                     input_job_data[index]["ligands"].append(ligand_file)
                 except KeyError:

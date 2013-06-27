@@ -7,10 +7,6 @@ from optparse import OptionParser
 ''' In this script, we are going to parse out the lines of dssp_phi dssp_psi dssp_sa 
     from the results of dssp2threestateSS.pl.''' 
 
-#def parse_dssp_results( pdb_fn ):
-    #fasta_dict = get_fulllength_fasta( pdb_fn, 'fasta_dict' )
-    #print missing_den_list
-
 
 def parse_dssp_results( pdb_fn, arg_fasta_dict ):
     PDB2VALL_PATH = path.abspath(path.dirname(__file__)) + "/"

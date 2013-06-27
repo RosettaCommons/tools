@@ -5,7 +5,7 @@ $| = 1;                                     # disable stdout buffering
 
 my $VERSION = 1;
 
-my $ROSETTA_PATH;
+my $ROSETTA_PATH = "$Bin/../../../../";
 my $picker_num_cpus = 8;
 
 # read config
@@ -26,14 +26,17 @@ $ROSETTA_PATH =~ s/[\/\\]$//;
 ###############################################################################
 
 my $PICKER_NUM_CPUS   = $picker_num_cpus;
-my $PICKER            = "$ROSETTA_PATH/rosetta_source/bin/fragment_picker.linuxgccrelease";
-my $ROSETTA_DATABASE  = "$ROSETTA_PATH/rosetta_database";
-my $VALL = "$Bin/residue_depth_vall/residue_depth_full_cullpdb_pc30_res2.0_R0.3_d110930_chains6280.4278.vall";
+my $PICKER            = "$ROSETTA_PATH/main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
+my $ROSETTA_DATABASE  = "$ROSETTA_PATH/main/database";
+my $VALL = "$Bin/residue_depth_vall/residue_depth_full_cullpdb_pc30_res2.0_R0.3_d110930_chains6280.4278.vall.gz";
 
 ###############################################################################
 # init
 ###############################################################################
 
+if (!-s $PICKER) {
+	$PICKER =~ s/fragment_picker\.boost_thread/fragment_picker/;
+}
 (-s $PICKER) or die "ERROR! $PICKER does not exist.\n";
 (-d $ROSETTA_DATABASE) or die "ERROR! $ROSETTA_DATABASE does not exist.\n";
 (-s $VALL) or die "ERROR! $VALL does not exist.\n";

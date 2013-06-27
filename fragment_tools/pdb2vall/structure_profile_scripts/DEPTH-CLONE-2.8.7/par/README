@@ -1,0 +1,24 @@
+To fix sparseness of data issue, a background map is convoluted with raw map in the ratio of 10% to 90%.
+background map is built by normalized of weighted averaging of individual map of residue type. Weighted according to occurrence frequency of that residue, which is
+||ALA||14607||
+||ARG||7643||
+||ASN||6339||
+||ASP||9938||
+||CYS||1580||
+||GLN||6171||
+||GLU||11767||
+||GLY||12558||
+||HIS||5692||
+||ILE||9217||
+||LEU||15705||
+||LYS||12872||
+||MET||3199||
+||PHE||7058||
+||PRO||5895||
+||SER||9124||
+||THR||8998||
+||TRP||2474||
+||TYR||5543||
+||VAL||11291||
+
+after the mixing, the right side of the map (portion corresponding to high depth - high accessibility region), if no value is assigned to it (that is, the pair value is never seen before in the train set) is set to 1. This assignment is based on data-driven intuition. A pitfall to this is that the pair value could physically intolerable (i.e. error in model), but this should be taken care by the user.

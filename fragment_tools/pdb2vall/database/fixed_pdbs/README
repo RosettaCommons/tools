@@ -1,0 +1,1 @@
+ca-only models get fixed using maxsprout and are saved in this directory from the script 'bin/get_pdb.py'

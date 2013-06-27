@@ -113,7 +113,7 @@ def add_params_data(db_name,data_list):
     for record in data_list:
         tag_id = record["tag_id"]
         ligand_name = record["ligand_name"]
-        filename = record["filename"]
+        filename = record["output_path"]
         if filename == None:
             continue
         cursor.execute(insert_string,(tag_id,ligand_name,filename))

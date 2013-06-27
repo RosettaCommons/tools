@@ -3,12 +3,26 @@ use strict;
 use FindBin qw( $Bin );
 $| = 1; # disable stdout buffering
 
-if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
+my $installtype = "";
+foreach my $arg (@ARGV) {
+	if ($arg =~ /^(standard|overwrite)\s*$/) {
+		$installtype = $1;
+	}
+	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr)\s*$/) {
+		$installtype = "";
+		last;
+	}
+}
+if (!$installtype) {
 	print "\n";
-	print "USAGE: $0 <standard|overwrite> [skip_nr]\n\n";
+	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr]\n\n";
 	print "This script installs blast, psipred, sparks-x, and the NCBI non-redundant (nr) database.\n";
-	print "The <standard> option will only install what is missing.\n";
-	print "The <overwrite> option will do a fresh installation.\n\n";
+	print "<standard> will only install what is missing.\n";
+	print "<overwrite> will do a fresh installation.\n";
+	print "[uniref90] will use the uniref90 sequence database (NCBI nr is the default.)\n";
+	print "[uniref50] will use the uniref50 sequence database.\n";
+	print "[skip_nr] skips the sequence database installation.\n";
+	print "uniref databases will OVERWRITE previously installed nr if it exists\n\n";
 	print "Install locations: \n";
 	print " $Bin/blast\n";
 	print " $Bin/psipred\n";
@@ -16,19 +30,21 @@ if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	print " $Bin/databases/nr\n";
 	print " $Bin/databases/nr_pfilt\n";
 	print "\n";
-	print "Requires ~73+ Gigs of free disk space.\n";
-	print "The NCBI sequence databases are very large.\n";
+	print "Requires ~73+ Gigs of free disk space for the NCBI nr database.\n";
+	print "The sequence database is very large.\n";
 	print "Please be patient when running this script.\n";
 	print "\n";
 	print "FOR ACADEMIC USE ONLY.\n\n";
 	exit(1);
 }
-my $overwrite = ($ARGV[0] eq 'overwrite') ? 1 : 0;
+my $overwrite = ($installtype eq 'overwrite') ? 1 : 0;
 my @packages_to_clean;
 
 my $skip_nr = 0;
+my $database = "nr";
 foreach my $arg (@ARGV) {
 	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
+	if ($arg =~ /^(uniref90|uniref50)\s*$/) { $database = $1; }
 }
 
 chdir($Bin);
@@ -161,21 +177,54 @@ foreach my $pkg (@packages_to_clean) { unlink $pkg; }
 our $datdir = "$Bin/databases";
 (-d $datdir || mkdir($datdir)) or die "ERROR! cannot mkdir $datdir: $!\n";
 
-# may want to add options here for lighter weight sequence databases like:
+# options for lighter weight sequence databases
 #  ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz  90% clustering
-#  ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz  50% clustering
-#
-#  Sequence searches would be much faster
-
-# NR database
-if (!$skip_nr && ($overwrite || !-s "$datdir/nr.pal")) {
+if (!$skip_nr && $database eq "uniref90" && ($overwrite || !-f "$datdir/uniref90")) {
 	chdir($datdir);
-	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
-	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "update_blastdb.pl");
+	print "Fetching uniref90 database. Be very patient ......\n";
+	system("rm $datdir/uniref90* $datdir/nr*"); # clean up interrupted attempts
+	$SIG{INT} = \&clean_uniref90;
+	(system("wget -N ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz") == 0) or
+		do { &clean_uniref90; };
+	print "Extracting uniref90.fasta.gz to nr fasta. Be very very patient ......\n";
+	(system("gunzip $datdir/uniref90.fasta.gz") == 0) or do { &clean_uniref90; };
+	(system("mv $datdir/uniref90.fasta $datdir/nr") == 0) or do { &clean_uniref90; };
+	print "Formating nr fasta. Be very very very patient ......\n";
+	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr") == 0) or do { &clean_uniref90; };
+	$SIG{INT} = 'DEFAULT';
+	(-s "$datdir/nr.pal") or die "ERROR! uniref90 as $datdir/nr database installation failed!\n";
+	(system("ln -s nr uniref90") == 0) or do { &clean_uniref90; }; # create a link just to know the nr is uniref
+}
+chdir($Bin);
+
+#  ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz  50% clustering
+if (!$skip_nr && $database eq "uniref50" && ($overwrite || !-s "$datdir/uniref50")) {
+	chdir($datdir);
+	print "Fetching uniref50 database. Be very patient ......\n";
+	system("rm $datdir/uniref50* $datdir/nr*"); # clean up interrupted attempts
+	$SIG{INT} = \&clean_uniref50;
+	(system("wget -N ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz") == 0) or
+		do { &clean_uniref50; };
+	print "Extracting uniref50.fasta.gz to nr fasta. Be very very patient ......\n";
+	(system("gunzip $datdir/uniref50.fasta.gz") == 0) or do { &clean_uniref50; };
+	(system("mv $datdir/uniref50.fasta $datdir/nr") == 0) or do { &clean_uniref50; };
+	print "Formating nr fasta. Be very very very patient ......\n";
+	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr") == 0) or do { &clean_uniref50; };
+	$SIG{INT} = 'DEFAULT';
+	(-s "$datdir/nr.pal") or die "ERROR! uniref50 as $datdir/nr database installation failed!\n";
+	(system("ln -s nr uniref50") == 0) or do { &clean_uniref50; }; # create a link just to know the nr is uniref
+}
+chdir($Bin);
+
+# big fat NR database!
+if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
+	chdir($datdir);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
-	system("rm nr.*"); # clean up interrupted attempts
+	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
+	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "$datdir/update_blastdb.pl");
+	system("rm $datdir/nr*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_tgz;
-	(system("perl update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
+	(system("perl $datdir/update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
 	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
 		my $unzipped = $f;
@@ -186,27 +235,25 @@ if (!$skip_nr && ($overwrite || !-s "$datdir/nr.pal")) {
 		}
 	}
 	$SIG{INT} = 'DEFAULT';
-	(-s "$datdir/nr.pal") or die "ERROR! nr database installation failed!\n";
+	(-s "$datdir/nr.pal") or die "ERROR! $datdir/nr database installation failed!\n";
 }
 chdir($Bin);
 
-# p_filt NR database
+# p_filt NR database from installed nr
 if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	chdir($datdir);
-	print "Generating nr fasta. Be very very patient ......\n";
-	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > nr";
-	print "$cmd\n";
+	print "Generating nr fasta. Be very patient ......\n";
+	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > $datdir/nr";
 	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
-	print "Generating nr_pfilt fasta. Be very very very patient ......\n";
-	$cmd = "$Bin/psipred/bin/pfilt nr > nr_pfilt";
-	print "$cmd\n";
+	print "Generating nr_pfilt fasta. Be very very patient ......\n";
+	$cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
 	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
-	print "Formatting nr_pfilt fasta. Be very very very very patient ......\n";
-	system("rm nr_pfilt.*"); # clean up interrupted attempts
+	print "Formatting nr_pfilt fasta. Be very very very patient ......\n";
+	system("rm $datdir/nr_pfilt.*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_pfilt;
-	(system("$Bin/blast/bin/formatdb -o T -i nr_pfilt") == 0) or do { &clean_nr_pfilt; };
+	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt") == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
-	(-s "$datdir/nr_pfilt.pal") or die "ERROR! nr_pfilt database installation failed!\n";
+	(-s "$datdir/nr_pfilt.pal") or die "ERROR! $datdir/nr_pfilt database installation failed!\n";
 }
 
 print "\n";
@@ -214,8 +261,12 @@ print " Installed\n";
 print "     blast: $Bin/blast\n";
 print "   psipred: $Bin/psipred\n";
 print "  sparks-x: $Bin/sparks-x\n";
-print "        nr: $Bin/databases/nr\n" if (!$skip_nr);
-print "  nr_pfilt: $Bin/databases/nr_pfilt\n" if (!$skip_nr);
+if (!$skip_nr) {
+	print "        nr: $datdir/nr\n" if ($database eq "nr");
+	print "        nr: $datdir/uniref90\n" if ($database eq "uniref90");
+	print "        nr: $datdir/uniref50\n" if ($database eq "uniref50");
+	print "  nr_pfilt: $datdir/nr_pfilt\n";
+}
 print "\nDone!\n";
 
 print $blast_credit;
@@ -225,6 +276,18 @@ print $sparksx_credit;
 print "FOR ACADEMIC USE ONLY.\n\n";
 
 ## catch ctrl-c
+sub clean_uniref90 {
+	$SIG{INT} = \&clean_uniref90;
+	warn "Aborting....\n";
+	system("rm $datdir/uniref90*");
+	die "Aborted!\n";
+}
+sub clean_uniref50 {
+	$SIG{INT} = \&clean_uniref50;
+	warn "Aborting....\n";
+	system("rm $datdir/uniref50*");
+	die "Aborted!\n";
+}
 sub clean_nr_tgz {
 	$SIG{INT} = \&clean_nr_tgz;
 	warn "Aborting....\n";

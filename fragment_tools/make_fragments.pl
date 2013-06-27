@@ -84,10 +84,12 @@ my $SAM_PREDICT_2ND_DIR = "";
 # http://distill.ucd.ie/porter/
 my $PORTER = "";
 
+my $INSTALL_DEPENDENCIES = "standard"; # "overwrite";
+my $INSTALL_DEPENDENCIES_DATABASE = "nr"; # "uniref50" # "uniref90"
+
 ### YOU CAN IGNORE THE REST ###################################################
 ###############################################################################
 
-my $install_dependencies_option = "standard"; # "overwrite";
 
 # check for dependencies and install if necessary
 $BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
@@ -136,12 +138,12 @@ if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
 	$skip_nr = "";
 	$must_install = 1;
 }
-if ($must_install) {
+if ($must_install && $INSTALL_DEPENDENCIES) {
 	print "\n";
 	print "Running install_dependencies.pl\n";
 	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
 	print "Please be patient.....\n\n";
-	system("$Bin/install_dependencies.pl $install_dependencies_option $skip_nr");
+	system("$Bin/install_dependencies.pl $INSTALL_DEPENDENCIES $INSTALL_DEPENDENCIES_DATABASE $skip_nr");
 	print "\n";
 }
 

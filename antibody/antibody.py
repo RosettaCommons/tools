@@ -1042,8 +1042,13 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
-        if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
-        model_file_prefix = 'grafted';  shutil.move(prefix+'details/FR_0001.pdb', prefix+model_file_prefix+'.pdb')
+        if res: print 'Rosetta run terminated with Error! The command executed was:\n%s' % commandline; sys.exit(1)
+        antibody_graft_result_filename = prefix+'details/FR_0001.pdb'
+        if not os.path.isfile( antibody_graft_result_filename ):
+            print "Error: Could not find output file of antibody_graft expected at '%s'. The command executed was:\n%s" % (prefix+'details/FR_0001.pdb', commandline)
+            sys.exit(1)
+        model_file_prefix = 'grafted'
+        shutil.move(antibody_graft_result_filename, prefix+model_file_prefix+'.pdb')
     else:
         print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
         return

@@ -23,6 +23,7 @@ Prerequisites
       ligand_1,path/to/ligand1
       ligand_2,path/to/ligand2
    ```
+   * The filenames in this file should be relative to the working directory.  using absolute paths is not recommended
 * CORINA (optional)
    * if you want to add hydrogens using the included script you will need a copy of corina
    

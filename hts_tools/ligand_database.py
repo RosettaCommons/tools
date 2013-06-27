@@ -24,6 +24,15 @@ def setup_tag_schema(db_name):
     connection.commit()
     connection.close()
     
+def setup_params_schema(db_name):
+    '''given a db name, setup the params schema'''
+    schema_string = "CREATE TABLE IF NOT EXISTS params_data (param_id INTEGER PRIMARY KEY AUTOINCREMENT, tag_id INTEGER REFERENCES activity_tags(tag_id),ligand_name string,filename string)"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(schema_string)
+    connection.commit()
+    connection.close()
+    
 def write_data(db_name,table,columns,data_list):
     '''Given a data map, list of columns and a table name, write data to the database'''
     column_inserts = "(" + ",".join(["?" for x in range(len(columns))]) + ")"
@@ -82,6 +91,33 @@ def get_all_file_names(db_name,only_tagged=False):
         yield (record_id,filename)
         
     connection.close()
+    
+def get_file_names_with_activity_data(db_name):
+    select_string = "SELECT sdf_input_data.record_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    for sdf_record,tag_id,filename,tag,value in cursor.execute(select_string):
+        yield {
+            "sdf_record" : sdf_record,
+            "tag_id" : tag_id,
+            "filename" : filename,
+            "tag" : tag,
+            "value" : value
+        }
+    connection.close()
+        
+def add_params_data(db_name,data_list):
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    insert_string = "INSERT INTO params_data  (tag_id,ligand_name,filename) VALUES (?,?,?)"
+    for record in data_list:
+        tag_id = record["tag_id"]
+        ligand_name = record["ligand_name"]
+        filename = record["filename"]
+        cursor.execute(insert_string,(tag_id,ligand_name,filename))
+        connection.commit()
+    connection.close()
+        
     
 def update_filenames(db_name, filename_update_data):
     update_string = "UPDATE sdf_input_data SET filename = ? WHERE record_id = ?"

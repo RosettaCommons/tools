@@ -105,6 +105,18 @@ def get_file_names_with_activity_data(db_name):
             "value" : value
         }
     connection.close()
+    
+def get_params_information(db_name):
+    select_string = "SELECT tag, filename FROM params_data JOIN activity_tags ON params_data.tag_id = activity_tags.tag_id"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    
+    for tag,filename in cursor.execute(select_string):
+        yield {
+            "tag" : tag,
+            "params_file" : filename
+        }
+    connection.close()
         
 def add_params_data(db_name,data_list):
     connection = sqlite3.connect(db_name)

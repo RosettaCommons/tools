@@ -84,3 +84,12 @@ Scripts
    ```
       make_params.py -j 4 --database path/to/Rosetta/main/database --path_to_params path/to/molfile_to_params.py database.db3 output_dir/
    ```
+   
+* add_ligands_to_job_file.py
+   * This script will add ligands with existing params files to a job file formatted for use with -in:file:screening_job_input
+   * The input job file must have a "group_name" block for each record, the group_names must match the tags in the database
+   * To run the script:
+   
+   ```
+      add_ligands_to_job_file.py ligands.db3 input_screening_file.js output_screening_file.js
+   ```

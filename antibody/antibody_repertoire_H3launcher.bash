@@ -11,10 +11,16 @@ fi
 
 repdir=$1
 if [ "$2" == "force" ]; then force=true; else force=false; fi
-maxjobs=20
+maxjobs=200
 
 cd $repdir
-dirs=`ls -dp * | grep '/' | sed 's/\///'`
+if [[ -f PDBlist ]]
+then
+	dirs=`cat PDBlist`
+else
+	dirs=`ls -dp * | grep '/' | sed 's/\///'`
+fi
+
 echo Processing Repertoire Antibodies: $dirs
 complete=0
 queued=0
@@ -37,7 +43,7 @@ lastdecoyfile=pdbs/model_$lastdecoynum.pdb
 echo Seeking $lastdecoynum decoys for each antibody
 echo Allowing a maximum of $maxjobs jobs in the queue
 
-export SQUEUE_FORMAT="%.7i %.9P %.21j %.8u %.2t %.10M %.6D %R" 
+export SQUEUE_FORMAT="%.7i %.9P %.21j %.8u %.2t %.10M %.6D %R"
 
 
 for d in $dirs; do
@@ -54,11 +60,11 @@ for d in $dirs; do
 		jobname=$repdir-$d
     	squeue -u $USER | grep -q $jobname
     	jobinqueue=$?
-    	if [ $jobinqueue = 0 ] 
+    	if [ $jobinqueue = 0 ]
     	then
     		echo in queue, skipping
     		(( queued++ ))
-    	else 
+    	else
  	  		echo
  	  		if [ ! -d outerr ]; then mkdir outerr; fi
  	  		if [ ! -d pdbs ]; then mkdir pdbs; fi

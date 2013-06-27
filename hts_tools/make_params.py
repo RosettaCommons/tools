@@ -11,6 +11,9 @@ import hashlib
 import subprocess
 from multiprocessing import Pool
 from optparse import OptionParser
+from ligand_database import * 
+import shutil
+path_to_params = ""
 
 def get_name_from_params(path,database):
     '''Given the path to a params file, return the IO_STRING value.  if it doesn't exist, return None'''
@@ -58,7 +61,7 @@ def get_disallowed_ligands(database):
 def required_ligand_name_length(ligand_count):
     '''Get the necessary length of param file name given the number of ligands being processed'''
     character_space = 36 #[A-Z0-9]
-    return ceil(log(ligand_count)/log(character_space))
+    return int(ceil(log(ligand_count)/log(character_space)))
  
 def setup_dir_for_filehash(output_dir):
     '''Setup all the directories used in filehashing ahead of time so i dont have to worry about my threads blocking properly'''
@@ -76,18 +79,32 @@ def make_param_file(input_sdf_path,ligand_name,output_dir):
     digest = sha1.hexdigest()
     sub_dir = digest[0:2]
     full_dir = output_dir+"/"+sub_dir
-    param_file_command = "/hd0/Rosetta/main/source/src/python/apps/public/molfile_to_params.py -n %(name)s --long-names --clobber --conformers-in-one-file --mm-as-virt %(path)s"
+    param_file_command = path_to_params + " -n %(name)s --long-names --clobber --conformers-in-one-file --mm-as-virt %(path)s"
     
-    output_param_path = "%s.param" % ligand_name
+    output_param_path = "%s.params" % ligand_name
     output_pdb_path = "%s.pdb" % ligand_name
     output_conformer_path = "%s_conformers.pdb" % ligand_name
     
     subprocess.call(param_file_command % {"name" : ligand_name, "path" : input_sdf_path},shell=True)
     
-    os.rename(output_param_path,full_dir + "/" + output_param_path)
-    os.rename(output_pdb_path,full_dir + "/" + output_pdb_path)
-    os.rename(output_conformer_path,full_dir + "/" + output_conformer_path)
+    try:
+        shutil.move(os.getcwd()+"/"+output_param_path,full_dir + "/" + output_param_path)
+    except IOError:
+        print "something went wrong with",ligand_name
+        return None
+    shutil.move(os.getcwd()+"/"+output_pdb_path,full_dir + "/" + output_pdb_path)
+    try:
+        shutil.move(os.getcwd()+"/"+output_conformer_path,full_dir + "/" + output_conformer_path)
+    except IOError:
+        print "No conformers for",ligand_name
     return full_dir + "/" + output_param_path
+    
+    
+def append_activity_tag_to_params(data):
+    if data["output_path"] != None:
+        with open(data["output_path"],'a') as paramfile:
+            paramfile.write("STRING_PROPERTY %s %s\n" % ("system_name",data["tag"]) )
+            paramfile.write("NUMERIC_PROPERTY %s %f\n" % ("log_ki",data["value"]) )
     
 def process_input_sdf(data):
     ligand_name = data["ligand_name"]
@@ -95,6 +112,7 @@ def process_input_sdf(data):
     output_dir = data["output_dir"]
     output_path = make_param_file(input_sdf_path,ligand_name,output_dir)
     data["output_path"] = output_path
+    append_activity_tag_to_params(data)
     return data
     
     
@@ -107,12 +125,12 @@ def add_ligand_names(ligand_path_data,rosetta_database):
         'U','V','W','X','Y',
         'Z','0','1','2','3',
         '4','5','6','7','8','9' ]
-    name_size = required_ligand_name_length(len(ligand_name_paths))
+    name_size = required_ligand_name_length(len(ligand_path_data))
     names = itertools.product(character_space,repeat=name_size)
     disallowed_ligands =get_disallowed_ligands(rosetta_database)
     for index,record in enumerate(ligand_path_data):
         while True:
-            ligand_name = ligand_names.next()
+            ligand_name = names.next()
             ligand_name = "".join(ligand_name)
             if ligand_name not in disallowed_ligands:
                 break
@@ -121,12 +139,14 @@ def add_ligand_names(ligand_path_data,rosetta_database):
         
     return ligand_path_data
 
+
     
 def init_options():
     usage = "%prog -jn ligands.db3 params_output_dir"
     parser=OptionParser(usage)
     parser.add_option("-j",dest="nprocs",default=2)
     parser.add_option("--database",dest="database",help="path to rosetta database",default="")
+    parser.add_option("--path_to_params",dest="params_path",help="path to the molfile_to_params script", default="")
     return parser
     
 if __name__ == "__main__":
@@ -135,7 +155,7 @@ if __name__ == "__main__":
     
     database_name = args[0]
     output_dir = args[1]
-    
+    path_to_params = options.params_path
     processor_pool = Pool(int(options.nprocs))
     
     setup_dir_for_filehash(output_dir)

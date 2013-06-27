@@ -114,6 +114,8 @@ def add_params_data(db_name,data_list):
         tag_id = record["tag_id"]
         ligand_name = record["ligand_name"]
         filename = record["filename"]
+        if filename == None:
+            continue
         cursor.execute(insert_string,(tag_id,ligand_name,filename))
         connection.commit()
     connection.close()

@@ -22,7 +22,6 @@ Prerequisites
       string,string
       ligand_1,path/to/ligand1
       ligand_2,path/to/ligand2
-      
    ```
 * CORINA (optional)
    * if you want to add hydrogens using the included script you will need a copy of corina

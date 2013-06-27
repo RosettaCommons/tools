@@ -34,7 +34,7 @@ def get_name_from_params(path,database):
             for line in paramsfile:
                 line = line.split()
                 if len(line) >0:
-                    if line[0] == "IO_STRING":
+                    if line[0] == "NAME":
                         return line[1]
         else:
             return None

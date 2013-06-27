@@ -10,6 +10,7 @@ import os
 import hashlib
 import subprocess
 from multiprocessing import Pool
+from optparse import OptionParser
 
 def get_name_from_params(path,database):
     '''Given the path to a params file, return the IO_STRING value.  if it doesn't exist, return None'''
@@ -66,7 +67,7 @@ def setup_dir_for_filehash(output_dir):
     subdirs = ["".join(y) for y in itertools.product(character_set,repeat=2)]
     for subdir in subdirs:
         outpath = output_dir+"/"+subdir
-        if not os.path.exists(outpath)
+        if not os.path.exists(outpath):
             os.mkdir(outpath)
             
 def make_param_file(input_sdf_path,ligand_name,output_dir):
@@ -128,9 +129,9 @@ def init_options():
     parser.add_option("--database",dest="database",help="path to rosetta database",default="")
     return parser
     
-if __main__ == "__name__":
+if __name__ == "__main__":
     
-    (options,args) = init_options()
+    (options,args) = init_options().parse_args()
     
     database_name = args[0]
     output_dir = args[1]

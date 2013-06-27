@@ -50,6 +50,7 @@ my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
 # $NR will be used if empty
 my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 
+
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
 
@@ -92,8 +93,29 @@ my $install_dependencies_option = "standard"; # "overwrite";
 $BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
 $SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh" if (!-s $SPARKS);
 $PSIPRED_DIR = "$Bin/psipred" if (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data");
-$NR = "$Bin/databases/nr" if (!-s "$NR.pal");
-$PFILTNR = "$Bin/databases/nr_pfilt" if (!-s "$PFILTNR.pal");
+
+my @POSSIBLE_NR_LOCATIONS = (
+	$NR,
+	"$Bin/databases/nr",
+	"$Bin/../../../databases/nr/nr",
+	"/scratch/robetta/local_db/nr/nr",
+	"/work/robetta/databases/local_db/nr/nr"
+);
+
+my $skip_nr = "";
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s "$n.pal") {
+		$NR = $n;
+		$skip_nr = "skip_nr";
+		last;
+	}
+}
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s $n."_pfilt.pal") {
+		$PFILTNR = $n."_pfilt";
+		last;
+	}
+}
 my $must_install = 0;
 if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
 	print "Dependency 'blast' does not exist!\n";
@@ -106,9 +128,12 @@ if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
 	$must_install = 1;
 } elsif (!-s "$NR.pal") {
 	print "Dependency 'nr' does not exist!\n";
+	$NR = "$Bin/databases/nr";
 	$must_install = 1;
 } elsif (!-s "$PFILTNR.pal") {
 	print "Dependency 'nr_pfilt' does not exist!\n";
+	$PFILTNR = "$Bin/databases/nr_pfilt";
+	$skip_nr = "";
 	$must_install = 1;
 }
 if ($must_install) {
@@ -116,7 +141,7 @@ if ($must_install) {
 	print "Running install_dependencies.pl\n";
 	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
 	print "Please be patient.....\n\n";
-	system("$Bin/install_dependencies.pl $install_dependencies_option");
+	system("$Bin/install_dependencies.pl $install_dependencies_option $skip_nr");
 	print "\n";
 }
 
@@ -190,19 +215,12 @@ if (!-s $FRAGMENT_PICKER) {
 }
 
 # check nr database
-if (!-s "$NR.pal") {
-  warn "WARNING! $NR does not seem to be formated. Trying to format. Be patient.\n";
-  system("$BLAST_DIR/bin/formatdb  -o T -i $NR");
-}
-if (-s $PFILTNR) {
-  if (!-s "$PFILTNR.pal") {
-    warn "WARNING! $PFILTNR does not seem to be formated. Trying to format. Be patient.\n";
-    system("$BLAST_DIR/bin/formatdb  -o T -i $PFILTNR");
-  }
-} else {
+if (!-s $PFILTNR) {
 	$PFILTNR = $NR;
+	print_debug("nr_pfilt database missing so using nr: $NR");
 }
-(-s $NR) or die "ERROR! $NR does not exist. It is available at ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz\n";
+(-s $NR) or die "ERROR! $NR does not exist.\n";
+
 
 # for homolog detection
 my $VALL_BLAST_DB = "$VALL.blast";
@@ -340,7 +358,7 @@ print_debug("Sequence: $sequence");
 if ($SPARKS) {
     unless ( &nonempty_file_exists( $options{fastafile} . ".phipsi" ) ) {
         print_debug(
-            "running sparks for phi, psi, and solvent accessibility predictions"
+            "Running sparks for phi, psi, and solvent accessibility predictions"
         );
         ( system("$SPARKS $options{fastafile}") == 0
               && -s $options{fastafile} . ".phipsi" )
@@ -350,7 +368,8 @@ if ($SPARKS) {
 
 # run blast
 unless ( &nonempty_file_exists("$options{runid}.check") ) {
-    print_debug("running psiblast for sequence profile");
+    print_debug("Running psiblast for sequence profile");
+    print_debug("Using nr: $NR");
     if (
         !&try_try_again(
 "$PSIBLAST -t 1 -i $options{fastafile} -F F -j2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
@@ -384,7 +403,8 @@ push( @cleanup_files, ( "$options{runid}.pssm", "error.log" ) );
 if ( $options{psipred}
     || ( $options{psipredfile} && -s $options{psipredfile} ) )
 {
-    print_debug("running psipred");
+    print_debug("Running psipred");
+    print_debug("Using nr_pfilt: $PFILTNR");
 
     if ( $options{psipredfile} && -s $options{psipredfile} ) {
         $options{psipred} = 1;
@@ -506,7 +526,7 @@ if ( $options{porter} || ( $options{porterfile} && -s $options{porterfile} ) ) {
         print_debug("porter file ok.");
     }
     else {
-	print_debug("running porter.");
+	print_debug("Running porter.");
 			if (
         !&try_try_again(
             "$PORTER $options{fastafile}", 2,
@@ -546,7 +566,7 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
         print_debug("sam file ok.");
     }
     else {
-	print_debug("running sam.");
+	print_debug("Running sam.");
         my $target99_out      = "$options{runid}.target99";
         my $target99_a2m_file = $target99_out . ".a2m";
 

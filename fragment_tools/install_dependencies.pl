@@ -5,7 +5,7 @@ $| = 1; # disable stdout buffering
 
 if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 	print "\n";
-	print "USAGE: $0 <standard|overwrite>\n\n";
+	print "USAGE: $0 <standard|overwrite> [skip_nr]\n\n";
 	print "This script installs blast, psipred, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "The <standard> option will only install what is missing.\n";
 	print "The <overwrite> option will do a fresh installation.\n\n";
@@ -25,6 +25,12 @@ if (!scalar@ARGV || $ARGV[0] !~ /^(standard|overwrite)$/) {
 }
 my $overwrite = ($ARGV[0] eq 'overwrite') ? 1 : 0;
 my @packages_to_clean;
+
+my $skip_nr = 0;
+foreach my $arg (@ARGV) {
+	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
+}
+
 chdir($Bin);
 
 # blast binaries
@@ -162,7 +168,7 @@ our $datdir = "$Bin/databases";
 #  Sequence searches would be much faster
 
 # NR database
-if ($overwrite || !-s "$datdir/nr.pal") {
+if (!$skip_nr && ($overwrite || !-s "$datdir/nr.pal")) {
 	chdir($datdir);
 	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
 	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "update_blastdb.pl");
@@ -185,7 +191,7 @@ if ($overwrite || !-s "$datdir/nr.pal") {
 chdir($Bin);
 
 # p_filt NR database
-if ($overwrite || !-s "$datdir/nr_pfilt.pal") {
+if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	chdir($datdir);
 	print "Generating nr fasta. Be very very patient ......\n";
 	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > nr";
@@ -208,8 +214,8 @@ print " Installed\n";
 print "     blast: $Bin/blast\n";
 print "   psipred: $Bin/psipred\n";
 print "  sparks-x: $Bin/sparks-x\n";
-print "        nr: $Bin/databases/nr\n";
-print "  nr_pfilt: $Bin/databases/nr_pfilt\n";
+print "        nr: $Bin/databases/nr\n" if (!$skip_nr);
+print "  nr_pfilt: $Bin/databases/nr_pfilt\n" if (!$skip_nr);
 print "\nDone!\n";
 
 print $blast_credit;

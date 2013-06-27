@@ -150,8 +150,8 @@ def main(args):
     )
 
     parser.add_option("--timeout",
-      default=900, type="int",
-      help="Maximum runtime for rosetta relax run (use 0 for unlimit), default is 900 - 15min limit",
+      default=7200, type="int",
+      help="Maximum runtime for rosetta relax run (use 0 for unlimit), default is 7200 - 2h limit",
     )
 
     parser.add_option("--quick","-q",

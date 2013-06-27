@@ -76,12 +76,14 @@ if len( fasta ) > 0 :
 
 if len( secstruct_file ) > 0 :
     assert( len(secstruct) == 0 )
-    secstruct = open( secstruct_file ).readlines()[0][:-1]
+    secstruct = open( secstruct_file ).readlines()[0].replace( '\n','').replace('\r','')
 
 if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
 
-assert( len( sequence ) == len( secstruct ))
+if( not len( sequence ) == len( secstruct )):
+    print 'Length of sequence & secstruct do not match: ', len( sequence ), len( secstruct )
+    exit( 1 )
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
 assert( secstruct.count('{') == secstruct.count('}') )
@@ -143,13 +145,16 @@ input_res = []
 
 resnum_list = []
 for pdb in input_pdbs:
-    seq, resnum = get_seq_and_resnum(pdb)
+    pdb_seq, resnum = get_seq_and_resnum(pdb)
+    pdb_seq = pdb_seq.lower()
     actual_seq = ''
     for i in resnum:
         if i in input_res:
             raise ValueError('Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
-    if seq != actual_seq:
+    if pdb_seq != actual_seq:
+        print pdb_seq
+        print actual_seq
         raise ValueError('The sequence in %s does not match input sequence!!' % pdb)
     resnum_list.append(resnum)
     input_res += resnum
@@ -379,7 +384,7 @@ print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna" % (params_file, fasta_file, tag )
+command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna -analytic_etable_evaluation 0" % (params_file, fasta_file, tag )
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb

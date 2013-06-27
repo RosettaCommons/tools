@@ -249,7 +249,7 @@ def main(args):
     if not(options.light_chain and options.heavy_chain):
         print 'Script for preparing detecting antibodys and preparing info for Rosetta protocol.'
         print 'At miminum you need to specify options --light-chain and --heavy-chain.'
-        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
+        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specified... exiting...'
         sys.exit(1)
 
     #read fasta files

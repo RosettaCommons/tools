@@ -47,6 +47,7 @@ def write_data(db_name,table,columns,data_list):
     connection.close()
     
 def write_tag_data(db_name,data_list):
+    '''given a deata list, write activity tag information'''
     insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
     query_string = "SELECT record_id FROM sdf_input_data WHERE ligand_id = ?"
     
@@ -54,12 +55,6 @@ def write_tag_data(db_name,data_list):
     cursor = connection.cursor()
     
     query_record_id_map = {}
-    #print "getting ids for",len(data_list),"values"
-    #for record in data_list:
-    #    ligand_id = record["ligand_id"]
-    #    for row in cursor.execute(query_string,(ligand_id,)):
-    #        query_record_id_map[ligand_id] =row[0]
-    #print "writing activity tags"
     skip_count = 0
     for record in data_list:
         ligand_id = record["ligand_id"]
@@ -81,6 +76,7 @@ def write_tag_data(db_name,data_list):
     
 
 def get_all_file_names(db_name,only_tagged=False):
+    '''Generator producing file names for every input sdf'''
     if only_tagged:
         select_string = "SELECT sdf_input_data.record_id,filename FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     else:
@@ -93,6 +89,7 @@ def get_all_file_names(db_name,only_tagged=False):
     connection.close()
     
 def get_file_names_with_activity_data(db_name):
+    '''generator producing sdf filenames and activity tag data'''
     select_string = "SELECT sdf_input_data.record_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
@@ -107,6 +104,7 @@ def get_file_names_with_activity_data(db_name):
     connection.close()
     
 def get_params_information(db_name):
+    '''Generator produce params file path information'''
     select_string = "SELECT tag, filename FROM params_data JOIN activity_tags ON params_data.tag_id = activity_tags.tag_id"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
@@ -119,6 +117,7 @@ def get_params_information(db_name):
     connection.close()
         
 def add_params_data(db_name,data_list):
+    '''add information about a new params filename'''
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     insert_string = "INSERT INTO params_data  (tag_id,ligand_name,filename) VALUES (?,?,?)"
@@ -134,6 +133,7 @@ def add_params_data(db_name,data_list):
         
     
 def update_filenames(db_name, filename_update_data):
+    '''update an sdf file path'''
     update_string = "UPDATE sdf_input_data SET filename = ? WHERE record_id = ?"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()

@@ -14,6 +14,7 @@ from multiprocessing import Pool
 import shutil 
 
 def already_processed(input_file):
+    '''Figure out if corina has already processed a file'''
     in_handle = open(input_file)
     for i, line in enumerate(in_handle):
         if i == 1:

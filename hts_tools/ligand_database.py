@@ -116,6 +116,19 @@ def get_params_information(db_name):
         }
     connection.close()
         
+def get_params_sdf_mapping(db_name):
+    '''Generator to produce mapping between params name and sdf path'''
+    select_string = "SELECT ligand_name,sdf_input_data.filename FROM params_data JOIN activity_tags ON params_data.tag_id = activity_tags.tag_id JOIN sdf_input_data ON activity_tags.record_id = sdf_input_data.record_id"
+    
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    for  name, filename in cursor.execute(select_string):
+        yield {
+            "ligand_name" : name,
+            "file_name" : filename
+        }
+    connection.close()
+
 def add_params_data(db_name,data_list):
     '''add information about a new params filename'''
     connection = sqlite3.connect(db_name)

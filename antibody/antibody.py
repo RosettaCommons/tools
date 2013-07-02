@@ -1352,17 +1352,34 @@ def self_test():
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)
-        CDRs.update( Extract_FR_CDR_Sequences(**CDRs) )
+        extract_fr_cdr = Extract_FR_CDR_Sequences(**CDRs) 
+        #print extract_fr_cdr 
+        CDRs.update(extract_fr_cdr)
 
         write_results(CDRs, prefix=test_dir)
-        CDRs['numbering_L'] = file(test_dir+'/numbering_L.txt').read()
-        CDRs['numbering_H'] = file(test_dir+'/numbering_H.txt').read()
+        if os.path.isfile(test_dir+'/numbering_L.txt'):
+            CDRs['numbering_L'] = file(test_dir+'/numbering_L.txt').read()
+        if os.path.isfile(test_dir+'/numbering_H.txt'):
+            CDRs['numbering_H'] = file(test_dir+'/numbering_H.txt').read()
 
+        num_errors=0
+        num_warnings=0
         for a in sorted( answers.keys() ):  #['L1', 'L2', 'L3', 'H1', 'H2', 'H3']: #
-            if answers[a] != CDRs[a]:
-                print 'ERROR: target=%s field %s is not equal!!!\nexpected:%s\n     got:%s' % (t, a, answers[a], CDRs[a])
-                sys.exit(1)
-            elif Options.verbose: print '  %s: OK' % a
+            try:
+                if answers[a] != CDRs[a]:
+                    print 'ERROR: target=%s field %s is not equal!!!\nexpected:%s\n     got:%s' % (t, a, answers[a], CDRs[a])
+                    num_errors += 1
+                elif Options.verbose: print '  %s: OK' % a
+            except KeyError:
+                print "WARNING: Could not find answer '%s'" % a
+                num_warnings += 1
+        if 0<num_errors:
+            print "Found %d errors and %d warnings on test %s - exiting." % (num_errors,num_warnings,t)
+            sys.exit(1)
+        else:
+            if 0<num_warnings:
+                print "Found %d warnings on test %s - continuing, please investigate." % (num_warnings, t)
+                num_warnings=0
 
 
 

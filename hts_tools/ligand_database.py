@@ -129,6 +129,16 @@ def get_params_sdf_mapping(db_name):
         }
     connection.close()
 
+def get_sdf_path_from_ligand_name(db_name,ligand_name):
+    '''Given a ligand_name, return the filename of the sdf file'''
+    select_string = "SELECT sdf_input_data.filename FROM params_data JOIN activity_tags ON params_data.tag_id = activity_tags.tag_id JOIN sdf_input_data ON activity_tags.record_id = sdf_input_data.record_id WHERE ligand_name = ?"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(select_string,(ligand_name,))
+    filename = cursor.fetchone()[0]
+    connection.close()
+    return filename
+
 def add_params_data(db_name,data_list):
     '''add information about a new params filename'''
     connection = sqlite3.connect(db_name)

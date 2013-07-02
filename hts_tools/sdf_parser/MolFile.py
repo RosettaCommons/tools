@@ -293,7 +293,7 @@ class MolFile:
         
     
     def data_to_string_list(self):
-        """Output the stored molfile data as a """
+        """Output the stored molfile data as a list of strings"""
         string_list = []
         
         #output header

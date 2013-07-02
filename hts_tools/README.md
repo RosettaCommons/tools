@@ -91,7 +91,7 @@ Scripts
    * To run the script:
    
    ```
-      add_ligands_to_job_file.py ligands.db3 input_screening_file.js output_screening_file.js
+      add_ligands_to_job_file.py database.db3 input_screening_file.js output_screening_file.js
    ```
 
 * get_descriptor_data.py
@@ -101,5 +101,14 @@ Scripts
    * To run the script:
    
    ```
-      get_descriptor_data.py --batch-description=batch_description --host=host.com --username=user --database-name=db_name output.js
+      get_descriptor_data.py --batch-description=batch_description --host=host.com --username=user --database-name=db_name descriptor_data.js
+   ```
+
+* prepare_sdfs_for_bcl.py
+   * given a ligand database and a json file produced by get_descriptor_data.py, output an sdf file with every field in the descriptor json file as a property
+   * if multiple conformers are generated, only 1 conformer for each ligand will be used.
+   * to run the script:
+   
+   ```
+      prepare_sdfs_for_bcl.py database.db3 descriptor_data.js ligands_for_bcl.sdf
    ```

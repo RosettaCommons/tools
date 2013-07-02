@@ -419,8 +419,14 @@ def safelen(seq):
 def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
-    light_first, light_second = (light_chain[:60], light_chain[50:50+60]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:60], heavy_chain[50:50+90]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    (light_first, light_second) = (light_chain[:60], light_chain[50:50+60]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
+    (heavy_first, heavy_second) = (heavy_chain[:60], heavy_chain[50:50+90]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+
+    if Options.verbose:
+        print "light_first: %s (%d residues)"  % (light_first,  len(light_first))
+        print "light_second: %s (%d residues)" % (light_second, len(light_second))
+        print "heavy_first: %s (%d residues)"  % (heavy_first,  len(heavy_first))
+        print "heavy_second: %s (%d residues)" % (heavy_second, len(heavy_second))
 
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
@@ -1341,8 +1347,8 @@ def self_test():
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()
 
         if Options.verbose:
-            print 'light_chain:', light_chain
-            print 'heavy_chain:', heavy_chain
+            print 'light_chain: %s (%d residues)' % (light_chain, len(light_chain))
+            print 'heavy_chain: %s (%d residues)' % (heavy_chain, len(heavy_chain))
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)

@@ -766,6 +766,10 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
     FRL = print_seq_FR_L1 + print_seq_FR_L2 + print_seq_FR_L3 + print_seq_FR_L4
     FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4
 
+    if Options.verbose:
+        print "FRL: %s (%d residues)" % (FRL,len(FRL))
+        print "FRH: %s (%d residues)" % (FRH,len(FRH))
+
     if len(FRL) != 58 and len(FRL) != 60:
         print "ERROR: Current DB does not cover the length of FRL of your query."
         print "ERROR: FRL length of your query:", len(FRL)

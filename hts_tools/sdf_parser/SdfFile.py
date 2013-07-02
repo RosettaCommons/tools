@@ -5,7 +5,7 @@ class SdfFile:
     def __init__(self):
         self.molecule_map = {}
         
-    def add_file(self,file):
+    def add_file(self,file,only_first_conformer=False):
         """Add an SDF file to the molecule map"""
         file_handle = open(file,'r')
         line_list = []
@@ -16,7 +16,10 @@ class SdfFile:
                 name = mol_record.get_molecule_name()
                 self.molecule_map[name] = mol_record
                 line_list = []
-                continue
+                if only_first_conformer:
+                    break
+                else:
+                    continue
             
             line_list.append(line)
         file_handle.close()

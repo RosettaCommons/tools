@@ -93,3 +93,13 @@ Scripts
    ```
       add_ligands_to_job_file.py ligands.db3 input_screening_file.js output_screening_file.js
    ```
+
+* get_descriptor_data.py
+   * This script gets descriptor information from data output to a database using the screening features reporter
+   * This script requires that sqlalchemy be installed
+   * Currently this script only makes mysql engine connections, but can be easily modified to support other backends
+   * To run the script:
+   
+   ```
+      get_descriptor_data.py --batch-description=batch_description --host=host.com --username=user --database-name=db_name output.js
+   ```

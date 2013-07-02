@@ -1334,8 +1334,8 @@ def self_test():
     for t in tests:
         test_dir = Options.self_test_dir+t+'/';  os.makedirs(test_dir)
         if Options.verbose: print 'Testing target: %s...' % t
-        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)
-        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)
+        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)[0]
+        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)[0]
         answers = json.load( file('test/%s/%s.json' % (t, t) ) )
         answers['numbering_L'] = file('test/%s/numbering_L.txt' % t).read()
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()

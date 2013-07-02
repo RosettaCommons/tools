@@ -391,8 +391,8 @@ def read_fasta_file(file_name):
     for l in file(file_name):
         if l.startswith('>'):
             if not "" == seq:
-	        seqArray.append(seq) 
-		seq=""
+                seqArray.append(seq) 
+                seq=""
             seqArrayNames.append(l.rstrip())
         else:
             seq=seq+l.rstrip()
@@ -808,7 +808,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         input_query = k + '.fasta'
         output = k + '.align'  # Options.prefix +
 
-		# if CDRs, use length-depend DBs for BLAST
+        # if CDRs, use length-depend DBs for BLAST
         len_cdr = len(cdr_query[k])
         if k.count('FR') or k.count('heavy') or k.count('light'): db = blast_database + '/database.%s' % k
         else: db = blast_database + '/database.%s.%s' % (k, len_cdr)
@@ -875,12 +875,12 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
             else:  # if there is no template... table is a list, which has a blast result
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
-		    try:
+                    try:
                         if len_cdr == int(v[1][check_length]):
                             pdb_random = v[0]
                             break
-		    except KeyError:
-		        print 'WARNING: Catching something that may be a programming error, could not find index "%s".\n' % check_length
+                    except KeyError:
+                        print 'WARNING: Catching something that may be a programming error, could not find index "%s".\n' % check_length
                 print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
                 custom_template = pdb_random
                 #sys.exit(1)
@@ -1087,7 +1087,7 @@ def run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_data
             print "Error: Could not find output file of %s expected at '%s'. The command executed was:\n%s" % (toolname, direct_output_filename, commandline)
             sys.exit(1)
         shutil.move(direct_output_filename, preferred_output_filename)
-	return res
+        return res
     else:
         print "Rosetta tool '%s' has no executable at '%s'." % (toolname,antibody_graft)
         return -1
@@ -1301,17 +1301,17 @@ PDB_Records = {
         "name"      : (13, 16), # Atom
         "altLoc"    : (17, 17), # Character
         "resName"   : (18, 20), # Residue name
-		"chainID"   : (22, 22), # Character
-		"resSeq"    : (23, 26), # Integer
-		"iCode"     : (27, 27), # AChar
-		"x"         : (31, 38), # Real(8.3)
-		"y"         : (39, 46), # Real(8.3)
-		"z"         : (47, 54), # Real(8.3)
-		"occupancy" : (55, 60), # Real(6.2)
-		"tempFactor": (61, 66), # Real(6.2)
-		#///"segID",     Field(73, 76),
-		"element"   : (77, 78), # LString(2)
-		"charge"    : (79, 80)  # LString(2)
+        "chainID"   : (22, 22), # Character
+        "resSeq"    : (23, 26), # Integer
+        "iCode"     : (27, 27), # AChar
+        "x"         : (31, 38), # Real(8.3)
+        "y"         : (39, 46), # Real(8.3)
+        "z"         : (47, 54), # Real(8.3)
+        "occupancy" : (55, 60), # Real(6.2)
+        "tempFactor": (61, 66), # Real(6.2)
+        #///"segID",     Field(73, 76),
+        "element"   : (77, 78), # LString(2)
+        "charge"    : (79, 80)  # LString(2)
     },
     "UNKNOW" : {
         "type" : (1,  6),

@@ -50,6 +50,7 @@ my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
 # $NR will be used if empty
 my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 
+
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
 
@@ -83,15 +84,40 @@ my $SAM_PREDICT_2ND_DIR = "";
 # http://distill.ucd.ie/porter/
 my $PORTER = "";
 
+my $INSTALL_DEPENDENCIES = "standard"; # "overwrite";
+my $INSTALL_DEPENDENCIES_DATABASE = "nr"; # "uniref50" # "uniref90"
+
 ### YOU CAN IGNORE THE REST ###################################################
 ###############################################################################
+
 
 # check for dependencies and install if necessary
 $BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
 $SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh" if (!-s $SPARKS);
 $PSIPRED_DIR = "$Bin/psipred" if (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data");
-$NR = "$Bin/databases/nr" if (!-s "$NR.pal");
-$PFILTNR = "$Bin/databases/nr_pfilt" if (!-s "$PFILTNR.pal");
+
+my @POSSIBLE_NR_LOCATIONS = (
+	$NR,
+	"$Bin/databases/nr",
+	"$Bin/../../../databases/nr/nr",
+	"/scratch/robetta/local_db/nr/nr",
+	"/work/robetta/databases/local_db/nr/nr"
+);
+
+my $skip_nr = "";
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s "$n.pal") {
+		$NR = $n;
+		$skip_nr = "skip_nr";
+		last;
+	}
+}
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s $n."_pfilt.pal") {
+		$PFILTNR = $n."_pfilt";
+		last;
+	}
+}
 my $must_install = 0;
 if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
 	print "Dependency 'blast' does not exist!\n";
@@ -104,17 +130,20 @@ if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
 	$must_install = 1;
 } elsif (!-s "$NR.pal") {
 	print "Dependency 'nr' does not exist!\n";
+	$NR = "$Bin/databases/nr";
 	$must_install = 1;
 } elsif (!-s "$PFILTNR.pal") {
 	print "Dependency 'nr_pfilt' does not exist!\n";
+	$PFILTNR = "$Bin/databases/nr_pfilt";
+	$skip_nr = "";
 	$must_install = 1;
 }
-if ($must_install) {
+if ($must_install && $INSTALL_DEPENDENCIES) {
 	print "\n";
 	print "Running install_dependencies.pl\n";
 	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
-	print "Please be patient.....\n";
-	system("$Bin/install_dependencies.pl force");
+	print "Please be patient.....\n\n";
+	system("$Bin/install_dependencies.pl $INSTALL_DEPENDENCIES $INSTALL_DEPENDENCIES_DATABASE $skip_nr");
 	print "\n";
 }
 
@@ -141,7 +170,6 @@ use Cwd qw/ cwd abs_path /;
 use bytes;
 
 my %options;
-$options{DEBUG} = 1;
 
 # initialize options
 my %opts = &getCommandLineOptions();
@@ -176,12 +204,7 @@ foreach my $key ( keys %opts ) {
     $options{$key} = $opts{$key};
 }
 
-# special option parsing
-if ( $options{verbose} ) {
-    $options{DEBUG} = 1;
-    print_debug("Run options:");
-    print_debug("be verbose.");
-}
+$options{DEBUG} = 1 if ( $options{verbose} );
 
 # check for picker
 if (!-s $FRAGMENT_PICKER) {
@@ -194,19 +217,12 @@ if (!-s $FRAGMENT_PICKER) {
 }
 
 # check nr database
-if (!-s "$NR.pal") {
-  warn "WARNING! $NR does not seem to be formated. Trying to format. Be patient.\n";
-  system("$BLAST_DIR/bin/formatdb  -o T -i $NR");
-}
-if (-s $PFILTNR) {
-  if (!-s "$PFILTNR.pal") {
-    warn "WARNING! $PFILTNR does not seem to be formated. Trying to format. Be patient.\n";
-    system("$BLAST_DIR/bin/formatdb  -o T -i $PFILTNR");
-  }
-} else {
+if (!-s $PFILTNR) {
 	$PFILTNR = $NR;
+	print_debug("nr_pfilt database missing so using nr: $NR");
 }
-(-s $NR) or die "ERROR! $NR does not exist. It is available at ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz\n";
+(-s $NR) or die "ERROR! $NR does not exist.\n";
+
 
 # for homolog detection
 my $VALL_BLAST_DB = "$VALL.blast";
@@ -263,10 +279,10 @@ if ( !defined( $opts{id} ) ) {
     print_debug("no id specified. parsing filename instead.");
 
     ( $options{id} ) = $options{fastafile} =~ /(\w+\.\w+)$/;
-    print_debug("INTERMEDIATE: $options{id}");
     ( $options{id} ) = $options{id} =~ /^(\w+)/;
 
     if ( length( $options{id} ) != 5 ) {
+	print_debug("cannot parse id from filename so using 't001_'");
         $options{id} = 't001_';
     }
 
@@ -344,7 +360,7 @@ print_debug("Sequence: $sequence");
 if ($SPARKS) {
     unless ( &nonempty_file_exists( $options{fastafile} . ".phipsi" ) ) {
         print_debug(
-            "running sparks for phi, psi, and solvent accessibility predictions"
+            "Running sparks for phi, psi, and solvent accessibility predictions"
         );
         ( system("$SPARKS $options{fastafile}") == 0
               && -s $options{fastafile} . ".phipsi" )
@@ -354,7 +370,8 @@ if ($SPARKS) {
 
 # run blast
 unless ( &nonempty_file_exists("$options{runid}.check") ) {
-    print_debug("running psiblast for sequence profile");
+    print_debug("Running psiblast for sequence profile");
+    print_debug("Using nr: $NR");
     if (
         !&try_try_again(
 "$PSIBLAST -t 1 -i $options{fastafile} -F F -j2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
@@ -382,14 +399,14 @@ unless ( &nonempty_file_exists("$options{runid}.checkpoint") ) {
         @checkpoint_matrix );
 }
 
-push( @cleanup_files,
-    ( "$options{runid}.blast", "$options{runid}.pssm", "error.log" ) );
+push( @cleanup_files, ( "$options{runid}.pssm", "error.log" ) );
 
 # Secondary Structure Prediction methods
 if ( $options{psipred}
     || ( $options{psipredfile} && -s $options{psipredfile} ) )
 {
-    print_debug("running psipred");
+    print_debug("Running psipred");
+    print_debug("Using nr_pfilt: $PFILTNR");
 
     if ( $options{psipredfile} && -s $options{psipredfile} ) {
         $options{psipred} = 1;
@@ -511,7 +528,7 @@ if ( $options{porter} || ( $options{porterfile} && -s $options{porterfile} ) ) {
         print_debug("porter file ok.");
     }
     else {
-    	print_debug("running porter.");
+	print_debug("Running porter.");
 			if (
         !&try_try_again(
             "$PORTER $options{fastafile}", 2,
@@ -551,7 +568,7 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
         print_debug("sam file ok.");
     }
     else {
-    		print_debug("running sam.");
+	print_debug("Running sam.");
         my $target99_out      = "$options{runid}.target99";
         my $target99_a2m_file = $target99_out . ".a2m";
 
@@ -645,6 +662,19 @@ if ( $options{sam} || ( $options{samfile} && -s $options{samfile} ) ) {
 }
 
 # Vall and homolog searches
+my %excluded_homologs;
+if (-s "$options{runid}.homolog") {
+	open(F, "$options{runid}.homolog") or die "ERROR! cannot open $options{runid}.homolog: $!\n";
+	while (<F>) {
+		if (/^(\S{5})/) {
+			$excluded_homologs{$1} = 1;
+		} elsif (/^(\S{4})/) {
+			$excluded_homologs{$1} = 1;
+		}
+	}
+	close(F);
+}
+
 if ( !$options{homs} ) {
 
     print_debug("excluding homologs.");
@@ -681,6 +711,9 @@ if ( !$options{homs} ) {
     &exclude_outn( $options{runid} );
 }
 
+my %exclude_homologs_by_pdb_date_pdbs;
+my %exclude_homologs_by_pdb_date_checked_pdbs;
+my $cutoff_date_str;
 if ( $options{exclude_homologs_by_pdb_date} ) {
 	my $exclude_homologs_by_pdb_date = $options{exclude_homologs_by_pdb_date};
 	print_debug("exclude_homologs_by_pdb_date: $exclude_homologs_by_pdb_date");
@@ -690,6 +723,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		$cutoff_m = $1;
 		$cutoff_d = $2;
 		$cutoff_y = $3;
+	# yyyymmdd format
 	} elsif ( $exclude_homologs_by_pdb_date =~ /^(\d\d\d*)(\d\d)(\d\d)$/ ) {
 		$cutoff_y = $1;
 		$cutoff_m = $2;
@@ -698,11 +732,11 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		die "ERROR! $exclude_homologs_by_pdb_date date format is incorrect: must be mm/dd/yy or yyyymmdd\n";
 	}
 	# try to convert 2 digit year to full calendar year - hacky
-	my $cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
-	
+	$cutoff_date_str = &convert_twodigit_to_full_calendar_year( $cutoff_y, $cutoff_m, $cutoff_d );
+
 	# update pdb_revdat.txt
 	print_debug("Getting latest pdb_revdat.txt....");
-	system("$Bin/get_revdat.pl");
+	system("$Bin/update_revdat.pl");
 
 	my %month_str_to_num = (
 		'JAN' => '01',
@@ -718,14 +752,12 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 		'NOV' => '11',
 		'DEC' => '12');
 
-	open( HOMF, ">>$options{runid}.homolog" );
-	print HOMF "# excluded by release date $options{exclude_homologs_by_pdb_date}\n";
 	open( F, "$Bin/pdb_revdat.txt" )
 		or die "ERROR! cannot open $Bin/pdb_revdat.txt: $!\n";
 	foreach my $l (<F>) {
 		if ($l =~ /^(\S{4})\s+REVDAT\s+(\d+)\s+(\d+)\-(\w\w\w)\-(\d+)\s+\S{4}\s+(\d+)/) {
 			#2w6x REVDAT   1   22-DEC-09 2W6X    0
-			my $rcode = $1;
+			my $rcode = lc $1;
 			my $rnum = $2;
 			my $rday = $3;
 			my $rmonth = $month_str_to_num{$4};
@@ -733,16 +765,14 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 			my $rstatus = $6;
 			$rday = "00$rday";
 			$rday =~ s/^.*(\d\d)\s*$/$1/gs;
-			# try to convert 2 digit year to full calendar year - hacky
+			# try to convert 2 digit year to full calendar year
 			my $rtmpdate = &convert_twodigit_to_full_calendar_year( $ryear, $rmonth, $rday );
 			if ($rstatus eq '0' && $rtmpdate > $cutoff_date_str  ) {
-				my $hit_pdb = lc $rcode;
-				print_debug("excluding $hit_pdb release date: $rtmpdate");
-				print HOMF "$hit_pdb\n";
+				$exclude_homologs_by_pdb_date_pdbs{$rcode} = $rtmpdate;
 			}
+			$exclude_homologs_by_pdb_date_checked_pdbs{$rcode} = 1;
 		}
 	}
-	close(HOMF);
 	close(F);
 }
 
@@ -769,12 +799,6 @@ sub convert_twodigit_to_full_calendar_year {
 	return $tmpdate;
 }
 
-if ( !$options{frags} ) {
-    cleanup(@cleanup_files);
-    exit 0;
-}
-
-# picker
 my @valls = ($VALL);
 if ( scalar @use_vall_files ) {
     @valls = @use_vall_files;
@@ -841,10 +865,53 @@ if ( scalar @pdbs_to_vall ) {
     }
 }
 
+# check valls for date filtering
+if ( $options{exclude_homologs_by_pdb_date} ) {
+	my %appended;
+	open( EXCL,  ">$options{runid}.homolog_by_pdb_date_$cutoff_date_str" ) or die "ERROR! cannot open!\n";;
+	open( EXCL2, ">>$options{runid}.homolog" );
+	print EXCL "# excluded because release date > $cutoff_date_str or missing in pdb_revdat.txt\n";
+	foreach my $v (@valls) {
+		if (-s "$v.gz") {
+			open(F, "gzip -dc $v.gz |") or die "ERROR! cannot open $v.gz: $!\n";
+		} else {
+			open(F, $v) or die "ERROR! cannot open $v: $!\n";
+		}
+		while (<F>) {
+			next if (/^#/);
+			if (/^(\S{4})\S\s+\S/) {
+				my $pdbcode = lc $1;
+				next if (exists $appended{$pdbcode});
+				if (!exists $exclude_homologs_by_pdb_date_checked_pdbs{$pdbcode}) {
+					print_debug("excluding $pdbcode because it is missing in pdb_revdat.txt");
+					print EXCL "$pdbcode\n";
+					print EXCL2 "$pdbcode\n" if (!exists $excluded_homologs{$pdbcode});
+					$appended{$pdbcode} = 1;
+				} elsif (exists $exclude_homologs_by_pdb_date_pdbs{$pdbcode}) {
+					print_debug("excluding $pdbcode released: $exclude_homologs_by_pdb_date_pdbs{$pdbcode}");
+					print EXCL "$pdbcode\n";
+					print EXCL2 "$pdbcode\n" if (!exists $excluded_homologs{$pdbcode});
+					$appended{$pdbcode} = 1;
+				}
+			}
+		}
+		close(F);
+	}
+	close(EXCL);
+	close(EXCL2);
+}
+
 my $valls_str = join ' ', @valls;
 
 chdir("$options{rundir}");
 
+
+if ( !$options{frags} ) {
+	cleanup(@cleanup_files);
+	exit 0;
+}
+
+# picker
 foreach my $size (@fragsizes) {
     my $ss_pred_cnt = 0;
     my $score_def;
@@ -1086,7 +1153,7 @@ sub getCommandLineOptions {
 		\t-frag_sizes <size1,size2,...n>
 		\t-n_frags <number of fragments>
 		\t-n_candidates <number of candidates>
-		\t-nofrags specify to not make fragments and just run SS predictions
+		\t-nofrags specify to not make fragments but run everything else
 		\t-old_name_format  use old name format e.g. aa1tum_05.200_v1_3
 		\t<fasta file>
 	};
@@ -1259,7 +1326,8 @@ sub exclude_outn {
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
         print EXCL "$hit_pdb$hit_chain\n";
-        print EXCL2 "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
+	$excluded_homologs{$hit_pdb.$hit_chain} = 1;
     }
 
     close(EXCL);
@@ -1296,7 +1364,8 @@ sub exclude_pdbblast {
         $hit_chain = '_' if ( $hit_chain eq '0' );
 
         print EXCL "$hit_pdb$hit_chain\n";
-        print EXCL2 "$hit_pdb$hit_chain\n";
+        print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
+	$excluded_homologs{$hit_pdb.$hit_chain} = 1;
     }
 
     close(EXCL);
@@ -1332,8 +1401,9 @@ sub exclude_blast {
             $hit_chain = '_' if ( $hit_chain =~ /^\s*$/ );
 
             print EXCL "$hit_pdb$hit_chain\n";
-            print EXCL2 "$hit_pdb$hit_chain\n";
-        }
+            print EXCL2 "$hit_pdb$hit_chain\n" if (!exists $excluded_homologs{$hit_pdb.$hit_chain});
+	    $excluded_homologs{$hit_pdb.$hit_chain} = 1;
+	}
     }
 
     close(EXCL);

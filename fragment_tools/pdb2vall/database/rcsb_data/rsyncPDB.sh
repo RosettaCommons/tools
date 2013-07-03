@@ -8,8 +8,8 @@
 #
 ############################################################################
 
-# This script is being provided to PDB users as a template for using rsync 
-# to mirror the FTP archive from an anonymous rsync server. You may want 
+# This script is being provided to PDB users as a template for using rsync
+# to mirror the FTP archive from an anonymous rsync server. You may want
 # to review rsync documentation for options that better suit your needs.
 #
 # Author: Thomas Solomon
@@ -24,8 +24,8 @@
 # You should CHANGE THE NEXT THREE LINES to suit your local setup
 ############################################################################
 
-MIRRORDIR=$( cd $( dirname -- "$0" ) > /dev/null ; pwd )		# your top level rsync directory
-RSYNC=/usr/bin/rsync																				# location of local rsync
+MIRRORDIR=$(dirname $(readlink -f $0)) # your top level rsync directory
+RSYNC=/usr/bin/rsync # location of local rsync
 
 if [ -z "$1" ] ; then
     echo "usage: $0 <full path to mirror directory>"
@@ -62,7 +62,7 @@ PORT=33444                                                    # port RCSB PDB se
 
 ############################################################################
 #--------------------------------------------------------------------------#
-# Targets to mirror the entire/parts of the FTP Tree 
+# Targets to mirror the entire/parts of the FTP Tree
 #--------------------------------------------------------------------------#
 ############################################################################
 

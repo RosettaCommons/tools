@@ -1391,10 +1391,9 @@ def self_test():
         if 0<num_errors:
             print "Found %d errors and %d warnings on test %s - exiting." % (num_errors,num_warnings,t)
             sys.exit(1)
-        else:
-            if 0<num_warnings:
-                print "Found %d warnings on test %s - continuing, please investigate." % (num_warnings, t)
-                num_warnings=0
+        elif 0<num_warnings:
+            print "Found %d warnings on test %s - continuing, please investigate." % (num_warnings, t)
+            num_warnings=0
 
 
 

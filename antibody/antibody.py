@@ -1104,7 +1104,7 @@ def run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_data
         shutil.move(direct_output_filename, preferred_output_filename)
         return res
     else:
-        print "Rosetta tool '%s' has no executable at '%s'." % (toolname,antibody_graft)
+        print "Rosetta tool '%s' has no executable at '%s'." % (toolname,executable_path)
         return -1
 
 

@@ -28,8 +28,8 @@ def delete_sampler_outfiles_and_folders(indir_prefix, delete_files):
 
 	'''
 	if(delete_files):
-		
-		folder_globstring = indir_prefix+'/' 
+
+		folder_globstring = indir_prefix+'/'
 		folder_globfiles = glob( folder_globstring )
 		folder_globfiles.sort()
 		for folder_globfile in folder_globfiles:
@@ -37,7 +37,7 @@ def delete_sampler_outfiles_and_folders(indir_prefix, delete_files):
 				print( command )
 				sys.stdout.flush()
 				sys.stderr.flush()
-				submit_subprocess( command ) 
+				submit_subprocess( command )
 	'''
 
 	if(delete_files):
@@ -45,7 +45,7 @@ def delete_sampler_outfiles_and_folders(indir_prefix, delete_files):
 		if(exists(outfolder)==False): error_exit_with_message("outfolder (%s) doesn't exist!" %(outfolder))
 		print "rm -r %s" %(outfolder)
 		submit_subprocess("rm -r %s" %(outfolder))
-	
+
 
 #############################################################################
 def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
@@ -55,12 +55,12 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 	if(exists( cat_outfile )): error_exit_with_message("cat_outfile (%s) already exist!" %(cat_outfile) )
 
 	########################################################
-	#less COMBINE_DS_REGIONS//COMBINE_REGION_8_0_and_1_7//BY_APPEND/S_1/combine_region_8_0_and_1_7_sample.out 
+	#less COMBINE_DS_REGIONS//COMBINE_REGION_8_0_and_1_7//BY_APPEND/S_1/combine_region_8_0_and_1_7_sample.out
 	#Error!: silent_file (COMBINE_DS_REGIONS//COMBINE_REGION_8_0_and_1_7//BY_APPEND/S_0/combine_ds_regions_sample.out) doesn't exist!
 
 	if(exists(condor_submit_file)==False): error_exit_with_message("condor_submit_file (%s) doesn't exist!" %(condor_submit_file) )
 
-	lines = safe_readlines(condor_submit_file) 
+	lines = safe_readlines(condor_submit_file)
 
 	num_queue_line=0
 	num_mapper_outfiles_line=0
@@ -72,9 +72,9 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		cols=line.split()
 
-		if(len(cols)<2): error_exit_with_message("len(cols)<2 for line (%s)" %(line))
+		if(len(cols)<2): continue # error_exit_with_message("len(cols)<2 for line (%s)" %(line))
 
-		if(cols[0] == 'Queue'): 
+		if(cols[0] == 'Queue'):
 
 			num_queue_line+=1
 
@@ -82,12 +82,12 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 			num_mapper_jobs=int(cols[1])
 
-		if( cols[0] == "mapper_outfiles"  ): 
+		if( check_tag( cols[0], "mapper_outfiles")  ):
 
 			num_mapper_outfiles_line=+1
 
 			#For general case, can have more than one mapper_outfile, but for SAMPLER and DS_COMBINE_SAMPLER, only have 1 mapper_outfile [per mapper_job].
-			if( len(cols)!=3 ): error_exit_with_message("len(cols)!=3 for mapper_outfiles line=(%s)" %(line)) 
+			if( len(cols)!=3 ): error_exit_with_message("len(cols)!=3 for mapper_outfiles line=(%s)" %(line))
 
 			if( cols[1] != "=" ): kill_all_slave_jobs_and_exit("cols[1] != \"=\" for mapper_outfiles line (%s)" %(line))
 
@@ -118,7 +118,7 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 		if(exists(silent_file)==False): error_exit_with_message("silent_file (%s) doesn't exist!" %(silent_file))
 
 		silent_data=safe_open(silent_file, mode='r', Is_master=False)
-	
+
 		first_silent_line=silent_data.readline();
 
 		silent_data.close()
@@ -131,7 +131,7 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		else:
 
-			assert_is_valid_non_empty_silent_file(silent_file)		
+			assert_is_valid_non_empty_silent_file(silent_file)
 
 			non_empty_silent_file_list.append(silent_file)
 
@@ -142,8 +142,8 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	if(len(non_empty_silent_file_list)==0): return True #Indicate that there are no non_empty silent_file 
-		
+	if(len(non_empty_silent_file_list)==0): return True #Indicate that there are no non_empty silent_file
+
 	concatenate_outfiles(infile_list=non_empty_silent_file_list, outfile=cat_outfile)
 
 	return False #Indicate that there are non-empty silent_files!
@@ -177,10 +177,10 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	if(exists( cat_outfile )): 
+	if(exists( cat_outfile )):
 		error_exit_with_message("cat_outfile (%s) already exist!" %(cat_outfile) )
 		#print "Warning cat_outfile (%s) already exist......removing!" %(cat_outfile)
-		#submit_subprocess("rm -r %s" %(cat_outfile))	
+		#submit_subprocess("rm -r %s" %(cat_outfile))
 
 	concatenate_outfiles(infile_list=globfiles, outfile=cat_outfile)
 
@@ -193,7 +193,7 @@ def filter_sampler_cat_outfile(filter_outfile, cat_outfile, min_filtered_struct)
 
 	remove_SCORE_file=False #Might want to keep this False while testing!
 
-	if(exists(filter_outfile)): 
+	if(exists(filter_outfile)):
 		print "Warning filter_outfile (%s) already exist....removing!" %(filter_outfile)
 		submit_subprocess("rm %s" %(filter_outfile))
 

@@ -217,8 +217,8 @@ cd src/python/bindings
     -I$prefix/include \\
     -I$prefix/include/boost \\
     -I%(python_prefix)s/include/%(i_python_lib)s \\
-    --python_lib %(i_python_lib)s \\
-    --boost_lib=boost_python \\
+    --python-lib %(i_python_lib)s \\
+    --boost-lib=boost_python \\
      -L . -L ./../../../../ -L$prefix/lib \\
      --compiler=%(compiler)s \\
      $*

@@ -1,0 +1,13 @@
+MaxSprout is now quite an old program; it is considered by
+many still to be the best of its kind.
+
+Recent Changes
+==============
+
+18/10/2006
+----------
+Bug spotted and fix kindly provided by Wouter Boomsma of the
+Bioinformatics Centre, University of Copenhagen. A segfault
+could be caused by a stack memory limit in some unix shells.
+Fixed to dynamically allocate heap memory for the offending
+struct instead of using the stack.

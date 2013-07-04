@@ -229,8 +229,6 @@ def does_PDB_match_fasta(pdb, fasta_file_sequence ):
     return ( seq_PDB == seq_fasta )
 
 
-
-
 longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
               'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
@@ -240,31 +238,14 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 
 # accepts a pdb file name, returns a string with pdb entries -- or None if there is an error.
-def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [] ):
+def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False ):
 
     #fastaid = stderr
     num_model = 0
     #max_model = 60 # for virus
     max_model = 0 # for virus
 
-    # an old baker lab thing:
-    #netpdbname = '/net/pdb/' + pdbname[1:3] + '/' + pdbname
-    #if not exists(netpdbname):
-    netpdbname = pdbname
-
     outstring = ''
-
-    #print 'Reading ... '+netpdbname
-    '''
-    if not exists( netpdbname ):
-        stderr.write( 'DOES NOT EXIST: %s\n' % netpdbname  )
-        return None
-
-    if ( netpdbname[-3:] == '.gz' ):
-        lines = popen( 'gzcat '+netpdbname ).readlines()
-    else:
-        lines = open(netpdbname,'r').readlines()
-        '''
 
     lines = map(lambda x: x+'\n', pdb.split('\n') )
 
@@ -278,6 +259,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             chainids[i] = ' '
 
     goodnames = [' rA',' rC',' rG',' rU',' MG']
+
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
@@ -382,6 +364,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                     continue
 
                 newnum = '%4d' % count
+                if no_renumber: newnum = '%4s' % resnum
+
                 line_edit = line_edit[0:16] + ' ' + longname + line_edit[20:22] + \
                             newnum + line_edit[26:]
                 if removechain:

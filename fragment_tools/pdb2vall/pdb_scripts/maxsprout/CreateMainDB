@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+# -*-Perl-*-
+#
+# Creates the set of '.main' files corresponding to the 'dglp.list'
+# file for Liisa's buildbackbone program.
+#
+# The .main files are created with the program readbrk.
+#
+# Chris Dodge -- EBI - Oct 96
+#
+
+# CONFIG STUFF ---------------------------------
+
+# readbrk executable.
+$exe_readbrk = "/homes/vsi/src/liisa/maxsprout/readbrk";
+
+# List of pdb files to be processed
+$in_list     = "./dglp.list";
+
+# Output directory
+$out_dir     = "./main_out";
+
+# CONFIG END -----------------------------------
+
+open(FLIST, $in_list) || die  "Can't open list file $in_list: $!\n";
+
+while (<FLIST>) {
+    chop;
+    if (!($_ =~ /^!/)) {     # ! at start of line is a comment
+
+	# Split input into directory and fileid
+	$in_dir = $_;
+	$in_dir =~ s/\/([a-zA-Z\._\-0-9]*$)//;
+
+	$pdb_file = $1;
+
+	$cmd = "$exe_readbrk -rd $in_dir -wd $out_dir -pdb $pdb_file";
+	#print "$cmd\n";
+	system $cmd;		
+    }
+}

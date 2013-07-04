@@ -11,11 +11,14 @@
 ## @file   antibody.py
 ## @brief  Pre-processing script for antibody protocol
 ## @author Sergey Lyskov
-## @author Modified by Daisuke Kuroda
+## @author Daisuke Kuroda
+## @author JKLeman
+## @author Jeff Gray
 
 import os, sys, re, json, commands, shutil
 
 from optparse import OptionParser, IndentedHelpFormatter
+from time import time
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -42,22 +45,23 @@ _alignment_legend_to_pretty_legend = {
 def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
+    starttime = time()
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
-    parser.add_option('--light-chain',
-      action="store",
-      help="Specify the light chain.",
+    parser.add_option('-L','--light-chain',
+        action="store",
+        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
-    parser.add_option('--heavy-chain',
-      action="store",
-      help="Specify the heavy chain.",
+    parser.add_option('-H','--heavy-chain',
+        action="store",
+        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
     )
 
     parser.add_option('--prefix',
-      action="store", default='output/',
-      help="Prefix for output files. Should be dir name. Default is ./ string.",
+      action="store", default='grafting/',
+      help="Prefix for output files (directory name). Default is grafting/.",
     )
 
     parser.add_option('--blast',
@@ -65,9 +69,14 @@ def main(args):
       help="Specify path+name for 'blastall' executable. Default is blastp [blast+].",
     )
 
-    parser.add_option('--profit',
+    parser.add_option('--superimpose-profit',
       action="store", default='profit',
-      help="Specify path+name for 'ProFIt' executable. Default is profit.",
+      help="(default).  Add full path as argument if necessary.",
+    )
+
+    parser.add_option('--superimpose-PyRosetta','--superimpose-pyrosetta',
+      action="store_true", default=False,
+      help="Use PyRosetta to superimpose interface (boolean)",
     )
 
     parser.add_option('--blast-database',
@@ -77,7 +86,7 @@ def main(args):
 
     parser.add_option('--antibody-database',
       action="store", default=None,
-      help="Specify path of antibody database dir.",
+      help="Specify path of antibody database dir. Default: script_dir/antibody_database.",
     )
 
     parser.add_option('--rosetta-database',
@@ -85,19 +94,24 @@ def main(args):
       help="Specify path of rosetta database dir.",
     )
 
-    parser.add_option('--homologue_exclusion',
-      default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during template selections.",
+    parser.add_option('--exclude-homologs','-x',
+        action="store_true", default=False,
+        help="Exclude homologs with default cutoffs",
     )
 
-    parser.add_option('--homologue_exclusion_cdr',
+    parser.add_option('--homolog_exclusion',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***CDR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR or FR template selections.",
     )
 
-    parser.add_option('--homologue_exclusion_fr',
+    parser.add_option('--homolog_exclusion_cdr',
       default=200, type="int",
-      help="Specify the cut-off for homologue exclusion during ***FR*** template selections.",
+      help="Specify the cut-off for homolog exclusion during CDR template selections.",
+    )
+
+    parser.add_option('--homolog_exclusion_fr',
+      default=200, type="int",
+      help="Specify the cut-off for homolog exclusion during FR template selections.",
     )
 
     parser.add_option('--rosetta-bin',
@@ -111,13 +125,38 @@ def main(args):
     )
 
     parser.add_option("--idealize",
-      default=0, type="int",
-      help="Specify if idealize protocol should be running on final model [0/1]. (default: 0, which mean do not run idealize protocol)",
+      action="store_true", default=False, dest="idealize",
+      help="Use idealize protocol on final model.",
+    )
+
+    parser.add_option("--constant-seed",
+      action="store_true", default=False, dest="constant_seed",
+      help="Use constant-seed flag in Rosetta grafting run (for debugging).",
+    )
+
+    parser.add_option("--idealizeoff","--noidealize",
+      action="store_false", dest="idealize",
+      help="Do not use idealize protocol on final model. (default)",
     )
 
     parser.add_option("--relax",
-      default=1, type="int",
-      help="Specify if relax protocol should be running on final model [0/1]. (default: 1, which mean run relax protocol)",
+      action="store_true", default=True, dest="relax",
+      help="Use relax protocol on final model. (default)",
+    )
+
+    parser.add_option("--relaxoff", "--norelax",
+      action="store_false", dest="relax",
+      help="Do not use relax protocol on final model.",
+    )
+
+    parser.add_option("--timeout",
+      default=900, type="int",
+      help="Maximum runtime for rosetta relax run (use 0 for unlimit), default is 900 - 15min limit",
+    )
+
+    parser.add_option("--quick","-q",
+      action="store_true", default=False,
+      help="Specify fast run (structure will have clashes).  Prevents stem optimization and turns off relax, idealize.",
     )
 
     #parser.add_option('--rosetta-options',
@@ -148,21 +187,13 @@ def main(args):
 
     # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homologue:True }
+                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
-                                        help="Boolen option [0/1] that control filetering results with %s function." % f.func_name)
+                                        help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
-
-    global sid_cutoff
-    global sid_cutoff_cdr
-    global sid_cutoff_fr
-
-    sid_cutoff     = Options.homologue_exclusion
-    sid_cutoff_cdr = Options.homologue_exclusion_cdr
-    sid_cutoff_fr  = Options.homologue_exclusion_fr
 
     global frlh_info
     global frl_info
@@ -184,8 +215,10 @@ def main(args):
         elif len(l)>8: frh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     #os.getcwd() #os.chdir()
+    global script_dir
     script_dir = os.path.dirname(__file__)
 
+    #Options
     if Options.prefix and Options.prefix[-1] != '/': Options.prefix += '/'
 
     if not Options.blast_database:    Options.blast_database    = script_dir + '/blast_database'
@@ -219,21 +252,24 @@ def main(args):
         print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
         sys.exit(1)
 
+    #read fasta files
     light_chain = read_fasta_file(options.light_chain)
     heavy_chain = read_fasta_file(options.heavy_chain)
 
+    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
+
+    #create directories
     prefix_details = Options.prefix + 'details/'
     if not os.path.isdir(Options.prefix): print 'Could not find %s... creating it...' % Options.prefix;  os.makedirs(Options.prefix)
     if not os.path.isdir(prefix_details): print 'Could not find %s... creating it...' % prefix_details;  os.makedirs(prefix_details)
 
-    print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
-    print 'Prefix:', Options.prefix
+    print 'Output prefix:', Options.prefix
     print 'Blast database:', Options.blast_database
     print 'Antibody database:', Options.antibody_database
     print 'rosetta_bin:', Options.rosetta_bin, ' [platform: %s]' % Options.rosetta_platform
     print 'rosetta_database:', Options.rosetta_database
 
-
+    #unpacking database files
     antibody_database_files = os.listdir(Options.antibody_database)
     bz2ipped_files  = [f for f in antibody_database_files if f.endswith('.bz2') and f[:-4] not in antibody_database_files]
     if bz2ipped_files:
@@ -243,30 +279,40 @@ def main(args):
         if Options.verbose and not res: print commandline+'\n', output
         if res: print commandline+'\n', 'ERROR: Unpacking antibody database files failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
+    ##### Homolog exclusions settings #####
+    global sid_cutoff_cdr
+    global sid_cutoff_fr
 
-    if   sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
-        print '\n!!! Homologues will not be excluded during template selection (default)                  !!!'
-        print '!!! Try "--homologue_exclusion <SID_CUTOFF>", if you wish to remove homologue            !!!'
-        print '!!! You can also try "--homologue_exclusion_cdr <SID_CUTOFF1>" or                        !!!'
-        print '!!!                  "--homologue_exclusion_fr <SID_CUTOFF2>",                           !!!'
-        print '!!! if you want to use different values for CDR and FR template selections, respectively !!!'
-    elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
-        if sid_cutoff_cdr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
-        else:
-            print '\n!!! Homologues will not be excluded during ***CDR*** template selection (default)    !!!'
+    if Options.exclude_homologs: # default exclusion settings if option is set
+        if Options.homolog_exclusion     == 200: Options.homolog_exclusion     = 80
 
-        if sid_cutoff_fr <= 100:
-            print '\n!!! Homologues will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
-        else:
-            print '\n!!! Homologues will not be excluded during ***FR*** template selection (default)    !!!'
-    elif sid_cutoff <= 100:
-        print     '\n!!! Homologues will be excluded with %s SID cut-off during template selections !!!' % sid_cutoff
+    # override default settings
+    sid_cutoff     = Options.homolog_exclusion
+    sid_cutoff_cdr = Options.homolog_exclusion_cdr
+    sid_cutoff_fr  = Options.homolog_exclusion_fr
+
+    if sid_cutoff_cdr > 100 and sid_cutoff_fr > 100 and sid_cutoff < 100:
         sid_cutoff_cdr = sid_cutoff
         sid_cutoff_fr = sid_cutoff
+    if sid_cutoff > 100 and sid_cutoff_cdr > 100 and sid_cutoff_fr > 100:
+        print 'Using full antibody database (no homolog exclusion)'
+    elif sid_cutoff_cdr <= 100 or sid_cutoff_fr <= 100:
+        if sid_cutoff_cdr <= 100:
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***CDR*** template selections !!!' % sid_cutoff_cdr
+        else:
+            print '\n!!! Homologs will not be excluded during ***CDR*** template selection (default)    !!!'
+        if sid_cutoff_fr <= 100:
+            print '\n!!! Homologs will be excluded with %s SID cut-off during ***FR*** template selections !!!' % sid_cutoff_fr
+        else:
+            print '\n!!! Homologs will not be excluded during ***FR*** template selection (default)    !!!'
+    ### end Homolog exclusion settings
 
-    #print 'Idealize:', Options.idealize, bool(Options.idealize)
-    #print 'Relax:', Options.relax, bool(Options.relax)
+    if Options.quick:
+        Options.relax = 0
+        Options.idealize = 0
+
+    print 'Idealize:', bool(Options.idealize)
+    print 'Relax:', bool(Options.relax)
 
     for name in _framework_names_:
         if getattr(Options, name): print 'Custom %s template:' % name, getattr(Options, name)
@@ -274,6 +320,7 @@ def main(args):
     print "Light chain: %s" % light_chain
     print "Heavy chain: %s" % heavy_chain
 
+    #returns dictionary with CDRs as values
     CDRs = IdentifyCDRs(light_chain, heavy_chain)
     CDRs.update( Extract_FR_CDR_Sequences(**CDRs) )
     CDRs['light_heavy'] = CDRs['light'] + CDRs['heavy']
@@ -284,12 +331,25 @@ def main(args):
         c = dict(CDRs);  c.pop('numbering_L');  c.pop('numbering_H')
         #print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
 
+    #run Blast
     alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database, verbose=Options.verbose)
 
+    #create and thread template
     create_virtual_template_pdbs(prefix=prefix_details)
     thread_template_pdbs(CDRs, prefix=prefix_details)
-    superimpose_templates(CDRs, prefix=prefix_details)
 
+    #superimpose template PDBs
+    if Options.superimpose_PyRosetta:
+      print "\nRunning superimpose_PyRosetta..."
+      command = script_dir + "/superimpose_interface.py --prefix " + prefix_details
+      res, output = commands.getstatusoutput(command)
+      if Options.verbose and not res: print command+'\n', output
+      if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
+    else:
+      print "\nRunning ProFit..."
+      superimpose_templates(CDRs, prefix=prefix_details)
+
+    #run Rosetta assemble CDRs
     if Options.rosetta_database:
         run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database)
     else:
@@ -299,10 +359,14 @@ def main(args):
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
     for n in [i for i in CDRs if i.startswith('numbering_')]: results['numbering'][n] = CDRs[n]
 
+    #report run time
+    endtime=time()
+    print 'Run time %2.2f s' % (endtime-starttime)
+
     with file(Options.prefix+'results.json', 'w') as f: json.dump(results, f, sort_keys=True, indent=2)
     print 'Done!'
 
-
+########################################################
 def read_fasta_file(file_name):
     return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '')
 
@@ -319,6 +383,9 @@ def write_results(CDRs, prefix):
             f.write('\n'.join( [ '%s %s' % (CDRs[n][k], k) for k in sorted(CDRs[n].keys(), key=lambda x: (int_(x), x) ) ]) + '\n')
 
 
+def safelen(seq):
+    return 0 if not seq else len(seq)
+
 def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
@@ -328,12 +395,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
     L1 = res.group()[1:-3] if res else False
-    print "L1 detected: ", L1, " (",len(L1),"residues )"
+    print "L1 detected: ", L1, " (",safelen(L1),"residues )"
 
     # L3
     res = re.search( r'C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)', light_second)
     L3 = res.group()[1:-4] if res else False
-    print "L3 detected: ", L3, " (",len(L3),"residues )"
+    print "L3 detected: ", L3, " (",safelen(L3),"residues )"
 
     if L1 and L3:
         L1_start = light_chain.index(L1)
@@ -346,7 +413,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         L3_end = L3_start + len(L3) - 1
 
         L2 = light_chain[L2_start:L2_start+7]  # L2 is identified here. Current implementation can deal with only 7-resiue L2
-        print "L2 detected: ", L2, " (",len(L2),"residues )"
+        print "L2 detected: ", L2, " (",safelen(L2),"residues )"
 
         FR_L1 = light_chain[:L1_start]
         FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
@@ -368,12 +435,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)', heavy_first) # jeff's mod for ATHM set
     #res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
     H1 = res.group()[4:-4] if res else False
-    print "H1 detected: ", H1, " (",len(H1),"residues )"
+    print "H1 detected: ", H1, " (",safelen(H1),"residues )"
 
     # H3
     res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
-    print "H3 detected: ", H3, " (",len(H3),"residues )"
+    print "H3 detected: ", H3, " (",safelen(H3),"residues )"
 
     if H1 and H3:
         H1_start = heavy_chain.index(H1)
@@ -587,7 +654,7 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
          and new_number_FR_H1 and new_number_FR_H2 and new_number_FR_H3 and new_number_FR_H4
          and new_number_FR_L1 and new_number_FR_L2 and new_number_FR_L3 and new_number_FR_L4 )
     except:
-        print "ERROR: Numbering failed.  Exiting."
+        print "Numbering failed.  Exiting."
         sys.exit(1)
 
     # Converting all new_number_* vars in to a lists
@@ -683,7 +750,7 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
 
 
 def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
-    print '\nRunning blast as: %s\nWith database in:%s' % (blast, blast_database)
+    print '\nRunning %s' % (blast)
     cdr_info, legend = {}, ''  # first reading cdr_info table
     for l in file( _script_path_ + '/info/cdr_info' ):
         if l.startswith('# '): legend = l[2:].split()
@@ -709,6 +776,11 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         len_cdr = len(cdr_query[k])
         if k.count('FR') or k.count('heavy') or k.count('light'): db = blast_database + '/database.%s' % k
         else: db = blast_database + '/database.%s.%s' % (k, len_cdr)
+
+        # check that database file exists
+        if (not os.path.isfile(db)):
+            print '\nERROR: No %s templates of length %s (%s)\n' % (k, len_cdr, db)
+            sys.exit(1)
 
         wordsize, e_value, matrix = (2, 0.00001, 'BLOSUM62') if k.count('FR') or k.count('heavy') or k.count('light') else (2, 2000, 'PAM30')
 
@@ -745,34 +817,37 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     table[i] = dict( [(k, try_to_float(v[k])) for k in v] )
 
 
+        prefix_filters = prefix + 'filters/'
+        if not os.path.isdir(prefix_filters): print 'Could not find %s... creating it...' % prefix_filters;  os.makedirs(prefix_filters)
+
         for f in Filters:
             if getattr(Options, f.func_name):
                 f(k, table, cdr_query, cdr_info)
                 t = table_original[:];  f(k, t, cdr_query, cdr_info)
-                sort_and_write_results([i for i in table_original if i not in t], prefix+'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
+                sort_and_write_results([i for i in table_original if i not in t], prefix_filters +'filtered-by.'+f.func_name[7:]+'.'+k+'.align')
 
-        sort_and_write_results(table, prefix + 'filtered.' + k + '.align')  # Writing filtered results.
+        sort_and_write_results(table, prefix_filters + 'filtered.' + k + '.align')  # Writing filtered results.
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 
         custom_template = getattr(Options, k)
 
-        if custom_template and not os.path.isfile(custom_template): custom_template = Options.antibody_database + '/pdb%s_chothia.pdb' % custom_template
+        if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
         if not custom_template:
             if table:
-                custom_template = Options.antibody_database+'/'+table[0]['subject-id']
+                custom_template = table[0]['subject-id']
             else:  # if there is no template... table is a list, which has a blast result
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
                     if len_cdr == int(v[1][check_length]):
                         pdb_random = v[0]
                         break
-                print '\nWARNING: There is no template avaliable for %s after filtering! A ramdom template which has the same length as the query was chosen...\n' % k
-                custom_template = Options.antibody_database+'/'+pdb_random
+                print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
+                custom_template = pdb_random
                 #sys.exit(1)
-            print "The template for %s is derived from:" % k, custom_template
-        else: print 'Custom tamplete for %s was specified, using: %s...' % (k, custom_template)
-        shutil.copy(custom_template, prefix+'/template.'+k+'.pdb')
+            print "%s template: %s" % (k, custom_template)
+        else: print 'Custom %s template: %s...' % (k, custom_template)
+        shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
@@ -815,20 +890,21 @@ def create_virtual_template_pdbs(prefix):
                             check = 1
                             o.write( line2 )
 
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2)
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2)
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2)
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2)
+                #                                                               v needed to circumvent collinearity!
+                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 )
+                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 )
+                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 )
+                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 )
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2)
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2)
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2)
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2)
+                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 )
+                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 )
+                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 )
+                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 )
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2)
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2)
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2)
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2)
+                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 )
+                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 )
+                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 )
+                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 )
 
                 #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
                 #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
@@ -940,7 +1016,7 @@ def superimpose_templates(CDRs, prefix):
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
 
         f_name = '\ '.join(f_name.split())
-        commandline = '%s < %s.in > %s.out' % (Options.profit, f_name, f_name)
+        commandline = '%s < %s.in > %s.out' % (Options.superimpose_profit, f_name, f_name)
         res, output = commands.getstatusoutput(commandline);
         if res: print commandline, output; sys.exit(1)
 
@@ -955,11 +1031,12 @@ def superimpose_templates(CDRs, prefix):
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
-        print '\nRunning antibody_graft as: %s\nWith rosetta_database in:%s' % (antibody_graft, rosetta_database)
+        print '\nRunning antibody_graft'
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
-                      ' -antibody::graft_l1 -antibody::graft_l2 -antibody::graft_l3' + \
-                      ' -antibody::graft_h1 -antibody::graft_h2 -antibody::graft_h3' + \
+                      ' -restore_pre_talaris_2013_behavior' + \
                       ' -antibody::h3_no_stem_graft'
+        if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
+        if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
@@ -971,12 +1048,12 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.idealize:
         idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
         if os.path.isfile( idealize_jd2 ):
-            print '\nRunning idealize as: %s\nWith rosetta_database in:%s and model:%s.pdb' % (idealize_jd2, rosetta_database, model_file_prefix)
+            print 'Running idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.idealized.pdb');  model_file_prefix += '.idealized'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % idealize_jd2
@@ -985,28 +1062,27 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
     if Options.relax:
         relax = rosetta_bin + '/relax.' + rosetta_platform
         if os.path.isfile( relax ):
-            print '\nRunning relax with all-atom constraint as: %s\nWith rosetta_database in:%s and model:%s.pdb' % (relax, rosetta_database, model_file_prefix)
-            commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), relax, rosetta_database) + \
+            print 'Running relax with all-atom constraint'
+            commandline = 'cd "%s" && %s "%s" -database %s -overwrite' % (os.path.dirname(prefix), 'ulimit -t %s &&' % Options.timeout if Options.timeout else '', relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
+            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
             shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.relaxed.pdb');  model_file_prefix += '.relaxed'
         else:
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
             return
 
     shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.pdb')
-    make_cter_constraint(CDRs, prefix)
+    cter = kink_or_extend(CDRs)
+    output_cter_constraint(cter, prefix)
 
 
-
-# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
-# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
-def make_cter_constraint(CDRs, prefix):
-    print '\nPreparing the cter_constraint file of the subsequent H3 modeling for the query...'
-    L36  = AA_Code[ CDRs['numbering_L']['46'] ]
+def kink_or_extend(CDRs):
+    """Daisuke's H3 kink rules [citation]"""
+    print '\nPreparing cter_constraint file for H3 modeling'
+    L36  = AA_Code[ CDRs['numbering_L']['36'] ]
     L46  = AA_Code[ CDRs['numbering_L']['46'] ]
     L49  = AA_Code[ CDRs['numbering_L']['49'] ]
     H93  = AA_Code[ CDRs['numbering_H']['93'] ]
@@ -1015,7 +1091,7 @@ def make_cter_constraint(CDRs, prefix):
     H100 = AA_Code[ CDRs['H3'][-3:-2] ]  # n-2
     H101 = AA_Code[ CDRs['H3'][-2:-1] ]  # n-1
     len_h3 = len( CDRs['H3'] )
-    print 'H3:', len_h3, CDRs['H3'],'\tKeys residues: ', L36,L46,L49,H93,H94,H99,H100,H101
+    print 'H3:', len_h3, CDRs['H3'],'\nKey residues: ', L36,L46,L49,H93,H94,H99,H100,H101
 
     # H3-rules
     if ( H93 == 'ARG' or H93 == 'LYS' ) and ( H94 == 'ARG' or H94 == 'LYS' ) and H101 == 'ASP': base = 'KINK'
@@ -1031,7 +1107,14 @@ def make_cter_constraint(CDRs, prefix):
     elif H100 == 'ASP' or H100 == 'ASN' or H100 == 'LYS' or H100 == 'ARG': base = 'EXTEND'
     elif len_h3 == 7: base = 'EXTEND'
     else: base = 'KINK'
+    print 'Predicted base conformation is', base
+    return base
 
+
+# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
+# Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
+def output_cter_constraint(base,prefix):
+    # Jianqing's original
     cnt=0
     f=open(prefix+'cter_constraint', 'w')
     for line in file(prefix+'/model.pdb'):
@@ -1050,10 +1133,16 @@ def make_cter_constraint(CDRs, prefix):
                 if base == 'KINK': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 0.523 0.698 200' )
                 elif base == 'EXTEND': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 2.704 0.523 100' )
     f.close()
-    print 'Predicted base conformation is', base
+    # new python script
+    commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
+    res, output = commands.getstatusoutput(commandline)
+    if Options.verbose and not res: print commandline+'\n', output
+    if res: print commandline+'\n', 'ERROR making constraint file: %s\n%s' % (res, output);  sys.exit(1)
+
+
 
 # Various filter function
-def filter_by_sequence_homologue(k, results, cdr_query, cdr_info):
+def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):
     if Options.verbose: print 'filtering by sequence identity...'
     #print results
 

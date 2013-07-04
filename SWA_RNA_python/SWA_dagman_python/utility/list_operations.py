@@ -20,12 +20,12 @@ def list_to_string(my_list, separator=" ", first_separator=True):
 
 	#my_list=my_list #necessary? what does did do? Mod out on July 31, 2011.
 
-	if(isinstance( my_list, list )==False): 
+	if(isinstance( my_list, list )==False):
 		print "problem my_list:", my_list
 		error_exit_with_message("my_list object is not a list!")
 
 	my_string=""
-	
+
 	for n in range(len(my_list)):
 
 		if(n==0 and (first_separator==False) ):
@@ -33,14 +33,14 @@ def list_to_string(my_list, separator=" ", first_separator=True):
 		else:
 			my_string+=separator + str(my_list[n])
 
-	return my_string	
+	return my_string
 
 ####################################################################
 def assert_no_duplicate_in_string_list(string_list): #To should work for both python and Rosetta (C++) commands
 
 	for str_element in string_list:
 
-		if(isinstance( str_element , str )==False): 
+		if(isinstance( str_element , str )==False):
 			print "\n\nERROR string_list=", string_list
 			error_exit_with_message("string_list is not a str!")
 
@@ -50,7 +50,7 @@ def assert_no_duplicate_in_string_list(string_list): #To should work for both py
 
 		str_element=string_list[n]
 
-		if(str_elements_so_far.count(str_element)>0): 
+		if(str_elements_so_far.count(str_element)>0):
 			exit_message ="\n\nERROR string_list=%s \n" %(list_to_string(string_list))
 			exit_message+="str_element (%s) already exist in the str_elements_so_far ( %s )\n" %(str_element, list_to_string(str_elements_so_far, " | ") )
 			error_exit_with_message(exit_message)
@@ -73,11 +73,11 @@ def add_boundary_seq_num_to_list(start_list, max_seq_num, boundary_size):
 
 		if(start_seq_num<1): error_exit_with_message("start_seq_num (%s) is less than zero!" %(start_seq_num))
 
-		if(start_seq_num>max_seq_num): error_exit_with_message("start_seq_num (%s) greater than max_seq_num (%s)" %(start_seq_num, max_seq_num))  
+		if(start_seq_num>max_seq_num): error_exit_with_message("start_seq_num (%s) greater than max_seq_num (%s)" %(start_seq_num, max_seq_num))
 
 	for seq_num in range(1, max_seq_num+1):
 
-		if(seq_num in list_with_boundary): continue 
+		if(seq_num in list_with_boundary): continue
 
 		include_seq_num=False
 
@@ -88,7 +88,7 @@ def add_boundary_seq_num_to_list(start_list, max_seq_num, boundary_size):
 		if(seq_num in start_list): include_seq_num=True
 
 		for n in range(1, boundary_size+1):
-		
+
 			if( (seq_num-n) in start_list): include_seq_num=True
 
 			if( (seq_num+n) in start_list): include_seq_num=True
@@ -131,7 +131,7 @@ def Is_disjoint_list(list_one, list_two):
 
 
 def Is_subset_list(smaller_list, bigger_list):
-	
+
 	if(isinstance( smaller_list, list )==False): error_exit_with_message("smaller_list object is not a list!")
 	if(isinstance( bigger_list, list )==False): error_exit_with_message("bigger_list object is not a list!")
 
@@ -142,14 +142,14 @@ def Is_subset_list(smaller_list, bigger_list):
 
 ############################################################################################################
 
-def get_segment_string_list(res_list, cutpoint_open_list=[]): 
+def get_segment_string_list(res_list, cutpoint_open_list=[]):
 
-	if(isinstance( res_list, list )==False): 
+	if(isinstance( res_list, list )==False):
 		print "PROBLEM res_list:", res_list
 		error_exit_with_message("res_list object is not a list!")
 
 	for seq_num in res_list:
-		if(isinstance( seq_num, int )==False): 
+		if(isinstance( seq_num, int )==False):
 			print "PROBLEM res_list:", res_list
 			error_exit_with_message("seq_num object is not an int!")
 
@@ -163,15 +163,15 @@ def get_segment_string_list(res_list, cutpoint_open_list=[]):
 
 		if(found_start==False):
 			start_res=curr_seq_num
-			found_start=True		
-	
+			found_start=True
+
 		if(found_start==True):
-			if( (n== (len(res_list)-1)) or ((curr_seq_num+1)!=res_list[n+1]) or (curr_seq_num in cutpoint_open_list) ): 
-				found_end=True	
+			if( (n== (len(res_list)-1)) or ((curr_seq_num+1)!=res_list[n+1]) or (curr_seq_num in cutpoint_open_list) ):
+				found_end=True
 
 
 
-		if(found_end==True): 
+		if(found_end==True):
 			segment_list.append("%d-%d" %(start_res, curr_seq_num) )
 			found_start=False
 			found_end=False
@@ -181,12 +181,12 @@ def get_segment_string_list(res_list, cutpoint_open_list=[]):
 ############################################################################################################
 def seq_num_list_to_string(res_list):
 
-	if(isinstance( res_list, list )==False): 
+	if(isinstance( res_list, list )==False):
 		print "PROBLEM res_list:", res_list
 		error_exit_with_message("res_list object is not a list!")
 
 	for seq_num in res_list:
-		if(isinstance( seq_num, int )==False): 
+		if(isinstance( seq_num, int )==False):
 			print "PROBLEM res_list:", res_list
 			error_exit_with_message("seq_num object is not an int!")
 
@@ -209,7 +209,7 @@ def seq_num_list_to_string(res_list):
 	return seq_num_string
 
 ############################################################################################################
-def parse_segment_string_list(segment_string_list, verbose=False, do_sort=True): 
+def parse_segment_string_list(segment_string_list, verbose=False, do_sort=True):
 
 	if(verbose): print "parsing seg_num_list from segment_string_list=" , segment_string_list
 	if(segment_string_list==['']): return []
@@ -224,7 +224,7 @@ def parse_segment_string_list(segment_string_list, verbose=False, do_sort=True):
 			start_segment=int(segment_string.split("-")[0])
 			end_segment=int(segment_string.split("-")[1])
 			if(start_segment>end_segment): error_exit_with_message("start_segment(%d)>end_segment(%d)" %(start_segment, end_segment))
-			seq_num_list.extend(range(start_segment, end_segment+1))		
+			seq_num_list.extend(range(start_segment, end_segment+1))
 		else:
 			print "segment_string_list=", segment_string_list
 			error_exit_with_message("ERROR segment_string=%s, len(segment_string.split(\"-\"))=%d" %(segment_string, len( segment_string.split("-") ) ) )
@@ -233,8 +233,8 @@ def parse_segment_string_list(segment_string_list, verbose=False, do_sort=True):
 	if( len(seq_num_list)!=len(list(Set(seq_num_list) ) ) ):
 		print "ERROR:      segment_string_list=", segment_string_list
 		print "ERROR:             seq_num_list=", seq_num_list
-		print "ERROR: list(Set(seq_num_list) )=",  list(Set(seq_num_list) ) 
-		error_exit_with_message("len(seq_num_list)(%d)!=(%d)len(list(Set(seq_num_list) ) )" %( len(seq_num_list), len(list(Set(seq_num_list) ) ) ) ) 
+		print "ERROR: list(Set(seq_num_list) )=",  list(Set(seq_num_list) )
+		error_exit_with_message("len(seq_num_list)(%d)!=(%d)len(list(Set(seq_num_list) ) )" %( len(seq_num_list), len(list(Set(seq_num_list) ) ) ) )
 
 	return seq_num_list
 
@@ -288,7 +288,7 @@ def print_seq_num_list( INPUT_list_text_name, INPUT_seq_num_list, INPUT_text_spa
 
 	seq_num=1;
 	for n in range(len(seq_num_list)):
-	
+
 		while(seq_num<seq_num_list[n]):
 			print ("%s" %("")).rjust(seq_num_width),
 			curr_string_length+=seq_num_width
@@ -298,7 +298,7 @@ def print_seq_num_list( INPUT_list_text_name, INPUT_seq_num_list, INPUT_text_spa
 				print ("").rjust(text_width),
 
 			seq_num+=1
-		
+
 		print ("%s" %(seq_num_list[n])).rjust(seq_num_width),
 		seq_num+=1;
 		curr_string_length+=seq_num_width
@@ -322,6 +322,11 @@ def print_condense_seq_num_list(prestring, seq_num_list):
 		if( isinstance( seq_num, int)==False):  error_exit_with_message("seq_num object is not an int!")
 
 	print "%s %s" %(prestring, list_to_string( get_segment_string_list(seq_num_list) ) )
+
+####################################################################
+def list_to_string_with_dashes(seq_num_list):
+
+	return string.join( get_segment_string_list( seq_num_list ) )
 
 
 ####################################################################

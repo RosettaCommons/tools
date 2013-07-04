@@ -1,0 +1,134 @@
+
+buildbackbone.c,5014
+#define DEBUG8,131
+#define maxlen 12,182
+#define maxres 13,209
+#define scaler 14,239
+#define maxprot 15,267
+typedef Char string[string20,329
+typedef Char a1;a122,355
+typedef Char a2[a224,373
+typedef Char a3[a325,393
+typedef Char a4[a426,413
+typedef Char a5[a527,433
+typedef Char a6[a628,453
+typedef Char a10[a1029,473
+} inout;inout35,551
+typedef long dist_array[dist_array39,581
+typedef dist_array distancematrix[distancematrix40,618
+typedef struct protlist_record protlist_record42,662
+} protlist_record;protlist_record45,736
+typedef protlist_record protlist[protlist47,756
+typedef struct score_record score_record50,801
+} score_record;score_record55,990
+} slidemode;slidemode59,1035
+typedef boolean gaparray[gaparray60,1048
+typedef long redundancyarray[redundancyarray61,1082
+typedef double xyz[xyz65,1159
+typedef struct main_record main_record67,1183
+} main_record;main_record69,1231
+typedef struct atom_record atom_record72,1248
+} atom_record;atom_record77,1382
+typedef struct backbone_record backbone_record79,1398
+} backbone_record;backbone_record84,1493
+typedef struct residue_record residue_record86,1513
+} residue_record;residue_record90,1651
+typedef struct protein_record protein_record92,1670
+} protein_record;protein_record97,1848
+typedef struct dist_record dist_record99,1867
+} dist_record;dist_record102,1937
+typedef dist_record distm[distm104,1953
+typedef double t1[t1110,2080
+typedef xyz t2[t2111,2111
+typedef double rotationmatrix[rotationmatrix112,2139
+typedef double translationvector[translationvector113,2176
+typedef backbone_record fragmentcoord[fragmentcoord118,2297
+typedef struct fragment_record fragment_record121,2350
+} fragment_record;fragment_record127,2596
+typedef struct jump_record jump_record129,2616
+} jump_record;jump_record133,2754
+typedef fragment_record *fragmentlistarray[fragmentlistarray135,2770
+#define maxl 140,2844
+#define maxdist 141,2870
+typedef struct hit_record hit_record144,2933
+} hit_record;hit_record147,3013
+typedef hit_record lookuptable[lookuptable149,3028
+#define maxmaxscores 235,6166
+#define maxprotlength 236,6193
+typedef score_record candarray[candarray239,6224
+typedef candarray scorearray[scorearray240,6270
+typedef long ilist[ilist241,6315
+#define superscale 244,6345
+#define superscaler 247,6376
+#define datadir 250,6407
+struct LOC_build LOC_build254,6476
+Local Void diff(274,7032
+Local Void cross(283,7177
+Local Void generate_cb_(292,7365
+Local Void fill_protein_record_(322,8048
+Local Void make_new_residue_(335,8321
+Local Void makeside_(355,8937
+Local Void backbone_to_list_(379,9550
+Local Void init_fragmentlist_(411,10385
+Local Void update_pathsums_(422,10578
+Local Void make_new_protein_(456,11455
+Local Void update_gap(472,11900
+Local Void transrot_(529,13574
+Local protein_record *findproteinpointer(545,13840
+Local residue_record *findresnoresname(564,14219
+Local Char *str__(587,14808
+Local Char *codetoresname(619,15343
+Local Char *codetoatomname(648,16009
+Local Void side_to_list(679,16786
+Local Void getprotein(729,18267
+Local Void generate_sidechains(755,19029
+Local Void add_sidechains_(810,20637
+Local Void write_brk_(831,21267
+Local Void mainrecord_to_brk_(845,21570
+Local Void path(859,22011
+struct LOC_score_to_fragmentlist LOC_score_to_fragmentlist960,25611
+Local Void matchca_(964,25677
+Local Void get_transrot_fragment(993,26370
+Local double distance_(1035,28175
+Local Void jump(1067,28745
+Local Void update_jump_fromnewtoold_(1097,29633
+Local Void update_jump_fromoldtonew_(1133,30676
+Local Void score_to_fragmentlist(1170,31706
+Local long firstgap(1246,34509
+Local Void change_parameters(1259,34738
+struct LOC_fetch LOC_fetch1389,38534
+struct LOC_scanfragments LOC_scanfragments1400,38753
+Local Void extend_to_right_(1405,38824
+Local Void extend_to_left_(1440,39730
+Local Void test(1483,40708
+Local Void scanfragments(1525,42408
+Local Void drmssort(1548,42911
+Local Void carmssort(1579,43502
+Local Void calculate_carmses(1610,44097
+Local Void fetch(1646,45198
+Local Void quickfill(1697,46560
+Local Void seal(1713,47003
+Local Void write_headers(1770,48835
+Local Void logstatistics(1813,50931
+Local Void x(1900,53170
+Local Void init_residuelist(1905,53218
+Local long val(1913,53401
+Local long resnametocode(1949,53958
+Local long atomnametocode(1985,54690
+Local Void save_backbone(2028,55609
+Local Void oldwrite_brk_(2057,56318
+Local Void oldmainrecord_to_brk_(2073,56693
+Local double atan2_xx(2087,57164
+Local double dot(2110,57494
+Local double dihedralangle(2118,57620
+Local Void openfile_(2143,58200
+Local Void brk_to_list(2184,59049
+Local Void list_to_side(2289,62255
+Local Void fill_lookup_(2359,64048
+Local Void maintodist(2400,65033
+struct LOC_load_distances_ LOC_load_distances_2484,67446
+Local Void readdists(2493,67618
+Local Void load_distances_(2589,70342
+Local Void read_brk(2653,71994
+Static Void build(2716,73943
+main(2830,76926

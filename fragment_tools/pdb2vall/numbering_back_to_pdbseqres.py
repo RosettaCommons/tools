@@ -20,13 +20,22 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
             return 0
 
     ## read config
-    config = ConfigParser.RawConfigParser()
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(PDB2VALL_PATH + "pdb2vall.cfg")
 
     ## EXTERNAL PROGRAMS
     script_get_single_chain_pdb = PDB2VALL_PATH + "pdb_scripts/get_pdb_new.py"
     script_pdb2fasta            = PDB2VALL_PATH + "pdb_scripts/pdb2fasta.py" 
-    bl2seq                      = config.get('pdb2vall', 'bl2seq') 
+    if not exists( bl2seq ):
+        bl2seq = PDB2VALL_PATH + "../../../../../src/blast/bin/bl2seq" # Robetta location
+    if not exists( bl2seq ):
+        bl2seq = PDB2VALL_PATH + "../blast/bin/bl2seq" # fragment_tools location
+    if not exists( bl2seq ):
+        bl2seq = PDB2VALL_PATH + "pdb_scripts/bl2seq" # pdb2val location
+    if config.get('pdb2vall', 'bl2seq'):
+        bl2seq = config.get('pdb2vall', 'bl2seq')
+
+    print bl2seq
 
     ## FILES
     pdb_seqres_fn = PDB2VALL_PATH + "database/rcsb_data/derived_data/pdb_seqres.txt"

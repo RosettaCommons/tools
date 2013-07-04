@@ -47,6 +47,7 @@ def repertoire_file_unpack(repname,repfilename):
 
     H = {}
     L = {}
+    comment = {}
     N_complete_Abs = 0
     N_H_only = 0
     N_L_only = 0
@@ -56,6 +57,7 @@ def repertoire_file_unpack(repname,repfilename):
 
         if l[0] == '>':  # new sequence
             abchainname = l[1:].split()[0]
+            abcomment = ' '.join(l[1:].split()[2:]) # gene segments (Erik's format)
             abname = abchainname[:-1]
             chain = abchainname[-1]
             if abname=="V": # for Daisuke's Antigen Type Test
@@ -63,8 +65,9 @@ def repertoire_file_unpack(repname,repfilename):
                     ATTnum +=1
                 abname = "%s%02i" % (repname,ATTnum)
             print 'Found ab', abname, '\t chain ', chain
+            comment[abname,chain] = abcomment
 
-        else:
+        elif l[0] != "#" and l.strip():  # omit comments and empty lines
             seq = l  #.rstrip()
             if chain == 'H':
                 if H.has_key(abname): H[abname] += seq
@@ -94,19 +97,19 @@ def repertoire_file_unpack(repname,repfilename):
             os.mkdir(abdir)
 
         hf=open(abdir + '/' + ab + 'H.fasta','w')
-        hf.write('> '+ab+'H from '+repname+'\n')
+        hf.write('> %sH %s %s\n' % (ab, repname, comment[ab,'H']))
         hf.write(Hseq)
         hf.close()
 
         lf=open(abdir + '/' + ab + 'L.fasta','w')
-        lf.write('> '+ab+'L from '+repname+'\n')
+        lf.write('> %sL %s %s\n' % (ab, repname, comment[ab,'L']))
         lf.write(Lseq)
         lf.close()
 
         hlf=open(abdir + '/' + ab + 'HL.fasta','w')
-        hlf.write('> '+ab+'H from '+repname+'\n')
+        hlf.write('> %sH %s %s\n' % (ab, repname, comment[ab,'H']))
         hlf.write(Hseq)
-        hlf.write('> '+ab+'L from '+repname+'\n')
+        hlf.write('> %sL %s %s\n' % (ab, repname, comment[ab,'L']))
         hlf.write(Lseq)
         hlf.close()
         print 'Completed Ab',ab

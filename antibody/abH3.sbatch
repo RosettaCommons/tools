@@ -9,7 +9,7 @@
 # J. Gray - 2013 March 1
 #----------------------------------------------------
 
-#SBATCH -J Khan-naive          # Job name
+#SBATCH -J ABNAME0000             # Job name
 #SBATCH -o outerr/H3.%j.out       # Name of stdout output file (%j expands to jobId)
 #SBATCH -e outerr/H3.%j.err       # Name of stdout output file (%j expands to jobId)
 #SBATCH --mail-user=jeffreyjgray@gmail.com
@@ -26,10 +26,10 @@
 #SBATCH -t 24:00:00           # Run time (hh:mm:ss)
 #SBATCH -p normal             # Queue name
 
-ROSETTA=$WORK/git/rosetta
-ROSETTABIN=$ROSETTA/rosetta_source/bin
-ROSETTAEXE=antibody_model_CDR_H3
-COMPILER=mpimkl.linuxiccrelease
+ROSETTA=$WORK/git/Rosetta
+ROSETTABIN=$ROSETTA/main/source/bin
+ROSETTAEXE=antibody_H3
+COMPILER=mklmpi.linuxiccrelease
 EXE=$ROSETTABIN/$ROSETTAEXE.$COMPILER
 echo Starting MPI job running $EXE
 

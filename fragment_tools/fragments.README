@@ -8,6 +8,10 @@ TO MAKE FRAGMENTS LOCALLY WITH make_fragments.pl:
 
 The Rosetta software package is available at https://www.rosettacommons.org
 
+
+PLATFORM REQUIREMENT: Linux
+
+
 SETUP:
 
   1. BUILD ROSETTA FRAGMENT PICKER 

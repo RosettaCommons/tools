@@ -77,7 +77,7 @@ for d in $dirs; do
 done
 
 echo "-------------------------------------- Repertoire Complete --------------------------------------"
-echo $(echo $dirs|wc|awk '{print $2}') Antibodies processed
+echo $(echo $dirs|wc -w) Antibodies processed
 echo $success Cases suceeded
 echo $skipped Cases skipped
 echo $failed Cases failed

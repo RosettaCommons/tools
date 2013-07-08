@@ -17,12 +17,37 @@ import os, sys
 
 
 def main(args):
-    '''Script to process a fasta file of an antibody repertoire and create a file hierarchy for structure prediction
-Usage: antibody_repertoire.py repertoire.fasta'''
+    '''
+NAME
+
+antibody_repertoire.py - processes fasta file of antibody repertoire
+                         to create a file hierarchy for structure prediction
+
+SYNOPSIS
+
+antibody_repertoire.py repertoire.fasta
+
+DESCRIPTION
+
+The script expects a single FASTA formatted file as an argument that
+represents a collection of antibodies.  Every antibody is represented by
+two FASTA sequence entries for the heavy and light chain, respectively.
+Separated by spaces, but with none after the '>' symbol, the first word
+of the FASTA header line denotes the name of the chain. That chain name
+is constituted by the name of the antibody plus a 'H' or 'L'.
+
+SEE ALSO
+
+ * ./sample_data/repertoire.fasta
+'''
 
     try:
         args[1]
     except:
+        print main.__doc__
+        sys.exit()
+
+    if '-h' == args[1] or '-help' == args[1] or '--help' == args[1]:
         print main.__doc__
         sys.exit()
 

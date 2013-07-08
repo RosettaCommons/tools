@@ -2,11 +2,37 @@
 
 # antibody_repertoire_H3_launcher.bash repertoire_directory
 
-if [ -z "$1" ]
+if [ -z "$1" -o "help" == "$1" -o "-h" == "$1" -o "-help" == "$1" -o "--help" == "$1" ]
 then
-    echo Usage: $(basename $0) repertoire_directory [force]
-    echo launch jobs for H3 modeling
-    exit
+    cat << EOUSAGE
+NAME
+
+$(basename $0) - perform H3 modelling for a repertoire of antibodies
+
+SYNOPSIS
+
+$(basename $0) repertoire_directory [force]
+
+DESCRIPTION
+
+The ab initio modelling of the H3 loop is particularly compute
+intensive. This is implemented by the tool 'antibody_H3' of
+Rosetta and may better run on a high-performance compute cluster
+than on a local machine when performing on a large set of sequences.
+
+The script is prepared for the developers' compute environment
+but also anybody else with a ready installation of the queuing system
+'slurm' experiences an immediate benefit.
+
+SEE ALSO
+
+ * slurm
+ * antibody_H3
+ * abH3.(qsub|sbatch)
+ * abH3.flags
+
+EOUSAGE
+    exit -1
 fi
 
 repdir=$1

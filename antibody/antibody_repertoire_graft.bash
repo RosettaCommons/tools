@@ -4,13 +4,42 @@
 
 target=model.pdb
 
-if [ -z "$1" ]
+if [ -z "$1" -o "-h" == "$1" -o "help" == "$1" -o "-help" == "$1" -o "--help" == "$1" ]
 then
-    echo Usage: $(basename $0) repertoire_directory [force/quick]
-    echo run antibody.py on a repertoire to create grafted structures
-    echo force option will recaculate antibodies for which $target already exists
-    echo quick option skips rosetta post-processing \(relax/idealize\)
-    exit
+    cat <<EOUSAGE
+
+USAGE: $(basename $0) repertoire_directory [force/quick]
+
+DESCRIPTION
+
+$(basename $0) runs antibody.py on every single of an arbitrarily
+large collection of antibody seqeuences, referred to as 'repertoire',
+to create grafted structures. The repertoire is expected to be represented
+as a directory in which every entry is another directory with the name
+of the antibody. This in turn needs to contain the two FASTA files
+'dirnameL.fasta' and 'dirnameH.fasta' that describe the light and heavy
+chain of the antibody. The script 'antibody_repertoire.py' helps preparing
+the setup.
+
+The first argument specifies the directory representing the repertoire.
+The second/third argument may be 'force' and/or 'quick':
+
+ * force will recaculate antibodies for which the file $target already exists
+ * quick skips rosetta post-processing (relax/idealize)
+
+OUTPUT
+
+The tool antibody.py is run within the directory harboring the information
+for a particular antibody. The output goes into the subdirectory 'grafting'
+and receives the file name '$target'.
+
+SEE ALSO
+
+ * antibody.py
+ * antibody_repertoire.py
+
+EOUSAGE
+    exit -1
 fi
 
 repdir=$1
@@ -21,8 +50,8 @@ if [ ! -d "$repdir" ]; then
 fi
 cd $repdir
 
-if [ "$2" == "force" ]; then force=true; else force=false; fi
-if [ "$2" == "quick" ]; then norelax="--quick=1"; fi
+if [ "$2" == "force" -o "$3" == "force"]; then force=true; else force=false; fi
+if [ "$2" == "quick" -o "$3" == "quick"]; then norelax="--quick=1"; fi
 
 dirs=`ls -d *`
 echo Processing Repertoire Antibodies: $dirs $norelax

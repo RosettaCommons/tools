@@ -49,29 +49,42 @@ def write_data(db_name,table,columns,data_list):
 def write_tag_data(db_name,data_list):
     '''given a deata list, write activity tag information'''
     insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
-    query_string = "SELECT record_id FROM sdf_input_data WHERE ligand_id = ?"
+    query_string = "SELECT ligand_id,record_id FROM sdf_input_data"
+    
+    
     
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
-    
     query_record_id_map = {}
+    
+    for ligand_id,record_id in cursor.execute(query_string):
+        query_record_id_map[ligand_id] = record_id
+    
     skip_count = 0
+    
+    #we're about to insert a lot of rows, turn some knobs to help
+    cursor.execute("PRAGMA synchronous=OFF")
+    cursor.execute("PRAGMA journal_mode=MEMORY")
+    
     for record in data_list:
         ligand_id = record["ligand_id"]
-        record_id = None
-        cursor.execute(query_string,(ligand_id,))
         try:
-            record_id = cursor.fetchone()[0]
-        except TypeError:
-            print "skipping",ligand_id
+            record_id = query_record_id_map[ligand_id]
+        except KeyError:
             skip_count += 1
+            #print "skipping",ligand_id
             continue
-        print "found",ligand_id
+        #print "found",ligand_id
         tag = record["tag"]
         value = record["value"]
         cursor.execute(insert_string,(record_id,tag,value))
-        connection.commit()
+    connection.commit()
     print "skippped",skip_count
+    
+    #go back to safer settings
+    cursor.execute("PRAGMA synchronous=ON")
+    cursor.execute("PRAGMA journal_mode=DELETE")
+    
     connection.close()
     
 

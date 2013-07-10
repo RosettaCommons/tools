@@ -67,7 +67,7 @@ def repertoire_file_unpack(repname,repfilename):
             print 'Found ab', abname, '\t chain ', chain
             comment[abname,chain] = abcomment
 
-        else:
+        elif l[0] != "#" and l.strip():  # omit comments and empty lines
             seq = l  #.rstrip()
             if chain == 'H':
                 if H.has_key(abname): H[abname] += seq

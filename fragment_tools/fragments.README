@@ -1,51 +1,84 @@
+
+FOR ACADEMIC USE ONLY.
+
 WEBSERVER FOR FRAGMENTS:
 http://robetta.bakerlab.org/fragmentsubmit.jsp
 
 TO MAKE FRAGMENTS LOCALLY WITH make_fragments.pl:
 
-0. Setup:
+The Rosetta software package is available at https://www.rosettacommons.org
 
-   DATABASE:
-   nr -- downloadable from ftp://ftp.ncbi.nih.gov/blast/db/
-   vall database -- included in release.
-   vall.blast database -- included in release (optional for excluding homologs)
 
-   REQUIRED PROGRAMS:
+PLATFORM REQUIREMENT: Linux
 
-   ROSETTA fragment_picker -- included in the release
-   BLAST -- ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/ (Requires non-blast+ NCBI version)
-   PSIPRED -- http://bioinf.cs.ucl.ac.uk/psipred/
-   SPARKS-X -- http://sparks.informatics.iupui.edu/index.php?pageLoc=Services (available to academic users upon request)
-   (Uses Spine-X from the SPARKS-X package for solvent accessibility, phi, and psi predictions)
 
-   OPTIONAL SECONDARY STRUCTURE PREDICTION PROGRAMS:
-   SAM -- http://www.soe.ucsc.edu/research/compbio/sam.html
-   PORTER -- http://distill.ucd.ie/porter/
+SETUP:
 
-   Configure paths at the top of make_fragments.pl to point to these databases and programs.
+  1. BUILD ROSETTA FRAGMENT PICKER 
 
-   If you want to exclude homologous sequences from the fragment search, you must format the
-   VALL blast database using the following command:
+     $> cd ../../main/source
+	
+     #  Modify -j 20 for the number of CPUs to use for compiling.
+  
+     # External boost_thread libraries are required for multi-threaded fragment picking
+     #   The Rosetta boost version is `ls -d external/boost_*`
 
-   /my_src_dir/blast-2.2.17_x64/blast-2.2.17/bin/formatdb -i <vall_database.blast>
+     $> scons mode=release extras=boost_thread bin/fragment_picker.boost_thread.linuxgccrelease -j 20
+  
+     # or do a standard build
+    
+     $> scons mode=release bin/fragment_picker.linuxgccrelease -j 20
 
-1. Obtain a fasta file for the desired sequence. First
-   line can be a comment starting with the '>' character.
+  2. OPTIONAL
 
-2. Obtain secondary structure predictions from web servers, or
-   install locally so that make_fragment.pl can run
-   secondary structure predictions. Up to three predictions can be used. At least
-   one must be used. If secondary structure predictions are obtained manually, they should be converted to
-   'psipred_ss2' format using the provided script 'ss_pred_converter.py'.
+     For a custom setup, modify the configuration at the top of make_fragments.pl
 
-3. Run make_fragments.pl. Invoke without arguments for usage options.
-   Likely the only argument you need to provide is the fasta file.
 
-   $> make_fragments.pl -verbose 2ptl_.fasta
+USAGE:
 
-   If you want to exclude homologous seqeunces from the fragment search,
-   add the -nohoms argument.
+  1. Obtain a fasta file for the desired sequence. First
+     line can be a comment starting with the '>' character.
 
-   $> make_fragments.pl -verbose -nohoms 2ptl_.fasta
+  2. Run make_fragments.pl.
+     Invoke without arguments for initial installation and usage options.
+     External dependencies are downloaded and installed automatically the first time you run make_fragments.pl.
+     The initial installation takes a long time because the NCBI non-redundant (nr) sequence database is very
+     large so please be patient.
+     
+     Likely the only argument you need to provide is the fasta file.
+
+     $> make_fragments.pl -verbose 2ptl_.fasta
+
+     If you want to exclude homologous seqeunces from the fragment search,
+     add the -nohoms argument.
+
+     $> make_fragments.pl -verbose -nohoms 2ptl_.fasta
+
+
+REFERENCES:
+
+Rosetta fragment picker reference:
+
+ Gront, D., Kulp, D.W., Vernon, R.M., Strauss, C.E.M. & Baker, D. Generalized fragment picking in Rosetta: 
+ design, protocols and applications. PLoS ONE 6, e23294 (2011).
+
+
+Please use the following references for external dependencies:
+
+- NCBI Blast (http://www.ncbi.nlm.nih.gov/blast/blast_references.shtml)
+
+ Altschul, S.F., Madden, T.L., Schäffer, A.A., Zhang, J., Zhang, Z., Miller, W. & Lipman, D.J (1997) "Gapped 
+ BLAST and PSI-BLAST: a new generation of protein database search programs." Nucleic Acids Res. 25:3389-3402
+
+- SPARKS-X (http://sparks.informatics.iupui.edu/sparks-x/)
+
+ Yuedong Yang, Eshel Faraggi, Huiying Zhao, Yaoqi Zhou. Improving protein fold recognition and template-based
+ modeling by employing probabilistic-based matching between predicted one-dimensional structural properties of
+ the query and corresponding native properties of templates. Bioinformatics 27:2076-82(2011)
+
+- Psipred (http://bioinf.cs.ucl.ac.uk/psipred/)
+
+ Jones DT. (1999) Protein secondary structure prediction based on position-specific scoring matrices. J. Mol. 
+ Biol. 292: 195-202.
 
 

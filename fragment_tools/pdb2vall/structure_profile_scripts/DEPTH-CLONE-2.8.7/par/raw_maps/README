@@ -1,0 +1,4 @@
+raw data maps. 
+
+Gaussian Kernel Approximation is used to generate the maps (sigma = 1)
+the y-axis (accessibility) is scaled by 0.3 so that along with depth they roughly formed a rectangular grid map (so that euclidean distance is justified)

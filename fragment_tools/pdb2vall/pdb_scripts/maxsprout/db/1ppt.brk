@@ -1,0 +1,413 @@
+HEADER    PANCREATIC HORMONE                      16-JAN-81   1PPT      1PPT   3
+COMPND    AVIAN PANCREATIC POLYPEPTIDE                                  1PPT   4
+SOURCE    TURKEY (MELEAGRIS $GALLOPAVO) PANCREAS                        1PPTF  1
+AUTHOR    T.L.BLUNDELL,J.E.PITTS,I.J.TICKLE,S.P.WOOD                    1PPT   6
+REVDAT   7   15-OCT-91 1PPTF   3       SOURCE HETATM                    1PPTF  2
+REVDAT   6   27-OCT-83 1PPTE   1       REMARK                           1PPTE  1
+REVDAT   5   30-SEP-83 1PPTD   1       REVDAT                           1PPTD  1
+REVDAT   4   13-JUN-83 1PPTC   1       JRNL   REMARK                    1PPTD  2
+REVDAT   3   30-AUG-82 1PPTB   1       REMARK                           1PPTD  3
+REVDAT   2   15-SEP-81 1PPTA   1       JRNL                             1PPTD  4
+REVDAT   1   19-FEB-81 1PPT    0                                        1PPTD  5
+JRNL        AUTH   T.L.BLUNDELL,J.E.PITTS,I.J.TICKLE,S.P.WOOD,C.-*W.WU  1PPTC  1
+JRNL        TITL   X-RAY ANALYSIS (1.4-*ANGSTROMS RESOLUTION) OF AVIAN  1PPTA  1
+JRNL        TITL 2 PANCREATIC POLYPEPTIDE. SMALL GLOBULAR PROTEIN       1PPTA  2
+JRNL        TITL 3 HORMONE                                              1PPT  10
+JRNL        REF    PROC.NAT.ACAD.SCI.USA         V.  78  4175 1981      1PPTA  3
+JRNL        REFN   ASTM PNASA6  US ISSN 0027-8424                  040  1PPTA  4
+REMARK   1                                                              1PPT  13
+REMARK   1 REFERENCE 1                                                  1PPTE  2
+REMARK   1  AUTH   I.GLOVER,I.HANEEF,J.PITTS,S.WOOD,D.MOSS,I.TICKLE,    1PPTE  3
+REMARK   1  AUTH 2 T.BLUNDELL                                           1PPTE  4
+REMARK   1  TITL   CONFORMATIONAL FLEXIBILITY IN A SMALL GLOBULAR       1PPTE  5
+REMARK   1  TITL 2 HORMONE. X-*RAY ANALYSIS OF AVIAN PANCREATIC         1PPTE  6
+REMARK   1  TITL 3 POLYPEPTIDE AT 0.98-*ANGSTROMS RESOLUTION            1PPTE  7
+REMARK   1  REF    BIOPOLYMERS                   V.  22   293 1983      1PPTE  8
+REMARK   1  REFN   ASTM BIPMAA  US ISSN 0006-3525                  161  1PPTE  9
+REMARK   1 REFERENCE 2                                                  1PPTE 10
+REMARK   1  AUTH   J.E.PITTS,I.J.TICKLE,S.P.WOOD,T.L.BLUNDELL           1PPTB  2
+REMARK   1  TITL   CRYSTAL STRUCTURE ANALYSIS OF AVIAN PANCREATIC       1PPTB  3
+REMARK   1  TITL 2 POLYPEPTIDE AT 1.37 ANGSTROMS RESOLUTION             1PPTB  4
+REMARK   1  REF    KRISTALLOGRAFIYA              V.  27    97 1982      1PPTB  5
+REMARK   1  REFN   ASTM KRISAJ  UR ISSN 0023-4761                  041  1PPTB  6
+REMARK   1 REFERENCE 3                                                  1PPTE 11
+REMARK   1  AUTH   J.E.PITTS,I.J.TICKLE,S.P.WOOD,T.L.BLUNDELL           1PPTB  8
+REMARK   1  TITL   CRYSTAL STRUCTURE ANALYSIS OF AVIAN PANCREATIC       1PPTB  9
+REMARK   1  TITL 2 POLYPEPTIDE AT 1.37 ANGSTROMS RESOLUTION             1PPTB 10
+REMARK   1  REF    SOV.PHYS.CRYSTALLOGR.(ENGL.   V.  27    56 1982      1PPTB 11
+REMARK   1  REF  2 TRANSL.)                                             1PPTB 12
+REMARK   1  REFN   ASTM SPHCA6  US ISSN 0038-5638                  902  1PPTB 13
+REMARK   1 REFERENCE 4                                                  1PPTE 12
+REMARK   1  AUTH   S.P.WOOD,J.E.PITTS,T.L.BLUNDELL,I.J.TICKLE,          1PPT  15
+REMARK   1  AUTH 2 J.A.JENKINS                                          1PPT  16
+REMARK   1  TITL   PURIFICATION, CRYSTALLISATION AND PRELIMINARY        1PPT  17
+REMARK   1  TITL 2 X-*RAY STUDIES ON AVIAN PANCREATIC POLYPEPTIDE       1PPT  18
+REMARK   1  REF    EUR.J.BIOCHEM.                V.  78   119 1977      1PPT  19
+REMARK   1  REFN   ASTM EJBCAI  IX ISSN 0014-2956                  262  1PPT  20
+REMARK   1 REFERENCE 5                                                  1PPTE 13
+REMARK   1  AUTH   J.R.KIMMEL,L.J.HAYDEN,H.G.POLLOCK                    1PPTC  2
+REMARK   1  TITL   ISOLATION AND CHARACTERIZATION OF A NEW PANCREATIC   1PPT  23
+REMARK   1  TITL 2 POLYPEPTIDE HORMONE                                  1PPT  24
+REMARK   1  REF    J.BIOL.CHEM.                  V. 250  9369 1975      1PPT  25
+REMARK   1  REFN   ASTM JBCHA3  US ISSN 0021-9258                  071  1PPT  26
+REMARK   2                                                              1PPT  27
+REMARK   2 RESOLUTION. 1.37 ANGSTROMS.                                  1PPT  28
+REMARK   3                                                              1PPT  29
+REMARK   3 REFINEMENT. RESTRAINED LEAST-SQUARES.                        1PPT  30
+REMARK   4                                                              1PPT  31
+REMARK   4 THE ZINC ION WHOSE COORDINATES ARE GIVEN BELOW IS            1PPT  32
+REMARK   4 COORDINATED TO THREE CRYSTALLOGRAPHIC-SYMMETRY-RELATED       1PPT  33
+REMARK   4 MOLECULES.  IT IS BONDED TO ATOMS N AND O OF RESIDUE         1PPT  34
+REMARK   4 GLY 1 IN THE MOLECULE WHOSE COORDINATES ARE GIVEN BELOW.     1PPT  35
+REMARK   4 IT IS BONDED TO ATOM OD1 OF RESIDUE ASN 23 IN THE MOLECULE   1PPT  36
+REMARK   4 WHOSE COORDINATES ARE GIVEN BY APPLYING TRNSF 1 TO THE       1PPT  37
+REMARK   4 COORDINATES GIVEN BELOW WHERE TRNSF 1 IS                     1PPT  38
+REMARK   4       TRNSF1   1 -1.000     0.000     0.000    -7.47487      1PPT  39
+REMARK   4       TRNSF2   1  0.000     1.000     0.000     0.00000      1PPT  40
+REMARK   4       TRNSF3   1  0.000     0.000    -1.000    27.39866      1PPT  41
+REMARK   4 THE ZINC IS ALSO BONDED TO ATOM NE2 OF RESIDUE HIS 34 IN     1PPT  42
+REMARK   4 THE MOLECULE WHOSE COORDINATES ARE GIVEN BY APPLYING         1PPT  43
+REMARK   4 TRNSF 2 TO THE COORDINATES GIVEN BELOW WHERE TRNSF 2 IS      1PPT  44
+REMARK   4       TRNSF1   2 -1.000     0.000     0.000     9.61513      1PPT  45
+REMARK   4       TRNSF2   2  0.000     1.000     0.000   -16.46000      1PPT  46
+REMARK   4       TRNSF3   2  0.000     0.000    -1.000    27.39866      1PPT  47
+REMARK   4 BECAUSE THE COORDINATES OF THE SYMMETRY-RELATED ATOMS ARE    1PPT  48
+REMARK   4 NOT INCLUDED IN THIS ENTRY, THE CONNECTIVITY OF THE ZINC     1PPT  49
+REMARK   4 ION CANNOT BE SPECIFIED ON CONECT RECORDS.                   1PPT  50
+REMARK   5                                                              1PPTA  5
+REMARK   5 CORRECTION. UPDATE JRNL REFERENCE TO REFLECT PUBLICATION.    1PPTA  6
+REMARK   5  15-SEP-81.                                                  1PPTA  7
+REMARK   6                                                              1PPTB 16
+REMARK   6 CORRECTION. INSERT NEW PUBLICATIONS AS REFERENCES 1 AND 2.   1PPTB 17
+REMARK   6  RENUMBER THE OTHER REFERENCES.  30-AUG-82.                  1PPTB 18
+REMARK   7                                                              1PPTC  3
+REMARK   7 CORRECTION. INSERT TYPESETTING CODE.  INSERT MISSING COMMA   1PPTC  4
+REMARK   7  FOR REFERENCE 4.  13-JUN-83.                                1PPTC  5
+REMARK   8                                                              1PPTD  6
+REMARK   8 CORRECTION. INSERT REVDAT RECORDS. 30-SEP-83.                1PPTD  7
+REMARK   9                                                              1PPTE 14
+REMARK   9 CORRECTION. INSERT NEW PUBLICATION AS REFERENCE 1 AND        1PPTE 15
+REMARK   9  RENUMBER THE OTHERS.  27-OCT-83.                            1PPTE 16
+REMARK  10                                                              1PPTF  3
+REMARK  10 CORRECTION. ADD TYPESETTING CODE TO SOURCE RECORD.  ADD      1PPTF  4
+REMARK  10  RESIDUE NAME TO HETATM RECORD FOR ZN.  15-OCT-91.           1PPTF  5
+SEQRES   1     36  GLY PRO SER GLN PRO THR TYR PRO GLY ASP ASP ALA PRO  1PPT  51
+SEQRES   2     36  VAL GLU ASP LEU ILE ARG PHE TYR ASP ASN LEU GLN GLN  1PPT  52
+SEQRES   3     36  TYR LEU ASN VAL VAL THR ARG HIS ARG TYR              1PPT  53
+HET     ZN      1       1     ZINC(II) ION                              1PPT  54
+FORMUL   2   ZN    ZN1 ++                                               1PPT  55
+HELIX    1   A PRO      2  PRO      8 10 POLYPROLINE HELIX              1PPT  56
+HELIX    2   B VAL     14  THR     32  1                                1PPT  57
+CRYST1   34.180   32.920   28.400  90.00 105.26  90.00 C 2           4  1PPT  58
+ORIGX1      1.000000  0.000000  0.000000        0.00000                 1PPT  59
+ORIGX2      0.000000  1.000000  0.000000        0.00000                 1PPT  60
+ORIGX3      0.000000  0.000000  1.000000        0.00000                 1PPT  61
+SCALE1       .029257  0.000000   .007982        0.00000                 1PPT  62
+SCALE2      0.000000   .030377  0.000000        0.00000                 1PPT  63
+SCALE3      0.000000  0.000000   .036498        0.00000                 1PPT  64
+ATOM      1  N   GLY     1       2.296  -9.636  18.253  1.00  0.00      1PPT  65
+ATOM      2  CA  GLY     1       1.470  -9.017  17.255  1.00  0.00      1PPT  66
+ATOM      3  C   GLY     1        .448  -9.983  16.703  1.00  0.00      1PPT  67
+ATOM      4  O   GLY     1        .208 -11.066  17.345  1.00  0.00      1PPT  68
+ATOM      5  N   PRO     2       -.170  -9.672  15.624  1.00  0.00      1PPT  69
+ATOM      6  CA  PRO     2      -1.135 -10.606  14.958  1.00  0.00      1PPT  70
+ATOM      7  C   PRO     2       -.376 -11.824  14.490  1.00  0.00      1PPT  71
+ATOM      8  O   PRO     2        .776 -11.860  14.075  1.00  0.00      1PPT  72
+ATOM      9  CB  PRO     2      -1.717  -9.829  13.776  1.00  0.00      1PPT  73
+ATOM     10  CG  PRO     2       -.817  -8.685  13.546  1.00  0.00      1PPT  74
+ATOM     11  CD  PRO     2        .108  -8.454  14.780  1.00  0.00      1PPT  75
+ATOM     12  N   SER     3      -1.184 -12.918  14.566  1.00  0.00      1PPT  76
+ATOM     13  CA  SER     3       -.626 -14.187  14.053  1.00  0.00      1PPT  77
+ATOM     14  C   SER     3       -.642 -14.190  12.493  1.00  0.00      1PPT  78
+ATOM     15  O   SER     3      -1.149 -13.332  11.830  1.00  0.00      1PPT  79
+ATOM     16  CB  SER     3      -1.360 -15.359  14.573  1.00  0.00      1PPT  80
+ATOM     17  OG  SER     3      -2.655 -15.234  14.212  1.00  0.00      1PPT  81
+ATOM     18  N   GLN     4        .243 -14.995  11.964  1.00  0.00      1PPT  82
+ATOM     19  CA  GLN     4        .489 -14.940  10.481  1.00  0.00      1PPT  83
+ATOM     20  C   GLN     4       -.766 -15.384   9.734  1.00  0.00      1PPT  84
+ATOM     21  O   GLN     4      -1.330 -16.452  10.019  1.00  0.00      1PPT  85
+ATOM     22  CB  GLN     4       1.639 -15.895  10.114  1.00  0.00      1PPT  86
+ATOM     23  CG  GLN     4       2.182 -15.697   8.704  1.00  0.00      1PPT  87
+ATOM     24  CD  GLN     4       3.315 -16.670   8.366  1.00  0.00      1PPT  88
+ATOM     25  OE1 GLN     4       3.718 -16.761   7.207  1.00  0.00      1PPT  89
+ATOM     26  NE2 GLN     4       3.864 -17.403   9.317  1.00  0.00      1PPT  90
+ATOM     27  N   PRO     5      -1.196 -14.647   8.750  1.00  0.00      1PPT  91
+ATOM     28  CA  PRO     5      -2.414 -14.970   8.087  1.00  0.00      1PPT  92
+ATOM     29  C   PRO     5      -2.264 -16.297   7.258  1.00  0.00      1PPT  93
+ATOM     30  O   PRO     5      -1.184 -16.595   6.819  1.00  0.00      1PPT  94
+ATOM     31  CB  PRO     5      -2.798 -13.854   7.153  1.00  0.00      1PPT  95
+ATOM     32  CG  PRO     5      -1.809 -12.748   7.438  1.00  0.00      1PPT  96
+ATOM     33  CD  PRO     5       -.768 -13.190   8.408  1.00  0.00      1PPT  97
+ATOM     34  N   THR     6      -3.381 -16.917   7.174  1.00  0.00      1PPT  98
+ATOM     35  CA  THR     6      -3.548 -18.158   6.308  1.00  0.00      1PPT  99
+ATOM     36  C   THR     6      -3.745 -17.747   4.861  1.00  0.00      1PPT 100
+ATOM     37  O   THR     6      -4.693 -17.045   4.518  1.00  0.00      1PPT 101
+ATOM     38  CB  THR     6      -4.752 -18.911   6.884  1.00  0.00      1PPT 102
+ATOM     39  OG1 THR     6      -4.040 -19.502   8.074  1.00  0.00      1PPT 103
+ATOM     40  CG2 THR     6      -4.799 -20.260   6.058  1.00  0.00      1PPT 104
+ATOM     41  N   TYR     7      -2.893 -18.207   3.953  1.00  0.00      1PPT 105
+ATOM     42  CA  TYR     7      -3.065 -18.017   2.495  1.00  0.00      1PPT 106
+ATOM     43  C   TYR     7      -4.327 -18.738   2.010  1.00  0.00      1PPT 107
+ATOM     44  O   TYR     7      -4.536 -19.927   2.291  1.00  0.00      1PPT 108
+ATOM     45  CB  TYR     7      -1.828 -18.587   1.791  1.00  0.00      1PPT 109
+ATOM     46  CG  TYR     7      -1.913 -18.407    .265  1.00  0.00      1PPT 110
+ATOM     47  CD1 TYR     7      -2.029 -17.122   -.283  1.00  0.00      1PPT 111
+ATOM     48  CD2 TYR     7      -1.884 -19.519   -.588  1.00  0.00      1PPT 112
+ATOM     49  CE1 TYR     7      -2.090 -16.948  -1.671  1.00  0.00      1PPT 113
+ATOM     50  CE2 TYR     7      -1.943 -19.344  -1.978  1.00  0.00      1PPT 114
+ATOM     51  CZ  TYR     7      -2.039 -18.057  -2.521  1.00  0.00      1PPT 115
+ATOM     52  OH  TYR     7      -2.067 -17.876  -3.868  1.00  0.00      1PPT 116
+ATOM     53  N   PRO     8      -5.261 -18.068   1.439  1.00  0.00      1PPT 117
+ATOM     54  CA  PRO     8      -6.566 -18.626    .996  1.00  0.00      1PPT 118
+ATOM     55  C   PRO     8      -6.492 -19.530   -.193  1.00  0.00      1PPT 119
+ATOM     56  O   PRO     8      -7.584 -20.240   -.510  1.00  0.00      1PPT 120
+ATOM     57  CB  PRO     8      -7.488 -17.397    .798  1.00  0.00      1PPT 121
+ATOM     58  CG  PRO     8      -6.583 -16.313    .428  1.00  0.00      1PPT 122
+ATOM     59  CD  PRO     8      -5.230 -16.608   1.173  1.00  0.00      1PPT 123
+ATOM     60  N   GLY     9      -5.375 -19.740   -.857  1.00  0.00      1PPT 124
+ATOM     61  CA  GLY     9      -5.423 -20.730  -1.983  1.00  0.00      1PPT 125
+ATOM     62  C   GLY     9      -5.256 -19.861  -3.214  1.00  0.00      1PPT 126
+ATOM     63  O   GLY     9      -5.790 -18.783  -3.338  1.00  0.00      1PPT 127
+ATOM     64  N   ASP    10      -4.626 -20.463  -4.248  1.00  0.00      1PPT 128
+ATOM     65  CA  ASP    10      -4.521 -19.865  -5.611  1.00  0.00      1PPT 129
+ATOM     66  C   ASP    10      -5.891 -19.644  -6.232  1.00  0.00      1PPT 130
+ATOM     67  O   ASP    10      -6.079 -18.696  -7.006  1.00  0.00      1PPT 131
+ATOM     68  CB  ASP    10      -3.697 -20.772  -6.523  1.00  0.00      1PPT 132
+ATOM     69  CG  ASP    10      -2.225 -20.895  -6.117  1.00  0.00      1PPT 133
+ATOM     70  OD1 ASP    10      -1.521 -21.886  -6.544  1.00  0.00      1PPT 134
+ATOM     71  OD2 ASP    10      -1.682 -20.014  -5.347  1.00  0.00      1PPT 135
+ATOM     72  N   ASP    11      -6.810 -20.490  -5.917  1.00  0.00      1PPT 136
+ATOM     73  CA  ASP    11      -8.106 -20.411  -6.537  1.00  0.00      1PPT 137
+ATOM     74  C   ASP    11      -9.141 -19.681  -5.693  1.00  0.00      1PPT 138
+ATOM     75  O   ASP    11     -10.273 -19.451  -6.151  1.00  0.00      1PPT 139
+ATOM     76  CB  ASP    11      -8.681 -21.809  -6.852  1.00  0.00      1PPT 140
+ATOM     77  CG  ASP    11      -7.791 -22.570  -7.829  1.00  0.00      1PPT 141
+ATOM     78  OD1 ASP    11      -7.396 -21.995  -8.913  1.00  0.00      1PPT 142
+ATOM     79  OD2 ASP    11      -7.431 -23.778  -7.563  1.00  0.00      1PPT 143
+ATOM     80  N   ALA    12      -8.612 -18.887  -4.775  1.00  0.00      1PPT 144
+ATOM     81  CA  ALA    12      -9.622 -18.132  -4.017  1.00  0.00      1PPT 145
+ATOM     82  C   ALA    12     -10.101 -16.933  -4.820  1.00  0.00      1PPT 146
+ATOM     83  O   ALA    12      -9.482 -16.473  -5.779  1.00  0.00      1PPT 147
+ATOM     84  CB  ALA    12      -8.829 -17.575  -2.793  1.00  0.00      1PPT 148
+ATOM     85  N   PRO    13     -11.366 -16.547  -4.687  1.00  0.00      1PPT 149
+ATOM     86  CA  PRO    13     -11.981 -15.406  -5.466  1.00  0.00      1PPT 150
+ATOM     87  C   PRO    13     -11.187 -14.121  -5.215  1.00  0.00      1PPT 151
+ATOM     88  O   PRO    13     -10.522 -13.958  -4.032  1.00  0.00      1PPT 152
+ATOM     89  CB  PRO    13     -13.424 -15.243  -4.908  1.00  0.00      1PPT 153
+ATOM     90  CG  PRO    13     -13.500 -16.009  -3.659  1.00  0.00      1PPT 154
+ATOM     91  CD  PRO    13     -12.236 -16.882  -3.480  1.00  0.00      1PPT 155
+ATOM     92  N   VAL    14     -11.180 -13.190  -6.126  1.00  0.00      1PPT 156
+ATOM     93  CA  VAL    14     -10.341 -11.949  -5.914  1.00  0.00      1PPT 157
+ATOM     94  C   VAL    14     -10.673 -11.235  -4.610  1.00  0.00      1PPT 158
+ATOM     95  O   VAL    14      -9.729 -10.720  -3.902  1.00  0.00      1PPT 159
+ATOM     96  CB  VAL    14     -10.477 -11.110  -7.162  1.00  0.00      1PPT 160
+ATOM     97  CG1 VAL    14      -9.809  -9.750  -7.062  1.00  0.00      1PPT 161
+ATOM     98  CG2 VAL    14     -10.013 -11.873  -8.431  1.00  0.00      1PPT 162
+ATOM     99  N   GLU    15     -11.842 -11.320  -4.113  1.00  0.00      1PPT 163
+ATOM    100  CA  GLU    15     -12.142 -10.553  -2.855  1.00  0.00      1PPT 164
+ATOM    101  C   GLU    15     -11.451 -11.174  -1.704  1.00  0.00      1PPT 165
+ATOM    102  O   GLU    15     -11.170 -10.380   -.760  1.00  0.00      1PPT 166
+ATOM    103  CB  GLU    15     -13.711 -10.553  -2.589  1.00  0.00      1PPT 167
+ATOM    104  CG  GLU    15     -14.210 -11.854  -1.955  1.00  0.00      1PPT 168
+ATOM    105  CD  GLU    15     -15.561 -11.698  -1.254  1.00  0.00      1PPT 169
+ATOM    106  OE1 GLU    15     -16.152 -12.731   -.757  1.00  0.00      1PPT 170
+ATOM    107  OE2 GLU    15     -16.108 -10.534  -1.161  1.00  0.00      1PPT 171
+ATOM    108  N   ASP    16     -11.319 -12.496  -1.702  1.00  0.00      1PPT 172
+ATOM    109  CA  ASP    16     -10.488 -13.190   -.722  1.00  0.00      1PPT 173
+ATOM    110  C   ASP    16      -9.000 -12.982   -.958  1.00  0.00      1PPT 174
+ATOM    111  O   ASP    16      -8.238 -12.840    .013  1.00  0.00      1PPT 175
+ATOM    112  CB  ASP    16     -10.706 -14.670   -.638  1.00  0.00      1PPT 176
+ATOM    113  CG  ASP    16     -12.106 -15.022   -.152  1.00  0.00      1PPT 177
+ATOM    114  OD1 ASP    16     -12.571 -16.208   -.343  1.00  0.00      1PPT 178
+ATOM    115  OD2 ASP    16     -12.821 -14.131    .443  1.00  0.00      1PPT 179
+ATOM    116  N   LEU    17      -8.476 -12.788  -2.105  1.00  0.00      1PPT 180
+ATOM    117  CA  LEU    17      -7.028 -12.438  -2.126  1.00  0.00      1PPT 181
+ATOM    118  C   LEU    17      -6.810 -10.983  -1.717  1.00  0.00      1PPT 182
+ATOM    119  O   LEU    17      -5.812 -10.718  -1.159  1.00  0.00      1PPT 183
+ATOM    120  CB  LEU    17      -6.647 -12.470  -3.630  1.00  0.00      1PPT 184
+ATOM    121  CG  LEU    17      -6.525 -13.931  -4.064  1.00  0.00      1PPT 185
+ATOM    122  CD1 LEU    17      -6.250 -13.916  -5.582  1.00  0.00      1PPT 186
+ATOM    123  CD2 LEU    17      -5.372 -14.656  -3.263  1.00  0.00      1PPT 187
+ATOM    124  N   ILE    18      -7.786 -10.075  -1.877  1.00  0.00      1PPT 188
+ATOM    125  CA  ILE    18      -7.676  -8.682  -1.354  1.00  0.00      1PPT 189
+ATOM    126  C   ILE    18      -7.789  -8.754    .184  1.00  0.00      1PPT 190
+ATOM    127  O   ILE    18      -6.937  -8.096    .818  1.00  0.00      1PPT 191
+ATOM    128  CB  ILE    18      -8.822  -7.866  -1.960  1.00  0.00      1PPT 192
+ATOM    129  CG1 ILE    18      -8.514  -7.564  -3.452  1.00  0.00      1PPT 193
+ATOM    130  CG2 ILE    18      -8.973  -6.595  -1.116  1.00  0.00      1PPT 194
+ATOM    131  CD1 ILE    18      -9.640  -6.945  -4.117  1.00  0.00      1PPT 195
+ATOM    132  N   ARG    19      -8.698  -9.540    .771  1.00  0.00      1PPT 196
+ATOM    133  CA  ARG    19      -8.636  -9.644   2.284  1.00  0.00      1PPT 197
+ATOM    134  C   ARG    19      -7.271 -10.180   2.719  1.00  0.00      1PPT 198
+ATOM    135  O   ARG    19      -6.742  -9.797   3.773  1.00  0.00      1PPT 199
+ATOM    136  CB  ARG    19      -9.736 -10.584   2.604  1.00  0.00      1PPT 200
+ATOM    137  CG  ARG    19     -11.010  -9.860   3.115  1.00  0.00      1PPT 201
+ATOM    138  CD  ARG    19     -12.209 -10.742   3.604  1.00  0.00      1PPT 202
+ATOM    139  NE  ARG    19     -13.244 -10.589   2.620  1.00  0.00      1PPT 203
+ATOM    140  CZ  ARG    19     -14.562 -10.256   2.523  1.00  0.00      1PPT 204
+ATOM    141  NH1 ARG    19     -15.649  -9.931   3.450  1.00  0.00      1PPT 205
+ATOM    142  NH2 ARG    19     -14.877 -10.167   1.331  1.00  0.00      1PPT 206
+ATOM    143  N   PHE    20      -6.704 -11.222   2.134  1.00  0.00      1PPT 207
+ATOM    144  CA  PHE    20      -5.441 -11.780   2.548  1.00  0.00      1PPT 208
+ATOM    145  C   PHE    20      -4.374 -10.694   2.394  1.00  0.00      1PPT 209
+ATOM    146  O   PHE    20      -3.489 -10.541   3.246  1.00  0.00      1PPT 210
+ATOM    147  CB  PHE    20      -5.101 -12.968   1.646  1.00  0.00      1PPT 211
+ATOM    148  CG  PHE    20      -3.710 -13.511   1.946  1.00  0.00      1PPT 212
+ATOM    149  CD1 PHE    20      -2.666 -13.334   1.030  1.00  0.00      1PPT 213
+ATOM    150  CD2 PHE    20      -3.489 -14.185   3.148  1.00  0.00      1PPT 214
+ATOM    151  CE1 PHE    20      -1.392 -13.833   1.327  1.00  0.00      1PPT 215
+ATOM    152  CE2 PHE    20      -2.218 -14.680   3.443  1.00  0.00      1PPT 216
+ATOM    153  CZ  PHE    20      -1.168 -14.502   2.535  1.00  0.00      1PPT 217
+ATOM    154  N   TYR    21      -4.347  -9.918   1.280  1.00  0.00      1PPT 218
+ATOM    155  CA  TYR    21      -3.402  -8.885   1.007  1.00  0.00      1PPT 219
+ATOM    156  C   TYR    21      -3.411  -7.902   2.181  1.00  0.00      1PPT 220
+ATOM    157  O   TYR    21      -2.361  -7.533   2.718  1.00  0.00      1PPT 221
+ATOM    158  CB  TYR    21      -3.821  -8.142   -.271  1.00  0.00      1PPT 222
+ATOM    159  CG  TYR    21      -3.056  -6.870   -.555  1.00  0.00      1PPT 223
+ATOM    160  CD1 TYR    21      -1.730  -6.925   -.993  1.00  0.00      1PPT 224
+ATOM    161  CD2 TYR    21      -3.708  -5.654   -.376  1.00  0.00      1PPT 225
+ATOM    162  CE1 TYR    21      -1.042  -5.733  -1.246  1.00  0.00      1PPT 226
+ATOM    163  CE2 TYR    21      -3.022  -4.467   -.625  1.00  0.00      1PPT 227
+ATOM    164  CZ  TYR    21      -1.692  -4.505  -1.058  1.00  0.00      1PPT 228
+ATOM    165  OH  TYR    21      -1.035  -3.335  -1.287  1.00  0.00      1PPT 229
+ATOM    166  N   ASP    22      -4.642  -7.469   2.585  1.00  0.00      1PPT 230
+ATOM    167  CA  ASP    22      -4.728  -6.473   3.688  1.00  0.00      1PPT 231
+ATOM    168  C   ASP    22      -4.207  -7.089   4.978  1.00  0.00      1PPT 232
+ATOM    169  O   ASP    22      -3.568  -6.404   5.780  1.00  0.00      1PPT 233
+ATOM    170  CB  ASP    22      -6.194  -6.063   3.854  1.00  0.00      1PPT 234
+ATOM    171  CG  ASP    22      -6.707  -5.158   2.746  1.00  0.00      1PPT 235
+ATOM    172  OD1 ASP    22      -7.967  -5.120   2.494  1.00  0.00      1PPT 236
+ATOM    173  OD2 ASP    22      -5.890  -4.431   2.071  1.00  0.00      1PPT 237
+ATOM    174  N   ASN    23      -4.505  -8.385   5.271  1.00  0.00      1PPT 238
+ATOM    175  CA  ASN    23      -4.038  -8.947   6.542  1.00  0.00      1PPT 239
+ATOM    176  C   ASN    23      -2.506  -9.142   6.402  1.00  0.00      1PPT 240
+ATOM    177  O   ASN    23      -1.837  -8.942   7.451  1.00  0.00      1PPT 241
+ATOM    178  CB  ASN    23      -4.716 -10.254   6.855  1.00  0.00      1PPT 242
+ATOM    179  CG  ASN    23      -6.186 -10.108   7.257  1.00  0.00      1PPT 243
+ATOM    180  OD1 ASN    23      -6.841 -11.277   7.242  1.00  0.00      1PPT 244
+ATOM    181  ND2 ASN    23      -6.691  -9.038   7.581  1.00  0.00      1PPT 245
+ATOM    182  N   LEU    24      -1.987  -9.505   5.267  1.00  0.00      1PPT 246
+ATOM    183  CA  LEU    24       -.451  -9.679   5.213  1.00  0.00      1PPT 247
+ATOM    184  C   LEU    24        .173  -8.275   5.430  1.00  0.00      1PPT 248
+ATOM    185  O   LEU    24       1.220  -8.264   5.981  1.00  0.00      1PPT 249
+ATOM    186  CB  LEU    24       -.202 -10.148   3.805  1.00  0.00      1PPT 250
+ATOM    187  CG  LEU    24       1.277 -10.481   3.548  1.00  0.00      1PPT 251
+ATOM    188  CD1 LEU    24       1.764 -11.470   4.539  1.00  0.00      1PPT 252
+ATOM    189  CD2 LEU    24       1.499 -11.012   2.076  1.00  0.00      1PPT 253
+ATOM    190  N   GLN    25       -.410  -7.204   4.911  1.00  0.00      1PPT 254
+ATOM    191  CA  GLN    25        .085  -5.877   5.096  1.00  0.00      1PPT 255
+ATOM    192  C   GLN    25        .191  -5.541   6.582  1.00  0.00      1PPT 256
+ATOM    193  O   GLN    25       1.265  -5.150   7.065  1.00  0.00      1PPT 257
+ATOM    194  CB  GLN    25       -.806  -4.832   4.429  1.00  0.00      1PPT 258
+ATOM    195  CG  GLN    25       -.281  -3.402   4.489  1.00  0.00      1PPT 259
+ATOM    196  CD  GLN    25       -.921  -2.504   3.422  1.00  0.00      1PPT 260
+ATOM    197  OE1 GLN    25       -.397  -1.428   3.134  1.00  0.00      1PPT 261
+ATOM    198  NE2 GLN    25      -2.028  -2.888   2.811  1.00  0.00      1PPT 262
+ATOM    199  N   GLN    26       -.856  -5.749   7.310  1.00  0.00      1PPT 263
+ATOM    200  CA  GLN    26       -.856  -5.563   8.757  1.00  0.00      1PPT 264
+ATOM    201  C   GLN    26        .308  -6.289   9.398  1.00  0.00      1PPT 265
+ATOM    202  O   GLN    26       1.009  -5.921  10.266  1.00  0.00      1PPT 266
+ATOM    203  CB  GLN    26      -2.266  -5.866   9.301  1.00  0.00      1PPT 267
+ATOM    204  CG  GLN    26      -2.357  -5.747  10.824  1.00  0.00      1PPT 268
+ATOM    205  CD  GLN    26      -2.333  -4.297  11.313  1.00  0.00      1PPT 269
+ATOM    206  OE1 GLN    26      -2.414  -4.053  12.516  1.00  0.00      1PPT 270
+ATOM    207  NE2 GLN    26      -2.225  -3.309  10.444  1.00  0.00      1PPT 271
+ATOM    208  N   TYR    27        .366  -7.626   9.157  1.00  0.00      1PPT 272
+ATOM    209  CA  TYR    27       1.356  -8.520   9.698  1.00  0.00      1PPT 273
+ATOM    210  C   TYR    27       2.759  -8.036   9.359  1.00  0.00      1PPT 274
+ATOM    211  O   TYR    27       3.622  -7.942  10.245  1.00  0.00      1PPT 275
+ATOM    212  CB  TYR    27       1.111  -9.949   9.116  1.00  0.00      1PPT 276
+ATOM    213  CG  TYR    27       2.122 -10.986   9.594  1.00  0.00      1PPT 277
+ATOM    214  CD1 TYR    27       3.124 -11.439   8.729  1.00  0.00      1PPT 278
+ATOM    215  CD2 TYR    27       2.044 -11.485  10.899  1.00  0.00      1PPT 279
+ATOM    216  CE1 TYR    27       4.061 -12.377   9.173  1.00  0.00      1PPT 280
+ATOM    217  CE2 TYR    27       2.984 -12.421  11.346  1.00  0.00      1PPT 281
+ATOM    218  CZ  TYR    27       3.998 -12.862  10.486  1.00  0.00      1PPT 282
+ATOM    219  OH  TYR    27       4.932 -13.751  10.922  1.00  0.00      1PPT 283
+ATOM    220  N   LEU    28       3.051  -7.735   8.171  1.00  0.00      1PPT 284
+ATOM    221  CA  LEU    28       4.342  -7.279   7.784  1.00  0.00      1PPT 285
+ATOM    222  C   LEU    28       4.675  -5.907   8.478  1.00  0.00      1PPT 286
+ATOM    223  O   LEU    28       5.887  -5.811   8.927  1.00  0.00      1PPT 287
+ATOM    224  CB  LEU    28       4.614  -7.138   6.312  1.00  0.00      1PPT 288
+ATOM    225  CG  LEU    28       4.490  -8.512   5.562  1.00  0.00      1PPT 289
+ATOM    226  CD1 LEU    28       4.429  -8.253   3.969  1.00  0.00      1PPT 290
+ATOM    227  CD2 LEU    28       5.761  -9.362   5.838  1.00  0.00      1PPT 291
+ATOM    228  N   ASN    29       3.737  -4.993   8.530  1.00  0.00      1PPT 292
+ATOM    229  CA  ASN    29       4.064  -3.735   9.328  1.00  0.00      1PPT 293
+ATOM    230  C   ASN    29       4.502  -4.080  10.751  1.00  0.00      1PPT 294
+ATOM    231  O   ASN    29       5.252  -3.321  11.381  1.00  0.00      1PPT 295
+ATOM    232  CB  ASN    29       2.748  -2.894   9.387  1.00  0.00      1PPT 296
+ATOM    233  CG  ASN    29       2.581  -2.132   8.083  1.00  0.00      1PPT 297
+ATOM    234  OD1 ASN    29       1.565  -1.465   7.896  1.00  0.00      1PPT 298
+ATOM    235  ND2 ASN    29       3.539  -2.200   7.175  1.00  0.00      1PPT 299
+ATOM    236  N   VAL    30       3.812  -5.044  11.456  1.00  0.00      1PPT 300
+ATOM    237  CA  VAL    30       4.069  -5.352  12.824  1.00  0.00      1PPT 301
+ATOM    238  C   VAL    30       5.379  -6.029  12.954  1.00  0.00      1PPT 302
+ATOM    239  O   VAL    30       6.270  -5.680  13.834  1.00  0.00      1PPT 303
+ATOM    240  CB  VAL    30       2.961  -6.250  13.460  1.00  0.00      1PPT 304
+ATOM    241  CG1 VAL    30       3.526  -6.593  14.954  1.00  0.00      1PPT 305
+ATOM    242  CG2 VAL    30       1.683  -5.435  13.674  1.00  0.00      1PPT 306
+ATOM    243  N   VAL    31       5.698  -6.965  12.038  1.00  0.00      1PPT 307
+ATOM    244  CA  VAL    31       7.001  -7.699  12.162  1.00  0.00      1PPT 308
+ATOM    245  C   VAL    31       8.157  -6.782  11.957  1.00  0.00      1PPT 309
+ATOM    246  O   VAL    31       9.302  -7.004  12.397  1.00  0.00      1PPT 310
+ATOM    247  CB  VAL    31       6.845  -8.810  10.979  1.00  0.00      1PPT 311
+ATOM    248  CG1 VAL    31       8.217  -9.440  10.757  1.00  0.00      1PPT 312
+ATOM    249  CG2 VAL    31       5.842  -9.913  11.342  1.00  0.00      1PPT 313
+ATOM    250  N   THR    32       8.037  -5.850  11.015  1.00  0.00      1PPT 314
+ATOM    251  CA  THR    32       9.068  -4.861  10.736  1.00  0.00      1PPT 315
+ATOM    252  C   THR    32       8.975  -3.622  11.693  1.00  0.00      1PPT 316
+ATOM    253  O   THR    32       9.882  -2.752  11.522  1.00  0.00      1PPT 317
+ATOM    254  CB  THR    32       8.833  -4.336   9.342  1.00  0.00      1PPT 318
+ATOM    255  OG1 THR    32       7.762  -3.572   9.058  1.00  0.00      1PPT 319
+ATOM    256  CG2 THR    32       9.614  -4.848   8.439  1.00  0.00      1PPT 320
+ATOM    257  N   ARG    33       8.154  -3.603  12.666  1.00  0.00      1PPT 321
+ATOM    258  CA  ARG    33       7.995  -2.499  13.658  1.00  0.00      1PPT 322
+ATOM    259  C   ARG    33       7.787  -1.166  12.943  1.00  0.00      1PPT 323
+ATOM    260  O   ARG    33       8.043   -.093  13.507  1.00  0.00      1PPT 324
+ATOM    261  CB  ARG    33       9.235  -2.379  14.561  1.00  0.00      1PPT 325
+ATOM    262  CG  ARG    33       9.711  -3.734  15.065  1.00  0.00      1PPT 326
+ATOM    263  CD  ARG    33      10.875  -3.613  16.039  1.00  0.00      1PPT 327
+ATOM    264  NE  ARG    33      10.549  -2.811  17.223  1.00  0.00      1PPT 328
+ATOM    265  CZ  ARG    33       9.938  -3.306  18.303  1.00  0.00      1PPT 329
+ATOM    266  NH1 ARG    33       9.575  -4.596  18.352  1.00  0.00      1PPT 330
+ATOM    267  NH2 ARG    33       9.649  -2.584  19.395  1.00  0.00      1PPT 331
+ATOM    268  N   HIS    34       7.031  -1.228  11.897  1.00  0.00      1PPT 332
+ATOM    269  CA  HIS    34       6.779    .039  11.099  1.00  0.00      1PPT 333
+ATOM    270  C   HIS    34       5.289    .163  10.798  1.00  0.00      1PPT 334
+ATOM    271  O   HIS    34       4.835   -.137   9.689  1.00  0.00      1PPT 335
+ATOM    272  CB  HIS    34       7.587   -.011   9.878  1.00  0.00      1PPT 336
+ATOM    273  CG  HIS    34       7.608   1.293   9.098  1.00  0.00      1PPT 337
+ATOM    274  ND1 HIS    34       6.953   1.430   7.879  1.00  0.00      1PPT 338
+ATOM    275  CD2 HIS    34       8.195   2.486   9.363  1.00  0.00      1PPT 339
+ATOM    276  CE1 HIS    34       7.144   2.668   7.454  1.00  0.00      1PPT 340
+ATOM    277  NE2 HIS    34       7.884   3.310   8.330  1.00  0.00      1PPT 341
+ATOM    278  N   ARG    35       4.524    .544  11.879  1.00  0.00      1PPT 342
+ATOM    279  CA  ARG    35       3.108    .616  11.852  1.00  0.00      1PPT 343
+ATOM    280  C   ARG    35       2.637   1.882  11.134  1.00  0.00      1PPT 344
+ATOM    281  O   ARG    35       1.446   2.229  11.173  1.00  0.00      1PPT 345
+ATOM    282  CB  ARG    35       2.550    .636  13.314  1.00  0.00      1PPT 346
+ATOM    283  CG  ARG    35       2.848   -.712  13.994  1.00  0.00      1PPT 347
+ATOM    284  CD  ARG    35       2.475   -.788  15.476  1.00  0.00      1PPT 348
+ATOM    285  NE  ARG    35       3.312  -1.745  16.223  1.00  0.00      1PPT 349
+ATOM    286  CZ  ARG    35       2.837  -2.773  16.945  1.00  0.00      1PPT 350
+ATOM    287  NH1 ARG    35       1.521  -3.007  17.037  1.00  0.00      1PPT 351
+ATOM    288  NH2 ARG    35       3.612  -3.634  17.621  1.00  0.00      1PPT 352
+ATOM    289  N   TYR    36       3.365   2.609  10.443  1.00  0.00      1PPT 353
+ATOM    290  CA  TYR    36       2.765   3.446   9.296  1.00  0.00      1PPT 354
+ATOM    291  C   TYR    36       2.332   2.479   8.197  1.00  0.00      1PPT 355
+ATOM    292  O   TYR    36       3.166   1.720   7.671  1.00  0.00      1PPT 356
+ATOM    293  CB  TYR    36       4.021   4.330   8.787  1.00  0.00      1PPT 357
+ATOM    294  CG  TYR    36       4.734   4.795  10.058  1.00  0.00      1PPT 358
+ATOM    295  CD1 TYR    36       5.675   3.963  10.681  1.00  0.00      1PPT 359
+ATOM    296  CD2 TYR    36       4.424   6.040  10.616  1.00  0.00      1PPT 360
+ATOM    297  CE1 TYR    36       6.332   4.393  11.840  1.00  0.00      1PPT 361
+ATOM    298  CE2 TYR    36       5.083   6.471  11.773  1.00  0.00      1PPT 362
+ATOM    299  CZ  TYR    36       6.043   5.652  12.379  1.00  0.00      1PPT 363
+ATOM    300  OH  TYR    36       6.704   6.088  13.485  1.00  0.00      1PPT 364
+ATOM    301  OXT TYR    36       1.276   2.139   7.885  1.00  0.00      1PPT 365
+TER     302      TYR    36                                              1PPT 366
+HETATM  303 ZN    ZN     1       1.119 -11.175  19.270  1.00  0.00      1PPTF  6
+MASTER       76    0    1    2    0    0    0    6  302    1    0    3  1PPTF  7
+END                                                                     1PPT 369
+

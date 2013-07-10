@@ -1,0 +1,17 @@
+CREATE VIEW chain_endings AS SELECT * FROM chain_endings_view;
+CREATE VIEW fold_trees AS SELECT * FROM fold_trees_view;
+CREATE VIEW job_string_data AS SELECT * FROM job_string_data_view;
+CREATE VIEW job_string_real_data AS SELECT * FROM job_string_real_data_view;
+CREATE VIEW job_string_string_data AS SELECT * FROM job_string_string_data_view;
+CREATE VIEW jumps AS SELECT * FROM jumps_view;
+CREATE VIEW nonprotein_residue_angles AS SELECT * FROM nonprotein_residue_angles_view;
+CREATE VIEW nonprotein_residue_conformation AS SELECT * FROM nonprotein_residue_conformation_view;
+CREATE VIEW pose_comments AS SELECT * FROM pose_comments_view;
+CREATE VIEW pose_conformations AS SELECT * FROM pose_conformations_view;
+CREATE VIEW protein_residue_conformation AS SELECT * FROM protein_residue_conformation_view;
+CREATE VIEW residue_atom_coords AS SELECT * FROM residue_atom_coords_view;
+CREATE VIEW residue_pdb_confidence AS SELECT * FROM residue_pdb_confidence_view;
+CREATE VIEW residue_pdb_identification AS SELECT * FROM residue_pdb_identification_view;
+CREATE VIEW residues AS SELECT * FROM residues_view;
+CREATE VIEW structure_scores AS SELECT * FROM structure_scores_view;
+CREATE VIEW structures AS SELECT * FROM structures_view;

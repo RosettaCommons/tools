@@ -1,0 +1,112 @@
+ 
+                                   * * * * * * * * *
+                                   M A X S P R O U T
+                                   * * * * * * * * *
+                               Current Version (Oct 2006)
+ 
+  (1) MaxSprout is a fast database algorithm for generating protein backbone and
+      side chain co-ordinates from a C(alpha) trace. The backbone is assembled from
+      fragments taken from known structures. Side chain conformations are optimized
+      in rotamer space using a rough potential energy function to avoid clashes.
+ 
+  (2) Reference:
+      Holm L & Sander C (1991). Database algorithm for generating protein backbone
+      and side chain co-ordinates from a Ca trace. Application to model building
+      and detection of co-ordinate errors. J Mol Biol 218:183-194.
+ 
+  (3) Unzip and untar the distribution file, then read the README file for build
+      instructions, testing and usage.
+ 
+  (4) The MaxSprout Server can be found here:  http://www.ebi.ac.uk/maxsprout
+ 
+  (5) Author contact: liisa.holm'at'helsinki.fi
+ 
+  (6) Availability: academic licence. Commercial use is prohibited.
+ 
+        Please complete this licence agreement form, sign, keep a copy,
+        and return by paper mail to:
+ 
+        Liisa Holm
+        Biocenter 2 (Viikinkaari 5)
+        PO Box 56
+        FI-00014 University of Helsinki
+        Finland
+ 
+        or fax it:
+        FAX:  +358 (9) 191 59079
+ 
+
+ 
+cut here:
+--------------------------------------------------------------------------------
+ 
+                           ACADEMIC LICENCE AGREEMENT
+                           FOR THE PROGRAM  MaxSprout
+                                 BY Liisa Holm
+ 
+An academic licence agreement for the MaxSprout program
+(c) L. Holm 1987-2006
+ 
+is granted to ....................................
+ 
+in exchange for the following commitments:
+ 
+I hereby certify that
+ 
+        (1) I am an academic user at an academic research institution. In
+            using the software, We will respect the interests of the authors
+            and their institutions.
+ 
+        (2) I will not use the software in commercial activities without
+            a written commercial licence agreement; commercial activities
+            include, in particular, work under contract from a commercial
+            company.
+ 
+        (3) I will not redistribute the software to others outside of my
+            immediate research group. I will suggest to other interested
+            research groups to contact the authors directly. When I leave
+            my current institution, I will either delete the software or
+            reapply for a new licence.
+ 
+        (4) I will not alter or suppress the run-time copyright message.
+ 
+        (5) I will acknowledge the program authors on any publication of
+            scientific results based in part on use of the program and
+            cite the article in which the program was described [Holm L 
+            & Sander C (1991). Database algorithm for generating protein 
+            backbone and side chain co-ordinates from a Ca trace.
+            Application to model building and detection of co-ordinate
+            errors. J Mol Biol 218:183-194].
+ 
+        (6) I will report evidence of program bugs to the authors.
+ 
+        (7) I will send the source code of any bug corrections and program
+            extensions, major or minor, to the original authors, for free
+            academic use. If I have made major extensions which are incor-
+            porated by the authors, I reserve the right to be appropriately
+            included in any future commercial licence agreement.
+ 
+        (8) I will not extract part of the software, e.g. modules or sub-
+            routines, for use in other contexts without permission by the
+            authors.
+ 
+        (9) I will not use the program in the context of classified research.
+ 
+ 
+Purpose of research:
+ 
+Full name and institutional address:
+ 
+ 
+ 
+ 
+ 
+ 
+Email address:
+ 
+ 
+Date:                     Signature:
+ 
+ 
+ 
+--------------------------------------------------------------------------------

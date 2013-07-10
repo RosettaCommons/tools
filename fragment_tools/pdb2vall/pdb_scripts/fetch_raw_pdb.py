@@ -1,26 +1,20 @@
 #!/usr/local/bin/python
 from sys import argv
 from os import system,path
+import os
 import ConfigParser
 
-## get PDB2VALL_PATH
-PDB2VALL_PATH = path.abspath(path.dirname(__file__))
-PDB2VALL_PATH = PDB2VALL_PATH[0:PDB2VALL_PATH.rfind("/pdb2vall/")];
-PDB2VALL_PATH += "/pdb2vall/"
-if not PDB2VALL_PATH:
-    stderr.write("ERROR: you should specify the path where your packages are first.\n")
-    exit()
+labdatabases = os.environ["PDB_DIR"]
 
-## read config
-config = ConfigParser.RawConfigParser()
-config.read(PDB2VALL_PATH + "pdb2vall.cfg")
+# remote host for downloading pdbs
+remote_host = os.environ["INET_HOST"]
 
 pdbname = argv[1]
 
-netpdbname = config.get('pdb2vall', 'wwpdb_path')
+netpdbname = labdatabases
 netpdbhost = ""
-if config.has_option('pdb2vall', 'wwpdb_host'):
-    netpdbhost = config.get('pdb2vall', 'wwpdb_host')
+if remote_host:
+    netpdbhost = remote_host
 
 if not netpdbname.endswith(path.sep):
     netpdbname += path.sep

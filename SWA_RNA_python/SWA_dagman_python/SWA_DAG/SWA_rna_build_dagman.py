@@ -42,35 +42,129 @@ pathway_file = parse_options( argv, "pathway_file", "" )
 pathway_bulge_res = parse_options( argv, "pathway_bulge_res", [ -1 ] )
 allow_normal_move_at_pathway_bulge_res = parse_options( argv, "allow_normal_move_at_pathway_bulge_res", "False"  )
 allow_bulge_move_at_non_pathway_bulge_res = parse_options( argv, "allow_bulge_move_at_non_pathway_bulge_res", "False"  )
-build_from_helix_to_helix_mode = parse_options( argv, "build_from_helix_to_helix_mode", "True"  ) #Change default to True on Oct 10, 2010
+build_from_helix_to_helix_mode = parse_options( argv, "build_from_helix_to_helix_mode", "True"  )
+# TODO (sripakpa): add detail Prevent cycles.
+
 allow_bulge = parse_options( argv, "allow_bulge", "True" ) #Python boolean #change to True on April 9th, 2011
 starting_elements = parse_options( argv, "starting_elements", [ -1 ]  )
 allow_build_from_scratch = parse_options( argv, "allow_build_from_scratch", "False"  )
 allow_bulge_right_next_to_input_helix = parse_options( argv, "allow_bulge_right_next_to_input_helix", "True"  ) #Change to true on Nov 12, 2011
 dinucleotide_at_single_element_cc= parse_options( argv, "dinucleotide_at_single_element_cc", "all" )
 floating_base=parse_options( argv, "floating_base", "True" ) #change to true on April 9th 2011
+
 optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False")
-OLLM_chain_closure_only=  parse_options (argv, "OLLM_chain_closure_only", "False") # a simplify + FAST version of optimize_long_loop_mode
+# optimize_long_loop_mode:
+#   This is used in Sripakdeevong et al. 2011 PNAS
+#   Built long loop in potentially O(n) instead of O(n**2) steps.
+#   Consider the following 6 nucleotides loop:
+#           N-A1-A2-A3-U4-U5-U6-N
+#
+#   (1) Build regions such as: 
+#           N-A1-              -N
+#           N-A1-A2            -N
+#           N-               U6-N
+#           N-            U5-U6-N
+#
+#       But don't built regions involving both sides such as:
+#           N-A1-            U6-N
+#
+#       The idea is that nucleotides A1 and U6 are far apart and are therefore
+#       unlikely to interact with one other, so there is no point in building
+#       them simultaneously.
+#
+#   (2) Activates combine_long_loop mode:
+#
+#       Consider the following region:
+#           N-A1-A2       U5-U6-N
+#
+#       In this case A2 and U5 are only 3 nucleotides apart and perhaps
+#       they are close enough to be to contact/interact. This activates a mode
+#       call "combine_long_loop". In this mode, conformations from the
+#       following two regions:
+#           N-A1-A2            -N
+#                   and
+#           N-            U5-U6-N
+#
+#       are pass in the filterer (-algorithm filter_combine_long_loop). Only
+#       conformation-pairs in which A2 and U5 are in contact will pass the
+#       filter ("combine_long_loop_contact"). These conformations are then
+#       output into a silent_file that will then proceed to be built "locally"
+#       in a O(n**2) fashion:
+#
+#           N-A1-A2       U5-U6-N   (output from filterer)
+#                    |
+#                    V
+#           N-A1-A2    U4-U5-U6-N   (intermediate subsequent sampler step)
+#           N-A1-A2-U3    U5-U6-N   (intermediate subsequent sampler step)
+#                    |
+#                    V
+#           N-A1-A2-U3-U4-U5-U6-N
+
+OLLM_chain_closure_only = parse_options (argv, "OLLM_chain_closure_only", "False")
+# OLLM_chain_closure_only :
+#   This is used in Sripakdeevong et al. 2011 PNAS
+#   OLLM is abbreviation for optimize_long_loop_mode
+#   A strict extension of optimize_long_loop_mode (strictly run in O(n) steps
+#   rather than O(n**2) steps where n is the number of loop nucleotides).
+#   Should be run only in
+#   conjunction with optimize_long_loop_mode.
+#   
+#   (1) Modifies the behavior of the combine_long_loop mode:
+#
+#       Only regions combine regions that are 1 nt apart are combined, e.g.:
+#           N-A1-A2-A3         -N
+#                   and
+#           N-            U5-U6-N
+#
+#       The structure outputted from the filterer will be:
+#           N-A1-A2-A3    U5-U6-N
+#
+#       The chain can then be intermediately be closed in the subseqent
+#       sampler step.
+
+
 pure_append_prepend_only=  parse_options (argv, "pure_append_prepend_only", "False")
-combine_file_element_pair_list= parse_options (argv, "combine_file_element_pair_list", [""]) #hacky, example: 0_4_AND_8_0 (0_%d_AND_%d_0)
-no_combine_file_BOTH_element_list= parse_options (argv, "no_combine_file_BOTH_element_list", [ -1 ]) #hacky, example: 0,1,2,8,9.. (if BOTH side edge are at these elements, then skip combile_element
-no_combine_file_EITHER_element_list= parse_options (argv, "no_combine_file_EITHER_element_list", [ -1 ]) #hacky, example: 0,1,9.. (if EITHER side edge are at these elements, then skip combile_element
 enforce_path_base_pairs= parse_options (argv, "enforce_path_base_pairs", [""]) #these are elements
 kill_paths= parse_options(argv, "kill_paths", [""]) #these are elements
 
 max_duplex_frame_slip= parse_options(argv, "max_duplex_frame_slip", 0)
 duplex_frame_BP= parse_options(argv, "duplex_frame_BP", [ 0 ]) # these are elements
-sample_both_sugar_base_rotamer=parse_options(argv, "sample_both_sugar_base_rotamer", [""])
 
 Is_valid_value_dinucleotide_at_single_element_cc(dinucleotide_at_single_element_cc)
 
 #sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True") #Change this to True on Jan 29, 2012!
-sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG",  floating_base ) # virt_ribose sampling should not be required if no floating base moves.
+sample_virt_ribose_in_sep_DAG= parse_options(argv, "sample_virt_ribose_in_sep_DAG",  floating_base )
+# TODO (sripakpa): add details virt_ribose sampling should not be required if no floating base moves.
+# Allow better parallelization of sampler step (prevent bottleneck)
+# "TODO (sripakpa): explain why have to sample virt ribose for each seperate build step that uses a particular outfile.
 
-final_rebuild_bulge_step_only= parse_options(argv, "final_rebuild_bulge_step_only", "False") #New option Oct 22, 2011.
-BMRB_chemical_shift_file= parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
 
-allow_combine_DS_regions=parse_options(argv, "allow_combine_DS_regions", "False")
+final_rebuild_bulge_step_only = parse_options(argv, "final_rebuild_bulge_step_only", "False") #New option Oct 22, 2011.
+BMRB_chemical_shift_file = parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
+
+allow_combine_DS_regions = parse_options(argv, "allow_combine_DS_regions", "False")
+# allow_combine_DS_regions : 
+#   DS is abbreviation for 'double-stranded'
+#   This option provides additional building steps when building double-
+#   stranded-motifs (e.g. activates combine_DS_regions mode.)
+#
+#   Consider the following 8 nucleotides double-strand region.
+#
+#   N-N-A1-A2-A3-A4-N-N
+#   N-N-G8-G7-G6-G5-N-N
+#
+#   Regular SWA building of double-strand motifs will generate partially
+#   build regions such as:
+#
+#   N-N-A1-A2
+#   N-N-G8-G7
+#           and 
+#             A3-A4-N-N
+#             G6-G5-N-N
+#
+#  In combine_DS_regions mode provides building sampling steps to combine the
+#  two regions above into the full-length structure.
+
 
 if (len(duplex_frame_BP)!=0 and len(duplex_frame_BP)!=2):
 	error_exit_with_message("len(duplex_frame_BP)!=0 and len(duplex_frame_BP)!=2, duplex_frame_BP=%s " %(list_to_string(duplex_frame_BP)) )
@@ -185,9 +279,11 @@ if ( native_pdb!="" ):
 	sampling_args += '-native %s ' %(native_pdb)
 
 cluster_args = ' -algorithm rna_cluster  -database %s  %s ' %(DB, cluster_args)
+#TODO (sripakpa): Describe clusterer use cases (RMSD base comparision)
 
 filterer_args = ' -algorithm filter_combine_long_loop -database %s -clusterer_num_pose_kept %d ' %(DB, clusterer_num_pose_kept)
-
+#TODO (sripakpa): Describe filterer use cases (takes input two silent_files and output
+#       combined structures that pass certain filters)
 
 #########################################################
 #pdb info/pose_info is a map#
@@ -316,29 +412,31 @@ print "starting_regions: ", get_region_tags(user_input_pdb_info_list), " build_f
 ########################################################################################################
 combine_DS_regions=False
 
-if (allow_combine_DS_regions==True): #Feb 07, 2012
+if allow_combine_DS_regions:
 
 	#The two modes are not compatible!
-	if ( (optimize_long_loop_mode) ): error_exit_with_message("BOTH optimize_long_loop_mode and allow_combine_DS_regions EQUALS True!")
+	if optimize_long_loop_mode: 
+		error_exit_with_message("BOTH optimize_long_loop_mode and allow_combine_DS_regions EQUALS True!")
 
 	#Might not be compatible especially if len(starting_elements)>=1
-	if ( len(starting_elements) > 0): error_exit_with_message("len(starting_elements) > 0 and allow_combine_DS_regions EQUALS True!")
+	if len(starting_elements) > 0: 
+		error_exit_with_message("len(starting_elements) > 0 and allow_combine_DS_regions EQUALS True!")
 
 	#Not yet tested if the two modes are compatible!
-	if ( allow_build_from_scratch ):  error_exit_with_message("BOTH allow_build_from_scratch and allow_combine_DS_regions EQUALS True!")
+	if allow_build_from_scratch:  
+		error_exit_with_message("BOTH allow_build_from_scratch and allow_combine_DS_regions EQUALS True!")
 
-	combine_DS_regions= ( len(cutpoints_open)!=0 )
+	combine_DS_regions = len(cutpoints_open) != 0
 
-	if (combine_DS_regions):
+	if combine_DS_regions:
+		if len(user_input_pdb_info_list) != 2: 
+			error_exit_with_message("len(user_input_pdb_info_list)=(%s)!=2" %(len(user_input_pdb_info_list) ) )
 
-		if (len(user_input_pdb_info_list)!=2): error_exit_with_message("len(user_input_pdb_info_list)=(%s)!=2" %(len(user_input_pdb_info_list) ) )
+print "allow_combine_DS_regions=%s" % allow_combine_DS_regions,
+print "| combine_DS_regions=%s " % combine_DS_regions
 
-print "allow_combine_DS_regions=%s | combine_DS_regions=%s " %(allow_combine_DS_regions, combine_DS_regions)
+###############################################################################
 
-############################################################################################################################################
-
-
-####################################################################################################################################
 specified_pathway=False
 
 num_elements_actual=num_elements
@@ -353,10 +451,10 @@ if (pathway_file!=""):
 	else:
 		print "Confirmed that num_elements_actual==num_elements or num_elements_actual==num_elements-1"
 
-if (combine_DS_regions):
-	num_elements_actual=num_elements #revert back num_elements_actual..since combine_DS_regions guarantee that every element is build.
-####################################################################################################################################
-#STILL NEED TO Parallelize "the first building res" job....
+if combine_DS_regions:
+	# Reverts back num_elements_actual, since combine_DS_regions guarantee that
+	# every element is build.
+	num_elements_actual=num_elements
 
 ###############################################################
 # MAIN LOOP
@@ -440,65 +538,89 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 		if (normal_move==True):
 
-			i_prev = (i + 1) % num_elements #(i+1) because will prepend here
+			# Prepend single nucleotide
+			i_prev = (i + 1) % num_elements
 			j_prev = j
 
+			if Is_valid_attachment(i, j, i_prev, j_prev , num_elements,
+								  cutpoints_open, all_job_tags, pathway_bulge_res,
+								  element_definition, user_input_pdb_info_list,
+								  optimize_long_loop_mode, OLLM_chain_closure_only,
+								  allow_bulge_right_next_to_input_helix,
+								  allow_normal_move_at_pathway_bulge_res,
+								  allow_bulge_move_at_non_pathway_bulge_res,
+								  dinucleotide_at_single_element_cc, 
+								  build_from_helix_to_helix_mode,
+								  check_attach_verbose):
+				start_regions.append([i_prev, j_prev])
 
-			if (Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
-														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
-														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
-														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
-
-			###################
-
+			# Append single nucleotide
 			i_prev = i
-			j_prev = (j - 1) % num_elements #(j - 1) because will append here
+			j_prev = (j - 1) % num_elements
 
-			if (Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
-														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
-														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
-														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
+			if Is_valid_attachment(i, j, i_prev, j_prev , num_elements,
+								  cutpoints_open, all_job_tags, pathway_bulge_res,
+								  element_definition, user_input_pdb_info_list,
+								  optimize_long_loop_mode, OLLM_chain_closure_only,
+								  allow_bulge_right_next_to_input_helix,
+								  allow_normal_move_at_pathway_bulge_res,
+								  allow_bulge_move_at_non_pathway_bulge_res,
+								  dinucleotide_at_single_element_cc,
+								  build_from_helix_to_helix_mode,
+								  check_attach_verbose):
+				start_regions.append([i_prev, j_prev])
 
-		####Build bulge#############################
-		if (bulge_move ==True):
+		# Dinucleotide (e.g. Bulge + floating base) move.
+		if bulge_move:
 
-			i_prev = (i + 2) % num_elements #(i + 2) because will prepend + 1 bulge here
+			# Via prepend.
+			i_prev = (i + 2) % num_elements
 			j_prev = j
 
-			if (Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
-														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
-														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
-														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
+			if Is_valid_attachment(i, j, i_prev, j_prev , num_elements,
+								  cutpoints_open, all_job_tags, pathway_bulge_res,
+								  element_definition, user_input_pdb_info_list,
+								  optimize_long_loop_mode, OLLM_chain_closure_only,
+								  allow_bulge_right_next_to_input_helix,
+								  allow_normal_move_at_pathway_bulge_res,
+								  allow_bulge_move_at_non_pathway_bulge_res,
+								  dinucleotide_at_single_element_cc,
+								  build_from_helix_to_helix_mode,
+								  check_attach_verbose):
+				start_regions.append([i_prev, j_prev])
 
-
+			# Via append.
 			i_prev = i
-			j_prev = (j - 2) % num_elements #(j - 2) becaues will append + 1 bulge here
+			j_prev = (j - 2) % num_elements
 
-			if (Is_valid_attachment(i, j, i_prev, j_prev , num_elements, cutpoints_open, all_job_tags, pathway_bulge_res, element_definition, user_input_pdb_info_list, \
-														optimize_long_loop_mode, OLLM_chain_closure_only, allow_bulge_right_next_to_input_helix, \
-														allow_normal_move_at_pathway_bulge_res, allow_bulge_move_at_non_pathway_bulge_res, \
-														dinucleotide_at_single_element_cc, build_from_helix_to_helix_mode, check_attach_verbose)): start_regions.append( [i_prev, j_prev ] )
-
-
-		############################################
+			if Is_valid_attachment(i, j, i_prev, j_prev , num_elements,
+								  cutpoints_open, all_job_tags, pathway_bulge_res,
+								  element_definition, user_input_pdb_info_list, \
+								  optimize_long_loop_mode, OLLM_chain_closure_only,
+								  allow_bulge_right_next_to_input_helix, \
+								  allow_normal_move_at_pathway_bulge_res,
+								  allow_bulge_move_at_non_pathway_bulge_res, \
+								  dinucleotide_at_single_element_cc,
+								  build_from_helix_to_helix_mode,
+								  check_attach_verbose):
+				start_regions.append([i_prev, j_prev])
 
 		samplerer_post_process_outfile_list = []
 		samplerer_tag_list = []
 		job_specific_common_args_INSTANCE=""
 
-		#if len( start_regions ) > 0 and not exists( outdir ): submit_subprocess( 'mkdir -p '+outdir ) #March 18,2011
 
-		##############################################Create sampling JOBS################################################################################
+		#################Create sampling JOBS##################################
 
 		for start_region in start_regions:
 
 			i_prev = start_region[0]
 			j_prev = start_region[1]
 
-			######################################################################################
+			##################################################################
 			if (satisfy_enforce_path_base_pair(enforce_path_base_pair_list, i, i_prev, j, j_prev, allow_bulge, num_elements)==False): continue
 
-			######################################################################################
+			###################################################################
 
 			# Modes: (1) regular addition of a residue; (2) combine long loop.
 			for mode_num in [1,2]:
@@ -524,31 +646,6 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				else:
 					start_region_string= '%d_%d' % (i_prev, j_prev)
 
-				####################################################
-				if (combine_long_loop):
-					if (len(no_combine_file_BOTH_element_list)!=0):
-						Is_valid_element_pair=True
-						for element_i in no_combine_file_BOTH_element_list:
-							for element_j in no_combine_file_BOTH_element_list:
-								element_pair='0_%d_AND_%d_0' %(element_j,element_i)
-								if (element_pair==start_region_string): Is_valid_element_pair=False
-						if (Is_valid_element_pair==False): continue
-
-					if (len(no_combine_file_EITHER_element_list)!=0):
-						Is_valid_element_pair=True
-						for element_1 in no_combine_file_EITHER_element_list:
-							for element_2 in range(num_elements):
-								if ( ('0_%d_AND_%d_0' %(element_1,element_2))==start_region_string): Is_valid_element_pair=False
-								if ( ('0_%d_AND_%d_0' %(element_2,element_1))==start_region_string): Is_valid_element_pair=False
-						if (Is_valid_element_pair==False): continue
-
-					if (combine_file_element_pair_list!=[""]):
-						found_valid_element_pair=False
-						for element_pair in combine_file_element_pair_list:
-							if (element_pair==start_region_string): found_valid_element_pair=True
-						if (found_valid_element_pair==False): continue
-				####################################################
-
 				if (combine_long_loop==False):
 					if (parent_job_tag not in all_job_tags): continue
 
@@ -561,19 +658,6 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 				job_specific_sampling_args= sampling_args
 				job_specific_filterer_args= filterer_args
 
-
-				if (sample_both_sugar_base_rotamer!=[""]):
-					for jj in range(len(sample_both_sugar_base_rotamer)):
-
-						element_pairs=sample_both_sugar_base_rotamer[jj].split('-')
-
-						if (len(element_pairs)!=2): error_exit_with_message("len(element_pairs)!=2" )
-
-						if ( i==int(element_pairs[0]) and j==int(element_pairs[1]) ):
-							print "sample_both_sugar_base_rotamer true for i=%d, j=%d " %(i,j)
-							job_specific_sampling_args += ' -sample_both_sugar_base_rotamer true '
-							break
-
 				if (combine_long_loop):
 					pose_info_list=get_modeled_pose_info_list_combine_long_loop(i, j ,i_prev, j_prev, num_elements, user_input_pdb_info_list, element_definition, optimize_long_loop_mode, OLLM_chain_closure_only)
 
@@ -583,15 +667,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 					if (optimize_long_loop_mode):
 
-						#Prevent building from BOTH side (will be taken care of by the combine_long_loop step).
-						if ( (i_prev == 0 and j_prev == 0)==False ): #not the first building step.
-							if ( i!=0 and i_prev==0): pose_info_list=[]
-							if ( j!=0 and j_prev==0): pose_info_list=[]
+						# Prevent building from BOTH side (will be taken care
+						# of by the combine_long_loop step).
+						if i_prev != 0 or j_prev != 0: #not the first building step.
+							if i != 0 and i_prev == 0: pose_info_list=[]
+							if j != 0 and j_prev == 0: pose_info_list=[]
 
-						#STRICTER CONDITION, ONLY pure append or pure prepend..
+						# STRICTER CONDITION, ONLY pure append or pure prepend..
 						if (OLLM_chain_closure_only):
-							if ( i!= 0 and j != 0): pose_info_list=[]
-
+							if ( i != 0 and j != 0): pose_info_list=[]
 
 				if (len(pose_info_list)==0 ): #this is mainly for the optimize_long_loop_mode...
 					print "Skipping region %s since len(pose_info_list)=0, combine_long_loop=%s" %(get_job_tag(i,j), combine_long_loop)
@@ -659,7 +743,12 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					else:
 						sample_virtual_ribose_list.append("%d-%s" %( element_definition[ (i_prev) % num_elements ][ 0], 'P' ) )
 
-				if (is_release_mode()==False): #Consistency check for testing.
+				if not is_release_mode():
+					# Release_mode specifies that features have been tested and
+					# is release for usage by the wider community.
+					# Features such as consistency check should only be while
+					# testing the code and not in the released version of the
+					# code.
 					if (sample_virt_ribose_in_sep_DAG): job_specific_sampling_args += ' -sampler_assert_no_virt_ribose_sampling true '
 
 				# Special --> close cutpoint.
@@ -689,7 +778,16 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					else:
 						filterer_mode="combine_long_loop_contact"
 
-					if (sample_virt_ribose_in_sep_DAG): job_specific_filterer_args += " -filterer_undercount_ribose_rotamers true "
+					if sample_virt_ribose_in_sep_DAG: 
+						job_specific_filterer_args += " -filterer_undercount_ribose_rotamers true "
+						# Generally filterer will select and output a maximum 
+						# counts of low energy conformations.
+						# -filterer_undercount_ribose_rotamers options tells
+						# the filterer that two conformations that differ only
+						# by the coordinates of theirs virtual ribose/sugar
+						# should be treated as a single count. In the mode,
+						# the number of conformations actually outputted 
+						# by the filterer with exceed the 'maximum counts'
 
 				job_specific_common_args=add_input_res_to_common_args(job_specific_common_args, pose_info_list)
 
@@ -813,6 +911,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 
 
 			if ( L == num_elements_actual ):
+				# ACT is shorthand for actual.
 				ACT_clusterer_num_pose_kept=full_length_clusterer_num_pose_kept
 			else:
 				ACT_clusterer_num_pose_kept=clusterer_num_pose_kept
@@ -885,7 +984,7 @@ print
 
 
 
-if (combine_DS_regions):
+if combine_DS_regions:
 
 	print_title_text("COMBINE_DOUBLE_STRAND_REGIONS")
 
@@ -937,7 +1036,7 @@ if (combine_DS_regions):
 			if (upper_region[0]==upper_region[1]): continue #This is already accounted in the standard sampling above. (The upper_helical stub)
 			###################################################################################################
 
-			# focusing on chain closure
+			# Focusing on chain closure
 			if ( ( (lower_region[0]-1) % num_elements ) !=	( (upper_region[1]) % num_elements ) ): continue
 
 			if ( ( (lower_region[1]+1) % num_elements ) !=	( (upper_region[0]) % num_elements ) ): continue
@@ -945,7 +1044,7 @@ if (combine_DS_regions):
 			print "lower_region= ", lower_region, " upper_region= ", upper_region
 
 
-			# following are explicitly disallowed above... not sure why checked again? -- rhiju.
+			# Following are explicitly disallowed above... not sure why checked again? -- rhiju.
 			if (upper_region[0]==upper_region[1]):
 				if (upper_region[0]==0): error_exit_with_message("upper_region[0]==0" )
 
@@ -1039,11 +1138,14 @@ if (combine_DS_regions):
 
 				parent_job_tag_list=[lower_input_region_job_tag, upper_input_region_job_tag]
 
-				########Feb 07, 2012: Implement sample_virt_ribose_in_sep_DAG for combine double_strand regions#######
-				if ( (sample_virt_ribose_in_sep_DAG) ):
+				# Sample_virt_ribose_in_sep_DAG for combine double_strand regions
+				if sample_virt_ribose_in_sep_DAG:
 
-					#Consistency check for testing.
-					if ( is_release_mode()==False ): job_specific_sampling_args += ' -sampler_assert_no_virt_ribose_sampling true '
+					if not is_release_mode():
+						# Features such as consistency check should only be while
+						# testing the code and not in the released version of the
+						# code.
+						job_specific_sampling_args += ' -sampler_assert_no_virt_ribose_sampling true '
 
 					num_silent_files=get_num_silent_files([lower_pose_info, upper_pose_info])
 
@@ -1215,7 +1317,7 @@ if (combine_DS_regions):
 
 	################################################################################################################################
 
-	print	"INCLUDING COMBINE_DS_STEPS: "
+	print "INCLUDING COMBINE_DS_STEPS: "
 	print "Total number of DS_samplerer_jobs to run = %d" %(total_DS_samplerer_jobs)
 	print "Total number of 'other' jobs to run = %d" %(len( all_job_tags )-len(jobs_done) )
 	print
@@ -1226,8 +1328,9 @@ if (combine_DS_regions):
 	print
 
 
-###############################Oct 22, 2011: FINAL REBUILD BULGE ###############################################
-if (is_release_mode()==False): #This is not yet ready for RELEASE.
+#FINAL REBUILD BULGE
+if (is_release_mode()==False):
+    # This feature is still in testing.
 
 	final_outfile=standard_region_FINAL()
 	final_job_tag=standard_final_job_tag()

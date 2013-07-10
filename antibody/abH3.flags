@@ -1,5 +1,7 @@
+#start file
 -s grafting/model.pdb
 
+#how to run antibody mode -- these are the current best-practices
 -antibody::remodel              perturb_kic
 -antibody::snugfit              true
 -antibody::refine               refine_kic
@@ -12,26 +14,34 @@
 -antibody:constrain_vlvh_qq
 -constraints:cst_file grafting/cter_constraint
 
--ex1 
--ex2 
+#more standard settings, for packages used by antibody_H3
+-ex1
+-ex2
 -extrachi_cutoff 0
 -corrections:score:use_bicubic_interpolation false  ## should be true for smooth derivatives??
+-restore_pre_talaris_2013_behavior
+
+#these are standard settings for kic/ngk
 -loops:legacy_kic false
 -loops:kic_min_after_repack true
 -loops:kic_omega_sampling
 -loops:allow_omega_move true    ### remove 'true' and loop::?
--kic_bump_overlap_factor 0.36 
+-kic_bump_overlap_factor 0.36
 -loops:ramp_fa_rep
 -loops:ramp_rama
 -loops:outer_cycles 5
 
+#output options
 -out:file:scorefile remodel_h3.fasc
 -out:path:pdb ./pdbs/
 -out:pdb_gz
 -mpi_tracer_to_file ./outerr/out
 -mute core.io.pdb.file_data
+-out:levels core.io.constraints:debug  ## show constraints when read
 
 -nstruct 2000
 #-nstruct 10
 
 # paths are written assuming job is launched from within the antibody directory
+
+

@@ -72,11 +72,11 @@ def working_res_map( vector, working_res ):
 
 if len( fasta ) > 0 :
     assert( len(sequence) == 0 )
-    sequence = open( fasta ).readlines()[1][:-1]
+    sequence = open( fasta ).readlines()[1].strip()
 
 if len( secstruct_file ) > 0 :
     assert( len(secstruct) == 0 )
-    secstruct = open( secstruct_file ).readlines()[0].replace( '\n','').replace('\r','')
+    secstruct = open( secstruct_file ).readlines()[0].strip().replace( '\n','').replace('\r','')
 
 if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
@@ -198,7 +198,7 @@ for resnum in resnum_list:
 working_input_res = []
 for m in input_res:
     if m not in working_res :
-        raise ValueError('Input residue %s not in working_res!!' % i)
+        raise ValueError('Input residue %s not in working_res!!' % m)
     i = working_res.index( m )
     working_input_res.append( i+1 )
 

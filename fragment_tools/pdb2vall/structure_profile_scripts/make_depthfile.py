@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 from sys import argv, exit, stderr
 from os import system, getcwd, chdir, path
 from os.path import exists
@@ -24,9 +24,14 @@ if not PDB2VALL_PATH:
     stderr.write("ERROR: should specify the path of the pdb2vall package.\n"); exit()
 
 ## read config
-config = ConfigParser.RawConfigParser()
+config = ConfigParser.RawConfigParser(allow_no_value=True)
 config.read(PDB2VALL_PATH + "pdb2vall/pdb2vall.cfg")
-DEPTH = config.get('pdb2vall', 'depth')
+
+# default
+DEPTH = PDB2VALL_PATH + "pdb2vall/structure_profile_scripts/DEPTH-CLONE-2.8.7/DEPTH";
+if config.get('pdb2vall', 'depth'):
+    DEPTH = config.get('pdb2vall', 'depth')
+
 DEPTH_THREADS = config.get('pdb2vall', 'depth_num_cpus')
 if not DEPTH_THREADS:
     DEPTH_THREADS = 1
@@ -35,6 +40,7 @@ if not DEPTH_THREADS:
 basedir = getcwd() + "/"
 system("mkdir %s" %( pdbname+pdbchain ))
 chdir( basedir + pdbname+pdbchain )
+system("rm *.log");
 
 ## GET WHOLE CHAIN PDB AND CLEAN THAT UP.
 cmd = PDB2VALL_PATH + 'pdb2vall/pdb_scripts/fetch_raw_pdb.py %s' % pdbname

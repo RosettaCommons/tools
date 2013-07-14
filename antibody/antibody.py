@@ -886,8 +886,10 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
         if not custom_template:
             if table:
+                # take most similar entry
                 custom_template = table[0]['subject-id']
             else:  # if there is no template... table is a list, which has a blast result
+		pdb_random = False
                 for v in cdr_info.items():
                     check_length = '%s_length' % k
                     try:
@@ -899,7 +901,11 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                 print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
                 custom_template = pdb_random
                 #sys.exit(1)
-            print "%s template: %s" % (k, custom_template)
+            if custom_template:
+                print "%s template: %s" % (k, custom_template)
+            else:
+                print "Error: Could not find template with same length %s." % k
+                sys.exit(1)
         else: print 'Custom %s template: %s...' % (k, custom_template)
         shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
 

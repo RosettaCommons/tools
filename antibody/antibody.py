@@ -195,7 +195,7 @@ def main(args):
                                  filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
-                                        help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
+                                        help="Boolean option [0/1] that control filtering results with %s function." % f.func_name)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options

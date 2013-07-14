@@ -59,26 +59,32 @@ def get_ligand_data(SessionMaker,engine,batch_descriptor):
                 screening_features.columns.group_name,
                 screening_features.columns.descriptor_data).\
                 filter(screening_features.columns.struct_id == struct_id).one()
-        name3,group_name,descriptor_data = data_query
+        name3,group_name,descriptor_data_string = data_query
         data_entry = {}
         data_entry["struct_id"] = struct_id
         data_entry["name3"] = name3
         data_entry["group_name"] = group_name
-        descriptor_data = json.loads(descriptor_data)
+        try:
+            descriptor_data = json.loads(descriptor_data_string)
+        except json.decoder.JSONDecodeError:
+            print "Can't decode data for struct_id",struct_id
+            print descriptor_data_string
+            continue
         for key in descriptor_data:
             data_entry[key] = descriptor_data[key]
-        ligand_data_list.append(data_entry)
-        break
-    return ligand_data_list
+        #ligand_data_list.append(data_entry)
+        yield data_entry
+    #return ligand_data_list
     query_session.close()
     
 def init_options():
-    usage = "%prog  --batch-description=batch_desc  output_filename"
+    usage = "%prog  --batch-description=batch_desc  output_dir/"
     parser = OptionParser(usage)
     parser.add_option("--batch-description",dest="batch_description",help="select the batch description tag to process data from", default="")
     parser.add_option("--host",dest="host",help="Server host",default="")
     parser.add_option("--username",dest="username",help="Database user name",default="")
     parser.add_option("--database-name",dest="db_name",help="The name of the database to connect to",default="")
+    parser.add_option("--chunk-size",dest="chunk_size",help="Number of records per output_file (default 10000)",default="10000")
     return parser
     
 if __name__ == "__main__":
@@ -86,7 +92,7 @@ if __name__ == "__main__":
     parser = init_options()
     (options,args) = parser.parse_args()
     
-    output_filename = args[0]
+    output_directory = args[0]
     
     if options.batch_description == "":
         parser.exit("You must specify --batch-description")
@@ -113,8 +119,16 @@ if __name__ == "__main__":
     
     engine = sqlalchemy.create_engine(mysql_engine_string % engine_data,pool_recycle=3600)
     SessionMaker = sqlalchemy.orm.sessionmaker(bind=engine)
-     
-    ligand_data = get_ligand_data(SessionMaker,engine,options.batch_description)
-    with open(output_filename,'w') as output:
-        json.dump(ligand_data,output)
+    chunk_size = int(options.chunk_size)
+    chunk_number = 1
+    
+    partial_data = []
+    for ligand_data in get_ligand_data(SessionMaker,engine,options.batch_description):
+        partial_data.append(ligand_data)
+        if len(partial_data) == chunk_size:
+            output_filename = "%s/%s_%04d.js" % (output_directory,options.batch_description,chunk_number)
+            with open(output_filename,'w') as output:
+                json.dump(partial_data,output)
+            partial_data = []
+            chunk_number += 1
     

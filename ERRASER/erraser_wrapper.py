@@ -314,7 +314,7 @@ def erraser_single_res( option ) :
                 score = 0.0
                 min_out_lines = open(minimize_option.log_out).readlines()
                 for j in xrange( len(min_out_lines) - 1, -1, -1) :
-                    if "Total weighted score:" in min_out_lines[j] :
+                    if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
                         score = float(min_out_lines[j].split()[-1])
                         break
                 if len(res_sliced) != 0 :
@@ -338,7 +338,7 @@ def erraser_single_res( option ) :
         native_score = 0.0
         min_out_lines = open(minimize_option.log_out).readlines()
         for j in xrange( len(min_out_lines) - 1, -1, -1) :
-            if "Total weighted score:" in min_out_lines[j] :
+            if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
                 native_score = float(min_out_lines[j].split()[-1])
                 break
         if len(res_sliced) != 0 :

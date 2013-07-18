@@ -4,7 +4,7 @@
 
 target=model.pdb
 
-if [ -z "$1" ]
+if [ -z "$1" ] || [ "$2" != "" ] && [ "$2" != "force" ] && [ "$2" != "quick" ]
 then
     echo Usage: $(basename $0) repertoire_directory [force/quick]
     echo run antibody.py on a repertoire to create grafted structures
@@ -22,7 +22,7 @@ fi
 cd $repdir
 
 if [ "$2" == "force" ]; then force=true; else force=false; fi
-if [ "$2" == "quick" ]; then norelax="--quick=1"; fi
+if [ "$2" == "quick" ]; then norelax="--quick"; fi
 
 dirs=`ls -d *`
 echo Processing Repertoire Antibodies: $dirs $norelax
@@ -35,7 +35,7 @@ for d in $dirs; do
   	echo "-------------------------------------- Antibody $d --------------------------------------"
     cd $d
  	if [ $force == true ] || [ ! -f grafting/$target ]
- 	then 
+ 	then
 	 	antibody.py --heavy-chain $d\H.fasta --light-chain $d\L.fasta --prefix grafting/ \
     	            $norelax 2>&1 | tee grafting.log
     	if [ $PIPESTATUS -eq 0 ]; then (( success++ )); else (( failed++ )); fi

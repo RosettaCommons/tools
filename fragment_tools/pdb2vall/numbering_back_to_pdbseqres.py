@@ -26,6 +26,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
     ## EXTERNAL PROGRAMS
     script_get_single_chain_pdb = PDB2VALL_PATH + "pdb_scripts/get_pdb_new.py"
     script_pdb2fasta            = PDB2VALL_PATH + "pdb_scripts/pdb2fasta.py" 
+    bl2seq = ""
     if not exists( bl2seq ):
         bl2seq = PDB2VALL_PATH + "../../../../../src/blast/bin/bl2seq" # Robetta location
     if not exists( bl2seq ):

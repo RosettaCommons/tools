@@ -1,12 +1,6 @@
-if false; then
 for i in cc hh params txt; do 
     find ./ -name \*.$i | xargs sed -i .old 's/O1P/OP2/g'
     find ./ -name \*.$i | xargs sed -i .old 's/O2P/OP1/g'
-done
-fi
-
-
-for i in cc hh params txt; do 
     find ./ -type f -name \*.$i | xargs sed -i .old "s/C1\*/C1\'/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/C2\*/C2\'/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/C3\*/C3\'/g"
@@ -24,6 +18,11 @@ for i in cc hh params txt; do
     find ./ -type f -name \*.$i | xargs sed -i .old "s/2H5\*/H5\'\'/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/2HO\*/HO2\'/g"
 
+    find ./ -type f -name \*.$i | xargs sed -i .old "s/C5M/C7 /g"
+    find ./ -type f -name \*.$i | xargs sed -i .old "s/1H5M/ H71/g"
+    find ./ -type f -name \*.$i | xargs sed -i .old "s/2H5M/ H72/g"
+    find ./ -type f -name \*.$i | xargs sed -i .old "s/3H5M/ H73/g"
+
     find ./ -type f -name \*.$i | xargs sed -i .old "s/1H4 / H41/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/2H4 / H42/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/1H4/H41/g"
@@ -33,6 +32,9 @@ for i in cc hh params txt; do
     find ./ -type f -name \*.$i | xargs sed -i .old "s/1H2 / H22/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/2H2/H21/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/1H2/H22/g"
+
+
+    find ./ -type f -name \*.$i | xargs sed -i .old "s/H21'/H2''/g"
     
     find ./ -type f -name \*.$i | xargs sed -i .old "s/1H6 / H61/g"
     find ./ -type f -name \*.$i | xargs sed -i .old "s/2H6 / H62/g"

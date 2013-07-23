@@ -8,6 +8,12 @@ $| = 1; # disable stdout buffering
 
 # pdb_revdat.txt is used in make_fragments.pl to date filter for benchmarking
 
+my $INTERNET_HOST = "";
+if (scalar@ARGV) {
+	$INTERNET_HOST = shift@ARGV;
+	chomp $INTERNET_HOST;
+}
+
 # optional path to hierarchical PDB directory from RCSB
 my $LAB_PDB = $ENV{'PDB_DIR'} if (exists $ENV{'PDB_DIR'});
 #system("rsync -auvz --port=33444 rsync.wwpdb.org::ftp/data/structures/divided/pdb/ $LAB_PDB > rsync_divided_pdb.log 2>/dev/null");
@@ -24,7 +30,11 @@ my $current_date_str = $year.sprintf("%2.2d", $mon).sprintf("%2.2d",$mday);
 # get latest pdb_revdat.txt if it doesn't exist
 my $pdbrevdat = "$Bin/pdb_revdat.txt";
 if (!-s $pdbrevdat || (scalar@ARGV && $ARGV[0] eq 'overwrite')) {
-	system("cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
+	if ($INTERNET_HOST) {
+		system("ssh $INTERNET_HOST 'cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz'");
+	} else {
+		system("cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
+	}
 	system("gunzip -c $Bin/pdb_revdat.txt.gz > $pdbrevdat.$current_date_str");
 	system("mv $pdbrevdat.$current_date_str $pdbrevdat");
 } else {
@@ -37,7 +47,11 @@ if (!-s $pdbrevdat || (scalar@ARGV && $ARGV[0] eq 'overwrite')) {
 	my $diff =  ($current_epoch-$check_timestamp)/604800;
 	if ($diff > 1) {
 		# older than a week so lets try to update
-		system("cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
+		if ($INTERNET_HOST) {
+			system("ssh $INTERNET_HOST 'cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz'");
+		} else {
+			system("cd $Bin; wget -N http://robetta.bakerlab.org/downloads/databases/pdb_revdat.txt.gz");
+		}
 		my $new_epoch_timestamp = (stat("$Bin/pdb_revdat.txt.gz"))[9];
 		if ($new_epoch_timestamp > $epoch_timestamp) {
 			system("gunzip -c $Bin/pdb_revdat.txt.gz > $pdbrevdat.$current_date_str");

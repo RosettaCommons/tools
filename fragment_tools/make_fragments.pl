@@ -50,6 +50,7 @@ my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
 # $NR will be used if empty
 my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 
+my $INTERNET_HOST = "ws0"; # "localhost";
 
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
@@ -234,7 +235,13 @@ if ( !$options{homs} ) {
 		system("$BLAST_DIR/bin/formatdb -i $VALL_BLAST_DB") if (-s $VALL_BLAST_DB);
 	}
 	if (!-s $PDB_SEQRES) {
-		system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
+		if ($INTERNET_HOST) {
+			my $pwd = cwd();
+			system("ssh $INTERNET_HOST 'cd $pwd; wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt'");
+		} else {
+			system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
+		}
+		if (!-s "pdb_seqres.txt") { die "ERROR! wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt failed\n"; }
 		system("mv pdb_seqres.txt $PDB_SEQRES") if (!-s $PDB_SEQRES);
 	}
 	if (!-s "$PDB_SEQRES.phr") {
@@ -736,7 +743,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 
 	# update pdb_revdat.txt
 	print_debug("Getting latest pdb_revdat.txt....");
-	system("$Bin/update_revdat.pl");
+	system("$Bin/update_revdat.pl $INTERNET_HOST");
 
 	my %month_str_to_num = (
 		'JAN' => '01',
@@ -863,12 +870,16 @@ if ( scalar @pdbs_to_vall ) {
         warn
 "WARNING! pdb2vall output $options{runid}\_pdbs_to_vall.vall does not exist.\n";
     }
+
+		chdir($options{rundir});
 }
+
 
 # check valls for date filtering
 if ( $options{exclude_homologs_by_pdb_date} ) {
+	chdir($options{rundir});
 	my %appended;
-	open( EXCL,  ">$options{runid}.homolog_by_pdb_date_$cutoff_date_str" ) or die "ERROR! cannot open!\n";;
+	open( EXCL,  ">$options{runid}.homolog_by_pdb_date_$cutoff_date_str" ) or die "ERROR! cannot open!\n";
 	open( EXCL2, ">>$options{runid}.homolog" );
 	print EXCL "# excluded because release date > $cutoff_date_str or missing in pdb_revdat.txt\n";
 	foreach my $v (@valls) {
@@ -903,7 +914,7 @@ if ( $options{exclude_homologs_by_pdb_date} ) {
 
 my $valls_str = join ' ', @valls;
 
-chdir("$options{rundir}");
+chdir($options{rundir});
 
 
 if ( !$options{frags} ) {

@@ -5,7 +5,7 @@ import glob
 import subprocess
 import math
 import pickle
-from optparse import OptionParser
+from optparse import OptionParser, IndentedHelpFormatter
 
 def lowerwilsonbound(pos, n):
     # See http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
@@ -21,6 +21,7 @@ class CoverageInfo:
     def __init__(self, options):
         self.files = {} # Dictionary of filename:(dictionary of lineno:ex/nonex status)
         self.userinfo = {} # Dictionary of filename:(dictionary of lineno:(user, rev) tuples)
+        self.revlist = set() # Set of git revisions between options.rev and current HEAD
         self.options = options
         if options.load:
             f = open(options.load,'rb')
@@ -65,7 +66,7 @@ class CoverageInfo:
         finally:
             f.close()
 
-    def genuserinfo(self):
+    def genuserinfo_svn(self):
         "Produce userinfo statistics."
         for filename in self.files:
             #print "Genuser for", filename #DEBUG
@@ -80,20 +81,51 @@ class CoverageInfo:
                 rev, user = svnout[lineno-1].split()[0:2]
                 fileuserinfo[lineno] = (user, rev)
 
+    def genuserinfo(self):
+        "Produce userinfo statistics."
+        for filename in self.files:
+            #print "Genuser for", filename #DEBUG
+            # -c is tab seperated format, -l is full revision number, -w is ignore whitespace
+            p = subprocess.Popen(["git", "blame", "-clw", filename], stdout=subprocess.PIPE)
+            gitout, err = p.communicate()
+            if p.returncode != 0:
+                sys.stdout.write("Skipping user statistics for "+filename+"\n")
+                continue
+            gitout = gitout.split('\n')
+            fileuserinfo = self.userinfo.setdefault(filename,{})
+            for lineno in self.files[filename]:
+                rev, user = gitout[lineno-1].split('\t')[0:2]
+                user = user[1:].strip() # Remove the leading left paren and extraneous whitespace
+                fileuserinfo[lineno] = (user, rev)
+
+    def genrevlist(self):
+        "Produce a set of revisions over which to operate."
+        if self.options.rev is None:
+            self.revlist = None
+            return
+        #Get a list of revisions between the given revision and the current head
+        p = subprocess.Popen(["git", "rev-list", self.options.rev+"^..HEAD"], stdout=subprocess.PIPE)
+        gitout, err = p.communicate()
+        if p.returncode != 0:
+            sys.stdout.write("Can't find "+self.options.rev+" in history of current commit - ignoring.\n")
+            self.revlist = set()
+        else:
+            self.revlist = set(gitout.split("\n"))
+
     def filestats(self, username=None):
         "Produce a per-file summary of code coverage."
         totalex = totalnonex = 0
         filestats = {} # Dictionary of filename:[ex, noex] lists
         for fn in self.files:
             for line in self.files[fn]:
-                if username is not None or self.options.svnrev is not None:
+                if username is not None or self.options.rev is not None:
                     if fn not in self.userinfo:
                         sys.stdout.write("Skipping user/revision statistics for "+fn+"\n")
                         continue
                     user, rev = self.userinfo[fn][line]
                     if username is not None and user != username:
                         continue
-                    if self.options.svnrev is not None and int(rev) < self.options.svnrev:
+                    if self.revlist and rev not in self.revlist:
                         continue
                 if self.files[fn][line]:
                     #Executed
@@ -106,15 +138,15 @@ class CoverageInfo:
             totalex += filestats[fn][0]
             totalnonex += filestats[fn][1]
 
-	if totalnonex + totalex == 0:
+        if totalnonex + totalex == 0:
            sys.stdout.write("Skipping user "+str(username)+" - no relevant lines found \n")
            return
         if username is None:
             outfilename = "byfile_coverage"
         else:
-            outfilename = username + "_coverage"
-        if self.options.svnrev is not None:
-            outfilename += "_r" + str(self.options.svnrev) + ".txt"
+            outfilename = username.replace(" ","_") + "_coverage"
+        if self.options.rev is not None:
+            outfilename += "_r_" + str(self.options.rev) + ".txt"
         else:
             outfilename += ".txt"
         output = open(outfilename,"w")
@@ -136,7 +168,7 @@ class CoverageInfo:
         for fn in self.userinfo:
             for ln in self.userinfo[fn]:
                 user, rev = self.userinfo[fn][ln]
-                if self.options.svnrev is not None and int(rev) < self.options.svnrev:
+                if self.revlist and rev not in self.revlist:
                     continue
                 if self.files[fn][ln]:
                     #Executed
@@ -146,8 +178,8 @@ class CoverageInfo:
                     userstats.setdefault(user,[0,0])[1] += 1
 
         outfilename = "byuser_coverage"
-        if self.options.svnrev is not None:
-            outfilename += "_r" + str(self.options.svnrev) + ".txt"
+        if self.options.rev is not None:
+            outfilename += "_r_" + str(self.options.rev) + ".txt"
         else:
             outfilename += ".txt"
         output = open(outfilename,"w")
@@ -167,19 +199,19 @@ class CoverageInfo:
         on each line."""
 
         itemlist = []
+        rsort = True
         for item, (ex, nonex) in indict.items():
             nlines = ex + nonex
             if nlines == 0:
                 continue
             frac = float(nonex) / nlines
-            rsort = True
             if self.options.alphabetical and self.options.invert:
                 itemlist.append( (item, float(ex)/nlines, ex, nlines, item ) )
                 rsort = False
             elif self.options.alphabetical:
                 itemlist.append( (item, float(nonex)/nlines, nonex, nlines, item ) )
                 rsort = False
-	    elif self.options.bylines and self.options.invert:
+            elif self.options.bylines and self.options.invert:
                 itemlist.append( (ex, float(ex)/nlines, ex, nlines, item ) )
             elif self.options.bylines:
                 itemlist.append( (nonex, frac, float(nonex)/nlines, nlines, item ) )
@@ -216,7 +248,7 @@ def main(options):
     ##subprocess.call(["gcov", "-p", "-o", build_d] + ccfiles)
 
     if options.file:
-	if not options.file.startswith("src"):
+        if not options.file.startswith("src"):
             sys.stderr.write("Filename to process must be a relative path starting with src/ \n")
             sys.exit()
 
@@ -227,7 +259,7 @@ def main(options):
 
         build_d = findbuilddir()
 
-	stem = os.path.dirname(options.file)[4:] # remove 'src/'
+        stem = os.path.dirname(options.file)[4:] # remove 'src/'
         gcovcall = ["gcov", "-p", "-o", os.path.join(build_d,stem), options.file]
         subprocess.call(gcovcall)
         sys.stdout.write("\n\nCalled: " + ' '.join(gcovcall) + "\n\n" )
@@ -261,6 +293,8 @@ def main(options):
     if options.save:
         coverageinfo.save(options.save)
 
+    coverageinfo.genrevlist()
+
     coverageinfo.filestats()
 
     if options.byuser:
@@ -270,53 +304,74 @@ def main(options):
         for username in options.userlist:
             coverageinfo.filestats(username)
 
+# Better handle multiple paragraph descriptions.
+class PreformattedDescFormatter (IndentedHelpFormatter):
+    def format_description(self, description):
+        return description.strip() + "\n" # Remove leading/trailing whitespace
+
 if __name__ == "__main__":
     parser = OptionParser(usage="usage: %prog [options] [usernames]",
-        description="""This program runs the gcc gcov code coverage tool on the Rosetta codebase and outputs summary statistics.
-It assumes that the running statistic have already been produced.
+        description="""This program runs the gcc gcov code coverage tool on the Rosetta codebase and
+outputs summary statistics. It assumes that the running statistic have already
+been produced.
 
-To gather coverage statistics, first you have to compile Rosetta with the gcc compiler and "extras=gcov". (This places the appropriate *.gcno files in the build directory). Note that the statistics are a little better if you compile without optimization, though this is probably not strictly necessary.
+To gather coverage statistics, first you have to compile Rosetta with the gcc
+compiler and "extras=gcov". (This places the appropriate *.gcno files in the
+build directory). Note that the statistics are a little better if you compile
+without optimization, though this is probably not strictly necessary.
 
 $ scons -j8 extras=gcov bin && scons -j8 cat=test extras=gcov
 
-(Note that if you need to recompile, you'll need to clear out the build directory and recompile - unfortunately gcov has internal checks that don't work well with incremental compiles.)
+(Note that if you need to recompile, you'll need to clear out the build
+directory and recompile - unfortunately gcov has internal checks that don't
+work well with incremental compiles.)
 
-Then you should run whatever conditions you wish to test. (For example, unit tests and/or integration tests). (Note the number of calls will sum over all subsequent invocation. If you want to reset, just remove all the *.gcda files from the build directory.) 
+Then you should run whatever conditions you wish to test. (For example, unit tests
+and/or integration tests). The number of calls will sum over all subsequent invocation.
+If you want to reset, just remove all the *.gcda files from the build directory.
 
 $ test/run.py -j8 --extras=gcov --mute all
 $ ./integration.py -j8 --extras=gcov
 
 Then you can run this script to get the statistics for the code.
 
-By default, this script ignores lines with asserts (regular, runtime or Py) or utility exits in it (but not all lines in blocks that will utility exit).
-The philosophy being that normal runs shouldn't execute those lines anyway, so they shouldn't count against coverage statistics.
-This check is done with a simple substring match, so any line with the strings "assert" or "utility_exit" will not be counted.
-Use the -x flag to change this behavior.
+By default, this script ignores lines with asserts (regular, runtime or Py)
+or utility exits in it (but not all lines in blocks that will utility exit).
+The philosophy being that normal runs shouldn't execute those lines anyway,
+so they shouldn't count against coverage statistics. This check is done with
+a simple substring match, so any line with the strings "assert" or
+"utility_exit" will not be counted. Use the -x flag to change this behavior.
 
-You can also output files with per user statistics with the -u option, or statistics for just those lines attributed to particular users by specifying 
-their svn user names on the commandline. Note this uses svn utilities, so this should be an svn checkout directory.
+You can also output files with per user statistics with the -u option, or
+statistics for just those lines attributed to particular users by specifying
+their name according to git on the commandline (This is their fullname,
+rather than the github or email address).
+Note this uses git utilities, so this should be run from a git checkout directory.
 
-Generating the running report and the user statistics is rather computationally intensive, so you can cache the results of the preload with the -s/-l options
-to save time later, if you want to do more detailed analysis. (e.g. with the username or -r options). Note the svn user statistics are only computed and saved if
-they're needed.
+Generating the running report and the user statistics is rather computationally
+intensive, so you can cache the results of the preload with the -s/-l options
+to save time later, if you want to do more detailed analysis. (e.g. with the
+username or -r options). Note the git user statistics are only computed and
+saved if they're needed.
 
-Finally, for ease of use, you can invoke the relevant gcov with the -f option (if present this will not run anything else), which will produce a breakdown of the
-executed/non-executed lines in a given file.
+Finally, for ease of use, you can invoke the relevant gcov with the -f option
+(if present this will not run anything else), which will produce a breakdown
+of the executed/non-executed lines in a given file.
 
-""")
+""",formatter=PreformattedDescFormatter())
     parser.add_option("-x", "--exits", action="store_true", help="don't ignore lines with asserts or utility_exits")
     parser.add_option("-a", "--alphabetical", action="store_true", help="sort output alphabetically by full path, rather than by percentage unexecuted")
     parser.add_option("-n", "--bylines", action="store_true", help="sort output by number of unexecuted lines, rather than by percentage")
     parser.add_option("-i", "--invert", action="store_true", help="Print executed rather than non-executed statistics")
-    parser.add_option("-u", "--byuser", action="store_true", help="also output per-committer (via svn blame) statistics")
-    parser.add_option("-r", "--svnrev", type="int", help="Only count lines from commits more recent than the given revision.")
-    parser.add_option("-s", "--save", help="Save the interpreted data state to FILE, so subsequent runs don't have to rerun gcov/svn", metavar="FILE")
-    parser.add_option("-l", "--load", help="Load the interpreted data state from FILE, so you don't have to rerun gcov/svn", metavar="FILE")
+    parser.add_option("-u", "--byuser", action="store_true", help="also output per-committer (via git blame) statistics")
+    parser.add_option("-r", "--rev", type="string", help="Only count lines from commits more recent than the given revision.")
+    parser.add_option("-s", "--save", help="Save the interpreted data state to FILE, so subsequent runs don't have to rerun gcov/git", metavar="FILE")
+    parser.add_option("-l", "--load", help="Load the interpreted data state from FILE, so you don't have to rerun gcov/git", metavar="FILE")
     parser.add_option("-f", "--file", help="Don't run any other option, but generate the gcov output files for FILE and associated headers", metavar="FILE")
 
     options, args = parser.parse_args(sys.argv[1:])
     options.userlist = args
-    options.genuserinfo = options.byuser or (len(options.userlist) != 0) or (options.svnrev is not None)
+    options.genuserinfo = options.byuser or (len(options.userlist) != 0) or (options.rev is not None)
 
     #Check to make sure we're in the rosetta_source/ directory.
     if not os.path.isdir("src") or not os.path.isdir("build"):
@@ -332,15 +387,15 @@ executed/non-executed lines in a given file.
         sys.exit()
     devnull.close()
 
-    #Check that svn blame is availible, if we're doing user
+    #Check that git blame is availible, if we're doing user
     if( options.genuserinfo ):
         devnull = open(os.devnull, "w")
         try:
-            if subprocess.call(["svn", "info"], stdout = devnull, stderr = devnull):
-                sys.stderr.write("The current directory doesn't look to be a svn directory. svn needed for user statistics.\n")
+            if subprocess.call(["git", "status", "-u", "no"], stdout = devnull, stderr = devnull):
+                sys.stderr.write("The current directory doesn't look to be a git directory. git needed for user statistics.\n")
                 sys.exit()
         except Exception:
-            sys.stderr.write("Issue calling svn. Need it to do --user.\n")
+            sys.stderr.write("Issue calling git. Need it to do user or revision statistics.\n")
             sys.exit()
         devnull.close()
 

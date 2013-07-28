@@ -52,8 +52,6 @@ def erraser( option ) :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
     for res in option.fixed_res :
-        print res
-        print res_conversion_list
         if res in res_conversion_list :
             fixed_res_final.append( res_conversion_list.index(res) + 1 )
 
@@ -206,6 +204,10 @@ def erraser( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser end #####################################################
@@ -371,6 +373,10 @@ def erraser_single_res( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_single_res end   ########################################
@@ -464,6 +470,10 @@ def erraser_minimize( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_minimize end   ##########################################
@@ -538,6 +548,10 @@ def full_struct_slice_and_minimize( option ) :
 
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### full_struct_slice_and_minimize end   ############################
@@ -632,9 +646,12 @@ def seq_rebuild( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
-
 ##### seq_rebuild end   ###############################################
 
 
@@ -1008,6 +1025,10 @@ def SWA_rebuild_erraser( option ) :
 
     print '\n', "DONE!...Total time taken= %f seconds" % total_time , '\n'
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### SWA_rebuild_erraser end   #######################################

@@ -460,7 +460,7 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
                                'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
                                'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
                                'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
-    
+
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -559,12 +559,12 @@ def load_pdb_coord(input_pdb) :
 
         coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
         coord_res.append(coord_cur)
-        if line[13:16] == 'C1*' or line[13:16] == 'CA ' :
+        if line[13:16] == "C1'" or line[13:16] == 'CA ' :
             #NOTICE: CA matching is a PHENIX conference rna_prot_erraser hack
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
     if len(coord_C1) != len(coord_all) :
-        error_exit("Number of residues != number of C1*!!!")
+        error_exit("Number of residues != number of C1'!!!")
 
     return [coord_all, coord_C1]
 ####################################
@@ -906,7 +906,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     output.close()
     return True
 ####################################
-def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False, renumbering=True) :
+def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = False, using_protein = False, renumbering=True) :
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
@@ -996,7 +996,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                     atom_name = atom_name_convert[atom_name]
                 atom_name = atom_name.replace("'", "*")
 
-            if atom_name == " O3*" :
+            if atom_name == " O3*" or atom_name == " O3'" :
                 O3prime_coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
 
             if atom_name == " P  " :
@@ -1280,8 +1280,8 @@ def find_chi_angle( input_pdb, res ) :
                 coord.append( float( line[38:46] ) )
                 coord.append( float( line[46:54] ) )
                 atm_coords_list.append( [atm_name, coord] )
-    atom1 = coord_from_atm_name('O4*', atm_coords_list)
-    atom2 = coord_from_atm_name('C1*', atm_coords_list)
+    atom1 = coord_from_atm_name("O4'", atm_coords_list)
+    atom2 = coord_from_atm_name("C1'", atm_coords_list)
     if is_purine :
         atom3 = coord_from_atm_name('N9', atm_coords_list)
         atom4 = coord_from_atm_name('C4', atm_coords_list)

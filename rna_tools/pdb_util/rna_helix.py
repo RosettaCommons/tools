@@ -14,6 +14,7 @@ parser.add_argument('-o', default='helix.pdb', help='Filename of output pdb')
 parser.add_argument('-weights', default='', help='Weights file defining score function')
 parser.add_argument('-finish_weights', default='', help='Weights file defining a finisher score function')
 parser.add_argument('-silent', default='', help='silent file output')
+parser.add_argument('-dump', action='store_true', default=False, help='dump intermediate pdbs')
 args = parser.parse_args()
 
 
@@ -26,11 +27,11 @@ cmdline += (' -rna::corrected_geo  '+
             '-analytic_etable_evaluation 0 ')
 cmdline += '-o %s ' % temp.name
 cmdline += '-seq '
-for i in args.seq:
-    cmdline += i + ' '
+for i in args.seq:    cmdline += i + ' '
 if len( args.weights ) > 0:        cmdline += '-score:weights %s ' % args.weights
 if len( args.finish_weights ) > 0: cmdline += '-finish_weights %s ' % args.finish_weights
 if len( args.silent ) > 0: cmdline += '-out:file:silent %s ' % args.silent
+if args.dump: cmdline += '-dump '
 
 print 'Rosetta cmdline:', cmdline
 subprocess.check_call(cmdline.split())

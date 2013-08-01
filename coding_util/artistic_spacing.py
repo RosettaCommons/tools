@@ -34,7 +34,8 @@ ok_spaces = [ ' ',  '\t', '\n' ]
 paren_headers = [ 'if','while','for' ]
 numchars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ]
 
-headers_for_less_than_symbol = [ 'map','vector1','vector','iterator','ptr','Matrix','Vector','cast' ]
+headers_for_less_than_symbol = [ 'map','vector1','vector','iterator','ptr','Matrix','Vector','cast','pair' ]
+
 def check_headers_for_less_than_symbol( line, pos ):
     for header in headers_for_less_than_symbol:
         if pos > len( header ):

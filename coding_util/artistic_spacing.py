@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
 from sys import argv
+import argparse
 
-def Help():
-    print argv[0], " [--dryrun] <filenames>"
+#parser = argparse.ArgumentParser(description='Put spaces around equal signs, parentheses, etc. in Rosetta c++ code.')
+#parser.add_argument('--force', '-f',help='overwrite files if they previously exist',action="store_true", default=False)
+#args = parser.parse_args()
+#FORCE = args.force
 
-if len( argv ) <= 1:
-    Help()
-
-DRY_RUN = False
-if "--dryrun" in argv:
-    DRY_RUN = True
-    del( argv[ argv.index( "--dryrun" ) ] )
+FORCE = False
+if '--force' in argv:
+    del( argv[ argv.index( '--force' ) ] )
+    FORCE = True
 
 operators1_to_space_after   = [ '+', '-', '=', '(', ',', ';','}','{']
 operators1_to_space_before  = [ '+', '-', '=', ')' ]
@@ -40,7 +40,9 @@ for filename in argv[1:]:
     changed_a_line = False
 
     new_lines = []
-    for line in lines:
+    for line_num in range( len( lines ) ):
+
+        line = lines[ line_num ]
 
         # fix equal sign
         new_line = ''
@@ -98,13 +100,8 @@ for filename in argv[1:]:
                                 if ( line[ pos + 1 ] not in ok_spaces ):
                                     new_line += ' '
 
-        #new_line = new_line.replace( '  ', ' ' )
-        #new_line = new_line.replace( ' ++', '++' )
-        #new_line = new_line.replace( ' ++', '++' )
-        #new_line = new_line.replace( '++ ;', '++;' )
         #new_line = new_line.replace( '}else', '} else' )
         #new_line = new_line.replace( 'else{', 'else {' )
-        #new_line = new_line.replace( ' ->', '->' )
         new_line = new_line.replace( ' ,', ',' )
 
         # special case:
@@ -114,13 +111,17 @@ for filename in argv[1:]:
         if new_line != line:
             changed_a_line = True
             print
-            print filename
+            print '%s:%d' % ( filename, line_num - 1 )
             print line, new_line,
 
         new_lines.append( new_line )
 
     if changed_a_line:
-        if not DRY_RUN:
+        if FORCE:
             fid = open( filename, 'w' )
             for line in new_lines: fid.write( line )
             fid.close()
+
+if not FORCE:
+    print
+    print "Changes *not* applied. Rerun with --force flag to apply changes."

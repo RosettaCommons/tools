@@ -52,17 +52,14 @@ def erraser( option ) :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
     for res in option.fixed_res :
-        if res in res_conversion_list :
-            fixed_res_final.append( res_conversion_list.index(res) + 1 )
+        fixed_res_final.append( res_num_convert(res_conversion_list, res) )
 
     for res in option.cutpoint :
-        if res in res_conversion_list :
-            cutpoint_final.append( res_conversion_list.index(res) + 1 )
+        cutpoint_final.append( res_num_convert(res_conversion_list, res) )
 
     extra_res_final = []
     for res in option.extra_res :
-        if res in res_conversion_list :
-            extra_res_final.append( res_conversion_list.index(res) + 1 )
+        extra_res_final.append( res_num_convert(res_conversion_list, res) )
 
     fixed_res_final.sort()
     cutpoint_final.sort()
@@ -257,7 +254,7 @@ def erraser_single_res( option ) :
     fixed_res_final.sort()
     option.fixed_res_rs = fixed_res_final
     option.cutpoint_rs = cutpoint_final
-    option.rebuild_res = res_conversion_list.index(option.rebuild_res_pdb) + 1
+    option.rebuild_res = res_num_convert(res_conversion_list, option.rebuild_res_pdb)
     rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
 
     print 'Starting to rebuild residue %s' % option.rebuild_res_pdb

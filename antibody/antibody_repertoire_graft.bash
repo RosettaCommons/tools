@@ -4,7 +4,9 @@
 
 target=model.pdb
 
-if [ -z "$1" -o "-h" == "$1" -o "help" == "$1" -o "-help" == "$1" -o "--help" == "$1" ]
+if [ -z "$1" -o "-h" == "$1" -o "help" == "$1" -o "-help" == "$1" -o "--help" == "$1" ] || \
+   [ "$2" != "" -a "$2" != "force" -a "$2" != "quick" ] || \
+   [ "$3" != "" -a "$3" != "force" -a "$3" != "quick" ] 
 then
     cat <<EOUSAGE
 
@@ -64,7 +66,7 @@ for d in $dirs; do
   	echo "-------------------------------------- Antibody $d --------------------------------------"
     cd $d
  	if [ $force == true ] || [ ! -f grafting/$target ]
- 	then 
+ 	then
 	 	antibody.py --heavy-chain $d\H.fasta --light-chain $d\L.fasta --prefix grafting/ \
     	            $norelax 2>&1 | tee grafting.log
     	if [ $PIPESTATUS -eq 0 ]; then (( success++ )); else (( failed++ )); fi

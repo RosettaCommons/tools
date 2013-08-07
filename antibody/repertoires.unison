@@ -5,15 +5,16 @@
 
 # Roots of the synchronization
 #root = /Users/jeff/Research/repertoires/Dropbox/Structures
-root = /Users/jeff/Research/repertoires
+root = /Users/jeff/Research/repertoires/ND2-PreStampede
 root = ssh://jgray@stampede.tacc.utexas.edu//work/02262/jgray/repertoires
 
 batch = true
 
 # Paths to synchronize
 #path = ND2-12
-path = ND2-15
-path = ND2-9
+#path = ND2-15
+#path = ND2-9
+path = ND2
 
 ignore = Path */*/grafting/details/
 ignore = Path */*/pdbs

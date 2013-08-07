@@ -12,29 +12,35 @@ function lastpdb() {
 	for d in ${1+$1/}*/pdbs; do echo -n $d/; 'ls' $d | tail -1; done
 }
 
-function H3lengths() {
-	for f in ${1+$1/}*/grafting/details/H3.fasta; do echo -n $f\ ;tail -1 $f | wc | awk {'print $3-1'} ; done
+## loop statistics from grafting output.
+# first argument is repertoire directory (default: ./)
+# second argument is loop (default:He)
+function looplengths() {
+	for f in ${1+$1/}*/grafting/details/${2:-H3}.fasta; do echo -n $f\ ;tail -1 $f | wc | awk {'print $3-1'} ; done
 }
 
-function H3list() {
-	for f in ${1+$1/}*/grafting/details/H3.fasta; do echo -n $f\ ;tail -1 $f; done
+function looplist() {
+	for f in ${1+$1/}*/grafting/details/${2:-H3}.fasta; do echo -n $f\ ;tail -1 $f; done
 }
 
-function H3lengthshist() {
-	for f in ${1+$1/}*/grafting/details/H3.fasta; do tail -1 $f | wc | awk {'print $3-1'} ; done | sort -n | uniq -c
+function looplengthshist() {
+	for f in ${1+$1/}*/grafting/details/${2:-H3}.fasta; do tail -1 $f | wc | awk {'print $3-1'} ; done | sort -n | uniq -c
 }
 
-function L1lengths() {
-	for f in ${1+$1/}*/grafting/details/L1.fasta; do echo -n $f\ ;tail -1 $f | wc | awk {'print $3-1'} ; done
+# output files with histograms of all loop lengths
+looplengthshist.all() {
+	loops="L1 L2 L3 H1 H2 H3"
+	for loop in $loops
+	do
+		echo $loop:
+		looplengthshist ${1:-.} $loop > hist-$loop
+		cat hist-$loop
+	done
 }
 
-function L1list() {
-	for f in ${1+$1/}*/grafting/details/L1.fasta; do echo -n $f\ ;tail -1 $f; done
-}
-
-function L1lengthshist() {
-	for f in ${1+$1/}*/grafting/details/L1.fasta; do tail -1 $f | wc | awk {'print $3-1'} ; done | sort -n | uniq -c
-}
+function H3lengths()     { looplengths     ${1:-.} H3 }
+function H3list()        { looplist        ${1:-.} H3 }
+function H3lengthshist() { looplengthshist ${1:-.} H3 }
 
 function Abjobtime() {
 	for d in ${1+$1/}*/outerr

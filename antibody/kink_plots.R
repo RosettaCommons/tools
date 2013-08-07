@@ -80,13 +80,14 @@ plot.native.TrpHB = function(native){
 ##### Score v RMSD #####
 plot.scoreVrmsd = function(scfile,top10,...){
 	# correct for q constraint
-	sc = scfile$total_score - 600 * (scfile$total_score>0)
+	#sc = scfile$total_score - scfile$dihedral_constraint
+	sc = scfile$unconstr_score
 	sc.max=sc[order(sc)[round(length(sc)*0.95)]]  # cut top 5% of scores from plot
 	plot( scfile$H3_RMS,sc, col="black", pch=".",
 		xlim=c(0,18),ylim=c(min(sc),sc.max),...)
-	points( top10$H3_RMS, top10$total_score, col="green", pch=18, cex=0.5) # blue diamond
+	points( top10$H3_RMS, top10$unconstr_score, col="green", pch=18, cex=0.5) # blue diamond
 	rect.range(par()$xaxp[1],3,top10$H3_RMS,
-		       min(sc), max(top10$total_score),top10$total_score,
+		       min(sc), max(top10$unconstr_score),top10$unconstr_score,
 		       "bottomright")
 }
 
@@ -95,11 +96,13 @@ plot.scoreVrmsd = function(scfile,top10,...){
 ##### Score v qbase #####
 plot.scoreVqbase = function(scfile,top10,...){
 	# correct for q constraint
-	sc = scfile$total_score - 600 * (scfile$total_score>0)
+	#sc = scfile$total_score - scfile$dihedral_constraint
+	sc = scfile$unconstr_score
+	sc.max=sc[order(sc)[round(length(sc)*0.95)]]  # cut top 5% of scores from plot
 	plot( scfile$kink_qbase,sc, col="black", pch=".",
-		xlim=c(-180,180),...)
-	points( top10$kink_qbase, top10$total_score, col="green", pch=18, cex=0.5) # blue diamond
-	rect.range(-10,70,top10$kink_qbase,min(top10$total_score)-1, max(top10$total_score),top10$total_score,"topleft")
+		xlim=c(-180,180),ylim=c(min(sc),sc.max),...)
+	points( top10$kink_qbase, top10$unconstr_score, col="green", pch=18, cex=0.5) # blue diamond
+	rect.range(-10,70,top10$kink_qbase,min(top10$unconstr_score)-1, max(top10$unconstr_score),top10$unconstr_score,"topleft")
 }
 
 

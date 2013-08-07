@@ -1198,6 +1198,7 @@ def output_cter_constraint(base,prefix):
                 elif base == 'EXTEND': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 2.704 0.523 100' )
     f.close()
     # new python script
+    if Options.quick: return
     commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
     res, output = commands.getstatusoutput(commandline)
     if Options.verbose and not res: print commandline+'\n', output

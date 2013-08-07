@@ -1,0 +1,26 @@
+* Monte Carlo parameter file for $2:[.devel]TORSO
+* parameter list starts after '#'
+* 11 first lines format (i20,70x) except delta0, alfa0 & alfamax0 f10.1
+* 2 next lines are parameters for rotamer frequency bootstrap
+* 15..19-Feb-1991
+#2345678901234567890
+          1234556789 seed	random number generator seed
+                   1 nrun	total number of MC optimizations
+                1000 ndivide	delta divided by 10 every ndivide MC run
+                 500 nrestore	delta restored to delta0 after nrestore MC runs
+              0.0001 delta0	delta=increment per iteration step of alfa (inverse T)
+                 0.0 alfa0	initial inverse-temperature
+                10.0 alfamax0	final inverse-temperature
+                5000 nprint	frequency of outputting accepted steps
+                 200 updatefreq	update rotamer frequencies after updatefreq MC runs
+            10000000 steplimit	quit if emin does not decrease in steplimit steps
+                   1 1-Felsenstein 0-Metropolis
+                   1 rotamer frequency bootstrap: 1-equal 2-doublets 3-triplets
+                   1 initial rotamer frequency w0
+                 1.0 exponential weighting w1, w=w0+exp(-w1*epair)
+                   0 start0	0: start first run from random; 1: start from given
+                   0 start1	0: start 2... runs from random; 1: start from curbest
+                 1.9 cutsim	stop simulations which are very similar to best
+              100000 nchecksim	check similarity every nchecksim steps
+                 1.0 solscale	e=evdW+solscale*esol
+

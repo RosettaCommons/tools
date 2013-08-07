@@ -43,7 +43,7 @@ def wait_until_clusterer_slave_nodes_run():
 			slave_tag = abspath( slave_dir ).replace('/','_')
 
 			for line in bjobs_lines:
-				if( line.find( slave_tag+' ' ) > 0 ): 
+				if( line.find( slave_tag+' ' ) > 0 ):
 					running_clusterer_slave_nodes.append(slave_tag)
 					break
 
@@ -52,7 +52,7 @@ def wait_until_clusterer_slave_nodes_run():
 			for n in range(len(running_clusterer_slave_nodes)):
 				print "running_clusterer_slave_nodes #%d: %s " %(n+1,  running_clusterer_slave_nodes[n] )
 			return
-		else:		
+		else:
 			print "Waiting for clusterer_slave_nodes to RUN, SO_FAR %d are running" %(len(running_clusterer_slave_nodes))
 
 		sleep(2)
@@ -63,7 +63,7 @@ def wait_until_clusterer_slave_nodes_run():
 def kick_off_slave_jobs( N_JOBS ):
 	print_title_text("Enter kick_off_slave_jobs N_JOBS=%d " %(N_JOBS))
 
-	if(exists('SLAVE_JOBS/')): 	kill_all_slave_jobs_and_exit( 'The folder SLAVE_JOBS/ already exist!') 
+	if(exists('SLAVE_JOBS/')): 	kill_all_slave_jobs_and_exit( 'The folder SLAVE_JOBS/ already exist!')
 
 	sys.stdout.flush()
 	sys.stderr.flush()
@@ -81,7 +81,7 @@ def kick_off_slave_jobs( N_JOBS ):
 	existing_bjobs_lines = popen_and_readlines( 'bjobs -w ' , True)
 
 	for n in range( N_JOBS ):
-		
+
 		SLAVE_DIR = 'SLAVE_JOBS/%d' % n
 
 		slave_tag = abspath( SLAVE_DIR ).replace('/','_')
@@ -92,8 +92,8 @@ def kick_off_slave_jobs( N_JOBS ):
 			if(line.find( slave_tag+' ' ) > 0):
 				slave_already_queued = True
 				break
-		
-		if (slave_already_queued):	 kill_all_slave_jobs_and_exit("slave_node (%s) is already queued! " %(SLAVE_DIR) )			
+
+		if (slave_already_queued):	 kill_all_slave_jobs_and_exit("slave_node (%s) is already queued! " %(SLAVE_DIR) )
 
 		slave_errfile = SLAVE_DIR + '/slave_jobs.err'
 		slave_outfile = SLAVE_DIR + '/slave_jobs.out'
@@ -113,7 +113,7 @@ def kick_off_slave_jobs( N_JOBS ):
 
 		print( command )
 		submit_subprocess( command, True )
-        
+
 		sys.stdout.flush()
 		sys.stderr.flush()
 
@@ -122,20 +122,20 @@ def kick_off_slave_jobs( N_JOBS ):
 	return 0 #dummy number, not used for anything.
 
 
-			
+
 ##############################################
 
 def send_finish_signal_to_slave_nodes(N_JOBS):
 
 	print_title_text("send_finish_signal_to_slave_nodes N_JOBS=%d " %(N_JOBS))
 
-	if(exists('SLAVE_JOBS/')==False): 	kill_all_slave_jobs_and_exit( "The folder SLAVE_JOBS/ doesn't exist!") 
+	if(exists('SLAVE_JOBS/')==False): 	kill_all_slave_jobs_and_exit( "The folder SLAVE_JOBS/ doesn't exist!")
 
 	sys.stdout.flush()
 	sys.stderr.flush()
 
 	for n in range( N_JOBS ):
-		
+
 		SLAVE_DIR = 'SLAVE_JOBS/%d' % n
 
 		if(exists(SLAVE_DIR)==False): kill_all_slave_jobs_and_exit( "The folder SLAVE_DIR (%s) doesn't exist!" %(SLAVE_DIR) )
@@ -170,7 +170,7 @@ def check_is_slave_node_broken(slave_dir, slave_errfile, slave_outfile, verbose=
 
 	if(exists(slave_errfile)==False): ####Wait until slave_errfile exist
 
-		while(exists(slave_errfile)==False): 
+		while(exists(slave_errfile)==False):
 			print "exists(slave_errfile %s)==False" %(slave_errfile)
 			sys.stdout.flush()
 			sleep(2)
@@ -179,9 +179,9 @@ def check_is_slave_node_broken(slave_dir, slave_errfile, slave_outfile, verbose=
 
 	if(line_counts(slave_errfile)!=0):
 
-		data =safe_open(slave_errfile, 'r', True)	
+		data =safe_open(slave_errfile, 'r', True)
 
-		for line in data:	
+		for line in data:
 			if(line.find( 'createJobTmpDir: Unable to create the job level tmp directory' ) > 0):
 				print "check_is_slave_node_broken=True for slave_dir=%s: %s " %(slave_dir, line)
 				submit_subprocess( "echo broken slave node > %s" % ( broken_slave_node ), True )
@@ -192,7 +192,7 @@ def check_is_slave_node_broken(slave_dir, slave_errfile, slave_outfile, verbose=
 
 		if(exists(slave_outfile)==False): #Wait until slave_outfile exist
 
-			while(exists(slave_outfile)==False): 
+			while(exists(slave_outfile)==False):
 				print "exists(slave_outfile %s)==False" %(slave_outfile)
 				sys.stdout.flush()
 				sleep(2)
@@ -217,7 +217,7 @@ def slave_job_error_check_method_1(slave_errfile, verbose=False):
 
 	if(verbose): print "enter error_check_method_1(slave_errfile=%s)" %(slave_errfile)
 
-	if(exists(slave_errfile)==False): 
+	if(exists(slave_errfile)==False):
 		if(verbose): print "exists(slave_errfile)==False"
 		return
 
@@ -227,11 +227,11 @@ def slave_job_error_check_method_1(slave_errfile, verbose=False):
 		print exit_message
 
 		print "----slave_errfile lines----"
-		data =safe_open(slave_errfile, 'r', Is_master=True)	
+		data =safe_open(slave_errfile, 'r', Is_master=True)
 
 		line_num=0
 
-		for line in data:	
+		for line in data:
 			line_num+=1
 			print "line_num=#", line_num, ": ", line,
 
@@ -270,8 +270,8 @@ def check_if_slave_node_disappear(job_info_list):
 		if(job['already_done']==True): continue
 
 		if(job.has_key('slave_node_dir')==False):
-			print "ERROR! job: ", job  
-			kill_all_slave_jobs_and_exit("job does not have key 'slave_node_dir'!" )	
+			print "ERROR! job: ", job
+			kill_all_slave_jobs_and_exit("job does not have key 'slave_node_dir'!" )
 
 		slave_tag = job['slave_node_dir'].replace('/','_')
 
@@ -281,7 +281,7 @@ def check_if_slave_node_disappear(job_info_list):
 				found_slave_node=True
 				break
 
-		if(found_slave_node==False): 
+		if(found_slave_node==False):
 			print "-----------------------------------------------------------------------------------------------------------"
 			print "ERROR!: slave_node %s is no longer in the bjobs queue!" %(job['slave_node_dir'])
 			print "This slave_node was running the job:", job
@@ -290,7 +290,7 @@ def check_if_slave_node_disappear(job_info_list):
 				print line,
 			print "-----------------------------------------------------------------------------------------------------------"
 			submit_subprocess("bjobs -w > All_bjobs_BEFORE_EXIT.txt")
-			kill_all_slave_jobs_and_exit("ERROR! slave_node (%s) is no longer in the bjobs queue!" %(job['slave_node_dir']) )	 
+			kill_all_slave_jobs_and_exit("ERROR! slave_node (%s) is no longer in the bjobs queue!" %(job['slave_node_dir']) )
 
 
 ##############################################
@@ -311,9 +311,9 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 		rosetta_errfile = popen_and_readlines( "tail -n 1 %s" %( rosetta_errfile_location ), Is_master=True )[0]
 		rosetta_errfile = rosetta_errfile[:-1] #remove the new line (\n) character
 
-		if( ( exists(rosetta_errfile) ) and ( line_counts(rosetta_errfile)!=0 ) ): 
-			print "NON-EMPTY rosetta_errfile (%s)!" %(rosetta_errfile)  
-			print "Error slave_node=%s " %(slave_dir) 
+		if( ( exists(rosetta_errfile) ) and ( line_counts(rosetta_errfile)!=0 ) ):
+			print "NON-EMPTY rosetta_errfile (%s)!" %(rosetta_errfile)
+			print "Error slave_node=%s " %(slave_dir)
 			kill_all_slave_jobs_and_exit()
 
 
@@ -331,7 +331,7 @@ def get_active_slave_dir_list(Is_clusterer_job):
 	active_slave_dir_list = []
 
 	for slave_dir in slave_dir_list:
-		
+
 		#####Make sure that slave_node is still RUNNING! (i.e not pending or dead!)####
 		slave_tag = slave_dir.replace('/','_')
 
@@ -355,12 +355,12 @@ def get_active_slave_dir_list(Is_clusterer_job):
 
 		if(exists(slave_outfile)==False):  kill_all_slave_jobs_and_exit("slave_outfile (%s) doesn't exist!!" %(slave_outfile) )
 
-		if(line_counts(slave_outfile)==0): 
-			print "Skipping slave_outfile (%s) since line_counts(slave_outfile)==0)" %(slave_outfile) 
+		if(line_counts(slave_outfile)==0):
+			print "Skipping slave_outfile (%s) since line_counts(slave_outfile)==0)" %(slave_outfile)
 			continue
 
 		#####See if slave_node is still running a prior job#############################################
-	
+
 		run_this_script_file = get_run_this_script_file(slave_dir)
 
 		if (exists( run_this_script_file ) ): continue #BASICALLY IF run_this_script_file EXIST THEN LAST JOB IS NOT FINISH YET
@@ -395,8 +395,8 @@ def get_next_job_queue_ID(job_queue_ID, job_info_list):
 
 		if(job_queue_ID==len(job_info_list)): break #break if reach end of list.
 
-		if(job_info_list[job_queue_ID]['already_done']==False): break		 #break once find a job that not yet done.			
-		
+		if(job_info_list[job_queue_ID]['already_done']==False): break		 #break once find a job that not yet done.
+
 	return job_queue_ID
 
 
@@ -404,9 +404,9 @@ def get_next_job_queue_ID(job_queue_ID, job_info_list):
 
 def submit_job(job_info, slave_dir):
 
-	job_script_filename =job_info['job_script_filename'] 
+	job_script_filename =job_info['job_script_filename']
 	err_log_filename    =job_info['err_log_filename']
-	done_signal_filename=job_info['done_signal_filename']	
+	done_signal_filename=job_info['done_signal_filename']
 
 	submit_subprocess( "echo %s >> %s" % ( err_log_filename, slave_dir + "/rosetta_errfile_location.txt"), True )
 
@@ -458,7 +458,7 @@ def submit_jobs_to_slave( job_info_list, Is_clusterer_job):
 			submit_job(job_info_list[job_queue_ID], slave_dir)
 
 			job_info_list[job_queue_ID]['slave_node_dir']=slave_dir
-			
+
 			num_act_jobs_submitted+=1
 
 
@@ -466,7 +466,7 @@ def submit_jobs_to_slave( job_info_list, Is_clusterer_job):
 ##############################################
 def delete_log_files(job_info_list, keep_some_log_file):
 
-	
+
 	for n in range(len(job_info_list)):
 
 		job_info=job_info_list[n]
@@ -476,31 +476,31 @@ def delete_log_files(job_info_list, keep_some_log_file):
 		job_script_filename=job_info['job_script_filename']
 		done_signal_filename=job_info['done_signal_filename']
 
-		if(keep_some_log_file==True): 
+		if(keep_some_log_file==True):
 			if(out_log_filename.count('KEEP_LOG_FILE/')>0): continue
 
 		command='rm %s ' %(out_log_filename)
-		if(exists(out_log_filename)): 
+		if(exists(out_log_filename)):
 			print command
 			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(err_log_filename)
-		if(exists(err_log_filename)): 
+		if(exists(err_log_filename)):
 			print command
 			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(job_script_filename)
-		if(exists(job_script_filename)): 
+		if(exists(job_script_filename)):
 			print command
 			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(done_signal_filename)
-		if(exists(done_signal_filename)): 
+		if(exists(done_signal_filename)):
 			print command
 			submit_subprocess_allow_retry(command,  True )
 
 #		command='rm %s ' %(done_signal_filename+"'\n'")
-#		if(exists(done_signal_filename+'\n')): 
+#		if(exists(done_signal_filename+'\n')):
 #			print command
 #			submit_subprocess_allow_retry(command,  True )
 
@@ -529,7 +529,7 @@ def condor_submit( condor_submit_file_ , reducer_command):
 	num_queue_line=0
 
 	for line in lines:
-		
+
 		cols = string.split( line )
 
 		if(len(cols)<2): kill_all_slave_jobs_and_exit("len(cols)<2 for line (%s)" %(line))
@@ -547,19 +547,19 @@ def condor_submit( condor_submit_file_ , reducer_command):
 			if( len(cols) != 3 ): kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
 			exe = cols[2]
 
-		if( cols[0] == "log_foldername" ): 
+		if( check_tag( cols[0], "log_foldername") ):
 			if( len(cols) != 3 ): kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
 			log_foldername = cols[2]
 
 		if( cols[0] == "arguments"        ): args             = string.join(cols[2:])
 
-		if( cols[0] == "mapper_outfiles"  ): mapper_outfiles  = string.join(cols[2:])
+		if( check_tag( cols[0], "mapper_outfiles")  ): mapper_outfiles  = string.join(cols[2:])
 
-		if( cols[0] == "reducer_outfiles" ): reducer_outfiles = string.join(cols[2:])
+		if( check_tag( cols[0], "reducer_outfiles") ): reducer_outfiles = string.join(cols[2:])
 
-		if( cols[0] == "mapper_infiles"   ): mapper_infiles   = string.join(cols[2:]) #NOT CURRENLTY IN USE
-		
-		if( cols[0] == "reducer_infiles"  ): reducer_infiles  = string.join(cols[2:]) #NOT CURRENLTY IN USE
+		if( check_tag( cols[0], "mapper_infiles")   ): mapper_infiles   = string.join(cols[2:]) #NOT CURRENLTY IN USE
+
+		if( check_tag( cols[0], "reducer_infiles")  ): reducer_infiles  = string.join(cols[2:]) #NOT CURRENLTY IN USE
 
 	print "-----------------------------------------------------------------------------------------"
 	print "exe=%s" %(exe)
@@ -576,9 +576,9 @@ def condor_submit( condor_submit_file_ , reducer_command):
 	if(num_queue_line!=1):  kill_all_slave_jobs_and_exit("num_queue_line=(%s)!=1" %(num_queue_line))
 	if(queue_num==-1): kill_all_slave_jobs_and_exit("queue_num==-1")
 
-	reducer_outfile_list=reducer_outfiles.split() 
+	reducer_outfile_list=reducer_outfiles.split()
 	for reducer_outfile in reducer_outfile_list:
-		if(exists(reducer_outfile)): kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )	
+		if(exists(reducer_outfile)): kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
 
 
 	# Stolen from script for PBS.
@@ -611,7 +611,7 @@ def condor_submit( condor_submit_file_ , reducer_command):
 		else:
 			outfiles=mapper_outfiles.replace('$(Process)',job_name)
 
-		outfile_list=outfiles.split() 
+		outfile_list=outfiles.split()
 
 		########CHECK IF JOB HAVE PREVIOUSLY BEEN SUCCESSFULLY COMPLETED###################
 		if exists( done_signal_filename ):
@@ -619,48 +619,48 @@ def condor_submit( condor_submit_file_ , reducer_command):
 			already_done=True
 
 			if(reducer_job): kill_all_slave_jobs_and_exit("done_signal for reducer_job %s already exist before job submission!" %(done_signal_filename) )
-		
+
 			for outfile in outfile_list:
 
 				if(outfile[0:7]=="FOLDER:"): #Oct 22, 2011
 					outfolder=outfile[7:]
-					if(exists(outfolder)==False):	print "WARNING: outfile (%s) doesn't exist" %(outfolder)		
-				else:				
-					if(exists(outfile)==False):	  print "WARNING: outfile (%s) doesn't exist" %(outfile)				
-				
+					if(exists(outfolder)==False):	print "WARNING: outfile (%s) doesn't exist" %(outfolder)
+				else:
+					if(exists(outfile)==False):	  print "WARNING: outfile (%s) doesn't exist" %(outfile)
+
 
 				print "job %s is already successfully_completed " %(outfile)
-			
+
 
 		else:
 			#######MAKE SURE THAT outfiles and logs files from previously failed runs are deleted####
 			already_done=False
 
 			if(exists(out_log_filename)):
-				print ("job %s WAS NOT successfully_completed. Removing out_log_filename = %s " %(out_log_filename, out_log_filename)) 
+				print ("job %s WAS NOT successfully_completed. Removing out_log_filename = %s " %(out_log_filename, out_log_filename))
 				submit_subprocess( 'rm %s' %(out_log_filename), True)
 
 			if(exists(err_log_filename)):
-				print ("job %s WAS NOT successfully_completed. Removing err_log_filename = %s " %(out_log_filename, err_log_filename)) 
+				print ("job %s WAS NOT successfully_completed. Removing err_log_filename = %s " %(out_log_filename, err_log_filename))
 				submit_subprocess( 'rm %s' %(err_log_filename), True)
-		
+
 			if(exists(job_script_filename)):
-				print ("job %s WAS NOT successfully_completed. Removing job_script_filename = %s " %(out_log_filename, job_script_filename)) 
+				print ("job %s WAS NOT successfully_completed. Removing job_script_filename = %s " %(out_log_filename, job_script_filename))
 				submit_subprocess( 'rm %s' %(job_script_filename) , True)
-		
+
 			for outfile in outfile_list:
 
 				if(outfile[0:7]=="FOLDER:"): #Oct 22, 2011
 
 					outfolder=outfile[7:]
 
-					if(exists(outfolder)): 
-						print ("job %s WAS NOT successfully_completed.	 Removing outfolder = %s " %(out_log_filename, outfolder)) 
+					if(exists(outfolder)):
+						print ("job %s WAS NOT successfully_completed.	 Removing outfolder = %s " %(out_log_filename, outfolder))
 						submit_subprocess( 'rm -r %s' %(outfolder), True )
 
 				else:
-					if(exists(outfile)): 
-						print ("job %s WAS NOT successfully_completed.	 Removing outfile = %s " %(out_log_filename, outfile)) 
+					if(exists(outfile)):
+						print ("job %s WAS NOT successfully_completed.	 Removing outfile = %s " %(out_log_filename, outfile))
 						submit_subprocess( 'rm %s' %(outfile), True )
 
 			######CREATE THE JOB_SCRIPT FOR THIS JOB #######################################################
@@ -695,7 +695,7 @@ def condor_submit( condor_submit_file_ , reducer_command):
 				fid.write( '#!/bin/bash\n' )
 
 				fid.write( 'cd %s\n\n' % getcwd() )
-				command = "%s %s > %s 2> %s\n\n" % ( exe, args_actual, out_log_filename, err_log_filename) 
+				command = "%s %s > %s 2> %s\n\n" % ( exe, args_actual, out_log_filename, err_log_filename)
 				fid.write( command )
 
 			fid.close()
@@ -707,7 +707,7 @@ def condor_submit( condor_submit_file_ , reducer_command):
 
 	Is_clusterer_job=False
 
-	if( (condor_submit_file_.count('cluster')>0) or (condor_submit_file_.count('CLUSTER')>0) ): 
+	if( (condor_submit_file_.count('cluster')>0) or (condor_submit_file_.count('CLUSTER')>0) ):
 		Is_clusterer_job=True
 		print "%s is a clusterer job!" %(condor_submit_file_)
 	else:
@@ -718,7 +718,7 @@ def condor_submit( condor_submit_file_ , reducer_command):
 
 
 
-#	if(queue_num!=0):		
+#	if(queue_num!=0):
 #	else:
 #		if(len(all_job_info_list)!=0): kill_all_slave_jobs_and_exit("queue_num==0 but len(all_job_info_list)!=0")
 #		#consistency check

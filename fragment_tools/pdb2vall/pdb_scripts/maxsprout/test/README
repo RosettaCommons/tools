@@ -1,0 +1,5 @@
+To test maxsprout on the alpha-carbon trace of 1ppt, type:
+ ./runmaxsprout.pl 1ppt.alpha output.brk
+
+You should get a log file "1ppt_1.log" and your result file "output.brk".
+Compare your result with the given file "expected_output.brk".

@@ -4,10 +4,43 @@
 
 use FindBin qw($Bin);
 
-my $blastpgp;
 my $blastpgp_num_cpus = 8;
 
-my $DB   = "$Bin/../database/ncbi/nr_segfilt_x";
+# possible blastpgp locations
+my @blastpgp = (
+	"$Bin/../../../../../../src/blast/bin/blastpgp", # Robetta location
+	"$Bin/../../blast/bin/blastpgp", # fragment_tools location
+	"$Bin/../pdb_scripts/blastpgp"	# pdb2vall location
+);
+
+# possible nr database locations
+my @nr = (
+	"$Bin/../../../../../databases/nr/nr_pfilt", # Robetta location
+	"$Bin/../../databases/nr_pfilt", # fragment_tools location
+	"$Bin/../database/ncbi/nr_pfilt", # pdb2vall location
+	"$Bin/../database/ncbi/nr_segfilt_x",
+	"$Bin/../../../../../databases/nr/nr",
+	"$Bin/../database/ncbi/nr",
+	"$Bin/../../databases/nr"
+);
+
+# find blastpgp
+my $blastpgp;
+foreach my $b (@blastpgp) {
+	if (-s $b) {
+		$blastpgp = $b;
+		last;
+	}
+}
+
+# find nr database
+my $DB;
+foreach my $d (@nr) {
+	if (-s "$d.pal") {
+		$DB = $d;
+		last;
+	}
+}
 
 # read config
 open(F, "$Bin/../pdb2vall.cfg") or die "ERROR! cannot open config file $Bin/../pdb2vall.cfg: $!\n";

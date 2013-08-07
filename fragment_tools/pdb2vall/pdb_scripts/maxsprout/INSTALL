@@ -1,0 +1,74 @@
+This version has been tested in RedHat Linux 2.4.14 and SuSE Linux 2.6.11 i686.
+
+1) To build the binaries, run 'make' in the directory where you unpacked the
+   Maxsprout source:
+   $> make
+
+   Note that the pascal compiler p2c is required to build the maxsprout
+   package, so you will see error messages if you do not have this on your
+   system. To download the latest stable or alpha version of p2c, please visit
+   Dave Gillespie's page:
+   http://www.synaptics.com/people/daveg/
+
+2) If build is successful, you should get readbrk, buildbackbone and torso2
+   binaries.
+
+3) There is a perl test script that runs Maxsprout on a PDB entry file which
+   you can use to test your install:
+
+   $> cd test
+   $> ./runmaxsprout.pl 1ppt.alpha output.brk
+
+   NOTE: Before running the script, you may need to check that the following
+   lines within the file point to the correct locations:
+
+    1  #!usr/bin/env perl
+       ....
+   13  my $READBRK = '../readbrk';
+   14  my $BUILDBACKBONE = '../buildbackbone';
+   15  my $DGLPLIST = '../dglp.list';
+   16  my $TORSO = '../torso2';
+       ....
+   18  my $File_torso_fort71 = '../fort.71';
+   19  my $File_torso_fort72 = '../fort.72';
+   20  my $File_torso_fort81 = '../fort.81';
+
+   If the test was successful, you should get files "output.brk" and
+   "1ppt_1.log" in the test/ directory. You can compare your resulting model
+   file with the file "expected_output.brk".
+
+4) Running Maxsprout
+
+   Maxsprout is a program of two halves: first you build the backbone, then
+   you optimize the sidechains.
+
+   When running Maxsprout, it is easiest to create a working directory within
+   your Maxsprout install directory; however, if that is inconvenient, you
+   should edit the files fort.71 and dglp.list so that the paths to the
+   'rotlib' and 'db' dirs are correct for your system.
+
+   Building the backbone requires some pre-processing, using binary "readbrk"
+   to process your alpha-carbon trace:
+   $> ./readbrk --help (to view options)
+   $> ./readbrk -pdb model.alpha -rd /where/modelfile/is -wd /your/working/dir
+
+   Then run binary "buildbackbone" in your working dir:
+   $> ./buildbackbone --help (to view options)
+   $> ./buildbackbone -pdb model -pl dglp.list -d Y
+   You can adjust more parameters by using N with option -d: the program will
+   then prompt you for further input.
+
+   Once the backbone has been built, you can optimize sidechains with the
+   program "torso2".
+   IMPORTANT: the files fort.71, fort.72 and fort.81 must be copied or
+   linked from the Maxsprout base dir into the working dir first, eg:
+   $> ln -s $MAXSPROUT_HOME/fort.* .
+   $> ./torso2
+   Alternatively, you can write a wrapper script similar to 'runmaxsprout.pl'
+   in the test/ directory, which sets these vars at the start of each run.
+   The torso2 program prompts you for input - you can automate the process
+   by making a command file and redirecting the contents into the torso2
+   program, or again, incorporate this into a wrapper script as before. Run
+   torso2 manually first to check the input it expects.
+
+Happy modelling!

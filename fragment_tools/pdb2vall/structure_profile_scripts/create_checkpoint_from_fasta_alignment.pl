@@ -3,7 +3,35 @@
 use Bio::AlignIO;
 use FindBin qw($Bin);
 
+# possible blastpgp locations
+my @blastpgp = (
+  "$Bin/../../../../../../src/blast/bin/blastpgp", # Robetta location
+  "$Bin/../../blast/bin/blastpgp", # fragment_tools location
+  "$Bin/../pdb_scripts/blastpgp"  # pdb2vall location
+);
+
+my @formatdb = (
+	"$Bin/../../../../../../src/blast/bin/formatdb", # Robetta location
+	"$Bin/../../blast/bin/formatdb", # fragment_tools location
+	"$Bin/../pdb_scripts/formatdb"  # pdb2vall location
+);
+
+# find blastpgp
 my $BLASTPGP;
+foreach my $b (@blastpgp) {
+  if (-s $b) {
+    $BLASTPGP = $b;
+    last;
+  }
+}
+
+my $FORMATDB;
+foreach my $f (@formatdb) {
+	if (-s $f) {
+		$FORMATDB = $f;
+		last;
+	}
+}
 
 # read config
 open(F, "$Bin/../pdb2vall.cfg") or die "ERROR! cannot open config file $Bin/../pdb2vall.cfg: $!\n";
@@ -11,6 +39,9 @@ while (<F>) {
   if (/^\s*blastpgp\s*=\s*(\S+)\s*/) {
     $BLASTPGP = $1;
   }
+	if (/^\s*formatdb\s*=\s*(\S+)\s*/) {
+		$FORMATDB = $1;
+	}
 }
 close(F);
 
@@ -28,6 +59,9 @@ chomp $fasta;
 # Just a placeholder since we just need the binary checkpoint file that blastpgp initially generates
 # given the input alignment.
 my $placeholder = "$Bin/placeholder_seqs/placeholder_seqs";
+if (!-s "$placeholder.phr") {
+	system("$FORMATDB -o T -i $placeholder");
+}
 
 # get the sequence from the fasta file
 my $sequence;

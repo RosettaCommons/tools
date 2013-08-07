@@ -1,1 +1,0 @@
-.././job_setup/create_fasta_and_params_fang.py

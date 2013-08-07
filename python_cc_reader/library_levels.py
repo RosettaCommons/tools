@@ -3,6 +3,9 @@ from inclusion_graph import *
 from optparse import OptionParser
 import sys
 
+
+#Info: Run this script from the source/src directory.  It will check all library levels to make sure there are no illegal dependencies.
+   
 def initialize_options_parser() :
     parser = OptionParser()
     parser.add_option( "-v", "--verbose", dest="verbose", default=False, action="store_true",

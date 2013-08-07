@@ -9,7 +9,7 @@
 
 
 ;; This is a template emacs initialization file
-;; 
+;;
 ;; To use, copy all or some to  ~/.emacs.d/init.el
 
 
@@ -33,8 +33,8 @@
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'reverse)
 (setq uniquify-separator "/")
-(setq uniquify-after-kill-buffer-p t) ; rename after killing uniquified         
-(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers 
+(setq uniquify-after-kill-buffer-p t) ; rename after killing uniquified
+(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
 
 ; ido mode helps quickly open files, switch buffers etc.
 ; remember:
@@ -74,3 +74,8 @@
 
  )
 (add-hook 'c-mode-common-hook 'rosetta-c++-mode-hook)
+
+; This hook deletes trailing whitespace, for any file type, in any mode
+; upon saving.
+; Uncomment to use.
+;; (add-hook 'before-save-hook 'delete-trailing-whitespace)

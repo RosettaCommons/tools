@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 from os import system, chdir, getcwd, path
 from sys import argv, exit, stderr
 from os.path import exists, isdir

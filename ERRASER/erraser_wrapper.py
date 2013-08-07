@@ -52,19 +52,14 @@ def erraser( option ) :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
     for res in option.fixed_res :
-        print res
-        print res_conversion_list
-        if res in res_conversion_list :
-            fixed_res_final.append( res_conversion_list.index(res) + 1 )
+        fixed_res_final.append( res_num_convert(res_conversion_list, res) )
 
     for res in option.cutpoint :
-        if res in res_conversion_list :
-            cutpoint_final.append( res_conversion_list.index(res) + 1 )
+        cutpoint_final.append( res_num_convert(res_conversion_list, res) )
 
     extra_res_final = []
     for res in option.extra_res :
-        if res in res_conversion_list :
-            extra_res_final.append( res_conversion_list.index(res) + 1 )
+        extra_res_final.append( res_num_convert(res_conversion_list, res) )
 
     fixed_res_final.sort()
     cutpoint_final.sort()
@@ -206,6 +201,10 @@ def erraser( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser end #####################################################
@@ -255,7 +254,7 @@ def erraser_single_res( option ) :
     fixed_res_final.sort()
     option.fixed_res_rs = fixed_res_final
     option.cutpoint_rs = cutpoint_final
-    option.rebuild_res = res_conversion_list.index(option.rebuild_res_pdb) + 1
+    option.rebuild_res = res_num_convert(res_conversion_list, option.rebuild_res_pdb)
     rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
 
     print 'Starting to rebuild residue %s' % option.rebuild_res_pdb
@@ -314,7 +313,7 @@ def erraser_single_res( option ) :
                 score = 0.0
                 min_out_lines = open(minimize_option.log_out).readlines()
                 for j in xrange( len(min_out_lines) - 1, -1, -1) :
-                    if "Total weighted score:" in min_out_lines[j] :
+                    if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
                         score = float(min_out_lines[j].split()[-1])
                         break
                 if len(res_sliced) != 0 :
@@ -338,7 +337,7 @@ def erraser_single_res( option ) :
         native_score = 0.0
         min_out_lines = open(minimize_option.log_out).readlines()
         for j in xrange( len(min_out_lines) - 1, -1, -1) :
-            if "Total weighted score:" in min_out_lines[j] :
+            if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
                 native_score = float(min_out_lines[j].split()[-1])
                 break
         if len(res_sliced) != 0 :
@@ -371,6 +370,10 @@ def erraser_single_res( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_single_res end   ########################################
@@ -424,6 +427,7 @@ def erraser_minimize( option ) :
     command += " -native %s " % temp_rs
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
+    command += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
@@ -463,6 +467,10 @@ def erraser_minimize( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_minimize end   ##########################################
@@ -537,6 +545,10 @@ def full_struct_slice_and_minimize( option ) :
 
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### full_struct_slice_and_minimize end   ############################
@@ -631,9 +643,12 @@ def seq_rebuild( option ) :
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
-
 ##### seq_rebuild end   ###############################################
 
 
@@ -789,6 +804,7 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
+    common_cmd += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
 
     if option.map_file != "" :
@@ -1006,6 +1022,10 @@ def SWA_rebuild_erraser( option ) :
 
     print '\n', "DONE!...Total time taken= %f seconds" % total_time , '\n'
     print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
     sys.stdout = stdout
     sys.stderr = stderr
 ##### SWA_rebuild_erraser end   #######################################

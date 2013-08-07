@@ -16,6 +16,14 @@ imp.load_source('measure_params', file_path + '/measure_params.py')
 from measure_params import compute_torsion, compute_dist, compute_squared_dist, cross, dot, vec_diff
 
 #####################################################
+class ErraserError(Exception):
+    pass
+#####################################################
+def error_exit(message = ""):
+    sys.stdout.flush()
+    sys.stderr.flush()
+    raise ErraserError(message)
+#####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
     Return the absolute path to the given executable file in Rosetta.
@@ -29,7 +37,7 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    exe_folder = rosetta_folder + "/rosetta_source/bin/" #Default Rosetta folder structure
+    exe_folder = rosetta_folder + "/main/source/bin/" #Default Rosetta folder structure
     if not exists(exe_folder) : #Otherwise, assume the input folder name is bin path
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
@@ -55,20 +63,11 @@ def rosetta_database_path(rosetta_folder = "") :
         if rosetta_folder == "$ROSETTA" :
             error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
 
-    database_folder = rosetta_folder + "/rosetta_database/" #Default Rosetta folder structure
+    database_folder = rosetta_folder + "/main/database/" #Default Rosetta folder structure
     if  not exists(database_folder) : #Otherwise, assume the input folder name is database path
         database_folder = rosetta_folder
     check_path_exist(database_folder)
     return database_folder
-#####################################################
-def error_exit(message = ""):
-    print >> sys.stderr, "#####################################################################"
-    print >> sys.stderr, "Error!!! "  + message
-    print >> sys.stderr, "#####################################################################"
-
-    sys.stdout.flush()
-    sys.stderr.flush()
-    assert(False)
 ###################################################
 def subprocess_call(command, out = sys.stdout, err = sys.stderr, is_append_file = False):
     """
@@ -298,8 +297,6 @@ def parse_option_chain_res_list ( argv, tag ) :
             if input_string[0] == '-' :
                 break
             input_string = input_string.upper()
-            if not input_string[0] in string.uppercase :
-                error_exit( "Incorrect input for -%s: instance %s" % (tag, input_string) )
 
             chain_id = input_string[0]
             input_string = input_string[1:]
@@ -460,7 +457,7 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
                                'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
                                'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
                                'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
-    
+
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -535,7 +532,7 @@ def check_path_exist(path_name) :
 def load_pdb_coord(input_pdb) :
     """
     Load in the pdb and return the coordinates for each heavy atom in each residue.
-    Also return a list of C1* coordinates
+    Also return a list of C1' coordinates
     """
     check_path_exist(input_pdb)
 
@@ -559,12 +556,12 @@ def load_pdb_coord(input_pdb) :
 
         coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
         coord_res.append(coord_cur)
-        if line[13:16] == 'C1*' or line[13:16] == 'CA ' :
+        if line[13:16] == "C1'" or line[13:16] == 'CA ' :
             #NOTICE: CA matching is a PHENIX conference rna_prot_erraser hack
             coord_C1.append( coord_cur )
     coord_all.append(coord_res)
     if len(coord_C1) != len(coord_all) :
-        error_exit("Number of residues != number of C1*!!!")
+        error_exit("Number of residues != number of C1'!!!")
 
     return [coord_all, coord_C1]
 ####################################
@@ -906,7 +903,7 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
     output.close()
     return True
 ####################################
-def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = True, using_protein = False) :
+def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0, use_rs_atom_res_name = False, using_protein = False, renumbering=True) :
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
@@ -923,10 +920,10 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                           "HO3'":"3HO'", "HO5'":"5HO'", " H41":"1H4 ",
                           " H42":"2H4 ", " H61":"1H6 ", " H62":"2H6 " }
 
-    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG",
-                         "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA",
-                         "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU",
-                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC",}
+    res_name_convert = { "  G":" rG", "G  ":" rG", "GUA":" rG", " rG":" rG", "rG ":" rG",
+                         "  A":" rA", "A  ":" rA", "ADE":" rA", " rA":" rA", "rA ":" rA",
+                         "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU", "rU ":" rU",
+                         "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC", "rC ":" rC",}
 
     protein_res_names = ['ALA', 'ARG', 'ASN', 'ASP',
                          'CYS', 'GLU', 'GLN', 'GLY',
@@ -951,7 +948,6 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     for line in open(input_pdb) :
         if len(line) <= 21 :
             continue
-
         if line[0:6] == 'CRYST1' :
             CRYST1_line = line[:-1]
         elif line[0:6] == 'ATOM  ' or line[0:6] == 'HETATM' :
@@ -997,7 +993,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                     atom_name = atom_name_convert[atom_name]
                 atom_name = atom_name.replace("'", "*")
 
-            if atom_name == " O3*" :
+            if atom_name == " O3*" or atom_name == " O3'" :
                 O3prime_coord_cur = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
 
             if atom_name == " P  " :
@@ -1034,14 +1030,25 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 line_list[12:16] = atom_name
                 line_list[16] = ' '
                 line_list[17:20] = res_name
-                line_list[21] = 'A'
-                line_list[22:26] = str(res_no).rjust(4)
+                if renumbering:
+                    line_list[21] = 'A'
+                    line_list[22:26] = str(res_no).rjust(4)
                 line_list[26] = ' '
                 line_list[55:60] = " 1.00"
                 output.write( string.join(line_list, '') )
 
     output.close()
     return [res_conversion_list, fixed_res_list, cutpoint_list, CRYST1_line]
+##################################################
+def res_num_convert(res_conversion_list, res_pdb):
+    """
+    Convert pdb residue number (A15, chainID + resnum) to Rosetta pdb numbering.
+    """
+    if res_pdb not in res_conversion_list:
+        error_exit("The residue '%s' was not found in the model.  Please make sure " % res_pdb +
+        "that you include both the chain ID and residue number, for example 'A15'." )
+    else:
+        return res_conversion_list.index(res_pdb) + 1
 ##################################################
 def res_wise_rmsd(pdb1, pdb2) :
     """
@@ -1280,8 +1287,8 @@ def find_chi_angle( input_pdb, res ) :
                 coord.append( float( line[38:46] ) )
                 coord.append( float( line[46:54] ) )
                 atm_coords_list.append( [atm_name, coord] )
-    atom1 = coord_from_atm_name('O4*', atm_coords_list)
-    atom2 = coord_from_atm_name('C1*', atm_coords_list)
+    atom1 = coord_from_atm_name("O4'", atm_coords_list)
+    atom2 = coord_from_atm_name("C1'", atm_coords_list)
     if is_purine :
         atom3 = coord_from_atm_name('N9', atm_coords_list)
         atom4 = coord_from_atm_name('C4', atm_coords_list)

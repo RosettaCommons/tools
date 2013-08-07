@@ -1,0 +1,845 @@
+HEADER    ELECTRON TRANSFER (IRON-SULFUR PROTEIN) 01-APR-75   1HIP      1HIP   3
+COMPND    OXIDIZED HIGH POTENTIAL IRON PROTEIN (HIPIP).                 1HIP   4
+SOURCE    (CHROMATIUM VINOSUM), STRAIN D                                1HIPC  1
+AUTHOR    C.W.CARTER *JUNIOR,J.KRAUT,S.T.FREER,N.-H.XUONG,              1HIPB  1
+AUTHOR   2 R.A.ALDEN,R.G.BARTSCH                                        1HIPB  2
+REVDAT  11   15-APR-93 1HIPJ   3       HET    FORMUL HETATM             1HIPJ  1
+REVDAT  10   31-MAY-84 1HIPI   1       REMARK                           1HIPI  1
+REVDAT   9   30-SEP-83 1HIPH   1       REVDAT                           1HIPH  1
+REVDAT   8   13-JUN-83 1HIPG   1       REMARK                           1HIPH  2
+REVDAT   7   07-MAR-83 1HIPF   3       ATOM                             1HIPH  3
+REVDAT   6   31-DEC-80 1HIPE   1       REMARK                           1HIPH  4
+REVDAT   5   07-APR-80 1HIPD   3       ATOM                             1HIPH  5
+REVDAT   4   05-MAR-80 1HIPC   1       SOURCE                           1HIPH  6
+REVDAT   3   01-NOV-77 1HIPB   1       AUTHOR JRNL   REMARK FORMUL      1HIPH  7
+REVDAT   2   03-JAN-77 1HIPA   3       ATOM                             1HIPH  8
+REVDAT   1   22-NOV-76 1HIP    0                                        1HIPH  9
+JRNL        AUTH   C.W.CARTER *JUNIOR,J.KRAUT,S.T.FREER,N.-H.XUONG,     1HIPB  3
+JRNL        AUTH 2 R.A.ALDEN,R.G.BARTSCH                                1HIPB  4
+JRNL        TITL   TWO-ANGSTROM CRYSTAL STRUCTURE OF OXIDIZED           1HIPB  5
+JRNL        TITL 2 CHROMATIUM HIGH POTENTIAL IRON PROTEIN               1HIPB  6
+JRNL        REF    J.BIOL.CHEM.                  V. 249  4212 1974      1HIPB  7
+JRNL        REFN   ASTM JBCHA3  US ISSN 0021-9258                  071  1HIPB  8
+REMARK   1                                                              1HIPB  9
+REMARK   1 REFERENCE 1                                                  1HIPB 10
+REMARK   1  AUTH   S.T.FREER,R.A.ALDEN,C.W.CARTER *JUNIOR,J.KRAUT       1HIPB 11
+REMARK   1  TITL   CRYSTALLOGRAPHIC STRUCTURE REFINEMENT OF             1HIPB 12
+REMARK   1  TITL 2 CHROMATIUM HIGH POTENTIAL IRON PROTEIN AT            1HIPB 13
+REMARK   1  TITL 3 TWO ANGSTROMS RESOLUTION                             1HIPB 14
+REMARK   1  REF    J.BIOL.CHEM.                  V. 250    46 1975      1HIPB 15
+REMARK   1  REFN   ASTM JBCHA3  US ISSN 0021-9258                  071  1HIPB 16
+REMARK   1 REFERENCE 2                                                  1HIPB 17
+REMARK   1  AUTH   C.W.CARTER *JUNIOR,J.KRAUT,S.T.FREER,R.A.ALDEN       1HIPB 18
+REMARK   1  TITL   COMPARISON OF OXIDATION-REDUCTION SITE GEOMETRIES    1HIPB 19
+REMARK   1  TITL 2 IN OXIDIZED AND REDUCED CHROMATIUM HIGH POTENTIAL    1HIPB 20
+REMARK   1  TITL 3 IRON PROTEIN AND OXIDIZED PEPTOCOCCUS AEROGENES      1HIPB 21
+REMARK   1  TITL 4 FERREDOXIN                                           1HIPB 22
+REMARK   1  REF    J.BIOL.CHEM.                  V. 249  6339 1974      1HIPB 23
+REMARK   1  REFN   ASTM JBCHA3  US ISSN 0021-9258                  071  1HIPB 24
+REMARK   1 REFERENCE 3                                                  1HIPB 25
+REMARK   1  AUTH   C.W.CARTER *JUNIOR,S.T.FREER,N.H.XUONG,              1HIPG  1
+REMARK   1  AUTH 2 R.A.ALDEN,J.KRAUT                                    1HIPB 27
+REMARK   1  TITL   STRUCTURE OF THE IRON-SULFUR CLUSTER IN THE          1HIPB 28
+REMARK   1  TITL 2 CHROMATIUM IRON PROTEIN AT 2.25 ANGSTROMS            1HIPB 29
+REMARK   1  TITL 3 RESOLUTION                                           1HIPB 30
+REMARK   1  REF    COLD SPRING HARBOR SYMP.      V.  36   381 1972      1HIPB 31
+REMARK   1  REF  2 QUANT.BIOL.                                          1HIPB 32
+REMARK   1  REFN   ASTM CSHSAZ  US ISSN 0091-7451                  421  1HIPI  2
+REMARK   1 REFERENCE 4                                                  1HIPB 34
+REMARK   1  EDIT   R.J.FELDMANN                                         1HIPB 35
+REMARK   1  REF    ATLAS OF MACROMOLECULAR                142 1976      1HIPB 36
+REMARK   1  REF  2 STRUCTURE ON MICROFICHE                              1HIPB 37
+REMARK   1  PUBL   TRACOR JITCO INC.,ROCKVILLE,MD.                      1HIPB 38
+REMARK   1  REFN                   ISBN 0-917934-01-6              434  1HIPB 39
+REMARK   1 REFERENCE 5                                                  1HIPB 40
+REMARK   1  EDIT   M.O.DAYHOFF                                          1HIPB 41
+REMARK   1  REF    ATLAS OF PROTEIN SEQUENCE     V.   5    63 1976      1HIPB 42
+REMARK   1  REF  2 AND STRUCTURE,SUPPLEMENT 2                           1HIPB 43
+REMARK   1  PUBL   NATIONAL BIOMEDICAL RESEARCH FOUNDATION,             1HIPB 44
+REMARK   1  PUBL 2 SILVER SPRING,MD.                                    1HIPB 45
+REMARK   1  REFN                   ISBN 0-912466-05-7              435  1HIPB 46
+REMARK   2                                                              1HIP  27
+REMARK   2 RESOLUTION. 2.0 ANGSTROMS.                                   1HIPE  1
+REMARK   3                                                              1HIP  29
+REMARK   3 REFINEMENT. THE COORDINATES HAVE BEEN REFINED BY DIFFERENCE  1HIP  30
+REMARK   3  FOURIER METHODS TO AN R FACTOR OF 0.24, WITH BOND           1HIP  31
+REMARK   3  DISTANCES AND ANGLES CONSTRAINED TO THEIR EXPECTED VALUES.  1HIP  32
+REMARK   4                                                              1HIP  33
+REMARK   4 RESIDUE SEQUENCE IDENTIFIER 86 WAS ASSIGNED TO THE           1HIP  34
+REMARK   4 IRON/SULFUR CLUSTER BY THE DEPOSITOR.                        1HIP  35
+REMARK   5                                                              1HIP  36
+REMARK   5 A TOTAL OF SEVEN ATOMS COULD NOT BE LOCATED IN THE ELECTRON  1HIP  37
+REMARK   5 DENSITY MAP FOR THIS STRUCTURE AND THEIR COORDINATES ARE     1HIP  38
+REMARK   5 OMITTED FROM THIS LIST.  THESE ATOMS ARE - CD,CE AND NZ OF   1HIP  39
+REMARK   5 LYS 18, OG OF SER 26,CB OF ALA 32 AND CG AND NE2 OF GLN 50.  1HIP  40
+REMARK   6                                                              1HIPA  1
+REMARK   6 CORRECTION. IN RESIDUE TYR 19, ATOM OH WAS MISNAMED AS O,    1HIPA  2
+REMARK   6  WHICH NAME THEREFORE OCCURRED TWICE. IT HAS BEEN RENAMED    1HIPA  3
+REMARK   6  AND RESTORED TO ITS CORRECT POSITION AFTER CZ, THUS         1HIPA  4
+REMARK   6  NECESSITATING RENUMBERING OF THE INTERVENING ATOMS O        1HIPA  5
+REMARK   6  THROUGH CZ. (OH FORMERLY HAD SERIAL NUMBER 120 AND NOW      1HIPA  6
+REMARK   6  HAS 128.) BNL 03-JAN-77.                                    1HIPA  7
+REMARK   7                                                              1HIPB 47
+REMARK   7 CORRECTION. REFORMAT HEADER INFORMATION TO MEET NEW          1HIPB 48
+REMARK   7  SPECIFICATIONS.                                             1HIPB 49
+REMARK   7  ADD FORMUL RECORDS.                                         1HIPB 50
+REMARK   7  01-NOV-77.                                                  1HIPB 51
+REMARK   8                                                              1HIPC  2
+REMARK   8 CORRECTION. STANDARDIZE FORMAT OF SOURCE RECORD.             1HIPC  3
+REMARK   8  05-MAR-80.                                                  1HIPC  4
+REMARK   9                                                              1HIPD  1
+REMARK   9 CORRECTION. STANDARDIZE NOMENCLATURE TO FOLLOW IUPAC-IUB     1HIPD  2
+REMARK   9  RECOMMENDATIONS.  INTERCHANGE CD1 AND CD2 FOR LEUCINE       1HIPD  3
+REMARK   9  17.  07-APR-80.                                             1HIPD  4
+REMARK  10                                                              1HIPE  2
+REMARK  10 CORRECTION. STANDARDIZE FORMAT OF REMARK 2.  31-DEC-80.      1HIPE  3
+REMARK  11                                                              1HIPF  1
+REMARK  11 CORRECTION. CORRECT NAME OF ATOM 624 FROM O TO OXT.          1HIPF  2
+REMARK  11  07-MAR-83.                                                  1HIPF  3
+REMARK  12                                                              1HIPG  2
+REMARK  12 CORRECTION. CORRECT TYPESETTING CODE.  13-JUN-83.            1HIPG  3
+REMARK  13                                                              1HIPH 10
+REMARK  13 CORRECTION. INSERT REVDAT RECORDS. 30-SEP-83.                1HIPH 11
+REMARK  14                                                              1HIPI  3
+REMARK  14 CORRECTION. CORRECT ISSN FOR REFERENCE 3.  31-MAY-84.        1HIPI  4
+REMARK  15                                                              1HIPJ  2
+REMARK  15 CORRECTION. STANDARDIZE RESIDUE NAME FOR IRON-SULFUR         1HIPJ  3
+REMARK  15  CLUSTER.  15-APR-93.                                        1HIPJ  4
+SEQRES   1     85  SER ALA PRO ALA ASN ALA VAL ALA ALA ASP ASN ALA THR  1HIP  41
+SEQRES   2     85  ALA ILE ALA LEU LYS TYR ASN GLN ASP ALA THR LYS SER  1HIP  42
+SEQRES   3     85  GLU ARG VAL ALA ALA ALA ARG PRO GLY LEU PRO PRO GLU  1HIP  43
+SEQRES   4     85  GLU GLN HIS CYS ALA ASP CYS GLN PHE MET GLN ALA ASP  1HIP  44
+SEQRES   5     85  ALA ALA GLY ALA THR ASP GLU TRP LYS GLY CYS GLN LEU  1HIP  45
+SEQRES   6     85  PHE PRO GLY LYS LEU ILE ASN VAL ASN GLY TRP CYS ALA  1HIP  46
+SEQRES   7     85  SER TRP THR LEU LYS ALA GLY                          1HIP  47
+HET    FS4     86       8     IRON/SULFUR CLUSTER                       1HIPJ  5
+FORMUL   2  FS4    FE4 S4                                               1HIPJ  6
+FORMUL   3  HOH   *144(H2 O1)                                           1HIPB 53
+HELIX    1  H1 ALA     12  ALA     16  1                                1HIP  49
+HELIX    2  H2 ARG     28  ALA     31  1                                1HIP  50
+SHEET    1  S1 3 PHE    48  GLN    50  0                                1HIP  51
+SHEET    2  S1 3 GLU    59  GLN    64 -1  N  GLN    50   O  GLY    62   1HIP  52
+SHEET    3  S1 3 LYS    69  VAL    73 -1  N  LYS    61   O  ILE    71   1HIP  53
+CRYST1   42.700   41.860   38.080  90.00  90.00  90.00 P 21 21 21    4  1HIP  54
+ORIGX1      1.000000  0.000000  0.000000       0.000000                 1HIP  55
+ORIGX2      0.000000  1.000000  0.000000       0.000000                 1HIP  56
+ORIGX3      0.000000  0.000000  1.000000       0.000000                 1HIP  57
+SCALE1       .023419  0.000000  0.000000        .168200                 1HIP  58
+SCALE2      0.000000   .023889  0.000000       -.331800                 1HIP  59
+SCALE3      0.000000  0.000000   .026261        .107400                 1HIP  60
+ATOM      1  N   SER     1      18.200  12.220  32.160  1.00  0.00      1HIP  61
+ATOM      2  CA  SER     1      18.330  10.860  31.630  1.00  0.00      1HIP  62
+ATOM      3  C   SER     1      17.540  10.740  30.320  1.00  0.00      1HIP  63
+ATOM      4  O   SER     1      16.380  11.200  30.230  1.00  0.00      1HIP  64
+ATOM      5  CB  SER     1      17.820   9.860  32.640  1.00  0.00      1HIP  65
+ATOM      6  OG  SER     1      17.920   8.530  32.150  1.00  0.00      1HIP  66
+ATOM      7  N   ALA     2      18.160  10.130  29.330  1.00  0.00      1HIP  67
+ATOM      8  CA  ALA     2      17.510   9.950  28.020  1.00  0.00      1HIP  68
+ATOM      9  C   ALA     2      16.590   8.740  28.070  1.00  0.00      1HIP  69
+ATOM     10  O   ALA     2      16.950   7.690  28.620  1.00  0.00      1HIP  70
+ATOM     11  CB  ALA     2      18.580   9.650  26.950  1.00  0.00      1HIP  71
+ATOM     12  N   PRO     3      15.410   8.890  27.480  1.00  0.00      1HIP  72
+ATOM     13  CA  PRO     3      14.430   7.800  27.450  1.00  0.00      1HIP  73
+ATOM     14  C   PRO     3      15.090   6.530  26.910  1.00  0.00      1HIP  74
+ATOM     15  O   PRO     3      16.130   6.590  26.220  1.00  0.00      1HIP  75
+ATOM     16  CB  PRO     3      13.320   8.310  26.580  1.00  0.00      1HIP  76
+ATOM     17  CG  PRO     3      13.960   9.340  25.670  1.00  0.00      1HIP  77
+ATOM     18  CD  PRO     3      15.090   9.930  26.510  1.00  0.00      1HIP  78
+ATOM     19  N   ALA     4      14.490   5.400  27.230  1.00  0.00      1HIP  79
+ATOM     20  CA  ALA     4      15.030   4.110  26.780  1.00  0.00      1HIP  80
+ATOM     21  C   ALA     4      14.670   3.890  25.310  1.00  0.00      1HIP  81
+ATOM     22  O   ALA     4      15.290   3.060  24.620  1.00  0.00      1HIP  82
+ATOM     23  CB  ALA     4      14.350   2.980  27.570  1.00  0.00      1HIP  83
+ATOM     24  N   ASN     5      13.680   4.640  24.850  1.00  0.00      1HIP  84
+ATOM     25  CA  ASN     5      13.240   4.520  23.450  1.00  0.00      1HIP  85
+ATOM     26  C   ASN     5      13.890   5.620  22.600  1.00  0.00      1HIP  86
+ATOM     27  O   ASN     5      13.360   6.010  21.550  1.00  0.00      1HIP  87
+ATOM     28  CB  ASN     5      11.690   4.610  23.380  1.00  0.00      1HIP  88
+ATOM     29  CG  ASN     5      11.140   5.530  24.440  1.00  0.00      1HIP  89
+ATOM     30  OD1 ASN     5      10.200   5.270  25.180  1.00  0.00      1HIP  90
+ATOM     31  ND2 ASN     5      11.830   6.720  24.610  1.00  0.00      1HIP  91
+ATOM     32  N   ALA     6      15.020   6.100  23.080  1.00  0.00      1HIP  92
+ATOM     33  CA  ALA     6      15.740   7.170  22.370  1.00  0.00      1HIP  93
+ATOM     34  C   ALA     6      16.630   6.560  21.280  1.00  0.00      1HIP  94
+ATOM     35  O   ALA     6      17.250   5.510  21.470  1.00  0.00      1HIP  95
+ATOM     36  CB  ALA     6      16.700   7.880  23.350  1.00  0.00      1HIP  96
+ATOM     37  N   VAL     7      16.670   7.230  20.140  1.00  0.00      1HIP  97
+ATOM     38  CA  VAL     7      17.470   6.750  19.000  1.00  0.00      1HIP  98
+ATOM     39  C   VAL     7      18.970   6.760  19.370  1.00  0.00      1HIP  99
+ATOM     40  O   VAL     7      19.530   7.800  19.740  1.00  0.00      1HIP 100
+ATOM     41  CB  VAL     7      17.210   7.620  17.780  1.00  0.00      1HIP 101
+ATOM     42  CG1 VAL     7      18.140   7.340  16.570  1.00  0.00      1HIP 102
+ATOM     43  CG2 VAL     7      15.750   7.640  17.390  1.00  0.00      1HIP 103
+ATOM     44  N   ALA     8      19.590   5.600  19.250  1.00  0.00      1HIP 104
+ATOM     45  CA  ALA     8      21.020   5.470  19.580  1.00  0.00      1HIP 105
+ATOM     46  C   ALA     8      21.810   5.900  18.340  1.00  0.00      1HIP 106
+ATOM     47  O   ALA     8      21.340   5.760  17.200  1.00  0.00      1HIP 107
+ATOM     48  CB  ALA     8      21.390   4.010  19.830  1.00  0.00      1HIP 108
+ATOM     49  N   ALA     9      23.010   6.410  18.580  1.00  0.00      1HIP 109
+ATOM     50  CA  ALA     9      23.880   6.870  17.470  1.00  0.00      1HIP 110
+ATOM     51  C   ALA     9      24.250   5.680  16.580  1.00  0.00      1HIP 111
+ATOM     52  O   ALA     9      24.430   5.830  15.360  1.00  0.00      1HIP 112
+ATOM     53  CB  ALA     9      25.210   7.410  18.040  1.00  0.00      1HIP 113
+ATOM     54  N   ASP    10      24.370   4.530  17.210  1.00  0.00      1HIP 114
+ATOM     55  CA  ASP    10      24.730   3.310  16.470  1.00  0.00      1HIP 115
+ATOM     56  C   ASP    10      23.540   2.550  15.880  1.00  0.00      1HIP 116
+ATOM     57  O   ASP    10      23.660   1.370  15.520  1.00  0.00      1HIP 117
+ATOM     58  CB  ASP    10      25.520   2.360  17.400  1.00  0.00      1HIP 118
+ATOM     59  CG  ASP    10      24.620   1.770  18.460  1.00  0.00      1HIP 119
+ATOM     60  OD1 ASP    10      23.440   2.050  18.620  1.00  0.00      1HIP 120
+ATOM     61  OD2 ASP    10      25.120    .920  19.150  1.00  0.00      1HIP 121
+ATOM     62  N   ASN    11      22.410   3.230  15.780  1.00  0.00      1HIP 122
+ATOM     63  CA  ASN    11      21.190   2.610  15.240  1.00  0.00      1HIP 123
+ATOM     64  C   ASN    11      21.290   2.620  13.710  1.00  0.00      1HIP 124
+ATOM     65  O   ASN    11      21.660   3.630  13.100  1.00  0.00      1HIP 125
+ATOM     66  CB  ASN    11      19.940   3.380  15.730  1.00  0.00      1HIP 126
+ATOM     67  CG  ASN    11      18.670   2.790  15.170  1.00  0.00      1HIP 127
+ATOM     68  OD1 ASN    11      18.490   2.510  14.000  1.00  0.00      1HIP 128
+ATOM     69  ND2 ASN    11      17.670   2.510  16.110  1.00  0.00      1HIP 129
+ATOM     70  N   ALA    12      20.950   1.490  13.110  1.00  0.00      1HIP 130
+ATOM     71  CA  ALA    12      21.010   1.360  11.650  1.00  0.00      1HIP 131
+ATOM     72  C   ALA    12      20.350   2.560  10.960  1.00  0.00      1HIP 132
+ATOM     73  O   ALA    12      20.980   3.250  10.140  1.00  0.00      1HIP 133
+ATOM     74  CB  ALA    12      20.190    .130  11.230  1.00  0.00      1HIP 134
+ATOM     75  N   THR    13      19.080   2.780  11.290  1.00  0.00      1HIP 135
+ATOM     76  CA  THR    13      18.330   3.890  10.690  1.00  0.00      1HIP 136
+ATOM     77  C   THR    13      18.990   5.250  10.930  1.00  0.00      1HIP 137
+ATOM     78  O   THR    13      18.990   6.120  10.040  1.00  0.00      1HIP 138
+ATOM     79  CB  THR    13      16.900   3.860  11.290  1.00  0.00      1HIP 139
+ATOM     80  OG1 THR    13      16.410   2.570  10.940  1.00  0.00      1HIP 140
+ATOM     81  CG2 THR    13      16.010   4.930  10.720  1.00  0.00      1HIP 141
+ATOM     82  N   ALA    14      19.550   5.420  12.120  1.00  0.00      1HIP 142
+ATOM     83  CA  ALA    14      20.210   6.670  12.470  1.00  0.00      1HIP 143
+ATOM     84  C   ALA    14      21.460   6.890  11.610  1.00  0.00      1HIP 144
+ATOM     85  O   ALA    14      21.740   8.010  11.170  1.00  0.00      1HIP 145
+ATOM     86  CB  ALA    14      20.710   6.590  13.930  1.00  0.00      1HIP 146
+ATOM     87  N   ILE    15      22.190   5.820  11.380  1.00  0.00      1HIP 147
+ATOM     88  CA  ILE    15      23.420   5.890  10.560  1.00  0.00      1HIP 148
+ATOM     89  C   ILE    15      23.060   6.170   9.100  1.00  0.00      1HIP 149
+ATOM     90  O   ILE    15      23.770   6.910   8.400  1.00  0.00      1HIP 150
+ATOM     91  CB  ILE    15      24.230   4.570  10.620  1.00  0.00      1HIP 151
+ATOM     92  CG1 ILE    15      24.590   4.140  12.070  1.00  0.00      1HIP 152
+ATOM     93  CG2 ILE    15      25.410   4.880   9.680  1.00  0.00      1HIP 153
+ATOM     94  CD1 ILE    15      25.470   2.870  12.140  1.00  0.00      1HIP 154
+ATOM     95  N   ALA    16      21.950   5.580   8.670  1.00  0.00      1HIP 155
+ATOM     96  CA  ALA    16      21.490   5.770   7.280  1.00  0.00      1HIP 156
+ATOM     97  C   ALA    16      21.030   7.210   7.090  1.00  0.00      1HIP 157
+ATOM     98  O   ALA    16      21.310   7.830   6.050  1.00  0.00      1HIP 158
+ATOM     99  CB  ALA    16      20.250   4.890   7.020  1.00  0.00      1HIP 159
+ATOM    100  N   LEU    17      20.330   7.710   8.090  1.00  0.00      1HIP 160
+ATOM    101  CA  LEU    17      19.820   9.090   8.030  1.00  0.00      1HIP 161
+ATOM    102  C   LEU    17      20.870  10.150   8.360  1.00  0.00      1HIP 162
+ATOM    103  O   LEU    17      20.660  11.340   8.100  1.00  0.00      1HIP 163
+ATOM    104  CB  LEU    17      18.630   9.260   9.000  1.00  0.00      1HIP 164
+ATOM    105  CG  LEU    17      17.300   8.620   8.630  1.00  0.00      1HIP 165
+ATOM    106  CD1 LEU    17      16.110   9.040   9.450  1.00  0.00      1HIPD  5
+ATOM    107  CD2 LEU    17      16.800   9.200   7.330  1.00  0.00      1HIPD  6
+ATOM    108  N   LYS    18      21.970   9.700   8.940  1.00  0.00      1HIP 168
+ATOM    109  CA  LYS    18      23.060  10.620   9.320  1.00  0.00      1HIP 169
+ATOM    110  C   LYS    18      22.560  11.510  10.460  1.00  0.00      1HIP 170
+ATOM    111  O   LYS    18      22.930  12.690  10.550  1.00  0.00      1HIP 171
+ATOM    112  CB  LYS    18      23.500  11.480   8.140  1.00  0.00      1HIP 172
+ATOM    113  CG  LYS    18      24.580  10.860   7.270  1.00  0.00      1HIP 173
+ATOM    117  N   TYR    19      21.730  10.940  11.320  1.00  0.00      1HIP 174
+ATOM    118  CA  TYR    19      21.180  11.690  12.460  1.00  0.00      1HIP 175
+ATOM    119  C   TYR    19      22.130  11.790  13.660  1.00  0.00      1HIP 176
+ATOM    120  O   TYR    19      22.870  10.840  13.970  1.00  0.00      1HIPA  8
+ATOM    121  CB  TYR    19      19.860  11.020  12.910  1.00  0.00      1HIPA  9
+ATOM    122  CG  TYR    19      19.450  11.400  14.340  1.00  0.00      1HIPA 10
+ATOM    123  CD1 TYR    19      18.640  12.540  14.520  1.00  0.00      1HIPA 11
+ATOM    124  CD2 TYR    19      19.920  10.710  15.430  1.00  0.00      1HIPA 12
+ATOM    125  CE1 TYR    19      18.260  12.910  15.880  1.00  0.00      1HIPA 13
+ATOM    126  CE2 TYR    19      19.550  11.070  16.770  1.00  0.00      1HIPA 14
+ATOM    127  CZ  TYR    19      18.750  12.210  16.920  1.00  0.00      1HIPA 15
+ATOM    128  OH  TYR    19      18.410  12.580  18.210  1.00  0.00      1HIPA 16
+ATOM    129  N   ASN    20      22.110  12.940  14.300  1.00  0.00      1HIP 186
+ATOM    130  CA  ASN    20      22.980  13.170  15.470  1.00  0.00      1HIP 187
+ATOM    131  C   ASN    20      22.170  13.910  16.540  1.00  0.00      1HIP 188
+ATOM    132  O   ASN    20      21.500  14.910  16.250  1.00  0.00      1HIP 189
+ATOM    133  CB  ASN    20      24.230  13.980  15.030  1.00  0.00      1HIP 190
+ATOM    134  CG  ASN    20      25.160  14.220  16.200  1.00  0.00      1HIP 191
+ATOM    135  OD1 ASN    20      24.810  14.550  17.320  1.00  0.00      1HIP 192
+ATOM    136  ND2 ASN    20      26.510  13.990  15.950  1.00  0.00      1HIP 193
+ATOM    137  N   GLN    21      22.240  13.400  17.750  1.00  0.00      1HIP 194
+ATOM    138  CA  GLN    21      21.500  14.010  18.870  1.00  0.00      1HIP 195
+ATOM    139  C   GLN    21      21.770  15.500  19.060  1.00  0.00      1HIP 196
+ATOM    140  O   GLN    21      20.920  16.230  19.600  1.00  0.00      1HIP 197
+ATOM    141  CB  GLN    21      21.850  13.270  20.130  1.00  0.00      1HIP 198
+ATOM    142  CG  GLN    21      20.680  12.790  20.880  1.00  0.00      1HIP 199
+ATOM    143  CD  GLN    21      21.000  12.030  22.180  1.00  0.00      1HIP 200
+ATOM    144  OE1 GLN    21      20.060  11.380  22.730  1.00  0.00      1HIP 201
+ATOM    145  NE2 GLN    21      22.180  12.140  22.670  1.00  0.00      1HIP 202
+ATOM    146  N   ASP    22      22.940  15.920  18.630  1.00  0.00      1HIP 203
+ATOM    147  CA  ASP    22      23.330  17.330  18.750  1.00  0.00      1HIP 204
+ATOM    148  C   ASP    22      23.660  17.930  17.380  1.00  0.00      1HIP 205
+ATOM    149  O   ASP    22      24.770  17.740  16.850  1.00  0.00      1HIP 206
+ATOM    150  CB  ASP    22      24.550  17.450  19.700  1.00  0.00      1HIP 207
+ATOM    151  CG  ASP    22      25.130  18.840  19.670  1.00  0.00      1HIP 208
+ATOM    152  OD1 ASP    22      24.840  19.690  18.860  1.00  0.00      1HIP 209
+ATOM    153  OD2 ASP    22      25.910  19.100  20.550  1.00  0.00      1HIP 210
+ATOM    154  N   ALA    23      22.690  18.640  16.830  1.00  0.00      1HIP 211
+ATOM    155  CA  ALA    23      22.880  19.260  15.510  1.00  0.00      1HIP 212
+ATOM    156  C   ALA    23      24.140  20.070  15.190  1.00  0.00      1HIP 213
+ATOM    157  O   ALA    23      24.570  20.150  14.030  1.00  0.00      1HIP 214
+ATOM    158  CB  ALA    23      21.690  20.240  15.390  1.00  0.00      1HIP 215
+ATOM    159  N   THR    24      24.720  20.650  16.230  1.00  0.00      1HIP 216
+ATOM    160  CA  THR    24      25.940  21.450  16.060  1.00  0.00      1HIP 217
+ATOM    161  C   THR    24      27.080  20.510  15.650  1.00  0.00      1HIP 218
+ATOM    162  O   THR    24      28.160  20.950  15.220  1.00  0.00      1HIP 219
+ATOM    163  CB  THR    24      26.200  22.180  17.390  1.00  0.00      1HIP 220
+ATOM    164  OG1 THR    24      26.760  21.190  18.240  1.00  0.00      1HIP 221
+ATOM    165  CG2 THR    24      24.930  22.730  18.000  1.00  0.00      1HIP 222
+ATOM    166  N   LYS    25      26.820  19.230  15.800  1.00  0.00      1HIP 223
+ATOM    167  CA  LYS    25      27.830  18.220  15.460  1.00  0.00      1HIP 224
+ATOM    168  C   LYS    25      27.500  17.420  14.190  1.00  0.00      1HIP 225
+ATOM    169  O   LYS    25      28.220  16.490  13.810  1.00  0.00      1HIP 226
+ATOM    170  CB  LYS    25      28.020  17.210  16.590  1.00  0.00      1HIP 227
+ATOM    171  CG  LYS    25      28.240  17.820  17.960  1.00  0.00      1HIP 228
+ATOM    172  CD  LYS    25      29.650  17.520  18.470  1.00  0.00      1HIP 229
+ATOM    173  CE  LYS    25      29.810  17.920  19.940  1.00  0.00      1HIP 230
+ATOM    174  NZ  LYS    25      29.650  19.380  20.100  1.00  0.00      1HIP 231
+ATOM    175  N   SER    26      26.400  17.800  13.550  1.00  0.00      1HIP 232
+ATOM    176  CA  SER    26      25.960  17.120  12.330  1.00  0.00      1HIP 233
+ATOM    177  C   SER    26      26.690  17.780  11.150  1.00  0.00      1HIP 234
+ATOM    178  O   SER    26      27.480  18.710  11.340  1.00  0.00      1HIP 235
+ATOM    179  CB  SER    26      24.450  17.240  12.160  1.00  0.00      1HIP 236
+ATOM    181  N   GLU    27      26.430  17.270   9.960  1.00  0.00      1HIP 237
+ATOM    182  CA  GLU    27      27.070  17.810   8.750  1.00  0.00      1HIP 238
+ATOM    183  C   GLU    27      25.900  18.500   8.040  1.00  0.00      1HIP 239
+ATOM    184  O   GLU    27      25.750  18.380   6.810  1.00  0.00      1HIP 240
+ATOM    185  CB  GLU    27      27.720  16.690   7.890  1.00  0.00      1HIP 241
+ATOM    186  CG  GLU    27      26.840  15.450   7.610  1.00  0.00      1HIP 242
+ATOM    187  CD  GLU    27      27.640  14.170   7.160  1.00  0.00      1HIP 243
+ATOM    188  OE1 GLU    27      28.790  14.010   7.440  1.00  0.00      1HIP 244
+ATOM    189  OE2 GLU    27      26.870  13.450   6.520  1.00  0.00      1HIP 245
+ATOM    190  N   ARG    28      25.100  19.200   8.810  1.00  0.00      1HIP 246
+ATOM    191  CA  ARG    28      23.940  19.910   8.250  1.00  0.00      1HIP 247
+ATOM    192  C   ARG    28      24.420  21.070   7.380  1.00  0.00      1HIP 248
+ATOM    193  O   ARG    28      23.730  21.480   6.430  1.00  0.00      1HIP 249
+ATOM    194  CB  ARG    28      23.010  20.450   9.370  1.00  0.00      1HIP 250
+ATOM    195  CG  ARG    28      23.760  20.960  10.620  1.00  0.00      1HIP 251
+ATOM    196  CD  ARG    28      22.970  22.070  11.280  1.00  0.00      1HIP 252
+ATOM    197  NE  ARG    28      23.660  22.560  12.490  1.00  0.00      1HIP 253
+ATOM    198  CZ  ARG    28      23.080  23.380  13.390  1.00  0.00      1HIP 254
+ATOM    199  NH1 ARG    28      21.740  23.430  13.520  1.00  0.00      1HIP 255
+ATOM    200  NH2 ARG    28      23.850  24.140  14.150  1.00  0.00      1HIP 256
+ATOM    201  N   VAL    29      25.580  21.600   7.720  1.00  0.00      1HIP 257
+ATOM    202  CA  VAL    29      26.160  22.720   6.970  1.00  0.00      1HIP 258
+ATOM    203  C   VAL    29      26.610  22.250   5.590  1.00  0.00      1HIP 259
+ATOM    204  O   VAL    29      26.380  22.930   4.580  1.00  0.00      1HIP 260
+ATOM    205  CB  VAL    29      27.330  23.310   7.750  1.00  0.00      1HIP 261
+ATOM    206  CG1 VAL    29      28.730  22.740   7.380  1.00  0.00      1HIP 262
+ATOM    207  CG2 VAL    29      27.310  24.810   7.740  1.00  0.00      1HIP 263
+ATOM    208  N   ALA    30      27.240  21.090   5.560  1.00  0.00      1HIP 264
+ATOM    209  CA  ALA    30      27.730  20.530   4.290  1.00  0.00      1HIP 265
+ATOM    210  C   ALA    30      26.570  20.020   3.420  1.00  0.00      1HIP 266
+ATOM    211  O   ALA    30      26.670  20.000   2.180  1.00  0.00      1HIP 267
+ATOM    212  CB  ALA    30      28.610  19.310   4.600  1.00  0.00      1HIP 268
+ATOM    213  N   ALA    31      25.500  19.620   4.070  1.00  0.00      1HIP 269
+ATOM    214  CA  ALA    31      24.320  19.110   3.360  1.00  0.00      1HIP 270
+ATOM    215  C   ALA    31      23.570  20.290   2.740  1.00  0.00      1HIP 271
+ATOM    216  O   ALA    31      23.030  20.200   1.620  1.00  0.00      1HIP 272
+ATOM    217  CB  ALA    31      23.330  18.460   4.340  1.00  0.00      1HIP 273
+ATOM    218  N   ALA    32      23.560  21.390   3.470  1.00  0.00      1HIP 274
+ATOM    219  CA  ALA    32      22.870  22.590   3.000  1.00  0.00      1HIP 275
+ATOM    220  C   ALA    32      21.530  22.220   2.350  1.00  0.00      1HIP 276
+ATOM    221  O   ALA    32      21.440  22.060   1.120  1.00  0.00      1HIP 277
+ATOM    223  N   ARG    33      20.510  22.080   3.180  1.00  0.00      1HIP 278
+ATOM    224  CA  ARG    33      19.170  21.710   2.690  1.00  0.00      1HIP 279
+ATOM    225  C   ARG    33      18.350  23.000   2.550  1.00  0.00      1HIP 280
+ATOM    226  O   ARG    33      18.540  23.950   3.320  1.00  0.00      1HIP 281
+ATOM    227  CB  ARG    33      18.460  20.740   3.660  1.00  0.00      1HIP 282
+ATOM    228  CG  ARG    33      19.260  19.450   3.950  1.00  0.00      1HIP 283
+ATOM    229  CD  ARG    33      18.730  18.330   3.080  1.00  0.00      1HIP 284
+ATOM    230  NE  ARG    33      17.270  18.180   3.220  1.00  0.00      1HIP 285
+ATOM    231  CZ  ARG    33      16.560  17.200   2.620  1.00  0.00      1HIP 286
+ATOM    232  NH1 ARG    33      17.140  16.390   1.730  1.00  0.00      1HIP 287
+ATOM    233  NH2 ARG    33      15.280  17.050   2.930  1.00  0.00      1HIP 288
+ATOM    234  N   PRO    34      17.450  23.000   1.580  1.00  0.00      1HIP 289
+ATOM    235  CA  PRO    34      16.600  24.170   1.330  1.00  0.00      1HIP 290
+ATOM    236  C   PRO    34      15.750  24.530   2.550  1.00  0.00      1HIP 291
+ATOM    237  O   PRO    34      15.640  23.750   3.510  1.00  0.00      1HIP 292
+ATOM    238  CB  PRO    34      15.820  23.800    .100  1.00  0.00      1HIP 293
+ATOM    239  CG  PRO    34      15.550  22.350    .420  1.00  0.00      1HIP 294
+ATOM    240  CD  PRO    34      16.910  21.820    .900  1.00  0.00      1HIP 295
+ATOM    241  N   GLY    35      15.170  25.710   2.500  1.00  0.00      1HIP 296
+ATOM    242  CA  GLY    35      14.330  26.190   3.620  1.00  0.00      1HIP 297
+ATOM    243  C   GLY    35      14.970  27.330   4.410  1.00  0.00      1HIP 298
+ATOM    244  O   GLY    35      14.530  28.480   4.320  1.00  0.00      1HIP 299
+ATOM    245  N   LEU    36      16.010  26.980   5.160  1.00  0.00      1HIP 300
+ATOM    246  CA  LEU    36      16.720  27.980   5.980  1.00  0.00      1HIP 301
+ATOM    247  C   LEU    36      18.190  27.580   6.120  1.00  0.00      1HIP 302
+ATOM    248  O   LEU    36      18.570  26.440   5.800  1.00  0.00      1HIP 303
+ATOM    249  CB  LEU    36      16.050  28.100   7.360  1.00  0.00      1HIP 304
+ATOM    250  CG  LEU    36      16.920  28.510   8.540  1.00  0.00      1HIP 305
+ATOM    251  CD1 LEU    36      17.500  29.880   8.280  1.00  0.00      1HIP 306
+ATOM    252  CD2 LEU    36      16.120  28.520   9.820  1.00  0.00      1HIP 307
+ATOM    253  N   PRO    37      18.990  28.500   6.610  1.00  0.00      1HIP 308
+ATOM    254  CA  PRO    37      20.430  28.250   6.800  1.00  0.00      1HIP 309
+ATOM    255  C   PRO    37      20.630  27.000   7.660  1.00  0.00      1HIP 310
+ATOM    256  O   PRO    37      19.870  26.770   8.620  1.00  0.00      1HIP 311
+ATOM    257  CB  PRO    37      20.950  29.490   7.430  1.00  0.00      1HIP 312
+ATOM    258  CG  PRO    37      19.760  30.120   8.140  1.00  0.00      1HIP 313
+ATOM    259  CD  PRO    37      18.560  29.720   7.290  1.00  0.00      1HIP 314
+ATOM    260  N   PRO    38      21.630  26.220   7.310  1.00  0.00      1HIP 315
+ATOM    261  CA  PRO    38      21.920  24.990   8.060  1.00  0.00      1HIP 316
+ATOM    262  C   PRO    38      22.100  25.310   9.540  1.00  0.00      1HIP 317
+ATOM    263  O   PRO    38      21.510  24.650  10.410  1.00  0.00      1HIP 318
+ATOM    264  CB  PRO    38      23.170  24.460   7.410  1.00  0.00      1HIP 319
+ATOM    265  CG  PRO    38      23.870  25.660   6.800  1.00  0.00      1HIP 320
+ATOM    266  CD  PRO    38      22.730  26.600   6.420  1.00  0.00      1HIP 321
+ATOM    267  N   GLU    39      22.900  26.320   9.810  1.00  0.00      1HIP 322
+ATOM    268  CA  GLU    39      23.160  26.730  11.210  1.00  0.00      1HIP 323
+ATOM    269  C   GLU    39      21.900  26.860  12.070  1.00  0.00      1HIP 324
+ATOM    270  O   GLU    39      21.980  27.010  13.300  1.00  0.00      1HIP 325
+ATOM    271  CB  GLU    39      23.880  28.100  11.280  1.00  0.00      1HIP 326
+ATOM    272  CG  GLU    39      25.390  28.120  10.920  1.00  0.00      1HIP 327
+ATOM    273  CD  GLU    39      26.200  26.850  11.380  1.00  0.00      1HIP 328
+ATOM    274  OE1 GLU    39      25.660  25.930  11.920  1.00  0.00      1HIP 329
+ATOM    275  OE2 GLU    39      27.380  27.020  11.080  1.00  0.00      1HIP 330
+ATOM    276  N   GLU    40      20.750  26.810  11.410  1.00  0.00      1HIP 331
+ATOM    277  CA  GLU    40      19.460  26.930  12.120  1.00  0.00      1HIP 332
+ATOM    278  C   GLU    40      18.560  25.690  12.050  1.00  0.00      1HIP 333
+ATOM    279  O   GLU    40      17.420  25.690  12.550  1.00  0.00      1HIP 334
+ATOM    280  CB  GLU    40      18.600  28.100  11.570  1.00  0.00      1HIP 335
+ATOM    281  CG  GLU    40      19.040  29.520  11.960  1.00  0.00      1HIP 336
+ATOM    282  CD  GLU    40      18.380  30.670  11.110  1.00  0.00      1HIP 337
+ATOM    283  OE1 GLU    40      17.200  30.710  10.910  1.00  0.00      1HIP 338
+ATOM    284  OE2 GLU    40      19.280  31.420  10.750  1.00  0.00      1HIP 339
+ATOM    285  N   GLN    41      19.090  24.660  11.430  1.00  0.00      1HIP 340
+ATOM    286  CA  GLN    41      18.330  23.410  11.280  1.00  0.00      1HIP 341
+ATOM    287  C   GLN    41      18.500  22.430  12.450  1.00  0.00      1HIP 342
+ATOM    288  O   GLN    41      19.630  22.150  12.880  1.00  0.00      1HIP 343
+ATOM    289  CB  GLN    41      18.760  22.750  10.000  1.00  0.00      1HIP 344
+ATOM    290  CG  GLN    41      18.390  23.500   8.800  1.00  0.00      1HIP 345
+ATOM    291  CD  GLN    41      18.980  22.970   7.480  1.00  0.00      1HIP 346
+ATOM    292  OE1 GLN    41      19.550  21.850   7.490  1.00  0.00      1HIP 347
+ATOM    293  NE2 GLN    41      18.910  23.710   6.440  1.00  0.00      1HIP 348
+ATOM    294  N   HIS    42      17.370  21.940  12.940  1.00  0.00      1HIP 349
+ATOM    295  CA  HIS    42      17.390  21.000  14.070  1.00  0.00      1HIP 350
+ATOM    296  C   HIS    42      15.980  20.400  14.080  1.00  0.00      1HIP 351
+ATOM    297  O   HIS    42      15.030  20.970  13.530  1.00  0.00      1HIP 352
+ATOM    298  CB  HIS    42      17.760  21.750  15.340  1.00  0.00      1HIP 353
+ATOM    299  CG  HIS    42      16.810  22.860  15.720  1.00  0.00      1HIP 354
+ATOM    300  ND1 HIS    42      16.560  23.200  17.040  1.00  0.00      1HIP 355
+ATOM    301  CD2 HIS    42      16.030  23.670  14.960  1.00  0.00      1HIP 356
+ATOM    302  CE1 HIS    42      15.670  24.170  17.060  1.00  0.00      1HIP 357
+ATOM    303  NE2 HIS    42      15.360  24.480  15.820  1.00  0.00      1HIP 358
+ATOM    304  N   CYS    43      15.870  19.250  14.710  1.00  0.00      1HIP 359
+ATOM    305  CA  CYS    43      14.570  18.560  14.800  1.00  0.00      1HIP 360
+ATOM    306  C   CYS    43      13.380  19.450  15.160  1.00  0.00      1HIP 361
+ATOM    307  O   CYS    43      12.250  19.260  14.670  1.00  0.00      1HIP 362
+ATOM    308  CB  CYS    43      14.650  17.320  15.650  1.00  0.00      1HIP 363
+ATOM    309  SG  CYS    43      15.890  16.180  15.190  1.00  0.00      1HIP 364
+ATOM    310  N   ALA    44      13.640  20.420  16.020  1.00  0.00      1HIP 365
+ATOM    311  CA  ALA    44      12.590  21.350  16.460  1.00  0.00      1HIP 366
+ATOM    312  C   ALA    44      11.700  22.000  15.390  1.00  0.00      1HIP 367
+ATOM    313  O   ALA    44      10.490  22.210  15.610  1.00  0.00      1HIP 368
+ATOM    314  CB  ALA    44      13.320  22.490  17.180  1.00  0.00      1HIP 369
+ATOM    315  N   ASP    45      12.310  22.310  14.260  1.00  0.00      1HIP 370
+ATOM    316  CA  ASP    45      11.580  22.950  13.160  1.00  0.00      1HIP 371
+ATOM    317  C   ASP    45      11.580  22.070  11.910  1.00  0.00      1HIP 372
+ATOM    318  O   ASP    45      11.770  22.560  10.780  1.00  0.00      1HIP 373
+ATOM    319  CB  ASP    45      12.220  24.320  12.840  1.00  0.00      1HIP 374
+ATOM    320  CG  ASP    45      13.720  24.200  12.660  1.00  0.00      1HIP 375
+ATOM    321  OD1 ASP    45      14.320  23.170  12.410  1.00  0.00      1HIP 376
+ATOM    322  OD2 ASP    45      14.330  25.230  12.720  1.00  0.00      1HIP 377
+ATOM    323  N   CYS    46      11.360  20.790  12.130  1.00  0.00      1HIP 378
+ATOM    324  CA  CYS    46      11.340  19.830  11.010  1.00  0.00      1HIP 379
+ATOM    325  C   CYS    46       9.900  19.350  10.770  1.00  0.00      1HIP 380
+ATOM    326  O   CYS    46       9.140  19.090  11.720  1.00  0.00      1HIP 381
+ATOM    327  CB  CYS    46      12.380  18.780  11.300  1.00  0.00      1HIP 382
+ATOM    328  SG  CYS    46      12.350  17.380  10.130  1.00  0.00      1HIP 383
+ATOM    329  N   GLN    47       9.550  19.240   9.500  1.00  0.00      1HIP 384
+ATOM    330  CA  GLN    47       8.200  18.790   9.120  1.00  0.00      1HIP 385
+ATOM    331  C   GLN    47       7.840  17.440   9.750  1.00  0.00      1HIP 386
+ATOM    332  O   GLN    47       6.730  17.250  10.270  1.00  0.00      1HIP 387
+ATOM    333  CB  GLN    47       8.120  18.710   7.620  1.00  0.00      1HIP 388
+ATOM    334  CG  GLN    47       6.740  18.710   7.100  1.00  0.00      1HIP 389
+ATOM    335  CD  GLN    47       5.760  19.620   7.850  1.00  0.00      1HIP 390
+ATOM    336  OE1 GLN    47       5.140  19.150   8.860  1.00  0.00      1HIP 391
+ATOM    337  NE2 GLN    47       5.550  20.790   7.390  1.00  0.00      1HIP 392
+ATOM    338  N   PHE    48       8.800  16.530   9.700  1.00  0.00      1HIP 393
+ATOM    339  CA  PHE    48       8.590  15.190  10.260  1.00  0.00      1HIP 394
+ATOM    340  C   PHE    48       8.530  15.000  11.780  1.00  0.00      1HIP 395
+ATOM    341  O   PHE    48       8.280  13.900  12.270  1.00  0.00      1HIP 396
+ATOM    342  CB  PHE    48       9.680  14.270   9.760  1.00  0.00      1HIP 397
+ATOM    343  CG  PHE    48       9.800  14.180   8.260  1.00  0.00      1HIP 398
+ATOM    344  CD1 PHE    48       8.760  13.680   7.550  1.00  0.00      1HIP 399
+ATOM    345  CD2 PHE    48      10.900  14.650   7.590  1.00  0.00      1HIP 400
+ATOM    346  CE1 PHE    48       8.800  13.580   6.120  1.00  0.00      1HIP 401
+ATOM    347  CE2 PHE    48      10.920  14.590   6.150  1.00  0.00      1HIP 402
+ATOM    348  CZ  PHE    48       9.900  14.040   5.460  1.00  0.00      1HIP 403
+ATOM    349  N   MET    49       8.780  16.080  12.490  1.00  0.00      1HIP 404
+ATOM    350  CA  MET    49       8.760  16.040  13.960  1.00  0.00      1HIP 405
+ATOM    351  C   MET    49       7.340  15.950  14.540  1.00  0.00      1HIP 406
+ATOM    352  O   MET    49       6.410  16.610  14.050  1.00  0.00      1HIP 407
+ATOM    353  CB  MET    49       9.460  17.290  14.550  1.00  0.00      1HIP 408
+ATOM    354  CG  MET    49       9.920  17.050  15.970  1.00  0.00      1HIP 409
+ATOM    355  SD  MET    49       8.790  17.760  17.160  1.00  0.00      1HIP 410
+ATOM    356  CE  MET    49       9.920  18.810  18.030  1.00  0.00      1HIP 411
+ATOM    357  N   GLN    50       7.200  15.140  15.570  1.00  0.00      1HIP 412
+ATOM    358  CA  GLN    50       5.880  14.970  16.220  1.00  0.00      1HIP 413
+ATOM    359  C   GLN    50       5.800  14.880  17.740  1.00  0.00      1HIP 414
+ATOM    360  O   GLN    50       6.230  13.900  18.350  1.00  0.00      1HIP 415
+ATOM    361  CB  GLN    50       5.260  13.710  15.670  1.00  0.00      1HIP 416
+ATOM    363  CD  GLN    50       5.590  11.690  14.190  1.00  0.00      1HIP 417
+ATOM    364  OE1 GLN    50       4.360  11.770  13.880  1.00  0.00      1HIP 418
+ATOM    366  N   ALA    51       5.230  15.920  18.340  1.00  0.00      1HIP 419
+ATOM    367  CA  ALA    51       5.090  15.970  19.800  1.00  0.00      1HIP 420
+ATOM    368  C   ALA    51       3.810  15.140  19.990  1.00  0.00      1HIP 421
+ATOM    369  O   ALA    51       2.860  15.580  20.650  1.00  0.00      1HIP 422
+ATOM    370  CB  ALA    51       4.770  17.370  20.340  1.00  0.00      1HIP 423
+ATOM    371  N   ASP    52       3.820  13.960  19.410  1.00  0.00      1HIP 424
+ATOM    372  CA  ASP    52       2.650  13.070  19.510  1.00  0.00      1HIP 425
+ATOM    373  C   ASP    52       3.240  11.920  20.340  1.00  0.00      1HIP 426
+ATOM    374  O   ASP    52       2.810  11.680  21.480  1.00  0.00      1HIP 427
+ATOM    375  CB  ASP    52       2.170  12.680  18.090  1.00  0.00      1HIP 428
+ATOM    376  CG  ASP    52        .690  12.950  17.920  1.00  0.00      1HIP 429
+ATOM    377  OD1 ASP    52        .110  13.950  18.310  1.00  0.00      1HIP 430
+ATOM    378  OD2 ASP    52        .080  12.120  17.310  1.00  0.00      1HIP 431
+ATOM    379  N   ALA    53       4.200  11.240  19.750  1.00  0.00      1HIP 432
+ATOM    380  CA  ALA    53       4.850  10.110  20.440  1.00  0.00      1HIP 433
+ATOM    381  C   ALA    53       4.720  10.140  21.970  1.00  0.00      1HIP 434
+ATOM    382  O   ALA    53       4.930  11.180  22.600  1.00  0.00      1HIP 435
+ATOM    383  CB  ALA    53       6.360  10.180  20.130  1.00  0.00      1HIP 436
+ATOM    384  N   ALA    54       4.380   9.000  22.530  1.00  0.00      1HIP 437
+ATOM    385  CA  ALA    54       4.220   8.900  23.990  1.00  0.00      1HIP 438
+ATOM    386  C   ALA    54       5.600   8.890  24.660  1.00  0.00      1HIP 439
+ATOM    387  O   ALA    54       6.570   8.330  24.130  1.00  0.00      1HIP 440
+ATOM    388  CB  ALA    54       3.560   7.560  24.340  1.00  0.00      1HIP 441
+ATOM    389  N   GLY    55       5.670   9.510  25.830  1.00  0.00      1HIP 442
+ATOM    390  CA  GLY    55       6.940   9.570  26.580  1.00  0.00      1HIP 443
+ATOM    391  C   GLY    55       7.740  10.800  26.130  1.00  0.00      1HIP 444
+ATOM    392  O   GLY    55       8.860  11.040  26.610  1.00  0.00      1HIP 445
+ATOM    393  N   ALA    56       7.150  11.550  25.220  1.00  0.00      1HIP 446
+ATOM    394  CA  ALA    56       7.810  12.750  24.690  1.00  0.00      1HIP 447
+ATOM    395  C   ALA    56       7.970  13.770  25.820  1.00  0.00      1HIP 448
+ATOM    396  O   ALA    56       7.060  13.950  26.650  1.00  0.00      1HIP 449
+ATOM    397  CB  ALA    56       6.910  13.410  23.630  1.00  0.00      1HIP 450
+ATOM    398  N   THR    57       9.120  14.420  25.830  1.00  0.00      1HIP 451
+ATOM    399  CA  THR    57       9.410  15.430  26.860  1.00  0.00      1HIP 452
+ATOM    400  C   THR    57       9.600  16.790  26.200  1.00  0.00      1HIP 453
+ATOM    401  O   THR    57       9.100  17.040  25.090  1.00  0.00      1HIP 454
+ATOM    402  CB  THR    57      10.660  14.960  27.630  1.00  0.00      1HIP 455
+ATOM    403  OG1 THR    57      11.700  15.810  27.160  1.00  0.00      1HIP 456
+ATOM    404  CG2 THR    57      11.000  13.530  27.360  1.00  0.00      1HIP 457
+ATOM    405  N   ASP    58      10.320  17.660  26.890  1.00  0.00      1HIP 458
+ATOM    406  CA  ASP    58      10.570  19.000  26.370  1.00  0.00      1HIP 459
+ATOM    407  C   ASP    58      11.840  18.940  25.500  1.00  0.00      1HIP 460
+ATOM    408  O   ASP    58      12.040  19.760  24.600  1.00  0.00      1HIP 461
+ATOM    409  CB  ASP    58      10.740  19.990  27.550  1.00  0.00      1HIP 462
+ATOM    410  CG  ASP    58       9.480  20.800  27.760  1.00  0.00      1HIP 463
+ATOM    411  OD1 ASP    58       8.560  20.880  26.960  1.00  0.00      1HIP 464
+ATOM    412  OD2 ASP    58       9.390  21.350  28.820  1.00  0.00      1HIP 465
+ATOM    413  N   GLU    59      12.670  17.950  25.780  1.00  0.00      1HIP 466
+ATOM    414  CA  GLU    59      13.930  17.780  25.030  1.00  0.00      1HIP 467
+ATOM    415  C   GLU    59      13.820  16.620  24.040  1.00  0.00      1HIP 468
+ATOM    416  O   GLU    59      14.660  16.460  23.140  1.00  0.00      1HIP 469
+ATOM    417  CB  GLU    59      15.140  17.500  25.970  1.00  0.00      1HIP 470
+ATOM    418  CG  GLU    59      16.540  17.410  25.300  1.00  0.00      1HIP 471
+ATOM    419  CD  GLU    59      17.610  16.580  26.100  1.00  0.00      1HIP 472
+ATOM    420  OE1 GLU    59      17.300  15.860  27.000  1.00  0.00      1HIP 473
+ATOM    421  OE2 GLU    59      18.720  16.810  25.620  1.00  0.00      1HIP 474
+ATOM    422  N   TRP    60      12.780  15.820  24.230  1.00  0.00      1HIP 475
+ATOM    423  CA  TRP    60      12.560  14.660  23.350  1.00  0.00      1HIP 476
+ATOM    424  C   TRP    60      11.230  14.350  22.650  1.00  0.00      1HIP 477
+ATOM    425  O   TRP    60      10.210  14.060  23.310  1.00  0.00      1HIP 478
+ATOM    426  CB  TRP    60      12.870  13.390  24.140  1.00  0.00      1HIP 479
+ATOM    427  CG  TRP    60      14.320  13.280  24.760  1.00  0.00      1HIP 480
+ATOM    428  CD1 TRP    60      14.750  13.590  25.990  1.00  0.00      1HIP 481
+ATOM    429  CD2 TRP    60      15.450  12.760  24.100  1.00  0.00      1HIP 482
+ATOM    430  NE1 TRP    60      16.180  13.340  26.100  1.00  0.00      1HIP 483
+ATOM    431  CE2 TRP    60      16.570  12.810  25.000  1.00  0.00      1HIP 484
+ATOM    432  CE3 TRP    60      15.630  12.250  22.840  1.00  0.00      1HIP 485
+ATOM    433  CZ2 TRP    60      17.870  12.370  24.700  1.00  0.00      1HIP 486
+ATOM    434  CZ3 TRP    60      16.950  11.830  22.540  1.00  0.00      1HIP 487
+ATOM    435  CH2 TRP    60      18.010  11.850  23.450  1.00  0.00      1HIP 488
+ATOM    436  N   LYS    61      11.250  14.430  21.330  1.00  0.00      1HIP 489
+ATOM    437  CA  LYS    61      10.030  14.170  20.540  1.00  0.00      1HIP 490
+ATOM    438  C   LYS    61      10.040  12.890  19.710  1.00  0.00      1HIP 491
+ATOM    439  O   LYS    61      11.010  12.120  19.730  1.00  0.00      1HIP 492
+ATOM    440  CB  LYS    61       9.760  15.290  19.550  1.00  0.00      1HIP 493
+ATOM    441  CG  LYS    61       8.840  16.380  20.080  1.00  0.00      1HIP 494
+ATOM    442  CD  LYS    61       9.270  16.810  21.490  1.00  0.00      1HIP 495
+ATOM    443  CE  LYS    61       8.160  17.590  22.190  1.00  0.00      1HIP 496
+ATOM    444  NZ  LYS    61       8.650  18.910  22.630  1.00  0.00      1HIP 497
+ATOM    445  N   GLY    62       8.950  12.670  18.990  1.00  0.00      1HIP 498
+ATOM    446  CA  GLY    62       8.820  11.470  18.150  1.00  0.00      1HIP 499
+ATOM    447  C   GLY    62       9.240  11.970  16.760  1.00  0.00      1HIP 500
+ATOM    448  O   GLY    62       9.340  13.180  16.520  1.00  0.00      1HIP 501
+ATOM    449  N   CYS    63       9.480  11.020  15.870  1.00  0.00      1HIP 502
+ATOM    450  CA  CYS    63       9.890  11.360  14.500  1.00  0.00      1HIP 503
+ATOM    451  C   CYS    63       9.240  10.370  13.540  1.00  0.00      1HIP 504
+ATOM    452  O   CYS    63       9.380   9.150  13.690  1.00  0.00      1HIP 505
+ATOM    453  CB  CYS    63      11.370  11.310  14.140  1.00  0.00      1HIP 506
+ATOM    454  SG  CYS    63      11.670  11.800  12.480  1.00  0.00      1HIP 507
+ATOM    455  N   GLN    64       8.520  10.900  12.560  1.00  0.00      1HIP 508
+ATOM    456  CA  GLN    64       7.830  10.060  11.570  1.00  0.00      1HIP 509
+ATOM    457  C   GLN    64       8.680   8.950  10.960  1.00  0.00      1HIP 510
+ATOM    458  O   GLN    64       8.170   7.850  10.680  1.00  0.00      1HIP 511
+ATOM    459  CB  GLN    64       7.320  10.950  10.470  1.00  0.00      1HIP 512
+ATOM    460  CG  GLN    64       5.850  11.120  10.490  1.00  0.00      1HIP 513
+ATOM    461  CD  GLN    64       5.220  11.490   9.140  1.00  0.00      1HIP 514
+ATOM    462  OE1 GLN    64       5.420  10.730   8.150  1.00  0.00      1HIP 515
+ATOM    463  NE2 GLN    64       4.560  12.580   9.060  1.00  0.00      1HIP 516
+ATOM    464  N   LEU    65       9.960   9.240  10.770  1.00  0.00      1HIP 517
+ATOM    465  CA  LEU    65      10.890   8.260  10.180  1.00  0.00      1HIP 518
+ATOM    466  C   LEU    65      11.450   7.330  11.260  1.00  0.00      1HIP 519
+ATOM    467  O   LEU    65      12.210   6.400  10.960  1.00  0.00      1HIP 520
+ATOM    468  CB  LEU    65      12.050   8.970   9.460  1.00  0.00      1HIP 521
+ATOM    469  CG  LEU    65      11.700  10.120   8.530  1.00  0.00      1HIP 522
+ATOM    470  CD1 LEU    65      12.940  10.520   7.750  1.00  0.00      1HIP 523
+ATOM    471  CD2 LEU    65      10.590   9.720   7.580  1.00  0.00      1HIP 524
+ATOM    472  N   PHE    66      11.070   7.610  12.500  1.00  0.00      1HIP 525
+ATOM    473  CA  PHE    66      11.550   6.800  13.630  1.00  0.00      1HIP 526
+ATOM    474  C   PHE    66      10.470   6.260  14.570  1.00  0.00      1HIP 527
+ATOM    475  O   PHE    66      10.560   6.410  15.800  1.00  0.00      1HIP 528
+ATOM    476  CB  PHE    66      12.530   7.610  14.460  1.00  0.00      1HIP 529
+ATOM    477  CG  PHE    66      13.900   7.760  13.850  1.00  0.00      1HIP 530
+ATOM    478  CD1 PHE    66      14.700   6.680  13.730  1.00  0.00      1HIP 531
+ATOM    479  CD2 PHE    66      14.340   8.960  13.350  1.00  0.00      1HIP 532
+ATOM    480  CE1 PHE    66      16.000   6.760  13.150  1.00  0.00      1HIP 533
+ATOM    481  CE2 PHE    66      15.640   9.020  12.720  1.00  0.00      1HIP 534
+ATOM    482  CZ  PHE    66      16.440   7.940  12.670  1.00  0.00      1HIP 535
+ATOM    483  N   PRO    67       9.460   5.640  13.980  1.00  0.00      1HIP 536
+ATOM    484  CA  PRO    67       8.340   5.080  14.770  1.00  0.00      1HIP 537
+ATOM    485  C   PRO    67       8.810   4.240  15.960  1.00  0.00      1HIP 538
+ATOM    486  O   PRO    67       9.740   3.430  15.850  1.00  0.00      1HIP 539
+ATOM    487  CB  PRO    67       7.570   4.260  13.780  1.00  0.00      1HIP 540
+ATOM    488  CG  PRO    67       8.420   4.010  12.550  1.00  0.00      1HIP 541
+ATOM    489  CD  PRO    67       9.600   4.970  12.700  1.00  0.00      1HIP 542
+ATOM    490  N   GLY    68       8.150   4.440  17.090  1.00  0.00      1HIP 543
+ATOM    491  CA  GLY    68       8.490   3.700  18.310  1.00  0.00      1HIP 544
+ATOM    492  C   GLY    68       9.580   4.370  19.160  1.00  0.00      1HIP 545
+ATOM    493  O   GLY    68       9.710   4.110  20.370  1.00  0.00      1HIP 546
+ATOM    494  N   LYS    69      10.340   5.240  18.520  1.00  0.00      1HIP 547
+ATOM    495  CA  LYS    69      11.430   5.950  19.210  1.00  0.00      1HIP 548
+ATOM    496  C   LYS    69      11.300   7.460  19.360  1.00  0.00      1HIP 549
+ATOM    497  O   LYS    69      10.360   8.080  18.820  1.00  0.00      1HIP 550
+ATOM    498  CB  LYS    69      12.780   5.740  18.520  1.00  0.00      1HIP 551
+ATOM    499  CG  LYS    69      12.960   4.360  17.910  1.00  0.00      1HIP 552
+ATOM    500  CD  LYS    69      14.450   4.010  17.810  1.00  0.00      1HIP 553
+ATOM    501  CE  LYS    69      14.670   2.510  17.900  1.00  0.00      1HIP 554
+ATOM    502  NZ  LYS    69      15.180   2.130  19.240  1.00  0.00      1HIP 555
+ATOM    503  N   LEU    70      12.240   8.040  20.080  1.00  0.00      1HIP 556
+ATOM    504  CA  LEU    70      12.230   9.490  20.310  1.00  0.00      1HIP 557
+ATOM    505  C   LEU    70      13.580  10.110  19.900  1.00  0.00      1HIP 558
+ATOM    506  O   LEU    70      14.650   9.500  20.090  1.00  0.00      1HIP 559
+ATOM    507  CB  LEU    70      11.940   9.800  21.790  1.00  0.00      1HIP 560
+ATOM    508  CG  LEU    70      10.570   9.440  22.340  1.00  0.00      1HIP 561
+ATOM    509  CD1 LEU    70      10.600   9.500  23.850  1.00  0.00      1HIP 562
+ATOM    510  CD2 LEU    70       9.510  10.380  21.800  1.00  0.00      1HIP 563
+ATOM    511  N   ILE    71      13.500  11.300  19.340  1.00  0.00      1HIP 564
+ATOM    512  CA  ILE    71      14.720  12.000  18.900  1.00  0.00      1HIP 565
+ATOM    513  C   ILE    71      14.900  13.230  19.790  1.00  0.00      1HIP 566
+ATOM    514  O   ILE    71      13.970  13.650  20.490  1.00  0.00      1HIP 567
+ATOM    515  CB  ILE    71      14.620  12.440  17.420  1.00  0.00      1HIP 568
+ATOM    516  CG1 ILE    71      13.200  13.000  17.050  1.00  0.00      1HIP 569
+ATOM    517  CG2 ILE    71      15.060  11.190  16.680  1.00  0.00      1HIP 570
+ATOM    518  CD1 ILE    71      13.010  14.480  17.420  1.00  0.00      1HIP 571
+ATOM    519  N   ASN    72      16.110  13.780  19.750  1.00  0.00      1HIP 572
+ATOM    520  CA  ASN    72      16.420  14.970  20.560  1.00  0.00      1HIP 573
+ATOM    521  C   ASN    72      15.910  16.180  19.770  1.00  0.00      1HIP 574
+ATOM    522  O   ASN    72      16.280  16.380  18.600  1.00  0.00      1HIP 575
+ATOM    523  CB  ASN    72      17.940  15.030  20.830  1.00  0.00      1HIP 576
+ATOM    524  CG  ASN    72      18.260  15.980  21.950  1.00  0.00      1HIP 577
+ATOM    525  OD1 ASN    72      18.210  17.190  21.860  1.00  0.00      1HIP 578
+ATOM    526  ND2 ASN    72      18.570  15.400  23.170  1.00  0.00      1HIP 579
+ATOM    527  N   VAL    73      15.080  16.970  20.430  1.00  0.00      1HIP 580
+ATOM    528  CA  VAL    73      14.520  18.160  19.790  1.00  0.00      1HIP 581
+ATOM    529  C   VAL    73      15.620  19.050  19.200  1.00  0.00      1HIP 582
+ATOM    530  O   VAL    73      15.360  19.880  18.320  1.00  0.00      1HIP 583
+ATOM    531  CB  VAL    73      13.700  18.950  20.810  1.00  0.00      1HIP 584
+ATOM    532  CG1 VAL    73      14.500  20.030  21.580  1.00  0.00      1HIP 585
+ATOM    533  CG2 VAL    73      12.420  19.490  20.220  1.00  0.00      1HIP 586
+ATOM    534  N   ASN    74      16.840  18.850  19.680  1.00  0.00      1HIP 587
+ATOM    535  CA  ASN    74      17.990  19.640  19.200  1.00  0.00      1HIP 588
+ATOM    536  C   ASN    74      18.930  18.850  18.280  1.00  0.00      1HIP 589
+ATOM    537  O   ASN    74      20.090  19.240  18.060  1.00  0.00      1HIP 590
+ATOM    538  CB  ASN    74      18.790  20.170  20.410  1.00  0.00      1HIP 591
+ATOM    539  CG  ASN    74      18.160  21.410  20.980  1.00  0.00      1HIP 592
+ATOM    540  OD1 ASN    74      17.900  22.410  20.340  1.00  0.00      1HIP 593
+ATOM    541  ND2 ASN    74      17.810  21.340  22.330  1.00  0.00      1HIP 594
+ATOM    542  N   GLY    75      18.410  17.760  17.760  1.00  0.00      1HIP 595
+ATOM    543  CA  GLY    75      19.210  16.900  16.870  1.00  0.00      1HIP 596
+ATOM    544  C   GLY    75      18.980  17.290  15.400  1.00  0.00      1HIP 597
+ATOM    545  O   GLY    75      18.340  18.310  15.110  1.00  0.00      1HIP 598
+ATOM    546  N   TRP    76      19.510  16.480  14.510  1.00  0.00      1HIP 599
+ATOM    547  CA  TRP    76      19.370  16.740  13.070  1.00  0.00      1HIP 600
+ATOM    548  C   TRP    76      19.720  15.480  12.270  1.00  0.00      1HIP 601
+ATOM    549  O   TRP    76      20.450  14.600  12.760  1.00  0.00      1HIP 602
+ATOM    550  CB  TRP    76      20.270  17.910  12.690  1.00  0.00      1HIP 603
+ATOM    551  CG  TRP    76      20.230  18.370  11.180  1.00  0.00      1HIP 604
+ATOM    552  CD1 TRP    76      19.580  19.400  10.620  1.00  0.00      1HIP 605
+ATOM    553  CD2 TRP    76      20.960  17.790  10.130  1.00  0.00      1HIP 606
+ATOM    554  NE1 TRP    76      19.830  19.420   9.190  1.00  0.00      1HIP 607
+ATOM    555  CE2 TRP    76      20.670  18.500   8.930  1.00  0.00      1HIP 608
+ATOM    556  CE3 TRP    76      21.830  16.720  10.090  1.00  0.00      1HIP 609
+ATOM    557  CZ2 TRP    76      21.210  18.210   7.670  1.00  0.00      1HIP 610
+ATOM    558  CZ3 TRP    76      22.360  16.430   8.810  1.00  0.00      1HIP 611
+ATOM    559  CH2 TRP    76      22.090  17.170   7.660  1.00  0.00      1HIP 612
+ATOM    560  N   CYS    77      19.190  15.410  11.060  1.00  0.00      1HIP 613
+ATOM    561  CA  CYS    77      19.440  14.250  10.200  1.00  0.00      1HIP 614
+ATOM    562  C   CYS    77      19.380  14.740   8.750  1.00  0.00      1HIP 615
+ATOM    563  O   CYS    77      18.710  15.740   8.450  1.00  0.00      1HIP 616
+ATOM    564  CB  CYS    77      18.560  13.070  10.560  1.00  0.00      1HIP 617
+ATOM    565  SG  CYS    77      16.950  12.960   9.750  1.00  0.00      1HIP 618
+ATOM    566  N   ALA    78      20.060  14.030   7.870  1.00  0.00      1HIP 619
+ATOM    567  CA  ALA    78      20.080  14.400   6.450  1.00  0.00      1HIP 620
+ATOM    568  C   ALA    78      18.690  14.560   5.820  1.00  0.00      1HIP 621
+ATOM    569  O   ALA    78      18.550  15.060   4.700  1.00  0.00      1HIP 622
+ATOM    570  CB  ALA    78      20.770  13.260   5.680  1.00  0.00      1HIP 623
+ATOM    571  N   SER    79      17.680  14.120   6.560  1.00  0.00      1HIP 624
+ATOM    572  CA  SER    79      16.290  14.210   6.080  1.00  0.00      1HIP 625
+ATOM    573  C   SER    79      15.460  15.410   6.510  1.00  0.00      1HIP 626
+ATOM    574  O   SER    79      14.240  15.470   6.260  1.00  0.00      1HIP 627
+ATOM    575  CB  SER    79      15.490  13.000   6.520  1.00  0.00      1HIP 628
+ATOM    576  OG  SER    79      15.490  11.980   5.530  1.00  0.00      1HIP 629
+ATOM    577  N   TRP    80      16.130  16.360   7.140  1.00  0.00      1HIP 630
+ATOM    578  CA  TRP    80      15.440  17.570   7.610  1.00  0.00      1HIP 631
+ATOM    579  C   TRP    80      14.640  18.280   6.520  1.00  0.00      1HIP 632
+ATOM    580  O   TRP    80      15.080  18.390   5.360  1.00  0.00      1HIP 633
+ATOM    581  CB  TRP    80      16.490  18.520   8.200  1.00  0.00      1HIP 634
+ATOM    582  CG  TRP    80      15.940  19.830   8.870  1.00  0.00      1HIP 635
+ATOM    583  CD1 TRP    80      15.700  20.090  10.160  1.00  0.00      1HIP 636
+ATOM    584  CD2 TRP    80      15.650  21.020   8.200  1.00  0.00      1HIP 637
+ATOM    585  NE1 TRP    80      15.180  21.430  10.310  1.00  0.00      1HIP 638
+ATOM    586  CE2 TRP    80      15.200  21.980   9.150  1.00  0.00      1HIP 639
+ATOM    587  CE3 TRP    80      15.720  21.370   6.860  1.00  0.00      1HIP 640
+ATOM    588  CZ2 TRP    80      14.820  23.280   8.850  1.00  0.00      1HIP 641
+ATOM    589  CZ3 TRP    80      15.320  22.690   6.570  1.00  0.00      1HIP 642
+ATOM    590  CH2 TRP    80      14.930  23.610   7.530  1.00  0.00      1HIP 643
+ATOM    591  N   THR    81      13.460  18.760   6.900  1.00  0.00      1HIP 644
+ATOM    592  CA  THR    81      12.580  19.460   5.950  1.00  0.00      1HIP 645
+ATOM    593  C   THR    81      11.810  20.550   6.690  1.00  0.00      1HIP 646
+ATOM    594  O   THR    81      11.060  20.280   7.640  1.00  0.00      1HIP 647
+ATOM    595  CB  THR    81      11.650  18.410   5.310  1.00  0.00      1HIP 648
+ATOM    596  OG1 THR    81      12.550  17.470   4.720  1.00  0.00      1HIP 649
+ATOM    597  CG2 THR    81      10.750  19.000   4.260  1.00  0.00      1HIP 650
+ATOM    598  N   LEU    82      12.010  21.780   6.240  1.00  0.00      1HIP 651
+ATOM    599  CA  LEU    82      11.330  22.920   6.870  1.00  0.00      1HIP 652
+ATOM    600  C   LEU    82       9.850  22.710   7.220  1.00  0.00      1HIP 653
+ATOM    601  O   LEU    82       9.020  22.380   6.360  1.00  0.00      1HIP 654
+ATOM    602  CB  LEU    82      11.400  24.140   5.940  1.00  0.00      1HIP 655
+ATOM    603  CG  LEU    82      11.550  25.500   6.580  1.00  0.00      1HIP 656
+ATOM    604  CD1 LEU    82      10.750  26.510   5.800  1.00  0.00      1HIP 657
+ATOM    605  CD2 LEU    82      11.080  25.470   8.020  1.00  0.00      1HIP 658
+ATOM    606  N   LYS    83       9.530  22.910   8.490  1.00  0.00      1HIP 659
+ATOM    607  CA  LYS    83       8.150  22.740   8.970  1.00  0.00      1HIP 660
+ATOM    608  C   LYS    83       7.190  23.820   8.450  1.00  0.00      1HIP 661
+ATOM    609  O   LYS    83       7.470  25.020   8.550  1.00  0.00      1HIP 662
+ATOM    610  CB  LYS    83       8.080  22.760  10.490  1.00  0.00      1HIP 663
+ATOM    611  CG  LYS    83       6.920  21.970  11.080  1.00  0.00      1HIP 664
+ATOM    612  CD  LYS    83       6.360  22.650  12.330  1.00  0.00      1HIP 665
+ATOM    613  CE  LYS    83       5.120  21.930  12.860  1.00  0.00      1HIP 666
+ATOM    614  NZ  LYS    83       5.150  20.500  12.490  1.00  0.00      1HIP 667
+ATOM    615  N   ALA    84       6.060  23.380   7.910  1.00  0.00      1HIP 668
+ATOM    616  CA  ALA    84       5.060  24.310   7.370  1.00  0.00      1HIP 669
+ATOM    617  C   ALA    84       3.830  23.970   8.230  1.00  0.00      1HIP 670
+ATOM    618  O   ALA    84       3.270  24.840   8.920  1.00  0.00      1HIP 671
+ATOM    619  CB  ALA    84       4.670  24.000   5.920  1.00  0.00      1HIP 672
+ATOM    620  N   GLY    85       3.410  22.720   8.160  1.00  0.00      1HIP 673
+ATOM    621  CA  GLY    85       2.240  22.270   8.930  1.00  0.00      1HIP 674
+ATOM    622  C   GLY    85       2.180  22.750  10.380  1.00  0.00      1HIP 675
+ATOM    623  O   GLY    85       1.210  23.390  10.800  1.00  0.00      1HIP 676
+ATOM    624  OXT GLY    85       3.230  22.410  11.130  1.00  0.00      1HIPF  4
+TER     625      GLY    85                                              1HIP 678
+HETATM  626 FE1  FS4    86      14.980  15.320  13.400  1.00  0.00      1HIPJ  7
+HETATM  627 FE2  FS4    86      13.470  15.820  11.200  1.00  0.00      1HIPJ  8
+HETATM  628 FE3  FS4    86      13.250  13.410  12.320  1.00  0.00      1HIPJ  9
+HETATM  629 FE4  FS4    86      15.530  14.030  11.010  1.00  0.00      1HIPJ 10
+HETATM  630  S1  FS4    86      15.650  16.250  11.470  1.00  0.00      1HIPJ 11
+HETATM  631  S2  FS4    86      12.670  15.410  13.170  1.00  0.00      1HIPJ 12
+HETATM  632  S3  FS4    86      15.260  13.030  12.980  1.00  0.00      1HIPJ 13
+HETATM  633  S4  FS4    86      13.610  13.900  10.030  1.00  0.00      1HIPJ 14
+HETATM  634  O   HOH     1      21.550  28.390  15.730  1.00 12.00      1HIP 687
+HETATM  635  O   HOH     2      13.070  26.420  16.140  1.00 12.00      1HIP 688
+HETATM  636  O   HOH     3      17.270  27.580  14.770  1.00 12.00      1HIP 689
+HETATM  637  O   HOH     4      12.560  28.150  12.230  1.00 12.00      1HIP 690
+HETATM  638  O   HOH     6      20.430  24.520  16.420  1.00 12.00      1HIP 691
+HETATM  639  O   HOH     7       6.890   6.580   8.350  1.00 12.00      1HIP 692
+HETATM  640  O   HOH     9      21.930   9.630  19.660  1.00 12.00      1HIP 693
+HETATM  641  O   HOH    10      23.350  11.060  17.870  1.00 12.00      1HIP 694
+HETATM  642  O   HOH    11      17.860   3.150  18.820  1.00 12.00      1HIP 695
+HETATM  643  O   HOH    12      16.470   2.810  20.790  1.00 12.00      1HIP 696
+HETATM  644  O   HOH    13       7.500   7.370  18.970  1.00 12.00      1HIP 697
+HETATM  645  O   HOH    14      12.230   3.210  14.490  1.00 12.00      1HIP 698
+HETATM  646  O   HOH    15       6.350   6.980  16.780  1.00 12.00      1HIP 699
+HETATM  647  O   HOH    17       -.700  25.260   7.100  1.00 12.00      1HIP 700
+HETATM  648  O   HOH    18      10.380  22.470  22.540  1.00 12.00      1HIP 701
+HETATM  649  O   HOH    20      21.480  17.410  22.190  1.00 12.00      1HIP 702
+HETATM  650  O   HOH    21       1.610  27.000   8.600  1.00 12.00      1HIP 703
+HETATM  651  O   HOH    22      26.120  11.860   4.460  1.00 12.00      1HIP 704
+HETATM  652  O   HOH    23      24.900  14.320  10.670  1.00 12.00      1HIP 705
+HETATM  653  O   HOH    25       8.050   6.670  28.050  1.00 12.00      1HIP 706
+HETATM  654  O   HOH    26      18.500   5.800  26.050  1.00 12.00      1HIP 707
+HETATM  655  O   HOH    27       6.990  20.930  24.950  1.00 12.00      1HIP 708
+HETATM  656  O   HOH    28       5.010  20.890  25.160  1.00 12.00      1HIP 709
+HETATM  657  O   HOH    29       3.080  18.930  23.750  1.00 12.00      1HIP 710
+HETATM  658  O   HOH    30       9.740  23.830  25.740  1.00 12.00      1HIP 711
+HETATM  659  O   HOH    31      13.560  22.000   3.470  1.00 12.00      1HIP 712
+HETATM  660  O   HOH    32      16.700    .450   9.080  1.00 12.00      1HIP 713
+HETATM  661  O   HOH    33      13.050  19.690  -2.000  1.00 12.00      1HIP 714
+HETATM  662  O   HOH    35      21.310  21.400   5.910  1.00 12.00      1HIP 715
+HETATM  663  O   HOH    36       8.870  21.850   3.450  1.00 12.00      1HIP 716
+HETATM  664  O   HOH    37      26.380  23.410  12.880  1.00 12.00      1HIP 717
+HETATM  665  O   HOH    40       8.540  24.700  13.870  1.00 12.00      1HIP 718
+HETATM  666  O   HOH    42       7.060  19.490  16.040  1.00 12.00      1HIP 719
+HETATM  667  O   HOH    43       4.000  17.780  16.040  1.00 12.00      1HIP 720
+HETATM  668  O   HOH    45      24.050   -.450  14.100  1.00 12.00      1HIP 721
+HETATM  669  O   HOH    46      17.490  18.910   -.370  1.00 12.00      1HIP 722
+HETATM  670  O   HOH    47      19.390   -.890  14.180  1.00 12.00      1HIP 723
+HETATM  671  O   HOH    50      22.080  17.680    .570  1.00 12.00      1HIP 724
+HETATM  672  O   HOH    51      26.490  13.580  12.570  1.00 12.00      1HIP 725
+HETATM  673  O   HOH    52      28.450  13.870  10.680  1.00 12.00      1HIP 726
+HETATM  674  O   HOH    53      17.100  13.950  28.530  1.00 12.00      1HIP 727
+HETATM  675  O   HOH    55      15.640   5.200  30.010  1.00 12.00      1HIP 728
+HETATM  676  O   HOH    58      -5.170  27.030   4.340  1.00 12.00      1HIP 729
+HETATM  677  O   HOH    60      29.120  27.530   9.780  1.00 12.00      1HIP 730
+HETATM  678  O   HOH    61      11.650   5.460  28.890  1.00 12.00      1HIP 731
+HETATM  679  O   HOH    62      15.620  29.030  17.590  1.00 12.00      1HIP 732
+HETATM  680  O   HOH    63      14.420   2.670  13.590  1.00 12.00      1HIP 733
+HETATM  681  O   HOH    66      23.930  28.790   8.380  1.00 12.00      1HIP 734
+HETATM  682  O   HOH    67       8.900   8.720  16.620  1.00 12.00      1HIP 735
+HETATM  683  O   HOH    70      30.560   9.620  10.320  1.00 12.00      1HIP 736
+HETATM  684  O   HOH    72       6.830  20.270   3.140  1.00 12.00      1HIP 737
+HETATM  685  O   HOH    73       7.060   2.330  21.630  1.00 12.00      1HIP 738
+HETATM  686  O   HOH    74       7.890  14.790   3.150  1.00 12.00      1HIP 739
+HETATM  687  O   HOH    75       3.700  23.600   3.660  1.00 12.00      1HIP 740
+HETATM  688  O   HOH    78      20.690  18.500  24.200  1.00 12.00      1HIP 741
+HETATM  689  O   HOH    79      20.430   9.790   4.470  1.00 12.00      1HIP 742
+HETATM  690  O   HOH    85      30.360  14.820  20.950  1.00 12.00      1HIP 743
+HETATM  691  O   HOH    96       6.190  20.810  22.540  1.00 12.00      1HIP 744
+HETATM  692  O   HOH    98      18.900   5.320  23.350  1.00 12.00      1HIP 745
+HETATM  693  O   HOH   100      16.080   -.530  17.240  1.00 12.00      1HIP 746
+HETATM  694  O   HOH   103      17.000    .810  12.540  1.00 12.00      1HIP 747
+HETATM  695  O   HOH   105      24.820    .170  10.430  1.00 12.00      1HIP 748
+HETATM  696  O   HOH   106      27.250  11.930  10.070  1.00 12.00      1HIP 749
+HETATM  697  O   HOH   112       7.580   7.190  22.050  1.00 12.00      1HIP 750
+HETATM  698  O   HOH   119      26.390  16.340  22.010  1.00 12.00      1HIP 751
+HETATM  699  O   HOH   128      28.040  21.680  11.960  1.00 12.00      1HIP 752
+HETATM  700  O   HOH   132      21.960  31.810   8.270  1.00 12.00      1HIP 753
+HETATM  701  O   HOH   135       4.260  15.910  24.620  1.00 12.00      1HIP 754
+HETATM  702  O   HOH   136      27.750  24.210   5.300  1.00 12.00      1HIP 755
+HETATM  703  O   HOH   137      26.170  25.370   3.970  1.00 12.00      1HIP 756
+HETATM  704  O   HOH   140      18.650  10.590  19.990  1.00 12.00      1HIP 757
+HETATM  705  O   HOH   141       5.840   7.800  10.650  1.00 12.00      1HIP 758
+HETATM  706  O   HOH   142      29.580  13.560  17.740  1.00 12.00      1HIP 759
+HETATM  707  O   HOH   143       1.410   8.770  13.080  1.00 12.00      1HIP 760
+HETATM  708  O   HOH   144       4.470   8.470  13.760  1.00 12.00      1HIP 761
+CONECT  309  308  626                                                   1HIP 762
+CONECT  328  327  627                                                   1HIP 763
+CONECT  454  453  628                                                   1HIP 764
+CONECT  565  564  629                                                   1HIP 765
+CONECT  626  309  630  631  632                                         1HIP 766
+CONECT  627  328  630  631  633                                         1HIP 767
+CONECT  628  454  631  632  633                                         1HIP 768
+CONECT  629  565  630  632  633                                         1HIP 769
+CONECT  630  626  627  629                                              1HIP 770
+CONECT  631  626  627  628                                              1HIP 771
+CONECT  632  626  628  629                                              1HIP 772
+CONECT  633  627  628  629                                              1HIP 773
+MASTER       85    0    1    2    3    0    0    6  700    1   12    7  1HIPJ 15
+END                                                                     1HIP 775
+

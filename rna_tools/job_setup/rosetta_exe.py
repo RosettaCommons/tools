@@ -18,7 +18,7 @@ def rosetta_exe(exe_file, rosetta_folder = None) :
     name_extensions = ['', ".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease"]
 
     if rosetta_folder is not None:
-        exe_folder = join(rosetta_folder, "rosetta_source/bin/") #Default Rosetta folder structure
+        exe_folder = join(rosetta_folder, "main/source/bin/") #Default Rosetta folder structure
         if not exists(exe_folder): #Otherwise, assume the input folder name is bin path
             exe_folder = rosetta_folder
         check_path_exist(exe_folder)

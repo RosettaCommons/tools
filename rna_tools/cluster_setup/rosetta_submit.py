@@ -146,7 +146,7 @@ for line in  lines:
     EXE = cols[ 0 ]
     rosetta_folder = expandvars("$ROSETTA")
     if not exists( EXE ):
-        EXE = rosetta_folder + '/rosetta_source/bin/'+EXE
+        EXE = rosetta_folder + '/main/source/bin/'+EXE
         print EXE
         assert( exists( EXE ) )
     arguments = string.join( cols[ 1: ] )

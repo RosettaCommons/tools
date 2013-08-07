@@ -10,7 +10,7 @@
 
 ;; This is a template emacs initialization file
 ;; 
-;; To use, copy all or some to  ~/.emascs.d/init.el
+;; To use, copy all or some to  ~/.emacs.d/init.el
 
 
 ; Enable syntax hilighting

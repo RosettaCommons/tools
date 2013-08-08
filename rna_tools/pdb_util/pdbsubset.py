@@ -8,14 +8,46 @@ from read_pdb import read_pdb
 from parse_options import get_resnum_chain
 from math import isnan
 
-pdbfiles = [ argv[1] ]
-prefix = argv[-1]
+
+def Help():
+    print argv[0], ' <file.pdb> <desired residues> [prefix] '
+    print
+    print ' Filenames must end in .pdb.'
+    print ' Desired residues can take the form 5-9, C5-9,'
+    print '  C:5-9, or C (for all residues in chain c).'
+    print " The prefix is prepended on filenames; default is 'subset_'. "
+    print
+    exit( 0 )
+
+if len( argv ) < 3:
+    Help()
+
+pos = 0
 resnums = []
 chains  = []
-for arg in argv[2:-1]:
-    get_resnum_chain( arg, resnums, chains )
+pdbfiles = []
+prefix = ''
+for pos in range( 1, len ( argv) ) :
 
-print resnums, chains
+    # pull out any arguments that look like pdb names
+    if argv[ pos ][-4:] == '.pdb':
+        pdbfiles.append( argv[pos] )
+        continue
+
+    if get_resnum_chain( argv[ pos ], resnums, chains ):
+        continue
+
+    if len( prefix ) > 0:
+        print 'found two potential prefixes?', prefix, argv[ pos ]
+        Help()
+    prefix = argv[ pos ]
+
+if len( pdbfiles ) == 0: Help()
+if len( resnums ) == 0: Help()
+if len( prefix ) == 0: prefix = 'subset_'
+
+print resnums
+print chains
 
 
 def get_pdb_line( lines_out, pdb_lines, resnum_desired, chain_desired ):

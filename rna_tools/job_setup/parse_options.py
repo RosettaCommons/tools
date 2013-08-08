@@ -2,8 +2,10 @@
 
 
 def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:1-4 or A1-4 or 1-4
+
     assert( len( input_string ) > 0 )
     assert( len( resnums ) == len( chains ) )
+    ok = True
 
     int_string = input_string
     chain = ''
@@ -30,12 +32,14 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
         resnums.append( 'all' ) # means get everything from this chain
         chains.append( chain )
     else:
-        get_ints( int_string, ints )
+        ok = get_ints( int_string, ints )
         for i in range( len( ints ) ):
             resnums.append( ints[i] )
             chains.append( chain )
 
     assert( len( resnums ) == len( chains ) )
+    return ok
+
 
 def get_ints( int_string, value ): # could be of the form 5-8  or -9--5
     assert( len( int_string ) > 0 )

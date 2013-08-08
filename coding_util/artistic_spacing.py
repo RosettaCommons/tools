@@ -28,7 +28,7 @@ operators1_to_space_before  = [ '+', '-', '=', ')', '<','>' ]
 operators2 = [ '*=', '/=', '==','++','--','+=','-=','!=','<=','>=','()','->','){','};','{}','<<','>>']
 
 operators2_to_space = [ '==','+=','-=','!=','<=','>=']
-operators2_do_not_space = [ '--', '++','->' ]
+operators2_do_not_space = [ '--', '++','->', "'-", "-'" ]
 
 ok_spaces = [ ' ',  '\t', '\n' ]
 paren_headers = [ 'if','while','for' ]

@@ -112,7 +112,8 @@ def process_input_sdf(data):
     output_dir = data["output_dir"]
     output_path = make_param_file(input_sdf_path,ligand_name,output_dir)
     data["output_path"] = output_path
-    append_activity_tag_to_params(data)
+    if "tag" in data and "value" in data:
+        append_activity_tag_to_params(data)
     return data
     
     
@@ -147,6 +148,7 @@ def init_options():
     parser.add_option("-j",dest="nprocs",default=2)
     parser.add_option("--database",dest="database",help="path to rosetta database",default="")
     parser.add_option("--path_to_params",dest="params_path",help="path to the molfile_to_params script", default="")
+    parser.add_option("--make_all_ligands",dest="all_ligands",help="make params for all ligands even if no activities are present",default=False, action="store_true")
     return parser
     
 if __name__ == "__main__":
@@ -161,7 +163,12 @@ if __name__ == "__main__":
     setup_dir_for_filehash(output_dir)
     
     file_information = []
-    for record in get_file_names_with_activity_data(database_name):
+    
+    if options.all_ligands:
+        activity_names = get_all_file_names(database_name,json_output=True)
+    else:
+        activity_names = get_file_names_with_activity_data(database_name)
+    for record in activity_names:
         record["output_dir"] = output_dir
         file_information.append(record)
         

@@ -1,5 +1,5 @@
 #!/bin/bash
-#The purpose of this script is to delete integration tests from release packages.  It deletes tests that rely on unreleased code.  DO NOT RUN THIS SCRIPT EVER (except if you are preparing a release).  
+#The purpose of this script is to delete integration tests from release packages.  It deletes tests that rely on unreleased code.  DO NOT RUN THIS SCRIPT EVER (except if you are preparing a release).  Run it from inside tests/integration.
 
 for directory in `ls tests`
 do
@@ -11,8 +11,10 @@ do
 
     if grep -q $executable ../../source/src/apps.src.settings
 	then
+	#if the executable is in the released build system, it's probably okay
 	echo $executable "found in apps.src.settings" $directory "may be ok"
 	else
+	#if the executable is not found in the released build system, delete the test (as it won't run anyway)
 	echo $executable "not found, REMOVE" $directory
 	git rm -r tests/$directory #--dry-run
 	rm -r ref/$directory

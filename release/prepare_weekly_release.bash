@@ -40,14 +40,17 @@ ROSETTA=`pwd`
 
 #update all repos
 cd $ROSETTA/tools
+pwd
 echo git checkout master
 echo git pull
 
 cd $ROSETTA/demos
+pwd
 echo git checkout master
 echo git pull
 
 cd $ROSETTA/main
+pwd
 echo git checkout master
 echo git pull
 

@@ -17,20 +17,20 @@ function simple_clean {
         echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
         exit 1
     fi
-    echo rm -r main/source/bin/*
-    echo rm -r main/source/build/*
-    echo rm main/source/.sconsign.dblite
-    echo rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
-    echo rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
-    echo rm main/source/.unit_test_results.yaml
-    echo rm main/source/tools/build/user.options
-    echo rm main/source/tools/build/user.settings
-    echo rm -r main/tests/integration/new
-    echo rm -r main/tests/integration/ref
-    echo rm -r main/tests/integration/runtime_diffs.txt
-    echo find . -name "*~" -exec rm {} \;
-    echo find . -name "#*" -exec rm {} \;
-    echo find . -name "*pyc" -exec rm {} \;
+    rm -r main/source/bin/*
+    rm -r main/source/build/*
+    rm main/source/.sconsign.dblite
+    rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
+    rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
+    rm main/source/.unit_test_results.yaml
+    rm main/source/tools/build/user.options
+    rm main/source/tools/build/user.settings
+    rm -r main/tests/integration/new
+    rm -r main/tests/integration/ref
+    rm -r main/tests/integration/runtime_diffs.txt
+    find . -name "*~" -exec rm {} \;
+    find . -name "#*" -exec rm {} \;
+    find . -name "*pyc" -exec rm {} \;
 }
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -60,18 +60,18 @@ ROSETTA=`pwd`
 #update all repos
 cd $ROSETTA/tools
 pwd
-echo git checkout master
-echo git pull
+git checkout master
+git pull
 
 cd $ROSETTA/demos
 pwd
-echo git checkout master
-echo git pull
+git checkout master
+git pull
 
 cd $ROSETTA/main
 pwd
-echo git checkout master
-echo git pull
+git checkout master
+git pull
 
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA
@@ -81,66 +81,66 @@ cd $ROSETTA/main/source
 pwd
 guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
-echo scons.py -j$JOBS bin mode=release
+scons.py -j$JOBS bin mode=release
 cd ../tests/integration 
 pwd
-echo integration.py fixbb && rm -rf ref/
+integration.py fixbb && rm -rf ref/
 guess_load
-echo integration.py -j $JOBS
+integration.py -j $JOBS
 
 cd $ROSETTA/main
 pwd
-echo git checkout -b weekly_releases/2013-wk$week
+git checkout -b weekly_releases/2013-wk$week
 
 cd $ROSETTA/main/source/src/devel
-echo 'ls | grep -vE "init|svn_v" | xargs git rm -r'
-echo git commit -m "weekly release: remove devel code"
+ls | grep -vE "init|svn_v" | xargs git rm -r
+git commit -m "weekly release: remove devel code"
 
-echo cp init.release.cc init.cc
-echo cp init.release.hh init.hh
-echo git commit -am "weekly release: devel/init.release"
+cp init.release.cc init.cc
+cp init.release.hh init.hh
+git commit -am "weekly release: devel/init.release"
 
 cd $ROSETTA/main/source/src
 pwd
-echo cp devel.src.settings.release devel.src.settings
-echo cp pilot_apps.src.settings.release pilot_apps.src.settings.all
-echo git commit -am "weekly release: overwrite *.src.settings with release versions"
+cp devel.src.settings.release devel.src.settings
+cp pilot_apps.src.settings.release pilot_apps.src.settings.all
+git commit -am "weekly release: overwrite *.src.settings with release versions"
 
 cd $ROSETTA/main/source/src/apps
 pwd
-echo git rm -r curated pilot
-echo git commit -m "weekly release: removing pilot apps"
+git rm -r curated pilot
+git commit -m "weekly release: removing pilot apps"
 
 cd $ROSETTA/main/source/doc
 pwd
-echo git rm -r devel/ apps/pilot/
-echo git commit -m "weekly release: removing devel/pilot app documentation"
+git rm -r devel/ apps/pilot/
+git commit -m "weekly release: removing devel/pilot app documentation"
 
 cd $ROSETTA/main/source/test/
 pwd
-echo cp devel.test.settings.release devel.test.settings
-echo git commit -am "weekly release: overwrite devel.test.settings with release version"
+cp devel.test.settings.release devel.test.settings
+git commit -am "weekly release: overwrite devel.test.settings with release version"
 
 cd $ROSETTA/main/source/test/devel
-echo 'ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r'
-echo git commit -m "weekly release: removing unit test devel"
+ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r
+git commit -m "weekly release: removing unit test devel"
 
 cd $ROSETTA/main/tests/integration/
 pwd
-echo git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out 
-echo rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
-echo git commit -m "removing known-to-need-devel integration tests"
-echo $ROSETTA/tools/release/detect_itest_exes.bash
-echo git commit -m "deleting autoremoved integration tests"
+git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out 
+rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
+git commit -m "removing known-to-need-devel integration tests"
+$ROSETTA/tools/release/detect_itest_exes.bash
+git commit -m "deleting autoremoved integration tests"
 
 #THIS NEEDS MANUAL INTERVENTION
-echo emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
-echo git commit -am "weekly release: fixing the devel pilot app"
+emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
+git commit -am "weekly release: fixing the devel pilot app"
 
 #check compile
 cd $ROSETTA/main/source/
 guess_load
-echo scons.py -j$JOBS bin mode=release
+scons.py -j$JOBS bin mode=release
 
 echo "OK, the git branch should be ready...make sure that ^^ scons command worked, and look at the git history, then push with:"
 echo "????"

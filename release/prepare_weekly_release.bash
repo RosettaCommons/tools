@@ -17,6 +17,7 @@ function simple_clean {
         echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
         exit 1
     fi
+    set +e #globally, we need exit-on-error, but it's ok if these rms fail to find targets
     rm -r main/source/bin/*
     rm -r main/source/build/*
     rm main/source/.sconsign.dblite
@@ -31,6 +32,7 @@ function simple_clean {
     find . -name "*~" -exec rm {} \;
     find . -name "#*" -exec rm {} \;
     find . -name "*pyc" -exec rm {} \;
+    set -e #return to exit-on-error
 }
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -88,37 +88,61 @@ echo integration.py fixbb && rm -rf ref/
 guess_load
 echo integration.py -j $JOBS
 
-cd $ROSETTA/main/source/src/devel
+cd $ROSETTA/main
+pwd
 echo git checkout -b weekly_releases/2013-wk$week
 
+cd $ROSETTA/main/source/src/devel
+echo 'ls | grep -vE "init|svn_v" | xargs git rm -r'
+echo git commit -m "weekly release: remove devel code"
 
+echo cp init.release.cc init.cc
+echo cp init.release.hh init.hh
+echo git commit -am "weekly release: devel/init.release"
 
+cd $ROSETTA/main/source/src
+pwd
+echo cp devel.src.settings.release devel.src.settings
+echo cp pilot_apps.src.settings.release pilot_apps.src.settings.all
+echo git commit -am "weekly release: overwrite *.src.settings with release versions"
 
+cd $ROSETTA/main/source/src/apps
+pwd
+echo git rm -r curated pilot
+echo git commit -m "weekly release: removing pilot apps"
 
+cd $ROSETTA/main/source/doc
+pwd
+echo git rm -r devel/ apps/pilot/
+echo git commit -m "weekly release: removing devel/pilot app documentation"
+
+cd $ROSETTA/main/source/test/
+pwd
+echo cp devel.test.settings.release devel.test.settings
+echo git commit -am "weekly release: overwrite devel.test.settings with release version"
+
+cd $ROSETTA/main/source/test/devel
+echo 'ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r'
+echo git commit -m "weekly release: removing unit test devel"
+
+cd $ROSETTA/main/tests/integration/
+pwd
+echo git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out 
+echo rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
+echo git commit -m "removing known-to-need-devel integration tests"
+echo $ROSETTA/tools/release/detect_itest_exes.bash
+echo git commit -m "deleting autoremoved integration tests"
+
+#THIS NEEDS MANUAL INTERVENTION
+echo emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
+echo git commit -am "weekly release: fixing the devel pilot app"
+
+#check compile
+cd $ROSETTA/main/source/
+guess_load
+echo scons.py -j$JOBS bin mode=release
+
+echo "OK, the git branch should be ready...make sure that ^^ scons command worked, and look at the git history, then push with:"
+echo "????"
 
 exit
-
-
-
-
-# for directory in `ls tests`
-# do
-
-# #this monster finds all of the lines containing executable names from the tests' command files (first grep), strips the line down to only the part where the name is plus the flanking bin and binext string replacement junk (egrep), then also removes the string replacement junk (sed commands), then sorts and uniqs the list
-# for executable in `grep "%(bin)s" tests/$directory/command | grep -v MY_MINI_PROGRAM | egrep -o '%\(bin\)s/.*%\(binext\)s' | sed 's/%(bin)s\///g' | sed 's/.%(binext)s//g' | sort | uniq`
-# do
-# #echo $directory $executable
-
-#     if grep -q $executable ../../source/src/apps.src.settings
-# 	then
-# 	#if the executable is in the released build system, it's probably okay
-# 	echo $executable "found in apps.src.settings" $directory "may be ok"
-# 	else
-# 	#if the executable is not found in the released build system, delete the test (as it won't run anyway)
-# 	echo $executable "not found, REMOVE" $directory
-# 	git rm -r tests/$directory #--dry-run
-# 	rm -r ref/$directory
-#     fi
-# done
-
-# done

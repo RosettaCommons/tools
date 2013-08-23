@@ -5,10 +5,12 @@
 
 #check folder
 for subdir in main tools demos
-if [ ! -d $subdir ]
-    echo "not running inside the Rosetta toplevel install directory; $subdir not found"
-    exit 1
-fi
+do
+    if [ ! -d $subdir ]
+	echo "not running inside the Rosetta toplevel install directory; $subdir not found"
+	exit 1
+    fi
+done
 
 # for directory in `ls tests`
 # do

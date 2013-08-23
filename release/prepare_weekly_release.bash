@@ -3,6 +3,29 @@
 
 #It runs from the Rosetta folder (above main)
 
+#function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
+function simple_clean {
+    if [ ! -d main ]
+        then
+        echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
+        exit 1
+    fi
+    echo rm -r main/source/bin/*
+    echo rm -r main/source/build/*
+    echo rm main/source/.sconsign.dblite
+    echo rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
+    echo rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
+    echo rm main/source/.unit_test_results.yaml
+    echo rm main/source/tools/build/user.options
+    echo rm main/source/tools/build/user.settings
+    echo rm -r main/tests/integration/new
+    echo rm -r main/tests/integration/ref
+    echo rm -r main/tests/integration/runtime_diffs.txt
+    echo find . -name "*~" -exec rm {} \;
+    echo find . -name "#*" -exec rm {} \;
+    echo find . -name "*pyc" -exec rm {} \;
+}
+
 #check folder
 for subdir in main tools demos
 do
@@ -12,6 +35,29 @@ do
 	exit 1
     fi
 done
+
+ROSETTA=`pwd`
+
+#update all repos
+cd $ROSETTA/tools
+echo git checkout master
+echo git pull
+
+cd $ROSETTA/demos
+echo git checkout master
+echo git pull
+
+cd $ROSETTA/main
+echo git checkout master
+echo git pull
+
+#prepare main with fresh & clean compile (for later itest references)
+cd $ROSETTA
+simple_clean #function call to simple_clean above
+cd $ROSETTA/main/source
+
+exit
+
 
 # for directory in `ls tests`
 # do

@@ -3,6 +3,9 @@
 
 #It runs from the Rosetta folder (above main)
 
+#globally fail if any subcommand fails
+set -e
+
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {
     if [ ! -d main ]
@@ -77,10 +80,19 @@ guess_load
 echo scons.py -j$JOBS bin mode=release
 cd ../tests/integration 
 pwd
-echo integration.py fixbb && rm -rf ref/ 
+echo integration.py fixbb && rm -rf ref/
 guess_load
 echo integration.py -j $JOBS
+
+
+
+
+
+
+
 exit
+
+
 
 
 # for directory in `ls tests`

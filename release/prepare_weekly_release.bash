@@ -31,16 +31,10 @@ function simple_clean {
 CONTADOR_MAX=24
 JOBS=0
 function guess_load {
-    uptime
-    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}' #this parses "uptime" to grab the recent load`
-    JOBS=$(($CONTADOR_MAX-1))
-    echo $JOBS
-    floor_load=${current_load/.*}
-    echo $ceil_val
-    JOBS=$(($CONTADOR_MAX-(1+$floor_load)))
-
-#awk '{printf("%d\n",$0+=$0<0?0:0.999)}'CONTADOR_MAX - current_load
-#
+    uptime #for the user
+    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}'` #this parses "uptime" to grab the recent load
+    floor_load=${current_load/.*} #I don't know what this does, but it floors the load value
+    JOBS=$(($CONTADOR_MAX-(1+$floor_load))) #attempt number of jobs minus load ceiling
     echo "load was $current_load, attempting $JOBS"
 } 
 
@@ -78,9 +72,14 @@ pwd
 simple_clean #function call to simple_clean above
 cd $ROSETTA/main/source
 pwd
-#echo scons.py -
 guess_load
-
+#compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
+echo scons.py -j$JOBS bin mode=release
+cd ../tests/integration 
+pwd
+echo integration.py fixbb && rm -rf ref/ 
+guess_load
+echo integration.py -j $JOBS
 exit
 
 

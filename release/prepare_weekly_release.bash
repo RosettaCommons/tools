@@ -84,7 +84,9 @@ echo integration.py fixbb && rm -rf ref/
 guess_load
 echo integration.py -j $JOBS
 
-
+week=$(date +%V)
+#cd $ROSETTA/source/src/devel
+echo git checkout -b weekly_releases/2013-wk$week
 
 
 

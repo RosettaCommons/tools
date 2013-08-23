@@ -87,7 +87,7 @@ scons.py -j$JOBS bin mode=release
 cd ../tests/integration 
 pwd
 integration.py fixbb && rm -rf ref/
-guess_load
+#guess_load #do not bother doing a load guess here...it will be poisoned by leftover load from scons, and probably nobody else is hammering
 integration.py -j $JOBS
 
 cd $ROSETTA/main

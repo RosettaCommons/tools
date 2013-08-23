@@ -67,12 +67,12 @@ do
     fi
 done
 
-cd .. #this is above Rosetta/
+cd -P  .. #this is above Rosetta/
 pwd
 #tar Rosetta
 tar -cf Rosetta_unstripped_release.tar Rosetta/
 
-cd /media/scratch/smlewis/release_holding_area
+cd -P  /media/scratch/smlewis/release_holding_area
 pwd
 mv /media/scratch/smlewis/git_rosetta/Rosetta_unstripped_release.tar .
 #..untar a copy
@@ -81,21 +81,21 @@ tar -xf Rosetta_unstripped_release.tar
 release_folder=Rosetta_wk$week\_$year
 mv Rosetta/ $release_folder
 rm Rosetta_unstripped_release.tar
-cd $release_folder
+cd -P  $release_folder
 pwd
 
 deep_clean
 
 guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
-cd main/source/
+cd -P  main/source/
 pwd
 scons.py -j$JOBS bin mode=release
 scons.py -j$JOBS
 scons.py -j$JOBS cat=test
 test/run.py -j$JOBS
 
-cd ../tests/integration 
+cd -P  ../tests/integration
 pwd
 integration.py fixbb && rm -rf ref/
 integration.py -j $JOBS

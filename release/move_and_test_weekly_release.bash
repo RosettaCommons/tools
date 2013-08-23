@@ -75,16 +75,24 @@ tar -cf Rosetta_unstripped_release.tar Rosetta/
 cd -P  /media/scratch/smlewis/release_holding_area
 pwd
 mv /media/scratch/smlewis/git_rosetta/Rosetta_unstripped_release.tar .
+
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar
-
 release_folder=Rosetta_wk$week\_$year
 mv Rosetta/ $release_folder
 rm Rosetta_unstripped_release.tar
 cd -P  $release_folder
 pwd
 
+#clean the copy
 deep_clean
+
+#tar up the candidate release
+cd -P ..
+pwd
+tar -czf $release_folder.tar.gz $release_folder
+cd -P $release_folder
+pwd
 
 guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref

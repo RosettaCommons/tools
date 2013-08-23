@@ -26,6 +26,18 @@ function simple_clean {
     echo find . -name "*pyc" -exec rm {} \;
 }
 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#for "expected system load" when calculating how many processors to use
+CONTADOR_MAX = 24
+JOBS = 0
+function guess_load {
+    uptime
+    current_load = uptime | awk -F '[ ,]' '{print $(NF-4)}' #this parses "uptime" to grab the recent load
+    JOBS = CONTADOR_MAX - current_load
+#awk '{printf("%d\n",$0+=$0<0?0:0.9)}'
+    echo "load was $current_load\, attempting $JOBS"
+} 
+
 #check folder
 for subdir in main tools demos
 do
@@ -56,8 +68,12 @@ echo git pull
 
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA
+pwd
 simple_clean #function call to simple_clean above
 cd $ROSETTA/main/source
+pwd
+#echo scons.py -
+guess_load
 
 exit
 

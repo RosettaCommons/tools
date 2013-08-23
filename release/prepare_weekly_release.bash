@@ -28,14 +28,20 @@ function simple_clean {
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #for "expected system load" when calculating how many processors to use
-CONTADOR_MAX = 24
-JOBS = 0
+CONTADOR_MAX=24
+JOBS=0
 function guess_load {
     uptime
-    current_load = uptime | awk -F '[ ,]' '{print $(NF-4)}' #this parses "uptime" to grab the recent load
-    JOBS = CONTADOR_MAX - current_load
-#awk '{printf("%d\n",$0+=$0<0?0:0.9)}'
-    echo "load was $current_load\, attempting $JOBS"
+    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}' #this parses "uptime" to grab the recent load`
+    JOBS=$(($CONTADOR_MAX-1))
+    echo $JOBS
+    floor_load=${current_load/.*}
+    echo $ceil_val
+    JOBS=$(($CONTADOR_MAX-(1+$floor_load)))
+
+#awk '{printf("%d\n",$0+=$0<0?0:0.999)}'CONTADOR_MAX - current_load
+#
+    echo "load was $current_load, attempting $JOBS"
 } 
 
 #check folder

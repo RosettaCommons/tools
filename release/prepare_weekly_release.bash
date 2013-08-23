@@ -145,6 +145,7 @@ guess_load
 scons.py -j$JOBS bin mode=release
 
 echo "OK, the git branch should be ready...make sure that ^^ scons command worked, and look at the git history, then push with:"
+echo "cd main; git status; git log"
 echo "git push -u origin weekly_releases/$year-wk$week"
 
 exit

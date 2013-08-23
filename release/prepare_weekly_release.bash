@@ -6,6 +6,10 @@
 #globally fail if any subcommand fails
 set -e
 
+#!!!!!!!!!!!!!!!!!!!!!!!!!what week is it?!!!!!!!!!!!!!!!!!!!!global
+week=$(date +%V)
+
+
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {
     if [ ! -d main ]
@@ -84,9 +88,9 @@ echo integration.py fixbb && rm -rf ref/
 guess_load
 echo integration.py -j $JOBS
 
-week=$(date +%V)
-#cd $ROSETTA/source/src/devel
+cd $ROSETTA/source/src/devel
 echo git checkout -b weekly_releases/2013-wk$week
+
 
 
 

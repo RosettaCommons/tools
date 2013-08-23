@@ -100,6 +100,10 @@ pwd
 integration.py fixbb && rm -rf ref/
 integration.py -j $JOBS
 
+mv ref/ new/
+cp -ar /home/smlewis/Rosetta/main/tests/integration/ref/ .
+
 echo "check the unit and itests, if it compiled it's probably good"
+echo "integration.py --compareonly --fulldiff"
 
 exit

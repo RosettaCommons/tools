@@ -7,6 +7,7 @@
 for subdir in main tools demos
 do
     if [ ! -d $subdir ]
+	then
 	echo "not running inside the Rosetta toplevel install directory; $subdir not found"
 	exit 1
     fi

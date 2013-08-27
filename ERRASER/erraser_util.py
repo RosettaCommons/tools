@@ -340,7 +340,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     return True
 #####################################################
 def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
-                 rosetta_database = "", extract_first_only = False, output_virtual = False, 
+                 rosetta_database = "", extract_first_only = False, output_virtual = False,
                  rna_prot_erraser = False ):
     """
     Extract pdb's from Rosetta silent files.

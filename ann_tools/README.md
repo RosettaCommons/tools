@@ -29,3 +29,12 @@ The BCL only supports V2000 SDF files as input.  It handles files that are uncom
    ```
    sort_sdfs.py input_dir/ output_dir/
    ```
+
+* make_datasets.py
+   * given a list of sdf files, create a set of chunked binary files
+   * Binary files are balanced such that each row has an even probability of coming from each input sdf.
+   * To run this script:
+   
+   ```
+   make_datasets.py -j nprocs --first_n=10 --input_features=input.object --output_features=output.object --chunk_count=10 file_paths.txt output_dir/
+   ```

@@ -12,7 +12,7 @@ These scripts are designed to aid in the training, optimization and analysis of 
 
 ##BCL data input caveats
 
-The BCL only supports V2000 SDF files as input.  It handles files that are uncompressed, or compressed with gzip or bzip2.  It is extremely picky about the SDF file specification and will not parse files which deviate even slightly from the published specification.  Files produced by Rosetta tightly adhere to this specification and will be parsed with no additional processing.  Files from other sources (including ChEMBL and the PDB) may require additional postprocessing.  Running an input file through babel is genearl 
+The BCL only supports V2000 SDF files as input.  It handles files that are uncompressed, or compressed with gzip or bzip2.  It is extremely picky about the SDF file specification and will not parse files which deviate even slightly from the published specification.  Files produced by Rosetta tightly adhere to this specification and will be parsed with no additional processing.  Files from other sources (including ChEMBL and the PDB) may require additional postprocessing.  Running an input file through babel is generally sufficient to correct most basic formatting problems. 
 
 ##Scripts and Files
 
@@ -37,4 +37,12 @@ The BCL only supports V2000 SDF files as input.  It handles files that are uncom
    
    ```
    make_datasets.py -j nprocs --first_n=10 --input_features=input.object --output_features=output.object --chunk_count=10 file_paths.txt output_dir/
+   ```
+* score_sdf.py
+   * given a molfile output by rosetta, score using a BCL trained neural network and output csv file
+   * --other_scores can be used to 
+   * To run this script:
+   
+   ```
+   score_sdf.py --model_dir=bcl_model_dir/ --other_scores=log_ki,interface_delta_X,etc -j nprocs input.sdf output.csv
    ```

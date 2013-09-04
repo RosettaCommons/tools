@@ -112,3 +112,12 @@ Scripts
    ```
       prepare_sdfs_for_bcl.py database.db3 descriptor_data.js ligands_for_bcl.sdf
    ```
+   
+* make_job_file.py
+   * given a params file directory, and pdb file directory, make a job file for use with the screening job inputter.
+   * each params file must have a "system_name" field with a value that is shared with the target pdb file.  In other words, if system_name is "1ubi", the structure directory should have files like 1ubi_0000.pdb etc. 
+   * to run the script:
+   
+   ```
+      make_job_file.py params/ pdbs/ screening_jobs.js
+   ```

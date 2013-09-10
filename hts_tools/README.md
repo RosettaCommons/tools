@@ -121,3 +121,11 @@ Scripts
    ```
       make_job_file.py params/ pdbs/ screening_jobs.js
    ```
+* clean_pdb.py
+   * remove all residues except those specified and the 20 canonical AAs.
+   * compute the center of a ligand (even if it is being removed) and add it to a JSON map
+   * to run the script:
+   
+   ```
+      clean_pdb.py --chains=A,B --ligands_to_keep=CL,ABC --ligand_for_center=LIG input.pdb output.pdb center_file.js
+   ```

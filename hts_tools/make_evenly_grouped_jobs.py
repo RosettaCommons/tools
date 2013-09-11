@@ -1,14 +1,9 @@
 #!/usr/bin/env python 
 import json
 from optparse import OptionParser
+import glob
+import math 
 
-
-def init_options():
-    usage = "%prog --n_chunks input_screening_file.js output_prefix"
-    parser=OptionParser(usage)
-    parser.add_option("--n_chunks",dest="n_chunks",default=4)
-    return parser
-    
 def get_emptiest_bin(bin_map):
     smallest_bin = 0
     smallest_bin_size = 100000
@@ -21,15 +16,81 @@ def get_emptiest_bin(bin_map):
             smallest_bin_size = bin_size
     return smallest_bin
 
+def parse_params_dir(params_dir):
+    pdb_map = {}
+    params_map = {}
+    for path in glob.glob(params_dir+"/*/*.params"):
+        base_name = path.split("/")[-1].split(".")[0]
+        base_path = path.split("/")
+        base_path.pop()
+        pdb_path = "/".join(base_path)+"/"+base_name+".pdb"
+        with open(path) as params_file:
+            for line in params_file:
+                line = line.split()
+                if len(line) >= 3:
+                    if line[1] == "system_name":
+                        try:
+                            pdb_map[line[2]].append(pdb_path)
+                        except KeyError:
+                            pdb_map[line[2]] = [pdb_path]
+                            
+
+        params_map[base_name] = path
+    return (pdb_map,params_map)
+    
+    
+def chunks(l, n):
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+        
+def make_jobs(pdb_map,structure_dir,cutoff):
+
+    jobs = []
+    total_jobs = 0
+    for system_name in pdb_map:
+        protein_list = []
+        short_system_name = system_name.split("_")[0]
+        for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
+            protein_list.append(path)
+        if len(protein_list) == 0 or len(pdb_map[system_name]) == 0:
+            continue
+        ligands_per_job = int(math.ceil(cutoff/len(protein_list)))
+        for ligand_chunk in chunks(pdb_map[system_name],ligands_per_job):
+            new_job = {"group_name" : system_name}
+            new_job["proteins"] = protein_list
+            new_job["ligands"] = ligand_chunk
+            jobs.append(new_job)
+    return jobs
+
+def get_params_for_job_list(params_map,job_list):
+    params_list = []
+    for job in job_list:
+        base_names = [ x.split("/")[-1].split(".")[0] for x in job["ligands"] ]
+        for name in base_names:
+            params_list.append(params_map[name])
+    return params_list
+    
+
+def init_options():
+    usage = "%prog --n_chunks param_dir structure_dir output_prefix"
+    parser=OptionParser(usage)
+    parser.add_option("--n_chunks",dest="n_chunks",help="number of total files to split work into. (Default: 4)",default=4)
+    parser.add_option("--max_per_job",dest="max_per_job",help="maximum number of structures per job. (Default: 10000)",default=10000)
+    return parser
+    
+
 if __name__ == "__main__":
     
     (options,args) = init_options().parse_args()
-    job_file = args[0]
-    prefix = args[1]
+    param_dir = args[0]
+    structure_dir = args[1]
+    prefix = args[2]
     bin_count = int(options.n_chunks)
+    cutoff = int(options.max_per_job)
     
-    with open(job_file) as infile:
-        jobs = json.load(infile)
+    pdb_map,params_map = parse_params_dir(param_dir)
+    jobs = make_jobs(pdb_map,structure_dir,cutoff)
+    
 
     job_list = []
     all_jobs = 0
@@ -39,7 +100,6 @@ if __name__ == "__main__":
         total_size = n_proteins*n_ligands
         job_list.append( (total_size,job) )
         all_jobs += total_size
-    print all_jobs
 
     job_list = sorted(job_list,key=lambda x: x[0],reverse=True)
 
@@ -60,5 +120,10 @@ if __name__ == "__main__":
 
     for bin_id in bin_data:
         new_jobs = [record[1] for record in bin_data[bin_id]]
+        params = get_params_for_job_list(params_map,new_jobs)
+        complete_file_object = {
+            "params" : params,
+            "jobs" : new_jobs
+        }
         with open("%s_%02d.js" % (prefix,bin_id),'w') as outfile:
-            json.dump(new_jobs,outfile,indent=1)
+            json.dump(complete_file_object,outfile,indent=1)

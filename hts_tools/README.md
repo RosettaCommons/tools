@@ -121,3 +121,15 @@ Scripts
    ```
       clean_pdb.py --chains=A,B --ligands_to_keep=CL,ABC --ligand_for_center=LIG input.pdb output.pdb center_file.js
    ```
+   
+* make_evenly_grouped_jobs.py
+   * Given a directory of params files prepared with make_params.py, and a directory of pdb files, produce n job files balanced so that each group of jobs contains no more than x jobs each.  Each job file is constructed to be as evenly sized as possible. n and x should be tuned to the memory and walltime requirements of your cluster. 
+   * Each params file must have a "system_name" tag, and this tag must be a substring of the corresponding pdb files
+      * For example, if the "system_name" tag is "1UBI", the script will look for "1UBI*.pdb" in the pdb directory.
+   * The params files necessary to run the job file are included in the job file, removing the need for -in:file:extra_res_fa usage
+   * job files can be loaded into rsetta with -in:file:screening_job_inputter
+   * files output will be in the form output_prefix_n.js
+   
+   ```
+   make_evenly_grouped_jobs.py params_dir/ pdb_dir/ output_prefix
+   ```

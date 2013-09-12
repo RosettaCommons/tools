@@ -430,7 +430,6 @@ def erraser_minimize( option ) :
     command += " -native %s " % temp_rs
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
-    command += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
@@ -807,7 +806,6 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
-    common_cmd += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
 
     if option.map_file != "" :

@@ -384,7 +384,7 @@ print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna -analytic_etable_evaluation 0" % (params_file, fasta_file, tag )
+command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna " % (params_file, fasta_file, tag )
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb

@@ -22,7 +22,7 @@ class erraser_option :
         self.use_existing_temp_folder = True
         self.new_torsional_potential = True
         self.corrected_geo = True
-        self.rna_prot_erraser = True
+        self.rna_prot_erraser = False
         self.rosetta_folder = ""
         self.rosetta_bin = ""
         self.rosetta_database = ""
@@ -111,7 +111,7 @@ class erraser_option :
         self.include_native =  parse_options( argv, "include_native", "False" )
         self.allow_syn_pyrimidine =  parse_options( argv, "allow_syn_pyrimidine", "True" )
         self.search_syn_pyrimidine_only_when_native_syn = (
-                parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
+            parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.slice_nearby =  parse_options( argv, "slice_nearby", "True" )
         self.finer_sampling = parse_options( argv, 'finer_sampling', 'False' )
         self.rebuild_res = parse_options( argv, "rebuild_res", 0 )
@@ -172,7 +172,7 @@ class erraser_option :
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
-        self.search_syn_pyrimidine_only_when_native_syn = ( 
+        self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.finalize()
 

@@ -111,7 +111,7 @@ def get_all_file_names(db_name,only_tagged=False,json_output=False):
     
 def get_file_names_with_activity_data(db_name):
     '''generator producing sdf filenames and activity tag data'''
-    select_string = "SELECT sdf_input_data.record_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
+    select_string = "SELECT sdf_input_data.ligand_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for sdf_record,tag_id,filename,tag,value in cursor.execute(select_string):

@@ -105,6 +105,7 @@ def append_activity_tag_to_params(data):
         with open(data["output_path"],'a') as paramfile:
             paramfile.write("STRING_PROPERTY %s %s\n" % ("system_name",data["tag"]) )
             paramfile.write("NUMERIC_PROPERTY %s %f\n" % ("log_ki",data["value"]) )
+            paramfile.write("STRING_PROPERTY %s %s\n" %("ligand_id",data["sdf_record"]))
     
 def process_input_sdf(data):
     ligand_name = data["ligand_name"]

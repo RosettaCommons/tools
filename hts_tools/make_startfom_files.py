@@ -34,7 +34,7 @@ for protein_path in glob.glob(protein_dir+"/*"):
         "x" : coords[0],
         "y" : coords[1],
         "z" : coords[2],
-        "filename" : base_name
+        "file_name" : base_name
     }
     
     startfrom_list.append(startfrom_object)

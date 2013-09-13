@@ -133,3 +133,10 @@ Scripts
    ```
    make_evenly_grouped_jobs.py params_dir/ pdb_dir/ output_prefix
    ```
+   
+* make_startfrom_files.py
+   * Given a directory of input pdb files and a center file produced by clean_pdb.py (above), make a startfrom file for the Rosetta StartFrom mover
+
+   ```
+      make_startfrom_files.py center_file.js input_models/ start_from.js
+   ```

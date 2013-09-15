@@ -11,7 +11,7 @@ import glob
 from optparse import OptionParser
 from random import shuffle
 
-def make_option(bcl_path,input_filename,model_dir,output_table,nprocs,additional_score_list):
+def score_sdf(bcl_path,input_filename,model_dir,output_table,nprocs,additional_score_list):
     
     additional_score_list.append("predicted_activity")
     formatted_score_terms = ["'Cached(%s)'" % term for term in additional_score_list]
@@ -40,7 +40,7 @@ def init_options():
     parser.add_option("-j",dest="nprocs",help="number of cpus to use",default=1)
     parser.add_option("--bcl_path",dest="bcl_path",help="path to bcl.exe",default="bcl.exe")
     parser.add_option("--model_dir",dest="model_dir",help="directory with bcl models",default="")
-    parser.add_option("--other_scores",dest="other_scores",help="additional scores to tabluate, comma seperated")
+    parser.add_option("--other_scores",dest="other_scores",help="additional scores to tabluate, comma seperated",default="")
     return parser
     
 if __name__ == "__main__":
@@ -49,7 +49,10 @@ if __name__ == "__main__":
     input_path = args[0]
     output_path = args[1]
     
-    other_scores = options.other_scores.split(",")
+    if options.other_scores != "":
+        other_scores = options.other_scores.split(",")
+    else:
+        other_scores = []
     
-    make_option(options.bcl_path,input_path,options.model_dir,output_path,int(options.nprocs),other_scores)
+    score_sdf(options.bcl_path,input_path,options.model_dir,output_path,int(options.nprocs),other_scores)
     

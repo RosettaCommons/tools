@@ -822,6 +822,11 @@ def SWA_rebuild_erraser( option ) :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+
+    if option.cst_fa_file and option.cst_fa_weight :
+        common_cmd += " -cst_fa_file %s" % str(option.cst_fa_file)
+        common_cmd += " -cst_fa_weight %s" % str(option.cst_fa_weight)
+
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
     if not is_chain_break :

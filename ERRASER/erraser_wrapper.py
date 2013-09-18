@@ -437,6 +437,10 @@ def erraser_minimize( option ) :
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
+    
+    if option.cst_fa_file and option.cst_fa_weight :
+        command += " -cst_fa_file %s" % str(option.cst_fa_file)
+        command += " -cst_fa_weight %s" % str(option.cst_fa_weight)
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "

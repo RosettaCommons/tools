@@ -245,5 +245,8 @@ class erraser_option :
 
         #constraint options
         #if you supply a weight or a cst set, you must supply both
-        cst_file_defined = 
-        cst_weight_defined = 
+        cst_file_defined = (self.cst_fa_file != "")
+        cst_weight_defined = (self.cst_fa_weight != 0.0)
+        if (cst_file_defined or cst_weight_defined):
+            if not (cst_file_define and cst_weight_defined):
+                error_exit("only one of cst_fa_file and cst_fa_weight defined, you need both or neither")

@@ -67,6 +67,10 @@ class erraser_option :
         self.search_syn_pyrimidine_only_when_native_syn =True
         self.constrain_chi = True
 
+        #applied constraints options
+        self.cst_fa_file = ""
+        self.cst_fa_weight = 0.0
+
     def read_cmdline_full( self, argv ) :
         #General options
         self.input_pdb = parse_options( argv, 'pdb', '' )
@@ -123,6 +127,11 @@ class erraser_option :
         self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         self.rebuild_res_list = parse_option_int_list ( argv, 'rebuild_res_list' )
+
+        #applied constraints options
+        self.cst_fa_file = parse_options( argv, "cst_fa_file", ""  )
+        self.cst_fa_weight = parse_options( argv, "cst_fa_weight", 0.0 )
+
         self.finalize()
 
     def read_cmdline_erraser( self, argv ) :
@@ -150,6 +159,11 @@ class erraser_option :
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
+
+        #applied constraints options
+        self.cst_fa_file = parse_options( argv, "cst_fa_file", ""  )
+        self.cst_fa_weight = parse_options( argv, "cst_fa_weight", 0.0 )
+
         self.finalize()
 
     def read_cmdline_erraser_single_res( self, argv ) :
@@ -174,6 +188,11 @@ class erraser_option :
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
+
+        #applied constraints options
+        self.cst_fa_file = parse_options( argv, "cst_fa_file", ""  )
+        self.cst_fa_weight = parse_options( argv, "cst_fa_weight", 0.0 )
+
         self.finalize()
 
     def finalize( self ) :
@@ -222,3 +241,9 @@ class erraser_option :
         if self.rosetta_database != '' :
             self.rosetta_bin = self.rosetta_folder
             self.rosetta_database = self.rosetta_folder
+
+
+        #constraint options
+        #if you supply a weight or a cst set, you must supply both
+        cst_file_defined = 
+        cst_weight_defined = 

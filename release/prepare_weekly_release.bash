@@ -23,6 +23,7 @@ function simple_clean {
     rm main/source/.sconsign.dblite
     rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
     rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
+    rm main/database/rotamer/bbdep02.May.sortlib-correct.12.2010.Dunbrack02.lib.bin
     rm main/source/.unit_test_results.yaml
     rm main/source/tools/build/user.options
     rm main/source/tools/build/user.settings

@@ -75,7 +75,7 @@ tar -cf Rosetta_unstripped_release.tar Rosetta/
 
 cd -P  /media/scratch/smlewis/release_holding_area
 pwd
-mv /media/scratch/smlewis/git_rosetta/Rosetta_unstripped_release.tar .
+mv /media/scratch/smlewis/release_rosetta/Rosetta_unstripped_release.tar .
 
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar

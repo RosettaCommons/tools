@@ -16,14 +16,14 @@ def score_sdf(job):
     bcl_path,input_filenames,model_dir,output_path,additional_score_list = job
     additional_score_list.append("predicted_activity")
     formatted_score_terms = ["'Cached(%s)'" % term for term in additional_score_list]
-    
+    formatted_score_terms.append("'Cached(Weight)'")
     bcl_command = bcl_path
     
     flags = [
         "molecule:Properties",
         "-input_filenames %s" % " ".join(input_filenames),
         "-output_table %s" % output_path,
-        "-add 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))'" % model_dir,
+        "-add 'Weight' 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))'" % model_dir,
         "-rename 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))' predicted_activity" % model_dir,
         "-tabulate %s" % " ".join(formatted_score_terms),
     ]
@@ -37,7 +37,7 @@ def chunks(l, n):
         yield l[i:i+n]
         
 def init_options():
-    usage = "%prog --bcl_path=/path/to/bcl.exe --model_dir=ann_models input_file.sdf output_prefix"
+    usage = "%prog --bcl_path=/path/to/bcl.exe --model_dir=ann_models input_list.txt output_prefix"
     parser=OptionParser(usage)
     parser.add_option("-j",dest="nprocs",help="number of cpus to use",default=1)
     parser.add_option("--bcl_path",dest="bcl_path",help="path to bcl.exe",default="bcl.exe")
@@ -48,7 +48,7 @@ def init_options():
 if __name__ == "__main__":
     
     options,args = init_options().parse_args()
-    input_dir = args[0]
+    input_list = args[0]
     output_prefix = args[1]
     
     if options.other_scores != "":
@@ -57,8 +57,9 @@ if __name__ == "__main__":
         other_scores = []
     
     input_paths = []
-    for path in glob.glob(input_dir+"/*"):
-        input_paths.append(path)
+    with open(input_list) as infile:
+        for path in infile:
+            input_paths.append(path.strip())
     
     jobs = []
     for index,chunk in enumerate(chunks(input_paths,len(input_paths)/int(options.nprocs))):

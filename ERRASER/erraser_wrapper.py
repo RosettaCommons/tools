@@ -499,6 +499,7 @@ def full_struct_slice_and_minimize( option ) :
     sys.stderr.flush()
     stdout.flush()
     stderr.flush()
+    exit()
     option.finalize()
 
     #####Set temp folder#######################

@@ -251,5 +251,5 @@ class erraser_option :
             if not (exists(self.cst_fa_file)):
                 error_exit("cst_fa_file specified " + self.cst_fa_file + " does not exist")
         if (cst_file_defined or cst_weight_defined):
-            if not (cst_file_define and cst_weight_defined):
+            if not (cst_file_defined and cst_weight_defined):
                 error_exit("only one of cst_fa_file and cst_fa_weight defined, you need both or neither")

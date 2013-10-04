@@ -494,6 +494,7 @@ def full_struct_slice_and_minimize( option ) :
     print '###################################'
     print 'Starting full_struct_slice_and_minimize...'
     start_time=time.time()
+    print os.getcwd()
     option.finalize()
 
     #####Set temp folder#######################

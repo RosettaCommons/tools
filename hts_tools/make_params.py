@@ -106,7 +106,12 @@ def append_activity_tag_to_params(data):
             paramfile.write("STRING_PROPERTY %s %s\n" % ("system_name",data["tag"]) )
             paramfile.write("NUMERIC_PROPERTY %s %f\n" % ("log_ki",data["value"]) )
             paramfile.write("STRING_PROPERTY %s %s\n" %("ligand_id",data["sdf_record"]))
-    
+
+def append_name_tag_to_params(data):
+    if data["output_path"] != None:
+        with open(data["output_path"],'a') as paramfile:
+            paramfile.write("STRING_PROPERTY %s %s\n" %("ligand_id",data["sdf_record"]))    
+
 def process_input_sdf(data):
     ligand_name = data["ligand_name"]
     input_sdf_path = data["filename"]
@@ -115,6 +120,8 @@ def process_input_sdf(data):
     data["output_path"] = output_path
     if "tag" in data and "value" in data:
         append_activity_tag_to_params(data)
+    elif "output_path" in data:
+        append_name_tag_to_params(data)
     return data
     
     
@@ -178,8 +185,9 @@ if __name__ == "__main__":
     
     complete_file_information = processor_pool.map(process_input_sdf,file_information)
     
-    setup_params_schema(database_name)
-    add_params_data(database_name,complete_file_information)
+    if not options.all_ligands:
+        setup_params_schema(database_name)
+        add_params_data(database_name,complete_file_information)
     
     
     

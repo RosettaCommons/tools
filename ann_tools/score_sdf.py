@@ -23,7 +23,7 @@ def score_sdf(job):
         "molecule:Properties",
         "-input_filenames %s" % " ".join(input_filenames),
         "-output_table %s" % output_path,
-        "-add 'Weight' 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))'" % model_dir,
+        "-add 'Name' 'Weight' 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))'" % model_dir,
         "-rename 'Mean(PredictedActivity(storage=File(directory=%s,prefix=model)))' predicted_activity" % model_dir,
         "-tabulate %s" % " ".join(formatted_score_terms),
     ]

@@ -91,9 +91,9 @@ def write_tag_data(db_name,data_list):
 def get_all_file_names(db_name,only_tagged=False,json_output=False):
     '''Generator producing file names for every input sdf'''
     if only_tagged:
-        select_string = "SELECT sdf_input_data.record_id,filename FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
+        select_string = "SELECT sdf_input_data.ligand_id,filename FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     else:
-        select_string = "SELECT record_id,filename FROM sdf_input_data"
+        select_string = "SELECT ligand_id,filename FROM sdf_input_data"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     

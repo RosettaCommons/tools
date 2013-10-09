@@ -486,6 +486,8 @@ def full_struct_slice_and_minimize( option ) :
 
     stdout = sys.stdout
     stderr = sys.stderr
+    print option.log_out
+    print option.log_err
     if option.log_out != "" :
         sys.stdout = open(option.log_out, 'w')
     if option.log_err != "" :

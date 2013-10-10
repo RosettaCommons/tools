@@ -149,6 +149,11 @@ def main(args):
       help="Do not use relax protocol on final model.",
     )
 
+    parser.add_option("--skip-kink-constraints",
+      action="store_false", dest='kink_constraints', default=True,
+      help="Skip generation of kink constraints file (require PyRosetta). Default is False.",
+    )
+
     parser.add_option("--timeout",
       default=900, type="int",
       help="Maximum runtime for rosetta relax run (use 0 for unlimit), default is 900 - 15min limit",
@@ -1133,11 +1138,13 @@ def output_cter_constraint(base,prefix):
                 if base == 'KINK': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 0.523 0.698 200' )
                 elif base == 'EXTEND': f.write( 'Dihedral CA '+str(n1)+' CA '+str(n2)+' CA '+str(n3)+' CA '+str(n4)+' SQUARE_WELL2 2.704 0.523 100' )
     f.close()
+
     # new python script
-    commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
-    res, output = commands.getstatusoutput(commandline)
-    if Options.verbose and not res: print commandline+'\n', output
-    if res: print commandline+'\n', 'ERROR making constraint file: %s\n%s' % (res, output);  sys.exit(1)
+    if Options.kink_constraints:
+        commandline = '%s/kink_constraints.py %s/model.pdb' % (script_dir, prefix)
+        res, output = commands.getstatusoutput(commandline)
+        if Options.verbose and not res: print commandline+'\n', output
+        if res: print commandline+'\n', 'ERROR making constraint file: %s\n%s' % (res, output);  sys.exit(1)
 
 
 

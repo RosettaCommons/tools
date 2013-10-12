@@ -801,7 +801,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         table, legend = [], ''
         for l in file(prefix +k + '.align'):
             if l.startswith('# Fields: '): legend = [ i.strip().replace('. ', '.').replace(' ', '-') for i in l[10:-1].split(',')]
-            elif l.startswith('Query_1'): table.append( dict( zip(legend, l.split() ) ) )
+            elif l.startswith('Query_1') or l.startswith(k): table.append( dict( zip(legend, l.split() ) ) )  # Sergey: Blast+ 2.2.27 have lines starts with Query_1 and 2.2.28 with name of the file (framework-name)
 
         table_original = table[:]
 

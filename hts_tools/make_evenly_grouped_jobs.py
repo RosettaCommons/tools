@@ -3,6 +3,7 @@ import json
 from optparse import OptionParser
 import glob
 import math 
+import sys
 
 def get_emptiest_bin(bin_map):
     smallest_bin = 0
@@ -16,26 +17,36 @@ def get_emptiest_bin(bin_map):
             smallest_bin_size = bin_size
     return smallest_bin
 
-def parse_params_dir(params_dir):
+def parse_params_dir(params_dir,group_name):
     pdb_map = {}
     params_map = {}
+    found_param = False
     for path in glob.glob(params_dir+"/*/*.params"):
+        found_param = True
         base_name = path.split("/")[-1].split(".")[0]
         base_path = path.split("/")
         base_path.pop()
         pdb_path = "/".join(base_path)+"/"+base_name+".pdb"
-        with open(path) as params_file:
-            for line in params_file:
-                line = line.split()
-                if len(line) >= 3:
-                    if line[1] == "system_name":
-                        try:
-                            pdb_map[line[2]].append(pdb_path)
-                        except KeyError:
-                            pdb_map[line[2]] = [pdb_path]
+        if group_name == None:
+            with open(path) as params_file:
+                for line in params_file:
+                    line = line.split()
+                    if len(line) >= 3:
+                        if line[1] == "system_name":
+                            try:
+                                pdb_map[line[2]].append(pdb_path)
+                            except KeyError:
+                                pdb_map[line[2]] = [pdb_path]
+        else:
+            try:
+                pdb_map[group_name].append(pdb_path)
+            except KeyError:
+                pdb_map[group_name] = [pdb_path]
                             
 
         params_map[base_name] = path
+    if found_param == False:
+        sys.exit("ERROR: %s contains no params files" % params_dir)
     return (pdb_map,params_map)
     
     
@@ -43,15 +54,20 @@ def chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
         
-def make_jobs(pdb_map,structure_dir,cutoff):
+def make_jobs(pdb_map,structure_dir,cutoff,group_name):
 
     jobs = []
     total_jobs = 0
     for system_name in pdb_map:
         protein_list = []
-        short_system_name = system_name.split("_")[0]
-        for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
-            protein_list.append(path)
+        if group_name == None:
+            short_system_name = system_name.split("_")[0]
+            for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
+                protein_list.append(path)
+        else:
+            short_system_name = group_name
+            for path in glob.glob(structure_dir+"/*.pdb*"):
+                protein_list.append(path)
         if len(protein_list) == 0 or len(pdb_map[system_name]) == 0:
             continue
         ligands_per_job = int(math.ceil(cutoff/len(protein_list)))
@@ -76,6 +92,8 @@ def init_options():
     parser=OptionParser(usage)
     parser.add_option("--n_chunks",dest="n_chunks",help="number of total files to split work into. (Default: 4)",default=4)
     parser.add_option("--max_per_job",dest="max_per_job",help="maximum number of structures per job. (Default: 10000)",default=10000)
+    parser.add_option("--group_name",dest="group_name",help="Manually specify a group name to be used for all proteins and all ligands")
+    parser.add_option("--group_name_list",dest="group_name_list",help="specify a list of acceptable group names seperated by commas, jobs will only be constructed from those groups")
     return parser
     
 
@@ -88,9 +106,13 @@ if __name__ == "__main__":
     bin_count = int(options.n_chunks)
     cutoff = int(options.max_per_job)
     
-    pdb_map,params_map = parse_params_dir(param_dir)
-    jobs = make_jobs(pdb_map,structure_dir,cutoff)
+    pdb_map,params_map = parse_params_dir(param_dir,options.group_name)
+    jobs = make_jobs(pdb_map,structure_dir,cutoff,options.group_name)
     
+    if options.group_name_list != None:
+        group_name_list = options.group_name_list.split(",")
+    else:
+        group_name_list = []
 
     job_list = []
     all_jobs = 0
@@ -98,7 +120,8 @@ if __name__ == "__main__":
         n_proteins = len(job["proteins"])
         n_ligands = len(job["ligands"])
         total_size = n_proteins*n_ligands
-        job_list.append( (total_size,job) )
+        if options.group_name_list == None or job["group_name"] in group_name_list:
+            job_list.append( (total_size,job) )
         all_jobs += total_size
 
     job_list = sorted(job_list,key=lambda x: x[0],reverse=True)
@@ -112,12 +135,13 @@ if __name__ == "__main__":
         bin_to_use = get_emptiest_bin(bin_data)
         bin_data[bin_to_use].append((job_size,job_data))
 
+    print "Job files have the following sizes:"
     for bin_id in bin_data:
         bin_size = 0
         for record in bin_data[bin_id]:
             bin_size += record[0]
-        print bin_size
-
+        print bin_id,bin_size
+            
     for bin_id in bin_data:
         new_jobs = [record[1] for record in bin_data[bin_id]]
         params = get_params_for_job_list(params_map,new_jobs)

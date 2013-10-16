@@ -70,7 +70,6 @@ if __name__ == "__main__":
         output_path = "%s/%s_%03d.bin" % (output_dir,options.prefix,chunk_counter)
         chunk_counter += 1
         job_list.append( (options.bcl_path,chunk,output_path,options.input_features,options.output_features,int(options.first_n)) )
-    
     job_pool = Pool(int(options.nprocs))
     job_pool.map(make_data,job_list)
     job_pool.close()

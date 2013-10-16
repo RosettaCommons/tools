@@ -22,6 +22,7 @@ function simple_clean {
     rm main/source/.sconsign.dblite
     rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
     rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
+    rm main/database/rotamer/bbdep02.May.sortlib-correct.12.2010.Dunbrack02.lib.bin
     rm main/source/.unit_test_results.yaml
     rm main/source/tools/build/user.options
     rm main/source/tools/build/user.settings
@@ -74,7 +75,7 @@ tar -cf Rosetta_unstripped_release.tar Rosetta/
 
 cd -P  /media/scratch/smlewis/release_holding_area
 pwd
-mv /media/scratch/smlewis/git_rosetta/Rosetta_unstripped_release.tar .
+mv /media/scratch/smlewis/release_rosetta/Rosetta_unstripped_release.tar .
 
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar

@@ -12,7 +12,7 @@ from optparse import OptionParser
 from multiprocessing import Pool
 
 def sort_sdf(job):
-    bcl_path,input_path,output_path = job
+    bcl_path,input_path,output_path,delete_originals = job
     bcl_command = bcl_path
     
     flags = [
@@ -26,12 +26,16 @@ def sort_sdf(job):
     
     subprocess.call(bcl_command, shell=True)
     
+    if delete_originals:
+        os.unlink(input_path)
+    
 
 def init_options():
     usage = "%prog --bcl_path=/path/to/bcl.exe input_directory/ output_directory/"
     parser=OptionParser(usage)
     parser.add_option("--bcl_path",dest="bcl_path",help="path to bcl.exe",default="bcl.exe")
     parser.add_option("-j",dest="nprocs",help="Number of cpus to use",default=1)
+    parser.add_option("--delete_originals",dest="delete_originals",help="Delete the original input files", default=False, action="store_true")
     return parser
     
 if __name__ == "__main__":
@@ -43,8 +47,8 @@ if __name__ == "__main__":
     job_list = []
     for molfile_path in glob.glob(input_dir+"/*"):
         base_name = molfile_path.split("/")[-1].split(".")[0]
-        output_path = "%s/%s.sdf" % (output_dir,base_name)
-        job_list.append( (options.bcl_path,molfile_path,output_path) )
+        output_path = "%s/%s.sdf.gz" % (output_dir,base_name)
+        job_list.append( (options.bcl_path,molfile_path,output_path,options.delete_originals) )
         
     job_pool = Pool(int(options.nprocs))
     job_pool.map(sort_sdf,job_list)

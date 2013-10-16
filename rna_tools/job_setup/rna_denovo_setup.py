@@ -82,6 +82,8 @@ if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
 
 if( not len( sequence ) == len( secstruct )):
+    print sequence
+    print secstruct
     print 'Length of sequence & secstruct do not match: ', len( sequence ), len( secstruct )
     exit( 1 )
 assert( secstruct.count('(') == secstruct.count(')') )
@@ -372,6 +374,7 @@ if len( working_cst_file ) > 0 :
 
 assert( not ( len( native_pdb )>0 and len( working_native_pdb ) > 0 ) )
 if ( len(native_pdb) > 0 and len( working_res ) > 0):
+    assert( exists( native_pdb ) )
     command = "pdbslice.py " + native_pdb + " -subset"
     for m in working_res: command += " %d" % m
     command += " "+tag+"_"
@@ -416,6 +419,8 @@ if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
 
 command += ' ' + extra_args
+
+command += ' -output_res_num ' + make_tag_with_dashes( working_res )
 
 print command
 

@@ -258,7 +258,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if chainids[i] == '_':
             chainids[i] = ' '
 
-    goodnames = [' rA',' rC',' rG',' rU',' MG']
+    goodnames = ['  A','  C','  G','  U',' MG']
 
 
     for line in lines:
@@ -320,31 +320,31 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == '  G':
-                        longname = ' rG'
+                        longname = '  G'
                     elif longname == '  A':
-                        longname =   ' rA'
+                        longname =   '  A'
                     elif longname == '  C':
-                        longname =   ' rC'
+                        longname =   '  C'
                     elif longname == '  U':
-                        longname =   ' rU'
+                        longname =   '  U'
                     elif longname == 'G  ':
-                        longname =   ' rG'
+                        longname =   '  G'
                     elif longname == 'A  ':
-                        longname =   ' rA'
+                        longname =   '  A'
                     elif longname == 'C  ':
-                        longname =   ' rC'
+                        longname =   '  C'
                     elif longname == 'U  ':
-                        longname =   ' rU'
+                        longname =   '  U'
                     elif longname == 'GUA':
-                        longname = ' rG'
+                        longname = '  G'
                     elif longname == 'ADE':
-                        longname = ' rA'
+                        longname = '  A'
                     elif longname == 'CYT':
-                        longname = ' rC'
+                        longname = '  C'
                     elif longname == 'URA':
-                        longname = ' rU'
+                        longname = '  U'
                     elif longname == 'URI':
-                        longname = ' rU'
+                        longname = '  U'
                     else:
                         if longname not in goodnames:    continue
 
@@ -371,13 +371,13 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if removechain:
                     line_edit = line_edit[0:21]+'  '+line_edit[23:]
 
-                line_edit = line_edit.replace( 'HO2\'', '2HO*' )
-                line_edit = line_edit.replace( 'HO5\'', '5HO*' )
-                line_edit = line_edit.replace( 'H5\'\'', '2H5*' )
+                line_edit = line_edit.replace('2HO*', "HO2'")
+                line_edit = line_edit.replace('5HO*', "HO5'")
+                line_edit = line_edit.replace('2H5*', "H5''")
 
-                line_edit = line_edit.replace('\'','*')
-                line_edit = line_edit.replace('OP1','O1P')
-                line_edit = line_edit.replace('OP2','O2P')
+                line_edit = line_edit.replace('*', "'")
+                line_edit = line_edit.replace('O1P', 'OP1')
+                line_edit = line_edit.replace('O2P', 'OP2')
 
                 outstring += line_edit
 

@@ -1039,7 +1039,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         print '\nRunning antibody_graft'
         # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
-                      ' -antibody::h3_no_stem_graft'
+                      ' -antibody::h3_no_stem_graft -scorefile score-graft.sf'
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
@@ -1056,7 +1056,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         if os.path.isfile( idealize_jd2 ):
             print 'Running idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
-                          ' -fast -s %s.pdb -ignore_unrecognized_res' % model_file_prefix
+                          ' -fast -s %s.pdb -ignore_unrecognized_res -scorefile score-idealize.sf' % model_file_prefix
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
             if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
@@ -1071,7 +1071,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             print 'Running relax with all-atom constraint'
             commandline = 'cd "%s" && %s "%s" -database %s -overwrite' % (os.path.dirname(prefix), 'ulimit -t %s &&' % Options.timeout if Options.timeout else '', relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
-                          ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc'
+                          ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc -scorefile score-relax.sf'
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
             if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)

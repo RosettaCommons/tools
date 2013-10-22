@@ -142,7 +142,7 @@ def erraser( option ) :
             os.chdir(base_dir)
             if not option.kept_temp_folder :
                 remove(temp_dir)
-		print "REMOVING A TEMP DIRECTORY"
+		print "REMOVING A TEMP DIRECTORY1"
             total_time=time.time()-start_time
             print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
             print '###################################'
@@ -198,7 +198,7 @@ def erraser( option ) :
     os.chdir(base_dir)
     if not option.kept_temp_folder :
         remove(temp_dir)
-        print "REMOVING A TEMP DIRECTORY"
+        print "REMOVING A TEMP DIRECTORY2"
 
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
@@ -368,7 +368,7 @@ def erraser_single_res( option ) :
 
     if not option.kept_temp_folder :
         remove(temp_dir)
-        print "REMOVING A TEMP DIRECTORY"
+        print "REMOVING A TEMP DIRECTORY3"
 
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
@@ -546,7 +546,7 @@ def full_struct_slice_and_minimize( option ) :
 
     if not option.kept_temp_folder :
         remove(temp_dir)
-        print "REMOVING A TEMP DIRECTORY"
+        print "REMOVING A TEMP DIRECTORY4"
 
     total_time=time.time()-start_time
 
@@ -642,7 +642,7 @@ def seq_rebuild( option ) :
 
     if not option.kept_temp_folder :
         remove(temp_dir)
-        print "REMOVING A TEMP DIRECTORY"
+        print "REMOVING A TEMP DIRECTORY5"
 
     print "All rebuilding moves completed sucessfully!!!!"
     print 'sucessful_res: %s' % sucessful_res

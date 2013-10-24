@@ -18,6 +18,9 @@ def erraser( option ) :
     if option.log_err != "" :
         sys.stderr = open(option.log_err, 'w')
 
+    print "status of option.kept_temp_folder"
+    print option.kept_temp_folder
+
     #####################################################
     print '###################################'
     print 'Starting erraser...'

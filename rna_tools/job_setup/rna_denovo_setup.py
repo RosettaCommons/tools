@@ -3,9 +3,8 @@
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
 from os import system
-from subprocess import Popen, PIPE
 from os.path import exists
-from parse_options import parse_options, get_ints
+from parse_options import parse_options
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -38,6 +37,7 @@ input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
 input_silent_res = parse_options( argv, 'input_silent_res', [-1] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
+no_minimize = parse_options( argv, 'no_minimize', False )
 is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
@@ -384,7 +384,11 @@ print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna " % (params_file, fasta_file, tag )
+command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (params_file, fasta_file, tag )
+if no_minimize:
+    command += " -minimize_rna false"
+else:
+    command += " -minimize_rna true"
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb

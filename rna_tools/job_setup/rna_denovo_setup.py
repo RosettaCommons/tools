@@ -42,6 +42,7 @@ is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
+data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
@@ -290,13 +291,15 @@ if len( obligate_pair_explicit ) > 0:
 
 
 if len( chain_connection ) > 0:
-    assert( len( chain_connection ) == 4 )
+    assert( len( chain_connection ) % 4 == 0 )
+    n_connect = len( chain_connection ) / 4
     working_chain_connection = working_res_map( chain_connection, working_res )
-    if len( working_chain_connection ) == 4:
-        seg1_start = working_chain_connection[ 0 ]
-        seg1_stop  = working_chain_connection[ 1 ]
-        seg2_start = working_chain_connection[ 2 ]
-        seg2_stop = working_chain_connection[ 3 ]
+    for i in xrange(n_connect):
+        curr_0 = i * 4
+        seg1_start = working_chain_connection[curr_0]
+        seg1_stop  = working_chain_connection[curr_0 + 1]
+        seg2_start = working_chain_connection[curr_0 + 2]
+        seg2_stop = working_chain_connection[curr_0 + 3]
         params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
 
 # need to handle Mg(2+)
@@ -379,6 +382,18 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
     working_native_pdb = "%s_%s" % (tag,native_pdb)
     print "Writing native to:", working_native_pdb
 
+if data_file:
+    working_data_file = tag + '_' + data_file
+    with open(tag + '_' + data_file, 'w') as out, open(data_file) as f:
+        for line in f:
+            for elem in line.split():
+                if elem.isdigit():
+                    elem_int = int(elem)
+                    out.write('%d ' % (working_res.index(elem_int) + 1))
+                else:
+                    out.write('%s ' % elem)
+            out.write('\n')
+
 #########################################
 print
 print "Sample command line: "
@@ -418,6 +433,9 @@ if len( input_res ) > 0:
 
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
+
+if data_file:
+    command += " -data_file " + working_data_file
 
 command += ' ' + extra_args
 

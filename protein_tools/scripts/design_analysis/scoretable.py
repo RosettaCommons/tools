@@ -2,7 +2,6 @@ import sys
 import warnings
 from Bio.PDB import PDBExceptions
 from Bio.PDB import PDBParser as parser
-import amino_acids
 warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
 
 if sys.version_info < (2, 7):
@@ -12,44 +11,6 @@ if sys.version_info < (2, 7):
 exception = ["CYD", "TYS", "CYS"]
 
 
-def _get_score_table(path):
-    score_table = []
-    table = False
-    with open(path) as openfile:
-        for count, line in enumerate(openfile, start=1):
-            try:
-                if line.split()[0] == "#BEGIN_POSE_ENERGIES_TABLE":
-                    table = True
-                    continue
-                if table and line.split()[0] != "#END_POSE_ENERGIES_TABLE":
-                    score_table.append(line)
-            except IndexError:
-                print "an index error occured on line {0}, probably can't split this line".format(count)
-    if score_table:
-        return score_table
-    else:
-        raise Exception("The pdb {0} you are trying to pass does not contain a score file".format(path))
-
-
-def get_table(path):
-    raw_table = []
-    infile = open(path, 'r')
-    table = False
-    for line in infile:
-        line_split = line.split()
-        try:
-            if line_split[0] == "END_POSE_ENERGIES_TABLE":
-                break
-            if line_split[0] == "#BEGIN_POSE_ENERGIES_TABLE":
-                table = True
-                raw_table.append(line)
-            elif table:
-                raw_table.append(line)
-        except IndexError:
-            print "pdb file probably contains a blank line"
-            continue
-    infile.close()
-    return raw_table
 
 
 class ScoreRecord:
@@ -60,7 +21,6 @@ class ScoreRecord:
         self.chain = chainid
         self.native = native
 
-
 class ScorePoseRecord:
     def __init__(self, name, poseid, scores, native):
         self.name = name
@@ -68,11 +28,10 @@ class ScorePoseRecord:
         self.poseid = poseid
         self.native = native
 
-
 class ScoreTable:
     def __init__(self, path, already_open=False):
         # get the energy table by a function that will only return the lines in the rosetta score table
-        energy_table = _get_score_table(path)
+        energy_table = self._get_score_table(path)
         header = energy_table[0].split()[1:]
         weights = energy_table[1].split()[1:]
         pose = energy_table[2].split()[1:]
@@ -147,6 +106,24 @@ class ScoreTable:
 
     def get_pose_id_from_chain_id(self, chain, pdbres):
         return self.pose_id_mapped_to_res_id[(chain, int(pdbres))]
+
+    def _get_score_table(self,path):
+        score_table = []
+        table = False
+        with open(path) as openfile:
+            for count, line in enumerate(openfile, start=1):
+                try:
+                    if line.split()[0] == "#BEGIN_POSE_ENERGIES_TABLE":
+                        table = True
+                        continue
+                    if table and line.split()[0] != "#END_POSE_ENERGIES_TABLE":
+                        score_table.append(line)
+                except IndexError:
+                    print "an index error occured on line {0}, probably can't split this line".format(count)
+        if score_table:
+            return score_table
+        else:
+            raise Exception("The pdb {0} you are trying to pass does not contain a score file".format(path))
 if __name__ == '__main__':
     if sys.version_info < (2, 7):
         raise Exception("You must use python2.7 to call rosettaScore_beta class")

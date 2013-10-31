@@ -25,7 +25,8 @@ if len(argv) < 3:
     exit()
 
 
-system( 'rm -rf README_FARFAR' ) # output file with Rosetta command line -- will be replaced by this script.
+out_script = parse_options( argv, "out_script", "README_FARFAR" )
+nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 working_res = parse_options( argv, "working_res", [-1] )
@@ -51,6 +52,8 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [-1] )
+
+system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
 
 #print argv
@@ -172,7 +175,7 @@ for silent in input_silent_files:
         if i in input_res:
             raise ValueError('Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
-    if seq != actual_seq:
+    if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
     resnum_list.append(resnum)
     input_res += resnum
@@ -399,7 +402,7 @@ print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (params_file, fasta_file, tag )
+command += " -nstruct %d -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (nstruct, params_file, fasta_file, tag )
 if no_minimize:
     command += " -minimize_rna false"
 else:
@@ -441,9 +444,7 @@ command += ' ' + extra_args
 
 print command
 
-readme = "README_FARFAR"
-print "outputting command line to: ", readme
-fid = open( readme, 'w' )
-fid.write( command + "\n" )
-fid.close()
+print "outputting command line to: ", out_script
+with open( out_script, 'w' ) as fid:
+    fid.write( command + "\n" )
 

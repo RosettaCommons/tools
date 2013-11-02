@@ -18,11 +18,14 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('-silent', help='Input silent file', required=True)
 parser.add_argument(
-    '-proc', help='Number of processes (default 20)', default=20, type=int
+    '-tag', help='Outfile tag', default='MIN'
 )
 parser.add_argument(
-    '-nstruct', help='Number of structures to be minimzie (default 100)',
-    default=100, type=int
+    '-proc', help='Number of processes (default 0)', default=20, type=int
+)
+parser.add_argument(
+    '-nstruct', help='Number of structures to be minimzie (default 1000)',
+    default=1000, type=int
 )
 parser.add_argument(
     '-out_folder', help='Folder for the output files',
@@ -90,7 +93,8 @@ for i in xrange(args.proc):
     silent_file = path.join(folder, '%d.silent' % i)
     silent_fh.append(open(silent_file, 'w'))
     silent_fh[-1].write(header)
-    cmdline = cmdline_base + silent_file + ' -out:file:silent %d.out' % i
+    out_silent = path.join(folder, args.tag + '.out')
+    cmdline = cmdline_base + silent_file + ' -out:file:silent %s' % out_silent
     out_script.write('./\t%s\n' % cmdline)
 out_script.close()
 

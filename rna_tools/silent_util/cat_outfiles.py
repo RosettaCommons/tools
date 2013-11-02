@@ -39,19 +39,15 @@ else:
 sequence_line_found    = 0
 description_line_found = 0
 remark_line_found      = 0
+n_file = -1
 
 for out_f in outfiles:
     all_files = glob.glob(out_f)
     for filename in all_files:
-        data = open(filename,'r')
-
-        #line = data.readline() # Skip first two lines
-        #line = data.readline()
-        line = 1
-
-        while line:
-
-            line = data.readline()[:-1]
+        data = open(filename)
+        n_file += 1
+        for line in data:
+            line = line[:-1]
             if not line: break
 
             if line[:9] == 'SEQUENCE:':
@@ -72,18 +68,10 @@ for out_f in outfiles:
             #if description_index < 0:
             #    description_index = line.find('_')
 
-            if description_index >= 0 and i > 0:
+            if description_index >= 0:
                 tag = line[description_index:]
-
-                tagcols = string.split(tag,'_')
-                try:
-                    tagnum = int( tagcols[-1] )
-                    tagcols[-1] = '%04d_%06d' %  ( i, tagnum )
-                    newtag = string.join( tagcols,'_')
-
-                    line = line[:description_index] + newtag
-                except:
-                    continue
+                newtag = tag + "_%03d" % n_file
+                line = line[:description_index] + newtag
 
             if len(line) < 1: continue
 

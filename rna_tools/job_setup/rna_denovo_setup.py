@@ -42,6 +42,7 @@ is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
+data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
@@ -234,6 +235,22 @@ if len( cst_gaps ) > 0 and is_cst_gap:
             ( cst_gap[0], cst_gap[1],  -stdev, max_dist, stdev, -1*bonus, bonus)
 
 
+working_data_file = ""
+if len( data_file ) > 0:
+    lines = open( data_file ).readlines()
+    working_data_string = ""
+    for line in lines:
+        cols = string.split( line.replace( '\n','') )
+        data_res = map( lambda x:int(x), cols[1:] )
+        working_data_res = working_res_map( data_res, working_res )
+        if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
+    if len( working_data_string ) > 0:
+        working_data_file = tag + "_" + data_file
+        fid = open( working_data_file, 'w' )
+        fid.write( working_data_string )
+        fid.close()
+
+
 assert( is_even( len(obligate_pair) ) )
 if len( obligate_pair ) > 0:
     for m in range( len( obligate_pair)/2 ):
@@ -417,6 +434,10 @@ if len( input_res ) > 0:
 
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
+
+if len( working_data_file ) > 0:
+    command += " -data_file " + working_data_file
+
 
 command += ' ' + extra_args
 

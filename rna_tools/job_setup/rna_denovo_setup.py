@@ -1,11 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
 from os import system
-from subprocess import Popen, PIPE
 from os.path import exists
-from parse_options import parse_options, get_ints
+from parse_options import parse_options
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -26,7 +25,8 @@ if len(argv) < 3:
     exit()
 
 
-system( 'rm -rf README_FARFAR' ) # output file with Rosetta command line -- will be replaced by this script.
+out_script = parse_options( argv, "out_script", "README_FARFAR" )
+nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 working_res = parse_options( argv, "working_res", [-1] )
@@ -38,6 +38,7 @@ input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
 input_silent_res = parse_options( argv, 'input_silent_res', [-1] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
+no_minimize = parse_options( argv, 'no_minimize', False )
 is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
@@ -51,6 +52,8 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [-1] )
+
+system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
 
 #print argv
@@ -174,7 +177,7 @@ for silent in input_silent_files:
         if i in input_res:
             raise ValueError('Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
-    if seq != actual_seq:
+    if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
     resnum_list.append(resnum)
     input_res += resnum
@@ -309,13 +312,15 @@ if len( obligate_pair_explicit ) > 0:
 
 
 if len( chain_connection ) > 0:
-    assert( len( chain_connection ) == 4 )
+    assert( len( chain_connection ) % 4 == 0 )
+    n_connect = len( chain_connection ) / 4
     working_chain_connection = working_res_map( chain_connection, working_res )
-    if len( working_chain_connection ) == 4:
-        seg1_start = working_chain_connection[ 0 ]
-        seg1_stop  = working_chain_connection[ 1 ]
-        seg2_start = working_chain_connection[ 2 ]
-        seg2_stop = working_chain_connection[ 3 ]
+    for i in xrange(n_connect):
+        curr_0 = i * 4
+        seg1_start = working_chain_connection[curr_0]
+        seg1_stop  = working_chain_connection[curr_0 + 1]
+        seg2_start = working_chain_connection[curr_0 + 2]
+        seg2_stop = working_chain_connection[curr_0 + 3]
         params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
 
 # need to handle Mg(2+)
@@ -399,12 +404,17 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
     working_native_pdb = "%s_%s" % (tag,native_pdb)
     print "Writing native to:", working_native_pdb
 
+
 #########################################
 print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna " % (params_file, fasta_file, tag )
+command += " -nstruct %d -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (nstruct, params_file, fasta_file, tag )
+if no_minimize:
+    command += " -minimize_rna false"
+else:
+    command += " -minimize_rna true"
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb
@@ -438,16 +448,13 @@ if len( working_cst_file ) > 0:
 if len( working_data_file ) > 0:
     command += " -data_file " + working_data_file
 
-
 command += ' ' + extra_args
 
 command += ' -output_res_num ' + make_tag_with_dashes( working_res )
 
 print command
 
-readme = "README_FARFAR"
-print "outputting command line to: ", readme
-fid = open( readme, 'w' )
-fid.write( command + "\n" )
-fid.close()
+print "outputting command line to: ", out_script
+with open( out_script, 'w' ) as fid:
+    fid.write( command + "\n" )
 

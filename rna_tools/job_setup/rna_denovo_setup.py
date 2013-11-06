@@ -86,6 +86,8 @@ if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
 
 if( not len( sequence ) == len( secstruct )):
+    print sequence
+    print secstruct
     print 'Length of sequence & secstruct do not match: ', len( sequence ), len( secstruct )
     exit( 1 )
 assert( secstruct.count('(') == secstruct.count(')') )
@@ -236,6 +238,22 @@ if len( cst_gaps ) > 0 and is_cst_gap:
             ( cst_gap[0], cst_gap[1],  -stdev, max_dist, stdev, -1*bonus, bonus)
 
 
+working_data_file = ""
+if len( data_file ) > 0:
+    lines = open( data_file ).readlines()
+    working_data_string = ""
+    for line in lines:
+        cols = string.split( line.replace( '\n','') )
+        data_res = map( lambda x:int(x), cols[1:] )
+        working_data_res = working_res_map( data_res, working_res )
+        if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
+    if len( working_data_string ) > 0:
+        working_data_file = tag + "_" + data_file
+        fid = open( working_data_file, 'w' )
+        fid.write( working_data_string )
+        fid.close()
+
+
 assert( is_even( len(obligate_pair) ) )
 if len( obligate_pair ) > 0:
     for m in range( len( obligate_pair)/2 ):
@@ -378,6 +396,7 @@ if len( working_cst_file ) > 0 :
 
 assert( not ( len( native_pdb )>0 and len( working_native_pdb ) > 0 ) )
 if ( len(native_pdb) > 0 and len( working_res ) > 0):
+    assert( exists( native_pdb ) )
     command = "pdbslice.py " + native_pdb + " -subset"
     for m in working_res: command += " %d" % m
     command += " "+tag+"_"
@@ -385,17 +404,6 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
     working_native_pdb = "%s_%s" % (tag,native_pdb)
     print "Writing native to:", working_native_pdb
 
-if data_file:
-    working_data_file = tag + '_' + data_file
-    with open(tag + '_' + data_file, 'w') as out, open(data_file) as f:
-        for line in f:
-            for elem in line.split():
-                if elem.isdigit():
-                    elem_int = int(elem)
-                    out.write('%d ' % (working_res.index(elem_int) + 1))
-                else:
-                    out.write('%s ' % elem)
-            out.write('\n')
 
 #########################################
 print
@@ -437,10 +445,12 @@ if len( input_res ) > 0:
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
 
-if data_file:
+if len( working_data_file ) > 0:
     command += " -data_file " + working_data_file
 
 command += ' ' + extra_args
+
+command += ' -output_res_num ' + make_tag_with_dashes( working_res )
 
 print command
 

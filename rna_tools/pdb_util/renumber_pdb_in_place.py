@@ -5,7 +5,7 @@ from os import system
 from parse_options import parse_options, get_resnum_chain
 
 
-def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num=0):
+def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num = 0):
     for pdbname in pdbnames:
         lines = open(pdbname,'r').readlines()
 
@@ -25,7 +25,7 @@ def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num=0):
                 if not (line[16]==' ' or line[16]=='A'): continue
 
                 atomnum += 1
-
+                oldchain = line_edit[21]
                 resnum = line_edit[23:26]
                 if not resnum == oldresnum:
                     count = count + 1
@@ -38,6 +38,7 @@ def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num=0):
                 else:
                     if len( new_numbers) > 0: print 'WARNING! residue number %d is greater than length of input numbering %d' % (count, len( new_numbers) )
                     newnum = '%4d' % count
+                    newchain = oldchain
 
                 if retain_atom_num:
                     line_edit = '%s%s%s' % (line_edit[0:22], newnum, line_edit[26:] )

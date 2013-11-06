@@ -20,7 +20,7 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
         pos = 0
         while pos < len( input_string ):
             try:
-                blah = int( input_string[ pos ] )
+                if ( input_string[pos] != '-' ): blah = int( input_string[ pos ] )
                 break
             except:
                 chain += input_string[ pos ]

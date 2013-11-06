@@ -1,1 +1,1 @@
-.././silent_util/parallel_min_setup.py
+.././job_setup/parallel_min_setup.py

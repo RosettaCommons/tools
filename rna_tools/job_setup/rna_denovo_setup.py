@@ -45,6 +45,7 @@ working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
 data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
+cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
 obligate_pair = parse_options( argv, "obligate_pair", [-1] )
@@ -155,8 +156,7 @@ for pdb in input_pdbs:
     pdb_seq = pdb_seq.lower()
     actual_seq = ''
     for i in resnum:
-        if i in input_res:
-            raise ValueError('Input residue %s exists in two pdb files!!' % i)
+        if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
     if pdb_seq != actual_seq:
         print pdb_seq
@@ -174,8 +174,7 @@ for silent in input_silent_files:
     resnum = input_silent_res[:len_seq]
     input_silent_res = input_silent_res[len_seq:]
     for i in resnum:
-        if i in input_res:
-            raise ValueError('Input residue %s exists in two pdb files!!' % i)
+        if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
     if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
@@ -198,8 +197,19 @@ for resnum in resnum_list:
     if n_jumps > 0:
         for i in xrange(n_jumps):
             #obligate pairs
-            obligate_pair.append( chunks[i][-1] )
-            obligate_pair.append( chunks[i+1][0] )
+            new_pos1 = chunks[i][-1]
+            new_pos2 = chunks[i+1][0]
+            already_listed = False
+            for m in range( len( obligate_pair)/2 ):
+                pos1 = obligate_pair[ 2*m ]
+                pos2 = obligate_pair[ 2*m+1 ]
+                if ( pos1 == new_pos1 and pos2 == new_pos2 ):
+                    already_listed = True
+                    break
+            if already_listed: continue
+            obligate_pair.append( new_pos1 )
+            obligate_pair.append( new_pos2 )
+
 #######################################################################
 working_input_res = []
 for m in input_res:
@@ -336,6 +346,10 @@ if len( chain_connection ) > 0:
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )
     params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
+
+if len( cutpoint_closed ) > 0:
+    cutpoint_closed = working_res_map( cutpoint_closed, working_res )
+    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
     virtual_anchor = working_res_map( virtual_anchor, working_res )

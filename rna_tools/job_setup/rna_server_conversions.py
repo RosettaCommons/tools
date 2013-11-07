@@ -286,6 +286,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]=='5MC'):
                 line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
+            elif (line[0:6] == 'HETATM') & (line[17:20]=='CCC'):
+                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]==' DC'): #Selenomethionine
                 line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]=='CBR'): #Selenomethionine
@@ -306,6 +308,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]=='1MG'):
                 line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
+            elif (line[0:6] == 'HETATM') & (line[17:20]=='GTP'):
+                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]==' YG'):
                 line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
             elif (line[0:6] == 'HETATM') & (line[17:20]=='1MA'):
@@ -320,6 +324,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == '  G':
+                        longname = '  G'
+                    if longname == 'GTP':
                         longname = '  G'
                     elif longname == '  A':
                         longname =   '  A'

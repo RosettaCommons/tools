@@ -2,8 +2,8 @@
 
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
-from os import system
-from os.path import exists
+from os import system, getcwd
+from os.path import exists, dirname, basename
 from parse_options import parse_options
 from make_tag import make_tag, make_tag_with_dashes
 import string
@@ -94,7 +94,8 @@ if( not len( sequence ) == len( secstruct )):
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
 assert( secstruct.count('{') == secstruct.count('}') )
-assert( tag != '' )
+if ( tag == '' ):
+    tag = basename(getcwd())
 
 
 assert( is_even( len(remove_pair) ) )

@@ -58,8 +58,9 @@ def align_pdb_H_chains(poses,abinfos):
 
 
 def main_pdblist(args):
-    '''Usage: python antibody_flex.py [pdb_files]
+    '''Usage: python H3flex.py [pdb_files]
        Calculate rmsd (flex) between a set of antibody H3 loops.
+       Flex is defined as the average rmsd between all pairs of H3 loops in the set
        First pdb file will be used for alignment
     '''
     if len(args) < 2:
@@ -76,8 +77,9 @@ def main_pdblist(args):
 
 
 def main_dirlist(args):
-    '''Usage: python antibody_flex.py [directories]
+    '''Usage: python H3flex.py [directories]
        Calculate flex between a set of antibody H3 loops for a set of directories
+       Flex is defined as the average rmsd between all pairs of H3 loops in the set
        Assumes pdb files are dir/top10/*pdb
        First pdb file will be used for alignment
     '''

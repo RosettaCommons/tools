@@ -23,8 +23,7 @@ temp = tempfile.NamedTemporaryFile(delete=False)
 cmdline  = rosetta_exe('rna_helix')
 cmdline += (' -rna::corrected_geo  '+
             '-score:rna_torsion_potential RNA11_based_new ' +
-            '-geom_sol_correct_acceptor_base -chemical::enlarge_H_lj ' +
-            '-analytic_etable_evaluation 0 ')
+            '-geom_sol_correct_acceptor_base -chemical::enlarge_H_lj ')
 cmdline += '-o %s ' % temp.name
 cmdline += '-seq '
 for i in args.seq:    cmdline += i + ' '

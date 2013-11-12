@@ -4,6 +4,7 @@ from sys import argv,exit,stdout,stderr
 from os import popen,system
 from os.path import exists
 import string
+import glob
 
 def Help():
     print
@@ -38,60 +39,45 @@ else:
 sequence_line_found    = 0
 description_line_found = 0
 remark_line_found      = 0
+n_file = -1
 
-for i in range( len(outfiles) ):
+for out_f in outfiles:
+    all_files = glob.glob(out_f)
+    for filename in all_files:
+        data = open(filename)
+        n_file += 1
+        for line in data:
+            line = line[:-1]
+            if not line: break
 
-    if not exists( outfiles[i] ):
-        stderr.write( 'Does not exist! '+outfiles[i] )
-        continue
+            if line[:9] == 'SEQUENCE:':
+                if sequence_line_found: continue # Should not be any more sequence lines!
+                else: sequence_line_found = 1
 
-    data = open(outfiles[i],'r')
+            if line.find( 'description' ) > -1:
+                if description_line_found: continue
+                else: description_line_found = 1
 
-    #line = data.readline() # Skip first two lines
-    #line = data.readline()
-    line = 1
+            if line.find( 'REMARK' ) > -1:
+                if remark_line_found: continue
+                else: remark_line_found = 1
 
-    while line:
+            description_index = line.find('S_')
+            if description_index < 0:
+                description_index = line.find('F_')
+            #if description_index < 0:
+            #    description_index = line.find('_')
 
-        line = data.readline()[:-1]
-        if not line: break
-
-        if line[:9] == 'SEQUENCE:':
-            if sequence_line_found: continue # Should not be any more sequence lines!
-            else: sequence_line_found = 1
-
-        if line.find( 'description' ) > -1:
-            if description_line_found: continue
-            else: description_line_found = 1
-
-        if line.find( 'REMARK' ) > -1:
-            if remark_line_found: continue
-            else: remark_line_found = 1
-
-        description_index = line.find('S_')
-        if description_index < 0:
-            description_index = line.find('F_')
-        #if description_index < 0:
-        #    description_index = line.find('_')
-
-        if description_index >= 0 and i > 0:
-            tag = line[description_index:]
-
-            tagcols = string.split(tag,'_')
-            try:
-                tagnum = int( tagcols[-1] )
-                tagcols[-1] = '%04d_%06d' %  ( i, tagnum )
-                newtag = string.join( tagcols,'_')
-
+            if description_index >= 0:
+                tag = line[description_index:]
+                newtag = tag + "_%03d" % n_file
                 line = line[:description_index] + newtag
-            except:
-                continue
 
-        if len(line) < 1: continue
+            if len(line) < 1: continue
 
-        fid.write( line+'\n' )
+            fid.write( line+'\n' )
 
 
-    data.close()
+        data.close()
 
 if not final_outfile == "": fid.close()

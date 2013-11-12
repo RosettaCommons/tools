@@ -31,7 +31,7 @@ def main():
     if len(args) != 3:
         parser.error("specify an input sdf file, an output directory, and a path to a path map file")
     infile = open(args[0],'r')
-    path_map = open(args[2],'a')
+    path_map = open(args[2],'w')
     line_counter=1
     current_record = ""
     outfile = None
@@ -39,6 +39,11 @@ def main():
     line_buffer = []
     path_tuples = set()
     found_descriptor = False
+    
+    #write header
+    path_map.write("ligand_id,filename\n")
+    path_map.write("string,string\n")
+    
     for line in infile:
         subdir,output_path = make_path(args[1],current_record)
         if not os.path.exists(subdir):

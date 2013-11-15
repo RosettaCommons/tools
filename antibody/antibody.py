@@ -373,7 +373,7 @@ def main(args):
 
 ########################################################
 def read_fasta_file(file_name):
-    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '')
+    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '') . upper()
 
 
 def write_fasta_file(file_name, data, prefix):

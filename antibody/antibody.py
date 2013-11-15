@@ -394,13 +394,20 @@ def safelen(seq):
 def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
-    light_first, light_second = (light_chain[:60], light_chain[50:50+60]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:60], heavy_chain[50:50+90]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    light_first, light_second = (light_chain[:65], light_chain[50:50+75]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
+    heavy_first, heavy_second = (heavy_chain[:65], heavy_chain[50:50+90]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
 
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
     L1 = res.group()[1:-3] if res else False
     print "L1 detected: ", L1, " (",safelen(L1),"residues )"
+
+    L1_start = light_chain.index(L1)
+    L1_end = L1_start + len(L1) - 1
+    FR_L1 = light_chain[:L1_start]
+    if len(FR_L1) >  24:
+        len_FR_L1 = len(FR_L1) - 24
+        FR_L1 = light_chain[len_FR_L1:L1_start]
 
     # L3
     res = re.search( r'C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)', light_second)
@@ -408,8 +415,8 @@ def IdentifyCDRs(light_chain, heavy_chain):
     print "L3 detected: ", L3, " (",safelen(L3),"residues )"
 
     if L1 and L3:
-        L1_start = light_chain.index(L1)
-        L1_end = L1_start + len(L1) - 1
+        #L1_start = light_chain.index(L1)
+        #L1_end = L1_start + len(L1) - 1
 
         L2_start = L1_end + 16
         L2_end = L2_start + 7 - 1
@@ -420,7 +427,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         L2 = light_chain[L2_start:L2_start+7]  # L2 is identified here. Current implementation can deal with only 7-resiue L2
         print "L2 detected: ", L2, " (",safelen(L2),"residues )"
 
-        FR_L1 = light_chain[:L1_start]
+        #FR_L1 = light_chain[:L1_start]
         FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
         FR_L3 = light_chain[L2_end+1 : L2_end+1 +L3_start - L2_end - 1 ]
         FR_L4 = light_chain[L3_end + 1 : L3_end + 1 + 12]
@@ -442,14 +449,22 @@ def IdentifyCDRs(light_chain, heavy_chain):
     H1 = res.group()[4:-4] if res else False
     print "H1 detected: ", H1, " (",safelen(H1),"residues )"
 
+    H1_start = heavy_chain.index(H1)
+    H1_end = H1_start + len(H1) - 1
+    FR_H1 = heavy_chain[:H1_start]
+    if len(FR_H1) >  25:
+        len_FR_H1 = len(FR_H1) - 25
+        FR_H1 = heavy_chain[len_FR_H1:H1_start]
+
     # H3
     res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
     print "H3 detected: ", H3, " (",safelen(H3),"residues )"
 
+
     if H1 and H3:
-        H1_start = heavy_chain.index(H1)
-        H1_end = H1_start + len(H1) - 1
+        #H1_start = heavy_chain.index(H1)
+        #H1_end = H1_start + len(H1) - 1
 
         H3_start = heavy_chain.index(H3)
         H3_end = H3_start + len(H3) - 1
@@ -460,7 +475,11 @@ def IdentifyCDRs(light_chain, heavy_chain):
         H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1]
         print "H2 detected: ", H2, " (",len(H2),"residues )"
 
-        FR_H1 = heavy_chain[:H1_start]
+        #FR_H1 = heavy_chain[:H1_start]
+
+        #if len(FR_H1) >  26:
+        #    FR_H1 = light_chain[20:H1_start]
+
         FR_H2 = heavy_chain[H1_end + 1: H1_end + 1 + H2_start - H1_end - 1]
         FR_H3 = heavy_chain[H2_end + 1: H2_end + 1 + H3_start - H2_end - 1]
         FR_H4 = heavy_chain[H3_end + 1: H3_end + 1 + 12]

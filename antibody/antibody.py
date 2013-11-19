@@ -395,7 +395,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
     light_first, light_second = (light_chain[:65], light_chain[50:50+75]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:65], heavy_chain[50:50+90]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    heavy_first, heavy_second = (heavy_chain[:65], heavy_chain[50:50+95]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
 
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
@@ -410,7 +410,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         FR_L1 = light_chain[len_FR_L1:L1_start]
 
     # L3
-    res = re.search( r'C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)', light_second)
+    res = re.search( r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)', light_second)
     L3 = res.group()[1:-4] if res else False
     print "L3 detected: ", L3, " (",safelen(L3),"residues )"
 
@@ -461,7 +461,6 @@ def IdentifyCDRs(light_chain, heavy_chain):
     H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
     print "H3 detected: ", H3, " (",safelen(H3),"residues )"
 
-
     if H1 and H3:
         #H1_start = heavy_chain.index(H1)
         #H1_end = H1_start + len(H1) - 1
@@ -494,7 +493,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
         if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)'
         if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
-        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)'
+        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(L|W)(G|A|C)[A-Z](S|G|R)'
         sys.exit(1)
 
     res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)
@@ -525,11 +524,12 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
         elif len(FR_L1) == 20: new_number_FR_L1="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 21: new_number_FR_L1="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         elif len(FR_L1) == 22: new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 23: new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 24:
-            #new_number_FR_L1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 23:
             FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
-            new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 24:
+            FR_L1 = FR_L1[2:]  # Remove -1st and 0th residue 10/24/2012
+            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
         else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
     else:
         print 'ERROR: Current code could not assign Chothia numbering of FR_L1 in the query sequence!!! Exiting...'
@@ -636,10 +636,10 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
     else: print "ERROR: FR_H3 length",len(FR_H3),"is not between 30 and 32"
 
     # H3
-    if   len(H3) ==  3: new_number_H3="95,96,97"
-    elif len(H3) ==  4: new_number_H3="95,96,97,98"
-    elif len(H3) ==  5: new_number_H3="95,96,97,98,99"
-    elif len(H3) ==  6: new_number_H3="95,96,97,98,99,100"
+    if   len(H3) ==  3: new_number_H3="95,101,102"
+    elif len(H3) ==  4: new_number_H3="95,96,101,102"
+    elif len(H3) ==  5: new_number_H3="95,96,97,101,102"
+    elif len(H3) ==  6: new_number_H3="95,96,97,98,101,102"
     elif len(H3) ==  7: new_number_H3="95,96,97,98,99,101,102"
     elif len(H3) ==  8: new_number_H3="95,96,97,98,99,100,101,102"
     elif len(H3) ==  9: new_number_H3="95,96,97,98,99,100,100A,101,102"
@@ -757,7 +757,7 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
     if len(FRL) != 58 and len(FRL) != 60:
         print "ERROR: Current DB does not cover the length of FRL of your query."
         print "ERROR: FRL length of your query:", len(FRL)
-        print "ERROR: DB: 61 or 63"
+        print "ERROR: DB: 58 or 60"
         sys.exit(1)
 
     if len(FRH) != 63 and len(FRH) != 65:

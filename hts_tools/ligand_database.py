@@ -23,6 +23,16 @@ def setup_tag_schema(db_name):
     cursor.execute(schema_string)
     connection.commit()
     connection.close()
+	
+def setup_metadata_schema(db_name):
+    '''given a db name, set up the metadata schema'''
+    
+    schema_string = "CREATE TABLE IF NOT EXISTS metadata (tag_id INTEGER PRIMARY KEY AUTOINCREMENT,record_id INTEGER REFERENCES sdf_input_data(record_id), tag string,value float)"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(schema_string)
+    connection.commit()
+    connection.close()
     
 def setup_params_schema(db_name):
     '''given a db name, setup the params schema'''
@@ -46,9 +56,12 @@ def write_data(db_name,table,columns,data_list):
     connection.commit()
     connection.close()
     
-def write_tag_data(db_name,data_list):
+def write_tag_data(db_name,data_list,mode="tag"):
     '''given a deata list, write activity tag information'''
-    insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+	if mode =="tag":
+		insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+	elif mode== "metadata":
+		insert_string = "INSERT INTO metadata (record_id,tag,value) VALUES (?,?,?)"
     query_string = "SELECT ligand_id,record_id FROM sdf_input_data"
     
     

@@ -78,6 +78,7 @@ out = open(args.out_cmdlines, 'w')
 print >> out, "# cmdlines:"
 stem_idx = 0
 res_list = bytearray()
+out_silent_files = bytearray()
 min_helix_len = 2
 for stem in helix_stems:
     if len(stem) < min_helix_len:
@@ -87,9 +88,10 @@ for stem in helix_stems:
         '%d-%d' % (stem[-1][1] + offset, stem[0][1] + offset)
     )
 
-    res_list += res_num + ' '
     tag = "%s%d" % (args.out_prefix, stem_idx)
     out_script = "%s.RUN" % tag
+    res_list += res_num + ' '
+    out_silent_files += '%s.out ' % tag
     stem_idx += 1
 
     cmdline = cmdline_base[:]
@@ -99,4 +101,8 @@ for stem in helix_stems:
     cmdline += "-tag %s " % tag
     subprocess.check_call([str(elem) for elem in cmdline.split()])
     print >> out, "source %s" % out_script
-print >> out, "# Residue list for FARFAR:", res_list
+print >> out, (
+    "# cmdlines args for FARFAR:\n"
+    "# -silent %s -input_silent_res %s"
+    % (out_silent_files, res_list)
+)

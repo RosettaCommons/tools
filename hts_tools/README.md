@@ -112,3 +112,31 @@ Scripts
    ```
       prepare_sdfs_for_bcl.py database.db3 descriptor_data.js ligands_for_bcl.sdf
    ```
+   
+* clean_pdb.py
+   * remove all residues except those specified and the 20 canonical AAs.
+   * compute the center of a ligand (even if it is being removed) and add it to a JSON map
+   * to run the script:
+   
+   ```
+      clean_pdb.py --chains=A,B --ligands_to_keep=CL,ABC --ligand_for_center=LIG input.pdb output.pdb center_file.js
+   ```
+   
+* make_evenly_grouped_jobs.py
+   * Given a directory of params files prepared with make_params.py, and a directory of pdb files, produce n job files balanced so that each group of jobs contains no more than x jobs each.  Each job file is constructed to be as evenly sized as possible. n and x should be tuned to the memory and walltime requirements of your cluster. 
+   * Each params file must have a "system_name" tag, and this tag must be a substring of the corresponding pdb files
+      * For example, if the "system_name" tag is "1UBI", the script will look for "1UBI*.pdb" in the pdb directory.
+   * The params files necessary to run the job file are included in the job file, removing the need for -in:file:extra_res_fa usage
+   * job files can be loaded into rsetta with -in:file:screening_job_inputter
+   * files output will be in the form output_prefix_n.js
+   
+   ```
+   make_evenly_grouped_jobs.py params_dir/ pdb_dir/ output_prefix
+   ```
+   
+* make_startfrom_files.py
+   * Given a directory of input pdb files and a center file produced by clean_pdb.py (above), make a startfrom file for the Rosetta StartFrom mover
+
+   ```
+      make_startfrom_files.py center_file.js input_models/ start_from.js
+   ```

@@ -1,5 +1,44 @@
 #!/usr/bin/python
 
+def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:1-4 or A1-4 or 1-4
+
+    assert( len( input_string ) > 0 )
+    assert( len( resnums ) == len( chains ) )
+    ok = True
+
+    int_string = input_string
+    chain = ''
+
+    # extract chain info, if present.
+    # colon is clear indicator of chain
+    colon_pos = input_string.find( ':' )
+    if colon_pos > -1:
+        chain = input_string[:colon_pos]
+        int_string = input_string[ colon_pos+1 : ]
+    else: # look for non-numeric characters
+        pos = 0
+        while pos < len( input_string ):
+            try:
+                if ( input_string[pos] != '-' ): blah = int( input_string[ pos ] )
+                break
+            except:
+                chain += input_string[ pos ]
+            pos = pos + 1
+        int_string = input_string[ pos: ]
+
+    ints = []
+    if len( int_string ) == 0: # special case, get the whole chain.
+        resnums.append( 'all' ) # means get everything from this chain
+        chains.append( chain )
+    else:
+        ok = get_ints( int_string, ints )
+        for i in range( len( ints ) ):
+            resnums.append( ints[i] )
+            chains.append( chain )
+
+    assert( len( resnums ) == len( chains ) )
+    return ok
+
 
 def get_ints( int_string, value ): # could be of the form 5-8  or -9--5
     assert( len( int_string ) > 0 )

@@ -362,24 +362,24 @@ def satisfy_optimize_long_loop_mode(optimize_long_loop_mode, OLLM_chain_closure_
 		if ( i <=  j  ): return False;
 
 		# Ok no bulge move when combining the two sides for now!
-		if ( ( i_prev % num_elements) - ( i% num_elements) ) % num_elements == 2: 
+		if ( ( i_prev % num_elements) - ( i% num_elements) ) % num_elements == 2:
 			return False
 
 		if ( ( j % num_elements) - ( j_prev % num_elements) ) % num_elements == 2:
 			return False
 
-		if i == 0: 
+		if i == 0:
 			return False
-		if j == 0: 
+		if j == 0:
 			return False
 
 
 		if OLLM_chain_closure_only:
 			# Only include steps right at the chain-closure.
-			if i % num_elements != (j + 1) % num_elements: 
+			if i % num_elements != (j + 1) % num_elements:
 				return False
 
-			if i_prev % num_elements != (j_prev + 2) % num_elements: 
+			if i_prev % num_elements != (j_prev + 2) % num_elements:
 				return False
 
 		return True
@@ -1277,7 +1277,7 @@ def get_virt_ribose_sampler_job_tag(pose_info, standard_sampler_job_tag):
 
 ##################################################################################
 def create_sampled_virt_ribose_silent_file(pose_info, standard_sampler_job_tag, prev_clusterer_job_tag, all_job_tags, jobs_done, sample_virtual_ribose_list, native_pdb, fid_dag, num_silent_files):
-	"TODO (sripakpa): explain why have to sample virt ribose for each seperate build step that uses a particular outfile.
+	#TODO (sripakpa): explain why have to sample virt ribose for each seperate build step that uses a particular outfile.
 
 	verbose=True
 

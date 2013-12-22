@@ -27,3 +27,5 @@ else:
    for i in range( len( cols )/2 ):
        print (2*i+2), cols[2*i]
 
+print
+print 'Score tags for: ',file1

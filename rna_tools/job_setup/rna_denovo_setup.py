@@ -1,11 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
 from sys import argv
-from os import system
-from subprocess import Popen, PIPE
-from os.path import exists
-from parse_options import parse_options, get_ints
+from os import system, getcwd
+from os.path import exists, dirname, basename
+from parse_options import parse_options
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -26,7 +25,8 @@ if len(argv) < 3:
     exit()
 
 
-system( 'rm -rf README_FARFAR' ) # output file with Rosetta command line -- will be replaced by this script.
+out_script = parse_options( argv, "out_script", "README_FARFAR" )
+nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 working_res = parse_options( argv, "working_res", [-1] )
@@ -38,11 +38,14 @@ input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
 input_silent_res = parse_options( argv, 'input_silent_res', [-1] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
+no_minimize = parse_options( argv, 'no_minimize', False )
 is_cst_gap = parse_options( argv, 'cst_gap', False )
 native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
+data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
+cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
 obligate_pair = parse_options( argv, "obligate_pair", [-1] )
@@ -50,6 +53,8 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [-1] )
+
+system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
 
 #print argv
@@ -82,12 +87,15 @@ if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
 
 if( not len( sequence ) == len( secstruct )):
+    print sequence
+    print secstruct
     print 'Length of sequence & secstruct do not match: ', len( sequence ), len( secstruct )
     exit( 1 )
 assert( secstruct.count('(') == secstruct.count(')') )
 assert( secstruct.count('[') == secstruct.count(']') )
 assert( secstruct.count('{') == secstruct.count('}') )
-assert( tag != '' )
+if ( tag == '' ):
+    tag = basename(getcwd())
 
 
 assert( is_even( len(remove_pair) ) )
@@ -149,8 +157,7 @@ for pdb in input_pdbs:
     pdb_seq = pdb_seq.lower()
     actual_seq = ''
     for i in resnum:
-        if i in input_res:
-            raise ValueError('Input residue %s exists in two pdb files!!' % i)
+        if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
     if pdb_seq != actual_seq:
         print pdb_seq
@@ -168,10 +175,9 @@ for silent in input_silent_files:
     resnum = input_silent_res[:len_seq]
     input_silent_res = input_silent_res[len_seq:]
     for i in resnum:
-        if i in input_res:
-            raise ValueError('Input residue %s exists in two pdb files!!' % i)
+        if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[i-1-offset]
-    if seq != actual_seq:
+    if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
     resnum_list.append(resnum)
     input_res += resnum
@@ -192,8 +198,19 @@ for resnum in resnum_list:
     if n_jumps > 0:
         for i in xrange(n_jumps):
             #obligate pairs
-            obligate_pair.append( chunks[i][-1] )
-            obligate_pair.append( chunks[i+1][0] )
+            new_pos1 = chunks[i][-1]
+            new_pos2 = chunks[i+1][0]
+            already_listed = False
+            for m in range( len( obligate_pair)/2 ):
+                pos1 = obligate_pair[ 2*m ]
+                pos2 = obligate_pair[ 2*m+1 ]
+                if ( pos1 == new_pos1 and pos2 == new_pos2 ):
+                    already_listed = True
+                    break
+            if already_listed: continue
+            obligate_pair.append( new_pos1 )
+            obligate_pair.append( new_pos2 )
+
 #######################################################################
 working_input_res = []
 for m in input_res:
@@ -230,6 +247,22 @@ if len( cst_gaps ) > 0 and is_cst_gap:
         bonus = 200.0
         cst_file_outstring +=  " O3* %d  C5* %d   FADE %6.3f  %6.3f  %6.3f %6.3f %6.3f \n" % \
             ( cst_gap[0], cst_gap[1],  -stdev, max_dist, stdev, -1*bonus, bonus)
+
+
+working_data_file = ""
+if len( data_file ) > 0:
+    lines = open( data_file ).readlines()
+    working_data_string = ""
+    for line in lines:
+        cols = string.split( line.replace( '\n','') )
+        data_res = map( lambda x:int(x), cols[1:] )
+        working_data_res = working_res_map( data_res, working_res )
+        if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
+    if len( working_data_string ) > 0:
+        working_data_file = tag + "_" + data_file
+        fid = open( working_data_file, 'w' )
+        fid.write( working_data_string )
+        fid.close()
 
 
 assert( is_even( len(obligate_pair) ) )
@@ -290,13 +323,15 @@ if len( obligate_pair_explicit ) > 0:
 
 
 if len( chain_connection ) > 0:
-    assert( len( chain_connection ) == 4 )
+    assert( len( chain_connection ) % 4 == 0 )
+    n_connect = len( chain_connection ) / 4
     working_chain_connection = working_res_map( chain_connection, working_res )
-    if len( working_chain_connection ) == 4:
-        seg1_start = working_chain_connection[ 0 ]
-        seg1_stop  = working_chain_connection[ 1 ]
-        seg2_start = working_chain_connection[ 2 ]
-        seg2_stop = working_chain_connection[ 3 ]
+    for i in xrange(n_connect):
+        curr_0 = i * 4
+        seg1_start = working_chain_connection[curr_0]
+        seg1_stop  = working_chain_connection[curr_0 + 1]
+        seg2_start = working_chain_connection[curr_0 + 2]
+        seg2_stop = working_chain_connection[curr_0 + 3]
         params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
 
 # need to handle Mg(2+)
@@ -312,6 +347,10 @@ if len( chain_connection ) > 0:
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )
     params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
+
+if len( cutpoint_closed ) > 0:
+    cutpoint_closed = working_res_map( cutpoint_closed, working_res )
+    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
     virtual_anchor = working_res_map( virtual_anchor, working_res )
@@ -372,6 +411,7 @@ if len( working_cst_file ) > 0 :
 
 assert( not ( len( native_pdb )>0 and len( working_native_pdb ) > 0 ) )
 if ( len(native_pdb) > 0 and len( working_res ) > 0):
+    assert( exists( native_pdb ) )
     command = "pdbslice.py " + native_pdb + " -subset"
     for m in working_res: command += " %d" % m
     command += " "+tag+"_"
@@ -379,12 +419,17 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
     working_native_pdb = "%s_%s" % (tag,native_pdb)
     print "Writing native to:", working_native_pdb
 
+
 #########################################
 print
 print "Sample command line: "
 
 command  = rosetta_exe('rna_denovo')
-command += " -nstruct 500 -params_file %s -fasta %s  -out:file:silent %s.out  -include_neighbor_base_stacks -minimize_rna -analytic_etable_evaluation 0" % (params_file, fasta_file, tag )
+command += " -nstruct %d -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (nstruct, params_file, fasta_file, tag )
+if no_minimize:
+    command += " -minimize_rna false"
+else:
+    command += " -minimize_rna true"
 
 if len( working_native_pdb ) > 0:
     command += " -native %s " % working_native_pdb
@@ -415,13 +460,16 @@ if len( input_res ) > 0:
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
 
+if len( working_data_file ) > 0:
+    command += " -data_file " + working_data_file
+
 command += ' ' + extra_args
+
+command += ' -output_res_num ' + make_tag_with_dashes( working_res )
 
 print command
 
-readme = "README_FARFAR"
-print "outputting command line to: ", readme
-fid = open( readme, 'w' )
-fid.write( command + "\n" )
-fid.close()
+print "outputting command line to: ", out_script
+with open( out_script, 'w' ) as fid:
+    fid.write( command + "\n" )
 

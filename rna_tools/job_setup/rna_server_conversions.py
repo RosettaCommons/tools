@@ -258,8 +258,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if chainids[i] == '_':
             chainids[i] = ' '
 
-    goodnames = [' rA',' rC',' rG',' rU',' MG']
-
+    goodnames = ['  A','  C','  G','  U',' MG']
+    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A' }
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
@@ -278,38 +278,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if len(line_edit)>75:
                     if (line_edit[76:78] == 'SE'):
                         line_edit = line_edit[0:76]+' S'+line_edit[78:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='5BU'): #Selenomethionine
-                line_edit = 'ATOM  '+line[6:17]+'  U'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]==' MG'): #Selenomethionine
-                line_edit = 'ATOM  '+line[6:17]+' MG'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='OMC'): #Selenomethionine
-                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='5MC'):
-                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]==' DC'): #Selenomethionine
-                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='CBR'): #Selenomethionine
-                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='CB2'):
-                line_edit = 'ATOM  '+line[6:17]+'  C'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='2MG'):
-                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='H2U'):
-                line_edit = 'ATOM  '+line[6:17]+'  U'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='PSU'):
-                line_edit = 'ATOM  '+line[6:17]+'  U'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='5MU'):
-                line_edit = 'ATOM  '+line[6:17]+'  U'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='OMG'):
-                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='7MG'):
-                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='1MG'):
-                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]==' YG'):
-                line_edit = 'ATOM  '+line[6:17]+'  G'+line[20:]
-            elif (line[0:6] == 'HETATM') & (line[17:20]=='1MA'):
-                line_edit = 'ATOM  '+line[6:17]+'  A'+line[20:]
+            elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys()):
+                line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
             #Don't save alternative conformations.
             if line[16] == 'A':
@@ -320,31 +290,33 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == '  G':
-                        longname = ' rG'
+                        longname = '  G'
+                    if longname == 'GTP':
+                        longname = '  G'
                     elif longname == '  A':
-                        longname =   ' rA'
+                        longname =   '  A'
                     elif longname == '  C':
-                        longname =   ' rC'
+                        longname =   '  C'
                     elif longname == '  U':
-                        longname =   ' rU'
+                        longname =   '  U'
                     elif longname == 'G  ':
-                        longname =   ' rG'
+                        longname =   '  G'
                     elif longname == 'A  ':
-                        longname =   ' rA'
+                        longname =   '  A'
                     elif longname == 'C  ':
-                        longname =   ' rC'
+                        longname =   '  C'
                     elif longname == 'U  ':
-                        longname =   ' rU'
+                        longname =   '  U'
                     elif longname == 'GUA':
-                        longname = ' rG'
+                        longname = '  G'
                     elif longname == 'ADE':
-                        longname = ' rA'
+                        longname = '  A'
                     elif longname == 'CYT':
-                        longname = ' rC'
+                        longname = '  C'
                     elif longname == 'URA':
-                        longname = ' rU'
+                        longname = '  U'
                     elif longname == 'URI':
-                        longname = ' rU'
+                        longname = '  U'
                     else:
                         if longname not in goodnames:    continue
 
@@ -371,13 +343,13 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if removechain:
                     line_edit = line_edit[0:21]+'  '+line_edit[23:]
 
-                line_edit = line_edit.replace( 'HO2\'', '2HO*' )
-                line_edit = line_edit.replace( 'HO5\'', '5HO*' )
-                line_edit = line_edit.replace( 'H5\'\'', '2H5*' )
+                line_edit = line_edit.replace('2HO*', "HO2'")
+                line_edit = line_edit.replace('5HO*', "HO5'")
+                line_edit = line_edit.replace('2H5*', "H5''")
 
-                line_edit = line_edit.replace('\'','*')
-                line_edit = line_edit.replace('OP1','O1P')
-                line_edit = line_edit.replace('OP2','O2P')
+                line_edit = line_edit.replace('*', "'")
+                line_edit = line_edit.replace('O1P', 'OP1')
+                line_edit = line_edit.replace('O2P', 'OP2')
 
                 outstring += line_edit
 

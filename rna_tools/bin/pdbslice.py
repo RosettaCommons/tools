@@ -1,1 +1,1 @@
-.././job_setup/pdbslice.py
+.././pdb_util/pdbslice.py

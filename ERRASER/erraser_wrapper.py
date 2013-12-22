@@ -52,17 +52,14 @@ def erraser( option ) :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
     for res in option.fixed_res :
-        if res in res_conversion_list :
-            fixed_res_final.append( res_conversion_list.index(res) + 1 )
+        fixed_res_final.append( res_num_convert(res_conversion_list, res) )
 
     for res in option.cutpoint :
-        if res in res_conversion_list :
-            cutpoint_final.append( res_conversion_list.index(res) + 1 )
+        cutpoint_final.append( res_num_convert(res_conversion_list, res) )
 
     extra_res_final = []
     for res in option.extra_res :
-        if res in res_conversion_list :
-            extra_res_final.append( res_conversion_list.index(res) + 1 )
+        extra_res_final.append( res_num_convert(res_conversion_list, res) )
 
     fixed_res_final.sort()
     cutpoint_final.sort()
@@ -257,7 +254,7 @@ def erraser_single_res( option ) :
     fixed_res_final.sort()
     option.fixed_res_rs = fixed_res_final
     option.cutpoint_rs = cutpoint_final
-    option.rebuild_res = res_conversion_list.index(option.rebuild_res_pdb) + 1
+    option.rebuild_res = res_num_convert(res_conversion_list, option.rebuild_res_pdb)
     rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
 
     print 'Starting to rebuild residue %s' % option.rebuild_res_pdb
@@ -430,7 +427,6 @@ def erraser_minimize( option ) :
     command += " -native %s " % temp_rs
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
-    command += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
@@ -678,7 +674,6 @@ def SWA_rebuild_erraser( option ) :
     ##############location of executable and database:###########
     database_folder = rosetta_database_path(option.rosetta_database)
     rna_swa_test_exe = rosetta_bin_path("swa_rna_main", option.rosetta_bin )
-    rna_anal_loop_close_exe = rosetta_bin_path("swa_rna_analytical_closure", option.rosetta_bin )
     #############folder_name###################################
     base_dir=os.getcwd()
 
@@ -807,7 +802,6 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
-    common_cmd += " -analytic_etable_evaluation 0 " # 2013 for lk_nonpolar
 
 
     if option.map_file != "" :
@@ -825,18 +819,17 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     ################Sampler Options##################################
+    sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
     if not is_chain_break :
-        sampling_cmd = rna_anal_loop_close_exe + ' -algorithm rna_resample_test '
-    else :
-        sampling_cmd = rna_swa_test_exe + ' -algorithm rna_resample_test '
+        sampling_cmd += '-erraser true '
+        sampling_cmd += '-sampler_extra_epsilon_rotamer true '
 
     sampling_cmd += " -s %s " % start_pdb
     sampling_cmd += " -out:file:silent blah.out "
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
     sampling_cmd += " -sampler_perform_o2star_pack true "
-    sampling_cmd += " -sampler_extra_syn_chi_rotamer true "
-    sampling_cmd += " -sampler_extra_anti_chi_rotamer true "
+    sampling_cmd += " -sampler_extra_chi_rotamer true "
     sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "

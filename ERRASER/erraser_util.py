@@ -16,6 +16,14 @@ imp.load_source('measure_params', file_path + '/measure_params.py')
 from measure_params import compute_torsion, compute_dist, compute_squared_dist, cross, dot, vec_diff
 
 #####################################################
+class ErraserError(Exception):
+    pass
+#####################################################
+def error_exit(message = ""):
+    sys.stdout.flush()
+    sys.stderr.flush()
+    raise ErraserError(message)
+#####################################################
 def rosetta_bin_path(exe_file, rosetta_folder = "") :
     """
     Return the absolute path to the given executable file in Rosetta.
@@ -60,15 +68,6 @@ def rosetta_database_path(rosetta_folder = "") :
         database_folder = rosetta_folder
     check_path_exist(database_folder)
     return database_folder
-#####################################################
-def error_exit(message = ""):
-    print >> sys.stderr, "#####################################################################"
-    print >> sys.stderr, "Error!!! "  + message
-    print >> sys.stderr, "#####################################################################"
-
-    sys.stdout.flush()
-    sys.stderr.flush()
-    assert(False)
 ###################################################
 def subprocess_call(command, out = sys.stdout, err = sys.stderr, is_append_file = False):
     """
@@ -298,8 +297,6 @@ def parse_option_chain_res_list ( argv, tag ) :
             if input_string[0] == '-' :
                 break
             input_string = input_string.upper()
-            if not input_string[0] in string.uppercase :
-                error_exit( "Incorrect input for -%s: instance %s" % (tag, input_string) )
 
             chain_id = input_string[0]
             input_string = input_string[1:]
@@ -343,7 +340,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     return True
 #####################################################
 def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
-                 rosetta_database = "", extract_first_only = False, output_virtual = False, 
+                 rosetta_database = "", extract_first_only = False, output_virtual = False,
                  rna_prot_erraser = False ):
     """
     Extract pdb's from Rosetta silent files.
@@ -535,7 +532,7 @@ def check_path_exist(path_name) :
 def load_pdb_coord(input_pdb) :
     """
     Load in the pdb and return the coordinates for each heavy atom in each residue.
-    Also return a list of C1* coordinates
+    Also return a list of C1' coordinates
     """
     check_path_exist(input_pdb)
 
@@ -1042,6 +1039,16 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
 
     output.close()
     return [res_conversion_list, fixed_res_list, cutpoint_list, CRYST1_line]
+##################################################
+def res_num_convert(res_conversion_list, res_pdb):
+    """
+    Convert pdb residue number (A15, chainID + resnum) to Rosetta pdb numbering.
+    """
+    if res_pdb not in res_conversion_list:
+        error_exit("The residue '%s' was not found in the model.  Please make sure " % res_pdb +
+        "that you include both the chain ID and residue number, for example 'A15'." )
+    else:
+        return res_conversion_list.index(res_pdb) + 1
 ##################################################
 def res_wise_rmsd(pdb1, pdb2) :
     """

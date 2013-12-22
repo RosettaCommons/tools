@@ -38,8 +38,6 @@ def get_general_rosetta_common_args_option(argv): #These are shared with FARFAR!
 
 	common_args += ' -score:weights %s ' %(force_field_file) #April 9th, 2011
 
-	common_args += ' -analytic_etable_evaluation 0 ' # 2013 -- due to Rosetta refactoring. Need this for lk_nonpolar to work.
-
 	if(len(force_syn_chi_res_list)>0): common_args += ' -force_syn_chi_res_list %s ' %( list_to_string(force_syn_chi_res_list) )
 
 	if(len(force_north_ribose_list)>0): common_args += ' -force_north_ribose_list %s ' %( list_to_string(force_north_ribose_list) )

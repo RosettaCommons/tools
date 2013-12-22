@@ -17,10 +17,10 @@ def Help():
 args = argv
 FORCE = 0
 
-#parser = argparse.ArgumentParser(description='Create .cc, .hh, and .fwd.hh files for a new class.')
-#parser.add_argument('--force', '-f',help='overwrite files if they previously exist',action="store_true", default=False)
-#args = parser.parse_args()
-#FORCE = args.force
+for i in range(len(argv)):
+    if argv[i] == '-f':
+        FORCE = 1
+        del( argv[i] )
 
 full_class_name = args[1]
 full_class_name = full_class_name.replace( '::', ':' ).replace( ':', '/' ).replace( '.cc', '')
@@ -75,12 +75,21 @@ def write_shared_header( fid, file_name ):
 
 namespace_cols = string.split( dirname( full_class_name ), '/' )
 
+tracer_name = ''
+for col in namespace_cols: tracer_name += col+'.'
+tracer_name += class_name
+
 if exists( abs_cc_file ) and not FORCE:
     print abs_cc_file, ' exists already. Use -force to override.'
 else:
     fid = open( abs_cc_file, 'w' )
     write_shared_header( fid, cc_file )
     fid.write( '#include <%s>\n' % hh_file )
+    fid.write( '\n')
+    fid.write( '#include <basic/Tracer.hh>\n' )
+    fid.write( '\n')
+    fid.write( 'static basic::Tracer TR( "%s" );\n' % tracer_name )
+    fid.write( '\n')
     for col in namespace_cols: fid.write( 'namespace %s {\n' % col )
     fid.write( '\n')
     fid.write( '\t//Constructor\n' )
@@ -115,11 +124,12 @@ else:
     fid.write('\t\n')
     fid.write('\tpublic:\n')
     fid.write('\t\n')
-    fid.write('\t//constructor\n')
-    fid.write('\t%s();\n' % class_name)
+    fid.write('\t\t//constructor\n')
+    fid.write('\t\t%s();\n' % class_name)
     fid.write('\t\n')
-    fid.write('\t//destructor\n')
-    fid.write('\t~%s();\n' % class_name)
+    fid.write('\t\t//destructor\n')
+    fid.write('\t\t~%s();\n' % class_name)
+    fid.write('\t\n')
     fid.write('\tpublic:\n')
     fid.write('\t\n')
     fid.write('\tprivate:\n')

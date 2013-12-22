@@ -76,14 +76,27 @@ if DO_MPI:
 
 command_lines_explicit = []
 
-for line in  lines:
+for line in lines:
 
     if len(line) == 0: continue
     if line[0] == '#': continue
     #if string.split( line[0]) == []: continue
+    command_line = line[:-1]
+
+    cols = string.split( command_line )
+    for i in range( len( cols ) ):
+        if cols[i][0] == '@':
+            flag_file = cols[i][1:]
+            flags = open( flag_file ).readlines()
+            new_flags = ''
+            for flag in flags:
+                if len(flag)>0 and flag[0] != '#':
+                    new_flags += ' ' + flag[:-1]
+            cols[i] = new_flags
+            command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    command_line = line[:-1].replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
+    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
     command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
     command_line = command_line.replace( '-o ', '-o '+dir)
@@ -95,7 +108,6 @@ for line in  lines:
     command_line = command_line.replace( '/home/rhiju',HOMEDIR)
 
     cols = string.split( command_line )
-
     if len( cols ) == 0: continue
 
     if '-total_jobs' in cols:
@@ -127,15 +139,17 @@ for line in  lines:
         fid.write( command + '\n')
 
         # qsub
+        pbs_outfile = '/dev/null'
+        pbs_errfile = '/dev/null'
         qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
         fid_qsub_submit_file = open( qsub_submit_file, 'w' )
         fid_qsub_submit_file.write( '#!/bin/bash\n'  )
         fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
-        fid_qsub_submit_file.write('#PBS -o %s\n' % outfile)
-        fid_qsub_submit_file.write('#PBS -e %s\n' % errfile)
-        fid_qsub_submit_file.write('#PBS -l walltime=48:00:00\n\n')
+        fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
+        fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
+        fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
         fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
-        fid_qsub_submit_file.write( command_line_explicit+' > /dev/null 2> /dev/null \n' )
+        fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
         fid_qsub.write( 'qsub %s\n' % qsub_submit_file )

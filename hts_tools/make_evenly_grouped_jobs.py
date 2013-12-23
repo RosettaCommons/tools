@@ -1,10 +1,12 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python2.7
 import json
 from optparse import OptionParser
 import glob
 import math 
 import sys
 import os
+from Bio import PDB
+import numpy
 
 def get_emptiest_bin(bin_map):
     smallest_bin = 0
@@ -17,6 +19,16 @@ def get_emptiest_bin(bin_map):
             smallest_bin = bin_id
             smallest_bin_size = bin_size
     return smallest_bin
+
+def find_ligand_center(pdb_path):
+    parser = PDB.PDBParser()
+    structure = parser.get_structure("x",pdb_path)
+    atom_sum = numpy.zeros(3)
+    atom_count = 1.0
+    for atom in structure.get_atoms():
+        atom_sum += atom.get_coord()
+        atom_count += 1.0
+    return atom_sum/atom_count
 
 def parse_params_dir(params_dir,group_name,group_list=None):
     pdb_map = {}
@@ -68,7 +80,7 @@ def make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff):
         ligands_to_dock = []
         for cross_name in pdb_map:
             if cross_name == system_name:
-                continue
+                ligand_center = find_ligand_center(pdb_map[system_name][0])
             ligands_to_dock += pdb_map[cross_name]
         if len(protein_list) == 0 or len(ligands_to_dock) == 0:
             continue
@@ -77,6 +89,7 @@ def make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff):
             new_job = {"group_name" : system_name}
             new_job["proteins"] = protein_list
             new_job["ligands"] = ligand_chunk
+            new_job["startfrom"] = ligand_center.tolist()
             jobs.append(new_job)
     return jobs
         

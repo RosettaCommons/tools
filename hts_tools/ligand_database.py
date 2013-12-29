@@ -23,7 +23,7 @@ def setup_tag_schema(db_name):
     cursor.execute(schema_string)
     connection.commit()
     connection.close()
-	
+    
 def setup_metadata_schema(db_name):
     '''given a db name, set up the metadata schema'''
     
@@ -58,10 +58,10 @@ def write_data(db_name,table,columns,data_list):
     
 def write_tag_data(db_name,data_list,mode="tag"):
     '''given a deata list, write activity tag information'''
-	if mode =="tag":
-		insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
-	elif mode== "metadata":
-		insert_string = "INSERT INTO metadata (record_id,tag,value) VALUES (?,?,?)"
+    if mode =="tag":
+        insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+    elif mode== "metadata":
+        insert_string = "INSERT INTO metadata (record_id,tag,value) VALUES (?,?,?)"
     query_string = "SELECT ligand_id,record_id FROM sdf_input_data"
     
     
@@ -122,19 +122,20 @@ def get_all_file_names(db_name,only_tagged=False,json_output=False):
         
     connection.close()
     
-def get_file_names_with_activity_data(db_name):
+def get_file_names_with_activity_data(db_name,system_list = None):
     '''generator producing sdf filenames and activity tag data'''
     select_string = "SELECT sdf_input_data.ligand_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for sdf_record,tag_id,filename,tag,value in cursor.execute(select_string):
-        yield {
-            "sdf_record" : sdf_record,
-            "tag_id" : tag_id,
-            "filename" : filename,
-            "tag" : tag,
-            "value" : value
-        }
+        if system_list != None and tag not in system_list:
+            yield {
+                "sdf_record" : sdf_record,
+                "tag_id" : tag_id,
+                "filename" : filename,
+                "tag" : tag,
+                "value" : value
+            }
     connection.close()
     
 def get_params_information(db_name):

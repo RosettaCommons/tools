@@ -91,7 +91,7 @@ for line in lines:
             new_flags = ''
             for flag in flags:
                 if len(flag)>0 and flag[0] != '#':
-                    new_flags += ' ' + flag[:-1]
+                    new_flags += ' ' + flag.replace( '\n', '')
             cols[i] = new_flags
             command_line = string.join( cols )
 

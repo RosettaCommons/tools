@@ -28,6 +28,7 @@ def setup_xml( workdir, chains, outfile, lips_exp ):
 	f.write('    <ResourceLocators>\n')
 	f.write('        <FileSystemResourceLocator tag="spanning_locator" base_path="' + workdir + '"/>\n')
 	f.write('        <FileSystemResourceLocator tag="embedding_locator" base_path="' + workdir + '"/>\n')
+	f.write('        <FileSystemResourceLocator tag="lipsexp_locator" base_path="' + workdir + '"/>\n')
 	f.write('        <FileSystemResourceLocator tag="startstruct_locator" base_path="' + workdir + '"/>\n')
 	f.write('    </ResourceLocators>')
 
@@ -42,13 +43,9 @@ def setup_xml( workdir, chains, outfile, lips_exp ):
 	# write out xml resource definitions for each chain
 	f.write('    <Resources>\n')
 	for i in range( len( mp_chains ) ):
-		f.write('        <PoseFromPDB tag="' + mp_chains[i] + '_" locator="startstruct_locator" locatorID="' + workdir + mp_chains[i] + '.pdb"/>\n')
-		f.write('        <EmbedDef tag="' + mp_chains[i] + '__embed" locator="embedding_locator" locatorID="' + workdir + mp_chains[i] + '.embed"/>\n')
-		f.write('        <SpanFile tag="' + mp_chains[i] + '__span" locator="spanning_locator" locatorID="' + workdir + mp_chains[i] + '.span"/>\n')
-
-		if lips_exp:
-			f.write('		 <LipoFile tag="' + mp_chains[i] + '__lips" locator=lipsexp_locator" locatorID="' + workdir + mp_chains[i] + '.lips4/>"\n')
-	
+		f.write('        <PoseFromPDB tag="' + mp_chains[i] + '_my" locator="startstruct_locator" locatorID="' + workdir + mp_chains[i] + '.pdb"/>\n')
+		f.write('        <EmbedDef tag="' + mp_chains[i] + '_my_embed" locator="embedding_locator" locatorID="' + workdir + mp_chains[i] + '.embed"/>\n')
+		f.write('        <SpanFile tag="' + mp_chains[i] + '_my_span" locator="spanning_locator" locatorID="' + workdir + mp_chains[i] + '.span"/>\n')
 	f.write('    </Resources>\n')
 
 	# write out xml job definition
@@ -56,7 +53,9 @@ def setup_xml( workdir, chains, outfile, lips_exp ):
 	f.write('        <Job name="membrane">\n')
 	f.write('            <Data desc="startstruct" resource_tag="' + mp_chains[i] + '_"/>\n') ### this is a pre-jd2 hack
 
+	# Write resources per chain
 	for j in range ( len( mp_chains ) ):
+		f.write('			 <Data desc="' + mp_chains[i] + '_lips" resource_tag="' + mp_chains[i] + '_lips"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '_embed" resource_tag="' + mp_chains[i] + '__embed"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '_span"  resource_tag="' + mp_chains[i] + '__span"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '" resource_tag="' + mp_chains[i] + '_"/>\n')

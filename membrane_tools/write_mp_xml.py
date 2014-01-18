@@ -28,7 +28,6 @@ def setup_xml( workdir, chains, outfile, lips_exp ):
 	f.write('    <ResourceLocators>\n')
 	f.write('        <FileSystemResourceLocator tag="spanning_locator" base_path="' + workdir + '"/>\n')
 	f.write('        <FileSystemResourceLocator tag="embedding_locator" base_path="' + workdir + '"/>\n')
-	f.write('        <FileSystemResourceLocator tag="lipsexp_locator" base_path="' + workdir + '"/>\n')
 	f.write('        <FileSystemResourceLocator tag="startstruct_locator" base_path="' + workdir + '"/>\n')
 	f.write('    </ResourceLocators>')
 
@@ -55,7 +54,6 @@ def setup_xml( workdir, chains, outfile, lips_exp ):
 
 	# Write resources per chain
 	for j in range ( len( mp_chains ) ):
-		f.write('			 <Data desc="' + mp_chains[i] + '_lips" resource_tag="' + mp_chains[i] + '_lips"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '_embed" resource_tag="' + mp_chains[i] + '__embed"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '_span"  resource_tag="' + mp_chains[i] + '__span"/>\n')
 		f.write('            <Data desc="' + mp_chains[i] + '" resource_tag="' + mp_chains[i] + '_"/>\n')

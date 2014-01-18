@@ -12,7 +12,7 @@ import subprocess
 import argparse
 
 # Create XML Template to be filled in by chain
-def setup_xml( workdir, chains, outfile ):
+def setup_xml( workdir, chains, outfile, lips_exp ):
 
 	# Read membrane chains into an array
 	mp_chains = []
@@ -45,6 +45,10 @@ def setup_xml( workdir, chains, outfile ):
 		f.write('        <PoseFromPDB tag="' + mp_chains[i] + '_" locator="startstruct_locator" locatorID="' + workdir + mp_chains[i] + '.pdb"/>\n')
 		f.write('        <EmbedDef tag="' + mp_chains[i] + '__embed" locator="embedding_locator" locatorID="' + workdir + mp_chains[i] + '.embed"/>\n')
 		f.write('        <SpanFile tag="' + mp_chains[i] + '__span" locator="spanning_locator" locatorID="' + workdir + mp_chains[i] + '.span"/>\n')
+
+		if lips_exp:
+			f.write('		 <LipoFile tag="' + mp_chains[i] + '__lips" locator=lipsexp_locator" locatorID="' + workdir + mp_chains[i] + '.lips4/>"\n')
+	
 	f.write('    </Resources>\n')
 
 	# write out xml job definition
@@ -72,10 +76,11 @@ def main( argv ):
 	parser.add_argument('--workdir', help="working directory for run - should be a full path from Rosetta/source")
 	parser.add_argument('--chains', help="list of membrane chains to include in the run")
 	parser.add_argument('--outfile', help='output xml file')
+	parser.add_argument('--include_lips', help='include lipophobicity score in run')
 	args = parser.parse_args()
 
 	# Setup xml file
-	setup_xml( args.workdir, args.chains, args.outfile )
+	setup_xml( args.workdir, args.chains, args.outfile, args.include_lips )
 
 if __name__ == "__main__" : main(sys.argv)
 

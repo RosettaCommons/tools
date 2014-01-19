@@ -9,3 +9,21 @@
 ##
 ## @author Rebecca Alford
 ## @note Last Modified: 1/17/14
+
+def main( argv ):
+
+
+	# Parse Args
+	parser = 
+	# Parse Args
+	parser = argparse.ArgumentParser( description='Generate a resource definition XML file given a list of membrane chains')
+	parser.add_argument('--workdir', help="working directory for run - should be a full path from Rosetta/source")
+	parser.add_argument('--chains', help="list of membrane chains to include in the run")
+	parser.add_argument('--outfile', help='output xml file')
+	parser.add_argument('--include_lips', help='include lipophobicity score in run')
+	args = parser.parse_args()
+
+	# Setup xml file
+	setup_xml( args.workdir, args.chains, args.outfile, args.include_lips )
+
+if __name__ == "__main__" : main(sys.argv)

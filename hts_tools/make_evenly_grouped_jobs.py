@@ -46,11 +46,12 @@ def parse_params_dir(params_dir,group_name,group_list=None):
                     line = line.split()
                     if len(line) >= 3:
                         if line[1] == "system_name":
-                            if group_list != None and line[2] in group_list:
+                            if (group_list != None and line[2] in group_list) or group_list == None:
                                 try:
                                     pdb_map[line[2]].append(pdb_path)
                                 except KeyError:
                                     pdb_map[line[2]] = [pdb_path]
+                            
         else:
             try:
                 pdb_map[group_name].append(pdb_path)
@@ -93,15 +94,15 @@ def make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff):
             jobs.append(new_job)
     return jobs
         
-def make_jobs(pdb_map,structure_dir,cutoff,group_name):
+def make_jobs(pdb_map,structure_dir,cutoff,group_name,native_dir =None):
 
     jobs = []
     total_jobs = 0
     for system_name in pdb_map:
         protein_list = []
         if group_name == None:
-            short_system_name = system_name.split("_")[0]
-            for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
+            #short_system_name = system_name.split("_")[0]
+            for path in glob.glob(structure_dir+"/*"+system_name+"*.pdb*"):
                 protein_list.append(path)
         else:
             short_system_name = group_name
@@ -144,7 +145,7 @@ def init_options():
     parser.add_option("--group_name",dest="group_name",help="Manually specify a group name to be used for all proteins and all ligands")
     parser.add_option("--group_name_list",dest="group_name_list",help="specify a list of acceptable group names seperated by commas, jobs will only be constructed from those groups",default=None)
     parser.add_option("--inactive_cross_dock",dest="cross_dock",help="create jobs that dock all actives as inactives",default=False, action="store_true")
-    parser.add_option("--create_native_commands",dest="native_dir",help="path to a directory of pdb files containing native proteins. (Optional)")
+    parser.add_option("--create_native_commands",dest="native_dir",help="path to a directory of pdb files containing native proteins. (Optional)",default=None)
     return parser
     
 
@@ -174,11 +175,10 @@ if __name__ == "__main__":
         pdb_map,params_map = parse_params_dir(param_dir,options.group_name)
     else:
         pdb_map,params_map = parse_params_dir(param_dir,options.group_name,group_list=group_name_list)
-        
     if options.cross_dock:
         jobs = make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff)
     else:
-        jobs = make_jobs(pdb_map,structure_dir,cutoff,options.group_name)
+        jobs = make_jobs(pdb_map,structure_dir,cutoff,options.group_name,native_dir=options.native_dir)
     
 
     job_list = []

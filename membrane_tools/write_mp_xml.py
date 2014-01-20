@@ -42,9 +42,9 @@ def setup_xml( workdir, chains, outfile ):
 	# write out xml resource definitions for each chain
 	f.write('    <Resources>\n')
 	for i in range( len( mp_chains ) ):
-		f.write('        <PoseFromPDB tag="' + mp_chains[i] + '_my" locator="startstruct_locator" locatorID="' + workdir + "/" + mp_chains[i] + '.pdb"/>\n')
-		f.write('        <EmbedDef tag="' + mp_chains[i] + '_my_embed" locator="embedding_locator" locatorID="' + workdir + "/" + mp_chains[i] + '.embed"/>\n')
-		f.write('        <SpanFile tag="' + mp_chains[i] + '_my_span" locator="spanning_locator" locatorID="' + workdir + "/" + mp_chains[i] + '.span"/>\n')
+		f.write('        <PoseFromPDB tag="' + mp_chains[i] + '_my" locator="startstruct_locator" locatorID="' + mp_chains[i] + '.pdb"/>\n')
+		f.write('        <EmbedDef tag="' + mp_chains[i] + '_my_embed" locator="embedding_locator" locatorID="' + mp_chains[i] + '.embed"/>\n')
+		f.write('        <SpanFile tag="' + mp_chains[i] + '_my_span" locator="spanning_locator" locatorID="' + mp_chains[i] + '.span"/>\n')
 	f.write('    </Resources>\n')
 
 	# write out xml job definition

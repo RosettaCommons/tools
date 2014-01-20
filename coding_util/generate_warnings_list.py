@@ -128,15 +128,15 @@ if not args.parse_only:
     # Generate new user.settings file.
     print 'generating new settings:'
 
-    settings = 'settings = {"user" : {"prepends" : {}, "appends" : {}, ' + \
-               '"overrides" : {"flags" : {"warn" : ['
+    settings = 'settings = {"user" : {"prepends" : {}, "appends" : ' +\
+               '{"flags" : {"warn" : ['
     if args.cxx == 'clang':
-        settings += '"Weverything", "fno-caret-diagnostics", ' + \
-                    '"fno-color-diagnostics", "fno-diagnostics-fixit-info", '
+        settings += '"Wall", "fno-caret-diagnostics", ' + \
+                    '"fno-color-diagnostics", "fno-diagnostics-fixit-info",'
     else:  # cxx=gcc
         settings += '"Wall", "Wextra", "pedantic", ' + \
                     '"fdiagnostics-show-option", "fmessage-length=0"'
-    settings += '], }}, "removes" : {}, }}\n'
+    settings += '], }}, "overrides" : {}, "removes" : {}, }}\n'
 
     print settings
     with open(args.settings_directory + '/user.settings', "w") as f:

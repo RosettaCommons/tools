@@ -43,7 +43,7 @@ def get_name_from_params(path,database):
 
 def get_disallowed_ligands(database):
     '''Return a set of 3 letter names which are already assigned to ligands in the database'''
-    residue_type_set_path = database+"chemical/residue_type_sets/"
+    residue_type_set_path = database+"/chemical/residue_type_sets/"
     residue_set_list = os.listdir(residue_type_set_path)
     disallowed_ligands = set()
     for residue_set in residue_set_list:
@@ -61,7 +61,7 @@ def get_disallowed_ligands(database):
 def required_ligand_name_length(ligand_count):
     '''Get the necessary length of param file name given the number of ligands being processed'''
     character_space = 36 #[A-Z0-9]
-    return int(ceil(log(ligand_count)/log(character_space)))
+    return max(2,int(ceil(log(ligand_count)/log(character_space))))
  
 def setup_dir_for_filehash(output_dir):
     '''Setup all the directories used in filehashing ahead of time so i dont have to worry about my threads blocking properly'''
@@ -207,7 +207,6 @@ if __name__ == "__main__":
         file_information = set_up_crossed_ligands(active_information)
     else:
         file_information = active_information
-    
     add_ligand_names(file_information,options.database)
     
     complete_file_information = processor_pool.map(process_input_sdf,file_information)

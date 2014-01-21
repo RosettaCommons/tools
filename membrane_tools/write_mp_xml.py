@@ -54,9 +54,9 @@ def setup_xml( workdir, chains, outfile ):
 
 	# Write resources per chain
 	for j in range ( len( mp_chains ) ):
-		f.write('            <Data desc="' + mp_chains[i] + '_embed" resource_tag="' + mp_chains[i] + '_my_embed"/>\n')
-		f.write('            <Data desc="' + mp_chains[i] + '_span"  resource_tag="' + mp_chains[i] + '_my_span"/>\n')
-		f.write('            <Data desc="' + mp_chains[i] + '" resource_tag="' + mp_chains[i] + '_my"/>\n')
+		f.write('            <Data desc="' + mp_chains[j] + '_embed" resource_tag="' + mp_chains[j] + '_my_embed"/>\n')
+		f.write('            <Data desc="' + mp_chains[j] + '_span"  resource_tag="' + mp_chains[j] + '_my_span"/>\n')
+		f.write('            <Data desc="' + mp_chains[j] + '" resource_tag="' + mp_chains[j] + '_my"/>\n')
 
 	# Finish up the jobs and the file
 	f.write('        </Job>\n')

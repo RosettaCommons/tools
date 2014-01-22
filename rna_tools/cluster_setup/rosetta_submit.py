@@ -26,7 +26,7 @@ tasks_per_node_MPI = 12 # lonestar
 hostname = ''
 hostname_tag = popen( 'hostname' ).readlines()[0]
 if hostname_tag.find( 'ls4' ) > -1: hostname = 'lonestar'
-if hostname_tag.find( 'DasLab' ) > -1: hostname = 'ade'
+if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostname = 'ade'
 
 save_logs = False
 if argv.count( '-save_logs' )>0:
@@ -47,10 +47,12 @@ qsub_file = 'qsubMINI'
 qsub_file_MPI = 'qsubMPI'
 qsub_file_MPI_ONEBATCH = 'qsubMPI_ONEBATCH'
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
+all_commands_file = 'all_commands.sh'
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
 fid_qsub = open( qsub_file,'w')
+fid_all_commands = open( all_commands_file, 'w' )
 
 if DO_MPI:
     fid_qsub_MPI = open( qsub_file_MPI,'w')
@@ -76,25 +78,38 @@ if DO_MPI:
 
 command_lines_explicit = []
 
-for line in  lines:
+for line in lines:
 
     if len(line) == 0: continue
     if line[0] == '#': continue
     #if string.split( line[0]) == []: continue
+    command_line = line[:-1]
+
+    cols = string.split( command_line )
+    for i in range( len( cols ) ):
+        if cols[i][0] == '@':
+            flag_file = cols[i][1:]
+            flags = open( flag_file ).readlines()
+            new_flags = ''
+            for flag in flags:
+                if len(flag)>0 and flag[0] != '#':
+                    new_flags += ' ' + flag.replace( '\n', '')
+            cols[i] = new_flags
+            command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    command_line = line[:-1].replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
+    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
     command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
     command_line = command_line.replace( '-o ', '-o '+dir)
-    command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
+    #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
+    command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
     command_line = command_line.replace( 'macosgcc', 'linuxgcc')
     command_line = command_line.replace( 'Users', 'home')
     command_line = command_line.replace( '~/', HOMEDIR+'/')
     command_line = command_line.replace( '/home/rhiju',HOMEDIR)
 
     cols = string.split( command_line )
-
     if len( cols ) == 0: continue
 
     if '-total_jobs' in cols:
@@ -126,22 +141,26 @@ for line in  lines:
         fid.write( command + '\n')
 
         # qsub
+        pbs_outfile = '/dev/null'
+        pbs_errfile = '/dev/null'
         qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
         fid_qsub_submit_file = open( qsub_submit_file, 'w' )
         fid_qsub_submit_file.write( '#!/bin/bash\n'  )
         fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
-        fid_qsub_submit_file.write('#PBS -o %s\n' % outfile)
-        fid_qsub_submit_file.write('#PBS -e %s\n' % errfile)
-        fid_qsub_submit_file.write('#PBS -l walltime=48:00:00\n\n')
+        fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
+        fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
+        fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
         fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
-        fid_qsub_submit_file.write( command_line_explicit+' > /dev/null 2> /dev/null \n' )
+        fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
         fid_qsub.write( 'qsub %s\n' % qsub_submit_file )
 
-
         # MPI job file
         if DO_MPI: fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
+
+        # all command lines in one .sh file for bash.
+        fid_all_commands.write( 'nohup %s > %s 2> %s &\n' % ( command_line_explicit, outfile, errfile ) )
 
         command_lines_explicit.append( command_line_explicit )
         tot_jobs += 1
@@ -233,21 +252,25 @@ if DO_MPI:
 fid.close()
 fid_condor.close()
 fid_qsub.close()
+fid_all_commands.close()
 
 if DO_MPI:
     fid_qsub_MPI.close()
     fid_qsub_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
-
 if len( hostname ) == 0:
     print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source',bsub_file
     print
 
-if len( hostname ) == 0 and hostname == 'ade':
+if len( hostname ) > 0 and hostname == 'ade':
     print 'Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>condor_submit',condor_file
+    print
+
+    print 'Also created bash file with all commands ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
+    print '>bash ', all_commands_file
     print
 
 if len( hostname ) == 0:

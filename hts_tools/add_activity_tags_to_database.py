@@ -14,6 +14,7 @@ from hts_util import parse_input_file
 def init_options():
     usage = "%prog ligands.db3 tag file"
     parser=OptionParser(usage)
+    parser.add_option("--mode",dest="mode",help="The type of tag to insert, should be 'metadata' or 'tag'. (Default: 'tag')",default="tag")
     return parser
     
 if __name__ == "__main__":
@@ -24,5 +25,9 @@ if __name__ == "__main__":
     tag_file = args[1]
     tag_file_schema,tag_file_list = parse_input_file(tag_file,["ligand_id","tag","value"])
     
-    setup_tag_schema(database_path)
-    write_tag_data(database_path,tag_file_list)
+    if options.mode == "tag":
+        setup_tag_schema(database_path)
+        write_tag_data(database_path,tag_file_list)
+    elif option.mode == "metadata":
+        setup_metadata_schema(database_path)
+        write_tag_data(database_path,tag_file_list,mode="metadata")

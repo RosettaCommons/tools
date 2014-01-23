@@ -9,4 +9,4 @@
 #SBATCH -N 10
 echo $SLURM_NODELIST > nodefile.txt
 echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt
-pp_run.py job_script
+pp_jobsub.py job_script

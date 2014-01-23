@@ -32,9 +32,7 @@ if rank == 0:
             comm.Abort(1)
             assert(False)
         else:
-            line_split = line.split(';;;')
-            working_dir = line_split[0] .replace(' ', '')
-            cmdline = line_split[1]
+            working_dir, cmdline = line.strip().split('\t', 1)
             if line_index == 0:
                 working_dir_0 = working_dir
                 cmdline_0 = cmdline

@@ -1,0 +1,60 @@
+This is a collection of very simple python data structures and functions
+for dealing with protein structures.  They were originally developed to
+measure sequence recovery rates, broken down by amino-acid type and residue
+burial.  The data structures are quite useful for answering questions
+such as "What amino acid is at position 10 on chain C" or "How many
+neighbors does residue 15 on chain A have?"
+
+It was mostly written by Andrew Leaver-Fay, but the amino_acids.py script
+was written by Mike Tyka.
+
+***Key data structures***
+vector3d.py
+  vector3d:     represents a coordinate in 3D; implements vector addition, subtraction, as well as cross and dot products
+
+pdb_structure.py:
+  Atom:         contains coordinate and atom name
+  Residue:      contains residue type, residue identifier (sequence position + insertion code), and a set of Atoms
+  Chain:        contains chain name and a set of Residues
+  PDBStructure: contains a set of Chains
+
+compare_sequences.py:
+  SeqComp:      container class for holding the results from sequence-recovery measurements
+
+***Key functions***
+
+pdb_structure.py
+  pdbstructure_from_file:
+    returns a PDBStructure object that's been initialized from an input pdb file   
+
+find_neighbors.py
+  find_neighbors_within_CB_cutoff:
+    returns a list of the residues that are within a certain cutoff distance
+    represented as a pair of residue identifiers, each of which is a pair of
+    strings representing the chain and the residue string (resid + insertion code)
+
+  neighbor_graph:
+    return a graph-like data structure representing the neighbor relationships
+    where the vertices represent residues and the edges represent the fact that
+    two residues are within the input distance cutoff
+
+  count_nneighbs_wi_cbeta_cutoff:
+    returns a dictionary with a count for each residue of the number of neighbors
+    it has within a certain distance cutoff
+
+compare_sequences.py:
+  compare_two_pdbs:
+    opens two pdb files and compares the sequences between them, optionally restricting
+    itself to a subset of the residues (e.g. those at a protein/protein interface)
+
+***Useful scripts (that can be executed from the command line)***
+
+test_compare_sequences.py
+  fairly specific script for Andrew's workstation that shows how sequence
+  recovery rates and depth-specific rates can be measured using the
+  PDBStructure classes.
+
+test_sequence_profile.py
+  compares the sequence profile (that is, the frequency of each amino acid
+  type broken down by their level of burial) from two sets of pdbs given as
+  two text file lists as the two arguments on the command line.

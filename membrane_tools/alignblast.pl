@@ -1,10 +1,13 @@
 #! /usr/bin/perl -w
-# alignblast.pl version 1.1.4 (April 2005)
-# Extract a multiple alignment of hits from Blast or PsiBlast output
-# Usage:   alignblast.pl [options] blast.out alignment-file
+# @file: alignblast.pl
+# @brief: Extract a multiple alignment of hits from Blast or PsiBlast
+#  
+# @usage: alignblast.pl [options] blast.out alignment-file
 #
-# Please report bugs to johannes@soeding.com. Thank you.
-
+# @note: version 1.1.4 (April 2005)
+# @note: Please report bugs to johannes@soeding.com. Thank you.
+#
+# Script Docuemntation added by Rebecca Alford 2/13/14
 
 use strict;
 

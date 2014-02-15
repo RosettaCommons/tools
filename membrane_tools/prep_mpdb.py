@@ -26,24 +26,22 @@ import write_mp_xml
 ## @dependencies: clean_pdb, amino_acids, span_from_pdb, get_transformed_pdb, 
 ##				  write_mp_xml, remove_chain.pl
 ##
-## Steps for Generating Data: 
+## Steps for Generating Data (used by the script)
 ##		(1) From PDB id, create new directory and make this your working directory
 ##		(2) Grab transformed PDB from the server (PDB TM Database)
-##		(3) From the TR_PDB, generate a clean pdb with the clean_pdb.py script and 
-##			and chains desired from the user (fyi - will split the fasta but no pdb)
-##		(4) Split the cleaned PDB by chain (no renumbering - but convert to natural aa type)
-##		(5) Remove chains from the original PDB (this prevents making a copy of the PDB - more
+##		(3) Generate one clean pdb per chain and a combined pbd
+##		(4) Remove chains from the original PDB (this prevents making a copy of the PDB - more
 ##			memory efficient given that I currently do not need the whole PDB)
-##		(6) Generate 1 spanfile per PDB chain 
-##		(7) Generate a unified spanfile for the nonspecific PDB (maybe do this with a --hack)
-##		(8) Generate an embedding file template for each PDB chain
-##		(9) Write flags file
-##	   (10) Write an XML resource definition file
-##	   (11) Write a command file (and make it executable)
-##	   (12) Done!
+##		(5) Generate 1 spanfile per PDB chain 
+##		(6) Generate a unified spanfile for the nonspecific PDB (maybe do this with a --hack)
+##		(7) Generate an embedding file template for each PDB chain
+##		(8) Write flags file
+##	    (9) Write an XML resource definition file
+##	   (10) Write a command file (and make it executable)
+##	   (11) Done!
 
 #===================================
-## Environment variables
+## Environment variables (CHANGE THESE)
 ## Path to Rosetta executable
 rosetta_exec = "/Users/rfalford12/apps/Rosetta/main/source/bin" # path to rosetta executables
 rosetta_db = "/Users/rfalford12/apps/Rosetta/main/database" # path to rosetta database

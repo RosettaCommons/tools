@@ -10,26 +10,21 @@
 ## @author Rebecca Alford
 ## @note Last Modified: 2/5/14
 
-# Python Headers
 import sys, os
 import argparse
 import numpy
 import shutil
 from subprocess import call
 
-# Membrane Specific Import Headers
 import get_transformed_pdb
 import span_from_pdb
 import write_mp_xml
-
-# Notes from 2/6/14 - removing bcl dependency. trpdbs should already have 
-# symmetric molecules in them. Clean_pdb is a much better way to do the other thing...
 
 ## @desc Prepare a pdb ID for integration testing and generate required mp 
 ##		 framework files
 ##
 ## @dependencies: clean_pdb, amino_acids, span_from_pdb, get_transformed_pdb, 
-##				  write_mp_xml, bcl (for chain splitting, until I find/write an alternative)
+##				  write_mp_xml, remove_chain.pl
 ##
 ## Steps for Generating Data: 
 ##		(1) From PDB id, create new directory and make this your working directory
@@ -50,9 +45,9 @@ import write_mp_xml
 #===================================
 ## Environment variables
 ## Path to Rosetta executable
-rosetta_exec = "/Users/rfalford12/apps/Rosetta/main/source/bin" #insert your path here
-rosetta_db = "/Users/rfalford12/apps/Rosetta/main/database"
-bcl = "/Users/rfalford12/apps/BioChemicalLibrary-3.0.0_mac/bcl" #insert your path here
+rosetta_exec = "/Users/rfalford12/apps/Rosetta/main/source/bin" # path to rosetta executables
+rosetta_db = "/Users/rfalford12/apps/Rosetta/main/database" # path to rosetta database
+remove_chain = "~/mpdocking/code/pdb_prep/remove_chain.pl" # path to remove chain.pl script
 ## end of env vars
 
 #===================================
@@ -76,12 +71,7 @@ def main( argv ):
     nargs='+',
     help="Chain to extract from the pdb. Should be uppercase [A-Z].", )
 
-    # Hack the clean pdb process to build full non-chain dependent pdb
-   # parser.add_argument('--hack', '-k',
-   # action="store",
-   # help="Hack clean pdb to make an addiitonal full spanfile for scoring.", )
-
-	#parse arguments
+	# parse arguments
 	args = parser.parse_args()
 
 	print "Writing input files for ", args.pdb
@@ -95,11 +85,10 @@ def main( argv ):
 # Print Help
 def print_help():
     
-    print "prep_mp_db.py --pdb <pdb> --chains <chains to include> --hack <true/false>"
+    print "prep_mp_db.py --pdb <pdb> --chains <chains to include>"
     print "Required Args: "
     print "pdb = ID of the pdb of interest"
     print "chains = chains to include in analysis"
-    print "hack: build full spanfile with renumbering for scoring in pre-iter version 2014"
     print "written by Rebecca Alford (Gray Lab)."
     sys.exit()
 
@@ -118,39 +107,29 @@ def prep_db( PDBID, chains, hack ):
 	if ( not os.path.isfile( PDBID + "_tr.pdb") ):
 		sys.exit("Failed to download tr pdb from the server!")
 
-	# Clean the PDB using clean_pdb script (os.sys becasue clean_pdb is not an object)
+	# Create a Cleaned pdb for each chain
 	pdbpath = PDBID + "_tr"
+	for i in range( len(chains) ): 
+		clean_pdb_cmd = "python ../clean_pdb.py " + pdbpath + " " + chains[i]
+		os.system( clean_pdb_cmd )
+
+	# Create a Cleaned PDB for the full structure and remove chain IDs
 	chainstring = ""
 	for i in range( len(chains) ):
 		chainstring = chainstring + chains[i]
 
 	clean_pdb_cmd = "python ../clean_pdb.py " + pdbpath + " " + chainstring
-	print "Cleaning the PDB"
 	os.system( clean_pdb_cmd )
-
-	# hack - right now - becasue we have no lipid file dependency, we won't need the fastas
-	# generated from clean pdb. However, in the future if you get that to work, it might be
-	# a better idea to delete these and regenerate them with the bcl which is slightly
-	# more sophisticated
-
-	# Split existing PDB into multiple chains with additional cleaning steps
-	clean_pdb_result = PDBID.upper() + "_TR_" + chainstring + ".pdb"
-	bcl_command = bcl + " protein:PDBConvert " + clean_pdb_result + " -bcl_pdb Split -output_prefix " + PDBID + "_"
-	os.system( bcl_command )
+	
+	result = PDBID.upper() + "_TR_" + chainstring + ".pdb"
+	remove_chain_command = remove_chain + " -pdbfile " + result + " -outfile nochain.pdb"
+	os.system( remove_chain_command )
 
 	# Write chains.txt to dir
 	write_chain_ids( PDBID, chains )
 
-	## Write non split/hacky span file
-	if ( hack == "true" ):
-
-		# Create a copy of the pdb with removed chains
-		nochain_path = "nochain.pdb" ## change this...
-		remove_chain_command = "~/mpdocking/code/pdb_prep/remove_chain.pl -pdbfile " + clean_pdb_result + " -outfile " + nochain_path
-		os.system( remove_chain_command )
-
-		# BUild spanfile from that pdb
-		span_from_pdb.get_spans_from_pdb( nochain_path, "_", PDBID )
+	# Build spanfile from whole pdb file
+	span_from_pdb.get_spans_from_pdb( "nochain.pdb", "_", PDBID )
 
 	## Create one span file per chain
 	for c in chains: 
@@ -159,7 +138,7 @@ def prep_db( PDBID, chains, hack ):
 		my_chain = c.upper() 
 
 		# Locate corresponding pdbfile
-		pdbfile = my_id + "_" + my_chain + ".pdb"
+		pdbfile = my_id + "_TR_" + my_chain + ".pdb"
 		prefix = pdbfile[0:4] + "_"
 		prefix2 = prefix + my_chain
 

@@ -76,7 +76,8 @@ def main( argv ):
 
 	# Prep PDB
 	prep_db( args.pdb, args.chains, "true" )
-	
+
+	print "Warning - you think you are done - but you still need to fill in data in the .embed files!"
 	print "Done!"
 
 #===================================
@@ -137,6 +138,9 @@ def prep_db( PDBID, chains, hack ):
 
 		# Locate corresponding pdbfile
 		pdbfile = my_id + "_TR_" + my_chain + ".pdb"
+		newpath = my_id + "_" + my_chain + ".pdb"
+		cpcmd = "cp " + pdbfile + " " newpath
+		os.system( cpcmd )
 		prefix = pdbfile[0:4] + "_"
 		prefix2 = prefix + my_chain
 

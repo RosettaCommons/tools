@@ -114,10 +114,11 @@ pwd
 git rm -r curated pilot
 git commit -m "weekly release: removing pilot apps"
 
-cd $ROSETTA/main/source/doc
-pwd
-git rm -r devel/ apps/pilot/
-git commit -m "weekly release: removing devel/pilot app documentation"
+# unneeded since Tim moved the documentation out
+# cd $ROSETTA/main/source/doc
+# pwd
+# git rm -r devel/ apps/pilot/
+# git commit -m "weekly release: removing devel/pilot app documentation"
 
 cd $ROSETTA/main/source/test/
 pwd

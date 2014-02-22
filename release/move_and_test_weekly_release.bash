@@ -5,10 +5,6 @@
 #globally fail if any subcommand fails
 set -e
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!what week is it?!!!!!!!!!!!!!!!!!!!!global
-week=$(date +%V)
-year=$(date +%Y)
-
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {
     if [ ! -d main ]
@@ -79,7 +75,14 @@ mv /media/scratch/smlewis/release_rosetta/Rosetta_unstripped_release.tar .
 
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar
-release_folder=Rosetta_wk$week\_$year
+
+#Sergey's script to generate revID
+#revID=sergeys_script.whatever
+revID=revID
+week=$(date +%V)
+year=$(date +%Y)
+release_folder=Rosetta_$year.$week.revID
+echo $release_folder " is release name"
 mv Rosetta/ $release_folder
 rm Rosetta_unstripped_release.tar
 cd -P  $release_folder

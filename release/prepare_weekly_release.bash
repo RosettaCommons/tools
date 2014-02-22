@@ -9,6 +9,9 @@ set -e
 #!!!!!!!!!!!!!!!!!!!!!!!!!what week is it?!!!!!!!!!!!!!!!!!!!!global
 week=$(date +%V)
 year=$(date +%Y)
+#Sergey's script to generate revID
+#revID=sergeys_script.whatever
+revID=revID
 
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {
@@ -93,7 +96,9 @@ integration.py -j $JOBS
 
 cd $ROSETTA/main
 pwd
-git checkout -b weekly_releases/$year-wk$week
+branch_name=$year/_$week/_revID
+echo $branch_name " is branch name"
+git checkout -b weekly_releases/$branch_name
 
 cd $ROSETTA/main/source/src/devel
 ls | grep -vE "init|svn_v" | xargs git rm -r
@@ -148,6 +153,6 @@ scons.py -j$JOBS bin mode=release
 
 echo "OK, the git branch should be ready...make sure that ^^ scons command worked, and look at the git history, then push with:"
 echo "cd main; git status; git log"
-echo "git push -u origin weekly_releases/$year-wk$week"
+echo "git push -u origin weekly_releases/$branch_name"
 
 exit

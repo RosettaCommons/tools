@@ -1,0 +1,18 @@
+A) add a guess_load cap
+
+B) year_week_revID internal, year.week.revID external nomenclature
+lookup Sergey's script to determine revID from a git hash
+
+C) build documentation, after documentation is a valid repository
+
+D) create a new git repository: 
+-strip a release, create git repository from that
+for next release, remove all files in repo (filesystem rm)
+copy all files from next stripped release
+git commit -a THIS big pile of changes, to produce releases as a git repository
+
+E) check if release copy of rosetta has no build settings (as part of build setup)
+
+F) start choosing releases from specially chosen test server builds (on Thursday night, it splits off a revision to do all platform/unit tests)
+
+G) fix Andrew's special devel override

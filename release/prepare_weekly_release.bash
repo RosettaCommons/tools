@@ -60,9 +60,7 @@ fi
 #we allow all these git commands to run in debug mode because it's on a branch anyway
 cd $ROSETTA/main
 pwd
-branch_name=$year/_$week/_revID
-echo $branch_name " is branch name"
-git checkout -b weekly_releases/$branch_name
+git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
 cd $ROSETTA/main/source/src/devel
 ls | grep -vE "init|svn_v" | xargs git rm -r

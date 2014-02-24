@@ -39,16 +39,10 @@ mv /media/scratch/smlewis/release_rosetta/Rosetta_unstripped_release.tar .
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar
 
-#Sergey's script to generate revID
-#revID=sergeys_script.whatever
-revID=revID
-week=$(date +%V)
-year=$(date +%Y)
-release_folder=Rosetta_$year.$week.revID
-echo $release_folder " is release name"
+#release_folder set in release_common_functions.bash
 mv Rosetta/ $release_folder
 rm Rosetta_unstripped_release.tar
-cd -P  $release_folder
+cd -P $release_folder
 pwd
 
 #clean the copy

@@ -5,8 +5,21 @@
 #globally fail if any subcommand fails
 set -e
 
+debug=true
+
+if [ "$debug" = true ];
+    then
+    echo "DEBUG MODE ACTIVATED: do not alter the binaries/test refs/perform pulls or perform tests; do perform filesystem and other git commands"
+    fi
+
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {
+
+    if [ "$debug" = true ];
+    then
+	return 0 #do not perform clean in debug mode
+    fi
+
     if [ ! -d main ]
         then
         echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
@@ -32,13 +45,18 @@ function simple_clean {
 }
 
 function deep_clean {
-simple_clean
 
-rm -rf demos/.git
-rm -rf tools/.git
-rm -rf main/.git
-rm main/.gitmodules
-find . -name ".gitignore" -exec rm {} \;
+    if [ "$debug" = true ];
+    then
+	return 0 #do not perform clean in debug mode
+    fi
+
+    simple_clean
+    rm -rf demos/.git
+    rm -rf tools/.git
+    rm -rf main/.git
+    rm main/.gitmodules
+    find . -name ".gitignore" -exec rm {} \;
 
 }
 
@@ -102,18 +120,28 @@ guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
 cd -P  main/source/
 pwd
-scons.py -j$JOBS bin mode=release
-scons.py -j$JOBS
-scons.py -j$JOBS cat=test
-test/run.py -j$JOBS
+if [ "$debug" = false ];
+then
+    #compile
+    scons.py -j$JOBS bin mode=release
+    scons.py -j$JOBS
+    scons.py -j$JOBS cat=test
 
-cd -P  ../tests/integration
-pwd
-integration.py fixbb && rm -rf ref/
-integration.py -j $JOBS
+    #unit test
+    test/run.py -j$JOBS
 
-mv ref/ new/
-cp -ar /media/scratch/smlewis/release_rosetta/Rosetta/main/tests/integration/ref/ .
+    #integration test
+    cd -P  ../tests/integration
+    pwd
+    integration.py fixbb && rm -rf ref/
+    integration.py -j $JOBS
+
+    #set up test diffs
+    mv ref/ new/
+    cp -ar /media/scratch/smlewis/release_rosetta/Rosetta/main/tests/integration/ref/ .
+else
+    echo "DEBUG MODE ACTIVATED: not actually recompiling/testing candidate release tarball"
+fi
 
 echo "check the unit and itests, if it compiled it's probably good"
 echo "cd `pwd` && integration.py --compareonly --fulldiff"

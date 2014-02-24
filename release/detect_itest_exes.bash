@@ -10,6 +10,12 @@ source ./../../../tools/release/release_common_functions.bash
 for directory in `ls tests`
 do
 
+#route around this one - it does bad things to our monster grep below (exposed by set -e; otherwise it just gets deleted and it's fine)
+if ["$directory" = "app_exception_handling"];
+    then
+    continue
+fi
+
 #this monster finds all of the lines containing executable names from the tests' command files (first grep), strips the line down to only the part where the name is plus the flanking bin and binext string replacement junk (egrep), then also removes the string replacement junk (sed commands), then sorts and uniqs the list
 for executable in `grep "%(bin)s" tests/$directory/command | grep -v MY_MINI_PROGRAM | egrep -o '%\(bin\)s/.*%\(binext\)s' | sed 's/%(bin)s\///g' | sed 's/.%(binext)s//g' | sort | uniq`
 do

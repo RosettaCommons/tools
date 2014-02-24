@@ -1,48 +1,10 @@
 #!/bin/bash
 #The purpose of this script is to move and test the weekly release.
 #It runs from the Rosetta folder (above main), and contains HARDCODED paths to the release-prep machine
+#author: Steven Lewis, smlewi@gmail.com
+#intended to be run only on Contador, but can be safely edited for whatever other machine is used to create the weekly Rosetta release.
 
-#globally fail if any subcommand fails
-set -e
-
-debug=true
-
-if [ "$debug" = true ];
-    then
-    echo "DEBUG MODE ACTIVATED: do not alter the binaries/test refs/perform pulls or perform tests; do perform filesystem and other git commands"
-    fi
-
-#function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
-function simple_clean {
-
-    if [ "$debug" = true ];
-    then
-	return 0 #do not perform clean in debug mode
-    fi
-
-    if [ ! -d main ]
-        then
-        echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
-        exit 1
-    fi
-    set +e #globally, we need exit-on-error, but it's ok if these rms fail to find targets
-    rm -r main/source/bin/*
-    rm -r main/source/build/*
-    rm main/source/.sconsign.dblite
-    rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
-    rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
-    rm main/database/rotamer/bbdep02.May.sortlib-correct.12.2010.Dunbrack02.lib.bin
-    rm main/source/.unit_test_results.yaml
-    rm main/source/tools/build/user.options
-    rm main/source/tools/build/user.settings
-    rm -r main/tests/integration/new
-    rm -r main/tests/integration/ref
-    rm -r main/tests/integration/runtime_diffs.txt
-    find . -name "*~" -exec rm {} \;
-    find . -name "#*" -exec rm {} \;
-    find . -name "*pyc" -exec rm {} \;
-    set -e #return to exit-on-error
-}
+source ./release_common_functions.bash
 
 function deep_clean {
 
@@ -60,27 +22,7 @@ function deep_clean {
 
 }
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#for "expected system load" when calculating how many processors to use
-CONTADOR_MAX=24
-JOBS=0
-function guess_load {
-    uptime #for the user
-    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}'` #this parses "uptime" to grab the recent load
-    floor_load=${current_load/.*} #I don't know what this does, but it floors the load value
-    JOBS=$(($CONTADOR_MAX-(1+$floor_load))) #attempt number of jobs minus load ceiling
-    echo "load was $current_load, attempting $JOBS"
-} 
-
-#check folder
-for subdir in main tools demos
-do
-    if [ ! -d $subdir ]
-	then
-	echo "not running inside the Rosetta toplevel install directory; $subdir not found"
-	exit 1
-    fi
-done
+check_folder #ensures we are in the right directory
 
 cd -P  .. #this is above Rosetta/
 pwd

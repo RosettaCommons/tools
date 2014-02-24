@@ -7,8 +7,8 @@
 set -e
 
 #functions to read command line flags for scripts - this is adapted from http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
-echo "script takes these flags:\n
--d [no argument] debug mode\n
+echo "script takes these flags:
+-d [no argument] debug mode
 -j [integer argument] use this many processors MAXIMUM - may use less if machine load is high"
 
 # A POSIX variable
@@ -42,7 +42,7 @@ year=$(date +%Y)
 #revID=sergeys_script.whatever
 revID=revID
 
-branch_name=$year/_$week/_revID
+branch_name=$year\_$week\_revID
 echo $branch_name " is branch name"
 
 release_folder=Rosetta_$year.$week.revID

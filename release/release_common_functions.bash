@@ -25,6 +25,11 @@ while getopts "dj:" opt; do
             ;;
 	j)  
 	    CONTADOR_MAX=$OPTARG
+	    if (("$CONTADOR_MAX" > 24));
+	    then
+		echo "jobs variable (-j) CONTADOR_MAX cannot be greater than 24, it is $CONTADOR_MAX"
+		exit 1
+	    fi
             ;;
     esac
 done

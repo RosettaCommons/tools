@@ -7,7 +7,7 @@
 #globally fail if any subcommand fails
 set -e
 
-source ./release_common_functions.bash
+source ./tools/release/release_common_functions.bash
 
 check_folder #ensures we are in the right directory
 

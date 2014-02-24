@@ -3,8 +3,9 @@
 #author: Steven Lewis, smlewi@gmail.com
 #intended to be run only on Contador, but can be safely edited for whatever other machine is used to create the weekly Rosetta release.
 
+#globally fail if any subcommand fails
+set -e
 source ./release_common_functions.bash
-
 
 for directory in `ls tests`
 do

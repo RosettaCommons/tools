@@ -12,3 +12,5 @@ git commit -a THIS big pile of changes, to produce releases as a git repository
 F) start choosing releases from specially chosen test server builds (on Thursday night, it splits off a revision to do all platform/unit tests)
 
 G) fix Andrew's special devel override
+
+H) examine unit test timing - consider defaulting most residuetypes off in unit tests

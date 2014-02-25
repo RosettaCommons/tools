@@ -58,9 +58,16 @@ else
 fi
 
 #we allow all these git commands to run in debug mode because it's on a branch anyway
+
 cd $ROSETTA/main
 pwd
 git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
+
+for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
+do
+    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/\!{/DONOTRELEASE_BOTTOM/\!d;}}' $do_not_release
+done
+git commit -am "weekly release: stripping DONOTRELEASE-wrapped code"
 
 cd $ROSETTA/main/source/src/devel
 ls | grep -vE "init|svn_v" | xargs git rm -r
@@ -108,14 +115,6 @@ fi
 git commit -m "removing known-to-need-devel integration tests"
 source $ROSETTA/tools/release/detect_itest_exes.bash
 git commit -m "deleting autoremoved integration tests"
-
-#THIS NEEDS MANUAL INTERVENTION
-#emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
-for do_not_release in `cat DONOTRELEASE.files`
-do
-    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/\!{/DONOTRELEASE_BOTTOM/\!d;}}' $do_not_release
-done
-git commit -am "weekly release: fixing the devel pilot app"
 
 #check compile
 cd $ROSETTA/main/source/

@@ -107,12 +107,6 @@ else
 fi
 git commit -m "removing known-to-need-devel integration tests"
 source $ROSETTA/tools/release/detect_itest_exes.bash
-# if [ "$debug" = false ];
-# then
-#     $ROSETTA/tools/release/detect_itest_exes.bash
-# else
-#     $ROSETTA/tools/release/detect_itest_exes.bash -d #for some reason the -d must be passaged in
-# fi
 git commit -m "deleting autoremoved integration tests"
 
 #THIS NEEDS MANUAL INTERVENTION

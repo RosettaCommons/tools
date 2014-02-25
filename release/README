@@ -1,0 +1,16 @@
+This directory contains scripts used to generate the weekly releases.
+
+detect_itest_exes.bash
+This script is called from prepare_weekly_release.bash; it determines which integration tests depend on unreleased code (pilot applications) and deletes them.
+
+move_and_test_weekly_release.bash
+This script is called manually after a successful prepare_weekly_release.bash.  It generates a git-free copy of the release candidate and runs compile/integration/unit tests on the local machine.
+
+prepare_weekly_release.bash
+This script is called manually to generate a release git branch and itest refs for that branch.  It strips unreleasable code from the branch.
+
+README
+see README
+
+release_common_functions.bash
+This contains shared functions for the other scripts - how to name the branch, how to detect system load when guessing -j for scons/integration.py, etc.

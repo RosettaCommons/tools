@@ -65,7 +65,7 @@ git checkout -b weekly_releases/$branch_name #branch_name defined in release_com
 
 for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
 do
-    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/\!{/DONOTRELEASE_BOTTOM/\!d;}}' $do_not_release
+    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
 done
 git commit -am "weekly release: stripping DONOTRELEASE-wrapped code"
 

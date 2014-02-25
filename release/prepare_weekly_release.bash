@@ -110,7 +110,11 @@ source $ROSETTA/tools/release/detect_itest_exes.bash
 git commit -m "deleting autoremoved integration tests"
 
 #THIS NEEDS MANUAL INTERVENTION
-emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
+#emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
+for do_not_release in `cat DONOTRELEASE.files`
+do
+    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/\!{/DONOTRELEASE_BOTTOM/\!d;}}' $do_not_release
+done
 git commit -am "weekly release: fixing the devel pilot app"
 
 #check compile

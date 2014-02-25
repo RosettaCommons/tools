@@ -4,7 +4,7 @@ detect_itest_exes.bash
 This script is called from prepare_weekly_release.bash; it determines which integration tests depend on unreleased code (pilot applications) and deletes them.
 
 DONOTRELEASE.files
-This contains a list of files to be stripped of unreleaseable code (usually due to semi-forbidden interactions with devel)
+This contains a list of files to be stripped of unreleaseable code (usually due to semi-forbidden interactions with devel); files are listed with paths from Rosetta (above main/tools/demo)
 
 move_and_test_weekly_release.bash
 This script is called manually after a successful prepare_weekly_release.bash.  It generates a git-free copy of the release candidate and runs compile/integration/unit tests on the local machine.

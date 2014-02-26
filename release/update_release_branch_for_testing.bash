@@ -36,4 +36,4 @@ fi
 
 git merge --ff-only master
 
-git push release
+git push

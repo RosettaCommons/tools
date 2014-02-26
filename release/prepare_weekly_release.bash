@@ -30,7 +30,8 @@ then
 
     cd $ROSETTA/main
     pwd
-    git checkout master
+    #notice this is release, not master, on the assumption that Sergey's machinery did some particular tests on each release push
+    git checkout release
     git pull
 fi
 

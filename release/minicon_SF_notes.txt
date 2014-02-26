@@ -10,5 +10,6 @@ copy all files from next stripped release
 git commit -a THIS big pile of changes, to produce releases as a git repository
 
 F) start choosing releases from specially chosen test server builds (on Thursday night, it splits off a revision to do all platform/unit tests)
+f status: scriptside complete.  test server site not.
 
 H) examine unit test timing - consider defaulting most residuetypes off in unit tests

@@ -34,6 +34,6 @@ then
     exit
 fi
 
-echo git merge --ff-only master
+git merge --ff-only master
 
-echo git push release
+git push release

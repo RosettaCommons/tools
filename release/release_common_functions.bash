@@ -54,7 +54,7 @@ echo $release_folder " is tentative release name"
 
 #this function overwrites release_folder and branch_name with the real tag, GIVEN that you cd into main/ ahead of time.
 function set_release_name {
-    url_stem="http://benchmark.graylab.jhu.edu/data/get_commit_id/benchmark/"
+    url_stem="http://benchmark.graylab.jhu.edu/data/get_commit_id/master/"
     git_hash=$(git rev-parse HEAD)
     echo "git hash for revID is $git_hash"
     wget -O revID_file $url_stem$git_hash

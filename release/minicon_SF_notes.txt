@@ -1,5 +1,5 @@
 B) year_week_revID internal, year.week.revID external nomenclature  (done)
-B) lookup Sergey's script to determine revID from a git hash (done?)
+B) lookup Sergey's script to determine revID from a git hash (done, except it gets the revID number wrong, not yet finished implementing on Sergey's end)
 B) - works for git branch mostly, but FAILS for release filename - tie into repaired svn_version.py system
 
 C) build documentation, after documentation is a valid repository

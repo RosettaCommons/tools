@@ -35,6 +35,11 @@ then
     git pull
 fi
 
+#select release name
+cd $ROSETTA
+pwd
+set_release_name
+
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA
 pwd

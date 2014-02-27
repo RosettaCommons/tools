@@ -27,6 +27,12 @@ function deep_clean {
 
 check_folder #ensures we are in the right directory
 
+#set release name (must happen in git-land)
+cd main
+pwd
+set_release_name
+cd ..
+
 cd -P  .. #this is above Rosetta/
 pwd
 #tar Rosetta

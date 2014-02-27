@@ -43,15 +43,30 @@ echo "debug=$debug, jobs max='$CONTADOR_MAX', Leftovers: $@"
 #what is the name of this release?  Set up shared variables
 week=$(date +%V)
 year=$(date +%Y)
-#Sergey's script to generate revID
-#revID=sergeys_script.whatever
+#Sergey's script to generate revID needs to run post-git-happening
 revID=revID
 
 branch_name=$year\_$week\_revID
-echo $branch_name " is branch name"
+echo $branch_name " is tentative branch name"
 
 release_folder=Rosetta_$year.$week.revID
-echo $release_folder " is release name"
+echo $release_folder " is tentative release name"
+
+#this function overwrites release_folder and branch_name with the real tag, GIVEN that you cd into main/ ahead of time.
+function set_release_name {
+    url_stem="http://benchmark.graylab.jhu.edu/data/get_commit_id/benchmark/"
+    git_hash=$(git rev-parse HEAD)
+    echo "git hash for revID is $git_hash"
+    wget -O revID_file $url_stem$git_hash
+    revID=$(cat revID_file)
+    rm revID_file
+
+    branch_name=$year\_$week\_$revID
+    echo $branch_name " is branch name"
+
+    release_folder=Rosetta_$year.$week.$revID
+    echo $release_folder " is release name"
+}
 
 #function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
 function simple_clean {

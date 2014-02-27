@@ -35,11 +35,6 @@ then
     git pull
 fi
 
-#select release name
-cd $ROSETTA
-pwd
-set_release_name
-
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA
 pwd
@@ -64,6 +59,11 @@ else
 fi
 
 #we allow all these git commands to run in debug mode because it's on a branch anyway
+
+#select release name
+cd $ROSETTA/main
+pwd
+set_release_name
 
 cd $ROSETTA/main
 pwd

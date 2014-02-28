@@ -3,6 +3,7 @@ B) lookup Sergey's script to determine revID from a git hash (done?)
 B) - works for git branch mostly, but FAILS for release filename - tie into repaired svn_version.py system
 
 C) build documentation, after documentation is a valid repository
+NOTE: DOCUMENTATION IS CURRENTLY INCLUDED but does not get a git pull like it should!!
 
 D) create a new git repository: 
 -strip a release, create git repository from that

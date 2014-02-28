@@ -1,0 +1,27 @@
+This directory contains scripts used to generate the weekly releases.
+
+Rough release process overview:
+Thursday midnight: script updates "release" branch from master (no changes)
+Friday morning: assuming release branch tested properly, prepare_weekly_release makes the release branch, and move_and_test_weekly_release makes the tarball.
+Weekend sometime: release web manager person (Yuval) uploads tarball to website
+
+detect_itest_exes.bash
+This script is called from prepare_weekly_release.bash; it determines which integration tests depend on unreleased code (pilot applications) and deletes them.
+
+DONOTRELEASE.files
+This contains a list of files to be stripped of unreleaseable code (usually due to semi-forbidden interactions with devel); files are listed with paths from main.
+
+move_and_test_weekly_release.bash
+This script is called manually after a successful prepare_weekly_release.bash.  It generates a git-free copy of the release candidate and runs compile/integration/unit tests on the local machine.
+
+prepare_weekly_release.bash
+This script is called manually to generate a release git branch and itest refs for that branch.  It strips unreleasable code from the branch.
+
+README
+see README
+
+release_common_functions.bash
+This contains shared functions for the other scripts - how to name the branch, how to detect system load when guessing -j for scons/integration.py, etc.
+
+update_release_branch_for_testing.bash
+This script runs in a cron job on the release-preparing machine, and sets up the "release" branch for appropriate tests on Sergey's testing server.  In particular, it merges master to release around midnight on Thursdays.

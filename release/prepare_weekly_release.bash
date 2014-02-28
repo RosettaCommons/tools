@@ -1,80 +1,39 @@
 #!/bin/bash
 #The purpose of this script is to prepare a weekly release.  It WILL make git commits (no pushes), but I wouldn't suggest ever running it.
-
 #It runs from the Rosetta folder (above main)
+#author: Steven Lewis, smlewi@gmail.com
+#intended to be run only on Contador, but can be safely edited for whatever other machine is used to create the weekly Rosetta release.
 
 #globally fail if any subcommand fails
 set -e
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!what week is it?!!!!!!!!!!!!!!!!!!!!global
-week=$(date +%V)
-year=$(date +%Y)
+source ./tools/release/release_common_functions.bash
 
-#function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
-function simple_clean {
-    if [ ! -d main ]
-        then
-        echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
-        exit 1
-    fi
-    set +e #globally, we need exit-on-error, but it's ok if these rms fail to find targets
-    rm -r main/source/bin/*
-    rm -r main/source/build/*
-    rm main/source/.sconsign.dblite
-    rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
-    rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
-    rm main/database/rotamer/bbdep02.May.sortlib-correct.12.2010.Dunbrack02.lib.bin
-    rm main/source/.unit_test_results.yaml
-    rm main/source/tools/build/user.options
-    rm main/source/tools/build/user.settings
-    rm -r main/tests/integration/new
-    rm -r main/tests/integration/ref
-    rm -r main/tests/integration/runtime_diffs.txt
-    find . -name "*~" -exec rm {} \;
-    find . -name "#*" -exec rm {} \;
-    find . -name "*pyc" -exec rm {} \;
-    set -e #return to exit-on-error
-}
-
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#for "expected system load" when calculating how many processors to use
-CONTADOR_MAX=24
-JOBS=0
-function guess_load {
-    uptime #for the user
-    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}'` #this parses "uptime" to grab the recent load
-    floor_load=${current_load/.*} #I don't know what this does, but it floors the load value
-    JOBS=$(($CONTADOR_MAX-(1+$floor_load))) #attempt number of jobs minus load ceiling
-    echo "load was $current_load, attempting $JOBS"
-} 
-
-#check folder
-for subdir in main tools demos
-do
-    if [ ! -d $subdir ]
-	then
-	echo "not running inside the Rosetta toplevel install directory; $subdir not found"
-	exit 1
-    fi
-done
+check_folder #ensures we are in the right directory
 
 ROSETTA=`pwd`
 
 #update all repos
-cd $ROSETTA/tools
-pwd
-git checkout master
-git pull
+if [ "$debug" = false ];
+then
 
-cd $ROSETTA/demos
-pwd
-git checkout master
-git pull
+    #tools is a little weird to update, since this script updates overtop itself - so this really should be skipped while debugging
+    cd $ROSETTA/tools
+    pwd
+    git checkout master
+    git pull
 
-cd $ROSETTA/main
-pwd
-git checkout master
-git pull
+    cd $ROSETTA/demos
+    pwd
+    git checkout master
+    git pull
+
+    cd $ROSETTA/main
+    pwd
+    #notice this is release, not master, on the assumption that Sergey's machinery did some particular tests on each release push
+    git checkout release
+    git pull
+fi
 
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA
@@ -82,18 +41,39 @@ pwd
 simple_clean #function call to simple_clean above
 cd $ROSETTA/main/source
 pwd
+
 guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
-scons.py -j$JOBS bin mode=release
-cd ../tests/integration 
+if [ "$debug" = false ];
+then
+    scons.py -j$JOBS bin mode=release
+
+    cd ../tests/integration
+    pwd
+    integration.py fixbb && rm -rf ref/ #get dunbrack binaries created so subsequent itest will have it premade
+    guess_load
+    integration.py -j $JOBS
+
+else
+    echo "DEBUG MODE ACTIVATED: skipping 'master' compile & test ref generation"
+fi
+
+#we allow all these git commands to run in debug mode because it's on a branch anyway
+
+#select release name
+cd $ROSETTA/main
 pwd
-integration.py fixbb && rm -rf ref/
-#guess_load #do not bother doing a load guess here...it will be poisoned by leftover load from scons, and probably nobody else is hammering
-integration.py -j $JOBS
+set_release_name
 
 cd $ROSETTA/main
 pwd
-git checkout -b weekly_releases/$year-wk$week
+git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
+
+for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
+do
+    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
+done
+git commit -am "weekly release: stripping DONOTRELEASE-wrapped code"
 
 cd $ROSETTA/main/source/src/devel
 ls | grep -vE "init|svn_v" | xargs git rm -r
@@ -114,7 +94,7 @@ pwd
 git rm -r curated pilot
 git commit -m "weekly release: removing pilot apps"
 
-# unneeded since Tim moved the documentation out
+# unneeded since Tim moved the documentation out; scheduled to be replaced with code that generates the static html wikimanual
 # cd $ROSETTA/main/source/doc
 # pwd
 # git rm -r devel/ apps/pilot/
@@ -131,23 +111,31 @@ git commit -m "weekly release: removing unit test devel"
 
 cd $ROSETTA/main/tests/integration/
 pwd
-git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out 
-rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
+git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out
+if [ "$debug" = false ];
+then #must not do this rm - it is a filesystem rm of git ignored files
+    rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
+else
+    echo "DEBUG MODE ACTIVATED: skipping filesystem ref deletion of manually removed integration tests"
+fi
 git commit -m "removing known-to-need-devel integration tests"
-$ROSETTA/tools/release/detect_itest_exes.bash
+source $ROSETTA/tools/release/detect_itest_exes.bash
 git commit -m "deleting autoremoved integration tests"
-
-#THIS NEEDS MANUAL INTERVENTION
-emacs -nw $ROSETTA/main/source/src/apps/public/design/mpi_msd.cc
-git commit -am "weekly release: fixing the devel pilot app"
 
 #check compile
 cd $ROSETTA/main/source/
 guess_load
-scons.py -j$JOBS bin mode=release
+
+if [ "$debug" = false ];
+then
+    scons.py -j$JOBS bin mode=release
+
+else
+    echo "DEBUG MODE ACTIVATED: skipping post-releasification compile"
+fi
 
 echo "OK, the git branch should be ready...make sure that ^^ scons command worked, and look at the git history, then push with:"
 echo "cd main; git status; git log"
-echo "git push -u origin weekly_releases/$year-wk$week"
+echo "git push -u origin weekly_releases/$branch_name"
 
 exit

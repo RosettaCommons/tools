@@ -1,72 +1,37 @@
 #!/bin/bash
 #The purpose of this script is to move and test the weekly release.
 #It runs from the Rosetta folder (above main), and contains HARDCODED paths to the release-prep machine
+#author: Steven Lewis, smlewi@gmail.com
+#intended to be run only on Contador, but can be safely edited for whatever other machine is used to create the weekly Rosetta release.
 
 #globally fail if any subcommand fails
 set -e
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!what week is it?!!!!!!!!!!!!!!!!!!!!global
-week=$(date +%V)
-year=$(date +%Y)
-
-#function call to "clean" a Rosetta install - removes all temp files, compiled files, etc
-function simple_clean {
-    if [ ! -d main ]
-        then
-        echo "simple_clean not running inside the Rosetta toplevel install directory; main not found"
-        exit 1
-    fi
-    set +e #globally, we need exit-on-error, but it's ok if these rms fail to find targets
-    rm -r main/source/bin/*
-    rm -r main/source/build/*
-    rm main/source/.sconsign.dblite
-    rm main/database/rotamer/bbdep02.May.sortlib.Dunbrack02.lib.bin
-    rm main/database/rotamer/ExtendedOpt1-5/Dunbrack10.lib.bin
-    rm main/database/rotamer/bbdep02.May.sortlib-correct.12.2010.Dunbrack02.lib.bin
-    rm main/source/.unit_test_results.yaml
-    rm main/source/tools/build/user.options
-    rm main/source/tools/build/user.settings
-    rm -r main/tests/integration/new
-    rm -r main/tests/integration/ref
-    rm -r main/tests/integration/runtime_diffs.txt
-    find . -name "*~" -exec rm {} \;
-    find . -name "#*" -exec rm {} \;
-    find . -name "*pyc" -exec rm {} \;
-    set -e #return to exit-on-error
-}
+source ./tools/release/release_common_functions.bash
 
 function deep_clean {
-simple_clean
 
-rm -rf demos/.git
-rm -rf tools/.git
-rm -rf main/.git
-rm main/.gitmodules
-find . -name ".gitignore" -exec rm {} \;
+    if [ "$debug" = true ];
+    then
+	return 0 #do not perform clean in debug mode
+    fi
+
+    simple_clean
+    rm -rf demos/.git
+    rm -rf tools/.git
+    rm -rf main/.git
+    rm main/.gitmodules
+    find . -name ".gitignore" -exec rm {} \;
 
 }
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!global variable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#for "expected system load" when calculating how many processors to use
-CONTADOR_MAX=24
-JOBS=0
-function guess_load {
-    uptime #for the user
-    current_load=`uptime | awk -F '[ ,]' '{print $(NF-4)}'` #this parses "uptime" to grab the recent load
-    floor_load=${current_load/.*} #I don't know what this does, but it floors the load value
-    JOBS=$(($CONTADOR_MAX-(1+$floor_load))) #attempt number of jobs minus load ceiling
-    echo "load was $current_load, attempting $JOBS"
-} 
+check_folder #ensures we are in the right directory
 
-#check folder
-for subdir in main tools demos
-do
-    if [ ! -d $subdir ]
-	then
-	echo "not running inside the Rosetta toplevel install directory; $subdir not found"
-	exit 1
-    fi
-done
+#set release name (must happen in git-land)
+cd main
+pwd
+set_release_name
+cd ..
 
 cd -P  .. #this is above Rosetta/
 pwd
@@ -79,10 +44,11 @@ mv /media/scratch/smlewis/release_rosetta/Rosetta_unstripped_release.tar .
 
 #..untar a copy
 tar -xf Rosetta_unstripped_release.tar
-release_folder=Rosetta_wk$week\_$year
+
+#release_folder set in release_common_functions.bash
 mv Rosetta/ $release_folder
 rm Rosetta_unstripped_release.tar
-cd -P  $release_folder
+cd -P $release_folder
 pwd
 
 #clean the copy
@@ -99,18 +65,28 @@ guess_load
 #compile, run fixbb once (to get dunbrack binaries), delete fixbb, make a itest ref
 cd -P  main/source/
 pwd
-scons.py -j$JOBS bin mode=release
-scons.py -j$JOBS
-scons.py -j$JOBS cat=test
-test/run.py -j$JOBS
+if [ "$debug" = false ];
+then
+    #compile
+    scons.py -j$JOBS bin mode=release
+    scons.py -j$JOBS
+    scons.py -j$JOBS cat=test
 
-cd -P  ../tests/integration
-pwd
-integration.py fixbb && rm -rf ref/
-integration.py -j $JOBS
+    #unit test
+    test/run.py -j$JOBS
 
-mv ref/ new/
-cp -ar /home/smlewis/Rosetta/main/tests/integration/ref/ .
+    #integration test
+    cd -P  ../tests/integration
+    pwd
+    integration.py fixbb && rm -rf ref/
+    integration.py -j $JOBS
+
+    #set up test diffs
+    mv ref/ new/
+    cp -ar /media/scratch/smlewis/release_rosetta/Rosetta/main/tests/integration/ref/ .
+else
+    echo "DEBUG MODE ACTIVATED: not actually recompiling/testing candidate release tarball"
+fi
 
 echo "check the unit and itests, if it compiled it's probably good"
 echo "cd `pwd` && integration.py --compareonly --fulldiff"

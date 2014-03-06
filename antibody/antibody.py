@@ -153,6 +153,16 @@ def main(args):
       action="store_false", dest='kink_constraints', default=True,
       help="Skip generation of kink constraints file (require PyRosetta). Default is False.",
     )
+	
+    parser.add_option("--multi-template-grafting",
+	  action="store_true", default=False, dest="multi_template",
+      help="Graft multiple templates and output multiple decoys. Default is False.",
+    )
+
+    parser.add_option("--number-of-templates",
+      default=-1, type="int",
+      help="Specify the number of grafted decoys to generate",
+    )
 
     parser.add_option("--timeout",
       default=900, type="int",
@@ -173,6 +183,11 @@ def main(args):
         parser.add_option('--' + name,
           action="store", default='',
           help="Specify path or PDB code for %s template. If specified this will overwrite blast selection." % name,
+        )
+		
+        parser.add_option('--' + name + '-multi-graft',
+          action="store_true", default=False,
+          help="Turn on multi-template grafting of %s region." % name,
         )
 
     parser.add_option('--self-test',
@@ -320,7 +335,7 @@ def main(args):
     print 'Relax:', bool(Options.relax)
 
     for name in _framework_names_:
-        if getattr(Options, name): print 'Custom %s template:' % name, getattr(Options, name)
+        if getattr(Options, name): print 'Custom %s template(s):' % name, getattr(Options, name)
     print
     print "Light chain: %s" % light_chain
     print "Heavy chain: %s" % heavy_chain
@@ -336,29 +351,35 @@ def main(args):
         c = dict(CDRs);  c.pop('numbering_L');  c.pop('numbering_H')
         #print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
 
+    if Options.multi_template: # default number of templates if option is set
+        if Options.number_of_templates     == -1: Options.number_of_templates     = 3
+    else: # only 1 template if multi-grafting is not turned on
+	    Options.number_of_templates = 1
+
     #run Blast
     alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database, verbose=Options.verbose)
 
-    #create and thread template
-    create_virtual_template_pdbs(prefix=prefix_details)
-    thread_template_pdbs(CDRs, prefix=prefix_details)
+    for decoy in range(0, Options.number_of_templates):
+        #create and thread template
+        create_virtual_template_pdbs(prefix=prefix_details, decoy=decoy)
+        thread_template_pdbs(CDRs, prefix=prefix_details, decoy=decoy)
 
-    #superimpose template PDBs
-    if Options.superimpose_PyRosetta:
-      print "\nRunning superimpose_PyRosetta..."
-      command = script_dir + "/superimpose_interface.py --prefix " + prefix_details
-      res, output = commands.getstatusoutput(command)
-      if Options.verbose and not res: print command+'\n', output
-      if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
-    else:
-      print "\nRunning ProFit..."
-      superimpose_templates(CDRs, prefix=prefix_details)
+        #superimpose template PDBs
+        if Options.superimpose_PyRosetta:
+          print "\nRunning superimpose_PyRosetta..."
+          command = script_dir + "/superimpose_interface.py --prefix " + prefix_details + " --decoy " + str(decoy)
+          res, output = commands.getstatusoutput(command)
+          if Options.verbose and not res: print command+'\n', output
+          if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
+        else:
+          print "\nRunning ProFit..."
+          superimpose_templates(CDRs, prefix=prefix_details, decoy=str(decoy))
 
-    #run Rosetta assemble CDRs
-    if Options.rosetta_database:
-        run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database)
-    else:
-        print 'Rosetta database was not found... skipping rosetta run...'
+        #run Rosetta assemble CDRs
+        if Options.rosetta_database:
+             run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database, decoy=str(decoy))
+        else:
+            print 'Rosetta database was not found... skipping rosetta run...'
 
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
@@ -854,34 +875,49 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 
-        custom_template = getattr(Options, k)
+        custom_template_string = getattr(Options, k)
+        print custom_template_string
+        custom_template_list = custom_template_string.split(',')
+        while len(custom_template_list) < Options.number_of_templates:
+            custom_template_list.append('void')
 
-        if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
-        if not custom_template:
-            if table:
-                custom_template = table[0]['subject-id']
-            else:  # if there is no template... table is a list, which has a blast result
-                for v in cdr_info.items():
-                    check_length = '%s_length' % k
-                    if len_cdr == int(v[1][check_length]):
-                        pdb_random = v[0]
-                        break
-                print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
-                custom_template = pdb_random
-                #sys.exit(1)
-            print "%s template: %s" % (k, custom_template)
-        else: print 'Custom %s template: %s...' % (k, custom_template)
-        shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
+        multi_template_on = getattr(Options, k+'_multi_graft')
+
+        for decoy in range(0, Options.number_of_templates):
+            dummy_decoy = str(decoy)
+            if not multi_template_on: decoy = 0
+            if custom_template_list[decoy] and not os.path.isfile(Options.antibody_database+'/'+custom_template_list[decoy]) and not (custom_template_list[decoy] == 'void'):
+                custom_template_list[decoy] = '/pdb%s_chothia.pdb' % custom_template_list[decoy]
+            if (not custom_template_list[decoy]) or (custom_template_list[decoy] == 'void'):
+                if table:
+                    if not decoy > (len(table)-1):
+                        selected_template = table[decoy]['subject-id']
+                    else:
+						selected_template = table[0]['subject-id']
+                else:  # if there is no template... table is a list, which has a blast result
+                    for v in cdr_info.items():
+                        check_length = '%s_length' % k
+                        if len_cdr == int(v[1][check_length]):
+                            pdb_random = v[0]
+                            break
+                    print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
+                    selected_template = pdb_random
+                    #sys.exit(1)
+                print "%s template: %s" % (k, selected_template)
+            else:
+                print 'Custom %s template: %s...' % (k, custom_template_list[decoy])
+                selected_template = custom_template_list[decoy]
+            shutil.copy(Options.antibody_database+'/'+selected_template, prefix+'/template.'+k+'.'+dummy_decoy+'.pdb')
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
-def create_virtual_template_pdbs(prefix):
+def create_virtual_template_pdbs(prefix, decoy):
     # Make a template PDB file, which has psuedo atoms, so that the query and a template can have the same length sequence.
     for chain in [ 'L', 'H' ]:
-        with file(prefix+'/template.tmp.FR'+chain+'.pdb', 'w') as o:
+        with file(prefix+'/template.tmp.FR'+chain+'.'+str(decoy)+'.pdb', 'w') as o:
             # Count the number of lines of a template PDB file
             cnt1=0
-            for line2 in file(prefix+'/template.FR'+chain+'.pdb'):
+            for line2 in file(prefix+'/template.FR'+chain+'.'+str(decoy)+'.pdb'):
                 if line2[0:4] == 'ATOM':
                     chain_temp = line2[21:22]
                     if chain_temp == chain: cnt1+=1
@@ -893,7 +929,7 @@ def create_virtual_template_pdbs(prefix):
                 res_num_q = line[2:].rstrip('\n')
                 #res_aa    = line[:1]
                 cnt2=0
-                for line2 in file(prefix+'/template.FR'+chain+'.pdb'):
+                for line2 in file(prefix+'/template.FR'+chain+'.'+str(decoy)+'.pdb'):
                     if line2[0:4] == 'ATOM':
                         chain_temp = line2[21:22]
                         res_aa  = line2[17:20]
@@ -971,11 +1007,11 @@ def create_virtual_template_pdbs(prefix):
                     o.write( records_to_pdb_string(r_c)  + '\n' );
                     o.write( records_to_pdb_string(r_o)  + '\n' );
 
-def thread_template_pdbs(CDRs, prefix):
+def thread_template_pdbs(CDRs, prefix, decoy):
     L_regions=dict(L1=(24,34), L2=(50,56), L3=(89,97));  H_regions=dict(H1=(26,35), H2=(50,65), H3=(95, 102) )
     for chain, k, numbering, regions in [ ( 'L', 'FRL', 'numbering_L', L_regions ), ( 'H', 'FRH', 'numbering_H', H_regions ) ]:
-        with file(prefix+'/template.threaded.'+k+'.pdb', 'w') as o:
-            for line in file(prefix+'/template.tmp.'+k+'.pdb'): # This is a template PDB in our database
+        with file(prefix+'/template.threaded.'+k+'.'+str(decoy)+'.pdb', 'w') as o:
+            for line in file(prefix+'/template.tmp.'+k+'.'+str(decoy)+'.pdb'): # This is a template PDB in our database
             #for line in file(prefix+'/template.'+k+'.pdb'): # This is a template PDB in our database
                 r = map_pdb_string_to_records(line)         # 'r' is a info of a template
                 if r['type'] == "ATOM  ":
@@ -998,7 +1034,7 @@ def thread_template_pdbs(CDRs, prefix):
     for chain, numbering, regions in [ ( 'L', 'numbering_L', L_regions ), ( 'H', 'numbering_H', H_regions ) ]:
         for R in regions:
             with file(prefix+R+'.pdb', 'w') as o:
-                for line in file(prefix+'/template.'+R+'.pdb'):
+                for line in file(prefix+'/template.'+R+'.'+str(decoy)+'.pdb'):
                     r = map_pdb_string_to_records(line)
                     if r['type'] == "ATOM  ":
                         res_num = int(r['resSeq']);  res_num_icode = ( '%s%s' % (res_num, r['iCode']) ).strip()
@@ -1010,8 +1046,8 @@ def thread_template_pdbs(CDRs, prefix):
 
 
 
-profit_templates = { 'L': '''reference "%(prefix)s/template.light_heavy.pdb"
-mobile "%(prefix)s/template.threaded.FRL.pdb"
+profit_templates = { 'L': '''reference "%(prefix)s/template.light_heavy.%(decoy)s.pdb"
+mobile "%(prefix)s/template.threaded.FRL.%(decoy)s.pdb"
 atoms ca
 zone L10-L23
 zone L35-L49
@@ -1021,8 +1057,8 @@ zone L98-L100
 fit
 write "%(prefix)s/fitted.L.pdb"
 quit''',
-'H': '''reference "%(prefix)s/template.light_heavy.pdb"
-mobile "%(prefix)s/template.threaded.FRH.pdb"
+'H': '''reference "%(prefix)s/template.light_heavy.%(decoy)s.pdb"
+mobile "%(prefix)s/template.threaded.FRH.%(decoy)s.pdb"
 atoms ca
 zone H10-H25
 zone H36-H49
@@ -1034,7 +1070,7 @@ fit
 write "%(prefix)s/fitted.H.pdb"
 quit''' }
 
-def superimpose_templates(CDRs, prefix):
+def superimpose_templates(CDRs, prefix, decoy):
     for chain in profit_templates:
         f_name = prefix + 'profit-%s' % chain
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
@@ -1046,26 +1082,25 @@ def superimpose_templates(CDRs, prefix):
 
     pathPrefix = '\ '.join(vars()['prefix'].split())
     pathPrefix = pathPrefix[:-1] if pathPrefix.endswith('/') else pathPrefix
-    res, output = commands.getstatusoutput('cat {0}/fitted.L.pdb {0}/fitted.H.pdb > {0}/FR.pdb'.format(pathPrefix))
+    res, output = commands.getstatusoutput('cat {0}/fitted.L.pdb {0}/fitted.H.pdb > {0}/FR{1}.pdb'.format(pathPrefix, decoy))
 
     #res, output = commands.getstatusoutput('cat %(prefix)s/fitted.L.pdb %(prefix)s/fitted.H.pdb > %(prefix)s/FR.pdb' % vars())
     if res: print output;  sys.exit(1)
 
 
-def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
+def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, decoy):
     antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
-                      ' -antibody::h3_no_stem_graft -scorefile score-graft.sf'
+        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR%s.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database, decoy) + ' -antibody::h3_no_stem_graft -scorefile score-graft.sf'
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
-        model_file_prefix = 'grafted';  shutil.move(prefix+'details/FR_0001.pdb', prefix+model_file_prefix+'.pdb')
+	model_file_prefix = 'grafted.' + decoy;  shutil.move(prefix+'details/FR'+decoy+'_0001.pdb', prefix+model_file_prefix+'.pdb')
     else:
         print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
         return
@@ -1099,9 +1134,9 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
             return
 
-    shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.pdb')
+    shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.'+decoy+'.pdb')
     cter = kink_or_extend(CDRs)
-    output_cter_constraint(cter, prefix)
+    output_cter_constraint(cter, prefix, decoy)
 
 
 def kink_or_extend(CDRs):
@@ -1138,11 +1173,11 @@ def kink_or_extend(CDRs):
 
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
-def output_cter_constraint(base,prefix):
+def output_cter_constraint(base,prefix,decoy):
     # Jianqing's original
     cnt=0
-    f=open(prefix+'cter_constraint', 'w')
-    for line in file(prefix+'/model.pdb'):
+    f=open(prefix+'cter_constraint.'+decoy, 'w')
+    for line in file(prefix+'/model.'+decoy+'.pdb'):
         if line[0:4] == 'ATOM':
             chain = line[21:22]
             atom  = line[13:15]

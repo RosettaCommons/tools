@@ -33,7 +33,20 @@ then
     #notice this is release, not master, on the assumption that Sergey's machinery did some particular tests on each release push
     git checkout release
     git pull
+
+    cd $ROSETTA/documentation
+    pwd
+    git checkout master
+    git pull
+
 fi
+
+#prepare documentation
+
+#??Branch it??
+#python remove_internal.py
+#rvm use 1.9.3
+#gollum-site generate --base_path "./"
 
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA

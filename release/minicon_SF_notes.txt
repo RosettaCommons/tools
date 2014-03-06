@@ -4,6 +4,7 @@ B) - works for git branch mostly, but FAILS for release filename - tie into repa
 
 C) build documentation, after documentation is a valid repository
 NOTE: DOCUMENTATION IS CURRENTLY INCLUDED but does not get a git pull like it should!!
+NOTE: Waiting to hear from Tim if he wants to branch these or not.
 
 D) create a new git repository: 
 -strip a release, create git repository from that

@@ -22,6 +22,7 @@ suites = [ 'EmbedDefIOTests',
 			'MembraneResiduesTest',
 			'MembraneResiduesTest',
 			'EmbeddingFactoryTest',
+			'MPDatabaseIOTest',
 			'MembraneConformationTest',
 			'MembraneProteinFactoryTest' ]
 

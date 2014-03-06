@@ -13,6 +13,10 @@ copy all files from next stripped release
 git commit -a THIS big pile of changes, to produce releases as a git repository
 
 F) start choosing releases from specially chosen test server builds (on Thursday night, it splits off a revision to do all platform/unit tests)
-f status: scriptside complete.  test server site not.
+f status: scriptside complete.  test server side complete.
 
 H) examine unit test timing - consider defaulting most residuetypes off in unit tests
+Result: looks like it's just that slow:
+- commenting out all the patches in the patch file didn't speed it up
+- removing all the patches in-code with exclude didn't speed it up
+- one or two tests seem extra-slow (AtomTypeDatabaseIOTests) but can't account for all issues

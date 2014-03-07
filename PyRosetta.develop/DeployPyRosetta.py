@@ -117,7 +117,7 @@ def main(args):
     i_cmake = 'cmake-2.8.10.2'  #'cmake-2.8.7'
     #i_pygccxml = 'pygccxml-1.0.0'
     #i_pyplusplus = 'Py++-1.0.0'
-    i_boost_version = (1, 47, 0)  # (1, 54, 0)
+    i_boost_version = (1, 55, 0)  # (1, 54, 0)
     i_boost = 'boost_%s_%s_%s' % i_boost_version
     i_python_lib = 'python%s.%s' % sys.version_info[:2]
     i_BuildPyrosetta = prefix +'/BuildPyRosetta.sh'
@@ -171,6 +171,10 @@ def main(args):
     execute('Downloading Boost...', 'cd %s && %s "http://downloads.sourceforge.net/project/boost/boost/%s.%s.%s/%s.tar.bz2"' % ( (source_dir, Options.loader) + i_boost_version + (i_boost,) ) )
     execute('Unpacking Boost...', cd_work_env + 'tar -vjxf %s/%s.tar.bz2' % (source_dir, i_boost) )
     execute('Installing Boost...', cd_work_env + 'cd %s && ./bootstrap.sh --prefix=%s --with-libraries=python && ./bjam install --prefix=%s' % (i_boost, prefix, prefix) )
+
+    print 'Copying Boost system library source files...',
+    shutil.copytree(working_dir + '/' + i_boost + '/libs/system/src', prefix + '/include/libs/system/src')
+    print 'Done!'
 
     #execute('Installing Boost...', cd_work_env + 'cd %s && ./bootstrap.sh --prefix=%s && ./bjam install --prefix=%s' % (i_boost, prefix, prefix) )
     # ^^^^^ alternative way to install Boost (with all libraries etc) we probably don't need that...

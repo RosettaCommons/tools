@@ -1,10 +1,17 @@
 B) year_week_revID internal, year.week.revID external nomenclature  (done)
 B) lookup Sergey's script to determine revID from a git hash (done, except it gets the revID number wrong, not yet finished implementing on Sergey's end)
 B) - works for git branch mostly, but FAILS for release filename - tie into repaired svn_version.py system
+svn_version.py should be a no-op within release (to leave last git info in place!), ALSO should include branch name
 
 C) build documentation, after documentation is a valid repository
 NOTE: DOCUMENTATION IS CURRENTLY INCLUDED but does not get a git pull like it should!!
 NOTE: Waiting to hear from Tim if he wants to branch these or not.
+
+command from tim:
+rvm use 1.9.3
+gollum-site generate --base_path "./"
+
+also fix the documentation README
 
 D) create a new git repository: 
 -strip a release, create git repository from that
@@ -14,6 +21,7 @@ git commit -a THIS big pile of changes, to produce releases as a git repository
 
 F) start choosing releases from specially chosen test server builds (on Thursday night, it splits off a revision to do all platform/unit tests)
 f status: scriptside complete.  test server side complete.
+need a flag to choose revision if auto-release head is inappropriate, or maybe manually pick future release heads?
 
 H) examine unit test timing - consider defaulting most residuetypes off in unit tests
 Result: looks like it's just that slow:

@@ -4,12 +4,7 @@ B) - works for git branch mostly, but FAILS for release filename - tie into repa
 svn_version.py should be a no-op within release (to leave last git info in place!), ALSO should include branch name
 
 C) build documentation, after documentation is a valid repository
-NOTE: DOCUMENTATION IS CURRENTLY INCLUDED but does not get a git pull like it should!!
-NOTE: Waiting to hear from Tim if he wants to branch these or not.
-
-command from tim:
-rvm use 1.9.3
-gollum-site generate --base_path "./"
+Note: need to remove static html after rosetta copy is made
 
 also fix the documentation README
 

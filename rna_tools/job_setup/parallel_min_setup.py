@@ -4,6 +4,7 @@ import os
 import os.path as path
 import shutil
 from warnings import warn
+from rosetta_exe import rosetta_exe
 
 
 def is_number(s):
@@ -86,7 +87,8 @@ os.mkdir(args.out_folder)
 
 out_script = open(args.out_script, 'w')
 silent_fh = []
-cmdline_base = 'rna_minimize ' + args.extra_opt + ' -in:file:silent '
+cmdline_base = rosetta_exe('rna_minimize')
+cmdline_base += ' ' + args.extra_opt + ' -in:file:silent '
 for i in xrange(args.proc):
     folder = path.join(args.out_folder, str(i))
     os.mkdir(folder)

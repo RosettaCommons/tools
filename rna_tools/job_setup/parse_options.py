@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:1-4 or A1-4 or 1-4
 
     assert( len( input_string ) > 0 )

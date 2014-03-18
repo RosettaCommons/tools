@@ -24,6 +24,16 @@ def setup_tag_schema(db_name):
     connection.commit()
     connection.close()
     
+def setup_metadata_schema(db_name):
+    '''given a db name, set up the metadata schema'''
+    
+    schema_string = "CREATE TABLE IF NOT EXISTS metadata (tag_id INTEGER PRIMARY KEY AUTOINCREMENT,record_id INTEGER REFERENCES sdf_input_data(record_id), tag string,value float)"
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(schema_string)
+    connection.commit()
+    connection.close()
+    
 def setup_params_schema(db_name):
     '''given a db name, setup the params schema'''
     schema_string = "CREATE TABLE IF NOT EXISTS params_data (param_id INTEGER PRIMARY KEY AUTOINCREMENT, tag_id INTEGER REFERENCES activity_tags(tag_id),ligand_name string,filename string)"
@@ -46,9 +56,12 @@ def write_data(db_name,table,columns,data_list):
     connection.commit()
     connection.close()
     
-def write_tag_data(db_name,data_list):
+def write_tag_data(db_name,data_list,mode="tag"):
     '''given a deata list, write activity tag information'''
-    insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+    if mode =="tag":
+        insert_string = "INSERT INTO activity_tags (record_id,tag,value) VALUES (?,?,?)"
+    elif mode== "metadata":
+        insert_string = "INSERT INTO metadata (record_id,tag,value) VALUES (?,?,?)"
     query_string = "SELECT ligand_id,record_id FROM sdf_input_data"
     
     
@@ -109,19 +122,28 @@ def get_all_file_names(db_name,only_tagged=False,json_output=False):
         
     connection.close()
     
-def get_file_names_with_activity_data(db_name):
+def get_file_names_with_activity_data(db_name,system_list = None):
     '''generator producing sdf filenames and activity tag data'''
     select_string = "SELECT sdf_input_data.ligand_id,activity_tags.tag_id,filename,tag,value FROM sdf_input_data JOIN activity_tags ON sdf_input_data.record_id == activity_tags.record_id"
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for sdf_record,tag_id,filename,tag,value in cursor.execute(select_string):
-        yield {
-            "sdf_record" : sdf_record,
-            "tag_id" : tag_id,
-            "filename" : filename,
-            "tag" : tag,
-            "value" : value
-        }
+        if system_list != None and tag in system_list:
+            yield {
+                "sdf_record" : sdf_record,
+                "tag_id" : tag_id,
+                "filename" : filename,
+                "tag" : tag,
+                "value" : value
+            }
+        elif system_list == None:
+            yield {
+                "sdf_record" : sdf_record,
+                "tag_id" : tag_id,
+                "filename" : filename,
+                "tag" : tag,
+                "value" : value
+            }
     connection.close()
     
 def get_params_information(db_name):

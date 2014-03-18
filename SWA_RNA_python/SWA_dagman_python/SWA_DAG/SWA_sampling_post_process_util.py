@@ -125,14 +125,10 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		Is_empty=False
 
-		if(first_silent_line=="StepWiseRNA_Minimizer:: num_pose_outputted==0, empty silent_file!\n"):
-
+		if first_silent_line.index( "empty silent_file" ) > -1:
 			Is_empty=True
-
 		else:
-
 			assert_is_valid_non_empty_silent_file(silent_file)
-
 			non_empty_silent_file_list.append(silent_file)
 
 		print "queue_ID=%d | silent_file=%s | Is_empty=%s" %(queue_ID , silent_file, Is_empty)

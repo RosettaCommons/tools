@@ -1,13 +1,16 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python2.7
 import json
 from optparse import OptionParser
 import glob
 import math 
 import sys
+import os
+from Bio import PDB
+import numpy
 
 def get_emptiest_bin(bin_map):
     smallest_bin = 0
-    smallest_bin_size = 100000
+    smallest_bin_size = 1000000000
     for bin_id in bin_map:
         bin_size = 0
         for record in bin_map[bin_id]:
@@ -17,7 +20,17 @@ def get_emptiest_bin(bin_map):
             smallest_bin_size = bin_size
     return smallest_bin
 
-def parse_params_dir(params_dir,group_name):
+def find_ligand_center(pdb_path):
+    parser = PDB.PDBParser()
+    structure = parser.get_structure("x",pdb_path)
+    atom_sum = numpy.zeros(3)
+    atom_count = 1.0
+    for atom in structure.get_atoms():
+        atom_sum += atom.get_coord()
+        atom_count += 1.0
+    return atom_sum/atom_count
+
+def parse_params_dir(params_dir,group_name,group_list=None):
     pdb_map = {}
     params_map = {}
     found_param = False
@@ -33,10 +46,12 @@ def parse_params_dir(params_dir,group_name):
                     line = line.split()
                     if len(line) >= 3:
                         if line[1] == "system_name":
-                            try:
-                                pdb_map[line[2]].append(pdb_path)
-                            except KeyError:
-                                pdb_map[line[2]] = [pdb_path]
+                            if (group_list != None and line[2] in group_list) or group_list == None:
+                                try:
+                                    pdb_map[line[2]].append(pdb_path)
+                                except KeyError:
+                                    pdb_map[line[2]] = [pdb_path]
+                            
         else:
             try:
                 pdb_map[group_name].append(pdb_path)
@@ -53,16 +68,41 @@ def parse_params_dir(params_dir,group_name):
 def chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
+
+def make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff):
+    jobs = []
+    total_jobs = 0
+    for system_name in pdb_map:
+        protein_list = []
+        short_system_name = system_name.split("_")[0]
+        for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
+            protein_list.append(path)
         
-def make_jobs(pdb_map,structure_dir,cutoff,group_name):
+        ligands_to_dock = []
+        for cross_name in pdb_map:
+            if cross_name == system_name:
+                ligand_center = find_ligand_center(pdb_map[system_name][0])
+            ligands_to_dock += pdb_map[cross_name]
+        if len(protein_list) == 0 or len(ligands_to_dock) == 0:
+            continue
+        ligands_per_job = int(math.ceil(cutoff/len(protein_list)))
+        for ligand_chunk in chunks(ligands_to_dock,ligands_per_job):
+            new_job = {"group_name" : system_name}
+            new_job["proteins"] = protein_list
+            new_job["ligands"] = ligand_chunk
+            new_job["startfrom"] = ligand_center.tolist()
+            jobs.append(new_job)
+    return jobs
+        
+def make_jobs(pdb_map,structure_dir,cutoff,group_name,native_dir =None):
 
     jobs = []
     total_jobs = 0
     for system_name in pdb_map:
         protein_list = []
         if group_name == None:
-            short_system_name = system_name.split("_")[0]
-            for path in glob.glob(structure_dir+"/*"+short_system_name+"*.pdb*"):
+            #short_system_name = system_name.split("_")[0]
+            for path in glob.glob(structure_dir+"/*"+system_name+"*.pdb*"):
                 protein_list.append(path)
         else:
             short_system_name = group_name
@@ -72,9 +112,19 @@ def make_jobs(pdb_map,structure_dir,cutoff,group_name):
             continue
         ligands_per_job = int(math.ceil(cutoff/len(protein_list)))
         for ligand_chunk in chunks(pdb_map[system_name],ligands_per_job):
-            new_job = {"group_name" : system_name}
-            new_job["proteins"] = protein_list
-            new_job["ligands"] = ligand_chunk
+            new_job = {
+                "group_name" : system_name,
+                "proteins" : protein_list,
+                "ligands" : ligand_chunk
+            }
+            if native_dir != None:
+                if len(ligand_chunk) == 0:
+                    sys.exit("ERROR: the option --create_native_commands doesn't work if a job has more than 1 ligand associated with it")
+                ligand_path = ligand_chunk[0]
+                for path in glob.glob(native_dir+"/"+system_name+"*.pdb*"):
+                    native_pdb = path
+                    break
+                new_job["native"] = "%s %s" % (native_pdb,ligand_path)
             jobs.append(new_job)
     return jobs
 
@@ -93,7 +143,9 @@ def init_options():
     parser.add_option("--n_chunks",dest="n_chunks",help="number of total files to split work into. (Default: 4)",default=4)
     parser.add_option("--max_per_job",dest="max_per_job",help="maximum number of structures per job. (Default: 10000)",default=10000)
     parser.add_option("--group_name",dest="group_name",help="Manually specify a group name to be used for all proteins and all ligands")
-    parser.add_option("--group_name_list",dest="group_name_list",help="specify a list of acceptable group names seperated by commas, jobs will only be constructed from those groups")
+    parser.add_option("--group_name_list",dest="group_name_list",help="specify a list of acceptable group names seperated by commas, jobs will only be constructed from those groups",default=None)
+    parser.add_option("--inactive_cross_dock",dest="cross_dock",help="create jobs that dock all actives as inactives",default=False, action="store_true")
+    parser.add_option("--create_native_commands",dest="native_dir",help="path to a directory of pdb files containing native proteins. (Optional)",default=None)
     return parser
     
 
@@ -106,13 +158,28 @@ if __name__ == "__main__":
     bin_count = int(options.n_chunks)
     cutoff = int(options.max_per_job)
     
-    pdb_map,params_map = parse_params_dir(param_dir,options.group_name)
-    jobs = make_jobs(pdb_map,structure_dir,cutoff,options.group_name)
-    
     if options.group_name_list != None:
-        group_name_list = options.group_name_list.split(",")
+        if os.path.exists(options.group_name_list):
+            group_name_list = []
+            with open(options.group_name_list) as infile:
+                for line in infile:
+                    line = line.rstrip()
+                    group_name_list.append(line)
+        else:
+            group_name_list = options.group_name_list.split(",")
     else:
         group_name_list = []
+    
+    
+    if options.group_name_list == None:
+        pdb_map,params_map = parse_params_dir(param_dir,options.group_name)
+    else:
+        pdb_map,params_map = parse_params_dir(param_dir,options.group_name,group_list=group_name_list)
+    if options.cross_dock:
+        jobs = make_inactive_crossdock_jobs(pdb_map,structure_dir,cutoff)
+    else:
+        jobs = make_jobs(pdb_map,structure_dir,cutoff,options.group_name,native_dir=options.native_dir)
+    
 
     job_list = []
     all_jobs = 0
@@ -120,8 +187,7 @@ if __name__ == "__main__":
         n_proteins = len(job["proteins"])
         n_ligands = len(job["ligands"])
         total_size = n_proteins*n_ligands
-        if options.group_name_list == None or job["group_name"] in group_name_list:
-            job_list.append( (total_size,job) )
+        job_list.append( (total_size,job) )
         all_jobs += total_size
 
     job_list = sorted(job_list,key=lambda x: x[0],reverse=True)

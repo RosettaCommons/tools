@@ -3,7 +3,6 @@ import argparse
 import os
 import os.path as path
 import shutil
-from warnings import warn
 
 
 parser = argparse.ArgumentParser(
@@ -13,9 +12,10 @@ parser.add_argument(
 parser.add_argument(
     '-proc', help='Number of processes (default 100)', default=100, type=int)
 parser.add_argument(
-    '-out_folder', help='Folder for the output files',  default='out')
+    '-out_folder', help='Folder for the output files', default='out')
 parser.add_argument(
-    '-out_script', help='Job Script for submission',  default='rna_denovo.joblist')
+    '-out_script', help='Job Script for submission',
+    default='rna_denovo.joblist')
 
 args = parser.parse_args()
 

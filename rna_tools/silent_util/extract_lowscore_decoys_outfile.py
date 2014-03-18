@@ -148,7 +148,9 @@ stderr.write( 'Extracting %d models from %s\n' % (count, string.join( infiles,' 
 
 fid = stdout
 if output_to_file:
-    newfile = infile.replace( ".out", ".top%d.out" % NSTRUCT  )
+    newfile = infile
+    if scorecol_name_defined: newfile = newfile.replace( ".out", ".%s.out" % scorecol_name )
+    newfile = newfile.replace( ".out", ".top%d.out" % NSTRUCT  )
     fid = open( newfile , 'w' )
 
 if not IS_OUTFILE:

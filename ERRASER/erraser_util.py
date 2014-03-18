@@ -610,6 +610,7 @@ def regularize_pdb(input_pdb, out_name) :
     check_path_exist(input_pdb)
 
     rna_types = {' rA': '  A', ' rC': '  C', ' rG': '  G', ' rU': '  U',
+                 ' Ar': '  A', ' Cr': '  C', ' Gr': '  G', ' Ur': '  U',
                  'ADE': '  A', 'CYT': '  C', 'GUA': '  G', 'URI': '  U',
                  'A  ': '  A', 'C  ': '  C', 'G  ': '  G', 'U  ': '  U',
                  '  A': '  A', '  C': '  C', '  G': '  G', '  U': '  U'}

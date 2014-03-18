@@ -20,9 +20,9 @@ if ($#ARGV < 4) {
 #argument variables
 $seq=$ARGV[0];
 $spanfile=$ARGV[1];
-$PSIBLAST=$ARGV[2]; # path to blastpgp
-$NR=$ARGV[3]; # path to nr database
-$parseblast=$ARGV[4]; #path to alignblast.pl
+$PSIBLAST=$ARGV[2];		# path to blastpgp
+$NR=$ARGV[3];			# path to nr database
+$parseblast=$ARGV[4];	# path to alignblast.pl
 
 #setup variables
 $sequence=`grep -v '>' $seq`;
@@ -32,6 +32,7 @@ $pdb_id=substr($seq,0,4);
 @helix_ends=();
 
 #reading in spanfile
+################################
 if(-e $spanfile){
 	open(SPAN,$spanfile) || die "Cannot open $spanfile\n";
 	while(<SPAN>){
@@ -43,6 +44,8 @@ if(-e $spanfile){
 	close(SPAN);
 }
 
+#write string with TM topology (---HHHHHH--)
+################################
 $len=length($sequence);
 @tm=();
 $tm="";
@@ -66,22 +69,26 @@ for(my $i=0;$i<$len;$i++){
 }
 $helix_counter-- if($old_membrane_region==0);
 
-# psi-blast
-
+#run psi-blast
+################################
 $DB=$NR;
 $blastout=$seq;
 $blastout=~s/fasta/blast/g;
 
+#run PsiBlast
 if(!-e $blastout){
 	$psiblast_command="$PSIBLAST -i $seq -d $DB -j 2 -h 0.001 -b5000 -v5000 -o $blastout";
 	print "Running:\n $psiblast_command\n";
 	`$psiblast_command`;
 }
 
+#run alignblast.pl
 if(!-e "$blastout.msa"){
 	`$parseblast $blastout $blastout.msa -psi`;
 }
 
+#read alignment file into matrix
+################################
 @ali=split(//,$sequence);
 @ali_matrix=[@ali];
 %ali=();
@@ -96,6 +103,8 @@ while(<MSA>){
 }
 close(MSA);
 
+#run lips server
+################################
 my $lips_high="";
 my $lips_low="";
 open(OUT,">$pdb_id.lipo");
@@ -140,6 +149,8 @@ print OUT "select high, resi $lips_high\n";
 print OUT "select low, resi $lips_low\n";
 close(OUT);
 
+#print output
+################################
 my $outfile_base="$pdb_id";
 my $data=`cat $pdb_id.raw`;
 my $m=4;
@@ -149,6 +160,12 @@ print OUT "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
 print OUT $raw_data;
 close(OUT);
 
+################################################################################
+## SUBROUTINES
+################################################################################
+
+#subroutine 1
+################################################################################
 sub parse_lips{
 	my $data=shift;
 	my @data=split(/\n/,$data);
@@ -191,6 +208,8 @@ sub parse_lips{
 	return ($res_high,$res_low,$return_str);
 }
 
+#subroutine 2
+################################################################################
 sub parse_lips2
 {
 	my $data=shift;
@@ -244,6 +263,8 @@ sub parse_lips2
 	return ($res_high,$res_low,$return_str);
 }
 
+#subroutine 3
+################################################################################
 sub parse_lips3{
 	my $data=shift;
 	my $mode=shift;
@@ -413,6 +434,8 @@ sub parse_lips3{
 	return $return_str;
 }
 
+# standard deviation
+################################################################################
 sub std
 {
 	my @data=@_;
@@ -430,6 +453,8 @@ sub std
 	}
 }
 
+# mean
+################################################################################
 sub mean
 {
 	my @data=@_;

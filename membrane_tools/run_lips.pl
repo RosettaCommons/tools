@@ -1,6 +1,11 @@
 #!/usr/bin/perl -w 
 
-## @file make_lips.pl
+## REQUIRES THE URL http://gila.bioengr.uic.edu/cgi-bin/lips/script.cgi TO WORK!!!
+## IF URL IS NOT AVAILABLE, THIS SCRIPT SHOULD BE ADAPTED TO RUN THE DOWNLOADED
+## VERSION OF THE CGI SCRIPT, WHICH IS Rosetta/tools/membrane_tools/lips_server.pl
+## (not sure yet how to adapt run_lips.pl to use lips_server.pl - JKLeman)
+##
+## @file run_lips.pl
 ##
 ## @brief Liphophobicity Score Generation
 ## @details Takes a transmembrane topology prediction file and outputs liphobicity score (*.lips4) for
@@ -71,7 +76,7 @@ for(my $i=0;$i<$len;$i++){
 }
 $helix_counter-- if($old_membrane_region==0);
 
-#run psi-blast
+#run psi-blast - creates <pdbid>.blast
 ################################
 $DB=$NR;
 $blastout=$seq;
@@ -84,7 +89,7 @@ if(!-e $blastout){
 	`$psiblast_command`;
 }
 
-#run alignblast.pl
+#run alignblast.pl - creates <pdbid>.blast.msa
 ################################
 if(!-e "$blastout.msa"){
 	`$parseblast $blastout $blastout.msa -psi`;
@@ -107,16 +112,24 @@ while(<MSA>){
 close(MSA);
 
 #run lips server
+#creates <pdbid>.lipo and <pdbid>.raw
 ################################
 my $lips_high="";
 my $lips_low="";
-open(OUT,">$pdb_id.lipo");
-print OUT "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
-open(DATA,">$pdb_id.raw");
+open(LIPO,">$pdb_id.lipo");
+#print OUT "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
+print LIPO "Lipid exposed data: mean lipo per helix per interface with residues\n";
+open(RAW,">$pdb_id.raw");
+
+#required URL to work!!!
 $url="http://gila.bioengr.uic.edu/cgi-bin/lips/script.cgi";
+
+#go through helices
 for($helix_num=1;$helix_num<=$helix_counter;$helix_num++){
 	my $sequences="";
 	my $first_num=$helix_starts[$helix_num-1];
+
+	#go through residues, get input for server
 	for(my $i=0;$i<$seq_count;$i++){
 		my $temp_str="";
 		for(my $j=0;$j<$len;$j++){
@@ -128,46 +141,53 @@ for($helix_num=1;$helix_num<=$helix_counter;$helix_num++){
 			$sequences.="$temp_str\n";
 		}
 	}
-	$data=`curl -s $url -d sequence='$sequences' -d num=$first_num`;
-   
-	print DATA $data;
-   
-	my ($lips_high_temp,$lips_low_temp,$raw_data)=parse_lips($data);  
-   
-	$raw_data=~s/helix_num/$helix_num/g;
-	print OUT $raw_data;
-	if(length($lips_high)>0){
-		$lips_high.="+$lips_high_temp";
-		$lips_low.="+$lips_low_temp";
-	}
-	else{
-		$lips_high.="+$lips_high_temp";
-		$lips_low.="+$lips_low_temp";
-	}
-}
-close(DATA);
-close(OUT);
-open(OUT,">".$pdb_id.".pdb.color");
-print OUT "select high, resi $lips_high\n";
-print OUT "select low, resi $lips_low\n";
-close(OUT);
 
-#print output
+	#run LIPS server
+	#if URL doesn't work, please adapt this line to run lips_server.pl!!!
+	$data=`curl -s $url -d sequence='$sequences' -d num=$first_num`;
+
+	#print data to .raw file
+	print RAW $data;
+
+	#run parse_lips subroutine on <pdbid>.raw file
+	my ($lips_high_temp,$lips_low_temp,$raw_data)=parse_lips($data);  
+
+	#print .lipo file
+	$raw_data=~s/helix_num/$helix_num/g;
+	print LIPO $raw_data;
+
+	#get residues of low/high lipo
+	$lips_high.="+$lips_high_temp";
+	$lips_low.="+$lips_low_temp";
+}
+close(RAW);
+close(LIPO);
+
+#coloring for pymol - creates <pdbid>.pdb.color
+################################
+open(COLOR,">".$pdb_id.".pdb.color");
+print COLOR "select high, resi $lips_high\n";
+print COLOR "select low, resi $lips_low\n";
+close (COLOR);
+
+#writes <pdbid>.lips4
 ################################
 my $outfile_base="$pdb_id";
 my $data=`cat $pdb_id.raw`;
+
+#mode for parse_lips3
 my $m=4;
 my ($raw_data)=parse_lips3($data,$m);
-open(OUT,">$outfile_base.lips$m");
-print OUT "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
-print OUT $raw_data;
-close(OUT);
+open(LIPS4,">$outfile_base.lips$m");
+print LIPS4 "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
+print LIPS4 $raw_data;
+close(LIPS4);
 
 ################################################################################
 ## SUBROUTINES
 ################################################################################
 
-#subroutine 1
+#parsing <pdbid>.raw file
 ################################################################################
 sub parse_lips{
 	my $data=shift;
@@ -180,19 +200,31 @@ sub parse_lips{
 	my $lowest_lipo=99999999;
 	my $highest_lip_index="";
 	my $lowest_lip_index="";
+
+	#read <pdbid>.raw
 	foreach my $line(@data){
+
+		#surface lines
 		if($line=~/SURFACE\s+(\d):/){ 
 			$surface=$1;
 		}
+
+		#helix lines (resn, residue, lipo, entropy(?))
 		if($line=~/(\d+)\s+[A-Z]\s+[\d\.\-]+/){
 			push(@{$resnum[$surface]},$1) #+110);
 		}
+
+		#summary lines, take out lipophilicity
 		if($line=~/(\d+)\s+[\d\.\-]+\s+[\d\.\-]+\s+([\d\.\-]+)/){
 			$lips[$1]=$2;
+
+			#get max lipophilicity
 			if($lips[$1]>$highest_lipo){
 				$highest_lipo=$lips[$1];
 				$highest_lipo_index=$1;
 			}
+
+			#get min lipophilicity
 			if($lips[$1]<$lowest_lipo){
 				$lowest_lipo=$lips[$1];
 				$lowest_lipo_index=$1;
@@ -202,7 +234,8 @@ sub parse_lips{
 
 	my $res_high=join('+',@{$resnum[$highest_lipo_index]});
 	my $res_low=join('+',@{$resnum[$lowest_lipo_index]});
-	
+
+	#go through helix faces	
 	for(my $i=0;$i<7;$i++){
 		my $res=join('+',@{$resnum[$i]});
 		$return_str.="helix_num $lips[$i] ( $res )\n";
@@ -211,10 +244,10 @@ sub parse_lips{
 	return ($res_high,$res_low,$return_str);
 }
 
-#subroutine 2
+#subroutine 2 - NOT USED!!!
 ################################################################################
-sub parse_lips2
-{
+=for comment
+sub parse_lips2{
 	my $data=shift;
 	my @data=split(/\n/,$data);
 	$surface=0;
@@ -265,8 +298,9 @@ sub parse_lips2
 	my $res_low=join('+',@{$resnum[$lowest_lipo_index]});
 	return ($res_high,$res_low,$return_str);
 }
+=cut
 
-#subroutine 3
+#parsing <pdbid>.raw file
 ################################################################################
 sub parse_lips3{
 	my $data=shift;
@@ -291,11 +325,15 @@ sub parse_lips3{
 	@{$nb_list[5]}=(1,2);
 	@{$nb_list[6]}=(2,3);
 
-
+	#read file
 	foreach my $line(@data){
+
+		#surface lines
 		if($line=~/SURFACE\s+(\d):/){
 			$surface=$1;
 		}
+
+		#data lines
 		if($line=~/(\d+)\s+[A-Z]\s+([\d\.\-]+)\s+([\d\.\-]+)/){
 			push(@{$resnum[$surface]},$1);
 			$lipophilicity=2*$2;  #For some reason the webserver multiply the score by 2.
@@ -303,23 +341,31 @@ sub parse_lips3{
 			push(@{$lipophilicity[$surface]},$lipophilicity);
 			push(@{$entropy[$surface]},$entropy);
 		}
+
+		#summary lines
 		if($line=~/(\d+)\s+[\d\.\-]+\s+[\d\.\-]+\s+([\d\.\-]+)/){
 			$lips[$1]=$2;
+
+			#get max lipo
 			if($lips[$1]>$highest_lipo){
 				$highest_lipo=$lips[$1];
 				$highest_lipo_index=$1;
 			}
+
+			#get min lipo
 			if($lips[$1]<$lowest_lipo){
 				$lowest_lipo=$lips[$1];
 				$lowest_lipo_index=$1;
 			}
 		}
-	
+
+		#at end of each helix
 		if($line=~/<\/body>/){
 			my $mean_lips=sprintf("%5.3f",mean(@lips));
-			my $std_lips=sprintf("%5.3f",std(@lips));
-		
+			my $std_lips=sprintf("%5.3f",std(@lips));		
 			my $res_high=join('+',@{$resnum[$highest_lipo_index]});
+
+			#not used
 			if($mode eq "1"){
 				for(my $i=0;$i<scalar(@{$resnum[$highest_lipo_index]});$i++){		
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$highest_lipo_index]}[$i], $lips[$highest_lipo_index], ${$lipophilicity[$highest_lipo_index]}[$i], ${$entropy[$highest_lipo_index]}[$i]);
@@ -328,6 +374,8 @@ sub parse_lips3{
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$lowest_lipo_index]}[$i], -$lips[$lowest_lipo_index], ${$lipophilicity[$lowest_lipo_index]}[$i], ${$entropy[$lowest_lipo_index]}[$i]);
 				}
 			}
+
+			#not used
 			if($mode eq "2"){
 				for(my $i=0;$i<scalar(@{$resnum[$highest_lipo_index]});$i++){			
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$highest_lipo_index]}[$i]+110, $lips[$highest_lipo_index], ${$lipophilicity[$highest_lipo_index]}[$i], ${$entropy[$highest_lipo_index]}[$i]);
@@ -352,6 +400,8 @@ sub parse_lips3{
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$selected_index]}[$i], -$lips[$selected_index], ${$lipophilicity[$selected_index]}[$i], ${$entropy[$selected_index]}[$i]);
 				}
 			}
+
+			#not used
 			if($mode eq "3"){
 				for(my $i=0;$i<scalar(@{$resnum[$lowest_lipo_index]});$i++){
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$lowest_lipo_index]}[$i], -$lips[$lowest_lipo_index], ${$lipophilicity[$lowest_lipo_index]}[$i], ${$entropy[$lowest_lipo_index]}[$i]);
@@ -375,14 +425,18 @@ sub parse_lips3{
 					$return_str.=sprintf("%7d %7.3f %7.3f %7.3f\n",${$resnum[$selected_index]}[$i], $lips[$selected_index], ${$lipophilicity[$selected_index]}[$i], ${$entropy[$selected_index]}[$i]);
 				}
 			}
+
+			#used!!!
 			if($mode eq "4"){
 	
 				#exit;
 				#the other surface should be highest lipo + not neighbor to lowest and its neighbor.
 				my $selected_index=0;
 				$highest_lips=-9999999999;
+
+#				print "$lips[0]\n";
 				for(my $i=0;$i<scalar @lips;$i++){
-		   			#print "$i $lowest_lipo_index $nb_list[$lowest_lipo_index][0] $nb_list[$lowest_lipo_index][1]\n";
+					print "$i $lowest_lipo_index $nb_list[$lowest_lipo_index][0] $nb_list[$lowest_lipo_index][1]\n";
 					if($i!=$nb_list[$lowest_lipo_index][0] &&
 			   			$i!=$nb_list[$lowest_lipo_index][1] &&
 			   			$nb_list[$i][0]!=$nb_list[$lowest_lipo_index][0] &&
@@ -390,11 +444,12 @@ sub parse_lips3{
 			   			$nb_list[$i][0]!=$nb_list[$lowest_lipo_index][1] &&
 			   			$nb_list[$i][1]!=$nb_list[$lowest_lipo_index][0] &&
 			   			$lips[$i]>$highest_lips){
+
 						$selected_index=$i;
 						$highest_lips=$lips[$i];
 					}
 				}
-				print "$lowest_lipo_index $selected_index $highest_lipo_index\n";
+#				print "$lowest_lipo_index $selected_index $highest_lipo_index\n";
 		
 				$n1=$nb_list[$lowest_lipo_index][0];
 				$n2=$nb_list[$lowest_lipo_index][1];
@@ -439,8 +494,7 @@ sub parse_lips3{
 
 # standard deviation
 ################################################################################
-sub std
-{
+sub std{
 	my @data=@_;
 	my $mean=mean(@data);
 	my $n=scalar @data;
@@ -458,8 +512,7 @@ sub std
 
 # mean
 ################################################################################
-sub mean
-{
+sub mean{
 	my @data=@_;
 	my $sum=0;
 	my $number_of_elements=scalar @data;
@@ -473,3 +526,4 @@ sub mean
 		return $sum/$number_of_elements;
 	}
 }
+

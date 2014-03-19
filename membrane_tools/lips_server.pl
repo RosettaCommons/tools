@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -D
+#!/usr/bin/perl -D
 
 use CGI;
 

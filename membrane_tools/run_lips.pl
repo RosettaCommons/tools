@@ -64,6 +64,8 @@ for(my $i=0;$i<$len;$i++){
 	}
 	$tm.=$ss;
 	push(@tm,$membrane_region);
+
+	#get number of helices
 	$helix_counter++ if($membrane_region == 0 && $old_membrane_region!=0);
 	$old_membrane_region=$membrane_region;
 }
@@ -83,6 +85,7 @@ if(!-e $blastout){
 }
 
 #run alignblast.pl
+################################
 if(!-e "$blastout.msa"){
 	`$parseblast $blastout $blastout.msa -psi`;
 }

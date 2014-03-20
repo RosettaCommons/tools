@@ -434,9 +434,8 @@ sub parse_lips3{
 				my $selected_index=0;
 				$highest_lips=-9999999999;
 
-#				print "$lips[0]\n";
 				for(my $i=0;$i<scalar @lips;$i++){
-					print "$i $lowest_lipo_index $nb_list[$lowest_lipo_index][0] $nb_list[$lowest_lipo_index][1]\n";
+#					print "$i $lowest_lipo_index $nb_list[$lowest_lipo_index][0] $nb_list[$lowest_lipo_index][1]\n";
 					if($i!=$nb_list[$lowest_lipo_index][0] &&
 			   			$i!=$nb_list[$lowest_lipo_index][1] &&
 			   			$nb_list[$i][0]!=$nb_list[$lowest_lipo_index][0] &&

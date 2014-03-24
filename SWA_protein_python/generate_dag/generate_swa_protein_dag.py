@@ -1168,7 +1168,7 @@ for L in range( min_length, max_length + 1 ):
 
 
                 # build residues and close -- again, this might be combinable with stuff above.
-                # in this case, build one residues from C-terminus, CCD close over intervening residues.
+                # in this case, build one residue from N-terminus, sample it, and CCD close over intervening residues.
                 j_prev = j-1
                 for i_prev in [ i, i+1, i+2 ]:
                     job_tag = "REGION_%d_%d" % ( i_prev, j_prev )
@@ -1198,6 +1198,7 @@ for L in range( min_length, max_length + 1 ):
                                                              fid_dag, job_tags, all_job_tags, jobs_done, real_compute_job_tags, combine_files)
 
 
+                # in this case, build one residue from C-terminus, sample it, and CCD close over intervening residues.
                 j_prev = j
                 for i_prev in [ i+1, i+2, i+3 ]:
                     job_tag = "REGION_%d_%d" % ( i_prev, j_prev )

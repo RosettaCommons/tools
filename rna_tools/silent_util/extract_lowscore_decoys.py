@@ -278,7 +278,7 @@ for infile in infiles:
 
     elif ( binary_silentfile ):
 
-        command = '%s -in:file:silent  %s  -in:file:silent_struct_type binary  -in:file:tags %s -database %s  ' % \
+        command = '%s -in:file:silent  %s  -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
                   ( MINI_EXE, outfilename, string.join( tags ), DB )
         if output_virtual: command += " -output_virtual "
 

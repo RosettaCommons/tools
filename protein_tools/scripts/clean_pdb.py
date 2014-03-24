@@ -2,6 +2,13 @@
 
 "written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis  from the Meiler Lab."
 
+# Function of this script: "clean" raw pdb file by following tasks so that rosetta modeling becomes easier
+
+## starts residue number at 1
+## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM)
+## removes residues with 0 occupancy
+## and many other tasks
+
 import sys
 import os
 from sys import argv, stderr, stdout

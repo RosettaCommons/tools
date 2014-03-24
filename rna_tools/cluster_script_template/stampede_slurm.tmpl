@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J job_name
+#SBATCH -o job_name.o%j
+#SBATCH -p normal
+#SBATCH -t 24:00:00
+#SBATCH --mail-user=XXXX@XXX.XXX
+#SBATCH --mail-type=ALL
+#SBATCH -n 10 # Number of nodes (16 cores/node)
+#SBATCH -N 10
+echo $SLURM_NODELIST > nodefile.txt
+echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt
+pp_jobsub.py job_script

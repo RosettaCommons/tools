@@ -55,7 +55,6 @@ class erraser_option :
         self.allow_syn_pyrimidine = True
         self.include_native = False
         self.slice_nearby = True
-        self.finer_sampling = False
         self.rebuild_res = 0
         self.scoring_file = ''
         self.cluster_RMSD = 0.1
@@ -113,7 +112,6 @@ class erraser_option :
         self.search_syn_pyrimidine_only_when_native_syn = (
             parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.slice_nearby =  parse_options( argv, "slice_nearby", "True" )
-        self.finer_sampling = parse_options( argv, 'finer_sampling', 'False' )
         self.rebuild_res = parse_options( argv, "rebuild_res", 0 )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.1 )

@@ -96,7 +96,6 @@ for stem in helix_stems:
 
     cmdline = cmdline_base[:]
     cmdline += "-working_res %s " % res_num
-    cmdline += "-output_res_num %s " % res_num
     cmdline += "-out_script %s " % out_script
     cmdline += "-tag %s " % tag
     subprocess.check_call([str(elem) for elem in cmdline.split()])

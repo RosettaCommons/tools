@@ -22,7 +22,8 @@ suites = [ 'EmbedDefIOTests',
 			'MembraneResiduesTest',
 			'MembraneResiduesTest',
 			'EmbeddingFactoryTest',
-			'MembraneConformationTest',
+			'MPDatabaseIOTest',
+			'MembraneInfoTest',
 			'MembraneProteinFactoryTest' ]
 
 # Unit Testing Command

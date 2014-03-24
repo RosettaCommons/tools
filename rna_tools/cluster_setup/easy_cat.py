@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 import sys
@@ -29,7 +29,10 @@ for outfile in outfiles:
         if len( globfiles ) == 0: globfiles = glob( outfile + '/*out'  )
         #print globfiles
 
-        globfiles.sort()
+        # make sure to order 0,1,2,... 10, 11, 12, ... 100, 101, ...
+        globfiles_with_length = map( lambda x: [len(x),x], globfiles )
+        globfiles_with_length.sort()
+        globfiles = map( lambda x:x[-1], globfiles_with_length )
 
         for file in globfiles:
             tag = basename( file ).replace('.out','')
@@ -49,6 +52,12 @@ for tag in which_files_to_cat.keys():
                cat_file )
     #print command
     system( command )
+
+    cat_file_contributors = cat_file + '.txt'
+    fid_txt = open( cat_file_contributors, 'w' )
+    for m in range( len( which_files_to_cat[tag] ) ):
+        fid_txt.write( '%03d %s\n' % (m,which_files_to_cat[tag][m]) )
+    fid_txt.close()
 
     lines = popen( 'grep SCORE '+cat_file).readlines()
     print '... from %d primary files. Found %d  decoys.' % (len( which_files_to_cat[tag] ),len(lines)-1)

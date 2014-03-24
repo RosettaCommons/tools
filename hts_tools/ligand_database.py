@@ -128,7 +128,15 @@ def get_file_names_with_activity_data(db_name,system_list = None):
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     for sdf_record,tag_id,filename,tag,value in cursor.execute(select_string):
-        if system_list != None and tag not in system_list:
+        if system_list != None and tag in system_list:
+            yield {
+                "sdf_record" : sdf_record,
+                "tag_id" : tag_id,
+                "filename" : filename,
+                "tag" : tag,
+                "value" : value
+            }
+        elif system_list == None:
             yield {
                 "sdf_record" : sdf_record,
                 "tag_id" : tag_id,

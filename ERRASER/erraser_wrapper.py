@@ -828,14 +828,12 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -out:file:silent blah.out "
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
-    sampling_cmd += " -sampler_perform_o2star_pack true "
     sampling_cmd += " -sampler_extra_chi_rotamer true "
     sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "
     sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
-    sampling_cmd += " -finer_sampling_at_chain_closure %s " % str(option.finer_sampling).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
     sampling_cmd += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
     sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()

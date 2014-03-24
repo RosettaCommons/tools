@@ -8,7 +8,7 @@
 ##
 ## @author Bjorn Wallner
 ## @author Vladmir Yarov-Yaravoy
-## @author Rebecca Alford
+## @author Rebecca Alford (added documentation/annotations)
 
 if ($#ARGV < 4) {
     print STDERR "usage: $0 <fasta file> <span file> <path to blastpgp> <path to nr database> <path to alignblast.pl script> \n";

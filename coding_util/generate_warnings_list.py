@@ -61,7 +61,14 @@ parser.add_argument('--source_directory',
 parser.add_argument('-f', '--format', default='none',
                     choices=['none', 'html', 'wiki'],
                     help='which format for the output list')
+parser.add_argument('--keep_raw', action='store_true',
+                    help='do not delete the raw data file of warnings output')
+parser.add_argument('--parse_only', action='store_true',
+                    help='generate list and counts from already-existing raw' +
+                    'data file')
 args = parser.parse_args()
+if args.parse_only:
+    args.keep_raw = True
 
 
 # Subroutines
@@ -76,10 +83,11 @@ def clean_up():
         remove('junk.tmp')
     except OSError:
         pass
-    try:
-        remove('raw_warnings.tmp')
-    except OSError:
-        pass
+    if not args.keep_raw:
+        try:
+            remove('raw_warnings.tmp')
+        except OSError:
+            pass
 
 
 def build_rosetta(out, err):
@@ -102,43 +110,60 @@ def build_rosetta(out, err):
         exit('\nBuild canceled; original "user.settings" restored.')
 
 
-# Move user.settings to temporary file.
-print 'saving original "user.settings" data...'
-rename(args.settings_directory + '/user.settings',
-       args.settings_directory + '/user.settings.temporary')
+def parse_gcc_warnings(raw_data):
+    pass
 
-# Generate new user.settings file.
-print 'generating new settings:'
 
-settings = 'settings = {"user" : {"prepends" : {}, "appends" : {}, ' + \
-           '"overrides" : {"flags" : {"warn" : ['
-if args.cxx == 'clang':
-    settings += '"Weverything", "fno-caret-diagnostics", ' + \
-                '"fno-color-diagnostics", "fno-diagnostics-fixit-info", '
-else:  # cxx=gcc
-    settings += '"Wall", "Wextra", "pedantic", '
-settings += '], }}, "removes" : {}, }}\n'
+def parse_clang_warnings(raw_data):
+    pass
 
-print settings
-with open(args.settings_directory + '/user.settings', "w") as f:
-    f.write(settings)
 
-# Delete build directories
-print 'cleaning build directories for fresh build...'
-rmtree(args.source_directory + '/build/external')
-rmtree(args.source_directory + '/build/src')
+# Main
+if not args.parse_only:
+    # Move user.settings to temporary file.
+    print 'saving original "user.settings" data...'
+    rename(args.settings_directory + '/user.settings',
+           args.settings_directory + '/user.settings.temporary')
 
-# Move to source directory and compile Rosetta with new settings.
-with open('raw_warnings.tmp', "w") as raw_warnings_file:
-    if args.mute:
-        with open('junk.tmp', "w") as screen_output_file:
-            build_rosetta(screen_output_file, raw_warnings_file)
-    else:
-        build_rosetta(None, raw_warnings_file)
+    # Generate new user.settings file.
+    print 'generating new settings:'
 
-# Restore original user.settings file.
-print 'restoring original "user.settings" data...'
-restore_settings()
+    settings = 'settings = {"user" : {"prepends" : {}, "appends" : ' +\
+               '{"flags" : {"warn" : ['
+    if args.cxx == 'clang':
+        settings += '"Wall", "fno-caret-diagnostics", ' + \
+                    '"fno-color-diagnostics", "fno-diagnostics-fixit-info",'
+    else:  # cxx=gcc
+        settings += '"Wall", "Wextra", "pedantic", ' + \
+                    '"fdiagnostics-show-option", "fmessage-length=0"'
+    settings += '], }}, "overrides" : {}, "removes" : {}, }}\n'
+
+    print settings
+    with open(args.settings_directory + '/user.settings', "w") as f:
+        f.write(settings)
+
+    # Delete build directories
+    print 'cleaning build directories for fresh build...'
+    try:
+        rmtree(args.source_directory + '/build/external')
+    except OSError:
+        pass
+    try:
+        rmtree(args.source_directory + '/build/src')
+    except OSError:
+        pass
+
+    # Move to source directory and compile Rosetta with new settings.
+    with open('raw_warnings.tmp', "w") as raw_warnings_file:
+        if args.mute:
+            with open('junk.tmp', "w") as screen_output_file:
+                build_rosetta(screen_output_file, raw_warnings_file)
+        else:
+            build_rosetta(None, raw_warnings_file)
+
+    # Restore original user.settings file.
+    print 'restoring original "user.settings" data...'
+    restore_settings()
 
 
 # Parse raw_warnings file.
@@ -151,7 +176,6 @@ else:
     print 'Rosetta was successfully compiled. ',
     print 'parsing raw data...'
 
-# The below is currently clang-specific:
 data = [line for line in raw_data if line.endswith(']\n')]
 #        and line.startswith('src/') and not line.startswith('src/ObjexxFCL/')]
 sorted_data = {}
@@ -170,6 +194,7 @@ for line in data:
 print "Note: Scons produced", bad_lines,
 print "bad lines that may also have been warnings;",
 print "these will not be counted."
+
 
 # Generate output files.
 total_warnings = str(len(data))

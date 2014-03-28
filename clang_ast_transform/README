@@ -37,7 +37,7 @@ Running on all files:
 ME=$PWD
 ROOT=/data/rosetta
 SRC=$ROOT/main/source/src
-
 export PYTHONPATH=$ROOT/tools/python_cc_reader
-python /data/rosetta/refactor-tools/run_on_all_headers_w_fork.py -e $ME/rewrite_all.sh -n 8
-python /data/rosetta/refactor-tools/run_on_all_ccfiles_w_fork.py -e $ME/rewrite_all.sh -n 8
+
+cd $SRC
+python $ME/run_on_all_files_w_fork.py -e $ME/rewrite_all.sh -n 8

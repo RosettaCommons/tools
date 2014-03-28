@@ -66,7 +66,7 @@ std::string trim(const std::string & s, const char *whitespace =0) {
 		whitespace = " \r\n\t";
 	for(start = 0; start < s.length() && strchr(whitespace, s[start]); start++);
 	for(end = s.length() -1; end > 0  && strchr(whitespace, s[end]);   end--);
-	return std::string(s, start, end);
+	return std::string(s, start, end - start + 1);
 }
 
 bool endsWith(const std::string& a, const std::string& b) {
@@ -183,7 +183,11 @@ static std::string getTextToDelim(const SourceManager &SourceManager, const T *N
 }
 
 template <typename T>
-void dumpRewrite(SourceManager & sm, T * node, const std::string & newCodeStr) {
+void dumpRewrite(
+	const std::string & tag,
+	SourceManager & sm, T * node,
+	const std::string & newCodeStr
+) {
 	
 	if(!verbose)
 		return;
@@ -192,9 +196,9 @@ void dumpRewrite(SourceManager & sm, T * node, const std::string & newCodeStr) {
 	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
 		
 	llvm::errs() 
-		<< "LOCATION:\t" << locStr << "\n" 
-		<< "OLD CODE:\t" << origCodeStr << "\n"
-		<< "NEW CODE:\t" << newCodeStr << "\n"
+		<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m\n" 
+		<< "- \033[31m" << origCodeStr << "\033[0m\n"
+		<< "+ \033[32m" << newCodeStr << "\033[0m\n"
 		<< "\n";
 }
 
@@ -212,10 +216,15 @@ private:
 
 protected:
 	template <typename T>
-	void doRewrite(SourceManager &sm, T * node, const std::string & origCode, const std::string & newCode) {
+	void doRewrite(
+		const std::string & tag,
+		SourceManager &sm, T * node,
+		const std::string & origCode,
+		const std::string & newCode
+	) {
 		if(origCode == newCode)
 			return;
-		dumpRewrite(sm, node, newCode);
+		dumpRewrite(tag, sm, node, newCode);
 		Replace->insert(Replacement(sm, node, newCode));
 	}
 };
@@ -245,7 +254,7 @@ public:
 		replace(newCode, "owning_ptr", "shared_ptr");
 		replace(newCode, "access_ptr", "weak_ptr");
 
-		doRewrite(sm, decl, origCode, newCode);
+		doRewrite("RewriteTypedefDecl", sm, decl, origCode, newCode);
 	}
 };
 
@@ -286,7 +295,46 @@ public:
 			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
 		}
 
-		doRewrite(sm, opercallexpr, origCode, newCode);
+		doRewrite("RewriteImplicitAssignmentOPCast", sm, opercallexpr, origCode, newCode);
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Replace implicit casts in assignments -- simiar to above but without the CXXOperatorCallExpr
+//   SomeAP a = Some;
+//   SomeAP a = 0;
+//   SomeAP a = NULL;
+
+class RewriteImplicitVarDeclOPCast : public ReplaceMatchCallback {
+public:
+	RewriteImplicitVarDeclOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+
+	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+		SourceManager &sm = *Result.SourceManager;
+		const Expr *cast = Result.Nodes.getStmtAs<Expr>("cast");
+		const Stmt *stmt = Result.Nodes.getStmtAs<Stmt>("stmt");
+		const Stmt *construct = Result.Nodes.getStmtAs<Stmt>("construct");
+
+		const FullSourceLoc FullLocation = FullSourceLoc(stmt->getLocStart(), sm);
+		if(FullLocation.getFileID() != sm.getMainFileID())
+			return;
+		
+		const std::string origCode = getText(sm, cast);
+		const std::string fullMethodCode = getText(sm, stmt);
+		const std::string constructCode = getText(sm, construct);
+
+		size_t equalPos = constructCode.find('=');
+		if(equalPos == std::string::npos)
+			return;
+			
+		// If original code was 0 then just leave it empty
+		std::string newCode;
+		if(origCode == "0" || origCode == "NULL")
+			newCode = "";
+		else
+			newCode = trim(std::string(constructCode, 0, equalPos)) + "( " + origCode + " )";
+
+		doRewrite("RewriteImplicitVarDeclOPCast", sm, construct, origCode, newCode);
 	}
 };
 
@@ -316,7 +364,7 @@ public:
 		else
 			newCode = type + "( " + origCode + " )";
 
-		doRewrite(sm, temporaryexpr, origCode, newCode);
+		doRewrite("RewriteImplicitReturnOPCast", sm, temporaryexpr, origCode, newCode);
 	}
 };
 
@@ -327,15 +375,16 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	using namespace clang::tooling;
 
 	ast_matchers::MatchFinder Finder;
+	tooling::Replacements *Replacements = &Tool.getReplacements();
 
 	// Typedefs for access_ptr and owning_ptr
-	RewriteTypedefDecl RewriteTypedefDeclCallback(&Tool.getReplacements());
+	RewriteTypedefDecl RewriteTypedefDeclCallback(Replacements);
 	Finder.addMatcher(
 		decl(isTypedefDecl()).bind("typedefdecl"),
 		&RewriteTypedefDeclCallback);
 
 	// operator= calls with implicit conversions to OPs/APs
-	RewriteImplicitAssignmentOPCast RewriteImplicitAssignmentOPCastCallback(&Tool.getReplacements());
+	RewriteImplicitAssignmentOPCast RewriteImplicitAssignmentOPCastCallback(Replacements);
 	Finder.addMatcher(
 		operatorCallExpr(
 			allOf(
@@ -353,8 +402,32 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 		).bind("opercallexpr"),
 		&RewriteImplicitAssignmentOPCastCallback);
 
+	// Implicit cast to AP/OP in variable assignments
+	RewriteImplicitVarDeclOPCast RewriteImplicitVarDeclOPCastCallback(Replacements);
+	Finder.addMatcher(
+		varDecl(
+			allOf(
+				// without this, also std::string casts match and get rewritten
+				// as std::string s = something to std::string s( something )
+				// which is OK but we probably won't want
+				hasDescendant(
+					implicitCastExpr( isUtilityPointer() )
+				),
+				hasDescendant(
+					bindTemporaryExpr().bind("cast")
+				),
+				hasDescendant(
+					constructExpr().bind("construct")
+				),
+				hasAncestor(
+					declStmt().bind("stmt")
+				)
+			)
+		),
+		&RewriteImplicitVarDeclOPCastCallback);
+
 	// Return statements with implicit conversions to OPs/APs
-	RewriteImplicitReturnOPCast RewriteImplicitReturnOPCastCallback(&Tool.getReplacements());
+	RewriteImplicitReturnOPCast RewriteImplicitReturnOPCastCallback(Replacements);
 	Finder.addMatcher(
 		returnStmt(
 			hasDescendant(
@@ -425,7 +498,7 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 			}
 		}
 
-		llvm::errs() << "Output directory: " << outputBaseDir << "\n";
+		// llvm::errs() << "Output directory: " << outputBaseDir << "\n";
 				
 		for (Rewriter::buffer_iterator I = Rewrite.buffer_begin(),
 				E = Rewrite.buffer_end(); I != E; ++I) {
@@ -450,7 +523,6 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 			for(size_t i = 0; i < outputFileName.size(); ++i) {
 				if(i > 0 && outputFileName[i] == '/') {
 						std::string path(outputFileName, 0, i);
-						llvm::errs() << path << "\n";
 						mkdir(path.c_str(), 0755);
 				}
 			}
@@ -489,7 +561,7 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 int main(int argc, const char **argv) {
 
 	using namespace clang::tooling;
-	
+
 	llvm::sys::PrintStackTraceOnErrorSignal();
 	std::unique_ptr<CompilationDatabase> Compilations(
 			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
@@ -503,6 +575,7 @@ int main(int argc, const char **argv) {
 			llvm::report_fatal_error(ErrorMessage);
 	}
 
+	
 	RefactoringTool Tool(*Compilations, SourcePaths);
 	if(int r = runMatchers(Tool))
 		return r;

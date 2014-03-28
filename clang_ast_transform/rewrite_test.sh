@@ -2,11 +2,10 @@
 
 CLANG_BIN=/data/rosetta/clang/build/bin
 SOURCE=/data/rosetta/main/source
-OUT_DIR=/data/rosetta/main-copy/source
 
 cd $SOURCE
 
-$CLANG_BIN/rosetta-refactor-tool $OUT_DIR $1 -- \
+$CLANG_BIN/rosetta-refactor-tool $1 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem external/boost_1_55_0/ \

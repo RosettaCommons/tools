@@ -9,7 +9,7 @@ matchers to find nodes in the AST and rewrites them. Tested with clang 3.5
 
 SETUP:
 
-The the llvm and clang sources per the instructions on their website.
+Get the llvm and clang sources per the instructions on their website.
 Copy rosetta-refactor-tool to the extra tools directory, like:
 
 	$LLVM_SRC/tools/clang/tools/extra/rosetta-refactor-tool/

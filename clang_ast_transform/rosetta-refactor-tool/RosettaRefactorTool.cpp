@@ -26,7 +26,10 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>  
+#include <fstream>
+#include <sstream>
+
+#include <sys/stat.h>
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -34,8 +37,15 @@ using namespace llvm;
 using clang::tooling::Replacement;
 
 bool verbose = true;
-bool readonly = false;
 
+cl::opt<std::string> BuildPath(
+	cl::Positional,
+	cl::desc("<build-path>"));
+
+cl::list<std::string> SourcePaths(
+	cl::Positional,
+	cl::desc("<source0> [... <sourceN>]"),
+	cl::OneOrMore);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // String utils
@@ -312,36 +322,11 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-cl::opt<std::string> BuildPath(
-	cl::Positional,
-	cl::desc("<build-path>"));
-
-cl::list<std::string> SourcePaths(
-	cl::Positional,
-	cl::desc("<source0> [... <sourceN>]"),
-	cl::OneOrMore);
-
-int main(int argc, const char **argv) {
+int runMatchers(clang::tooling::RefactoringTool & Tool) {
 
 	using namespace clang::tooling;
-	
-	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<CompilationDatabase> Compilations(
-			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
 
-	cl::ParseCommandLineOptions(argc, argv);
-	if(!Compilations) {
-		std::string ErrorMessage;
-		Compilations.reset(
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
-		if(!Compilations)
-			llvm::report_fatal_error(ErrorMessage);
-	}
-
-	RefactoringTool Tool(*Compilations, SourcePaths);
 	ast_matchers::MatchFinder Finder;
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Typedefs for access_ptr and owning_ptr
 	RewriteTypedefDecl RewriteTypedefDeclCallback(&Tool.getReplacements());
@@ -389,11 +374,15 @@ int main(int argc, const char **argv) {
 		),
 		&RewriteImplicitReturnOPCastCallback);
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// Run tool and generate change log
-	if(Tool.run(newFrontendActionFactory(&Finder)))
-		return 1;
+	return Tool.run(newFrontendActionFactory(&Finder));
+}
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int saveOutput(clang::tooling::RefactoringTool & Tool) {
+	
+	using namespace clang::tooling;
 	
 	LangOptions DefaultLangOptions;
 	IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
@@ -404,10 +393,11 @@ int main(int argc, const char **argv) {
 	SourceManager Sources(Diagnostics, Tool.getFiles());
 	Rewriter Rewrite(Sources, DefaultLangOptions);
 	const Replacements & Replaces = Tool.getReplacements();
+	int result = 0;
 
-	if(readonly)
+	if(BuildPath.empty())
 	{
-		// Output change log to be applied later
+		// Output change log to stdout to be applied later
 		for(Replacements::const_iterator I = Replaces.begin(), E = Replaces.end(); I != E; ++I) {
 			const Replacement &r = *I;
     	if (r.isApplicable()) {
@@ -424,15 +414,97 @@ int main(int argc, const char **argv) {
 	else
 	{
 		// Don't use runAndSave here to not to overwrite original files
-		llvm::outs() << BuildPath << "\n";
 		applyAllReplacements(Replaces, Rewrite);
+
+		size_t slashes = 0;
+		std::string outputBaseDir;
+		for(size_t i = 0; i < BuildPath.size(); ++i) {
+			if(BuildPath[i] == '/') {
+				slashes++;
+				outputBaseDir = std::string(BuildPath, 0, i);
+			}
+		}
+
+		llvm::errs() << "Output directory: " << outputBaseDir << "\n";
+				
 		for (Rewriter::buffer_iterator I = Rewrite.buffer_begin(),
 				E = Rewrite.buffer_end(); I != E; ++I) {
+
 			const FileEntry *Entry = Rewrite.getSourceMgr().getFileEntryForID(I->first);
-			llvm::errs() << Entry->getName() << ":\n";
-			I->second.write(llvm::outs());
+			const std::string origFileName = Entry->getName();
+
+			// Busywork to determine output path and create directories
+			std::string origFileNameRelPath(origFileName);
+			size_t this_slashes = 0;
+			for(size_t i = 0; i < origFileName.size() && this_slashes < slashes; ++i) {
+				if(origFileName[i] == '/') {
+					this_slashes++;
+					if(this_slashes == slashes)
+						origFileNameRelPath = std::string(origFileNameRelPath, i);
+				}
+			}
+			
+			std::string outputFileName = outputBaseDir + origFileNameRelPath;
+
+			// Create dir
+			for(size_t i = 0; i < outputFileName.size(); ++i) {
+				if(i > 0 && outputFileName[i] == '/') {
+						std::string path(outputFileName, 0, i);
+						llvm::errs() << path << "\n";
+						mkdir(path.c_str(), 0755);
+				}
+			}
+
+			// Adapted from clang's Rewriter.cc
+			{
+				SmallString<256> TempFilename(outputFileName.c_str());
+				TempFilename += "-%%%%%%%%";
+				std::unique_ptr<llvm::raw_fd_ostream> FileStream;
+				int FD;
+				bool ok = false;
+
+				if(!llvm::sys::fs::createUniqueFile(TempFilename.str(), FD, TempFilename))
+					FileStream.reset(new llvm::raw_fd_ostream(FD, /*shouldClose=*/true));
+				if(FileStream) {
+					I->second.write(*FileStream); // no error checking on raw_ostream
+					ok = !llvm::sys::fs::rename(TempFilename.str(), outputFileName);
+					llvm::sys::fs::remove(TempFilename.str()); // if rename fails
+				}
+
+				llvm::errs()
+					<< origFileName << " -> " << outputFileName << ": "
+					<< (ok ? "OK" : "Failed!") << "\n";
+					
+				if(!ok)
+					result++;
+			}
 		}
 	}
 	
-	return 0;
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main(int argc, const char **argv) {
+
+	using namespace clang::tooling;
+	
+	llvm::sys::PrintStackTraceOnErrorSignal();
+	std::unique_ptr<CompilationDatabase> Compilations(
+			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
+
+	cl::ParseCommandLineOptions(argc, argv);
+	if(!Compilations) {
+		std::string ErrorMessage;
+		Compilations.reset(
+			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
+		if(!Compilations)
+			llvm::report_fatal_error(ErrorMessage);
+	}
+
+	RefactoringTool Tool(*Compilations, SourcePaths);
+	if(int r = runMatchers(Tool))
+		return r;
+	return saveOutput(Tool);
 }

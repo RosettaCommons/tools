@@ -99,6 +99,10 @@ AST_MATCHER(CastExpr, isLValueToRValueCast) {
   return Node.getCastKind() == CK_LValueToRValue;
 }
 
+AST_MATCHER(CastExpr, isFunctionToPointerDecayCast) {
+  return Node.getCastKind() == CK_FunctionToPointerDecay;
+}
+
 AST_MATCHER(CastExpr, isConstructorConversionCast) {
   return Node.getCastKind() == CK_ConstructorConversion;
 }
@@ -140,12 +144,14 @@ static std::string getText(
 	const SourceLocation &EndSpellingLocation
 ) {
   if (!StartSpellingLocation.isValid() || !EndSpellingLocation.isValid()) {
+		llvm::errs() << "getText: invalid locations\n";
     return std::string();
   }
   bool Invalid = true;
   const char *Text =
       SourceManager.getCharacterData(StartSpellingLocation, &Invalid);
   if (Invalid) {
+		llvm::errs() << "getText: can't get character data\n";
     return std::string();
   }
   std::pair<FileID, unsigned> Start =
@@ -155,10 +161,12 @@ static std::string getText(
           EndSpellingLocation, 0, SourceManager, LangOptions()));
   if (Start.first != End.first) {
     // Start and end are in different files.
+		llvm::errs() << "getText: Start/end in different files\n";
     return std::string();
   }
   if (End.second < Start.second) {
     // Shuffling text with macros may cause this.
+		llvm::errs() << "getText: end before start\n";
     return std::string();
   }
   return std::string(Text, End.second - Start.second);
@@ -278,14 +286,21 @@ public:
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 
-		// Get original code			
+		// Get original code and cast type
 		const std::string type = QualType::getAsString(memberexpr->getType().split());
 		const std::string origCode = getText(sm, opercallexpr);
+		if(origCode.empty())
+			return;
+			
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
-		std::string rightSideCode(origCode, origCode.length() - leftSideCode.length());
+		std::string rightSideCode(origCode, leftSideCode.length());
 		
 		leftSideCode = trim(leftSideCode, " \t\n=");
 		rightSideCode = trim(rightSideCode, " \t\n=");
+
+		if(type == "<bound member function type>")
+			// Not sure what this is...
+			return;
 
 		std::string newCode;
 		if(rightSideCode == "0" || rightSideCode == "NULL") {
@@ -300,51 +315,45 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in assignments -- simiar to above but without the CXXOperatorCallExpr
-//   SomeAP a = Some;
-//   SomeAP a = 0;
-//   SomeAP a = NULL;
+// Replace implicit casts in constructors
+//   given X(SomeAP), using X(new Some) ==> X(SomeAP(new Some))
 
-class RewriteImplicitVarDeclOPCast : public ReplaceMatchCallback {
+class RewriteImplicitConstructOPCast : public ReplaceMatchCallback {
 public:
-	RewriteImplicitVarDeclOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitConstructOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
 		const Expr *cast = Result.Nodes.getStmtAs<Expr>("cast");
-		const Stmt *stmt = Result.Nodes.getStmtAs<Stmt>("stmt");
 		const Stmt *construct = Result.Nodes.getStmtAs<Stmt>("construct");
 
-		const FullSourceLoc FullLocation = FullSourceLoc(stmt->getLocStart(), sm);
+		const FullSourceLoc FullLocation = FullSourceLoc(construct->getLocStart(), sm);
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 		
 		const std::string origCode = getText(sm, cast);
-		const std::string fullMethodCode = getText(sm, stmt);
-		const std::string constructCode = getText(sm, construct);
 
-		size_t equalPos = constructCode.find('=');
-		if(equalPos == std::string::npos)
-			return;
-			
-		// If original code was 0 then just leave it empty
 		std::string newCode;
-		if(origCode == "0" || origCode == "NULL")
-			newCode = "";
-		else
-			newCode = trim(std::string(constructCode, 0, equalPos)) + "( " + origCode + " )";
+		std::string type( QualType::getAsString( cast->getType().split() ) );
+		if(beginsWith(type, "class "))
+			type = std::string(type, 6);
 
-		doRewrite("RewriteImplicitVarDeclOPCast", sm, construct, origCode, newCode);
+		if(origCode == "0" || origCode == "NULL")
+			newCode = type + "()";
+		else
+			newCode = type + "( " + origCode + " )";
+	
+		doRewrite("RewriteImplicitConstructOPCast", sm, cast, origCode, newCode);
 	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in returns
-//   SomeAP function() { return new Some; }
+// Replace implicit casts to OP/AP
+// (too generic -- unused)
 
-class RewriteImplicitReturnOPCast : public ReplaceMatchCallback {
+class RewriteImplicitCastToOP : public ReplaceMatchCallback {
 public:
-	RewriteImplicitReturnOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastToOP(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -364,7 +373,7 @@ public:
 		else
 			newCode = type + "( " + origCode + " )";
 
-		doRewrite("RewriteImplicitReturnOPCast", sm, temporaryexpr, origCode, newCode);
+		doRewrite("RewriteImplicitCastToOP", sm, temporaryexpr, origCode, newCode);
 	}
 };
 
@@ -383,69 +392,59 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 		decl(isTypedefDecl()).bind("typedefdecl"),
 		&RewriteTypedefDeclCallback);
 
+	// Return statements with implicit conversions to OPs/APs
+	// (too generic)
+#if 0
+	RewriteImplicitCastToOP RewriteImplicitCastToOPCallback(Replacements);
+	Finder.addMatcher(
+			implicitCastExpr(
+				allOf(
+					hasDescendant(
+						bindTemporaryExpr(
+							hasDescendant(
+								implicitCastExpr( isNonNoopCast() )
+							)
+						).bind("temporaryexpr")
+					),
+					isUtilityPointer()
+				)
+	),
+	&RewriteImplicitCastToOPCallback);
+#endif
+	
 	// operator= calls with implicit conversions to OPs/APs
 	RewriteImplicitAssignmentOPCast RewriteImplicitAssignmentOPCastCallback(Replacements);
 	Finder.addMatcher(
 		operatorCallExpr(
 			allOf(
 				hasDescendant(
-					implicitCastExpr().bind("castexpr")
+					implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 				),
 				hasDescendant(
 					memberExpr().bind("memberexpr")
-				),
-				hasDescendant(
-					implicitCastExpr( isLValueToRValueCast() )
 				),
 				isUtilityPointer()
 			)
 		).bind("opercallexpr"),
 		&RewriteImplicitAssignmentOPCastCallback);
 
-	// Implicit cast to AP/OP in variable assignments
-	RewriteImplicitVarDeclOPCast RewriteImplicitVarDeclOPCastCallback(Replacements);
+	// Implicit casts in constructs
+	RewriteImplicitConstructOPCast RewriteImplicitConstructOPCastCallback(Replacements);
 	Finder.addMatcher(
-		varDecl(
+		constructExpr(
 			allOf(
-				// without this, also std::string casts match and get rewritten
-				// as std::string s = something to std::string s( something )
-				// which is OK but we probably won't want
 				hasDescendant(
 					implicitCastExpr( isUtilityPointer() )
 				),
 				hasDescendant(
-					bindTemporaryExpr().bind("cast")
-				),
-				hasDescendant(
-					constructExpr().bind("construct")
-				),
-				hasAncestor(
-					declStmt().bind("stmt")
+					implicitCastExpr( isConstructorConversionCast() ).bind("cast")
+//				),
+//				hasDescendant(
+//					bindTemporaryExpr()
 				)
 			)
-		),
-		&RewriteImplicitVarDeclOPCastCallback);
-
-	// Return statements with implicit conversions to OPs/APs
-	RewriteImplicitReturnOPCast RewriteImplicitReturnOPCastCallback(Replacements);
-	Finder.addMatcher(
-		returnStmt(
-			hasDescendant(
-				implicitCastExpr(
-					allOf(
-						hasDescendant(
-							bindTemporaryExpr(
-								hasDescendant(
-									implicitCastExpr( isNonNoopCast() )
-								)
-							).bind("temporaryexpr")
-						),
-						isUtilityPointer()
-					)
-				)
-			)
-		),
-		&RewriteImplicitReturnOPCastCallback);
+		).bind("construct"),
+		&RewriteImplicitConstructOPCastCallback);
 
 	// Run tool and generate change log
 	return Tool.run(newFrontendActionFactory(&Finder));

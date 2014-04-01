@@ -33,6 +33,6 @@ for i in range( len(suites) ):
 	print 'Running test suite ' + suites[i]
 	mycmd = cmd + suites[i]
 	subprocess.call(shlex.split(mycmd))
-	print suites[i] + ' Test Passed!'
+	print suites[i] + ' has finished running!'
 
-print 'All Membrane Framework Unit Tests Pass!'
+print 'All Membrane Framework Unit Tests finished running. Please check for failed tests!'

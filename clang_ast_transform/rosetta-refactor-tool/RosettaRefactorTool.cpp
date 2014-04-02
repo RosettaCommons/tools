@@ -236,6 +236,27 @@ protected:
 		Replace->insert(Replacement(sm, node, newCode));
 	}
 };
+
+class MatchTester : public ReplaceMatchCallback {
+public:
+	MatchTester(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+
+	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+		SourceManager &sm = *Result.SourceManager;
+		const Expr *expr = Result.Nodes.getStmtAs<Expr>("expr");
+		const FullSourceLoc FullLocation = FullSourceLoc(expr->getLocStart(), sm);
+		if(FullLocation.getFileID() != sm.getMainFileID())
+			return;
+
+		const std::string origCode = getText(sm, expr);
+		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
+			
+		llvm::errs() 
+			<< locStr << "\n" 
+			<< "\t" << origCode << "\n"
+			<< "\n";
+	}
+};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Replace owning_ptr/access_ptr in typedefs
@@ -243,6 +264,7 @@ protected:
 //   typedef utility::pointer::owning_ptr< Some > SomeOP
 //   typedef utility::pointer::access_ptr< Some const > SomeCAP
 //   typedef utility::pointer::owning_ptr< Some const > SomeCOP
+// OK
 
 class RewriteTypedefDecl : public ReplaceMatchCallback {
 public:
@@ -267,14 +289,18 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in assignments
-//   SomeAP a = new Some;
-//   SomeAP a = 0;
-//   SomeAP a = NULL;
+// Replace implicit casts in assignments to class member variables:
+//   class X {
+//     SomeOP a_;
+//   };
+//   SomeAP a_ = new Some;
+//   SomeAP a_ = 0;
+//   SomeAP a_ = NULL;
+// OK
 
-class RewriteImplicitAssignmentOPCast : public ReplaceMatchCallback {
+class RewriteImplicitCastInClassMemberAssignment : public ReplaceMatchCallback {
 public:
-	RewriteImplicitAssignmentOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastInClassMemberAssignment(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -286,12 +312,15 @@ public:
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 
-		// Get original code and cast type
-		const std::string type = QualType::getAsString(memberexpr->getType().split());
+		// Get original code
 		const std::string origCode = getText(sm, opercallexpr);
 		if(origCode.empty())
 			return;
 			
+		// Get cast type
+		const std::string type = QualType::getAsString(memberexpr->getType().split());
+		
+		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
 		std::string rightSideCode(origCode, leftSideCode.length());
 		
@@ -310,7 +339,68 @@ public:
 			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
 		}
 
-		doRewrite("RewriteImplicitAssignmentOPCast", sm, opercallexpr, origCode, newCode);
+		doRewrite("RewriteImplicitCastInClassMemberAssignment", sm, opercallexpr, origCode, newCode);
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Replace implicit casts in assignments local varialbles variables:
+//   x(SomeOP a) {
+//     a = new Some;
+//     a = 0;
+//     a = NULL;
+//   }
+// or:
+//   x() {
+//     SomeOP a;
+//     a = new Some;
+//     a = 0;
+//     a = NULL;
+//   }
+// OK
+
+class RewriteImplicitCastInLocalVarAssignment : public ReplaceMatchCallback {
+public:
+	RewriteImplicitCastInLocalVarAssignment(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+
+	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+		SourceManager &sm = *Result.SourceManager;
+		const CXXOperatorCallExpr *opercallexpr = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("opercallexpr");
+		const CastExpr *castexpr = Result.Nodes.getStmtAs<CastExpr>("castexpr");
+		const DeclRefExpr *declrefexpr = Result.Nodes.getStmtAs<DeclRefExpr>("declrefexpr");
+		
+		const FullSourceLoc FullLocation = FullSourceLoc(opercallexpr->getLocStart(), sm);
+		if(FullLocation.getFileID() != sm.getMainFileID())
+			return;
+
+		// Get original code
+		const std::string origCode = getText(sm, opercallexpr);
+		if(origCode.empty())
+			return;
+			
+		// Get cast type
+		const std::string type = QualType::getAsString(declrefexpr->getType().split());
+		
+		// Rewrite assignment	
+		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
+		std::string rightSideCode(origCode, leftSideCode.length());
+		
+		leftSideCode = trim(leftSideCode, " \t\n=");
+		rightSideCode = trim(rightSideCode, " \t\n=");
+
+		if(type == "<bound member function type>")
+			// Not sure what this is...
+			return;
+
+		std::string newCode;
+		if(rightSideCode == "0" || rightSideCode == "NULL") {
+			//newCode = leftCode + " " + typedef_name + "()";
+			newCode = leftSideCode + ".reset()";
+		} else {
+			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
+		}
+
+		doRewrite("RewriteImplicitCastInLocalVarAssignment", sm, opercallexpr, origCode, newCode);
 	}
 };
 
@@ -318,9 +408,9 @@ public:
 // Replace implicit casts in constructors
 //   given X(SomeAP), using X(new Some) ==> X(SomeAP(new Some))
 
-class RewriteImplicitConstructOPCast : public ReplaceMatchCallback {
+class RewriteImplicitCastInConstructor : public ReplaceMatchCallback {
 public:
-	RewriteImplicitConstructOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastInConstructor(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -343,7 +433,7 @@ public:
 		else
 			newCode = type + "( " + origCode + " )";
 	
-		doRewrite("RewriteImplicitConstructOPCast", sm, cast, origCode, newCode);
+		doRewrite("RewriteImplicitCastInConstructor", sm, cast, origCode, newCode);
 	}
 };
 
@@ -386,15 +476,17 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	ast_matchers::MatchFinder Finder;
 	tooling::Replacements *Replacements = &Tool.getReplacements();
 
+	MatchTester MatchTesterCallback(Replacements);
+	
 	// Typedefs for access_ptr and owning_ptr
 	RewriteTypedefDecl RewriteTypedefDeclCallback(Replacements);
 	Finder.addMatcher(
 		decl(isTypedefDecl()).bind("typedefdecl"),
 		&RewriteTypedefDeclCallback);
 
+#if 0
 	// Return statements with implicit conversions to OPs/APs
 	// (too generic)
-#if 0
 	RewriteImplicitCastToOP RewriteImplicitCastToOPCallback(Replacements);
 	Finder.addMatcher(
 			implicitCastExpr(
@@ -412,24 +504,61 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	&RewriteImplicitCastToOPCallback);
 #endif
 	
-	// operator= calls with implicit conversions to OPs/APs
-	RewriteImplicitAssignmentOPCast RewriteImplicitAssignmentOPCastCallback(Replacements);
+	// Assignment to class member OP/APs
+	/*
+	CXXOperatorCallExpr 'class utility::pointer::owning_ptr<...>' lvalue
+  |-ImplicitCastExpr 'class utility::pointer::owning_ptr<...>' <FunctionToPointerDecay>
+  | `-DeclRefExpr 'class utility::pointer::owning_ptr<...>'
+  |-MemberExpr 'xCOP':'class utility::pointer::owning_ptr<x>' lvalue ->child_
+  | `-CXXThisExpr 'class X *' this
+      `-ImplicitCastExpr 'const owning_ptr<X>':'const class utility::pointer::owning_ptr<X>' lvalue <NoOp>
+       `-DeclRefExpr 'xOP':'class utility::pointer::owning_ptr<X>' lvalue.
+  */
+  
+	RewriteImplicitCastInClassMemberAssignment RewriteImplicitCastInClassMemberAssignmentCallback(Replacements);
 	Finder.addMatcher(
 		operatorCallExpr(
 			allOf(
 				hasDescendant(
 					implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 				),
-				hasDescendant(
+				has(
 					memberExpr().bind("memberexpr")
+				),
+				hasDescendant(
+					implicitCastExpr(hasDescendant(constructExpr()))
 				),
 				isUtilityPointer()
 			)
 		).bind("opercallexpr"),
-		&RewriteImplicitAssignmentOPCastCallback);
+		&RewriteImplicitCastInClassMemberAssignmentCallback);
 
+	// Assignment to local variable OPs/APs
+	/*
+  CXXOperatorCallExpr
+  |-ImplicitCastExpr 'class utility::pointer::owning_ptr<...> &(*)(pointer)' <FunctionToPointerDecay>
+  | `-DeclRefExpr ...
+  |-DeclRefExpr 'xCOP':'class utility::pointer::owning_ptr<...>' lvalue ...
+  `-ImplicitCastExpr...
+	*/
+	RewriteImplicitCastInLocalVarAssignment RewriteImplicitCastInLocalVarAssignmentCallback(Replacements);
+	Finder.addMatcher(
+		operatorCallExpr(
+			allOf(
+				hasDescendant(
+					implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
+				),
+				has(
+					// Why do we need hasParent(operatorCallExpr()) here?!
+					declRefExpr(hasParent(operatorCallExpr())).bind("declrefexpr")
+				),
+				isUtilityPointer()
+			)
+		).bind("opercallexpr"),
+		&RewriteImplicitCastInLocalVarAssignmentCallback);
+		
 	// Implicit casts in constructs
-	RewriteImplicitConstructOPCast RewriteImplicitConstructOPCastCallback(Replacements);
+	RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback(Replacements);
 	Finder.addMatcher(
 		constructExpr(
 			allOf(
@@ -444,7 +573,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 				)
 			)
 		).bind("construct"),
-		&RewriteImplicitConstructOPCastCallback);
+		&RewriteImplicitCastInConstructorCallback);
 
 	// Run tool and generate change log
 	return Tool.run(newFrontendActionFactory(&Finder));

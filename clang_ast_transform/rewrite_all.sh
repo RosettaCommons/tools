@@ -6,6 +6,12 @@ OUT_DIR=/data/rosetta/main-copy/source
 
 cd $SOURCE
 
+X=`grep $1 DONTREWRITE`
+if [[ "$X" != "" ]]; then
+	echo "Skipping $1"
+	exit
+fi
+
 $CLANG_BIN/rosetta-refactor-tool $OUT_DIR $1 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \

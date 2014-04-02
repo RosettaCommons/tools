@@ -107,6 +107,10 @@ AST_MATCHER(CastExpr, isConstructorConversionCast) {
   return Node.getCastKind() == CK_ConstructorConversion;
 }
 
+AST_MATCHER(DeclRefExpr, isVoidPtrOperator) {
+	return Node.getNameInfo().getName().getAsString() == "operator()";
+}
+
 AST_MATCHER(Decl, isTypedefDecl) {
   //return (Node.getKind() == NK_Typedef);
   return !strcmp(Node.getDeclKindName(), "Typedef");
@@ -363,6 +367,57 @@ public:
 		doRewrite("RewriteImplicitCastInAssignment", sm, opercallexpr, origCode, newCode);
 	}
 };
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Replace implicit casts in assignments to class member variables:
+//   class X {
+//     SomeOP a_;
+//   };
+//   SomeAP a_ = new Some;
+//   SomeAP a_ = 0;
+//   SomeAP a_ = NULL;
+//
+// Replace implicit casts in assignments local varialbles variables:
+//   x(SomeOP a) {
+//     a = new Some;
+//     a = 0;
+//     a = NULL;
+//   }
+// or:
+//   x() {
+//     SomeOP a;
+//     a = new Some;
+//     a = 0;
+//     a = NULL;
+//   }
+// OK
+
+class RewriteVoidPtrOperator : public ReplaceMatchCallback {
+public:
+	RewriteVoidPtrOperator(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+
+	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+		SourceManager &sm = *Result.SourceManager;
+		const Expr *expr = Result.Nodes.getStmtAs<Expr>("expr");
+		
+		const FullSourceLoc FullLocation = FullSourceLoc(expr->getLocStart(), sm);
+		if(FullLocation.getFileID() != sm.getMainFileID())
+			return;
+
+		// Get original code
+		const std::string origCode = getText(sm, expr);
+		if(origCode.empty())
+			return
+			
+		if(origCode.find('*') != std::string::npos) {
+			// Hack: try to avoid *e1() etc.
+			return;
+		}
+
+		// origCode should end with (), so strip that call operator
+		std::string newCode = "&(*" + std::string(origCode, 0, origCode.length() -2) + ")";
+		doRewrite("RewriteImplicitCastInAssignment", sm, expr, origCode, newCode);
+	}
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Replace implicit casts in constructors
@@ -467,6 +522,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	&RewriteImplicitCastToOPCallback);
 #endif
 	
+#if 1
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	// IMPLICIT CASTS:
 	
@@ -572,6 +628,34 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 			)
 		).bind("construct"),
 		&RewriteImplicitCastInConstructorCallback);
+#endif
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	// MISC:
+
+#if 1
+	// Rewrite operator()() on  -> ???
+/*
+	CXXOperatorCallExpr 'pointer':'const class X *'
+	|-ImplicitCastExpr 'pointer (*)(void) const' <FunctionToPointerDecay>
+	| `-DeclRefExpr 'pointer (void) const' lvalue
+	`-ImplicitCastExpr 'const class utility::pointer::owning_ptr<X>' lvalue <NoOp>
+	  `-DeclRefExpr 'TokenCOP':'class utility::pointer::owning_ptr<X>' 
+*/
+	RewriteVoidPtrOperator RewriteVoidPtrOperatorCallback(Replacements);
+	Finder.addMatcher(
+		operatorCallExpr(
+			allOf(
+				hasDescendant(
+					implicitCastExpr( has( declRefExpr( isVoidPtrOperator() ) ) )
+				),
+				hasDescendant(
+					implicitCastExpr( isUtilityPointer() )
+				)
+			)
+		).bind("expr"),
+		&RewriteVoidPtrOperatorCallback);
+#endif
 
 	// Run tool and generate change log
 	return Tool.run(newFrontendActionFactory(&Finder));

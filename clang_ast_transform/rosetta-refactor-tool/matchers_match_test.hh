@@ -24,6 +24,26 @@ public:
 
 MatchTester MatchTesterCallback(Replacements);
 
+/************************************************************************
+NOTE NOTE NOTE
+
+In llvm/tools/clang/include/clang/ASTMatchers/ASTMatchersInternal.h:
+class HasMatcher : public MatcherInterface<T> {
+  bool matches(const T &Node, ASTMatchFinder *Finder,
+               BoundNodesTreeBuilder *Builder) const override {
+    return Finder->matchesChildOf(
+        Node, ChildMatcher, Builder,
+        //ASTMatchFinder::TK_IgnoreImplicitCastsAndParentheses,
+        ASTMatchFinder::TK_AsIs,
+        ASTMatchFinder::BK_First);
+  }
+};
+
+Default traversal mode is to TK_IgnoreImplicitCastsAndParentheses.
+It's not really documented and this doesn't help us.
+Change to TK_AsIs. This may break something else... ?!
+************************************************************************/
+
 /*
 	void set_a_vector1(ClassA *a) {
 		as_[0] = a;
@@ -32,7 +52,7 @@ MatchTester MatchTesterCallback(Replacements);
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr(
 					isLValueToRValueCast()
 				)
@@ -50,7 +70,7 @@ Finder.addMatcher(
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				unaryOperator()
 			),
 			isUtilityPointer()
@@ -66,7 +86,7 @@ Finder.addMatcher(
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				newExpr()
 			),
 			isUtilityPointer()
@@ -82,7 +102,7 @@ Finder.addMatcher(
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				thisExpr()
 			),
 			isUtilityPointer()
@@ -98,7 +118,7 @@ Finder.addMatcher(
 Finder.addMatcher(
 	constructExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr( isConstructorConversionCast() )
 			),
 			isUtilityPointer()
@@ -112,13 +132,14 @@ Finder.addMatcher(
 		ClassA *a = b(); // should match
 	}
 */
+// expr(hasType(recordDecl(hasName("utility::pointer::owning_ptr"))))
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr( has( declRefExpr( isVoidPtrOperator() ) ) )
 			),
-			hasDescendant(
+			has(
 				implicitCastExpr( isUtilityPointer() )
 			)
 		)

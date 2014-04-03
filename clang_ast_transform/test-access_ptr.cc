@@ -9,6 +9,7 @@ class ClassB;
 typedef utility::pointer::access_ptr< ClassA > ClassAAP;
 typedef utility::pointer::owning_ptr< ClassA > ClassAOP;
 typedef utility::pointer::owning_ptr< ClassA const > ClassACOP;
+typedef utility::pointer::owning_ptr< ClassB > ClassBOP;
 
 // Dummy class
 class ClassA {
@@ -24,7 +25,9 @@ public:
 class ClassB {
 private:
 	ClassAOP a_;
+	ClassBOP b_;
 	utility::vector1<ClassAOP> as_;
+	std::string s_;
 	
 public:
 	ClassB() { }
@@ -43,6 +46,11 @@ public:
 		a_ = a;
 	}
 
+	void set_a_ptr_casted(ClassA *a) {
+		a_ = ClassAOP( a ); // show not match
+		// a_.reset( a ); // show not match
+	}
+
 	void set_a_op(ClassAOP a) {
 		a_ = a;	// should not match
 	}
@@ -58,6 +66,10 @@ public:
 	void new_a_local() {
 		ClassAOP aa = new ClassA;
 	}
+	
+	void set_to_self(ClassBOP b) {
+		b->b_ = this;
+	}
 
 	// Vector1	
 	void set_a_vector1(ClassA *a) {
@@ -72,6 +84,11 @@ public:
 		as_[0] = &a;
 	}
 	
+	// operator() call
+	ClassA * operator()() {
+		return &(*a_); // should not match
+	}
+	
 	// Should not match
 	void set_str_char_ptr(const char *s) {
 		s_ = s;
@@ -79,4 +96,6 @@ public:
 };
 
 void foo() {
+	ClassAAP a(new ClassA);
+	void *p = a();
 }

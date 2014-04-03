@@ -75,6 +75,22 @@ Finder.addMatcher(
 	&MatchTesterCallback);
 
 /*
+	void new_a() {
+		a_ = new ClassA;
+	}
+*/
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			hasDescendant(
+				thisExpr()
+			),
+			isUtilityPointer()
+		)
+	).bind("expr"),
+	&MatchTesterCallback);
+	
+/*
 	void new_a_local() {
 		ClassAOP aa = new ClassA;
 	}
@@ -86,6 +102,25 @@ Finder.addMatcher(
 				implicitCastExpr( isConstructorConversionCast() )
 			),
 			isUtilityPointer()
+		)
+	).bind("expr"),
+	&MatchTesterCallback);
+
+/*
+	void foo() {
+		ClassB b;
+		ClassA *a = b(); // should match
+	}
+*/
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			hasDescendant(
+				implicitCastExpr( has( declRefExpr( isVoidPtrOperator() ) ) )
+			),
+			hasDescendant(
+				implicitCastExpr( isUtilityPointer() )
+			)
 		)
 	).bind("expr"),
 	&MatchTesterCallback);

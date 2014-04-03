@@ -1,4 +1,4 @@
-# This file will test the build 
+# This file will test the build
 # You will have to modify three variables here for your own
 # computer:  os, nbits, and compiler.
 
@@ -31,7 +31,7 @@ def central_compile_command() :
    nbits = "64"
    # nbits = "32"
 
-   # The compiler string is the executable that compiles your code.  
+   # The compiler string is the executable that compiles your code.
    compiler = "g++"
    # compiler = "g++-mp-4.3"
    # compiler = "mpic++"
@@ -72,7 +72,7 @@ def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
       return_code = subprocess.call( no_empty_args( second_compile_command.split(" ")), stderr=errfile, stdout=logfile )
       return return_code == 0
    return False
-         
+
 
 def test_compile( cc_file, verbose=False, id="", devnull=False ) :
 
@@ -86,10 +86,11 @@ def test_compile( cc_file, verbose=False, id="", devnull=False ) :
      out_log = out_log + "." + str( id )
      err_log = err_log + "." + str( id )
      temp_o  = temp_o  + "." + str( id )
+
    command = compiler + " -o " + temp_o + generic_command + " " + cc_file
    command_list = command.split(" ")
-   errfile = open( out_log, "w" )
-   logfile = open( err_log, "w" )
+   errfile = open( out_log, "w" ) if id else sys.stderr
+   logfile = open( err_log, "w" ) if id else sys.stdout
 
    command_list = no_empty_args( command_list )
 
@@ -101,12 +102,13 @@ def test_compile( cc_file, verbose=False, id="", devnull=False ) :
    if (verbose) :
       print "return code: ", return_code
 
-   errfile.close()
-   logfile.close()
+   if id: errfile.close();  logfile.close()
 
-   if ( return_code == 0 ) :
+   if return_code == 0:
       return True
-   else :
+   else:
+      #print file(out_log).read(), file(err_log).read()
+      print 'To compile this header locally run following command: cd source/src && python ./../../../tools/python_cc_reader/test_all_headers_compile_w_fork.py --headers', cc_file, '\n\n'
       return False
 
    #return return_code == 0
@@ -169,7 +171,7 @@ def generate_objdump( filelines, id = "" ) :
       return True, objdump
 
    return False, None
-   
+
 
 def test_compile_extreme( filelines, gold_objdump, id = "" ) :
    builds, test_objdump = generate_objdump( filelines, id )
@@ -189,7 +191,7 @@ def tar_everything( tar_file_name ) :
    dirs_to_tar = ["core", "devel", "apps", "protocols" ]
    if len( tar_file_name ) < 8 or tar_file_name[ len(tar_file_name)-7:] != ".tar.gz" :
       tar_file_name = tar_file_name + ".tar.gz"
-   command = "tar -czf " + tar_file_name 
+   command = "tar -czf " + tar_file_name
    command_list = command.split(" ")
    command_list = no_empty_args( command_list )
    command_list.extend( dirs_to_tar )

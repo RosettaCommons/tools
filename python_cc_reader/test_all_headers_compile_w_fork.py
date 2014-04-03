@@ -39,19 +39,23 @@ class HeaderCompilationManager :
 
 if __name__ == "__main__" :
    with blargs.Parser(locals()) as p :
-      p.int( "num_cpu" ).shorthand("n").required()
-      
-   includes = scan_compilable_files()
-   re_hh_header  = re.compile("\S*\.hh$")
-   re_hpp_header = re.compile( "\S*\.hpp$")
+      p.int( "num_cpu" ).shorthand("n").default(1)  #required()
+      p.multiword('headers').default('').unspecified_default()
 
-   all_files = includes.keys()
+   headers = headers.split()
 
-   hh_headers = regex_subset( all_files, re_hh_header )
-   hpp_headers = regex_subset( all_files, re_hpp_header )
-      
-   hh_headers.extend( hpp_headers )
-   headers = hh_headers
+   if not headers:  # headers list was not specified, getting it from source files...
+       includes = scan_compilable_files()
+       re_hh_header  = re.compile("\S*\.hh$")
+       re_hpp_header = re.compile( "\S*\.hpp$")
+
+       all_files = includes.keys()
+
+       hh_headers = regex_subset( all_files, re_hh_header )
+       hpp_headers = regex_subset( all_files, re_hpp_header )
+
+       hh_headers.extend( hpp_headers )
+       headers = hh_headers
 
    hcm = HeaderCompilationManager()
    fm = fork_manager.ForkManager( num_cpu )
@@ -66,7 +70,7 @@ if __name__ == "__main__" :
          #print "assigning header", header, "to process", pid
          hcm.header_for_job[pid] = header
    fm.wait_for_remaining_jobs()
-      
+
    if hcm.all_headers_compiled :
       sys.exit(0)
    else :
@@ -88,4 +92,3 @@ if __name__ == "__main__" :
 #   sys.exit( 0 )
 #else :
 #   sys.exit( 1 )
-

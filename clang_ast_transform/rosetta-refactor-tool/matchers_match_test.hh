@@ -24,14 +24,66 @@ public:
 
 MatchTester MatchTesterCallback(Replacements);
 
+/*
+	void set_a_vector1(ClassA *a) {
+		as_[0] = a;
+	}
+*/
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
 			hasDescendant(
-				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
+				implicitCastExpr(
+					isLValueToRValueCast()
+				)
 			),
-			has(
-				memberExpr()
+			isUtilityPointer()
+		)
+	).bind("expr"),
+	&MatchTesterCallback);
+
+/*
+	void set_aref_vector1(ClassA & a) {
+		as_[0] = &a;
+	}
+*/
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			hasDescendant(
+				unaryOperator()
+			),
+			isUtilityPointer()
+		)
+	).bind("expr"),
+	&MatchTesterCallback);
+
+/*
+	void new_a() {
+		a_ = new ClassA;
+	}
+*/
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			hasDescendant(
+				newExpr()
+			),
+			isUtilityPointer()
+		)
+	).bind("expr"),
+	&MatchTesterCallback);
+
+/*
+	void new_a_local() {
+		ClassAOP aa = new ClassA;
+	}
+*/
+Finder.addMatcher(
+	constructExpr(
+		allOf(
+			hasDescendant(
+				implicitCastExpr( isConstructorConversionCast() )
 			),
 			isUtilityPointer()
 		)

@@ -4,6 +4,14 @@
 namespace clang {
 namespace ast_matchers {
 
+AST_MATCHER(Expr, trueExpr) {
+  return true;
+}
+
+AST_MATCHER(Decl, trueDecl) {
+  return true;
+}
+
 AST_MATCHER(CastExpr, isNullToPointer) {
   return Node.getCastKind() == CK_NullToPointer ||
     Node.getCastKind() == CK_NullToMemberPointer;

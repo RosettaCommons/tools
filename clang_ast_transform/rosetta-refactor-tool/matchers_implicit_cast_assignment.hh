@@ -24,7 +24,8 @@
 
 class RewriteImplicitCastInAssignment : public ReplaceMatchCallback {
 public:
-	RewriteImplicitCastInAssignment(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastInAssignment(tooling::Replacements *Replace, const char *tag)
+		: ReplaceMatchCallback(Replace), tag(tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -70,12 +71,18 @@ public:
 			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
 		}
 
-		doRewrite("RewriteImplicitCastInAssignment", sm, opercallexpr, origCode, newCode);
+		std::string my_tag("RewriteImplicitCastInAssignment");
+		if(tag) {
+			my_tag += ":";
+			my_tag += tag;
+		}
+		doRewrite(my_tag, sm, opercallexpr, origCode, newCode);
 	}
+
+private:
+	const char *tag;
 };
 
-
-RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback(Replacements);
 
 // Assignment to class member OP/APs
 /*
@@ -87,6 +94,8 @@ CXXOperatorCallExpr 'class utility::pointer::owning_ptr<...>' lvalue
 		`-ImplicitCastExpr 'const owning_ptr<X>':'const class utility::pointer::owning_ptr<X>' lvalue <NoOp>
 		 `-DeclRefExpr 'xOP':'class utility::pointer::owning_ptr<X>' lvalue.
 */
+
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback1(Replacements, "operCallExpr>memberExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -94,12 +103,12 @@ Finder.addMatcher(
 				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 			),
 			has(
-				memberExpr().bind("expr")
+				memberExpr(hasParent(operatorCallExpr())).bind("expr")
 			),
 			isUtilityPointer()
 		)
 	).bind("opercallexpr"),
-	&RewriteImplicitCastInAssignmentCallback);
+	&RewriteImplicitCastInAssignmentCallback1);
 
 // Assignment to local variable OPs/APs
 /*
@@ -109,6 +118,8 @@ CXXOperatorCallExpr
 |-DeclRefExpr 'xCOP':'class utility::pointer::owning_ptr<...>' lvalue ...
 `-ImplicitCastExpr...
 */
+
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback2(Replacements, "operCallExpr>declRefExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -122,7 +133,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("opercallexpr"),
-	&RewriteImplicitCastInAssignmentCallback);
+	&RewriteImplicitCastInAssignmentCallback2);
 	
 // Assignment to variable with operator, i.e. v_[x] = new Y
 /*
@@ -139,6 +150,8 @@ CXXOperatorCallExpr 'class utility::pointer::owning_ptr<X>' lvalue
 	`-CXXConstructExpr...
 		`-DeclRefExpr...
 */
+
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback3(Replacements, "operCallExpr>operCallExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -155,37 +168,5 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("opercallexpr"),
-	&RewriteImplicitCastInAssignmentCallback);
+	&RewriteImplicitCastInAssignmentCallback3);
 	
-// Assignment to variable with operator, i.e. v_[x] = new Y
-/*
-CXXOperatorCallExpr 'class utility::pointer::owning_ptr<X>' lvalue
-|-ImplicitCastExpr 'class utility::pointer::owning_ptr<X>' <FunctionToPointerDecay>
-| `-DeclRefExpr 'class utility::pointer::owning_ptr<X>'
-|-CXXOperatorCallExpr 'mapped_type':'class utility::pointer::owning_ptr<X>' lvalue
-| |-ImplicitCastExpr 'mapped_type &(*)(const key_type &)' <FunctionToPointerDecay>
-| | `-DeclRefExpr ...
-| |-MemberExpr ...
-| | `-CXXThisExpr ...
-| `-DeclRefExpr ...
-`-CXXNewExpr 'class X *'
-	`-CXXConstructExpr...
-		`-DeclRefExpr...
-*/
-Finder.addMatcher(
-	operatorCallExpr(
-		allOf(
-			hasDescendant(
-				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
-			),
-			has(
-				operatorCallExpr(
-					has(
-						memberExpr().bind("expr")
-					)
-				)
-			),
-			isUtilityPointer()
-		)
-	).bind("opercallexpr"),
-	&RewriteImplicitCastInAssignmentCallback);

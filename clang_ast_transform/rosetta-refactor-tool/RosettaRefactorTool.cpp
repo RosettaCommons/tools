@@ -25,6 +25,7 @@
 #include "llvm/Support/system_error.h"
 
 #include <string>
+#include <set>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -65,13 +66,14 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	// Include matchers to apply here
 	/////////////////////////////////
 	
-//	#include "matchers_typedef.hh"
-//	#include "matchers_implicit_cast_assignment.hh"
-//	#include "matchers_implicit_cast_class_member_calls.hh"
-//	#include "matchers_implicit_cast_constructor.hh"
+	#include "matchers_typedef.hh"
+	#include "matchers_implicit_cast_assignment.hh"
+	#include "matchers_implicit_cast_class_member_calls.hh"
+	#include "matchers_implicit_cast_constructor.hh"
+	#include "matchers_implicit_cast_from_new.hh"
 	// #include "matchers_implicit_cast_generic.hh"
-//	#include "matchers_void_ptr_operator.hh"
-	#include "matchers_match_test.hh"
+	#include "matchers_void_ptr_operator.hh"
+	// #include "matchers_match_test.hh"
 
 	// Run tool and generate change log
 	return Tool.run(newFrontendActionFactory(&Finder));

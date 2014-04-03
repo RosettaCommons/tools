@@ -60,6 +60,8 @@ bool checkContainsUtilityPointer(std::string const & type) {
 
 namespace {
 	
+std::set<std::string> RewrittenLocations_;
+	
 // Returns the text that makes up 'node' in the source.
 // Returns an empty string if the text cannot be found.
 static std::string getText(
@@ -115,23 +117,30 @@ static std::string getTextToDelim(const SourceManager &SourceManager, const T *N
 }
 
 template <typename T>
-void dumpRewrite(
+bool checkAndDumpRewrite(
 	const std::string & tag,
 	SourceManager & sm, T * node,
 	const std::string & newCodeStr
 ) {
+
+	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
+	bool notYetSeen = (RewrittenLocations_.find(locStr) == RewrittenLocations_.end());
+	if(notYetSeen)
+		RewrittenLocations_.insert(locStr);
 	
 	if(!verbose)
-		return;
-		
+		return notYetSeen;
+
 	const std::string origCodeStr = getText(sm, node);
-	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
 		
 	llvm::errs() 
-		<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m\n" 
+		<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m" 
+		<< (!notYetSeen ? " \033[31m[skipped]\033[0m" : "") <<	"\n" 
 		<< "- \033[31m" << origCodeStr << "\033[0m\n"
 		<< "+ \033[32m" << newCodeStr << "\033[0m\n"
 		<< "\n";
+		
+	return notYetSeen;
 }
 
 } // anon namespace

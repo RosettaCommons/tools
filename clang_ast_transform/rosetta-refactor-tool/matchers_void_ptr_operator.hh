@@ -41,10 +41,14 @@ RewriteVoidPtrOperator RewriteVoidPtrOperatorCallback(Replacements);
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
-				implicitCastExpr( has( declRefExpr( isVoidPtrOperator() ) ) )
+			has(
+				implicitCastExpr(
+					has(
+						declRefExpr( isVoidPtrOperator() )
+					)
+				)
 			),
-			hasDescendant(
+			has(
 				implicitCastExpr( isUtilityPointer() )
 			)
 		)

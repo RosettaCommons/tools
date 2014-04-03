@@ -99,7 +99,7 @@ RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback1(Replace
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 			),
 			has(
@@ -117,18 +117,19 @@ CXXOperatorCallExpr
 | `-DeclRefExpr ...
 |-DeclRefExpr 'xCOP':'class utility::pointer::owning_ptr<...>' lvalue ...
 `-ImplicitCastExpr...
+  `-CXXNewExpr 'x *'
+    `-CXXConstructExpr 'x':'class x' 'void (void)'
 */
 
 RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback2(Replacements, "operCallExpr>declRefExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 			),
 			has(
-				// Why do we need hasParent(operatorCallExpr()) here?!
-				declRefExpr(hasParent(operatorCallExpr())).bind("expr")
+				declRefExpr().bind("expr")
 			),
 			isUtilityPointer()
 		)
@@ -155,7 +156,7 @@ RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback3(Replace
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			hasDescendant(
+			has(
 				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 			),
 			has(
@@ -170,3 +171,38 @@ Finder.addMatcher(
 	).bind("opercallexpr"),
 	&RewriteImplicitCastInAssignmentCallback3);
 	
+
+/*
+CXXOperatorCallExpr 0x2255200 <col:4, col:72> 'pointer':'class utility::pointer::ReferenceCount *'
+|-ImplicitCastExpr 0x22551e8 <col:71, col:72> 'pointer (*)(void) const' <FunctionToPointerDecay>
+| `-DeclRefExpr 0x2255168 <col:71, col:72> 'pointer (void) const' lvalue CXXMethod 0x2254b20 'operator()' 'pointer (void) const'
+`-ImplicitCastExpr 0x2255268 <col:4, col:70> 'const class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' <NoOp>
+  `-CXXBindTemporaryExpr 0x2255148 <col:4, col:70> 'ResourceOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' (CXXTemporary 0x2255140)
+     `-CXXMemberCallExpr 0x2252900 <col:4, col:70> 'ResourceOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>'
+       |-MemberExpr 0x22528a8 <col:4, col:37> '<bound member function type>' ->get_resource 0x1fc1d80
+       | `-CallExpr 0x2252880 <col:4, col:34> 'class basic::resource_manager::ResourceManager *'
+       |   `-ImplicitCastExpr 0x2252868 <col:4, col:21> 'class basic::resource_manager::ResourceManager *(*)(void)' <FunctionToPointerDecay>
+       |     `-DeclRefExpr 0x2252808 <col:4, col:21> 'class basic::resource_manager::ResourceManager *(void)' lvalue CXXMethod 0x1fc0770 'get_instance' 'class basic::resource_manager::ResourceManager *(void)'
+               `-DeclRefExpr 0x22528d8 <col:50> 'const ResourceDescription':'const class std::basic_string<char>' lvalue ParmVar 0x2252440 'resource_description' 'const ResourceDescription &'
+*/
+
+/*
+// INCORRECT/NOT NEEDED
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback4(Replacements, "operCallExpr>>bindTemporaryExpr");
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			has(
+				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
+			),
+			has(
+				implicitCastExpr(
+					has(
+						bindTemporaryExpr( isUtilityPointer() ).bind("expr")
+					)
+				)
+			)
+		)
+	).bind("opercallexpr"),
+	&RewriteImplicitCastInAssignmentCallback4);
+*/

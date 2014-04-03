@@ -19,7 +19,8 @@ protected:
 	) {
 		if(origCode == newCode)
 			return;
-		dumpRewrite(tag, sm, node, newCode);
+		if(!checkAndDumpRewrite(tag, sm, node, newCode))
+			return;
 		Replace->insert(Replacement(sm, node, newCode));
 	}
 };

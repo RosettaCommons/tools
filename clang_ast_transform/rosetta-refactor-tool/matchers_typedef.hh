@@ -32,5 +32,5 @@ public:
 // Typedefs for access_ptr and owning_ptr
 RewriteTypedefDecl RewriteTypedefDeclCallback(Replacements);
 Finder.addMatcher(
-	decl(isTypedefDecl()).bind("typedefdecl"),
+	decl( isTypedefDecl() ).bind("typedefdecl"),
 	&RewriteTypedefDeclCallback);

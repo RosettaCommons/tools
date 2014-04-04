@@ -3,7 +3,10 @@
 
 class RewriteImplicitCastInMemberCall : public ReplaceMatchCallback {
 public:
-	RewriteImplicitCastInMemberCall(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastInMemberCall(
+			tooling::Replacements *Replace, 
+			const char *tag = "RewriteImplicitCastInMemberCall") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -36,7 +39,7 @@ public:
 		else
 			newCode = type + "( " + origCode + " )";
 	
-		doRewrite("RewriteImplicitCastInMemberCall", sm, cast, origCode, newCode);
+		doRewrite(sm, cast, origCode, newCode);
 	}
 };
 

@@ -8,7 +8,10 @@
 
 class RewriteTypedefDecl : public ReplaceMatchCallback {
 public:
-	RewriteTypedefDecl(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteTypedefDecl(
+			tooling::Replacements *Replace,
+			const char *tag ="RewriteTypedefDecl") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -24,7 +27,7 @@ public:
 		replace(newCode, "owning_ptr", "shared_ptr");
 		replace(newCode, "access_ptr", "weak_ptr");
 
-		doRewrite("RewriteTypedefDecl", sm, decl, origCode, newCode);
+		doRewrite(sm, decl, origCode, newCode);
 	}
 };
 

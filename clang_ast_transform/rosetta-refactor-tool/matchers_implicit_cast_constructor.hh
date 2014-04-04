@@ -4,7 +4,10 @@
 
 class RewriteImplicitCastInConstructor : public ReplaceMatchCallback {
 public:
-	RewriteImplicitCastInConstructor(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteImplicitCastInConstructor(
+			tooling::Replacements *Replace,
+			const char *tag = "RewriteImplicitCastInConstructor") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -29,13 +32,14 @@ public:
 		else
 			newCode = type + "( " + origCode + " )";
 	
-		doRewrite("RewriteImplicitCastInConstructor", sm, cast, origCode, newCode);
+		doRewrite(sm, cast, origCode, newCode);
 	}
 };
 
 
 // Implicit casts in constructs
-RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback(Replacements);
+RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback1(
+	Replacements, "RewriteImplicitCastInConstructor:constructExpr>implicitCast.ConstructorConversion");
 Finder.addMatcher(
 	constructExpr(
 		allOf(
@@ -47,7 +51,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("construct"),
-	&RewriteImplicitCastInConstructorCallback);
+	&RewriteImplicitCastInConstructorCallback1);
 
 /*
 CXXBindTemporaryExpr 'xOP':'class utility::pointer::owning_ptr<class X>'
@@ -55,6 +59,10 @@ CXXBindTemporaryExpr 'xOP':'class utility::pointer::owning_ptr<class X>'
   `-CXXConstructExpr 'xOP':'class utility::pointer::owning_ptr<class X>' 'void (pointer)'
 */
 
+/*
+// Not specific enough: causes rewrites of implicit casts that are OK
+RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback2(
+	Replacements, "RewriteImplicitCastInConstructor:constructExpr<implicitCast.ConstructorConversion");
 Finder.addMatcher(
 	constructExpr(
 		allOf(
@@ -64,8 +72,8 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("construct"),
-	&RewriteImplicitCastInConstructorCallback);
-
+	&RewriteImplicitCastInConstructorCallback2);
+*/
 
 /*
 CXXConstructExpr 0x7f12889b8c30 <col:10, col:76> 'utility::sql_database::sessionOP':'class utility::pointer::owning_ptr<class utility::sql_database::session>' 'void (const class utility::pointer::owning_ptr<class utility::sql_database::session> &)' elidable
@@ -76,6 +84,9 @@ CXXConstructExpr 0x7f12889b8c30 <col:10, col:76> 'utility::sql_database::session
         |-ImplicitCastExpr 0x7f12889b8b28 <col:10, col:55> 'owning_ptr<class utility::sql_database::session> (*)(const ResourceDescription &)' <FunctionToPointerDecay>
         | `-DeclRefExpr 0x7f12889b8a50 <col:10, col:55> 'owning_ptr<class utility::sql_database::session> (const ResourceDescription &)' lvalue Function 0x7f12889b8950 'get_resource' 'owning_ptr<class utility::sql_database::session> (const ResourceDescription &)' (FunctionTemplate 0x7f1288a84800 'get_resource')
 */
+
+RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback3(
+	Replacements, "RewriteImplicitCastInConstructor:constructExpr>temporaryExpr>callExpr");
 
 Finder.addMatcher(
 	constructExpr(
@@ -102,5 +113,5 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("construct"),
-	&RewriteImplicitCastInConstructorCallback);
+	&RewriteImplicitCastInConstructorCallback3);
 

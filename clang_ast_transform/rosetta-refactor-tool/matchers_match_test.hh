@@ -3,7 +3,10 @@
 
 class MatchTester : public ReplaceMatchCallback {
 public:
-	MatchTester(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	MatchTester(
+			tooling::Replacements *Replace,
+			const char *tag = "MatchTester") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -12,12 +15,12 @@ public:
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 
-		const std::string origCode = getText(sm, expr);
+		const std::string origCodeStr = getText(sm, expr);
 		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 			
 		llvm::errs() 
-			<< locStr << "\n" 
-			<< "\t" << origCode << "\n"
+			<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m" 
+			<< "- \033[31m" << origCodeStr << "\033[0m\n"
 			<< "\n";
 	}
 };

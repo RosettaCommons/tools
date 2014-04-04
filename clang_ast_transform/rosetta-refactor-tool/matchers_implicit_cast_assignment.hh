@@ -24,8 +24,10 @@
 
 class RewriteImplicitCastInAssignment : public ReplaceMatchCallback {
 public:
-	RewriteImplicitCastInAssignment(tooling::Replacements *Replace, const char *tag)
-		: ReplaceMatchCallback(Replace), tag(tag) {}
+	RewriteImplicitCastInAssignment(
+			tooling::Replacements *Replace, 
+			const char *tag = "RewriteImplicitCastInAssignment") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -71,16 +73,8 @@ public:
 			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
 		}
 
-		std::string my_tag("RewriteImplicitCastInAssignment");
-		if(tag) {
-			my_tag += ":";
-			my_tag += tag;
-		}
-		doRewrite(my_tag, sm, opercallexpr, origCode, newCode);
+		doRewrite(sm, opercallexpr, origCode, newCode);
 	}
-
-private:
-	const char *tag;
 };
 
 

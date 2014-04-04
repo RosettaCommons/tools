@@ -10,7 +10,10 @@ CXXOperatorCallExpr 'pointer':'const class X *'
 
 class RewriteVoidPtrOperator : public ReplaceMatchCallback {
 public:
-	RewriteVoidPtrOperator(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
+	RewriteVoidPtrOperator(
+			tooling::Replacements *Replace,
+			const char *tag = "RewriteVoidPtrOperator") :
+		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -32,7 +35,7 @@ public:
 
 		// origCode should end with (), so strip that call operator
 		std::string newCode = "&(*" + std::string(origCode, 0, origCode.length() -2) + ")";
-		doRewrite("RewriteVoidPtrOperator", sm, expr, origCode, newCode);
+		doRewrite(sm, expr, origCode, newCode);
 	}
 };
 

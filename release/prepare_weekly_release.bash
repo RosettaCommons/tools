@@ -48,8 +48,8 @@ git checkout -b weekly_releases/$branch_name #branch_name defined in release_com
 python remove_internal.py
 git commit -am "weekly release: remove 'internal' documentation"
 #generate static html
-rvm use 1.9.3
-gollum-site generate --base_path "./"
+#this is *really* stupid but I don't want to deal with tcsh and bash fighting today
+../tools/release/generate_documentation.tcsh
 
 #prepare tools
 if [ "$debug" = false ];

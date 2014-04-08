@@ -39,6 +39,13 @@ public:
 	}
 };
 
+/*
+CXXOperatorCallExpr 'pointer':'const class numeric::expression_parser::Expression *'
+`-ImplicitCastExpr 'pointer (*)(void) const' <FunctionToPointerDecay>
+ `-DeclRefExpr 'pointer (void) const' lvalue CXXMethod 0x3a90cc0 'operator()' 'pointer (void) const'
+`-ImplicitCastExpr 'const class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue <NoOp>
+  `-DeclRefExpr 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue Var 0x4ab0620 'de1' 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>'
+*/
 
 RewriteVoidPtrOperator RewriteVoidPtrOperatorCallback(Replacements);
 Finder.addMatcher(
@@ -57,4 +64,4 @@ Finder.addMatcher(
 		)
 	).bind("expr"),
 	&RewriteVoidPtrOperatorCallback);
-	
+

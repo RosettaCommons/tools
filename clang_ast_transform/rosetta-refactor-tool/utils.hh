@@ -39,6 +39,10 @@ bool checkIsUtilityPointer(std::string const & type) {
 }
 
 bool checkContainsUtilityPointer(std::string const & type) {
+
+	if(beginsWith(type, "class ")) // trim class
+		return checkContainsUtilityPointer(std::string(type, 6));
+
 	if(
 		beginsWith(type, "utility::vector0<") ||
 		beginsWith(type, "utility::vector1<")
@@ -49,6 +53,7 @@ bool checkContainsUtilityPointer(std::string const & type) {
 		std::string sub_type = trim(std::string(type, p), "<> ");
 		return checkIsUtilityPointer(sub_type);
 	}
+
 	return false;
 }
 
@@ -124,9 +129,14 @@ bool checkAndDumpRewrite(
 ) {
 
 	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
-	bool notYetSeen = (RewrittenLocations_.find(locStr) == RewrittenLocations_.end());
+	std::string locStrPartial( locStr );
+	size_t p = locStrPartial.find_last_of(':');
+	if(p != std::string::npos)
+		locStrPartial = std::string(locStrPartial, 0, p);
+		
+	bool notYetSeen = (RewrittenLocations_.find(locStrPartial) == RewrittenLocations_.end());
 	if(notYetSeen)
-		RewrittenLocations_.insert(locStr);
+		RewrittenLocations_.insert(locStrPartial);
 	
 	if(!verbose)
 		return notYetSeen;

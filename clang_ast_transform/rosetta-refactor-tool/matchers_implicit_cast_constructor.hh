@@ -54,13 +54,12 @@ Finder.addMatcher(
 	&RewriteImplicitCastInConstructorCallback1);
 
 /*
-CXXBindTemporaryExpr 'xOP':'class utility::pointer::owning_ptr<class X>'
-`-ImplicitCastExpr 'xOP':'class utility::pointer::owning_ptr<class X>' <ConstructorConversion>
-  `-CXXConstructExpr 'xOP':'class utility::pointer::owning_ptr<class X>' 'void (pointer)'
+CXXBindTemporaryExpr 'XOP':'class utility::pointer::owning_ptr<class X>' (CXXTemporary 0x6454ef0)
+`-ImplicitCastExpr 'XOP':'class utility::pointer::owning_ptr<class X>' <ConstructorConversion>
+  `-CXXConstructExpr 'XOP':'class utility::pointer::owning_ptr<class X>' 'void (pointer)'
+    `-ImplicitCastExpr 'X *' <LValueToRValue>
 */
 
-/*
-// Not specific enough: causes rewrites of implicit casts that are OK
 RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback2(
 	Replacements, "RewriteImplicitCastInConstructor:constructExpr<implicitCast.ConstructorConversion");
 Finder.addMatcher(
@@ -69,20 +68,22 @@ Finder.addMatcher(
 			hasParent(
 				implicitCastExpr( isConstructorConversionCast() ).bind("cast")
 			),
+			has(
+				implicitCastExpr( isLValueToRValueCast() )
+			),
 			isUtilityPointer()
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInConstructorCallback2);
-*/
 
 /*
-CXXConstructExpr 0x7f12889b8c30 <col:10, col:76> 'utility::sql_database::sessionOP':'class utility::pointer::owning_ptr<class utility::sql_database::session>' 'void (const class utility::pointer::owning_ptr<class utility::sql_database::session> &)' elidable
-`-MaterializeTemporaryExpr 0x7f12889b8c10 <col:10, col:76> 'const class utility::pointer::owning_ptr<class utility::sql_database::session>' lvalue
-  `-ImplicitCastExpr 0x7f12889b8bf8 <col:10, col:76> 'const class utility::pointer::owning_ptr<class utility::sql_database::session>' <NoOp>
-    `-CXXBindTemporaryExpr 0x7f12889b8b98 <col:10, col:76> 'owning_ptr<class utility::sql_database::session>':'class utility::pointer::owning_ptr<class utility::sql_database::session>' (CXXTemporary 0x7f12889b8b90)
-      `-CallExpr 0x7f12889b8b40 <col:10, col:76> 'owning_ptr<class utility::sql_database::session>':'class utility::pointer::owning_ptr<class utility::sql_database::session>'
-        |-ImplicitCastExpr 0x7f12889b8b28 <col:10, col:55> 'owning_ptr<class utility::sql_database::session> (*)(const ResourceDescription &)' <FunctionToPointerDecay>
-        | `-DeclRefExpr 0x7f12889b8a50 <col:10, col:55> 'owning_ptr<class utility::sql_database::session> (const ResourceDescription &)' lvalue Function 0x7f12889b8950 'get_resource' 'owning_ptr<class utility::sql_database::session> (const ResourceDescription &)' (FunctionTemplate 0x7f1288a84800 'get_resource')
+CXXConstructExpr 'xOP':'class utility::pointer::owning_ptr<class X>' 'void (const class utility::pointer::owning_ptr<class X> &)' elidable
+`-MaterializeTemporaryExpr 'const class utility::pointer::owning_ptr<class X>' lvalue
+  `-ImplicitCastExpr 'const class utility::pointer::owning_ptr<class X>' <NoOp>
+    `-CXXBindTemporaryExpr 'owning_ptr<X>':'class utility::pointer::owning_ptr<class X>' (CXXTemporary 0x7f12889b8b90)
+      `-CallExpr 'owning_ptr<class X>':'class utility::pointer::owning_ptr<class X>'
+        |-ImplicitCastExpr 'owning_ptr<class X> (*)(const ResourceDescription &)' <FunctionToPointerDecay>
+        | `-DeclRefExpr 'owning_ptr<class X> (const ResourceDescription &)' lvalue Function 0x7f12889b8950 'get_resource' 'owning_ptr<class X> (const ResourceDescription &)' (FunctionTemplate 0x7f1288a84800 'get_resource')
 */
 
 RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback3(

@@ -46,7 +46,11 @@ public:
 			
 		// Get cast type
 		std::string type = QualType::getAsString(declrefexpr->getType().split());
-		
+
+		// Hack, don't rewrite iterators
+		if(type.find("::iterator") != std::string::npos)
+			return;
+			
 		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
 		std::string rightSideCode(origCode, leftSideCode.length());
@@ -71,6 +75,10 @@ public:
 			newCode = leftSideCode + ".reset()";
 		} else {
 			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
+			// don't rewrite if same type already (explicit cast)
+			if(beginsWith(rightSideCode, type)) {
+				return;
+			}
 		}
 
 		doRewrite(sm, opercallexpr, origCode, newCode);

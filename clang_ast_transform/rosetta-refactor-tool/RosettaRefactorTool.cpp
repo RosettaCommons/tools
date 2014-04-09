@@ -67,6 +67,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	/////////////////////////////////
 	
 	#include "matchers_typedef.hh"
+	#include "matchers_pointer_name.hh"
 	#include "matchers_void_ptr_operator.hh"
 	#include "matchers_implicit_cast_assignment.hh"
 	#include "matchers_implicit_cast_class_member_calls.hh"

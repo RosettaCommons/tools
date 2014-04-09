@@ -30,12 +30,14 @@ bool beginsWith(const std::string& a, const std::string& b) {
 }
 
 bool checkIsUtilityPointer(std::string const & type) {
-	if(beginsWith(type, "const ")) // trim const
+	if(beginsWith(type, "const ")) // trim const (typedefs)
+		return checkIsUtilityPointer(std::string(type, 6));
+	if(beginsWith(type, "class ")) // trim class (templates)
 		return checkIsUtilityPointer(std::string(type, 6));
 
 	return
-		beginsWith(type, "class utility::pointer::owning_ptr") ||
-		beginsWith(type, "class utility::pointer::access_ptr");
+		beginsWith(type, "utility::pointer::owning_ptr") ||
+		beginsWith(type, "utility::pointer::access_ptr");
 }
 
 bool checkContainsUtilityPointer(std::string const & type) {

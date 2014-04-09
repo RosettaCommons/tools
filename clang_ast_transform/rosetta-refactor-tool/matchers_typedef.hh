@@ -7,33 +7,39 @@
 // OK
 
 class RewriteTypedefDecl : public ReplaceMatchCallback {
+	
 public:
 	RewriteTypedefDecl(
 			tooling::Replacements *Replace,
 			const char *tag ="RewriteTypedefDecl") :
 		ReplaceMatchCallback(Replace, tag) {}
-
+	
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
-		const Decl *decl = Result.Nodes.getStmtAs<Decl>("typedefdecl");
-
-		const FullSourceLoc FullLocation = FullSourceLoc(decl->getLocStart(), sm);
+		const Decl *node = Result.Nodes.getStmtAs<Decl>("decl");
+		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 		
-		std::string origCode( getText(sm, decl) );
+		std::string origCode( getText(sm, node) );
 		std::string newCode( origCode );
 
 		replace(newCode, "owning_ptr", "shared_ptr");
 		replace(newCode, "access_ptr", "weak_ptr");
 
-		doRewrite(sm, decl, origCode, newCode);
+		doRewrite(sm, node, origCode, newCode);
 	}
 };
 
 
 // Typedefs for access_ptr and owning_ptr
-RewriteTypedefDecl RewriteTypedefDeclCallback(Replacements);
+RewriteTypedefDecl RewriteTypedefDeclCallback1(Replacements, "RewriteTypedefDecl:isTypedefDecl");
 Finder.addMatcher(
-	decl( isTypedefDecl() ).bind("typedefdecl"),
-	&RewriteTypedefDeclCallback);
+	decl( isTypedefDecl() ).bind("decl"),
+	&RewriteTypedefDeclCallback1);
+
+// ParmVarDecl in templates and function defs
+RewriteTypedefDecl RewriteTypedefDeclCallback2(Replacements, "RewriteTypedefDecl:paramVarDecl");
+Finder.addMatcher(
+	parmVarDecl().bind("decl"),
+	&RewriteTypedefDeclCallback2);

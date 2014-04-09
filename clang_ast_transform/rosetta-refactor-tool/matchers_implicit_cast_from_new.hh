@@ -21,6 +21,14 @@ public:
 
 		std::string newCode;
 		std::string type( QualType::getAsString( cast->getType().split() ) );
+		if(type == "value_type") {
+			// Use desugared type since we don't have a better info
+			type = QualType::getAsString( cast->getType().getSplitDesugaredType() );
+			// owning_ptr -> shared_ptr didn't get rewritten here yet (template?),
+			// so do it if it's in the desugared type
+			replace(type, "owning_ptr", "shared_ptr");
+			replace(type, "access_ptr", "weak_ptr");
+		}
 		if(beginsWith(type, "class "))
 			type = std::string(type, 6);
 
@@ -42,7 +50,8 @@ or:
   `-ImplicitCastExpr 'x *':'x *' <DerivedToBase>
     `-CXXNewExpr 'X *'
 */
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback(Replacements);
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
+	"RewriteImplicitCastFromNew:implicitCastExpr>constructExpr>newExpr+implicitCastExpr>newExpr");
 Finder.addMatcher(
 	implicitCastExpr(
 		allOf(
@@ -66,4 +75,28 @@ Finder.addMatcher(
 			)
 		)
 	).bind("cast"),
-	&RewriteImplicitCastFromNewCallback);
+	&RewriteImplicitCastFromNewCallback1);
+
+// For templates -- no implicit casts found there
+/*
+MaterializeTemporaryExpr 'value_type':'class utility::pointer::owning_ptr<struct X>' xvalue
+`-CXXBindTemporaryExpr 'value_type':'class utility::pointer::owning_ptr<struct X>' (CXXTemporary)
+  `-CXXConstructExpr 'value_type':'class utility::pointer::owning_ptr<struct X>' 'void (pointer)'
+    `-CXXNewExpr 'struct X *'
+*/
+
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback2(Replacements,
+	"RewriteImplicitCastFromNew:constructExpr>newExpr+bindTemporaryExpr");
+Finder.addMatcher(
+	constructExpr(
+		allOf(
+			isUtilityPointer(),
+			has(
+				newExpr()
+			),
+			hasParent(
+				bindTemporaryExpr()
+			)
+		)
+	).bind("cast"),
+	&RewriteImplicitCastFromNewCallback2);

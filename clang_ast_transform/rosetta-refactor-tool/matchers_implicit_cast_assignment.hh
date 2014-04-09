@@ -39,6 +39,9 @@ public:
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 
+		//llvm::errs() << QualType::getAsString(opercallexpr->getType().split()) << "\n";
+		//llvm::errs() << QualType::getAsString(opercallexpr->getType().getSplitDesugaredType()) << "\n";
+		
 		// Get original code
 		const std::string origCode = getText(sm, opercallexpr);
 		if(origCode.empty())
@@ -47,27 +50,41 @@ public:
 		// Get cast type
 		std::string type = QualType::getAsString(declrefexpr->getType().split());
 
-		// Hack, don't rewrite iterators
-		if(type.find("::iterator") != std::string::npos)
-			return;
-			
 		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
 		std::string rightSideCode(origCode, leftSideCode.length());
+		std::string codeOperType = std::string(origCode, leftSideCode.length()-1, 1);
 		
 		leftSideCode = trim(leftSideCode, " \t\n=");
 		rightSideCode = trim(rightSideCode, " \t\n=");
 
-		if(type == "<bound member function type>") {
-			// Not sure what this is... internal type?
-			return;
-		}
-		
-		if(beginsWith(type, "std::map<")) {
+		if(beginsWith(type, "std::map<") || beginsWith(type, "std::set<")) {
 			// Hack to use second argument of map definition as type
 			size_t j = type.find(',');
 			type = trim(std::string(type, j+1), "<>, ");
 		}
+		
+		if(codeOperType != "=") // we only care about = operators, not [], etc.
+			return;
+			
+		// Skip these casts
+		if(leftSideCode.length() <= 0)
+			// not an assignment, would produce code with syntax error
+			return;
+		if(beginsWith(type, "const std::") || beginsWith(type, "std::"))
+			// don't cast std:: classes
+			return;
+		if(type.find("::iterator") != std::string::npos)
+			// ignore iterators
+			return;
+		if(type == "<bound member function type>")
+			// not idea what these are, skip 'em
+			return;
+		if(!endsWith(type, "OP") && !endsWith(type, "AP"))
+			// Dirty rosetta-specific hack: only rewrite AP and OP;
+			// without it, OP to Maps get also rewritten, i.e.:
+			// resource_locators_[ locator_tag ] = ResourceLocatorsMap( resource_locator );
+			return;
 
 		std::string newCode;
 		if(rightSideCode == "0" || rightSideCode == "NULL") {
@@ -97,15 +114,16 @@ CXXOperatorCallExpr 'class utility::pointer::owning_ptr<...>' lvalue
 		 `-DeclRefExpr 'xOP':'class utility::pointer::owning_ptr<X>' lvalue.
 */
 
-RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback1(Replacements, "operCallExpr>memberExpr");
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback1(Replacements,
+	"RewriteImplicitCastInAssignment:operatorCallExpr>memberExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
 			has(
-				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
+				implicitCastExpr( isFunctionToPointerDecayCast() ).bind("castexpr")
 			),
 			has(
-				memberExpr(hasParent(operatorCallExpr())).bind("expr")
+				memberExpr().bind("expr")
 			),
 			isUtilityPointer()
 		)
@@ -123,12 +141,13 @@ CXXOperatorCallExpr
     `-CXXConstructExpr 'x':'class x' 'void (void)'
 */
 
-RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback2(Replacements, "operCallExpr>declRefExpr");
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback2(Replacements,
+	"RewriteImplicitCastInAssignment:operatorCallExpr>declRefExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
 			has(
-				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
+				implicitCastExpr( isFunctionToPointerDecayCast() ).bind("castexpr")
 			),
 			has(
 				declRefExpr().bind("expr")
@@ -154,7 +173,8 @@ CXXOperatorCallExpr 'class utility::pointer::owning_ptr<X>' lvalue
 		`-DeclRefExpr...
 */
 
-RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback3(Replacements, "operCallExpr>operCallExpr");
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback3(Replacements,
+	"RewriteImplicitCastInAssignment:operatorCallExpr>operatorCallExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -172,39 +192,4 @@ Finder.addMatcher(
 		)
 	).bind("opercallexpr"),
 	&RewriteImplicitCastInAssignmentCallback3);
-	
 
-/*
-CXXOperatorCallExpr 0x2255200 <col:4, col:72> 'pointer':'class utility::pointer::ReferenceCount *'
-|-ImplicitCastExpr 0x22551e8 <col:71, col:72> 'pointer (*)(void) const' <FunctionToPointerDecay>
-| `-DeclRefExpr 0x2255168 <col:71, col:72> 'pointer (void) const' lvalue CXXMethod 0x2254b20 'operator()' 'pointer (void) const'
-`-ImplicitCastExpr 0x2255268 <col:4, col:70> 'const class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' <NoOp>
-  `-CXXBindTemporaryExpr 0x2255148 <col:4, col:70> 'ResourceOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' (CXXTemporary 0x2255140)
-     `-CXXMemberCallExpr 0x2252900 <col:4, col:70> 'ResourceOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>'
-       |-MemberExpr 0x22528a8 <col:4, col:37> '<bound member function type>' ->get_resource 0x1fc1d80
-       | `-CallExpr 0x2252880 <col:4, col:34> 'class basic::resource_manager::ResourceManager *'
-       |   `-ImplicitCastExpr 0x2252868 <col:4, col:21> 'class basic::resource_manager::ResourceManager *(*)(void)' <FunctionToPointerDecay>
-       |     `-DeclRefExpr 0x2252808 <col:4, col:21> 'class basic::resource_manager::ResourceManager *(void)' lvalue CXXMethod 0x1fc0770 'get_instance' 'class basic::resource_manager::ResourceManager *(void)'
-               `-DeclRefExpr 0x22528d8 <col:50> 'const ResourceDescription':'const class std::basic_string<char>' lvalue ParmVar 0x2252440 'resource_description' 'const ResourceDescription &'
-*/
-
-/*
-// INCORRECT/NOT NEEDED
-RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback4(Replacements, "operCallExpr>>bindTemporaryExpr");
-Finder.addMatcher(
-	operatorCallExpr(
-		allOf(
-			has(
-				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
-			),
-			has(
-				implicitCastExpr(
-					has(
-						bindTemporaryExpr( isUtilityPointer() ).bind("expr")
-					)
-				)
-			)
-		)
-	).bind("opercallexpr"),
-	&RewriteImplicitCastInAssignmentCallback4);
-*/

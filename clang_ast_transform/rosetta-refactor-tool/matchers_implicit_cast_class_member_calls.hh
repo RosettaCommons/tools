@@ -52,16 +52,53 @@ CXXMemberCallExpr 'void'
 |   `-DeclRefExpr 'utility::vector1<xOP>':...
 `-MaterializeTemporaryExpr 'value_type':'class utility::pointer::owning_ptr<X>' xvalue
 */
-RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback(Replacements);
+RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback(Replacements,
+	"RewriteImplicitCastInMemberCall:implicitCastExpr>declRefExpr");
 Finder.addMatcher(
 	memberCallExpr(
 		allOf(
-			hasDescendant(
-				declRefExpr( containsUtilityPointer() ).bind("declrefexpr")
+			has(
+				implicitCastExpr(
+					has(
+						declRefExpr( containsUtilityPointer() ).bind("declrefexpr")
+					)
+				)
 			),
-			hasDescendant(
+			has(
 				materializeTemporaryExpr( isUtilityPointer() ).bind("cast")
 			)
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInMemberCallCallback);
+
+
+/*
+CXXMemberCallExpr 'void'
+`-MemberExpr '<bound member function type>' .push_back 0x7f11c3ae6e90
+  `-ImplicitCastExpr 'class std::vector<class utility::pointer::owning_ptr<class X>, class std::allocator<class utility::pointer::owning_ptr<class X> > >' lvalue <UncheckedDerivedToBase (vectorL -> vector)>
+    `-DeclRefExpr 'utility::vector1<xOP>':'class utility::vector1<class utility::pointer::owning_ptr<class X>, class std::allocator<class utility::pointer::owning_ptr<class X> > >' lvalue Var 'x' 'utility::vector1<xOP>':'class utility::vector1<class utility::pointer::owning_ptr<class xOP>, class std::allocator<class utility::pointer::owning_ptr<class X> > >'
+      `-MaterializeTemporaryExpr 'value_type':'class utility::pointer::owning_ptr<class X>' xvalue
+*/
+
+RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback2(Replacements,
+	"RewriteImplicitCastInMemberCall:implicitCastExpr>memberExpr>declRefExpr");
+Finder.addMatcher(
+	memberCallExpr(
+		allOf(
+			has(
+				memberExpr(
+					has(
+						implicitCastExpr(
+							has(
+								declRefExpr( containsUtilityPointer() ).bind("declrefexpr")
+							)
+						)
+					)
+				)
+			),
+			has(
+				materializeTemporaryExpr( isUtilityPointer() ).bind("cast")
+			)
+		)
+	).bind("construct"),
+	&RewriteImplicitCastInMemberCallCallback2);

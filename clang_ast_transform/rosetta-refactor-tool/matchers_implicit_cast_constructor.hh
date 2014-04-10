@@ -75,7 +75,7 @@ Finder.addMatcher(
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInConstructorCallback2);
-
+	
 /*
 CXXConstructExpr 'xOP':'class utility::pointer::owning_ptr<class X>' 'void (const class utility::pointer::owning_ptr<class X> &)' elidable
 `-MaterializeTemporaryExpr 'const class utility::pointer::owning_ptr<class X>' lvalue
@@ -106,7 +106,7 @@ Finder.addMatcher(
 										)
 									)
 								)
-							)
+							)	
 						)
 					)
 				)
@@ -115,4 +115,5 @@ Finder.addMatcher(
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInConstructorCallback3);
+
 

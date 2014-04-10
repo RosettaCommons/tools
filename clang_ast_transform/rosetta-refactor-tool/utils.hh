@@ -34,6 +34,8 @@ bool checkIsUtilityPointer(std::string const & type) {
 		return checkIsUtilityPointer(std::string(type, 6));
 	if(beginsWith(type, "class ")) // trim class (templates)
 		return checkIsUtilityPointer(std::string(type, 6));
+	if(beginsWith(type, "static ")) // trim static in var decls
+		return checkIsUtilityPointer(std::string(type, 7));
 
 	return
 		beginsWith(type, "utility::pointer::owning_ptr") ||

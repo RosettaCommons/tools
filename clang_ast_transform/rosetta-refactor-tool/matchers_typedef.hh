@@ -21,9 +21,11 @@ public:
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return;
 		
-		std::string origCode( getText(sm, node) );
-		std::string newCode( origCode );
+		const std::string origCode( getText(sm, node) );
+		if(!checkIsUtilityPointer(origCode))
+			return;
 
+		std::string newCode( origCode );
 		replace(newCode, "owning_ptr", "shared_ptr");
 		replace(newCode, "access_ptr", "weak_ptr");
 
@@ -38,8 +40,26 @@ Finder.addMatcher(
 	decl( isTypedefDecl() ).bind("decl"),
 	&RewriteTypedefDeclCallback1);
 
-// ParmVarDecl in templates and function defs
+// Parameter declaration in methods
 RewriteTypedefDecl RewriteTypedefDeclCallback2(Replacements, "RewriteTypedefDecl:paramVarDecl");
 Finder.addMatcher(
 	parmVarDecl().bind("decl"),
 	&RewriteTypedefDeclCallback2);
+
+// Field (variable) declaration in classes
+RewriteTypedefDecl RewriteTypedefDeclCallback3(Replacements, "RewriteTypedefDecl:fieldDecl");
+Finder.addMatcher(
+	fieldDecl().bind("decl"),
+	&RewriteTypedefDeclCallback3);
+
+// Method return type declatation
+RewriteTypedefDecl RewriteTypedefDeclCallback4(Replacements, "RewriteTypedefDecl:methodDecl");
+Finder.addMatcher(
+	methodDecl().bind("decl"),
+	&RewriteTypedefDeclCallback4);
+
+// Local method varialble declaration
+RewriteTypedefDecl RewriteTypedefDeclCallback5(Replacements, "RewriteTypedefDecl:varDecl");
+Finder.addMatcher(
+	varDecl().bind("decl"),
+	&RewriteTypedefDeclCallback5);

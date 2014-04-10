@@ -31,7 +31,7 @@ public:
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
-		const CXXOperatorCallExpr *opercallexpr = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("opercallexpr");
+		const Expr *opercallexpr = Result.Nodes.getStmtAs<Expr>("opercallexpr");
 		const CastExpr *castexpr = Result.Nodes.getStmtAs<CastExpr>("castexpr");
 		const Expr *declrefexpr = Result.Nodes.getStmtAs<Expr>("expr");
 		
@@ -52,6 +52,8 @@ public:
 
 		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
+		if(leftSideCode.find('='))
+			leftSideCode = std::string(leftSideCode, 0, leftSideCode.find('=')+1);
 		std::string rightSideCode(origCode, leftSideCode.length());
 		std::string codeOperType = std::string(origCode, leftSideCode.length()-1, 1);
 		
@@ -63,6 +65,11 @@ public:
 			size_t j = type.find(',');
 			type = trim(std::string(type, j+1), "<>, ");
 		}
+
+		//llvm::errs() << "LEFT:  " << leftSideCode << "\n";
+		//llvm::errs() << "RIGHT: " << rightSideCode << "\n";
+		//llvm::errs() << "OTYPE: " << codeOperType << "\n";
+		//llvm::errs() << "TYPE:  " << type << "\n";
 		
 		if(codeOperType != "=") // we only care about = operators, not [], etc.
 			return;
@@ -80,11 +87,17 @@ public:
 		if(type == "<bound member function type>")
 			// not idea what these are, skip 'em
 			return;
-		if(!endsWith(type, "OP") && !endsWith(type, "AP"))
+
+		if(!endsWith(type, "OP") && !endsWith(type, "AP") && !checkIsUtilityPointer(type)) {
 			// Dirty rosetta-specific hack: only rewrite AP and OP;
 			// without it, OP to Maps get also rewritten, i.e.:
 			// resource_locators_[ locator_tag ] = ResourceLocatorsMap( resource_locator );
 			return;
+		}
+		
+		// Full type definition not yet rewritten in original code, so do it here
+		replace(type, "owning_ptr", "shared_ptr");
+		replace(type, "access_ptr", "weak_ptr");
 
 		std::string newCode;
 		if(rightSideCode == "0" || rightSideCode == "NULL") {
@@ -193,3 +206,54 @@ Finder.addMatcher(
 	).bind("opercallexpr"),
 	&RewriteImplicitCastInAssignmentCallback3);
 
+/*
+CXXConstructExpr 'xOP':'class utility::pointer::owning_ptr<class X>' 'void (const class utility::pointer::owning_ptr<class X> &)' elidable
+`-MaterializeTemporaryExpr 'const class utility::pointer::owning_ptr<class X>' lvalue
+  `-ImplicitCastExpr 'const class utility::pointer::owning_ptr<class X>' <NoOp>
+    `-CXXBindTemporaryExpr 'owning_ptr<X>':'class utility::pointer::owning_ptr<class X>' (CXXTemporary 0x7f12889b8b90)
+      `-ImplicitCastExpr 'utility::pointer::owning_ptr<X>':'class utility::pointer::owning_ptr<class X>' <ConstructorConversion>
+        `-CXXConstructExpr 'utility::pointer::owning_ptr<X>':'class utility::pointer::owning_ptr<class X>' 'void (pointer)'
+          `-CallExpr 'owning_ptr<class X>':'class utility::pointer::owning_ptr<class X>'
+            |-ImplicitCastExpr 'owning_ptr<class X> (*)(const ResourceDescription &)' <FunctionToPointerDecay>
+            | `-DeclRefExpr 'owning_ptr<class X> (const ResourceDescription &)' lvalue Function 0x7f12889b8950 'get_resource' 'owning_ptr<class X> (const ResourceDescription &)' (FunctionTemplate 0x7f1288a84800 'get_resource')
+*/
+
+RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback4(
+	Replacements, "RewriteImplicitCastInAssignment:constructExpr>temporaryExpr>>>callExpr");
+
+Finder.addMatcher(
+	constructExpr(
+		allOf(
+			has(
+				materializeTemporaryExpr(
+					has(
+						implicitCastExpr(
+							has(	
+								bindTemporaryExpr(
+									// could have used hasDescentant() here to avoid explicitly matching
+									// implicit casts, but this is more specific
+									has(
+										implicitCastExpr(
+											has(
+												constructExpr(
+													has(
+														callExpr(
+															has(
+																implicitCastExpr( isFunctionToPointerDecayCast() )
+															)
+														)
+													)
+												)
+											)
+										).bind("expr")
+									)
+								)
+							)	
+						).bind("castexpr")
+					)
+				)
+			),
+			isUtilityPointer()
+		)
+	).bind("opercallexpr"),
+	&RewriteImplicitCastInAssignmentCallback4);

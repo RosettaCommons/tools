@@ -5,8 +5,9 @@
 # Function of this script: "clean" raw pdb file by following tasks so that rosetta modeling becomes easier
 
 ## starts residue number at 1
-## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM)
+## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM if a residue is not MSE)
 ## removes residues with 0 occupancy
+## generates a fasta file
 ## and many other tasks
 
 import sys

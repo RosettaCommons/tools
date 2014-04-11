@@ -8,7 +8,7 @@
 ## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM if a residue is not MSE)
 ## removes residues with 0 occupancy
 ## generates a fasta file
-## and many other tasks
+## and leaves the 1st model among many NMR models
 
 import sys
 import os

@@ -13,8 +13,7 @@ public:
 		SourceManager &sm = *Result.SourceManager;
 		const Expr *cast = Result.Nodes.getStmtAs<Expr>("cast");
 
-		const FullSourceLoc FullLocation = FullSourceLoc(cast->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		if(!rewriteThisFile(cast, sm))
 			return;
 		
 		const std::string origCode = getText(sm, cast);
@@ -59,17 +58,8 @@ Finder.addMatcher(
 			isConstructorConversionCast(),
 			has(
 				constructExpr(
-					anyOf(
-						has(
-							newExpr()
-						),
-						has(
-							implicitCastExpr( 
-								has(
-									newExpr()
-								)
-							)
-						)
+					has(
+						newExpr()
 					)
 				)
 			)

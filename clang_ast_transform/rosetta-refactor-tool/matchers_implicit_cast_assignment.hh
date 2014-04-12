@@ -35,8 +35,7 @@ public:
 		const CastExpr *castexpr = Result.Nodes.getStmtAs<CastExpr>("castexpr");
 		const Expr *declrefexpr = Result.Nodes.getStmtAs<Expr>("expr");
 		
-		const FullSourceLoc FullLocation = FullSourceLoc(opercallexpr->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		if(!rewriteThisFile(opercallexpr, sm))
 			return;
 
 		//llvm::errs() << QualType::getAsString(opercallexpr->getType().split()) << "\n";
@@ -52,7 +51,7 @@ public:
 
 		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
-		if(leftSideCode.find('='))
+		if(leftSideCode.find('=') != std::string::npos)
 			leftSideCode = std::string(leftSideCode, 0, leftSideCode.find('=')+1);
 		std::string rightSideCode(origCode, leftSideCode.length());
 		std::string codeOperType = std::string(origCode, leftSideCode.length()-1, 1);
@@ -132,7 +131,7 @@ RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback1(Replace
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr( isFunctionToPointerDecayCast() ).bind("castexpr")
 			),
 			has(
@@ -159,7 +158,7 @@ RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback2(Replace
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr( isFunctionToPointerDecayCast() ).bind("castexpr")
 			),
 			has(
@@ -191,7 +190,7 @@ RewriteImplicitCastInAssignment RewriteImplicitCastInAssignmentCallback3(Replace
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr(isFunctionToPointerDecayCast()).bind("castexpr")
 			),
 			has(
@@ -227,28 +226,18 @@ Finder.addMatcher(
 			has(
 				materializeTemporaryExpr(
 					has(
-						implicitCastExpr(
-							has(	
-								bindTemporaryExpr(
-									// could have used hasDescentant() here to avoid explicitly matching
-									// implicit casts, but this is more specific
+						bindTemporaryExpr(
+							has(
+								constructExpr(
 									has(
-										implicitCastExpr(
+										callExpr(
 											has(
-												constructExpr(
-													has(
-														callExpr(
-															has(
-																implicitCastExpr( isFunctionToPointerDecayCast() )
-															)
-														)
-													)
-												)
+												implicitCastExpr( isFunctionToPointerDecayCast() )
 											)
-										).bind("expr")
+										)
 									)
-								)
-							)	
+								).bind("expr")
+							)
 						).bind("castexpr")
 					)
 				)

@@ -14,8 +14,7 @@ public:
 		const Stmt *construct = Result.Nodes.getStmtAs<Stmt>("construct");
 		const DeclRefExpr *declrefexpr = Result.Nodes.getStmtAs<DeclRefExpr>("declrefexpr");
 
-		const FullSourceLoc FullLocation = FullSourceLoc(construct->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		if(!rewriteThisFile(construct, sm))
 			return;
 			
 		// declrefexpr could be vector1<>, map<>, etc.
@@ -57,7 +56,7 @@ RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback(Replacem
 Finder.addMatcher(
 	memberCallExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr(
 					has(
 						declRefExpr( containsUtilityPointer() ).bind("declrefexpr")
@@ -87,7 +86,7 @@ Finder.addMatcher(
 		allOf(
 			has(
 				memberExpr(
-					has(
+					hasDirect(
 						implicitCastExpr(
 							has(
 								declRefExpr( containsUtilityPointer() ).bind("declrefexpr")

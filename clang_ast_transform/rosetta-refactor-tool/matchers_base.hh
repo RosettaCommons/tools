@@ -25,4 +25,14 @@ protected:
 			return;
 		Replace->insert(Replacement(sm, node, newCode));
 	}
+	
+	template <typename T>
+	bool rewriteThisFile(T * node, SourceManager & sm) {
+		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
+		if(FullLocation.getFileID() != sm.getMainFileID())
+			return false;
+		// llvm::errs() << tag << ": " << node->getSourceRange().getBegin().printToString(sm) << "\n"; // debug
+		return true;
+	}
+
 };

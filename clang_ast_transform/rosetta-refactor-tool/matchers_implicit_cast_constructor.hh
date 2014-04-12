@@ -43,10 +43,10 @@ RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback1(
 Finder.addMatcher(
 	constructExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr( isUtilityPointer() )
 			),
-			has(
+			hasDirect(
 				implicitCastExpr( isConstructorConversionCast() ).bind("cast")
 			)
 		)
@@ -68,7 +68,7 @@ Finder.addMatcher(
 			hasParent(
 				implicitCastExpr( isConstructorConversionCast() ).bind("cast")
 			),
-			has(
+			hasDirect(
 				implicitCastExpr( isLValueToRValueCast() )
 			),
 			isUtilityPointer()
@@ -94,13 +94,13 @@ Finder.addMatcher(
 		allOf(
 			has(
 				materializeTemporaryExpr(
-					has(
+					hasDirect(
 						implicitCastExpr(
 							has(	
 								bindTemporaryExpr(
 									has(
 										callExpr(
-											has(
+											hasDirect(
 												implicitCastExpr( isFunctionToPointerDecayCast() )
 											)
 										)
@@ -115,5 +115,3 @@ Finder.addMatcher(
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInConstructorCallback3);
-
-

@@ -33,6 +33,10 @@ AST_MATCHER(CastExpr, isConstructorConversionCast) {
   return Node.getCastKind() == CK_ConstructorConversion;
 }
 
+AST_MATCHER(CastExpr, isNullToPointerCast) {
+  return Node.getCastKind() == CK_NullToPointer;
+}
+
 AST_MATCHER(DeclRefExpr, isVoidPtrOperator) {
 	return Node.getNameInfo().getName().getAsString() == "operator()";
 }

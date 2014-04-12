@@ -17,8 +17,8 @@ public:
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
 		const Decl *node = Result.Nodes.getStmtAs<Decl>("decl");
-		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+
+		if(!rewriteThisFile(node, sm))
 			return;
 		
 		const std::string origCode( getText(sm, node) );

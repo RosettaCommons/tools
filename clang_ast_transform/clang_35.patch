@@ -1,0 +1,63 @@
+Index: llvm/tools/clang/include/clang/ASTMatchers/ASTMatchers.h
+===================================================================
+--- llvm/tools/clang/include/clang/ASTMatchers/ASTMatchers.h	(revision 204288)
++++ llvm/tools/clang/include/clang/ASTMatchers/ASTMatchers.h	(working copy)
+@@ -1591,6 +1591,22 @@
+ const internal::ArgumentAdaptingMatcherFunc<internal::HasMatcher>
+ LLVM_ATTRIBUTE_UNUSED has = {};
+ 
++/// \brief Matches AST nodes that have direct child AST nodes that match the
++/// provided matcher.
++///
++/// Example matches X, Y (matcher = recordDecl(has(recordDecl(hasName("X")))
++/// \code
++///   class X {};  // Matches X, because X::X is a class of name X inside X.
++///   class Y { class X {}; };
++///   class Z { class Y { class X {}; }; };  // Does not match Z.
++/// \endcode
++///
++/// ChildT must be an AST base type.
++///
++/// Usable as: Any Matcher
++const internal::ArgumentAdaptingMatcherFunc<internal::HasDirectMatcher>
++LLVM_ATTRIBUTE_UNUSED hasDirect = {};
++
+ /// \brief Matches AST nodes that have descendant AST nodes that match the
+ /// provided matcher.
+ ///
+Index: llvm/tools/clang/include/clang/ASTMatchers/ASTMatchersInternal.h
+===================================================================
+--- llvm/tools/clang/include/clang/ASTMatchers/ASTMatchersInternal.h	(revision 204288)
++++ llvm/tools/clang/include/clang/ASTMatchers/ASTMatchersInternal.h	(working copy)
+@@ -1060,6 +1060,31 @@
+   const Matcher<ChildT> ChildMatcher;
+ };
+ 
++/// \brief Matches nodes of type T that have direct child nodes of type ChildT
++/// for which a specified child matcher matches, including implicit casts.
++///
++/// ChildT must be an AST base type.
++template <typename T, typename ChildT>
++class HasDirectMatcher : public MatcherInterface<T> {
++  static_assert(IsBaseType<ChildT>::value,
++                "has only accepts base type matcher");
++
++public:
++  explicit HasDirectMatcher(const Matcher<ChildT> &ChildMatcher)
++      : ChildMatcher(ChildMatcher) {}
++
++  bool matches(const T &Node, ASTMatchFinder *Finder,
++               BoundNodesTreeBuilder *Builder) const override {
++    return Finder->matchesChildOf(
++        Node, ChildMatcher, Builder,
++        ASTMatchFinder::TK_AsIs,
++        ASTMatchFinder::BK_First);
++  }
++
++ private:
++  const Matcher<ChildT> ChildMatcher;
++};
++
+ /// \brief Matches nodes of type T that have child nodes of type ChildT for
+ /// which a specified child matcher matches. ChildT must be an AST base
+ /// type.

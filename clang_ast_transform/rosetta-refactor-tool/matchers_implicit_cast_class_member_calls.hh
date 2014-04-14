@@ -52,7 +52,7 @@ CXXMemberCallExpr 'void'
 `-MaterializeTemporaryExpr 'value_type':'class utility::pointer::owning_ptr<X>' xvalue
 */
 RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback(Replacements,
-	"RewriteImplicitCastInMemberCall:implicitCastExpr>declRefExpr");
+	"RewriteImplicitCastInMemberCall:implicitCastExpr>declRefExpr>materializeTemporaryExpr");
 Finder.addMatcher(
 	memberCallExpr(
 		allOf(
@@ -80,7 +80,7 @@ CXXMemberCallExpr 'void'
 */
 
 RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback2(Replacements,
-	"RewriteImplicitCastInMemberCall:implicitCastExpr>memberExpr>declRefExpr");
+	"RewriteImplicitCastInMemberCall:memberExpr>declRefExpr+materializeTemporaryExpr");
 Finder.addMatcher(
 	memberCallExpr(
 		allOf(
@@ -101,3 +101,35 @@ Finder.addMatcher(
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInMemberCallCallback2);
+
+/*
+ImplicitCastExpr 0xa56ff60 </data/rosetta/main/source/src/core/conformation/symmetry/SymmetricConformation.cc:744:19> '_Bool' <UserDefinedConversion>
+`-CXXMemberCallExpr 0xa56ff38 <col:19> '_Bool'
+  `-MemberExpr 0xa56ff08 <col:19> '<bound member function type>' .operator bool 0xa55aab0
+    `-ImplicitCastExpr 0xa56fef0 <col:19> 'const class utility::pointer::owning_ptr<const class core::conformation::Residue>' lvalue <NoOp>
+      `-DeclRefExpr 0xa56fd58 <col:19> 'ResidueCOP':'class utility::pointer::owning_ptr<const class core::conformation::Residue>' lvalue Var 0xa558bb0 'vrt_res_cop' 'ResidueCOP':'class utility::pointer::owning_ptr<const class core::conformation::Residue>'
+*/
+// runtime_assert( someop );
+// TODO: doesn't match for some reason
+RewriteImplicitCastInMemberCall RewriteImplicitCastInMemberCallCallback3(Replacements,
+	"RewriteImplicitCastInMemberCall:memberExpr>declRefExpr<implicitCastExpr");
+Finder.addMatcher(
+	memberCallExpr(
+		allOf(
+			has(
+				memberExpr(
+					hasDirect(
+						implicitCastExpr(
+							has(
+								declRefExpr( isUtilityPointer() ).bind("declrefexpr")
+							)
+						)
+					)
+				)
+			),
+			hasParent(
+				implicitCastExpr().bind("cast")
+			)
+		)
+	).bind("construct"),
+	&RewriteImplicitCastInMemberCallCallback3);

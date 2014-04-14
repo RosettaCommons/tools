@@ -78,7 +78,7 @@ RewriteImplicitCastInDecl RewriteImplicitCastInDeclCallback2(
 Finder.addMatcher(
 	constructExpr(
 		allOf(
-			has(
+			hasDirect(
 				implicitCastExpr( isNullToPointerCast() )
 			),
 			isUtilityPointer()

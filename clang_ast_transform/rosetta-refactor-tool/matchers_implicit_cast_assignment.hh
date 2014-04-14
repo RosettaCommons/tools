@@ -137,6 +137,10 @@ Finder.addMatcher(
 			has(
 				memberExpr().bind("expr")
 			),
+			has(
+				declRefExpr(
+				).bind("castTo")
+			),
 			isUtilityPointer()
 		)
 	).bind("opercallexpr"),
@@ -161,7 +165,7 @@ Finder.addMatcher(
 			hasDirect(
 				implicitCastExpr( isFunctionToPointerDecayCast() ).bind("castexpr")
 			),
-			has(
+			hasDirect(
 				declRefExpr().bind("expr")
 			),
 			isUtilityPointer()

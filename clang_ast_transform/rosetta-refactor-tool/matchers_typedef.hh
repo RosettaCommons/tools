@@ -22,8 +22,16 @@ public:
 			return;
 		
 		const std::string origCode( getText(sm, node) );
-		if(!checkIsUtilityPointer(origCode))
+
+		// llvm::errs() << QualType::getAsString(node->getType().getSplitDesugaredType()) << "\n";
+
+		/*
+		std::string type(origCode);
+		if(beginsWith(origCode, "typedef "))
+			std::string type(origCode, strlen("typedef "));
+		if(!checkIsUtilityPointer(type))
 			return;
+		*/
 
 		std::string newCode( origCode );
 		replace(newCode, "owning_ptr", "shared_ptr");

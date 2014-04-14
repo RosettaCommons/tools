@@ -37,9 +37,10 @@ bool checkIsUtilityPointer(std::string const & type) {
 	if(beginsWith(type, "static ")) // trim static in var decls
 		return checkIsUtilityPointer(std::string(type, 7));
 
+	std::string t(trim(type));
 	return
-		beginsWith(type, "utility::pointer::owning_ptr") ||
-		beginsWith(type, "utility::pointer::access_ptr");
+		beginsWith(t, "utility::pointer::owning_ptr") ||
+		beginsWith(t, "utility::pointer::access_ptr");
 }
 
 bool checkContainsUtilityPointer(std::string const & type) {

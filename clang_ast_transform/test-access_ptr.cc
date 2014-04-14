@@ -48,8 +48,8 @@ public:
 	}
 
 	void set_a_ptr_casted(ClassA *a) {
-		a_ = ClassAOP( a ); // show not match
-		// a_.reset( a ); // show not match
+		a_ = ClassAOP( a ); // should not match
+		// a_.reset( a ); // should not match
 	}
 
 	void set_a_op(ClassAOP a) {

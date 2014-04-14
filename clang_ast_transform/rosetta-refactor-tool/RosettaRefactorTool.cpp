@@ -31,6 +31,7 @@
 #include <sstream>
 #include <sys/stat.h>
 
+#define AST_TEST
 bool verbose = true;
 
 using namespace clang;
@@ -66,6 +67,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	// Include matchers to apply here
 	/////////////////////////////////
 	
+#ifndef AST_TEST
 	#include "matchers_typedef.hh"
 	#include "matchers_pointer_name.hh"
 	#include "matchers_void_ptr_operator.hh"
@@ -75,7 +77,10 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers_implicit_cast_from_new.hh"
 	#include "matchers_implicit_cast_decl.hh"
 	// #include "matchers_implicit_cast_generic.hh"
-	// #include "matchers_match_test.hh"
+#else
+	// #include "matchers_op_to_void_ptr.hh"
+	#include "matchers_match_test.hh"
+#endif
 
 	// Run tool and generate change log
 	return Tool.run(newFrontendActionFactory(&Finder));

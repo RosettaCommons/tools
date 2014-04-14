@@ -38,7 +38,7 @@ public:
 
 		bool deref = true;
 		const std::string castFromType(
-			QualType::getAsString( castFrom->getType().getSplitDesugaredType() )
+			castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
 		);
 		const std::string castToType( 
 			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""

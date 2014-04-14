@@ -41,6 +41,14 @@ AST_MATCHER(DeclRefExpr, isVoidPtrOperator) {
 	return Node.getNameInfo().getName().getAsString() == "operator()";
 }
 
+AST_MATCHER(DeclRefExpr, isClassOperator) {
+	return checkIsClassOperator( Node.getNameInfo().getName().getAsString() );
+}
+
+AST_MATCHER(DeclRefExpr, isNotClassOperator) {
+	return !checkIsClassOperator( Node.getNameInfo().getName().getAsString() );
+}
+
 AST_MATCHER(Decl, isTypedefDecl) {
   //return (Node.getKind() == NK_Typedef);
   return !strcmp(Node.getDeclKindName(), "Typedef");

@@ -62,6 +62,12 @@ bool checkContainsUtilityPointer(std::string const & type) {
 	return false;
 }
 
+bool checkIsClassOperator(std::string const & type) {
+	return
+		type == "operator()" ||
+		type == "operator=";
+}
+ 
 } // namespace
 
 

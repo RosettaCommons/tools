@@ -11,41 +11,41 @@ public:
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
 		const Expr *expr = Result.Nodes.getStmtAs<Expr>("expr");
-		const FullSourceLoc FullLocation = FullSourceLoc(expr->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		const Expr *castFrom = Result.Nodes.getStmtAs<Expr>("castFrom");
+		const Expr *castTo = Result.Nodes.getStmtAs<Expr>("castTo");
+
+		if(!rewriteThisFile(expr, sm))
 			return;
+
+		const std::string castFromType(
+			castFrom ? QualType::getAsString( castFrom->getType().split() ) : ""
+		);
+		const std::string castToType( 
+			castTo ? QualType::getAsString( castTo  ->getType().split() ) : ""
+		);
+
+		const std::string castFromTypeD(
+			castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
+		);
+		const std::string castToTypeD( 
+			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""
+		);
+
 
 		const std::string origCodeStr = getText(sm, expr);
 		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 			
 		llvm::errs() 
-			<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m" 
+			<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m\n" 
 			<< "- \033[31m" << origCodeStr << "\033[0m\n"
-			<< "\n";
+			<< "castFrom: " << castFromType << "\n"
+			<< "castFrom: " << castFromTypeD << "\n"
+			<< "castTo:   " << castToType << "\n"
+			<< "castTo:   " << castToTypeD << "\n";
 	}
 };
 
 MatchTester MatchTesterCallback(Replacements);
-
-/************************************************************************
-NOTE NOTE NOTE
-
-In llvm/tools/clang/include/clang/ASTMatchers/ASTMatchersInternal.h:
-class HasMatcher : public MatcherInterface<T> {
-  bool matches(const T &Node, ASTMatchFinder *Finder,
-               BoundNodesTreeBuilder *Builder) const override {
-    return Finder->matchesChildOf(
-        Node, ChildMatcher, Builder,
-        //ASTMatchFinder::TK_IgnoreImplicitCastsAndParentheses,
-        ASTMatchFinder::TK_AsIs,
-        ASTMatchFinder::BK_First);
-  }
-};
-
-Default traversal mode is to TK_IgnoreImplicitCastsAndParentheses.
-It's not really documented and this doesn't help us.
-Change to TK_AsIs. This may break something else... ?!
-************************************************************************/
 
 /*
 	void set_a_vector1(ClassA *a) {

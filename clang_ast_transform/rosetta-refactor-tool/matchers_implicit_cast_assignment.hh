@@ -119,33 +119,8 @@ public:
 			}
 		}
 
-		doRewrite(sm, expr, origCode, newCode);	}
-
-protected:
-	std::string extractTypeFromContainer(const std::string & container) {
-		// Strip utility::vector1<utility::pointer::ownining_ptr<class ClassX>, allocator ... >
-		size_t p = container.find('<');
-		size_t q = container.find_last_of('>');
-		if(p == std::string::npos)
-			return container;
-			
-		std::string container_type(container, 0, p);	
-		std::string contained_type = std::string(container, p + 1, q - p - 1); 
-		if(container_type == "std::map") {
-			// second def, mapped type
-			q = contained_type.find(',');
-			if(q != std::string::npos)
-				contained_type = trim(std::string(contained_type, q+1));
-		}
-
-		// Use first def (drop allocator, etc)
-		q = contained_type.find(',');
-		if(q != std::string::npos)
-			contained_type = trim(std::string(contained_type, 0, q));
-	
-		return contained_type;
+		doRewrite(sm, expr, origCode, newCode);
 	}
-
 };
 
 /*

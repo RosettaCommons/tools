@@ -75,8 +75,8 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers_pointer_name.hh"
 	#include "matchers_implicit_cast_assignment.hh"
 	#include "matchers_implicit_cast_from_new.hh"
-
-	//#include "matchers_implicit_cast_class_member_calls.hh"
+	#include "matchers_implicit_cast_class_member_calls.hh"
+	
 	//#include "matchers_implicit_cast_constructor.hh"
 	//#include "matchers_implicit_cast_decl.hh"
 

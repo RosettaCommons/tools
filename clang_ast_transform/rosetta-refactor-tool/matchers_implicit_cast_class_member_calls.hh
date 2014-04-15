@@ -72,6 +72,9 @@ public:
 			const std::string castToTypeD_contained = extractTypeFromContainer(castToTypeD);
 			if(castFromTypeD == castToTypeD_contained)
 				return;
+			// If typedef of a container without info, then use the desugared definition
+			if(type.find('<') == std::string::npos)
+				type = castToTypeD;
 			type = extractTypeFromContainer(type);
 		}
 

@@ -174,6 +174,7 @@ public:
   |   |       `-CXXDefaultArgExpr 0x448e480 <<invalid sloc>> 'const class std::allocator<char>':'const class std::allocator<char>' lvalue
   |   `-ImplicitCastExpr 0x448e6a0 <col:21> 'class ClassA *' <LValueToRValue>
   |     `-DeclRefExpr 0x448e618 <col:21> 'class ClassA *' lvalue ParmVar 0x4487d70 'a' 'class ClassA *'
+
 */
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback1(
@@ -200,12 +201,20 @@ Finder.addMatcher(
 					)
 				)
 			),
-			has(
-				declRefExpr( isNotClassOperator() ).bind("castFrom")
+			anyOf(
+				// = decl reference
+				has(
+					declRefExpr( isNotClassOperator() ).bind("castFrom")
+				),
+				// = this
+				has(
+					thisExpr().bind("castFrom")
+				)
 			)
 		)
 	).bind("expr"),
 	&RewriteAssignmentsOperCallback1);
+
 
 /*
   ClassAOP a_;

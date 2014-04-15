@@ -4,7 +4,6 @@
 //   typedef utility::pointer::owning_ptr< Some > SomeOP
 //   typedef utility::pointer::access_ptr< Some const > SomeCAP
 //   typedef utility::pointer::owning_ptr< Some const > SomeCOP
-// OK
 
 class RewriteTypedefDecl : public ReplaceMatchCallback {
 	
@@ -61,10 +60,12 @@ Finder.addMatcher(
 	&RewriteTypedefDeclCallback3);
 
 // Method return type declatation
+/*
 RewriteTypedefDecl RewriteTypedefDeclCallback4(Replacements, "RewriteTypedefDecl:methodDecl");
 Finder.addMatcher(
 	methodDecl().bind("decl"),
 	&RewriteTypedefDeclCallback4);
+*/
 
 // Local method varialble declaration
 RewriteTypedefDecl RewriteTypedefDeclCallback5(Replacements, "RewriteTypedefDecl:varDecl");

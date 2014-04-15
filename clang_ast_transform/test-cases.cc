@@ -2,7 +2,12 @@
 #include <utility/pointer/owning_ptr.hh>
 #include <utility/vector1.hh>
 #include <utility/exit.hh>
+
 #include <string>
+#include <set>
+#include <list>
+#include <vector>
+#include <map>
 
 class ClassA;
 class ClassB;
@@ -20,6 +25,7 @@ public:
 	void add_ref() {}
 	void remove_ref() {}
 	void show() {}
+	void *operator()() { return this; }
 };
 
 // Fancy class
@@ -28,6 +34,11 @@ private:
 	ClassAOP a_;
 	ClassBOP b_;
 	utility::vector1<ClassAOP> as_;
+	utility::vector1< utility::pointer::owning_ptr<class ClassA> > as2_;
+	std::vector<ClassAOP> as_vector_;
+	std::list<ClassAOP> as_list_;
+	std::set<ClassAOP> as_set_;
+	std::map<std::string,ClassAOP> as_map_;
 	std::string s_;
 	
 public:
@@ -67,9 +78,29 @@ public:
 	void new_a_local() {
 		ClassAOP aa = new ClassA;
 	}
+
+	void set_local_null1() {
+		ClassAOP aa = NULL;
+	}
+
+	void set_local_null2() {
+		ClassAOP aa(NULL);
+	}
+	
+	void set_local_null3() {
+		ClassAOP aa = 0;
+	}
+
+	void set_local_null4() {
+		ClassAOP aa(0);
+	}
+
+	ClassAOP new_aap() {
+		return new ClassA;
+	}
 	
 	void set_to_self(ClassBOP b) {
-		b->b_ = this;
+		b->b_ = this; // should not match
 	}
 
 	void test_op(ClassAOP a) {
@@ -79,14 +110,27 @@ public:
 	// Vector1	
 	void set_a_vector1(ClassA *a) {
 		as_[0] = a;
+		as_map_["some"] = a;
+		as_vector_.push_back(a);
+		as_set_.insert(a);
+		as_list_.push_back(a);
 	}
 
 	void set_aop_vector1(ClassAOP a) {
-		as_[0] = a; // should not match
+		// should not match
+		as_[0] = a;
+		as_map_["some"] = a;
+		as_vector_.push_back(a);
+		as_set_.insert(a);
+		as_list_.push_back(a);
 	}
 
 	void set_aref_vector1(ClassA & a) {
 		as_[0] = &a;
+		as_map_["some"] = &a;
+		as_vector_.push_back(&a);
+		as_set_.insert(&a);
+		as_list_.push_back(&a);
 	}
 	
 	// operator() call
@@ -101,6 +145,7 @@ public:
 };
 
 void foo() {
-	ClassAAP a(new ClassA);
-	void *p = a();
+	ClassAAP a(new ClassA); // should not match
+	ClassAAP b = new ClassA;
+	void *p = a(); // for op_void_ptr match tester
 }

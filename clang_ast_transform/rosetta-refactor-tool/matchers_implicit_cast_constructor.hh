@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Replace implicit casts in constructors
-//   given X(SomeAP), using X(new Some) ==> X(SomeAP(new Some))
 
 class RewriteImplicitCastInConstructor : public ReplaceMatchCallback {
 public:
@@ -16,8 +15,7 @@ public:
 			Result.Nodes.getStmtAs<Expr>("cast") :
 			construct;
 		
-		const FullSourceLoc FullLocation = FullSourceLoc(construct->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		if(!rewriteThisFile(cast, sm))
 			return;
 		
 		const std::string origCode = getText(sm, cast);
@@ -35,7 +33,6 @@ public:
 		doRewrite(sm, cast, origCode, newCode);
 	}
 };
-
 
 // Implicit casts in constructs
 RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback1(
@@ -115,3 +112,32 @@ Finder.addMatcher(
 		)
 	).bind("construct"),
 	&RewriteImplicitCastInConstructorCallback3);
+
+#if 0
+/*
+	ClassAOP aa = NULL;
+	
+  `-CXXConstructExpr 0x2b706a8 </data/rosetta/tools/clang_ast_transform/test-access_ptr.cc:72:12, /data/rosetta/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (const class utility::pointer::owning_ptr<class ClassA> &)' elidable
+    `-MaterializeTemporaryExpr 0x2b70688 <col:18> 'const class utility::pointer::owning_ptr<class ClassA>' lvalue
+      `-ImplicitCastExpr 0x2b70670 <col:18> 'const class utility::pointer::owning_ptr<class ClassA>' <NoOp>
+        `-CXXBindTemporaryExpr 0x2b70618 <col:18> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' (CXXTemporary 0x2b70610)
+          `-ImplicitCastExpr 0x2b705f0 <col:18> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' <ConstructorConversion>
+            `-CXXConstructExpr 0x2b705b8 <col:18> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
+               `-ImplicitCastExpr 0x2b705a0 <col:18> 'pointer':'class ClassA *' <NullToPointer>
+
+	ClassAOP aa(NULL);
+
+  `-CXXConstructExpr 0x2a083b8 <col:12, col:19> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
+    `-ImplicitCastExpr 0x2a083a0 </data/rosetta/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'pointer':'class ClassA *' <NullToPointer>
+      `-GNUNullExpr 0x2a082f8 <col:18> 'long'
+*/
+
+RewriteImplicitCastInConstructor RewriteImplicitCastInConstructorCallback1(
+	Replacements, "RewriteImplicitCastInConstructor:nullPtrLiteralExpr");
+
+Finder.addMatcher(
+	constructExpr(
+		isUtilityPointer()
+	).bind("construct"),
+	&RewriteImplicitCastInConstructorCallback1);
+#endif

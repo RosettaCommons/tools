@@ -1,0 +1,43 @@
+Luki Goldschmidt <lugo@uw.edu>
+March 2014
+
+This is a clang tool to refactor the Rosetta codebase. It uses the clang AST
+matchers to find nodes in the AST and rewrites them. Tested with clang 3.5
+(essentially trunk).
+
+*** This is work in progress. ***
+
+SETUP:
+
+Get the llvm and clang sources per the instructions on their website.
+Copy rosetta-refactor-tool to the extra tools directory, like:
+
+	$LLVM_SRC/tools/clang/tools/extra/rosetta-refactor-tool/
+	
+Add rosetta-refactor-tool to the $LLVM_SRC/tools/clang/tools/extra/CMakeList.txt
+file:
+
+	add_subdirectory(rosetta-refactor-tool)
+	
+Build with whatever means (make, cmake, ninja). You should end up
+with a binary: build/bin/rosetta-refactor-tool
+
+
+RUNNING:
+
+./rewrite_all.sh path/to/rosetta/source/file.cc
+
+like:
+./rewrite_all.sh src/numeric/expression_parser/Arithmetic.cc
+
+See verbose and readonly flags in the RosettaRefactorTool.cpp file.
+
+Running on all files:
+
+ME=$PWD
+ROOT=/data/rosetta
+SRC=$ROOT/main/source/src
+
+export PYTHONPATH=$ROOT/tools/python_cc_reader
+python /data/rosetta/refactor-tools/run_on_all_headers_w_fork.py -e $ME/rewrite_all.sh -n 8
+python /data/rosetta/refactor-tools/run_on_all_ccfiles_w_fork.py -e $ME/rewrite_all.sh -n 8

@@ -33,7 +33,37 @@ then
     #notice this is release, not master, on the assumption that Sergey's machinery did some particular tests on each release push
     git checkout release
     git pull
+
+    cd $ROSETTA/documentation
+    pwd
+    git checkout master
+    git pull
+
 fi
+
+#prepare documentation
+cd $ROSETTA/documentation
+pwd
+git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
+python remove_internal.py
+git commit -am "weekly release: remove 'internal' documentation"
+#generate static html
+#this is *really* stupid but I don't want to deal with tcsh and bash fighting today
+../tools/release/generate_documentation.tcsh
+
+#prepare tools
+if [ "$debug" = false ];
+then
+    #tools is a little weird to update, since this script updates overtop itself - so this really should be skipped while debugging
+    cd $ROSETTA/tools
+    pwd
+    git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
+fi
+
+#prepare demos
+cd $ROSETTA/demos
+pwd
+git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
 #prepare main with fresh & clean compile (for later itest references)
 cd $ROSETTA

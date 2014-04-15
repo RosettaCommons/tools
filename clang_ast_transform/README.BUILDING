@@ -12,7 +12,7 @@ svn co http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
 cd extra
 vi CMakeLists.txt 
 ln -s /data/rosetta/tools/clang_ast_transform/rosetta-refactor-tool/
-../../../../../llvm/projects/
+cd ../../../../../llvm/projects/
 svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
 cd ../..
 

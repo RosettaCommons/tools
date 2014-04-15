@@ -124,17 +124,26 @@ public:
 protected:
 	std::string extractTypeFromContainer(const std::string & container) {
 		// Strip utility::vector1<utility::pointer::ownining_ptr<class ClassX>, allocator ... >
-		// TODO: handle std::map<>
 		size_t p = container.find('<');
 		size_t q = container.find_last_of('>');
 		if(p == std::string::npos)
 			return container;
 			
-		std::string container_type = std::string(container, p + 1, q - p - 1); 
-		q = container_type.find(',');
+		std::string container_type(container, 0, p);	
+		std::string contained_type = std::string(container, p + 1, q - p - 1); 
+		if(container_type == "std::map") {
+			// second def, mapped type
+			q = contained_type.find(',');
+			if(q != std::string::npos)
+				contained_type = trim(std::string(contained_type, q+1));
+		}
+
+		// Use first def (drop allocator, etc)
+		q = contained_type.find(',');
 		if(q != std::string::npos)
-			container_type = trim(std::string(container_type, 0, q));
-		return container_type;
+			contained_type = trim(std::string(contained_type, 0, q));
+	
+		return contained_type;
 	}
 
 };
@@ -170,6 +179,26 @@ protected:
     |   `-IntegerLiteral 0x29785d0 <col:7> 'int' 0
     `-ImplicitCastExpr 0x29787c0 <col:12> 'class ClassA *' <LValueToRValue>
       `-DeclRefExpr 0x2978738 <col:12> 'class ClassA *' lvalue ParmVar 0x29724a0 'a' 'class ClassA *'
+
+	std::map<std::string,ClassAOP> as_map_;
+	as_map_["some"] = a;
+
+  | `-CXXOperatorCallExpr 0x448e6f8 <col:3, col:21> 'class utility::pointer::owning_ptr<class ClassA>' lvalue
+  |   |-ImplicitCastExpr 0x448e6e0 <col:19> 'class utility::pointer::owning_ptr<class ClassA> &(*)(pointer)' <FunctionToPointerDecay>
+  |   | `-DeclRefExpr 0x448e6b8 <col:19> 'class utility::pointer::owning_ptr<class ClassA> &(pointer)' lvalue CXXMethod 0x43c48f0 'operator=' 'class utility::pointer::owning_ptr<class ClassA> &(pointer)'
+  |   |-CXXOperatorCallExpr 0x448e5d0 <col:3, col:17> 'mapped_type':'class utility::pointer::owning_ptr<class ClassA>' lvalue
+  |   | |-ImplicitCastExpr 0x448e5b8 <col:10, col:17> 'mapped_type &(*)(key_type &&)' <FunctionToPointerDecay>
+  |   | | `-DeclRefExpr 0x448e538 <col:10, col:17> 'mapped_type &(key_type &&)' lvalue CXXMethod 0x447a710 'operator[]' 'mapped_type &(key_type &&)'
+  |   | |-MemberExpr 0x448e328 <col:3> 'std::map<std::string, ClassAOP>':'class std::map<class std::basic_string<char>, class utility::pointer::owning_ptr<class ClassA>, struct std::less<class std::basic_string<char> >, class std::allocator<struct std::pair<const class std::basic_string<char>, class utility::pointer::owning_ptr<class ClassA> > > >' lvalue ->as_map_ 0x447fbe0
+  |   | | `-CXXThisExpr 0x448e310 <col:3> 'class ClassB *' this
+  |   | `-MaterializeTemporaryExpr 0x448e518 <col:11> 'key_type':'class std::basic_string<char>' xvalue
+  |   |   `-CXXBindTemporaryExpr 0x448e4f8 <col:11> 'key_type':'class std::basic_string<char>' (CXXTemporary 0x448e4f0)
+  |   |     `-CXXConstructExpr 0x448e4a8 <col:11> 'key_type':'class std::basic_string<char>' 'void (const char *, const class std::allocator<char> &)'
+  |   |       |-ImplicitCastExpr 0x448e3b8 <col:11> 'const char *' <ArrayToPointerDecay>
+  |   |       | `-StringLiteral 0x448e358 <col:11> 'const char [5]' lvalue "some"
+  |   |       `-CXXDefaultArgExpr 0x448e480 <<invalid sloc>> 'const class std::allocator<char>':'const class std::allocator<char>' lvalue
+  |   `-ImplicitCastExpr 0x448e6a0 <col:21> 'class ClassA *' <LValueToRValue>
+  |     `-DeclRefExpr 0x448e618 <col:21> 'class ClassA *' lvalue ParmVar 0x4487d70 'a' 'class ClassA *'
 */
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback1(
@@ -355,46 +384,3 @@ Finder.addMatcher(
 		)
 	).bind("expr"),
 	&RewriteAssignmentsOperCallback4);
-
-
-#if 0
-/*
-		ClassAOP aa = new ClassA;
-
-  `-DeclStmt 0x2d417b8 <line:69:3, col:27>
-    `-VarDecl 0x2d41560 <col:3, col:21> col:12 aa 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>'
-      `-ExprWithCleanups 0x2d417a0 <col:12, col:21> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>'
-        `-CXXConstructExpr 0x2d41768 <col:12, col:21> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (const class utility::pointer::owning_ptr<class ClassA> &)' elidable 
-          `-MaterializeTemporaryExpr 0x2d41748 <col:17, col:21> 'const class utility::pointer::owning_ptr<class ClassA>' lvalue
-            `-ImplicitCastExpr 0x2d41730 <col:17, col:21> 'const class utility::pointer::owning_ptr<class ClassA>' <NoOp>
-              `-CXXBindTemporaryExpr 0x2d416d8 <col:17, col:21> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' (CXXTemporary 0x2d416d0)
-                `-ImplicitCastExpr 0x2d416b8 <col:17, col:21> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' <ConstructorConversion>
-                  `-CXXConstructExpr 0x2d41680 <col:17, col:21> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
-                    `-CXXNewExpr 0x2d415f8 <col:17, col:21> 'class ClassA *'
-                      `-CXXConstructExpr 0x2d415c8 <col:21> 'class ClassA' 'void (void)'
-*/
-
-RewriteAssignmentsOper RewriteAssignmentsOperCallback5(Replacements,
-	"RewriteAssignmentsOper:varDecl+newExpr");
-Finder.addMatcher(
-	constructExpr(
-		allOf(
-			has(
-				bindTemporaryExpr(
-					has(
-						constructExpr(
-							has(
-								newExpr().bind("castFrom")
-							)
-						).bind("castexpr")
-					)
-				).bind("castTo")
-			),
-			hasParent(varDecl()),
-			isUtilityPointer()			
-		)
-	).bind("expr"),
-	&RewriteAssignmentsOperCallback5);
-
-#endif
-

@@ -50,13 +50,29 @@ bool checkContainsUtilityPointer(std::string const & type) {
 
 	if(
 		beginsWith(type, "utility::vector0<") ||
-		beginsWith(type, "utility::vector1<")
+		beginsWith(type, "utility::vector1<") ||
+		beginsWith(type, "std::vector<") ||
+		beginsWith(type, "std::list<") ||
+		beginsWith(type, "std::set<")
 	) {
 		size_t p = type.find('<');
 		if(p == std::string::npos)
 			return false;
 		std::string sub_type = trim(std::string(type, p), "<> ");
 		return checkIsUtilityPointer(sub_type);
+	}
+
+	if(
+		beginsWith(type, "std::map<")
+	) {
+		size_t p = type.find('<');
+		if(p == std::string::npos)
+			return false;
+		std::string sub_type = trim(std::string(type, p), "<> ");
+		
+		p = sub_type.find(',');
+		std::string sub_type_mapped = trim(std::string(sub_type, p), ",<> ");
+		return checkIsUtilityPointer(sub_type_mapped);
 	}
 
 	return false;

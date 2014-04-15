@@ -1,18 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Replace calls to operator() on owning_ptrs
-/*
-CXXOperatorCallExpr 'pointer':'const class X *'
-|-ImplicitCastExpr 'pointer (*)(void) const' <FunctionToPointerDecay>
-| `-DeclRefExpr 'pointer (void) const' lvalue
-`-ImplicitCastExpr 'const class utility::pointer::owning_ptr<X>' lvalue <NoOp>
-	`-DeclRefExpr 'TokenCOP':'class utility::pointer::owning_ptr<X>' 
-*/
+// This needs work.
 
-class RewriteVoidPtrOperator : public ReplaceMatchCallback {
+class RewriteCallOperator : public ReplaceMatchCallback {
 public:
-	RewriteVoidPtrOperator(
+	RewriteCallOperator(
 			tooling::Replacements *Replace,
-			const char *tag = "RewriteVoidPtrOperator") :
+			const char *tag = "RewriteCallOperator") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -44,10 +38,12 @@ public:
 			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""
 		);
 		const std::string nullStr( nullNode ? getText(sm, nullNode) : ""); 
-		
-		llvm::errs() << origCode << "\n";	
+
+#ifdef DEBUG
+		llvm::errs() << "origCode: " << origCode << "\n";	
 		llvm::errs() << "castFrom: " << castFromType << "\n";
 		llvm::errs() << "castTo: " << castToType << "\n";
+#endif
 		
 		if(castFromType == castToType)
 			return;
@@ -92,14 +88,14 @@ CXXConstructExpr 0x7fcd48e19a58 <col:10, col:27> 'AtomCOP':'class utility::point
 */
 
 
-RewriteVoidPtrOperator RewriteVoidPtrOperatorCallback1(Replacements,
-	"RewriteVoidPtrOperator:constructExpr");
+RewriteCallOperator RewriteCallOperatorCallback1(Replacements,
+	"RewriteCallOperator:constructExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
 			// CHILD EXPR: operator()
 			has(
-				declRefExpr( isVoidPtrOperator() )
+				declRefExpr( isCallOperator() )
 			),
 			// CHILD EXPR: castFrom
 			anyOf(
@@ -130,21 +126,12 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteVoidPtrOperatorCallback1);
+	&RewriteCallOperatorCallback1);
 
 
 // Round 2
 
 /*
-CXXDynamicCastExpr 0x7f5caef5af28 <col:22, col:63> 'WrappedReal *' dynamic_cast<WrappedReal *> <Dynamic>
-`-CXXOperatorCallExpr 0x7f5caef59de0 <col:54, col:61> 'pointer':'class utility::pointer::ReferenceCount *'
-  |-ImplicitCastExpr 0x7f5caef59dc8 <col:60, col:61> 'pointer (*)(void) const' <FunctionToPointerDecay>
-  | `-DeclRefExpr 0x7f5caef59d48 <col:60, col:61> 'pointer (void) const' lvalue CXXMethod 0x7f5caf1f97e0 'operator()' 'pointer (void) const'
-  `-ImplicitCastExpr 0x7f5caef59e20 <col:54, col:59> 'const class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' <NoOp>
-    `-CXXBindTemporaryExpr 0x7f5caef59d28 <col:54, col:59> 'utility::pointer::ReferenceCountOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>' (CXXTemporary 0x7f5caef59d20)
-      `-CXXMemberCallExpr 0x7f5caef59cf0 <col:54, col:59> 'utility::pointer::ReferenceCountOP':'class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount>'
-        `-MemberExpr 0x7f5caef59cc0 <col:54> '<bound member function type>' ->data 0x7f5caef8a990
-
 ConditionalOperator 0x48c49e0 <col:8, col:31> 'const char *'
 `-ImplicitCastExpr 0x48c4998 <col:8, col:18> '_Bool' <PointerToBoolean>
   `-CXXOperatorCallExpr 0x48c48d0 <col:8, col:18> 'pointer':'class utility::pointer::
@@ -157,7 +144,6 @@ ConditionalOperator 0x48c49e0 <col:8, col:31> 'const char *'
         `-ImplicitCastExpr 0x48c4770 <col:8> 'const struct std::_Rb_tree_const_iterator<struct std::pair<const class std::basic_string<char>, class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount> > >' lvalue <NoOp>
           `-DeclRefExpr 0x48c4748 <col:8> 'class ResourceManager::ResourcesMap::const_iterator':'struct std::_Rb_tree_const_iterator<struct std::pair<const class std::basic_string<char>, class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount> > >' lvalue Var 0x48c0dc0 'r' 'class ResourceManager::ResourcesMap::const_iterator':'struct std::_Rb_tree_const_iterator<struct std::pair<const class std::basic_string<char>, class utility::pointer::owning_ptr<class utility::pointer::ReferenceCount> > >'
 
-
 BinaryOperator 0x1ee6ec0 <col:12, /data/rosetta/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> '_Bool' '=='
 `-CXXOperatorCallExpr 0x1ee6e50 </data/rosetta/main/source/src/utility/signals/Link.hh:108:12, col:18> 'pointer':'struct utility::signals::LinkUnit *'
   |-ImplicitCastExpr 0x1ee6e38 <col:17, col:18> 'pointer (*)(void) const' <FunctionToPointerDecay>
@@ -166,19 +152,22 @@ BinaryOperator 0x1ee6ec0 <col:12, /data/rosetta/clang/build/bin/../lib/clang/3.5
     `-CXXThisExpr 0x1ee6dc8 <col:12> 'const class utility::signals::Link *' this
 */
 
-RewriteVoidPtrOperator RewriteVoidPtrOperatorCallback2(Replacements,
-	"RewriteVoidPtrOperator:misc");
+RewriteCallOperator RewriteCallOperatorCallback2(Replacements,
+	"RewriteCallOperator:misc");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
 			// CHILD EXPR: operator()
 			has(
-				declRefExpr( isVoidPtrOperator() )
+				declRefExpr( isCallOperator() )
 			),
 			// CHILD EXPR: castFrom
 			anyOf(
 				has(
 					memberExpr( isUtilityPointer() ).bind("castFrom")
+				),
+				has(
+					declRefExpr( isUtilityPointer() ).bind("castFrom")
 				),
 				has(
 					bindTemporaryExpr( isUtilityPointer() ).bind("castFrom")
@@ -187,9 +176,6 @@ Finder.addMatcher(
 			// PARENT Expr/Stmt: castTo
 			anyOf(
 				hasParent(
-					dynamicCastExpr().bind("castTo")
-				),
-				hasParent(
 					implicitCastExpr(
 						hasParent(
 							conditionalOperator()
@@ -197,11 +183,7 @@ Finder.addMatcher(
 					).bind("castTo")
 				),
 				hasParent(
-					binaryOperator(
-						hasDirect(
-							implicitCastExpr().bind("null")
-						)
-					).bind("castTo")
+					binaryOperator().bind("castTo")
 				),
 				hasParent(
 					binaryOperator().bind("castTo")
@@ -209,4 +191,4 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteVoidPtrOperatorCallback2);
+	&RewriteCallOperatorCallback2);

@@ -59,6 +59,10 @@ public:
 		if(castFromTypeD == castToTypeD)
 			return;
 
+		// Both are smart pointers, so we assume they are compatible and do nothing
+		if(checkIsUtilityPointer(castFromTypeD) && checkIsUtilityPointer(castToTypeD))
+			return;
+			
 		// Rewrite assignment	
 		std::string type(castToType);
 		std::string leftSideCode = getTextToDelim(sm, expr, castexpr);

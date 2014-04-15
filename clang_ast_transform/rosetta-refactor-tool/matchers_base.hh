@@ -31,7 +31,9 @@ protected:
 		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return false;
-		// llvm::errs() << tag << ": " << node->getSourceRange().getBegin().printToString(sm) << "\n"; // debug
+#ifdef DEBUG			
+		llvm::errs() << tag << " matched: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
+#endif
 		return true;
 	}
 

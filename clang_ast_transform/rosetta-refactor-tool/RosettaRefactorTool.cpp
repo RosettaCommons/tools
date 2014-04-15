@@ -73,17 +73,11 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	// Good  matchers
 	#include "matchers_typedef.hh"
 	#include "matchers_pointer_name.hh"
-	#include "matchers_implicit_cast_assignment.hh"
-	#include "matchers_implicit_cast_from_new.hh"
-	#include "matchers_implicit_cast_class_member_calls.hh"
-	#include "matchers_void_ptr_operator.hh"
-	
-	//#include "matchers_implicit_cast_constructor.hh"
-	//#include "matchers_implicit_cast_decl.hh"
-
-	// Old matchers, don't use
-	// #include "matchers_implicit_cast_generic.hh"
-	// #include "matchers_implicit_cast_ptrs.hh"
+	#include "matchers_cast_in_assignment.hh"
+	#include "matchers_cast_from_new.hh"
+	#include "matchers_member_calls.hh"
+	#include "matchers_call_operator.hh"
+	#include "matchers_dynamic_cast.hh"
 #else
 	// #include "matchers_op_to_void_ptr.hh"
 	#include "matchers_match_test.hh"

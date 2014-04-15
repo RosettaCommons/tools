@@ -37,7 +37,7 @@ AST_MATCHER(CastExpr, isNullToPointerCast) {
   return Node.getCastKind() == CK_NullToPointer;
 }
 
-AST_MATCHER(DeclRefExpr, isVoidPtrOperator) {
+AST_MATCHER(DeclRefExpr, isCallOperator) {
 	return Node.getNameInfo().getName().getAsString() == "operator()";
 }
 

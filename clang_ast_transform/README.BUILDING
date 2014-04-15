@@ -1,0 +1,31 @@
+BUILDING CLANG (transcript on Ubuntu 14.04):
+
+mkdir clang
+cd clang
+
+# Get clang sources
+svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
+cd llvm/tools
+svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+cd clang/tools
+svn co http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
+cd extra
+vi CMakeLists.txt 
+ln -s /data/rosetta/tools/clang_ast_transform/rosetta-refactor-tool/
+../../../../../llvm/projects/
+svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+cd ../..
+
+# Configure and build
+mkdir build 
+cd build
+../llvm/configure 
+cmake -DCMAKE_BUILD_TYPE=Release ../llvm/
+make -j 8
+
+# You should get something like:
+luki@rosetta:~/clang/build$ ls -l bin/rosetta-refactor-tool 
+-rwxr-xr-x 1 luki lugosoft 13614708 Apr 15 12:56 bin/rosetta-refactor-tool
+
+luki@rosetta:~/clang/build$ file bin/rosetta-refactor-tool 
+bin/rosetta-refactor-tool: ELF 64-bit LSB  executable, x86-64, version 1 (GNU/Linux), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=c8ad0c579767dfffd19f2c3521db3b07fc6d6854, not stripped

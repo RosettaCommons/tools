@@ -76,13 +76,13 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers_implicit_cast_assignment.hh"
 	#include "matchers_implicit_cast_from_new.hh"
 	#include "matchers_implicit_cast_class_member_calls.hh"
+	#include "matchers_void_ptr_operator.hh"
 	
 	//#include "matchers_implicit_cast_constructor.hh"
 	//#include "matchers_implicit_cast_decl.hh"
 
 	// Old matchers, don't use
 	// #include "matchers_implicit_cast_generic.hh"
-	// #include "matchers_void_ptr_operator.hh"
 	// #include "matchers_implicit_cast_ptrs.hh"
 #else
 	// #include "matchers_op_to_void_ptr.hh"

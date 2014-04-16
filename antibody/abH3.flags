@@ -1,5 +1,5 @@
 #start file
--s grafting/model.pdb
+#-s grafting/model.pdb   ## moving to launch_h3_modeling
 
 #how to run antibody mode -- these are the current best-practices
 -antibody::remodel              perturb_kic
@@ -12,7 +12,7 @@
 -antibody::h3_filter_tolerance  5
 -antibody:constrain_cter
 -antibody:constrain_vlvh_qq
--constraints:cst_file grafting/cter_constraint
+#-constraints:cst_file grafting/cter_constraint   ## moving to launch_h3_modeling
 
 #more standard settings, for packages used by antibody_H3
 -ex1
@@ -39,8 +39,7 @@
 -mute core.io.pdb.file_data
 -out:levels core.io.constraints:debug  ## show constraints when read
 
--nstruct 2000
-#-nstruct 10
+#-nstruct 2000   ## moving to launch_h3_modeling
 
 # paths are written assuming job is launched from within the antibody directory
 

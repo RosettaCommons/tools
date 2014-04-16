@@ -148,6 +148,11 @@ def main(args):
       action="store_false", dest="relax",
       help="Do not use relax protocol on final model.",
     )
+	
+    parser.add_option("--h3-modeling",
+      action="store_true", default=True, dest="h3_modeling",
+      help="Send final model(s) to H3 modeling. (default)",
+    )
 
     parser.add_option("--skip-kink-constraints",
       action="store_false", dest='kink_constraints', default=True,
@@ -161,7 +166,22 @@ def main(args):
 
     parser.add_option("--number-of-templates",
       default=-1, type="int",
-      help="Specify the number of grafted decoys to generate",
+      help="Specify the number of grafted decoys to generate.",
+    )
+
+    parser.add_option("--split-ratio",
+      action="store", default='1',
+      help="Specify decoy split between input grafted models for H3 modeling; default is an even split. Use comma-delimited ratio."
+    )
+
+    parser.add_option("--nstruct-total",
+      action="store", default='2000',
+      help="Specify total number of decoys to generate in antibody modeling."
+	)
+	
+    parser.add_option("--orientational-distance-cutoff",
+      action="store", default=2.0,
+      help="Specify minimum orientational distance between all light_heavy orientational templates"
     )
 
     parser.add_option("--timeout",
@@ -182,7 +202,7 @@ def main(args):
     for name in _framework_names_:
         parser.add_option('--' + name,
           action="store", default='',
-          help="Specify path or PDB code for %s template. If specified this will overwrite blast selection." % name,
+          help="Specify path(s) or PDB code(s) for %s template. If specified this will overwrite blast selection. Use comma delimitation for multiple templates" % name,
         )
 		
         parser.add_option('--' + name + '-multi-graft',
@@ -207,7 +227,8 @@ def main(args):
 
     # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
+		                         filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True,
+                                 filter_by_orientational_distance:False }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
                                         help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
@@ -380,6 +401,15 @@ def main(args):
              run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database, decoy=str(decoy))
         else:
             print 'Rosetta database was not found... skipping rosetta run...'
+
+    if Options.h3_modeling:
+        print "\nRunning launch_h3_modeling.py..."
+        command = script_dir + "/launch_h3_modeling.py --split-ratio " + Options.split_ratio + " --n-grafted-structures " + str(Options.number_of_templates) + " --nstruct-total " + Options.nstruct_total + " --rosetta-database " + Options.rosetta_database + " --rosetta-bin " + Options.rosetta_bin + " --rosetta-platform " + Options.rosetta_platform
+        print command
+        res, output = commands.getstatusoutput(command)
+        print output
+        if Options.verbose and not res: print command+'\n', output
+        if res: print command+'\n','ERROR: launch_H3_modeling.py failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
 
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
@@ -1255,7 +1285,7 @@ def filter_by_sequence_length(k, results, cdr_query, cdr_info):
         elif k in ['L1','L2','L3','H1','H2','H3'] and  len(cdr_query[k]) != len( cdr_info[pdb][k] ):
             results.remove(r)
             if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, len( cdr_info[pdb][k] ))
-        elif k == 'light' and 'light_lenght' in cdr_info[pdb]  and  len(cdr_query[k]) != int( cdr_info[pdb]['light_lenght'] ): results.remove(r)
+        elif k == 'light' and 'light_length' in cdr_info[pdb]  and  len(cdr_query[k]) != int( cdr_info[pdb]['light_length'] ): results.remove(r)
         elif k == 'FRH':
             template_length = 61 if pdb == 'pdb2x7l_chothia.pdb' else 63
             if not len(cdr_query[k]) == template_length: results.remove(r)
@@ -1306,6 +1336,31 @@ def filter_by_outlier(k, results, cdr_query, cdr_info):
 
         if outlier.get( (pdb, k), False ): results.remove(r)
         if Options.verbose and r not in results: print 'Filter outlier, removing:%s' % pdb
+
+# Trajectory dependent; should be kept as last filter implemented
+def filter_by_orientational_distance(k, results, cdr_query, cdr_info):
+    if Options.verbose: print 'filtering by orientational distance...'
+    if k in ['light_heavy']:
+        for i in range(0, Options.number_of_templates):
+            if (i+1) == len(results):
+                print "Warning: may not be enough distinct light_heavy orientations; some may be used repeatedly"
+                break
+            top_pdb = results[i]['subject-id']
+            (grep_status, grep_output) = commands.getstatusoutput("grep " + top_pdb + " ~/Output/pyantibody_test/comparisons.txt")
+            orientational_dictionary = {}
+            (keystring, valstring) = grep_output.split("\n")
+            orient_keys = keystring.split(" ")
+            orient_vals = valstring.split(" ")
+            for j in range(1, len(orient_keys)):
+                orientational_dictionary[orient_keys[j]] = orient_vals[j]
+            for r in results[(i+1):]:
+                pdb = r['subject-id']
+                if float(orientational_dictionary[pdb]) < float(Options.orientational_distance_cutoff):
+                    results.remove(r)
+            if (i+1) == len(results):
+                print "Warning: may not be enough distinct light_heavy orientations; some may be used repeatedly"
+                break
+	else: return
 
 
 AA_Code = dict(A='ALA', V='VAL', L='LEU', I='ILE', P='PRO', W='TRP', F='PHE', M='MET', G='GLY', S='SER', T='THR', Y='TYR',

@@ -213,6 +213,10 @@ Finder.addMatcher(
 				// = this
 				has(
 					thisExpr().bind("castFrom")
+				),
+				// function call
+				has(
+					callExpr().bind("castFrom")
 				)
 			)
 		)

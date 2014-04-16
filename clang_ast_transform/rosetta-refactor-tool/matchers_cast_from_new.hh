@@ -10,9 +10,9 @@ public:
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
-		const Expr *expr = Result.Nodes.getStmtAs<Expr>("expr");
 		const Expr *castFrom = Result.Nodes.getStmtAs<Expr>("castFrom");
 		const Expr *castTo = Result.Nodes.getStmtAs<Expr>("castTo");
+		const Expr *expr = castFrom;
 
 		if(!rewriteThisFile(expr, sm))
 			return;
@@ -93,28 +93,16 @@ public:
           `-CXXConstructExpr 0x3bfc260 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
             `-CXXNewExpr 0x3bfc1d8 <col:10, col:14> 'class ClassA *'
               `-CXXConstructExpr 0x3bfc1a8 <col:14> 'class ClassA' 'void (void)'
-
 */
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
 	"RewriteImplicitCastFromNew:constructExpr");
 Finder.addMatcher(
-	constructExpr(
-		allOf(
-			has(
-				bindTemporaryExpr(
-					has(
-						constructExpr(
-							has(
-								newExpr().bind("castFrom")
-							)
-						).bind("expr")
-					)
-				).bind("castTo")
-			),
-			isUtilityPointer()			
+	newExpr(
+		hasParent(
+			constructExpr().bind("castTo")
 		)
-	),
+	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback1);
 
 
@@ -138,59 +126,18 @@ Finder.addMatcher(
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback2(Replacements,
 	"RewriteImplicitCastFromNew:operatorCallExpr");
 Finder.addMatcher(
-	operatorCallExpr(
-		allOf(
-			has(
-				operatorCallExpr( isUtilityPointer() ).bind("castTo")
-			),
-			has(
-				newExpr().bind("expr")
-			),
-			has(
-				declRefExpr()
-			),
-			isUtilityPointer()
+	newExpr(
+		hasParent(
+			operatorCallExpr(
+				has(
+					declRefExpr(
+						allOf(
+							isNotClassOperator(),
+							isUtilityPointer()
+						)
+					).bind("castTo")
+				)
+			)
 		)
-	),
+	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback2);
-
-
-/*
-	de1 = new LiteralExpression( 0.0 );
-
-  CXXOperatorCallExpr 0x48208e0 <col:18, col:51> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue
-  |-ImplicitCastExpr 0x48208c8 <col:22> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(*)(pointer)' <FunctionToPointerDecay>
-  | `-DeclRefExpr 0x48208a0 <col:22> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(pointer)' lvalue CXXMethod 0x3832440 'operator=' 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(pointer)'
-  |-DeclRefExpr 0x4820700 <col:18> 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue Var 0x481f720 'de1' 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>'
-  `-ImplicitCastExpr 0x4820880 <col:24, col:51> 'pointer':'const class numeric::expression_parser::Expression *' <DerivedToBase (Expression)>
-    `-CXXNewExpr 0x48207c0 <col:24, col:51> 'class numeric::expression_parser::LiteralExpression *'
-      `-CXXConstructExpr 0x4820788 <col:28, col:51> 'class numeric::expression_parser::LiteralExpression' 'void (numeric::Real)'
-        `-FloatingLiteral 0x4820728 <col:47> 'double' 0.000000e+00
-*/
-
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback3(Replacements,
-	"RewriteImplicitCastFromNew:declRefExpr");
-Finder.addMatcher(
-	operatorCallExpr(
-		allOf(
-			has(
-				declRefExpr(
-					allOf(
-						isNotClassOperator(),
-						isUtilityPointer()
-					)
-				).bind("castTo")
-			),
-			has(
-				declRefExpr( isClassOperator() )
-			),
-			has(
-				newExpr().bind("expr")
-			),
-			has(
-				newExpr().bind("castFrom")
-			),
-			isUtilityPointer()
-		)
-	),
-	&RewriteImplicitCastFromNewCallback3);

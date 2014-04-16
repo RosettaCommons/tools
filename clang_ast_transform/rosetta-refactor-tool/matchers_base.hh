@@ -28,6 +28,8 @@ protected:
 	
 	template <typename T>
 	bool rewriteThisFile(T * node, SourceManager & sm) {
+		if(!node)
+			return false;
 		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
 		if(FullLocation.getFileID() != sm.getMainFileID())
 			return false;

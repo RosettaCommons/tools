@@ -60,7 +60,7 @@ public:
 			
 		std::string newCode;
 		std::string type( castToType );
-		if(type == "value_type") {
+		if(type == "value_type" || type == "mapped_type") {
 			// Use desugared type since we don't have a better info
 			type = castToTypeD;
 			// owning_ptr -> shared_ptr didn't get rewritten here yet (template?),
@@ -85,23 +85,19 @@ public:
 		return new ClassA;
 	}
 	 
-CXXMethodDecl 0x3bf6d90 </data/rosetta/tools/clang_ast_transform/test-access_ptr.cc:88:2, line:90:2> line:88:11 new_aap 'ClassAOP (void)'
-`-CompoundStmt 0x3bfc3b8 <col:21, line:90:2>
-  `-ReturnStmt 0x3bfc398 <line:89:3, col:14>
-    `-ExprWithCleanups 0x3bfc380 <col:3, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>'
-      `-CXXConstructExpr 0x3bfc348 <col:3, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (const class utility::pointer::owning_ptr<class ClassA> &)' elidable
-        `-MaterializeTemporaryExpr 0x3bfc328 <col:10, col:14> 'const class utility::pointer::owning_ptr<class ClassA>' lvalue
-          `-ImplicitCastExpr 0x3bfc310 <col:10, col:14> 'const class utility::pointer::owning_ptr<class ClassA>' <NoOp>
-            `-CXXBindTemporaryExpr 0x3bfc2b8 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' (CXXTemporary 0x3bfc2b0)
-              `-ImplicitCastExpr 0x3bfc298 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' <ConstructorConversion>
-                `-CXXConstructExpr 0x3bfc260 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
-                  `-CXXNewExpr 0x3bfc1d8 <col:10, col:14> 'class ClassA *'
-                    `-CXXConstructExpr 0x3bfc1a8 <col:14> 'class ClassA' 'void (void)'
+  CXXConstructExpr 0x3bfc348 <col:3, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (const class utility::pointer::owning_ptr<class ClassA> &)' elidable
+  `-MaterializeTemporaryExpr 0x3bfc328 <col:10, col:14> 'const class utility::pointer::owning_ptr<class ClassA>' lvalue
+    `-ImplicitCastExpr 0x3bfc310 <col:10, col:14> 'const class utility::pointer::owning_ptr<class ClassA>' <NoOp>
+      `-CXXBindTemporaryExpr 0x3bfc2b8 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' (CXXTemporary 0x3bfc2b0)
+        `-ImplicitCastExpr 0x3bfc298 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' <ConstructorConversion>
+          `-CXXConstructExpr 0x3bfc260 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
+            `-CXXNewExpr 0x3bfc1d8 <col:10, col:14> 'class ClassA *'
+              `-CXXConstructExpr 0x3bfc1a8 <col:14> 'class ClassA' 'void (void)'
 
 */
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
-	"RewriteImplicitCastFromNew");
+	"RewriteImplicitCastFromNew:constructExpr");
 Finder.addMatcher(
 	constructExpr(
 		allOf(
@@ -120,3 +116,81 @@ Finder.addMatcher(
 		)
 	),
 	&RewriteImplicitCastFromNewCallback1);
+
+
+/*
+	variables_[ varname ] = new VariableExpression( varname );
+
+  CXXOperatorCallExpr 0x47d5c80 <line:1411:2, col:58> 'class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression>' lvalue
+  |-ImplicitCastExpr 0x47d5c68 <col:24> 'class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression> &(*)(pointer)' <FunctionToPointerDecay>
+  | `-DeclRefExpr 0x47d5be8 <col:24> 'class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression> &(pointer)' lvalue CXXMethod 0x47c4480 'operator=' 'class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression> &(pointer)'
+  |-CXXOperatorCallExpr 0x47d5600 <col:2, col:22> 'mapped_type':'class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression>' lvalue
+  | |-ImplicitCastExpr 0x47d55e8 <col:12, col:22> 'mapped_type &(*)(const key_type &)' <FunctionToPointerDecay>
+  | | `-DeclRefExpr 0x47d5568 <col:12, col:22> 'mapped_type &(const key_type &)' lvalue CXXMethod 0x3859930 'operator[]' 'mapped_type &(const key_type &)'
+  | |-MemberExpr 0x47d5510 <col:2> 'std::map<std::string, VariableExpressionOP>':'class std::map<class std::basic_string<char>, class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression>, struct std::less<class std::basic_string<char> >, class std::allocator<struct std::pair<const class std::basic_string<char>, class utility::pointer::owning_ptr<class numeric::expression_parser::VariableExpression> > > >' lvalue ->variables_ 0x385ef10
+  | | `-CXXThisExpr 0x47d54f8 <col:2> 'class numeric::expression_parser::SimpleExpressionCreator *' this
+  | `-DeclRefExpr 0x47d5540 <col:14> 'const std::string':'const class std::basic_string<char>' lvalue ParmVar 0x47c0d80 'varname' 'const std::string &'
+  `-CXXNewExpr 0x47d57a0 <col:26, col:58> 'class numeric::expression_parser::VariableExpression *'
+    `-CXXConstructExpr 0x47d5768 <col:30, col:58> 'class numeric::expression_parser::VariableExpression' 'void (const std::string &)'
+      `-DeclRefExpr 0x47d5648 <col:50> 'const std::string':'const class std::basic_string<char>' lvalue ParmVar 0x47c0d80 'varname' 'const std::string &'
+*/
+
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback2(Replacements,
+	"RewriteImplicitCastFromNew:operatorCallExpr");
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			has(
+				operatorCallExpr( isUtilityPointer() ).bind("castTo")
+			),
+			has(
+				newExpr().bind("expr")
+			),
+			has(
+				declRefExpr()
+			),
+			isUtilityPointer()
+		)
+	),
+	&RewriteImplicitCastFromNewCallback2);
+
+
+/*
+	de1 = new LiteralExpression( 0.0 );
+
+  CXXOperatorCallExpr 0x48208e0 <col:18, col:51> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue
+  |-ImplicitCastExpr 0x48208c8 <col:22> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(*)(pointer)' <FunctionToPointerDecay>
+  | `-DeclRefExpr 0x48208a0 <col:22> 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(pointer)' lvalue CXXMethod 0x3832440 'operator=' 'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression> &(pointer)'
+  |-DeclRefExpr 0x4820700 <col:18> 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>' lvalue Var 0x481f720 'de1' 'ExpressionCOP':'class utility::pointer::owning_ptr<const class numeric::expression_parser::Expression>'
+  `-ImplicitCastExpr 0x4820880 <col:24, col:51> 'pointer':'const class numeric::expression_parser::Expression *' <DerivedToBase (Expression)>
+    `-CXXNewExpr 0x48207c0 <col:24, col:51> 'class numeric::expression_parser::LiteralExpression *'
+      `-CXXConstructExpr 0x4820788 <col:28, col:51> 'class numeric::expression_parser::LiteralExpression' 'void (numeric::Real)'
+        `-FloatingLiteral 0x4820728 <col:47> 'double' 0.000000e+00
+*/
+
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback3(Replacements,
+	"RewriteImplicitCastFromNew:declRefExpr");
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			has(
+				declRefExpr(
+					allOf(
+						isNotClassOperator(),
+						isUtilityPointer()
+					)
+				).bind("castTo")
+			),
+			has(
+				declRefExpr( isClassOperator() )
+			),
+			has(
+				newExpr().bind("expr")
+			),
+			has(
+				newExpr().bind("castFrom")
+			),
+			isUtilityPointer()
+		)
+	),
+	&RewriteImplicitCastFromNewCallback3);

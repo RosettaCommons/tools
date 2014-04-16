@@ -37,7 +37,7 @@ public:
 		std::string newOperatorCode = std::string(origOperatorCode, 0, origOperatorCode.length() -2);
 		std::string newCode = 
 			"utility::pointer::dynamic_pointer_cast< " + castType + " > "
-				+ "( " + newOperatorCode +" )";
+				+ "( " + newOperatorCode + " )";
 			
 		doRewrite(sm, dyncastexpr, origCode, newCode);
 	}

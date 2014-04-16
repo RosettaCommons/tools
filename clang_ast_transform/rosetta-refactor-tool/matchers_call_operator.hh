@@ -15,7 +15,6 @@ public:
 		const Expr *expr = Result.Nodes.getStmtAs<Expr>("expr");
 		const Expr *castFrom = Result.Nodes.getStmtAs<Expr>("castFrom");
 		const Expr *castTo = Result.Nodes.getStmtAs<Expr>("castTo");
-		const Expr *nullNode = Result.Nodes.getStmtAs<Expr>("null");
 		
 		if(!rewriteThisFile(expr, sm))
 			return;
@@ -30,14 +29,12 @@ public:
 			return;
 		}
 
-		bool deref = true;
 		const std::string castFromType(
 			castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
 		);
 		const std::string castToType( 
 			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""
 		);
-		const std::string nullStr( nullNode ? getText(sm, nullNode) : ""); 
 
 #ifdef DEBUG
 		llvm::errs() << "origCode: " << origCode << "\n";	
@@ -45,23 +42,8 @@ public:
 		llvm::errs() << "castTo: " << castToType << "\n";
 #endif
 		
-		if(castFromType == castToType)
-			return;
-			
-		if(
-			// i.e.: data() == NULL
-			(nullStr == "NULL" || nullStr == "__null" || nullStr == "0") || 
-			// Cast between AP and OP, pass pointer directly
-			(checkIsUtilityPointer(castFromType) && checkIsUtilityPointer(castToType))
-		) {
-			deref = false;
-		}
-						
 		// origCode should end with (), so strip that call operator
 		std::string newCode = std::string(origCode, 0, origCode.length() -2);
-		if(deref)
-			newCode = "&(*" + newCode + ")";
-			
 		doRewrite(sm, expr, origCode, newCode);
 	}
 };

@@ -63,9 +63,9 @@ for pdbfile in pdbfiles:
     i = 0
     oldresidue = '   '
     for line in lines:
-        if len( line ) > 4  and line[:4] == 'ATOM':
+        if len( line ) > 4  and ( line[:6] == 'ATOM  ' or line[:6] == 'HETATM'):
             currentresidue = line[22:26]
-            atomnum = int( line[4:11] )
+            atomnum = int( line[6:11] )
 
             if not currentresidue == oldresidue:
                 i += 1

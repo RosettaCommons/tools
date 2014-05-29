@@ -6,9 +6,8 @@ from sys import argv,stderr
 import string
 from parse_options import parse_options
 
-
 use_subset = False
-subset_residues  = parse_options( argv, "subset", [-1] )
+[subset_residues,subset_chains] = parse_options( argv, "subset", [[0],['A']] )
 segment_residues = parse_options( argv, "segment", [-1] )
 if len( segment_residues ) > 0:
     assert( len( subset_residues ) == 0 )
@@ -17,23 +16,18 @@ if len( segment_residues ) > 0:
         for j in range( segment_residues[2*i], segment_residues[2*i+1]+1 ):
             subset_residues.append( j )
 
-excise_residues = parse_options( argv, "excise", [-1] )
-if len( excise_residues ) > 0:
-    use_excise = True
-    pdbfiles = argv[1:-1]
-    prefix = argv[-1]
-    startseq = 1
-    endseq = 10000000000
-
+[excise_residues, excise_chains] = parse_options( argv, "excise", [[0],['A']] )
 use_subset = ( len( subset_residues ) > 0 )
 use_excise = ( len( excise_residues ) > 0 )
+use_range = False
+startseq = 0
+endseq = 0
 
 if ( use_excise or use_subset ):
     pdbfiles = argv[1:-1]
     prefix = argv[-1]
-    startseq = 1
-    endseq = 10000000000
 else:
+    use_range = True
     try:
         pdbfiles = argv[1:-2]
         startseq = int( argv[-2])
@@ -46,6 +40,13 @@ else:
         prefix = argv[-1]
 
 atomnums = []
+
+def matches( res, chain, match_res, match_chain ):
+    assert( len( match_res ) == len( match_chain ) )
+    for n in range( len( match_res ) ):
+        if ( res == match_res[n] and ( match_chain[n] == ''  or match_chain[n] == chain ) ):
+            return True
+    return False
 
 for pdbfile in pdbfiles:
 
@@ -60,23 +61,18 @@ for pdbfile in pdbfiles:
     else:
         lines = open(pdbfile).readlines()
 
-    i = 0
-    oldresidue = '   '
     for line in lines:
         if len( line ) > 4  and ( line[:6] == 'ATOM  ' or line[:6] == 'HETATM'):
+            currentchain = line[21]
             currentresidue = line[22:26]
             atomnum = int( line[6:11] )
-
-            if not currentresidue == oldresidue:
-                i += 1
-            oldresidue = currentresidue
-
-            #if (use_subset and not ( i in subset_residues) ): continue
             try:
                 currentresidue_val = int(currentresidue)
-                if (use_subset and not ( currentresidue_val in subset_residues) ): continue
-                if (use_excise and ( currentresidue_val in excise_residues) ): continue
-                if int(currentresidue) < startseq or int(currentresidue) > endseq: continue
+                if (use_subset and \
+                    not matches( currentresidue_val, currentchain, subset_residues, subset_chains ) ): continue
+                if (use_excise and \
+                    matches( currentresidue_val, currentchain, excise_residues, excise_chains ) ): continue
+                if (use_range and (int(currentresidue) < startseq or int(currentresidue) > endseq) ): continue
             except:
                 continue
 

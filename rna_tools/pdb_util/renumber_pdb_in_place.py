@@ -19,7 +19,7 @@ def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num = 0):
                 continue
 
             if line_edit[0:4] == 'ATOM' or line_edit[0:6] == 'HETATM':
-
+                if line[17:20] == 'HOH': continue
                 if not (line[16]==' ' or line[16]=='A'): continue
                 atomnum += 1
                 oldchain = line_edit[21]

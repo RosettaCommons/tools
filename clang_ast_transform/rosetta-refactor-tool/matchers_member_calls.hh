@@ -19,19 +19,28 @@ public:
 
 		// Get castFrom and castTo variable types
 		const std::string castFromType(
-			castFrom ? QualType::getAsString( castFrom->getType().split() ) : ""
+			stripQualifiers(
+				castFrom ? QualType::getAsString( castFrom->getType().split() ) : ""
+			)
 		);
 		const std::string castToType( 
-			castTo ? QualType::getAsString( castTo->getType().split() ) : ""
+			stripQualifiers(
+				castTo ? QualType::getAsString( castTo->getType().split() ) : ""
+			)
 		);
 
+		// Desugared types
 		const std::string castFromTypeD(
-			castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
+			stripQualifiers(
+				castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
+			)
 		);
 		const std::string castToTypeD( 
-			castTo ? QualType::getAsString( castTo->getType().getSplitDesugaredType() ) : ""
+			stripQualifiers(
+				castTo ? QualType::getAsString( castTo->getType().getSplitDesugaredType() ) : ""
+			)
 		);
-
+		
 		const std::string origCode = getText(sm, expr);
 		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 			
@@ -57,30 +66,15 @@ public:
 		// Same thing, do nothing
 		if(castFromTypeD == castToTypeD)
 			return;
+		if(castFromTypeD == extractContainedType(castToTypeD))
+			return;
 
+		// Determine cast type			
 		std::string type(castToType);
+		std::string contained_type = extractContainedType(type);
+		if(!contained_type.empty())
+			type = contained_type;
 		
-		// Handle OPs contained in vectors, lists, maps, sets
-		if(
-			beginsWith(castToTypeD, "class utility::vector0<") ||
-			beginsWith(castToTypeD, "class utility::vector1<") ||
-			beginsWith(castToTypeD, "class std::map<") ||
-			beginsWith(castToTypeD, "class std::vector<") ||
-			beginsWith(castToTypeD, "class std::list<") ||
-			beginsWith(castToTypeD, "class std::set<")
-		) {
-			const std::string castToTypeD_contained = extractTypeFromContainer(castToTypeD);
-			if(castFromTypeD == castToTypeD_contained)
-				return;
-			// If typedef of a container without info, then use the desugared definition
-			if(type.find('<') == std::string::npos)
-				type = castToTypeD;
-			type = extractTypeFromContainer(type);
-		}
-
-		if(beginsWith(type, "class "))
-			type = std::string(type, strlen("class "));
-
 		// Full type definition not yet rewritten in original code, so do it here
 		replace(type, "owning_ptr", "shared_ptr");
 		replace(type, "access_ptr", "weak_ptr");

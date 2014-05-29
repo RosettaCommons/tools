@@ -59,7 +59,7 @@ Finder.addMatcher(
 	fieldDecl().bind("decl"),
 	&RewriteTypedefDeclCallback3);
 
-// Method return type declatation
+// Method return type declaration
 /*
 RewriteTypedefDecl RewriteTypedefDeclCallback4(Replacements, "RewriteTypedefDecl:methodDecl");
 Finder.addMatcher(

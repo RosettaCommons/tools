@@ -29,81 +29,99 @@ bool beginsWith(const std::string& a, const std::string& b) {
 	return (a.compare(0, b.length(), b) == 0);
 }
 
-bool checkIsUtilityPointer(std::string const & type) {
-	if(beginsWith(type, "const ")) // trim const (typedefs)
-		return checkIsUtilityPointer(std::string(type, 6));
-	if(beginsWith(type, "class ")) // trim class (templates)
-		return checkIsUtilityPointer(std::string(type, 6));
-	if(beginsWith(type, "static ")) // trim static in var decls
-		return checkIsUtilityPointer(std::string(type, 7));
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// C++ code parsing string utils
 
-	std::string t(trim(type));
+// Container types from which we extract the contained type
+bool checkContainerType(const std::string& container_type) {
 	return
-		beginsWith(t, "utility::pointer::owning_ptr") ||
-		beginsWith(t, "utility::pointer::access_ptr");
+		container_type == "utility::vector0" ||
+		container_type == "utility::vector1" ||
+		container_type == "std::vector" ||
+		container_type == "std::list" ||
+		container_type == "std::set" ||
+		container_type == "std::map" ||
+		container_type == "std::deque";
 }
 
-bool checkContainsUtilityPointer(std::string const & type) {
+// Qualifiers we don't care about and drop
+std::string stripQualifiers(const std::string& type) {
+	if(beginsWith(type, "const ")) // trim const (typedefs)
+		return stripQualifiers(std::string(type, strlen("const ")));
+	if(beginsWith(type, "class ")) // trim class (templates)
+		return stripQualifiers(std::string(type, strlen("class ")));
+	if(beginsWith(type, "static ")) // trim static in var decls
+		return stripQualifiers(std::string(type, strlen("static ")));
+	return trim(type);
+}
 
-	if(beginsWith(type, "class ")) // trim class
-		return checkContainsUtilityPointer(std::string(type, 6));
-
-	if(
-		beginsWith(type, "utility::vector0<") ||
-		beginsWith(type, "utility::vector1<") ||
-		beginsWith(type, "std::vector<") ||
-		beginsWith(type, "std::list<") ||
-		beginsWith(type, "std::set<")
-	) {
-		size_t p = type.find('<');
-		if(p == std::string::npos)
-			return false;
-		std::string sub_type = trim(std::string(type, p), "<> ");
-		return checkIsUtilityPointer(sub_type);
-	}
-
-	if(
-		beginsWith(type, "std::map<")
-	) {
-		size_t p = type.find('<');
-		if(p == std::string::npos)
-			return false;
-		std::string sub_type = trim(std::string(type, p), "<> ");
+// Extract container type from code, i.e. vector, map, etc.
+std::string extractContainerType(const std::string& container) {
+	// Strip utility::vector1<utility::pointer::ownining_ptr<class ClassX>, allocator ... >
+	size_t p = container.find('<');
+	if(p == std::string::npos)
+		return "";
 		
-		p = sub_type.find(',');
-		std::string sub_type_mapped = trim(std::string(sub_type, p), ",<> ");
-		return checkIsUtilityPointer(sub_type_mapped);
-	}
-
-	return false;
+	std::string container_type = stripQualifiers(std::string(container, 0, p));
+	//llvm::errs() << "container_type: " << container_type << "\n";
+	return container_type;
 }
 
-std::string extractTypeFromContainer(const std::string & container) {
+// Extract contained type in a vector, map, etc.
+std::string extractContainedType(const std::string& container) {
+	
 	// Strip utility::vector1<utility::pointer::ownining_ptr<class ClassX>, allocator ... >
 	size_t p = container.find('<');
 	size_t q = container.find_last_of('>');
 	if(p == std::string::npos)
-		return container;
+		return "";
 		
 	std::string container_type(container, 0, p);	
 	std::string contained_type = std::string(container, p + 1, q - p - 1); 
+	
 	if(container_type == "std::map") {
-		// second def, mapped type
+		// Handle maps differently: map key, mapped type, allocator -- we want mapped type
 		q = contained_type.find(',');
 		if(q != std::string::npos)
 			contained_type = trim(std::string(contained_type, q+1));
 	}
-
+	
 	// Use first def (drop allocator, etc)
 	q = contained_type.find(',');
 	if(q != std::string::npos)
 		contained_type = trim(std::string(contained_type, 0, q));
 
+	contained_type = stripQualifiers(contained_type);
+	
+	//llvm::errs() << "contained_type: " << contained_type << "\n";
 	return contained_type;
 }
 
+// Is it out utility pointer that we care about?
+bool checkIsUtilityPointer(const std::string& fulltype) {
 
-bool checkIsClassOperator(std::string const & type) {
+	std::string type = extractContainerType(fulltype);
+	return
+		type == "utility::pointer::owning_ptr" ||
+		type == "utility::pointer::access_ptr";
+}
+
+// Does it contain a pointer that we care about?
+bool checkContainsUtilityPointer(const std::string& fulltype) {
+
+	std::string type = stripQualifiers(fulltype);
+	std::string container_type = extractContainerType(fulltype);
+
+	if(container_type.empty())
+		return false;
+		
+	if(checkContainerType(container_type))
+		return checkIsUtilityPointer(extractContainedType(type));
+
+	return false;
+}
+
+bool checkIsClassOperator(const std::string& type) {
 	return
 		type == "operator()" ||
 		type == "operator=";

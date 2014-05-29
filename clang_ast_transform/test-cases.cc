@@ -9,13 +9,21 @@
 #include <vector>
 #include <map>
 
+///////////////////////////////////////////////////////////////////////
+// utility::pointer typedefs
+
 class ClassA;
 class ClassB;
+class ClassA2;
 
 typedef utility::pointer::access_ptr< ClassA > ClassAAP;
 typedef utility::pointer::owning_ptr< ClassA > ClassAOP;
 typedef utility::pointer::owning_ptr< ClassA const > ClassACOP;
+typedef utility::pointer::owning_ptr< ClassA2 > ClassA2OP;
 typedef utility::pointer::owning_ptr< ClassB > ClassBOP;
+
+///////////////////////////////////////////////////////////////////////
+// utility::pointer usage 
 
 // Dummy class
 class ClassA {
@@ -26,6 +34,12 @@ public:
 	void remove_ref() {}
 	void show() {}
 	void *operator()() { return this; }
+};
+
+class ClassA2 : public ClassA {
+public:
+	ClassA2() { }
+	void method_in_a2() { }
 };
 
 // Fancy class
@@ -48,6 +62,9 @@ public:
 	void remove_ref() {}
 	void show() {}
 	
+  ///////////////////////////////////////////////////////////////////////
+  // shared ptr assignment
+  
 	void set_a_null() {
 		a_ = NULL;
 		a_ = 0;
@@ -80,19 +97,19 @@ public:
 	}
 
 	void set_local_null1() {
-		ClassAOP aa = NULL;
+		ClassAOP aa = NULL; // missed
 	}
 
 	void set_local_null2() {
-		ClassAOP aa(NULL);
+		ClassAOP aa(NULL); // missed
 	}
 	
 	void set_local_null3() {
-		ClassAOP aa = 0;
+		ClassAOP aa = 0; // missed
 	}
 
 	void set_local_null4() {
-		ClassAOP aa(0);
+		ClassAOP aa(0); // missed
 	}
 
 	ClassAOP new_aap() {
@@ -133,15 +150,31 @@ public:
 		as_list_.push_back(&a);
 	}
 	
+  ///////////////////////////////////////////////////////////////////////
+  // return pointer operator
+
 	// operator() call
 	ClassA * operator()() {
 		return &(*a_); // should not match
 	}
 	
+  ///////////////////////////////////////////////////////////////////////
+  // casts
+  
+#ifdef CASTS
+	void dynamic_cast_test(ClassAOP a) {
+		ClassA2OP a2 = dynamic_cast< ClassA2 * > ( a() );
+		a2->method_in_a2();
+	}
+#endif
+
+  ///////////////////////////////////////////////////////////////////////
 	// Should not match
+	
 	void set_str_char_ptr(const char *s) {
 		s_ = s;
-	}	
+	}
+
 };
 
 void foo() {

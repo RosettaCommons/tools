@@ -76,9 +76,16 @@ public:
 
 		// Determine cast type			
 		std::string type(castToType);
-		std::string contained_type = extractContainedType(type);
-		if(!contained_type.empty())
-			type = contained_type;
+		
+		if(type == "mapped_type") {
+			// use mapped type in std::map and don't extract contained type further
+			type = castToTypeD;
+		} else {
+			// Check type it container and use it
+			std::string contained_type = extractContainedType(type);
+			if(!contained_type.empty())
+				type = contained_type;
+		}
 
 		// Rewrite assignment	
 		std::string leftSideCode = getTextToDelim(sm, expr, castexpr);
@@ -313,8 +320,23 @@ Finder.addMatcher(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
 			),
-			has(
-				memberExpr( isUtilityPointer() ).bind("castTo")
+			anyOf(
+				has(
+					memberExpr( isUtilityPointer() ).bind("castTo")
+				),
+				has(
+					declRefExpr(
+						allOf(
+							isUtilityPointer(),
+							isNotClassOperator()
+						)
+					).bind("castTo")
+				),
+				has(
+					operatorCallExpr(
+						isUtilityPointer()
+					).bind("castTo")
+				)
 			),
 			has(
 				newExpr().bind("castFrom")

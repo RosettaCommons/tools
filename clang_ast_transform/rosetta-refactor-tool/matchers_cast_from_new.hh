@@ -108,12 +108,12 @@ Finder.addMatcher(
 	newExpr(
 		anyOf(
 			hasParent(
-				constructExpr().bind("castTo")
+				constructExpr(isUtilityPointer()).bind("castTo")
 			),
 			hasParent(
 				implicitCastExpr(
 					hasParent(
-						constructExpr().bind("castTo")
+						constructExpr(isUtilityPointer()).bind("castTo")
 					)
 				)
 			)

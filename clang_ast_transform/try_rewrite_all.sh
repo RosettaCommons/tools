@@ -12,5 +12,6 @@ cd $ROOT/main/source/src
 python $ME/run_on_all_files_w_fork.py -e $ME/rewrite_file.sh -n 18
 
 # Replace utility::pointer headers with std:: versions
-cp -a /local/luki/pointer/stdonly/* /local/luki/main-copy/source/src/utility/pointer/
+cp -a /local/luki/main-copy/source/src/utility/pointer/std/* /local/luki/main-copy/source/src/utility/pointer/
+echo rsync -av /local/luki/main-patched/ /local/luki/main-copy/
 

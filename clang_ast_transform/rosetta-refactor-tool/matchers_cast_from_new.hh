@@ -93,14 +93,30 @@ public:
           `-CXXConstructExpr 0x3bfc260 <col:10, col:14> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' 'void (pointer)'
             `-CXXNewExpr 0x3bfc1d8 <col:10, col:14> 'class ClassA *'
               `-CXXConstructExpr 0x3bfc1a8 <col:14> 'class ClassA' 'void (void)'
+
+          ...
+          `-CXXConstructExpr 0x47754b0 <col:41, col:64> 'InterpolatorOP':'class utility::pointer::owning_ptr<class numeric::interpolation::spline::Interpolator>' 'void (pointer)'
+            `-ImplicitCastExpr 0x4775490 <col:41, col:64> 'pointer':'class numeric::interpolation::spline::Interpolator *' <DerivedToBase (Interpolator)>
+              `-CXXNewExpr 0x4775400 <col:41, col:64> 'class numeric::interpolation::spline::SimpleInterpolator *'
+                `-CXXConstructExpr 0x47753d0 <col:45, col:64> 'class numeric::interpolation::spline::SimpleInterpolator' 'void (void)'
+
 */
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
 	"RewriteImplicitCastFromNew:constructExpr");
 Finder.addMatcher(
 	newExpr(
-		hasParent(
-			constructExpr().bind("castTo")
+		anyOf(
+			hasParent(
+				constructExpr().bind("castTo")
+			),
+			hasParent(
+				implicitCastExpr(
+					hasParent(
+						constructExpr().bind("castTo")
+					)
+				)
+			)
 		)
 	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback1);

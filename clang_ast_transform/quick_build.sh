@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT=/data/rosetta/clang
+ROOT=/local/luki/clang
 
 cd $ROOT/build
 

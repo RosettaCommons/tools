@@ -168,9 +168,11 @@ Finder.addMatcher(
 					binaryOperator().bind("castTo")
 				),
 				hasParent(
-					binaryOperator().bind("castTo")
+					unaryOperator().bind("castTo")
 				)
 			)
 		)
 	).bind("expr"),
 	&RewriteCallOperatorCallback2);
+
+

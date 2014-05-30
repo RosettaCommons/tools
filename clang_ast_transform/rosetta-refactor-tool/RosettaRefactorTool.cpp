@@ -77,6 +77,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers_cast_from_new.hh"
 	#include "matchers_member_calls.hh"
 	#include "matchers_call_operator.hh"
+	// #include "matchers_not_operator.hh" // UNTESTED
 	#include "matchers_dynamic_cast.hh"
 #else
 	// #include "matchers_op_to_void_ptr.hh"
@@ -109,15 +110,15 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 		// Output change log to stdout to be applied later
 		for(Replacements::const_iterator I = Replaces.begin(), E = Replaces.end(); I != E; ++I) {
 			const Replacement &r = *I;
-    	if (r.isApplicable()) {
-      	std::string replacementText = r.getReplacementText();
-      	replace(replacementText, "\n", "\\n");
-      	llvm::outs()
-      		<< r.getFilePath() << "\t"
-      		<< r.getOffset() << "\t"
-      		<< r.getLength() << "\t"
-      		<< replacementText << "\n";
-      }
+			if (r.isApplicable()) {
+				std::string replacementText = r.getReplacementText();
+				replace(replacementText, "\n", "\\n");
+				llvm::outs()
+					<< r.getFilePath() << "\t"
+					<< r.getOffset() << "\t"
+					<< r.getLength() << "\t"
+					<< replacementText << "\n";
+			}
 		}
 	}
 	else

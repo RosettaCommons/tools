@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CLANG_BIN=/data/rosetta/clang/build/bin
-SOURCE=/data/rosetta/main/source
-OUT_DIR=/data/rosetta/main-copy/source
+CLANG_BIN=/local/luki/clang/build/bin
+SOURCE=/local/luki/main/source
+OUT_DIR=/local/luki/main-copy/source
 
 cd $SOURCE
 

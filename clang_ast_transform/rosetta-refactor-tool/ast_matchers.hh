@@ -41,6 +41,11 @@ AST_MATCHER(DeclRefExpr, isCallOperator) {
 	return Node.getNameInfo().getName().getAsString() == "operator()";
 }
 
+AST_MATCHER(DeclRefExpr, isNotOperator) {
+	llvm::errs() << Node.getNameInfo().getName().getAsString() << "\n";
+	return Node.getNameInfo().getName().getAsString() == "operator!";
+}
+
 AST_MATCHER(DeclRefExpr, isClassOperator) {
 	return checkIsClassOperator( Node.getNameInfo().getName().getAsString() );
 }

@@ -1,7 +1,7 @@
-BD=/data/rosetta/clang/build
-SRC=/data/rosetta/clang/llvm
+BD=/local/luki/clang/build
+SRC=/local/luki/clang/llvm
 
-cd /data/rosetta/main/source
+cd /local/luki/main/source
 $BD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \

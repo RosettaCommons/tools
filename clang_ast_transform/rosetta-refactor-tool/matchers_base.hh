@@ -31,8 +31,10 @@ protected:
 		if(!node)
 			return false;
 		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
+		if(FullLocation.getFileID() != sm.getMainFileID()) {
+			// llvm::errs() << tag << " skipping file: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
 			return false;
+		}
 #ifdef DEBUG			
 		llvm::errs() << tag << " matched: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
 #endif

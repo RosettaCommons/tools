@@ -71,9 +71,17 @@ public:
 
 		// Determine cast type			
 		std::string type(castToType);
-		std::string contained_type = extractContainedType(type);
+
+		// This cast to is a container, then cast to the contained type
+		std::string contained_type = extractContainedType(castToType);
 		if(!contained_type.empty())
 			type = contained_type;
+		else {
+			// ... using full desugared definition
+			contained_type = extractContainedType(castToTypeD);
+			if(!contained_type.empty())
+				type = contained_type;
+		}
 		
 		// Full type definition not yet rewritten in original code, so do it here
 		replace(type, "owning_ptr", "shared_ptr");

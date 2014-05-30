@@ -69,7 +69,6 @@ CXXConstructExpr 0x7fcd48e19a58 <col:10, col:27> 'AtomCOP':'class utility::point
     `-MemberExpr 0x7fcd48e19870 <col:19> 'const AtomAP':'const class utility::pointer::access_ptr<class core::kinematics::tree::Atom>' lvalue ->parent_ 0x7fcd48df0380
 */
 
-
 RewriteCallOperator RewriteCallOperatorCallback1(Replacements,
 	"RewriteCallOperator:constructExpr");
 Finder.addMatcher(
@@ -89,6 +88,9 @@ Finder.addMatcher(
 				),
 				has(
 					declRefExpr( isUtilityPointer() ).bind("castFrom")
+				),
+				has(
+					operatorCallExpr( isUtilityPointer() ).bind("castFrom")
 				)
 			),
 			// PARENT Expr/Stmt: castTo

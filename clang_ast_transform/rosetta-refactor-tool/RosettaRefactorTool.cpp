@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 
 // #define AST_TEST
-// #define DEBUG 
+//#define DEBUG 
 
 bool verbose = true;
 
@@ -78,6 +78,7 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers_member_calls.hh"
 	#include "matchers_call_operator.hh"
 	// #include "matchers_not_operator.hh" // UNTESTED
+	#include "matchers_ctor_initializer.hh"
 	#include "matchers_dynamic_cast.hh"
 #else
 	// #include "matchers_op_to_void_ptr.hh"

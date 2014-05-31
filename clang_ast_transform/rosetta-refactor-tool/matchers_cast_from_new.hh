@@ -157,3 +157,32 @@ Finder.addMatcher(
 		)
 	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback2);
+
+/*
+AtomCOP foo() { return this; }
+
+`-ReturnStmt 0x43e7538 <line:228:3, col:10>
+  `-ExprWithCleanups 0x43e7520 <col:3, col:10> 'AtomCOP':'class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>'
+    `-CXXConstructExpr 0x43e74e8 <col:3, col:10> 'AtomCOP':'class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' 'void (const class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom> &)' elidable
+      `-MaterializeTemporaryExpr 0x43e74c8 <col:10> 'const class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' lvalue
+        `-ImplicitCastExpr 0x43e74b0 <col:10> 'const class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' <NoOp>
+          `-CXXBindTemporaryExpr 0x43e7458 <col:10> 'AtomCOP':'class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' (CXXTemporary 0x43e7450)
+            `-ImplicitCastExpr 0x43e7430 <col:10> 'AtomCOP':'class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' <ConstructorConversion>
+              `-CXXConstructExpr 0x43e73f8 <col:10> 'AtomCOP':'class utility::pointer::owning_ptr<const class core::kinematics::tree::Atom>' 'void (pointer)'
+                `-ImplicitCastExpr 0x43e73d0 <col:10> 'pointer':'const class core::kinematics::tree::Atom *' <DerivedToBase (Atom_ -> Atom)>
+                  `-CXXThisExpr 0x43e7380 <col:10> 'const class core::kinematics::tree::BondedAtom *' this
+*/
+
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback3(Replacements,
+	"RewriteImplicitCastFromNew:thisExpr");
+Finder.addMatcher(
+	thisExpr(
+		hasParent(
+			implicitCastExpr(
+				hasParent(
+					constructExpr( isUtilityPointer() ).bind("castTo")
+				)
+			)
+		)
+	).bind("castFrom"),
+	&RewriteImplicitCastFromNewCallback3);

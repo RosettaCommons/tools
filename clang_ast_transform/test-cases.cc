@@ -47,6 +47,7 @@ class ClassB {
 private:
 	ClassAOP a_;
 	ClassBOP b_;
+	ClassAAP aap_;
 	utility::vector1<ClassAOP> as_;
 	utility::vector1< utility::pointer::owning_ptr<class ClassA> > as2_;
 	std::vector<ClassAOP> as_vector_;
@@ -56,7 +57,7 @@ private:
 	std::string s_;
 	
 public:
-	ClassB() { }
+	ClassB() : aap_(0) { }
 	void owning_ptr_acquire(ClassB *){}
 	void add_ref() {}
 	void remove_ref() {}

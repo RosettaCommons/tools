@@ -186,3 +186,18 @@ Finder.addMatcher(
 		)
 	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback3);
+
+/*
+`-CXXConstructExpr 0x6b8b3b8 <col:25> 'AtomAP':'class utility::pointer::access_ptr<class core::kinematics::tree::Atom>' 'void (pointer)'
+  `-ImplicitCastExpr 0x6b8b3a0 <col:25> 'pointer':'class core::kinematics::tree::Atom *' <NullToPointer>
+    `-IntegerLiteral 0x6b8b2c0 <col:25> 'int' 0
+*/
+
+RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback4(Replacements,
+	"RewriteImplicitCastFromNew:IntegerLiteral");
+Finder.addMatcher(
+	constructExpr(
+		has(
+			integerLiteral().bind("castFrom")
+		)
+	).bind("castTo"), &RewriteImplicitCastFromNewCallback4);

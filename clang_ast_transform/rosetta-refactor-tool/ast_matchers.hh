@@ -17,6 +17,10 @@ AST_MATCHER(CastExpr, isNullToPointer) {
     Node.getCastKind() == CK_NullToMemberPointer;
 }
 
+AST_MATCHER(Expr, isNullExpr) {
+  return Node.getStmtClass() == AbstractConditionalOperator::GNUNullExprClass;
+}
+
 AST_MATCHER(CastExpr, isNonNoopCast) {
   return Node.getCastKind() != CK_NoOp;
 }
@@ -72,6 +76,26 @@ AST_MATCHER(Expr, isUtilityPointer) {
 		SplitQualType D_split = T.getSplitDesugaredType();
 		if (T_split != D_split) {
 			if(checkIsUtilityPointer(QualType::getAsString(D_split)))
+				return true;
+		}
+	}
+
+	return false;
+}
+
+AST_MATCHER(Expr, isUtilityAccessPointer) {
+
+	// Sugared type
+	QualType T = Node.getType();
+	SplitQualType T_split = T.split();
+	if(checkIsUtilityAccessPointer(QualType::getAsString(T_split)))
+		return true;
+			
+	if(!T.isNull()) {
+		// Desugared type
+		SplitQualType D_split = T.getSplitDesugaredType();
+		if (T_split != D_split) {
+			if(checkIsUtilityAccessPointer(QualType::getAsString(D_split)))
 				return true;
 		}
 	}

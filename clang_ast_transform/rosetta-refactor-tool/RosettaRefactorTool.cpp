@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 
 // #define AST_TEST
-//#define DEBUG 
+// #define DEBUG
 
 bool verbose = true;
 

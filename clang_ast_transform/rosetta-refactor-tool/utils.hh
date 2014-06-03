@@ -97,13 +97,19 @@ std::string extractContainedType(const std::string& container) {
 	return contained_type;
 }
 
-// Is it out utility pointer that we care about?
+// Is it our utility pointer that we care about?
 bool checkIsUtilityPointer(const std::string& fulltype) {
 
 	std::string type = extractContainerType(fulltype);
 	return
 		type == "utility::pointer::owning_ptr" ||
 		type == "utility::pointer::access_ptr";
+}
+
+// Is it our utility access pointer that we care about?
+bool checkIsUtilityAccessPointer(const std::string& fulltype) {
+	std::string type = extractContainerType(fulltype);
+	return type == "utility::pointer::access_ptr";
 }
 
 // Does it contain a pointer that we care about?

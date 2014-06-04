@@ -176,7 +176,6 @@ public:
 			`-CXXConstructExpr 0x26f10f0 <col:12> 'class ClassA' 'void (void)'
 */
 
-/*
 RewriteAssignmentsOper RewriteAssignmentsOperCallback1(
 	Replacements,
 	"AssignmentsOper:newExpr"
@@ -211,10 +210,62 @@ Finder.addMatcher(
 		)
 	).bind("expr"),
 	&RewriteAssignmentsOperCallback1);
+
+/*
+class X {
+	SomeOP a_;
+	void set_a_null() {
+		a_ = NULL;
+		a_ = 0;
+	}
+};
+
+	|-CXXOperatorCallExpr 0x403dfa0 <line:42:3, /local/luki/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'class utility::pointer::owning_ptr<class ClassA>' lvalue
+	| |-ImplicitCastExpr 0x403df88 </local/luki/tools/clang_ast_transform/test-access_ptr.cc:42:6> 'class utility::pointer::owning_ptr<class ClassA> &(*)(pointer)' <FunctionToPointerDecay>
+	| | `-DeclRefExpr 0x403df08 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(pointer)' lvalue CXXMethod 0x3febb50 'operator=' 'class utility::pointer::owning_ptr<class ClassA> &(pointer)'
+	| |-MemberExpr 0x403de40 <col:3> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' lvalue ->a_ 0x3fec7b0
+	| | `-CXXThisExpr 0x403de28 <col:3> 'class ClassB *' this
+	| `-ImplicitCastExpr 0x403def0 </local/luki/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'pointer':'class ClassA *' <NullToPointer>
+	|	 `-GNUNullExpr 0x403de70 <col:18> 'long'
+
+	`-CXXOperatorCallExpr 0x403e108 </local/luki/tools/clang_ast_transform/test-access_ptr.cc:43:3, col:8> 'class utility::pointer::owning_ptr<class ClassA>' lvalue
+		|-ImplicitCastExpr 0x403e0f0 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(*)(pointer)' <FunctionToPointerDecay>
+		| `-DeclRefExpr 0x403e0c8 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(pointer)' lvalue CXXMethod 0x3febb50 'operator=' 'class utility::pointer::owning_ptr<class ClassA> &(pointer)'
+		|-MemberExpr 0x403e000 <col:3> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' lvalue ->a_ 0x3fec7b0
+		| `-CXXThisExpr 0x403dfe8 <col:3> 'class ClassB *' this
+		`-ImplicitCastExpr 0x403e0b0 <col:8> 'pointer':'class ClassA *' <NullToPointer>
+			`-IntegerLiteral 0x403e030 <col:8> 'int' 0
 */
+
+RewriteAssignmentsOper RewriteAssignmentsOperCallback2(Replacements,
+	"AssignmentsOper:nullPtrLiteral/integerLiteral");
+Finder.addMatcher(
+	operatorCallExpr(
+		allOf(
+			has(
+				declRefExpr( isUtilityPointer() ).bind("castexpr")
+			),
+			has(
+				memberExpr().bind("castTo")
+			),
+			anyOf(
+				has(
+					integerLiteral(equals(0)).bind("castFrom")
+				),
+				has(
+					// This doesn't work for some reason yet
+					expr(nullPtrLiteralExpr()).bind("castFrom")
+				)
+			),
+			isUtilityPointer()
+		)
+	).bind("expr"),
+	&RewriteAssignmentsOperCallback2);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // We may not want to automagically rewrite those
+
+#ifdef DANGAROUS_REWRITES
 
 /*
 	ClassAOP a_;
@@ -270,7 +321,7 @@ Finder.addMatcher(
 
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback2(
+RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
 	Replacements,
 	"AssignmentsOper"
 );
@@ -310,8 +361,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback2);
-
+	&RewriteAssignmentsOperCallback3);
 
 /*
 	ClassAOP a_;
@@ -346,7 +396,7 @@ Finder.addMatcher(
 			`-DeclRefExpr 0x41ec3e0 <col:13> 'class ClassA' lvalue ParmVar 0x41e2c40 'a' 'class ClassA &'
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
+RewriteAssignmentsOper RewriteAssignmentsOperCallback4(
 	Replacements,
 	"AssignmentsOper:unaryOperator"
 );
@@ -379,7 +429,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback3);
+	&RewriteAssignmentsOperCallback4);
 
 /*
 	ClassAOP a_;
@@ -394,7 +444,7 @@ Finder.addMatcher(
 			`-CXXConstructExpr 0x26f10f0 <col:12> 'class ClassA' 'void (void)'
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
+RewriteAssignmentsOper RewriteAssignmentsOperCallback5(
 	Replacements,
 	"AssignmentsOper:newExpr"
 );
@@ -427,56 +477,6 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback3);
+	&RewriteAssignmentsOperCallback5);
 
-
-/*
-class X {
-	SomeOP a_;
-	void set_a_null() {
-		a_ = NULL;
-		a_ = 0;
-	}
-};
-
-	|-CXXOperatorCallExpr 0x403dfa0 <line:42:3, /local/luki/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'class utility::pointer::owning_ptr<class ClassA>' lvalue
-	| |-ImplicitCastExpr 0x403df88 </local/luki/tools/clang_ast_transform/test-access_ptr.cc:42:6> 'class utility::pointer::owning_ptr<class ClassA> &(*)(pointer)' <FunctionToPointerDecay>
-	| | `-DeclRefExpr 0x403df08 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(pointer)' lvalue CXXMethod 0x3febb50 'operator=' 'class utility::pointer::owning_ptr<class ClassA> &(pointer)'
-	| |-MemberExpr 0x403de40 <col:3> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' lvalue ->a_ 0x3fec7b0
-	| | `-CXXThisExpr 0x403de28 <col:3> 'class ClassB *' this
-	| `-ImplicitCastExpr 0x403def0 </local/luki/clang/build/bin/../lib/clang/3.5.0/include/stddef.h:72:18> 'pointer':'class ClassA *' <NullToPointer>
-	|	 `-GNUNullExpr 0x403de70 <col:18> 'long'
-
-	`-CXXOperatorCallExpr 0x403e108 </local/luki/tools/clang_ast_transform/test-access_ptr.cc:43:3, col:8> 'class utility::pointer::owning_ptr<class ClassA>' lvalue
-		|-ImplicitCastExpr 0x403e0f0 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(*)(pointer)' <FunctionToPointerDecay>
-		| `-DeclRefExpr 0x403e0c8 <col:6> 'class utility::pointer::owning_ptr<class ClassA> &(pointer)' lvalue CXXMethod 0x3febb50 'operator=' 'class utility::pointer::owning_ptr<class ClassA> &(pointer)'
-		|-MemberExpr 0x403e000 <col:3> 'ClassAOP':'class utility::pointer::owning_ptr<class ClassA>' lvalue ->a_ 0x3fec7b0
-		| `-CXXThisExpr 0x403dfe8 <col:3> 'class ClassB *' this
-		`-ImplicitCastExpr 0x403e0b0 <col:8> 'pointer':'class ClassA *' <NullToPointer>
-			`-IntegerLiteral 0x403e030 <col:8> 'int' 0
-*/
-
-RewriteAssignmentsOper RewriteAssignmentsOperCallback4(Replacements,
-	"AssignmentsOper:nullPtrLiteral/integerLiteral");
-Finder.addMatcher(
-	operatorCallExpr(
-		allOf(
-			has(
-				declRefExpr( isUtilityPointer() ).bind("castexpr")
-			),
-			has(
-				memberExpr().bind("castTo")
-			),
-			anyOf(
-				has(
-					integerLiteral(equals(0)).bind("castFrom")
-				),
-				has(
-					// This doesn't work for some reason yet
-					expr(nullPtrLiteralExpr()).bind("castFrom")
-				)
-			),
-			isUtilityPointer()
-		)
-	).bind("expr"),
-	&RewriteAssignmentsOperCallback4);
+#endif

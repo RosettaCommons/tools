@@ -11,6 +11,8 @@
 		}
 */
 
+#ifdef DANGAROUS_REWRITES
+
 class RewriteClassMemberCalls : public ReplaceMatchCallback {
 public:
 	RewriteClassMemberCalls(
@@ -205,3 +207,5 @@ Finder.addMatcher(
 		)
 	),
 	&RewriteClassMemberCallsCallback2);
+
+#endif

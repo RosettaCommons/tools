@@ -33,6 +33,7 @@
 
 // #define AST_TEST
 // #define DEBUG
+// #define DANGAROUS_REWRITES
 
 bool verbose = true;
 
@@ -74,13 +75,11 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	#include "matchers/typedef.hh"
 	#include "matchers/pointer_name.hh"
 	#include "matchers/cast_from_new.hh"
+	#include "matchers/cast_in_assignment.hh"
 	#include "matchers/ctor_initializer.hh"
 	#include "matchers/dynamic_cast.hh"
-	
-	// These are not safe; see comments in files
-	//#include "matchers/cast_in_assignment.hh"
-	//#include "matchers/member_calls.hh"
-	//#include "matchers/call_operator.hh"
+	#include "matchers/call_operator.hh"
+	#include "matchers/member_calls.hh"
 	
 	// Not needed; see comment in file
 	//#include "matchers/not_operator.hh"

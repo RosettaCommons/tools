@@ -71,18 +71,22 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	
 #ifndef AST_TEST
 	// Good  matchers
-	#include "matchers_typedef.hh"
-	#include "matchers_pointer_name.hh"
-	#include "matchers_cast_in_assignment.hh"
-	#include "matchers_cast_from_new.hh"
-	#include "matchers_member_calls.hh"
-	#include "matchers_call_operator.hh"
-	// #include "matchers_not_operator.hh" // UNTESTED
-	#include "matchers_ctor_initializer.hh"
-	#include "matchers_dynamic_cast.hh"
+	#include "matchers/typedef.hh"
+	#include "matchers/pointer_name.hh"
+	#include "matchers/cast_from_new.hh"
+	#include "matchers/ctor_initializer.hh"
+	#include "matchers/dynamic_cast.hh"
+	
+	// These are not safe; see comments in files
+	//#include "matchers/cast_in_assignment.hh"
+	//#include "matchers/member_calls.hh"
+	//#include "matchers/call_operator.hh"
+	
+	// Not needed; see comment in file
+	//#include "matchers/not_operator.hh"
+
 #else
-	// #include "matchers_op_to_void_ptr.hh"
-	#include "matchers_match_test.hh"
+	#include "matchers/match_test.hh"
 #endif
 
 	// Run tool and generate change log

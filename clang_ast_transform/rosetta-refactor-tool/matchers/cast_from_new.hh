@@ -1,11 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in "new" instantiation
+/*
+	Replace implicit casts in "new" instantiation:
+
+		ClassAOP new_aap() { return new ClassA; }
+		AtomCOP foo() { return this; }
+		foo(AtomCOP a); foo(0);
+
+	variables_[ varname ] = new VariableExpression( varname );
+*/
 
 class RewriteImplicitCastFromNew : public ReplaceMatchCallback {
 public:
 	RewriteImplicitCastFromNew(
-			tooling::Replacements *Replace,
-			const char *tag = "RewriteImplicitCastFromNew") :
+		tooling::Replacements *Replace,
+		const char *tag = "RewriteImplicitCastFromNew") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -103,7 +110,7 @@ public:
 */
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
-	"RewriteImplicitCastFromNew:constructExpr");
+	"CastFromNew:constructExpr");
 Finder.addMatcher(
 	newExpr(
 		anyOf(
@@ -140,7 +147,7 @@ Finder.addMatcher(
 */
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback2(Replacements,
-	"RewriteImplicitCastFromNew:operatorCallExpr");
+	"CastFromNew:operatorCallExpr");
 Finder.addMatcher(
 	newExpr(
 		hasParent(
@@ -173,8 +180,10 @@ AtomCOP foo() { return this; }
                   `-CXXThisExpr 0x43e7380 <col:10> 'const class core::kinematics::tree::BondedAtom *' this
 */
 
+// Let's not rewrite those automatically -- don't put this into an OP automatically
+/*
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback3(Replacements,
-	"RewriteImplicitCastFromNew:thisExpr");
+	"CastFromNew:thisExpr");
 Finder.addMatcher(
 	thisExpr(
 		hasParent(
@@ -186,9 +195,10 @@ Finder.addMatcher(
 		)
 	).bind("castFrom"),
 	&RewriteImplicitCastFromNewCallback3);
+*/
+
 
 /*
-
 AtomTree.cc:1152
 	root_ = src.root_->clone( 0, atom_pointer_ );
 first argument is an AtomAP
@@ -200,7 +210,7 @@ first argument is an AtomAP
 
 
 RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback4(Replacements,
-	"RewriteImplicitCastFromNew:IntegerLiteral");
+	"CastFromNew:integerLiteral");
 Finder.addMatcher(
 	constructExpr(
 		allOf(

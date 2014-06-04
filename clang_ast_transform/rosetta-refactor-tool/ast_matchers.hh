@@ -124,10 +124,10 @@ AST_MATCHER(Expr, containsUtilityPointer) {
 }
 
 AST_MATCHER(Type, sugaredNullptrType) {
-  const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
-  if (const BuiltinType *BT = dyn_cast<BuiltinType>(DesugaredType))
-    return BT->getKind() == BuiltinType::NullPtr;
-  return false;
+	const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
+	if (const BuiltinType *BT = dyn_cast<BuiltinType>(DesugaredType))
+		return BT->getKind() == BuiltinType::NullPtr;
+	return false;
 }
 
 } // end namespace ast_matchers

@@ -1,15 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace calls to operator! on owning_ptrs
-// !some_weak_op  ==>  some_weak_op.expired()
-// UNTESTED
-// This was designed to catch runtime_assert( ! some_cap ) but this will not work because
-// the runtime_assert() macro has a different FileID to it's not rewritten!
+/*
+	Replace calls to operator! on owning_ptrs
+
+		!some_weak_op ==> some_weak_op.expired()
+		runtime_assert( !some_weak_op );
+
+	This was designed to catch runtime_assert( ! some_cap ) but this will not work because
+	the runtime_assert() macro has a different FileID to it's not rewritten!
+*/
 
 class RewriteNotOperator : public ReplaceMatchCallback {
 public:
 	RewriteNotOperator(
-			tooling::Replacements *Replace,
-			const char *tag = "RewriteNotOperator") :
+		tooling::Replacements *Replace,
+		const char *tag = "RewriteNotOperator") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -37,12 +40,12 @@ public:
 /*
 UnaryOperator 0x2a7ad10 <line:64:7, col:20> '_Bool' prefix '!'
 `-ParenExpr 0x2a7acf0 <col:8, col:20> '_Bool'
-  `-CXXOperatorCallExpr 0x2a7acb0 </local/luki/main/source/src/core/chemical/ResidueTypeSet.hh:92:19, col:21> '_Bool'
-    |-ImplicitCastExpr 0x2a7ac98 <col:19> '_Bool (*)(void) const' <FunctionToPointerDecay>
-    | `-DeclRefExpr 0x2a7ac70 <col:19> '_Bool (void) const' lvalue CXXMethod 0x2923680 'operator!' '_Bool (void) const'
-    `-ImplicitCastExpr 0x2a7ac58 <col:21> 'const class utility::pointer::access_ptr<const class core::chemical::AtomTypeSet>' lvalue <NoOp>
-      `-MemberExpr 0x2a7abf0 <col:21> 'AtomTypeSetCAP':'class utility::pointer::access_ptr<const class core::chemical::AtomTypeSet>' lvalue ->atom_types_ 0x2923b40
-        `-CXXThisExpr 0x2a7abd8 <col:21> 'class core::chemical::ResidueTypeSet *' this
+	`-CXXOperatorCallExpr 0x2a7acb0 </local/luki/main/source/src/core/chemical/ResidueTypeSet.hh:92:19, col:21> '_Bool'
+		|-ImplicitCastExpr 0x2a7ac98 <col:19> '_Bool (*)(void) const' <FunctionToPointerDecay>
+		| `-DeclRefExpr 0x2a7ac70 <col:19> '_Bool (void) const' lvalue CXXMethod 0x2923680 'operator!' '_Bool (void) const'
+		`-ImplicitCastExpr 0x2a7ac58 <col:21> 'const class utility::pointer::access_ptr<const class core::chemical::AtomTypeSet>' lvalue <NoOp>
+			`-MemberExpr 0x2a7abf0 <col:21> 'AtomTypeSetCAP':'class utility::pointer::access_ptr<const class core::chemical::AtomTypeSet>' lvalue ->atom_types_ 0x2923b40
+				`-CXXThisExpr 0x2a7abd8 <col:21> 'class core::chemical::ResidueTypeSet *' this
 */
 
 RewriteNotOperator RewriteNotOperatorCallback1(Replacements,

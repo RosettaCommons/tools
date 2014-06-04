@@ -4,7 +4,7 @@ April 2014
 These notes pertain to the pointer rewrite from our owning_ptr/access_ptr
 to std::shared_ptr and std::weak_ptr.
 
-Minor changes to the origin code that help with rewrites are kept in
+Preparatory changes to the original code that help with rewrites are kept in
 the branch luki-mbi/ptr_rewrite_prep branch:
 https://github.com/RosettaCommons/main/tree/luki-mbi/ptr_rewrite_prep
 Those changes should patch easily to a newer revision of the master.

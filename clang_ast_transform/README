@@ -28,7 +28,7 @@ See README.BUILDING for a transcript of build commands.
 
 AST MATCHERS:
 
-The AST matchers live in separate .hh files in the rosetta-refactor-tool
+The AST matchers live in separate .hh files in the rosetta-refactor-tool/matchers
 directory. Include the matchers you want to use in RosettaRefactorTool.cpp
 in the marked section near line 70.
 

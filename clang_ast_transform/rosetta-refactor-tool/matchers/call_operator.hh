@@ -1,12 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace calls to operator() on owning_ptrs
-// This needs work.
+/*
+	Replace calls to operator() on owning_ptrs which return a named pointer to the object
+
+		SomeOP a;
+		foo( a() );
+		foo( *a() );
+
+	TODO:
+	Replace with a.get() on OPs and a.lock().get() instead? Do we want this?
+*/
 
 class RewriteCallOperator : public ReplaceMatchCallback {
 public:
 	RewriteCallOperator(
-			tooling::Replacements *Replace,
-			const char *tag = "RewriteCallOperator") :
+		tooling::Replacements *Replace,
+		const char *tag = "RewriteCallOperator") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

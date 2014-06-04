@@ -1,11 +1,21 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in class member calls
+/*
+	Replace implicit casts in class member calls:
+	This may not be safe to do!
+
+	std::vector<ClassAOP> as_vector_;
+		void set_a_vector1(ClassA *a) {
+			as_vector_.push_back(a);
+		}
+		void set_aref_vector1(ClassA & a) {
+			as_vector_.push_back(&a);
+		}
+*/
 
 class RewriteClassMemberCalls : public ReplaceMatchCallback {
 public:
 	RewriteClassMemberCalls(
-			tooling::Replacements *Replace, 
-			const char *tag = "RewriteClassMemberCalls") :
+		tooling::Replacements *Replace, 
+		const char *tag = "RewriteClassMemberCalls") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -117,7 +127,7 @@ public:
 
 RewriteClassMemberCalls RewriteClassMemberCallsCallback1(
 	Replacements,
-	"RewriteClassMemberCalls"
+	"ClassMemberCalls"
 );
 
 Finder.addMatcher(
@@ -165,7 +175,7 @@ Finder.addMatcher(
 
 RewriteClassMemberCalls RewriteClassMemberCallsCallback2(
 	Replacements,
-	"RewriteClassMemberCalls:unaryOperator"
+	"ClassMemberCalls:unaryOperator"
 );
 Finder.addMatcher(
 	memberCallExpr(

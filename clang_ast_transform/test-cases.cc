@@ -62,6 +62,24 @@ public:
 	void add_ref() {}
 	void remove_ref() {}
 	void show() {}
+
+	///////////////////////////////////////////////////////////////////////
+	// Decl
+
+	void bar() {
+		utility::vector1< utility::pointer::owning_ptr<class ClassA> > ops_;
+		utility::vector1< utility::pointer::access_ptr<class ClassA> > aps_;
+	}
+
+	void bar(utility::vector1< utility::pointer::owning_ptr<class ClassA> > & ops_ ) {
+		ops_.clear();
+	}
+
+	utility::vector1< utility::pointer::owning_ptr<class ClassA> > zzz() {
+		// this comment owning_ptr should not get rewritten
+		utility::vector1< utility::pointer::owning_ptr<class ClassA> > r;
+		return r;
+	}	
 	
 	///////////////////////////////////////////////////////////////////////
 	// shared ptr assignment
@@ -178,8 +196,26 @@ public:
 
 };
 
+///////////////////////////////////////////////////////////////////////
+// Functions
+
 void foo() {
 	ClassAAP a(new ClassA); // should not match
 	ClassAAP b = new ClassA;
 	void *p = a(); // for op_void_ptr match tester
+}
+
+void bar() {
+	utility::vector1< utility::pointer::owning_ptr<class ClassA> > ops_;
+	utility::vector1< utility::pointer::access_ptr<class ClassA> > aps_;
+}
+
+void bar(utility::vector1< utility::pointer::owning_ptr<class ClassA> > & ops_ ) {
+	ops_.clear();
+}
+
+utility::vector1< utility::pointer::owning_ptr<class ClassA> > zzz() {
+	// this comment owning_ptr should not get rewritten
+	utility::vector1< utility::pointer::owning_ptr<class ClassA> > r;
+	return r;
 }

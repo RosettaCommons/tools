@@ -1,11 +1,12 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Testing matcher -- just reports matching location and code snippet
+/*
+	Testing matcher -- just reports matching location and code snippet
+*/
 
 class MatchTester : public ReplaceMatchCallback {
 public:
 	MatchTester(
-			tooling::Replacements *Replace,
-			const char *tag = "MatchTester") :
+		tooling::Replacements *Replace,
+		const char *tag = "MatchTester") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

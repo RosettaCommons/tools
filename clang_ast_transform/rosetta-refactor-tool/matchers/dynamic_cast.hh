@@ -1,15 +1,17 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace dynamic casts with smart pointers, i.e.
-// From:
-//	WrappedRealOP val = dynamic_cast< WrappedReal * > ( data()() );
-// To:
-//	WrappedRealOP val = std::dynamic_pointer_cast< WrappedReal > ( data() );
+/*
+	Replace dynamic casts with smart pointers, i.e.
 
-class RewriteDynCast : public ReplaceMatchCallback {
+	From:
+		WrappedRealOP val = dynamic_cast< WrappedReal * > ( data()() );
+	To:
+		WrappedRealOP val = std::dynamic_pointer_cast< WrappedReal > ( data() );
+*/
+
+class RewriteDynamicCast : public ReplaceMatchCallback {
 public:
-	RewriteDynCast(
-			tooling::Replacements *Replace,
-			const char *tag = "RewriteDynCast") :
+	RewriteDynamicCast(
+		tooling::Replacements *Replace,
+		const char *tag = "RewriteDynamicCast") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -63,7 +65,7 @@ CXXDynamicCastExpr 0x54731c0 <col:33, col:82> 'const class numeric::expression_p
 
 */
 
-RewriteDynCast RewriteDynCastCallback1(Replacements);
+RewriteDynamicCast RewriteDynamicCastCallback1(Replacements);
 Finder.addMatcher(
 	dynamicCastExpr(
 		has(
@@ -89,4 +91,4 @@ Finder.addMatcher(
 			).bind("operatorexpr")
 		)
 	).bind("dyncastexpr"),
-	&RewriteDynCastCallback1);
+	&RewriteDynamicCastCallback1);

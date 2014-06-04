@@ -1,3 +1,18 @@
+/*
+	Replace 0 and NULL in constructor initializers:
+
+	class ClassA {
+		ClassA() : op1_( 0 ), ap1_( 0 ), op2_( NULL ), ap_( NULL ) { }
+		ClassAOP op1_, op2_;
+		ClassAAP ap1_, ap2_;
+	}
+
+	Note:
+	std::weak_ptr and std::shard_ptr default c'tor initializes the object to null.
+	While std::shard_ptr can be initialized with 0 or NULL as written,
+	this will not work for std::weak_ptr because it can only by initialized with a shared_ptr.
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Replace 0 in constructor initializers  
 
@@ -5,8 +20,8 @@ class RewriteCtorInitializer : public ReplaceMatchCallback {
 	
 public:
 	RewriteCtorInitializer(
-			tooling::Replacements *Replace,
-			const char *tag ="RewriteCtorInitializer") :
+		tooling::Replacements *Replace,
+		const char *tag ="RewriteCtorInitializer") :
 		ReplaceMatchCallback(Replace, tag) {}
 	
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

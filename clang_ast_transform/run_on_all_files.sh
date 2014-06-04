@@ -1,5 +1,5 @@
 ME=$PWD
-ROOT=/data/rosetta
+ROOT=/local/luki
 SRC=$ROOT/main/source/src
 
 cd $SRC

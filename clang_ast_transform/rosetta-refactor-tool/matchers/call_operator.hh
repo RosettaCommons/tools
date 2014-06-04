@@ -13,7 +13,7 @@ class RewriteCallOperator : public ReplaceMatchCallback {
 public:
 	RewriteCallOperator(
 		tooling::Replacements *Replace,
-		const char *tag = "RewriteCallOperator") :
+		const char *tag = "CallOperator") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -77,7 +77,7 @@ CXXConstructExpr 0x7fcd48e19a58 <col:10, col:27> 'AtomCOP':'class utility::point
 */
 
 RewriteCallOperator RewriteCallOperatorCallback1(Replacements,
-	"RewriteCallOperator:constructExpr");
+	"CallOperator:constructExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -144,7 +144,7 @@ BinaryOperator 0x1ee6ec0 <col:12, /data/rosetta/clang/build/bin/../lib/clang/3.5
 */
 
 RewriteCallOperator RewriteCallOperatorCallback2(Replacements,
-	"RewriteCallOperator:misc");
+	"CallOperator:misc");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(

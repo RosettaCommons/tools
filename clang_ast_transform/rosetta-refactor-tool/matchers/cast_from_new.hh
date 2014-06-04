@@ -8,11 +8,11 @@
 	variables_[ varname ] = new VariableExpression( varname );
 */
 
-class RewriteImplicitCastFromNew : public ReplaceMatchCallback {
+class RewriteCastFromNew : public ReplaceMatchCallback {
 public:
-	RewriteImplicitCastFromNew(
+	RewriteCastFromNew(
 		tooling::Replacements *Replace,
-		const char *tag = "RewriteImplicitCastFromNew") :
+		const char *tag = "CastFromNew") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -109,7 +109,7 @@ public:
 
 */
 
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback1(Replacements,
+RewriteCastFromNew RewriteCastFromNewCallback1(Replacements,
 	"CastFromNew:constructExpr");
 Finder.addMatcher(
 	newExpr(
@@ -126,7 +126,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteImplicitCastFromNewCallback1);
+	&RewriteCastFromNewCallback1);
 
 
 /*
@@ -146,7 +146,7 @@ Finder.addMatcher(
       `-DeclRefExpr 0x47d5648 <col:50> 'const std::string':'const class std::basic_string<char>' lvalue ParmVar 0x47c0d80 'varname' 'const std::string &'
 */
 
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback2(Replacements,
+RewriteCastFromNew RewriteCastFromNewCallback2(Replacements,
 	"CastFromNew:operatorCallExpr");
 Finder.addMatcher(
 	newExpr(
@@ -163,7 +163,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteImplicitCastFromNewCallback2);
+	&RewriteCastFromNewCallback2);
 
 /*
 AtomCOP foo() { return this; }
@@ -182,7 +182,7 @@ AtomCOP foo() { return this; }
 
 // Let's not rewrite those automatically -- don't put this into an OP automatically
 /*
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback3(Replacements,
+RewriteCastFromNew RewriteCastFromNewCallback3(Replacements,
 	"CastFromNew:thisExpr");
 Finder.addMatcher(
 	thisExpr(
@@ -194,7 +194,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteImplicitCastFromNewCallback3);
+	&RewriteCastFromNewCallback3);
 */
 
 
@@ -209,7 +209,7 @@ first argument is an AtomAP
 */
 
 
-RewriteImplicitCastFromNew RewriteImplicitCastFromNewCallback4(Replacements,
+RewriteCastFromNew RewriteCastFromNewCallback4(Replacements,
 	"CastFromNew:integerLiteral");
 Finder.addMatcher(
 	constructExpr(
@@ -219,5 +219,5 @@ Finder.addMatcher(
 				integerLiteral().bind("castFrom")
 			)
 		)
-	).bind("castTo"), &RewriteImplicitCastFromNewCallback4);
+	).bind("castTo"), &RewriteCastFromNewCallback4);
 

@@ -15,7 +15,7 @@ class RewriteClassMemberCalls : public ReplaceMatchCallback {
 public:
 	RewriteClassMemberCalls(
 		tooling::Replacements *Replace, 
-		const char *tag = "RewriteClassMemberCalls") :
+		const char *tag = "ClassMemberCalls") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

@@ -33,7 +33,7 @@ class RewriteAssignmentsOper : public ReplaceMatchCallback {
 public:
 	RewriteAssignmentsOper(
 		tooling::Replacements *Replace, 
-		const char *tag = "RewriteAssignmentsOper") :
+		const char *tag = "AssignmentsOper") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -179,7 +179,7 @@ public:
 /*
 RewriteAssignmentsOper RewriteAssignmentsOperCallback1(
 	Replacements,
-	"RewriteAssignmentsOper:newExpr"
+	"AssignmentsOper:newExpr"
 );
 Finder.addMatcher(
 	operatorCallExpr(
@@ -272,7 +272,7 @@ Finder.addMatcher(
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback2(
 	Replacements,
-	"RewriteAssignmentsOper"
+	"AssignmentsOper"
 );
 Finder.addMatcher(
 	operatorCallExpr(
@@ -348,7 +348,7 @@ Finder.addMatcher(
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
 	Replacements,
-	"RewriteAssignmentsOper:unaryOperator"
+	"AssignmentsOper:unaryOperator"
 );
 Finder.addMatcher(
 	operatorCallExpr(
@@ -396,7 +396,7 @@ Finder.addMatcher(
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
 	Replacements,
-	"RewriteAssignmentsOper:newExpr"
+	"AssignmentsOper:newExpr"
 );
 Finder.addMatcher(
 	operatorCallExpr(
@@ -457,7 +457,7 @@ class X {
 */
 
 RewriteAssignmentsOper RewriteAssignmentsOperCallback4(Replacements,
-	"RewriteAssignmentsOper:nullPtrLiteral/integerLiteral");
+	"AssignmentsOper:nullPtrLiteral/integerLiteral");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(

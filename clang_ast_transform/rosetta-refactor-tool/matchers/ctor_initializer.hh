@@ -21,7 +21,7 @@ class RewriteCtorInitializer : public ReplaceMatchCallback {
 public:
 	RewriteCtorInitializer(
 		tooling::Replacements *Replace,
-		const char *tag ="RewriteCtorInitializer") :
+		const char *tag ="CtorInitializer") :
 		ReplaceMatchCallback(Replace, tag) {}
 	
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

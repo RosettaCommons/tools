@@ -11,7 +11,7 @@ class RewriteDynamicCast : public ReplaceMatchCallback {
 public:
 	RewriteDynamicCast(
 		tooling::Replacements *Replace,
-		const char *tag = "RewriteDynamicCast") :
+		const char *tag = "DynamicCast") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

@@ -33,7 +33,7 @@ class RewriteDecl : public ReplaceMatchCallback {
 public:
 	RewriteDecl(
 		tooling::Replacements *Replace,
-		const char *tag ="RewriteDecl",
+		const char *tag ="Decl",
 		const char *delim ="") :
 		ReplaceMatchCallback(Replace, tag),
 		delim(delim) {}

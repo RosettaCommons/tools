@@ -7,7 +7,7 @@ class RewritePointerName : public ReplaceMatchCallback {
 public:
 	RewritePointerName(
 		tooling::Replacements *Replace,
-		const char *tag ="RewritePointerName") :
+		const char *tag ="PointerName") :
 		ReplaceMatchCallback(Replace, tag) {}
 	
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {

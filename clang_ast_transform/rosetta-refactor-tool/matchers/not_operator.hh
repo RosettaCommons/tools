@@ -12,7 +12,7 @@ class RewriteNotOperator : public ReplaceMatchCallback {
 public:
 	RewriteNotOperator(
 		tooling::Replacements *Replace,
-		const char *tag = "RewriteNotOperator") :
+		const char *tag = "NotOperator") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -49,7 +49,7 @@ UnaryOperator 0x2a7ad10 <line:64:7, col:20> '_Bool' prefix '!'
 */
 
 RewriteNotOperator RewriteNotOperatorCallback1(Replacements,
-	"RewriteNotOperator:UnaryOperator");
+	"NotOperator:UnaryOperator");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(

@@ -31,7 +31,12 @@
 #include <sstream>
 #include <sys/stat.h>
 
+/// MODE:
 // #define AST_TEST
+// #define AST_FINDER
+#define AST_REWRITE
+
+/// FLAGS:
 // #define DEBUG
 // #define DANGAROUS_REWRITES
 
@@ -70,7 +75,15 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	// Include matchers to apply here
 	/////////////////////////////////
 	
-#ifndef AST_TEST
+#ifdef AST_TEST
+	#include "match_test.hh"
+#endif
+
+#ifdef AST_FINDER
+	#include "matchers/find_naked_ptr_op_casts.hh"
+#endif
+
+#ifdef AST_REWRITE
 	// Good  matchers
 	#include "matchers/typedef.hh"
 	#include "matchers/pointer_name.hh"
@@ -83,9 +96,6 @@ int runMatchers(clang::tooling::RefactoringTool & Tool) {
 	
 	// Not needed; see comment in file
 	//#include "matchers/not_operator.hh"
-
-#else
-	#include "matchers/match_test.hh"
 #endif
 
 	// Run tool and generate change log

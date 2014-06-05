@@ -112,6 +112,12 @@ bool checkIsUtilityAccessPointer(const std::string& fulltype) {
 	return type == "utility::pointer::access_ptr";
 }
 
+// Is it our utility owning pointer that we care about?
+bool checkIsUtilityOwningPointer(const std::string& fulltype) {
+	std::string type = extractContainerType(fulltype);
+	return type == "utility::pointer::owning_ptr";
+}
+
 // Does it contain a pointer that we care about?
 bool checkContainsUtilityPointer(const std::string& fulltype) {
 

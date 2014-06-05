@@ -1,5 +1,5 @@
 Luki Goldschmidt <lugo@uw.edu>
-March 2014
+April 2014
 
 This is a clang tool to refactor the Rosetta codebase. It uses the clang AST
 matchers to find nodes in the AST and rewrites them. Tested with clang 3.5
@@ -9,26 +9,40 @@ matchers to find nodes in the AST and rewrites them. Tested with clang 3.5
 
 SETUP:
 
-Get the llvm and clang sources per the instructions on their website.
-Copy rosetta-refactor-tool to the extra tools directory, like:
+Get the llvm and clang sources per the instructions on their website:
+http://clang.llvm.org/get_started.html
 
-	$LLVM_SRC/tools/clang/tools/extra/rosetta-refactor-tool/
-	
-Add rosetta-refactor-tool to the $LLVM_SRC/tools/clang/tools/extra/CMakeList.txt
-file:
+Add the rosetta-refactor-tool to the build:
 
+1) Adding to $LLVM_SRC/tools/clang/tools/extra/CMakeList.txt:
 	add_subdirectory(rosetta-refactor-tool)
 	
+2) Create a sym link LLVM_SRC/tools/clang/tools/extra/rosetta-refactor-tool
+to the subdirectory rosetta-refactor-tool in here.
+
 Build with whatever means (make, cmake, ninja). You should end up
 with a binary: build/bin/rosetta-refactor-tool
+
+See README.BUILDING for a transcript of build commands.
+
+
+AST MATCHERS:
+
+The AST matchers live in separate .hh files in the rosetta-refactor-tool/matchers
+directory. Include the matchers you want to use in RosettaRefactorTool.cpp
+in the marked section near line 70.
+
+For each matcher, there is a callback class and method that will handle the
+rewrite, and a set of matchers (see
+http://clang.llvm.org/docs/LibASTMatchersReference.html)
 
 
 RUNNING:
 
-./rewrite_all.sh path/to/rosetta/source/file.cc
+./rewrite_file.sh path/to/rosetta/source/file.cc
 
 like:
-./rewrite_all.sh src/numeric/expression_parser/Arithmetic.cc
+./rewrite_file.sh src/numeric/expression_parser/Arithmetic.cc
 
 See verbose and readonly flags in the RosettaRefactorTool.cpp file.
 
@@ -37,7 +51,7 @@ Running on all files:
 ME=$PWD
 ROOT=/data/rosetta
 SRC=$ROOT/main/source/src
-
 export PYTHONPATH=$ROOT/tools/python_cc_reader
-python /data/rosetta/refactor-tools/run_on_all_headers_w_fork.py -e $ME/rewrite_all.sh -n 8
-python /data/rosetta/refactor-tools/run_on_all_ccfiles_w_fork.py -e $ME/rewrite_all.sh -n 8
+
+cd $SRC
+python $ME/run_on_all_files_w_fork.py -e $ME/rewrite_file.sh -n 8

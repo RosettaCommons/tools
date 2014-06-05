@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CLANG_BIN=/data/rosetta/clang/build/bin
-SOURCE=/data/rosetta/main/source
+CLANG_BIN=/local/luki/clang/build/bin
+SOURCE=/local/luki/main/source
 
 cd $SOURCE
 

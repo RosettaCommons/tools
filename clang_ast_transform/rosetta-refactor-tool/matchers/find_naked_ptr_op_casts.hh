@@ -75,11 +75,20 @@ public:
 
 		const std::string castToTypeDcontainer = extractContainerType(castToTypeD);
 		if(
-			(castToTypeDcontainer == "std::map" || castToTypeDcontainer == "std::set")
-			&&
-			castFromTypeD == extractContainedType(castToTypeD)
-		)
+			castToTypeDcontainer == "std::map" ||
+			castToTypeDcontainer == "std::set" ||
+			castToTypeDcontainer == "std::list" ||
+			castToTypeDcontainer == "utility::vector1" ||
+			castToTypeDcontainer == "utility::vector0"
+		) {
+			std::string castToTypeDcontainedType = extractContainedType(castToTypeD);
+			if(castFromTypeD == castToTypeDcontainedType)
 				return;
+			// Cast to COP is OK
+			replace(castToTypeDcontainedType, "const ", "");
+			if(castFromTypeD == castToTypeDcontainedType)
+				return;
+		}
 
 		// Both are owning pointers, so we assume they are compatible and do nothing
 		if(checkIsUtilityOwningPointer(castFromTypeD) && checkIsUtilityOwningPointer(castToTypeD))
@@ -100,7 +109,7 @@ public:
 
 		llvm::outs() << "castFrom: \033[34m" << castFromType << "\033[0m\n";
 		if(castFromType != castFromTypeD)
-		llvm::outs() << "          \033[34m" << castToTypeD << "\033[0m\n";
+		llvm::outs() << "          \033[34m" << castFromTypeD << "\033[0m\n";
 
 		llvm::outs() << "castTo:   \033[35m" << castToType << "\033[0m\n";
 		if(castToType != castToTypeD)

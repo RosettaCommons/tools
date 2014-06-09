@@ -10,7 +10,7 @@ from Bio import AlignIO
 import rosettautil.rosetta.rosettaScore_beta as rsb
 from Bio.PDB import PDBExceptions
 from rosettautil.protein import util, pdbStat
-from rosettautil import resfile
+from rosettautil.rosetta import resfile
 import glob
 
 

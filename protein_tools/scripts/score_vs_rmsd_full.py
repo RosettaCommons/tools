@@ -7,7 +7,7 @@ from multiprocessing import Pool
 import argparse
 import os
 from Bio import AlignIO
-import rosettautil.rosettaScore_beta as rsb
+import rosettautil.rosetta.rosettaScore_beta as rsb
 from Bio.PDB import PDBExceptions
 from rosettautil.protein import util, pdbStat
 from rosettautil import resfile

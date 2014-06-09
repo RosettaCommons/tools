@@ -7,13 +7,14 @@ from multiprocessing import Pool
 import argparse
 import os
 from Bio import AlignIO
-import rosettaScore_beta as rsb
+import rosettautil.rosettaScore_beta as rsb
 from Bio.PDB import PDBExceptions
 from rosettautil.protein import util, pdbStat
 from rosettautil import resfile
 import glob
 
-clustalw_exe = r"/sb/apps/clustalw/Linux2/i686/v1.83/clustalw"
+
+#clustalw_exe = r"/sb/apps/clustalw/Linux2/i686/v1.83/clustalw"
 
 warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
 

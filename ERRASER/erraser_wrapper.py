@@ -839,15 +839,15 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
     sampling_cmd += " -sampler_extra_chi_rotamer true "
-    sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
+    sampling_cmd += " -cluster::radius %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "
     sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
-    sampling_cmd += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
     sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()
-    sampling_cmd += " -sampler_native_screen_rmsd_cutoff %s " % option.native_screen_RMSD
+    if native_screen:
+        sampling_cmd += " -rmsd_screen %s " % option.native_screen_RMSD
     sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
     sampling_cmd += " -PBP_clustering_at_chain_closure true "
     sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
@@ -937,7 +937,7 @@ def SWA_rebuild_erraser( option ) :
         cluster_args += " -rmsd_res %d " % rebuild_res_final
         cluster_args += " -add_lead_zero_to_tag true "
         cluster_args += " -add_virt_root true "
-        cluster_args += " -in:file:silent_struct_type  binary_rna"
+        cluster_args += " -in:file:silent_struct_type rna"
         cluster_args += " -in:file:silent %s/blah.out " % sampling_folder
         cluster_args += " -PBP_clustering_at_chain_closure true "
         cluster_args += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "

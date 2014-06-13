@@ -378,7 +378,7 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
 
     command += " -tags " + tags_string
     command += " -in:file:silent " + silent_file_abs
-    command += " -in:file:silent_struct_type  binary_rna"
+    command += " -in:file:silent_struct_type rna"
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
     command += " -output_virtual " + str(output_virtual).lower()

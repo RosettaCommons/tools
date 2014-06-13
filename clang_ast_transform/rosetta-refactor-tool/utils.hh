@@ -3,6 +3,24 @@
 
 namespace {
 
+std::string color(const char *_color) {
+
+	if(!Colors)
+		return "";
+
+	std::string color(_color);
+	if(color == "")       return "\033[30m";
+	if(color == "black")  return "\033[30m";
+	if(color == "red")    return "\033[31m";
+	if(color == "green")  return "\033[32m";
+	if(color == "brown")  return "\033[33m";
+	if(color == "blue")   return "\033[34m";
+	if(color == "purple") return "\033[35m";
+	if(color == "cyan")   return "\033[36m";
+	if(color == "gray")   return "\033[37m";
+	return "";
+}
+
 void replace(std::string& str, const std::string& from, const std::string& to) {
 	size_t start_pos = 0;
 	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -220,16 +238,17 @@ bool checkAndDumpRewrite(
 	if(notYetSeen)
 		RewrittenLocations_.insert(locStrPartial);
 	
-	if(!verbose)
+	if(!Verbose)
 		return notYetSeen;
 
 	const std::string origCodeStr = getText(sm, node);
 		
-	llvm::errs() 
-		<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m" 
-		<< (!notYetSeen ? " \033[31m[skipped]\033[0m" : "") <<	"\n" 
-		<< "- \033[31m" << origCodeStr << "\033[0m\n"
-		<< "+ \033[32m" << newCodeStr << "\033[0m\n"
+	llvm::errs() << "@ " << locStr << color("cyan") << " (" << tag << ")" << color("");
+	if(!notYetSeen)
+		llvm::errs()  << " " << color("red") << "[skipped]" << color("");
+	llvm::errs() <<	"\n" 
+		<< "- " << color("red") << origCodeStr << color("") << "\n"
+		<< "+ " << color("green") << newCodeStr << color("") << "\n"
 		<< "\n";
 		
 	return notYetSeen;

@@ -11,7 +11,7 @@
 		}
 */
 
-#ifdef DANGAROUS_REWRITES
+if(DangarousRewrites) {
 
 class RewriteClassMemberCalls : public ReplaceMatchCallback {
 public:
@@ -54,22 +54,23 @@ public:
 		);
 		
 		const std::string origCode = getText(sm, expr);
-		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 			
-#ifdef DEBUG
-		llvm::errs() << locStr << "\n";
-		llvm::errs() << "\033[31m" << origCode << "\033[0m\n";
+		if(Debug) {
+			const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 
-		llvm::errs() << "\033[32mcastFrom: " << castFromType << "\033[0m";
-		if(castFromType != castFromTypeD)
-			llvm::errs() << " : \033[32m" << castFromTypeD << "\033[0m";
-		llvm::errs() << "\n";
+			llvm::errs() << locStr << "\n";
+			llvm::errs() << color("red") << origCode << color("") << "\n";
 
-		llvm::errs() << "\033[33mcastTo:   " << castToType << "\033[0m";
-		if(castToType != castToTypeD)
-			llvm::errs() << " : \033[33m" << castToTypeD << "\033[0m";
-		llvm::errs() << "\n\n";
-#endif
+			llvm::errs() << "castFrom: " << color("purple") << castFromType << color("");
+			if(castFromType != castFromTypeD)
+				llvm::errs() << "          " << color("purple") << castFromTypeD << color("");
+			llvm::errs() << "\n";
+
+			llvm::errs() << "castTo:   " << color("brown") << castToType << color("");
+			if(castToType != castToTypeD)
+				llvm::errs() << "          " << color("brown") << castToTypeD << color("");
+			llvm::errs() << "\n\n";
+		}
 
 		// Get original code
 		if(origCode.empty())
@@ -127,10 +128,6 @@ public:
   |           `-DeclRefExpr 0x2ef0710 <col:24> 'class ClassA *' lvalue ParmVar 0x2ee9c70 'a' 'class ClassA *'
 */
 
-RewriteClassMemberCalls RewriteClassMemberCallsCallback1(
-	Replacements,
-	"ClassMemberCalls"
-);
 
 Finder.addMatcher(
 	memberCallExpr(
@@ -155,7 +152,7 @@ Finder.addMatcher(
 			)
 		)
 	),
-	&RewriteClassMemberCallsCallback1);
+	new RewriteClassMemberCalls(Replacements, "ClassMemberCalls"));
 
 
 /*
@@ -175,10 +172,6 @@ Finder.addMatcher(
   |           `-DeclRefExpr 0x3e21fb8 <col:25> 'class ClassA' lvalue ParmVar 0x3e071a0 'a' 'class ClassA &'
 */
 
-RewriteClassMemberCalls RewriteClassMemberCallsCallback2(
-	Replacements,
-	"ClassMemberCalls:unaryOperator"
-);
 Finder.addMatcher(
 	memberCallExpr(
 		allOf(
@@ -206,6 +199,6 @@ Finder.addMatcher(
 			)
 		)
 	),
-	&RewriteClassMemberCallsCallback2);
+	new RewriteClassMemberCalls(Replacements, "ClassMemberCalls:unaryOperator"));
 
-#endif
+}

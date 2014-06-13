@@ -48,22 +48,23 @@ public:
 		);
 
 		const std::string origCode = getText(sm, expr);
-		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 
-#ifdef DEBUG
-		llvm::errs() << locStr << "\n";
-		llvm::errs() << "\033[31m" << origCode << "\033[0m\n";
+		if(Debug) {
+			const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 
-		llvm::errs() << "\033[32mcastFrom: " << castFromType << "\033[0m";
-		if(castFromType != castFromTypeD)
-			llvm::errs() << "          \033[32m" << castFromTypeD << "\033[0m";
-		llvm::errs() << "\n";
+			llvm::errs() << locStr << "\n";
+			llvm::errs() << color("red") << origCode << color("") << "\n";
 
-		llvm::errs() << "\033[33mcastTo:	 " << castToType << "\033[0m";
-		if(castToType != castToTypeD)
-			llvm::errs() << "          \033[33m" << castToTypeD << "\033[0m";
-		llvm::errs() << "\n\n";
-#endif
+			llvm::errs() << "castFrom: " << color("purple") << castFromType << color("") << "\n";
+			if(castFromType != castFromTypeD && !castFromTypeD.empty())
+				llvm::errs() << "          " << color("purple") << castFromTypeD << color("");
+			llvm::errs() << "\n";
+
+			llvm::errs() << "castTo:   " << color("brown") << castToType << color("") << "\n";
+			if(castToType != castToTypeD && !castToTypeD.empty())
+				llvm::errs() << "          " << color("brown") << castToTypeD << color("");
+			llvm::errs() << "\n\n";
+		}
 
 		// Get original code
 		if(origCode.empty())
@@ -103,22 +104,22 @@ public:
 		if(checkIsUtilityOwningPointer(castFromTypeD) && checkIsUtilityAccessPointer(castToTypeD))
 			return;
 
+		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
+
 		llvm::outs()
-			<< "@ " << locStr << /* " \033[36m(" << tag << ")\033[0m" << */ "\n"
-			<< "\033[31m" << origCode << "\033[0m\n";
+			<< "@ " << locStr << /* color("cyan") << " (" << tag << ")" << color("") << */ "\n"
+			<< color("red") << origCode << color("") << "\n";
 
-		llvm::outs() << "castFrom: \033[34m" << castFromType << "\033[0m\n";
+		llvm::outs() << "castFrom: " << color("purple") << castFromType << color("") << "\n";
 		if(castFromType != castFromTypeD)
-		llvm::outs() << "          \033[34m" << castFromTypeD << "\033[0m\n";
+		llvm::outs() << "          " << color("purple") << castFromTypeD << color("") << "\n";
 
-		llvm::outs() << "castTo:   \033[35m" << castToType << "\033[0m\n";
+		llvm::outs() << "castTo:   " << color("blue") << castToType << color("") << "\n";
 		if(castToType != castToTypeD)
-		llvm::outs() << "          \033[35m" << castToTypeD << "\033[0m\n";
+		llvm::outs() << "          " << color("blue") << castToTypeD << color("") << "\n";
 		llvm::outs() << "\n";
 	}
 };
-
-CastFinder CastFinderCallback(Replacements);
 
 
 /*
@@ -211,7 +212,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&CastFinderCallback);
+	new CastFinder(Replacements));
 
 /*
 	ClassAOP a_;
@@ -275,4 +276,4 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&CastFinderCallback);
+	new CastFinder(Replacements));

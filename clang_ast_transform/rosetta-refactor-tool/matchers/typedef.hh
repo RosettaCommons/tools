@@ -69,37 +69,31 @@ private:
 
 
 // Typedefs for access_ptr and owning_ptr
-RewriteDecl RewriteDeclCallback1(Replacements, "Decl:isTypedefDecl");
 Finder.addMatcher(
 	decl( isTypedefDecl() ).bind("decl"),
-	&RewriteDeclCallback1);
+	new RewriteDecl(Replacements, "Decl:isTypedefDecl"));
 
 // Parameter declaration in methods
-RewriteDecl RewriteDeclCallback2(Replacements, "Decl:paramVarDecl");
 Finder.addMatcher(
 	parmVarDecl().bind("decl"),
-	&RewriteDeclCallback2);
+	new RewriteDecl(Replacements, "Decl:paramVarDecl"));
 
 // Field (variable) declaration in classes
-RewriteDecl RewriteDeclCallback3(Replacements, "Decl:fieldDecl");
 Finder.addMatcher(
 	fieldDecl().bind("decl"),
-	&RewriteDeclCallback3);
+	new RewriteDecl(Replacements, "Decl:fieldDecl"));
 
 // Method return type declaration
-RewriteDecl RewriteDeclCallback4(Replacements, "Decl:methodDecl", "{");
 Finder.addMatcher(
 	methodDecl().bind("decl"),
-	&RewriteDeclCallback4);
+	new RewriteDecl(Replacements, "Decl:methodDecl", "{"));
 
 // Function return type declaration
-RewriteDecl RewriteDeclCallback5(Replacements, "Decl:functionDecl", "{");
 Finder.addMatcher(
 	functionDecl().bind("decl"),
-	&RewriteDeclCallback5);
+	new RewriteDecl(Replacements, "Decl:functionDecl", "{"));
 
 // Local method varialble declaration
-RewriteDecl RewriteDeclCallback6(Replacements, "Decl:varDecl");
 Finder.addMatcher(
 	varDecl().bind("decl"),
-	&RewriteDeclCallback6);
+	new RewriteDecl(Replacements, "Decl:varDecl"));

@@ -29,8 +29,7 @@ public:
 
 
 // CXXUnresolvedConstructExpr in templates
-RewritePointerName RewritePointerNameCallback(Replacements);
 Finder.addMatcher(
 	unresolvedConstructExpr( isUtilityPointer() ).bind("stmt"),
-	&RewritePointerNameCallback);
+	new RewritePointerName(Replacements));
 

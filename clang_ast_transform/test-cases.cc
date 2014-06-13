@@ -32,7 +32,7 @@ public:
 	void owning_ptr_acquire(ClassA *){}
 	void add_ref() {}
 	void remove_ref() {}
-	void show() {}
+	void show() const {}
 	void *operator()() { return this; }
 };
 
@@ -161,12 +161,28 @@ public:
 		as_list_.push_back(a);
 	}
 
+	// Reference passing
 	void set_aref_vector1(ClassA & a) {
 		as_[0] = &a;
 		as_map_["some"] = &a;
 		as_vector_.push_back(&a);
 		as_set_.insert(&a);
 		as_list_.push_back(&a);
+	}
+	
+	void taking_aref(ClassA const & a) {
+		a.show();
+	}
+
+	void taking_aop(ClassAOP a) {
+		a->show();
+	}
+	
+	void calling_taking_op() {
+		ClassAOP a( new ClassA );
+		ClassA & aref = *a;
+		taking_aref(aref);
+		taking_aop(a);
 	}
 	
 	///////////////////////////////////////////////////////////////////////

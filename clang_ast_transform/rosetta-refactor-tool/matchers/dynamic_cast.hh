@@ -65,7 +65,6 @@ CXXDynamicCastExpr 0x54731c0 <col:33, col:82> 'const class numeric::expression_p
 
 */
 
-RewriteDynamicCast RewriteDynamicCastCallback1(Replacements);
 Finder.addMatcher(
 	dynamicCastExpr(
 		has(
@@ -91,4 +90,4 @@ Finder.addMatcher(
 			).bind("operatorexpr")
 		)
 	).bind("dyncastexpr"),
-	&RewriteDynamicCastCallback1);
+	new RewriteDynamicCast(Replacements));

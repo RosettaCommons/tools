@@ -25,7 +25,7 @@ protected:
 			return;
 		Replace->insert(Replacement(sm, node, newCode));
 	}
-	
+
 	template <typename T>
 	bool rewriteThisFile(T * node, SourceManager & sm) {
 		if(!node)
@@ -35,9 +35,10 @@ protected:
 			// llvm::errs() << tag << " skipping file: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
 			return false;
 		}
-#ifdef DEBUG			
-		llvm::errs() << tag << " matched: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
-#endif
+
+		if(Debug)
+			llvm::errs() << color("blue") << tag << " matched: " << node->getSourceRange().getBegin().printToString(sm) << color("") << "\n";
+
 		return true;
 	}
 

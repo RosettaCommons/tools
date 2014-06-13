@@ -71,22 +71,23 @@ public:
 		);
 
 		const std::string origCode = getText(sm, expr);
-		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
-			
-#ifdef DEBUG
-		llvm::errs() << locStr << "\n";
-		llvm::errs() << "\033[31m" << origCode << "\033[0m\n";
 
-		llvm::errs() << "\033[32mcastFrom: " << castFromType << "\033[0m";
-		if(castFromType != castFromTypeD)
-			llvm::errs() << " : \033[32m" << castFromTypeD << "\033[0m";
-		llvm::errs() << "\n";
+		if(Debug) {
+			const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 
-		llvm::errs() << "\033[33mcastTo:	 " << castToType << "\033[0m";
-		if(castToType != castToTypeD)
-			llvm::errs() << " : \033[33m" << castToTypeD << "\033[0m";
-		llvm::errs() << "\n\n";
-#endif
+			llvm::errs() << locStr << "\n";
+			llvm::errs() << color("red") << origCode << color("") << "\n";
+
+			llvm::errs() << "castFrom: " << color("purple") << castFromType << color("");
+			if(castFromType != castFromTypeD)
+				llvm::errs() << "          " << color("purple") << castFromTypeD << color("");
+			llvm::errs() << "\n";
+
+			llvm::errs() << "castTo:   " << color("brown") << castToType << color("");
+			if(castToType != castToTypeD)
+				llvm::errs() << "          " << color("brown") << castToTypeD << color("");
+			llvm::errs() << "\n\n";
+		}
 
 		// Get original code
 		if(origCode.empty())
@@ -125,12 +126,12 @@ public:
 		leftSideCode = trim(leftSideCode, " \t\n=");
 		rightSideCode = trim(rightSideCode, " \t\n=");
 
-#ifdef DEBUG
-		llvm::errs() << "LEFT:	" << leftSideCode << "\n";
-		llvm::errs() << "RIGHT: " << rightSideCode << "\n";
-		llvm::errs() << "OTYPE: " << codeOperType << "\n";
-		llvm::errs() << "TYPE:	" << type << "\n";
-#endif
+		if(Debug) {
+			llvm::errs() << "LEFT:	" << leftSideCode << "\n";
+			llvm::errs() << "RIGHT: " << rightSideCode << "\n";
+			llvm::errs() << "OTYPE: " << codeOperType << "\n";
+			llvm::errs() << "TYPE:	" << type << "\n";
+		}
 		
 		// Skip these casts
 		if(leftSideCode.length() <= 0)
@@ -176,10 +177,6 @@ public:
 			`-CXXConstructExpr 0x26f10f0 <col:12> 'class ClassA' 'void (void)'
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback1(
-	Replacements,
-	"AssignmentsOper:newExpr"
-);
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -209,7 +206,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback1);
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:newExpr"));
 
 /*
 class X {
@@ -237,8 +234,6 @@ class X {
 			`-IntegerLiteral 0x403e030 <col:8> 'int' 0
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback2(Replacements,
-	"AssignmentsOper:nullPtrLiteral/integerLiteral");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -260,12 +255,12 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback2);
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:nullPtrLiteral/integerLiteral"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // We may not want to automagically rewrite those
 
-#ifdef DANGAROUS_REWRITES
+if(DangarousRewrites) {
 
 /*
 	ClassAOP a_;
@@ -321,8 +316,7 @@ Finder.addMatcher(
 
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback3(
-	Replacements,
+RewriteAssignmentsOper RewriteAssignmentsOperCallback3(	Replacements,
 	"AssignmentsOper"
 );
 Finder.addMatcher(
@@ -361,7 +355,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback3);
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper"));
 
 /*
 	ClassAOP a_;
@@ -396,10 +390,6 @@ Finder.addMatcher(
 			`-DeclRefExpr 0x41ec3e0 <col:13> 'class ClassA' lvalue ParmVar 0x41e2c40 'a' 'class ClassA &'
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback4(
-	Replacements,
-	"AssignmentsOper:unaryOperator"
-);
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -429,7 +419,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback4);
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:unaryOperator"));
 
 /*
 	ClassAOP a_;
@@ -444,10 +434,6 @@ Finder.addMatcher(
 			`-CXXConstructExpr 0x26f10f0 <col:12> 'class ClassA' 'void (void)'
 */
 
-RewriteAssignmentsOper RewriteAssignmentsOperCallback5(
-	Replacements,
-	"AssignmentsOper:newExpr"
-);
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -477,6 +463,6 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteAssignmentsOperCallback5);
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:newExpr"));
 
-#endif
+}

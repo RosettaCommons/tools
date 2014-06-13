@@ -47,7 +47,6 @@ CXXCtorInitializer Field 0x4f43710 'this_weak_ptr_' 'AtomTreeCAP':'class utility
 |   `-IntegerLiteral 0x6779b68 <col:17> 'int' 0
 */
 
-RewriteCtorInitializer RewriteCtorInitializerCallback1(Replacements, "CtorInitializer:0");
 Finder.addMatcher(
 	constructorDecl(
 		forEachConstructorInitializer(
@@ -61,8 +60,8 @@ Finder.addMatcher(
 				)
 			)
 		)
-	),	&RewriteCtorInitializerCallback1);
-
+	),
+	new RewriteCtorInitializer(Replacements, "CtorInitializer:0"));
 
 
 
@@ -105,7 +104,6 @@ public:
 | |   `-GNUNullExpr 0x5b0dbe8 <col:18> 'long'
 */
 
-RewriteCtorInitializerHacky RewriteCtorInitializerHackyCallback1(Replacements, "CtorInitializer:nullExpr");
 Finder.addMatcher(
 	constructorDecl(
 		forEachConstructorInitializer(
@@ -119,4 +117,5 @@ Finder.addMatcher(
 				)
 			)
 		)
-	),	&RewriteCtorInitializerHackyCallback1);
+	),
+	new RewriteCtorInitializerHacky(Replacements, "CtorInitializer:nullExpr"));

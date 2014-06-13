@@ -40,22 +40,23 @@ public:
 		);
 
 		const std::string origCode = getText(sm, expr);
-		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
-			
-#ifdef DEBUG
-		llvm::errs() << locStr << "\n";
-		llvm::errs() << "\033[31m" << origCode << "\033[0m\n";
 
-		llvm::errs() << "\033[32mcastFrom: " << castFromType << "\033[0m";
-		if(castFromType != castFromTypeD)
-			llvm::errs() << " : \033[32m" << castFromTypeD << "\033[0m";
-		llvm::errs() << "\n";
+		if(Debug) {
+			const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
 
-		llvm::errs() << "\033[33mcastTo:   " << castToType << "\033[0m";
-		if(castToType != castToTypeD)
-			llvm::errs() << " : \033[33m" << castToTypeD << "\033[0m";
-		llvm::errs() << "\n\n";
-#endif
+			llvm::errs() << locStr << "\n";
+			llvm::errs() << color("red") << origCode << color("") << "\n";
+
+			llvm::errs() << "castFrom: " << color("purple") << castFromType << color("");
+			if(castFromType != castFromTypeD)
+				llvm::errs() << "          " << color("purple") << castFromTypeD << color("");
+			llvm::errs() << "\n";
+
+			llvm::errs() << "castTo:   " << color("brown") << castToType << color("");
+			if(castToType != castToTypeD)
+				llvm::errs() << "          " << color("brown") << castToTypeD << color("");
+			llvm::errs() << "\n\n";
+		}
 
 		// Get original code
 		if(origCode.empty())
@@ -109,8 +110,6 @@ public:
 
 */
 
-RewriteCastFromNew RewriteCastFromNewCallback1(Replacements,
-	"CastFromNew:constructExpr");
 Finder.addMatcher(
 	newExpr(
 		anyOf(
@@ -126,7 +125,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteCastFromNewCallback1);
+	new RewriteCastFromNew(Replacements, "CastFromNew:constructExpr"));
 
 
 /*
@@ -146,8 +145,6 @@ Finder.addMatcher(
       `-DeclRefExpr 0x47d5648 <col:50> 'const std::string':'const class std::basic_string<char>' lvalue ParmVar 0x47c0d80 'varname' 'const std::string &'
 */
 
-RewriteCastFromNew RewriteCastFromNewCallback2(Replacements,
-	"CastFromNew:operatorCallExpr");
 Finder.addMatcher(
 	newExpr(
 		hasParent(
@@ -163,7 +160,8 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteCastFromNewCallback2);
+	new RewriteCastFromNew(Replacements, "CastFromNew:operatorCallExpr"));
+
 
 /*
 AtomCOP foo() { return this; }
@@ -182,8 +180,6 @@ AtomCOP foo() { return this; }
 
 // Let's not rewrite those automatically -- don't put this into an OP automatically
 /*
-RewriteCastFromNew RewriteCastFromNewCallback3(Replacements,
-	"CastFromNew:thisExpr");
 Finder.addMatcher(
 	thisExpr(
 		hasParent(
@@ -194,7 +190,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("castFrom"),
-	&RewriteCastFromNewCallback3);
+	new RewriteCastFromNew(Replacements, "CastFromNew:thisExpr"));
 */
 
 
@@ -209,8 +205,6 @@ first argument is an AtomAP
 */
 
 
-RewriteCastFromNew RewriteCastFromNewCallback4(Replacements,
-	"CastFromNew:integerLiteral");
 Finder.addMatcher(
 	constructExpr(
 		allOf(
@@ -219,5 +213,6 @@ Finder.addMatcher(
 				integerLiteral().bind("castFrom")
 			)
 		)
-	).bind("castTo"), &RewriteCastFromNewCallback4);
+	).bind("castTo"),
+	new RewriteCastFromNew(Replacements, "CastFromNew:integerLiteral"));
 

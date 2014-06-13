@@ -32,21 +32,25 @@ public:
 			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""
 		);
 
-
-		const std::string origCodeStr = getText(sm, expr);
+		const std::string origCode = getText(sm, expr);
 		const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
-			
-		llvm::errs() 
-			<< "@ " << locStr << " \033[36m(" << tag << ")\033[0m\n" 
-			<< "- \033[31m" << origCodeStr << "\033[0m\n"
-			<< "castFrom: " << castFromType << "\n"
-			<< "castFrom: " << castFromTypeD << "\n"
-			<< "castTo:   " << castToType << "\n"
-			<< "castTo:   " << castToTypeD << "\n";
+
+		llvm::errs() << locStr << "\n";
+		llvm::errs() << color("red") << origCode << color("") << "\n";
+
+		llvm::errs() << "castFrom: " << color("purple") << castFromType << color("");
+		if(castFromType != castFromTypeD)
+			llvm::errs() << "          " << color("purple") << castFromTypeD << color("");
+		llvm::errs() << "\n";
+
+		llvm::errs() << "castTo:   " << color("brown") << castToType << color("");
+		if(castToType != castToTypeD)
+			llvm::errs() << "          " << color("brown") << castToTypeD << color("");
+		llvm::errs() << "\n\n";
 	}
 };
 
-MatchTester MatchTesterCallback(Replacements);
+MatchTester *MatchTesterCallback = new MatchTester(Replacements);
 
 /*
 	void set_a_vector1(ClassA *a) {
@@ -64,7 +68,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);
 
 /*
 	void set_aref_vector1(ClassA & a) {
@@ -80,7 +84,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);
 
 /*
 	void new_a() {
@@ -96,7 +100,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);
 
 /*
 	void new_a() {
@@ -112,7 +116,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);
 	
 /*
 	void new_a_local() {
@@ -128,7 +132,7 @@ Finder.addMatcher(
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);
 
 /*
 	void foo() {
@@ -148,4 +152,4 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&MatchTesterCallback);
+	MatchTesterCallback);

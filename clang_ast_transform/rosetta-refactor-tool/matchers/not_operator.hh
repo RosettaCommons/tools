@@ -27,9 +27,8 @@ public:
 		if(origCode.empty())
 			return;
 		
-#ifdef DEBUG
-		llvm::errs() << "origCode: " << origCode << "\n";	
-#endif
+		if(Debug)
+			llvm::errs() << color("red") << "origCode: " << origCode << color("") << "\n";
 		
 		// origCode should end with (), so strip that call operator
 		std::string newCode = trim(std::string(origCode, 1)) + ".expired()";
@@ -48,8 +47,6 @@ UnaryOperator 0x2a7ad10 <line:64:7, col:20> '_Bool' prefix '!'
 				`-CXXThisExpr 0x2a7abd8 <col:21> 'class core::chemical::ResidueTypeSet *' this
 */
 
-RewriteNotOperator RewriteNotOperatorCallback1(Replacements,
-	"NotOperator:UnaryOperator");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -75,4 +72,4 @@ Finder.addMatcher(
 			)
 		)
 	),
-	&RewriteNotOperatorCallback1);
+	new RewriteNotOperator(Replacements, "NotOperator:UnaryOperator"));

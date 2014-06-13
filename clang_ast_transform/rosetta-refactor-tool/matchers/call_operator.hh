@@ -43,12 +43,17 @@ public:
 			castTo ? QualType::getAsString( castTo  ->getType().getSplitDesugaredType() ) : ""
 		);
 
-#ifdef DEBUG
-		llvm::errs() << "origCode: " << origCode << "\n";	
-		llvm::errs() << "castFrom: " << castFromType << "\n";
-		llvm::errs() << "castTo: " << castToType << "\n";
-#endif
-		
+		if(Debug) {
+			const std::string locStr( expr->getSourceRange().getBegin().printToString(sm) );
+
+			llvm::errs() << locStr << "\n";
+			llvm::errs() << color("red") << origCode << color("") << "\n";
+			llvm::errs() << "castFrom: " << color("purple") << castFromType << color("");
+			llvm::errs() << "\n";
+			llvm::errs() << "castTo:   " << color("brown") << castToType << color("");
+			llvm::errs() << "\n\n";
+		}
+
 		// origCode should end with (), so strip that call operator
 		std::string newCode = std::string(origCode, 0, origCode.length() -2);
 		doRewrite(sm, expr, origCode, newCode);
@@ -76,8 +81,6 @@ CXXConstructExpr 0x7fcd48e19a58 <col:10, col:27> 'AtomCOP':'class utility::point
     `-MemberExpr 0x7fcd48e19870 <col:19> 'const AtomAP':'const class utility::pointer::access_ptr<class core::kinematics::tree::Atom>' lvalue ->parent_ 0x7fcd48df0380
 */
 
-RewriteCallOperator RewriteCallOperatorCallback1(Replacements,
-	"CallOperator:constructExpr");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -117,7 +120,7 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteCallOperatorCallback1);
+	new RewriteCallOperator(Replacements, "CallOperator:constructExpr"));
 
 
 // Round 2
@@ -143,8 +146,6 @@ BinaryOperator 0x1ee6ec0 <col:12, /data/rosetta/clang/build/bin/../lib/clang/3.5
     `-CXXThisExpr 0x1ee6dc8 <col:12> 'const class utility::signals::Link *' this
 */
 
-RewriteCallOperator RewriteCallOperatorCallback2(Replacements,
-	"CallOperator:misc");
 Finder.addMatcher(
 	operatorCallExpr(
 		allOf(
@@ -182,6 +183,4 @@ Finder.addMatcher(
 			)
 		)
 	).bind("expr"),
-	&RewriteCallOperatorCallback2);
-
-
+	new RewriteCallOperator(Replacements, "CallOperator:misc"));

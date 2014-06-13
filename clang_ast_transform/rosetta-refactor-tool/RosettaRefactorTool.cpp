@@ -31,26 +31,39 @@
 #include <sstream>
 #include <sys/stat.h>
 
-/// MODE:
-// #define AST_TEST
-// #define AST_FINDER
-#define AST_REWRITE
-
-/// FLAGS:
-// #define DEBUG
-// #define DANGAROUS_REWRITES
-
-bool verbose = true;
-
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace llvm;
 using clang::tooling::Replacement;
 
-// Code includes
-#include "utils.hh"
-#include "ast_matchers.hh"
-#include "matchers_base.hh"
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Command line options
+
+cl::opt<bool> Debug(
+	"debug",
+	cl::desc("Enable debugging output"),
+	cl::init(false));
+
+cl::opt<bool> Verbose(
+	"verbose",
+	cl::desc("Enable verbose output"),
+	cl::init(false));
+
+cl::opt<bool> Colors(
+	"colors",
+	cl::desc("Enable color output"),
+	cl::init(true));
+
+cl::opt<bool> DangarousRewrites(
+	"danganous-rewrites",
+	cl::desc("Enable dangarous matchers in the rewriter"),
+	cl::init(false));
+
+cl::list<std::string> Matchers(
+	"matchers",
+	cl::CommaSeparated,
+	cl::OneOrMore,
+	cl::desc("Comma-separated list of matchers to apply"));
 
 cl::opt<std::string> BuildPath(
 	cl::Positional,
@@ -61,50 +74,138 @@ cl::list<std::string> SourcePaths(
 	cl::desc("<source0> [... <sourceN>]"),
 	cl::OneOrMore);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Code includes
+
+#include "utils.hh"
+#include "ast_matchers.hh"
+#include "matchers_base.hh"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Main tool class
+
+class RosettaRefactorTool {
+
+public:
+	RosettaRefactorTool(int argc, const char **argv);
+	int Run();
+	int runMatchers();
+	int saveOutput();
+
+private:
+	clang::tooling::RefactoringTool * Tool;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int runMatchers(clang::tooling::RefactoringTool & Tool) {
+int main(int argc, const char **argv) {
 
+	RosettaRefactorTool rrt(argc, argv);
+	return rrt.Run();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Tool c'tor
+RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
+{
 	using namespace clang::tooling;
 
-	ast_matchers::MatchFinder Finder;
-	tooling::Replacements *Replacements = &Tool.getReplacements();
+	llvm::sys::PrintStackTraceOnErrorSignal();
+	std::unique_ptr<CompilationDatabase> Compilations(
+			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
 
-	/////////////////////////////////
-	// Include matchers to apply here
-	/////////////////////////////////
-	
-#ifdef AST_TEST
-	#include "match_test.hh"
-#endif
+	cl::ParseCommandLineOptions(argc, argv);
+	if(!Compilations) {
+		std::string ErrorMessage;
+		Compilations.reset(
+			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
+		if(!Compilations)
+			llvm::report_fatal_error(ErrorMessage);
+	}
 
-#ifdef AST_FINDER
-	#include "matchers/find_naked_ptr_op_casts.hh"
-#endif
+	Tool = new RefactoringTool(*Compilations, SourcePaths);
+}
 
-#ifdef AST_REWRITE
-	// Good  matchers
-	#include "matchers/typedef.hh"
-	#include "matchers/pointer_name.hh"
-	#include "matchers/cast_from_new.hh"
-	#include "matchers/cast_in_assignment.hh"
-	#include "matchers/ctor_initializer.hh"
-	#include "matchers/dynamic_cast.hh"
-	#include "matchers/call_operator.hh"
-	#include "matchers/member_calls.hh"
-	
-	// Not needed; see comment in file
-	//#include "matchers/not_operator.hh"
-#endif
-
-	// Run tool and generate change log
-	return Tool.run(newFrontendActionFactory(&Finder));
+/// Main tool runner
+int RosettaRefactorTool::Run() {
+	int r = runMatchers();
+	if(r)
+		return r;
+	return saveOutput();
 }
 	
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Run selected matchers
+int RosettaRefactorTool::runMatchers() {
 
-int saveOutput(clang::tooling::RefactoringTool & Tool) {
+	ast_matchers::MatchFinder Finder;
+	tooling::Replacements *Replacements = &(Tool->getReplacements());
+
+	for(cl::list<std::string>::const_iterator it(Matchers.begin()), end(Matchers.end());
+			it != end; ++it) {
+		std::string matcher( *it );
+		if(Verbose)
+			llvm::errs() << color("gray") << "Applying matcher: " << matcher << color("") << "\n";
+
+		/////////////////////////////////
+		// Include matchers to apply here
+		/////////////////////////////////
+
+		// Finders
+		if(matcher == "find" || matcher == "find_naked_ptr_op_casts") {
+			#include "matchers/find_naked_ptr_op_casts.hh"
+			continue;
+		}
+
+		// Rewriters
+		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
+			#include "matchers/typedef.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
+			#include "matchers/pointer_name.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
+			#include "matchers/cast_from_new.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
+			#include "matchers/cast_in_assignment.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
+			#include "matchers/ctor_initializer.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
+			#include "matchers/dynamic_cast.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
+			#include "matchers/call_operator.hh"
+			continue;
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
+			#include "matchers/member_calls.hh"
+			continue;
+		}
+	
+		if(matcher == "rewrite_not_operator") {
+			// Not needed; see comment in file
+			#include "matchers/not_operator.hh"
+			continue;
+		}
+	}
+
+	// Run tool and generate change log
+	return Tool->run(clang::tooling::newFrontendActionFactory(&Finder));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Save rewritten output to files or output to stdout
+int RosettaRefactorTool::saveOutput() {
 	
 	using namespace clang::tooling;
 	
@@ -114,9 +215,9 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 	DiagnosticsEngine Diagnostics(
 		IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()),
 		&*DiagOpts, &DiagnosticPrinter, false);
-	SourceManager Sources(Diagnostics, Tool.getFiles());
+	SourceManager Sources(Diagnostics, Tool->getFiles());
 	Rewriter Rewrite(Sources, DefaultLangOptions);
-	const Replacements & Replaces = Tool.getReplacements();
+	const Replacements & Replaces = Tool->getReplacements();
 	int result = 0;
 
 	if(BuildPath.empty())
@@ -205,30 +306,4 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 	}
 	
 	return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int main(int argc, const char **argv) {
-
-	using namespace clang::tooling;
-
-	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<CompilationDatabase> Compilations(
-			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
-
-	cl::ParseCommandLineOptions(argc, argv);
-	if(!Compilations) {
-		std::string ErrorMessage;
-		Compilations.reset(
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
-		if(!Compilations)
-			llvm::report_fatal_error(ErrorMessage);
-	}
-
-	
-	RefactoringTool Tool(*Compilations, SourcePaths);
-	if(int r = runMatchers(Tool))
-		return r;
-	return saveOutput(Tool);
 }

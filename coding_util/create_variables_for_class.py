@@ -22,7 +22,7 @@ print "Put following after public: in .hh"
 print
 for var in vars:
     print "\t\tvoid set_%s( %s const & setting ){ %s_ = setting; }" % (var, var_type, var )
-    print "\t\t%s %s() const{ return %s_; }" % (var_type, var, var )
+    print "\t\t%s %s() const { return %s_; }" % (var_type, var, var )
     print
 print
 print

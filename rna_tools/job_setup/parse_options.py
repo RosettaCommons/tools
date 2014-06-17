@@ -78,7 +78,7 @@ def parse_options( argv, tag, default):
     value = default
 
     if isinstance( default, list ): value = []
-    RESNUM_CHAIN = len( default ) == 2 and \
+    RESNUM_CHAIN = isinstance( default, list ) and len( default ) == 2 and \
                    isinstance( default[0], list ) and \
                    isinstance( default[0][0], int ) and \
                    isinstance( default[1], list ) and \

@@ -156,6 +156,10 @@ int RosettaRefactorTool::runMatchers() {
 			#include "matchers/find_naked_ptr_op_casts.hh"
 			continue;
 		}
+		if(matcher == "find" || matcher == "find_calls") {
+			#include "matchers/find_calls.hh"
+			continue;
+		}
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {

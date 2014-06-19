@@ -1,3 +1,6 @@
+June 2014
+Luki Goldschmidt <lugo@uw.edu>
+
 The following guide summarizes how to correctly use owning/access pointers;
 these are a must once we transition to std:: or boost:: pointers; misuse
 will cause compilation errors or run-time crashes (double free). Read it!
@@ -12,16 +15,25 @@ Rules:
 *) Never put this into an OP
    Only whatever instantiates the object can put that object into an OP.
 
-*) Never put a naked ptr that you received from somewhere into an OP
-   Naked pointers can be used and passwed to refer to an object only
-   (carefully, there is guarantee that they are valid).
+*) Never put a naked (raw) pointer received from somewhere into an OP
+   Naked pointers can be used and passed around to refer to an object,
+   but never put back into OP or APs. Use with care, there is no
+   guarantee that a naked pointer will remain valid.
 
 *) Never put a reference into an OP
    You can make a reference from an OP and pass it around but you must
-   be careful to ensure that the OP remains alive.
+   be careful to ensure that the OP remains alive. References (or the
+   object they are referencing to) can never be put into OPs or APs.
 
 *) If you aren't sure if a pointer will remain valid, use weak_ptrs
-   instead of naked pointers and check if they expired or lock() result.
+   instead of naked pointers, and check if the pointer expired or
+   the lock() result. Use of naked pointers is OK, but one needs to
+   be careful. Thus, preferably use OPs and APs.
+
+*) Do not use dynamic_cast<Some *> and put the result into OPs
+   dynamic_cast<> takes the address of the objects and puts it back
+   into an OP (see #3 above). Therefore use this instead:
+   SomeOP x = utility::pointer::dynamic_pointer_cast<Some>(y);
 
  
 Disallowed usage:
@@ -36,6 +48,9 @@ Disallowed usage:
    
    Suggested use:
    SomeOP someop( new Some( ... ) )
+
+   If an object needs to pass itself (this), then it needs a self-referencing
+   access pointer. See below.
    
 
 *) Assigning a naked pointer to an OP:
@@ -45,13 +60,13 @@ Disallowed usage:
    
    Will not compile. This is explicitly disallowed so the developers have to
    explicitly indicate that they want the OP to manage the lifetime of the
-   provided naked pointer. Do this, and only once for a given instance:
+   provided naked pointer. Do this, and only once, for a given instance:
      SomeOP op( new Some );
 
 
 *) Passing or assigning this to an AP:
      SomeCAP somecap( this );
-     foo( this );
+     foo(SomeCAP x) {}; foo( this );
      
    Will not compile. An AP can only be created from an OP. Classes that need
    to pass a pointer to self (to an AP or OP) need to implement this_weak_ptr_
@@ -59,12 +74,12 @@ Disallowed usage:
    needs to immediately call set_weak_pointer_to_self() on it.
    See: ResidueType.
    
-   Alternatively, make the constructor of the class private and provide a
-   static method to instantiate and set the weak pointer reference right
-   after instantiation -- preferred approach:
+   Alternatively, make the constructor of the class protected and provide a
+   static factory method to instantiate and set the weak pointer reference
+   right after instantiation -- preferred approach:
    
    class X {
-   private:
+   protected:
      X( ... ) : this_weak_ptr_() {
        ...
      }
@@ -100,7 +115,7 @@ Disallowed usage:
      SomeOP some_op = some_ap_.lock();
      if(some_op) {
        some_op->foo();
-     } 
+     }
    
    An AP can be checked for validity with some_ap_.expired(), however,
    there is no guarantee that an AP will not expire between checking and
@@ -110,10 +125,11 @@ Disallowed usage:
    If an AP should always be valid, one can create an OP from AP directly:
      SomeOP some_op( some_ap_ );
      
-   This throw a bad_weak_ptr exception if AP expired, which helps with
+   This throws a bad_weak_ptr exception if the AP expired, which helps with
    troubleshooting and can be caught.
    
-   Using lock() without checking the result is fast but dangerous.
+   Using lock() without checking the result is fast but dangerous, i.e.:
+     some_ap_.lock()->foo();
    
    
 *) Comparing an AP with an AP, OP, naked pointer or this:
@@ -122,7 +138,7 @@ Disallowed usage:
      if( some_ap == some_op)
      if( some_ap == &some_ref )
 
-   Not allowed, will not compile. Use equal helper template instead:
+   Not allowed, will not compile. Use equal() helper template instead:
      utility::pointer::equal( some_ap, this )
      utility::pointer::equal( some_ap, some_other_ap )
      utility::pointer::equal( some_ap, some_op )
@@ -142,6 +158,7 @@ Disallowed usage:
 
 *) Create an OP from a reference:
      SomeOP someop( &someref );
+
    This will cause double-free crashes. Never create an OP from a reference.
    Just don't. This is totally illegal but will compile ... and crash:
      SomeOP op( new Some );
@@ -154,5 +171,4 @@ Disallowed usage:
      SomeOP op2( op );
      SomeOP op3( ap );
      SomeAP ap2( ap );
-
 

@@ -80,6 +80,10 @@ public:
 		utility::vector1< utility::pointer::owning_ptr<class ClassA> > r;
 		return r;
 	}	
+
+	static ClassBOP factory() {
+		return new ClassB;
+	}
 	
 	///////////////////////////////////////////////////////////////////////
 	// shared ptr assignment
@@ -209,6 +213,11 @@ public:
 	void caller(ClassBOP b) {
 		b->new_a();
 		b->set_a_null();
+		if(b) {
+			b->new_a_local();
+		}
+		ClassB::factory();
+		ClassBOP my_b = ClassB::factory();
 	}
 
 	///////////////////////////////////////////////////////////////////////

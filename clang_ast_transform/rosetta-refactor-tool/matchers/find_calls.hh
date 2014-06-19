@@ -14,7 +14,9 @@ public:
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
 		const CXXMethodDecl *caller = Result.Nodes.getStmtAs<CXXMethodDecl>("caller");
-		const CXXMemberCallExpr *call = Result.Nodes.getStmtAs<CXXMemberCallExpr>("call");
+		const CallExpr *call = Result.Nodes.getStmtAs<CallExpr>("call");
+		const CXXMemberCallExpr *memberCall = Result.Nodes.getStmtAs<CXXMemberCallExpr>("call");
+		const DeclRefExpr *declref = Result.Nodes.getStmtAs<DeclRefExpr>("declref");
 
 		if(!rewriteThisFile(caller, sm))
 			return;
@@ -22,10 +24,21 @@ public:
 		if(!caller->hasBody())
 			return;
 
-		const std::string callingMethodClassName = caller->getParent()->getNameAsString();
+		// TODO: retrieve enclosing namespace of caller and call node -- how?
+		
 		const std::string callingMethodName = caller->getNameAsString();
-		const std::string calledMethodClassName = call->getRecordDecl()->getNameAsString();
 		const std::string calledMethodName = call->getDirectCallee()->getNameAsString();
+
+		const std::string callingMethodClassName = caller->getParent()->getNameAsString();
+		std::string calledMethodClassName;
+		if(memberCall) {
+			calledMethodClassName = memberCall->getRecordDecl()->getNameAsString();
+		} else if(declref) {
+			calledMethodClassName = declref->getFoundDecl()->getQualifiedNameAsString();
+			size_t p = calledMethodClassName.find_last_of(':');
+			if(p != std::string::npos && p > 0)
+				calledMethodClassName = calledMethodClassName.substr(0, p-1);
+		}
 
 		const std::string locStr( call->getSourceRange().getBegin().printToString(sm) );
 		const std::string callCode = getText(sm, call);
@@ -33,14 +46,15 @@ public:
 		llvm::outs()
 			<< "@ " << locStr << /* color("cyan") << " (" << tag << ")" << color("") << */ "\n"
 			<< color("red") << callCode << color("") << "\n"
-			<< color("purple") << callingMethodClassName << color("") << ":"
+			<< color("purple") << callingMethodClassName << color("") << "::"
 			<< color("purple") << callingMethodName << color("") << " => "
-			<< color("green") << calledMethodClassName << color("") << ":"
+			<< color("green") << calledMethodClassName << color("") << "::"
 			<< color("green") << calledMethodName << color("") << "\n"
 			;
 	}
 };
 
+// Member calls: object->method()
 /*
 CXXMethodDecl 0x43a0370 </data/rosetta/tools/clang_ast_transform/test-cases.cc:209:2, line:212:2> line:209:7 caller 'void (ClassBOP)'
 |-ParmVarDecl 0x43a02f0 <col:14, col:23> col:23 b 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
@@ -67,4 +81,39 @@ Finder.addMatcher(
 			memberCallExpr().bind("call")
 		)
 	).bind("caller"),
-	new CallsFinder(Replacements));
+	new CallsFinder(Replacements, "memberCallExpr"));
+
+
+
+// (static) Calls: object::method()
+
+/*
+CXXMethodDecl 0x380a590 </local/luki/tools/clang_ast_transform/test-cases.cc:213:2, line:220:2> line:213:7 caller 'void (ClassBOP)'
+| |-ExprWithCleanups 0x29a0518 <line:219:3, col:19> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
+| | `-CXXBindTemporaryExpr 0x29a04f8 <col:3, col:19> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>' (CXXTemporary 0x29a04f0)
+| |   `-CallExpr 0x29a04c0 <col:3, col:19> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
+| |     `-ImplicitCastExpr 0x29a04a8 <col:3, col:11> 'ClassBOP (*)(void)' <FunctionToPointerDecay>
+| |       `-DeclRefExpr 0x29a0418 <col:3, col:11> 'ClassBOP (void)' lvalue CXXMethod 0x292cdd0 'factory' 'ClassBOP (void)'
+| `-DeclStmt 0x29a33a0 <line:220:3, col:36>
+|   `-VarDecl 0x29a0540 <col:3, col:35> col:12 my_b 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
+|     `-ExprWithCleanups 0x29a3388 <col:19, col:35> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
+|       `-CXXConstructExpr 0x29a3350 <col:19, col:35> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>' 'void (const class utility::pointer::owning_ptr<class ClassB> &)' elidable
+|         `-MaterializeTemporaryExpr 0x29a3330 <col:19, col:35> 'const class utility::pointer::owning_ptr<class ClassB>' lvalue
+|           `-ImplicitCastExpr 0x29a3318 <col:19, col:35> 'const class utility::pointer::owning_ptr<class ClassB>' <NoOp>
+|             `-CXXBindTemporaryExpr 0x29a0658 <col:19, col:35> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>' (CXXTemporary 0x29a0650)
+|               `-CallExpr 0x29a0620 <col:19, col:35> 'ClassBOP':'class utility::pointer::owning_ptr<class ClassB>'
+|                 `-ImplicitCastExpr 0x29a0608 <col:19, col:27> 'ClassBOP (*)(void)' <FunctionToPointerDecay>
+|                   `-DeclRefExpr 0x29a05d0 <col:19, col:27> 'ClassBOP (void)' lvalue CXXMethod 0x292cdd0 'factory' 'ClassBOP (void)'
+*/
+
+Finder.addMatcher(
+	methodDecl(
+		forEachDescendant(
+			callExpr(
+				has(
+					declRefExpr().bind("declref")
+				)
+			).bind("call")
+		)
+	).bind("caller"),
+	new CallsFinder(Replacements, "callExpr"));

@@ -154,51 +154,40 @@ int RosettaRefactorTool::runMatchers() {
 		// Finders
 		if(matcher == "find" || matcher == "find_naked_ptr_op_casts") {
 			#include "matchers/find_naked_ptr_op_casts.hh"
-			continue;
 		}
 		if(matcher == "find" || matcher == "find_calls") {
 			#include "matchers/find_calls.hh"
-			continue;
 		}
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
 			#include "matchers/typedef.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
 			#include "matchers/pointer_name.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
 			#include "matchers/cast_from_new.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
 			#include "matchers/cast_in_assignment.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
 			#include "matchers/ctor_initializer.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
 			#include "matchers/dynamic_cast.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
 			#include "matchers/call_operator.hh"
-			continue;
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
 			#include "matchers/member_calls.hh"
-			continue;
 		}
 	
 		if(matcher == "rewrite_not_operator") {
 			// Not needed; see comment in file
 			#include "matchers/not_operator.hh"
-			continue;
 		}
 	}
 

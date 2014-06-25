@@ -89,9 +89,11 @@ class ScoreTable:
             pp = parser().get_structure(path.split(".")[-4:-1], path).get_residues()
         for residue, line in zip(pp, residue_energies):
             name_pose_res = line.split("_")[0]
+            if "term" in name_pose_res:
+                name_pose_res = name_pose_res.split(':')[0]
             name_pdb_res = residue.get_resname()
             if name_pose_res != name_pdb_res and name_pdb_res not in exception:
-                raise Exception("%s,%spose name and res name do not match" % (name_pose_res, name_pdb_res))
+                raise Exception("%s,%s pose name and res name do not match at line %s" % (name_pose_res, name_pdb_res, line))
 
             resid = int(residue.get_id()[1])
             poseid = int(line.split()[0].split("_")[-1])

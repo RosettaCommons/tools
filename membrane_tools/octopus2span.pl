@@ -83,7 +83,8 @@ sub Mspan
 	    my $end=$i;
 	    if($label eq "M")
 	    {
-		$span.=sprintf("%4d  %4d  %4d  %4d\n",$start+$offset,$end+$offset,$start+$offset,$end+$offset);
+		$span.=sprintf("%4d  %4d\n",$start+$offset,$end+$offset);
+#		$span.=sprintf("%4d  %4d  %4d  %4d\n",$start+$offset,$end+$offset,$start+$offset,$end+$offset);
 		$counter++;
 	    }
 	     $start=$i+1;
@@ -94,7 +95,7 @@ sub Mspan
 
     if($label eq "M")
     {
-	$span.=sprintf("%d %d %d %d\n",$start+$offset,$end+$offset,$start+$offset,$end+$offset);
+	$span.=sprintf("%d %d\n",$start+$offset,$end+$offset);
 	$counter++;
     }
     $span="$counter $end\nantiparallel\nn2c\n$span";

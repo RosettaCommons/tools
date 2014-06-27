@@ -3,16 +3,20 @@
 
 	From:
 		WrappedRealOP val = dynamic_cast< WrappedReal * > ( data()() );
+		WrappedRealOP val = static_cast< WrappedReal * > ( data()() );
 	To:
 		WrappedRealOP val = std::dynamic_pointer_cast< WrappedReal > ( data() );
+		WrappedRealOP val = std::static_pointer_cast< WrappedReal > ( data() );
 */
 
 class RewriteDynamicCast : public ReplaceMatchCallback {
 public:
 	RewriteDynamicCast(
 		tooling::Replacements *Replace,
+		const char *replacementCastCode,
 		const char *tag = "DynamicCast") :
-		ReplaceMatchCallback(Replace, tag) {}
+		ReplaceMatchCallback(Replace, tag),
+		replacementCastCode(replacementCastCode) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 		SourceManager &sm = *Result.SourceManager;
@@ -38,11 +42,13 @@ public:
 		// origOperatorCode should end with (), so strip that and hope for the best :)
 		std::string newOperatorCode = std::string(origOperatorCode, 0, origOperatorCode.length() -2);
 		std::string newCode = 
-			"utility::pointer::dynamic_pointer_cast< " + castType + " > "
+			replacementCastCode + "< " + castType + " > "
 				+ "( " + newOperatorCode + " )";
 			
 		doRewrite(sm, dyncastexpr, origCode, newCode);
 	}
+private:
+	std::string replacementCastCode;
 };
 
 
@@ -90,4 +96,36 @@ Finder.addMatcher(
 			).bind("operatorexpr")
 		)
 	).bind("dyncastexpr"),
-	new RewriteDynamicCast(Replacements));
+	new RewriteDynamicCast(Replacements, "utility::pointer::dynamic_pointer_cast", "DynamicCast"));
+
+
+/*
+ * Same as above, but for static_cast< >, i.e. staticCastExpr
+ */
+ 
+Finder.addMatcher(
+	staticCastExpr(
+		has(
+			operatorCallExpr(
+				allOf(
+					// CHILD EXPR: operator() for owning_ptr::operator()
+					has(
+						declRefExpr( isCallOperator() )
+					),
+					// CHILD EXPR: castFrom
+					anyOf(
+						has(
+							memberExpr( isUtilityPointer() )
+						),
+						has(
+							declRefExpr( isUtilityPointer() )
+						),
+						has(
+							bindTemporaryExpr( isUtilityPointer() )
+						)
+					)
+				)
+			).bind("operatorexpr")
+		)
+	).bind("dyncastexpr"),
+	new RewriteDynamicCast(Replacements, "utility::pointer::static_pointer_cast", "StaticCast"));

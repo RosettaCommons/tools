@@ -76,8 +76,7 @@ public:
 			replace(type, "owning_ptr", "shared_ptr");
 			replace(type, "access_ptr", "weak_ptr");
 		}
-		if(beginsWith(type, "class "))
-			type = std::string(type, 6);
+		type = stripQualifiers(type);
 
 		if(origCode == "0" || origCode == "NULL")
 			newCode = type + "()";

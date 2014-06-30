@@ -92,7 +92,7 @@ public:
 		// Get original code
 		if(origCode.empty())
 			return;
-		
+
 		// Same thing, do nothing
 		if(castFromTypeD == castToTypeD)
 			return;
@@ -106,8 +106,8 @@ public:
 		// Determine cast type			
 		std::string type(castToType);
 		
-		if(type == "mapped_type") {
-			// use mapped type in std::map and don't extract contained type further
+		if(type == "mapped_type" || type == "value_type") {
+			// use mapped type / value_type in std::map and don't extract contained type further
 			type = castToTypeD;
 		} else {
 			// Check type it container and use it

@@ -344,13 +344,22 @@ if len( chain_connection ) > 0:
 #        cutpoint_open.append( i-1 )
 #        virtual_anchor.append( i )
 
+
+def get_rid_of_last_residue( cutpoint ):
+    cutpoint_no_last = []
+    for m in cutpoint:
+        if ( m < len( working_res ) ): cutpoint_no_last.append( m )
+    return cutpoint_no_last
+
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )
-    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
+    cutpoint_open = get_rid_of_last_residue( cutpoint_open )
+    if len( cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
 
 if len( cutpoint_closed ) > 0:
     cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
+    cutpoint_closed = get_rid_of_last_residue( cutpoint_closed )
+    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
     virtual_anchor = working_res_map( virtual_anchor, working_res )
@@ -438,7 +447,7 @@ elif len( native_pdb ) > 0:
 
 if len( extra_minimize_res ) > 0:
     extra_minimize_res = working_res_map( extra_minimize_res, working_res )
-    command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res )
+    command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res, [] )
 
 if len( input_pdbs ) > 0:
     command += " -s"
@@ -455,7 +464,7 @@ if len( input_silent_files ) > 0:
     assert( len( input_res ) > 0 )
 
 if len( input_res ) > 0:
-    command += " -input_res " +make_tag_with_dashes( working_input_res )
+    command += " -input_res " +make_tag_with_dashes( working_input_res, [] )
 
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
@@ -465,7 +474,7 @@ if len( working_data_file ) > 0:
 
 command += ' ' + extra_args
 
-command += ' -output_res_num ' + make_tag_with_dashes( working_res )
+command += ' -output_res_num ' + make_tag_with_dashes( working_res, [] )
 
 print command
 

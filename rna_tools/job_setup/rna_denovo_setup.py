@@ -255,9 +255,14 @@ if len( data_file ) > 0:
     working_data_string = ""
     for line in lines:
         cols = string.split( line.replace( '\n','') )
-        data_res = map( lambda x:int(x), cols[1:] )
-        working_data_res = working_res_map( data_res, working_res )
-        if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
+        if cols[0] == 'DMS':
+            data_res = int( cols[1] )
+            working_data_res = working_res_map( [data_res], working_res )
+            if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+' '+string.join(cols[2:]) + '\n'
+        else:
+            data_res = map( lambda x:int(x), cols[1:] )
+            working_data_res = working_res_map( data_res, working_res )
+            if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
     if len( working_data_string ) > 0:
         working_data_file = tag + "_" + data_file
         fid = open( working_data_file, 'w' )

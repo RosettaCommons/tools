@@ -4,7 +4,7 @@ from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_a
 from sys import argv
 from os import system, getcwd
 from os.path import exists, dirname, basename
-from parse_options import parse_options
+from parse_options import parse_options, get_ints
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -52,7 +52,7 @@ obligate_pair = parse_options( argv, "obligate_pair", [-1] )
 obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
-chain_connection = parse_options( argv, "chain_connection", [-1] )
+chain_connection = parse_options( argv, "chain_connection", [""] )
 
 system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
@@ -323,16 +323,43 @@ if len( obligate_pair_explicit ) > 0:
 
 
 if len( chain_connection ) > 0:
-    assert( len( chain_connection ) % 4 == 0 )
-    n_connect = len( chain_connection ) / 4
-    working_chain_connection = working_res_map( chain_connection, working_res )
-    for i in xrange(n_connect):
-        curr_0 = i * 4
-        seg1_start = working_chain_connection[curr_0]
-        seg1_stop  = working_chain_connection[curr_0 + 1]
-        seg2_start = working_chain_connection[curr_0 + 2]
-        seg2_stop = working_chain_connection[curr_0 + 3]
-        params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
+    assert( len( chain_connection ) >= 4 )
+    if 'SET1' in chain_connection: # new format is more flexible.
+        which_set = 0
+        chain_connection_sets = []
+        resnum1 = []
+        resnum2 = []
+        for k in range( len( chain_connection) + 1 ):
+            if k == len( chain_connection ) or chain_connection[k] == 'SET1':
+                working_resnum1 = working_res_map( resnum1, working_res )
+                working_resnum2 = working_res_map( resnum2, working_res )
+                if len( working_resnum1 ) > 0 and len( working_resnum2 ) > 0: chain_connection_sets.append( [working_resnum1, working_resnum2] )
+                resnum1 = []
+                resnum2 = []
+                which_set = 1
+                continue
+            if chain_connection[k] == 'SET2':
+                which_set = 2
+                continue
+            assert( which_set > 0 )
+            if which_set == 1: get_ints( chain_connection[k], resnum1 )
+            if which_set == 2: get_ints( chain_connection[k], resnum2 )
+        if len( chain_connection_sets ) > 0:
+            params_file_outstring += "CHAIN_CONNECTION"
+            for chain_connection_set in chain_connection_sets: params_file_outstring += "   SET1%s SET2%s" % (make_tag_with_dashes(chain_connection_set[0]), make_tag_with_dashes(chain_connection_set[1]) )
+            params_file_outstring += "\n"
+    else: # legacy format
+        chain_connection = map( lambda x:int(x), chain_connection )
+        assert( len( chain_connection ) % 4 == 0 )
+        n_connect = len( chain_connection ) / 4
+        working_chain_connection = working_res_map( chain_connection, working_res )
+        for i in xrange(n_connect):
+            curr_0 = i * 4
+            seg1_start = working_chain_connection[curr_0]
+            seg1_stop  = working_chain_connection[curr_0 + 1]
+            seg2_start = working_chain_connection[curr_0 + 2]
+            seg2_stop = working_chain_connection[curr_0 + 3]
+            params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
 
 # need to handle Mg(2+)
 #mg_pos = []

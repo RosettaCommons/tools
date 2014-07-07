@@ -5,10 +5,11 @@ def make_tag( int_vector ):
     for m in int_vector: tag += ' %d' % m
     return tag
 
-def make_tag_with_dashes( int_vector, char_vector = [] ):
+def make_tag_with_dashes( int_vector, char_vector = 0 ):
     tag = ''
-    if ( len( char_vector ) == 0 ):
-        for m in range( len( int_vector ) ): char_vector.append( '' )
+    if not isinstance( char_vector, list ) or len( char_vector ) == 0:
+         char_vector = []
+         for m in range( len( int_vector ) ): char_vector.append( '' )
     assert( len( char_vector ) == len( int_vector ) )
 
     start_res = int_vector[0]

@@ -250,8 +250,7 @@ if DO_MPI:
             fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
             fid_qsub_submit_file_MPI.write( '#SBATCH -A TG-MCB120152\n' )
             fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
-            fid_qsub_submit_file_MPI.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s\n' % job_submit_file_MPI )
+            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_submit_file_MPI )
 
             fid_qsub_submit_file_MPI.close()
 
@@ -302,7 +301,7 @@ if DO_MPI:
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A TG-MCB120152\n' )
         fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
         fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s\n' % job_file_MPI_ONEBATCH )
+        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_file_MPI_ONEBATCH )
     else:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
         fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')

@@ -21,17 +21,27 @@ except:
 
 DO_MPI = False # May need to reactivate for XSEDE.
 
-tasks_per_node_MPI = 12 # lonestar
-
 hostname = ''
 hostname_tag = popen( 'hostname' ).readlines()[0]
 if hostname_tag.find( 'ls4' ) > -1: hostname = 'lonestar'
 if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostname = 'ade'
+if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
+if hostname == 'lonestar':
+    DO_MPI = True
+    tasks_per_node_MPI = 12 # lonestar
+if hostname == 'stampede':
+    DO_MPI = True
+    tasks_per_node_MPI = 16
 
 save_logs = False
 if argv.count( '-save_logs' )>0:
     save_logs = True
     pos = argv.index( '-save_logs' )
+    del( argv[pos] )
+development = False
+if argv.count( '-development' )>0:
+    development = True
+    pos = argv.index( '-development' )
     del( argv[pos] )
 
 nhours = 16
@@ -48,6 +58,7 @@ qsub_file_MPI = 'qsubMPI'
 qsub_file_MPI_ONEBATCH = 'qsubMPI_ONEBATCH'
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
 all_commands_file = 'all_commands.sh'
+if hostname == "stampede": qsub_file_MPI_ONEBATCH = "job.batch"
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
@@ -56,7 +67,7 @@ fid_all_commands = open( all_commands_file, 'w' )
 
 if DO_MPI:
     fid_qsub_MPI = open( qsub_file_MPI,'w')
-    fid_job_MPI_ONEBATCH = open( job_file_MPI_ONEBATCH,'w')
+    fid_job_MPI_ONEBATCH  = open( job_file_MPI_ONEBATCH,'w')
     fid_qsub_MPI_ONEBATCH = open( qsub_file_MPI_ONEBATCH,'w')
 
 tot_jobs = 0
@@ -112,6 +123,19 @@ for line in lines:
     cols = string.split( command_line )
     if len( cols ) == 0: continue
 
+    EXE = cols[ 0 ]
+    if not exists( EXE ):
+        rosetta_folder = expandvars("$ROSETTA")
+        EXE = rosetta_folder + '/main/source/bin/'+basename(EXE)
+    if not exists( EXE ):
+        EXE = EXE.replace( '/home1/','/work1/')
+    assert( exists( EXE ) )
+
+    if not exists( cols[0] ):
+        cols[0] = EXE
+        command_line = string.join( cols )
+
+
     if '-total_jobs' in cols:
         pos = cols.index( '-total_jobs' )
         cols[ pos+1 ] = '%d' % n_jobs
@@ -157,7 +181,11 @@ for line in lines:
         fid_qsub.write( 'qsub %s\n' % qsub_submit_file )
 
         # MPI job file
-        if DO_MPI: fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
+        if DO_MPI:
+            if hostname == "stampede":
+                fid_job_MPI_ONEBATCH.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
+            else:
+                fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
 
         # all command lines in one .sh file for bash.
         fid_all_commands.write( 'nohup %s > %s 2> %s &\n' % ( command_line_explicit, outfile, errfile ) )
@@ -165,13 +193,7 @@ for line in lines:
         command_lines_explicit.append( command_line_explicit )
         tot_jobs += 1
 
-    EXE = cols[ 0 ]
-    rosetta_folder = expandvars("$ROSETTA")
-    if not exists( EXE ):
-        EXE = rosetta_folder + '/main/source/bin/'+EXE
-        assert( exists( EXE ) )
     arguments = string.join( cols[ 1: ] )
-
 
     fid_condor.write('\nexecutable = %s\n' % EXE )
     fid_condor.write('arguments = %s\n' % arguments)
@@ -188,65 +210,116 @@ if DO_MPI:
         N_MPIJOBS_ONEBATCH += ( tot_jobs/ tasks_per_node_MPI + 1) * tasks_per_node_MPI
         tot_nodes += 1
 
-
-    count = 0
     for n in range( tot_nodes ):
-
+        # big pain in the ass -- the way we submit jobs via ppserver.py  is
+        # failing unless we split the job processor by processor!
         job_submit_file_MPI = '%s/qsubMPI%d.job' % (qsub_file_dir_MPI, n )
-        fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
 
+        fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
+        count = 0
         for m in range( tasks_per_node_MPI ):
             count = count + 1
             if ( count <= tot_jobs ):
                 command_line_explicit = command_lines_explicit[ count-1 ]
-                fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
-
+                if hostname == "stampede":
+                    fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
+                else:
+                    fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
         fid_job_submit_file_MPI.close()
 
-        # qsub MPI
-        jobname= (CWD + '/' + outdir).replace( '/', '_' )
-        jobname = jobname[-30:]
-        qsub_submit_file_MPI = '%s/qsubMPI%d.sh' % (qsub_file_dir_MPI, n )
-        fid_qsub_submit_file_MPI = open( qsub_submit_file_MPI, 'w' )
-        fid_qsub_submit_file_MPI.write( '#!/bin/bash 	 \n')
-        fid_qsub_submit_file_MPI.write( '#$ -V 	#Inherit the submission environment\n')
-        fid_qsub_submit_file_MPI.write( '#$ -cwd 	# Start job in submission directory\n')
-        fid_qsub_submit_file_MPI.write( '#$ -N %s 	# Job Name\n' % jobname )
-        fid_qsub_submit_file_MPI.write( '#$ -j y 	# Combine stderr and stdout\n')
-        fid_qsub_submit_file_MPI.write( '#$ -o $JOB_NAME.o$JOB_ID 	# Name of the output file\n')
-        fid_qsub_submit_file_MPI.write( '#$ -pe %dway %d 	# Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, tasks_per_node_MPI) )
-        fid_qsub_submit_file_MPI.write( '#$ -q normal 	# Queue name normal\n')
-        if nhours == 0: # for testing
-            fid_qsub_submit_file_MPI.write( '#$ -l h_rt=00:01:00 	# Run time (hh:mm:ss)\n' )
+        if hostname == "stampede":
+            # qsub MPI
+            jobname= (CWD + '/' + outdir).replace( '/', '_' )
+            jobname = jobname[-30:]
+            qsub_submit_file_MPI = '%s/job%d.batch' % (qsub_file_dir_MPI, n )
+            fid_qsub_submit_file_MPI = open( qsub_submit_file_MPI, 'w' )
+            fid_qsub_submit_file_MPI.write( '#!/bin/bash\n' )
+            job_name = (basename(CWD)).replace( '/', '_' )
+            fid_qsub_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
+            fid_qsub_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
+            queue = 'normal'
+            if development: queue = 'development'
+            fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
+            if development:
+                fid_qsub_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
+            else:
+                fid_qsub_submit_file_MPI.write( '#SBATCH -t %d:00:00\n' % nhours )
+            fid_qsub_submit_file_MPI.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
+            fid_qsub_submit_file_MPI.write( '#SBATCH --mail-type=ALL\n' )
+            fid_qsub_submit_file_MPI.write( '#SBATCH -n %d\n' % tasks_per_node_MPI )
+            fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
+            fid_qsub_submit_file_MPI.write( '#SBATCH -A TG-MCB120152\n' )
+            fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
+            fid_qsub_submit_file_MPI.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
+            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s\n' % job_submit_file_MPI )
+
+            fid_qsub_submit_file_MPI.close()
+
+            fid_qsub_MPI.write( 'sbatch %s\n' % qsub_submit_file_MPI )
         else:
-            fid_qsub_submit_file_MPI.write( '#$ -l h_rt=%02d:00:00 	# Run time (hh:mm:ss)\n' % nhours)
-        #fid_qsub_submit_file_MPI.write( '#$ -M rhiju@stanford.edu	# Address for email notification\n')
-        fid_qsub_submit_file_MPI.write( '#$ -m be 	# Email at Begin and End of job\n')
-        fid_qsub_submit_file_MPI.write( 'set -x 	# Echo commands, use set echo with csh\n')
-        fid_qsub_submit_file_MPI.write( 'ibrun mpi_simple_job_submit.py %s	# Run the MPI python\n' % job_submit_file_MPI)
-        fid_qsub_submit_file_MPI.close()
+            # qsub MPI
+            jobname= (CWD + '/' + outdir).replace( '/', '_' )
+            jobname = jobname[-30:]
+            qsub_submit_file_MPI = '%s/qsubMPI%d.sh' % (qsub_file_dir_MPI, n )
+            fid_qsub_submit_file_MPI = open( qsub_submit_file_MPI, 'w' )
+            fid_qsub_submit_file_MPI.write( '#!/bin/bash 	 \n')
+            fid_qsub_submit_file_MPI.write( '#$ -V 	#Inherit the submission environment\n')
+            fid_qsub_submit_file_MPI.write( '#$ -cwd 	# Start job in submission directory\n')
+            fid_qsub_submit_file_MPI.write( '#$ -N %s 	# Job Name\n' % jobname )
+            fid_qsub_submit_file_MPI.write( '#$ -j y 	# Combine stderr and stdout\n')
+            fid_qsub_submit_file_MPI.write( '#$ -o $JOB_NAME.o$JOB_ID 	# Name of the output file\n')
+            fid_qsub_submit_file_MPI.write( '#$ -pe %dway %d 	# Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, tasks_per_node_MPI) )
+            fid_qsub_submit_file_MPI.write( '#$ -q normal 	# Queue name normal\n')
+            if nhours == 0: # for testing
+                fid_qsub_submit_file_MPI.write( '#$ -l h_rt=00:01:00 	# Run time (hh:mm:ss)\n' )
+            else:
+                fid_qsub_submit_file_MPI.write( '#$ -l h_rt=%02d:00:00 	# Run time (hh:mm:ss)\n' % nhours)
+            #fid_qsub_submit_file_MPI.write( '#$ -M rhiju@stanford.edu	# Address for email notification\n')
+            fid_qsub_submit_file_MPI.write( '#$ -m be 	# Email at Begin and End of job\n')
+            fid_qsub_submit_file_MPI.write( 'set -x 	# Echo commands, use set echo with csh\n')
+            fid_qsub_submit_file_MPI.write( 'ibrun mpi_simple_job_submit.py %s	# Run the MPI python\n' % job_submit_file_MPI)
+            fid_qsub_submit_file_MPI.close()
 
+            fid_qsub_MPI.write( 'qsub %s\n' % qsub_submit_file_MPI )
 
-        fid_qsub_MPI.write( 'qsub %s\n' % qsub_submit_file_MPI )
-
-
-
-    fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -cwd 	# Start job in submission directory\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -N %s 	# Job Name\n' % (CWD + '/' + outdir).replace( '/', '_' ) )
-    fid_qsub_MPI_ONEBATCH.write( '#$ -j y 	# Combine stderr and stdout\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -o $JOB_NAME.o$JOB_ID 	# Name of the output file\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -pe %dway %d 	# Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, N_MPIJOBS_ONEBATCH) )
-    fid_qsub_MPI_ONEBATCH.write( '#$ -q normal 	# Queue name normal\n')
-    if nhours == 0: # for testing
-        fid_qsub_MPI_ONEBATCH.write( '#$ -l h_rt=00:01:00 	# Run time (hh:mm:ss)\n' )
+    # single batch. does not appear to work...
+    if hostname == "stampede":
+        fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash\n' )
+        job_name = (basename(CWD)).replace( '/', '_' )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -o %s.o%%j\n' % job_name )
+        queue = 'normal'
+        if development: queue = 'development'
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)
+        if development:
+            fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )
+        else:
+            fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t %d:00:00\n' % nhours )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-type=ALL\n' )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -n %d\n' % tot_jobs )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -N %d\n' % tot_nodes )
+        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A TG-MCB120152\n' )
+        fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
+        fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
+        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s\n' % job_file_MPI_ONEBATCH )
     else:
-        fid_qsub_MPI_ONEBATCH.write( '#$ -l h_rt=%2d:00:00 	# Run time (hh:mm:ss)\n' % nhours)
-    #fid_qsub_MPI_ONEBATCH.write( '#$ -M rhiju@stanford.edu	# Address for email notification\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -m be 	# Email at Begin and End of job\n')
-    fid_qsub_MPI_ONEBATCH.write( 'set -x 	# Echo commands, use set echo with csh\n')
-    fid_qsub_MPI_ONEBATCH.write( 'ibrun mpi_simple_job_submit.py %s	# Run the MPI python\n' % job_file_MPI_ONEBATCH)
+        fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -cwd 	# Start job in submission directory\n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -N %s 	# Job Name\n' % (CWD + '/' + outdir).replace( '/', '_' ) )
+        fid_qsub_MPI_ONEBATCH.write( '#$ -j y 	# Combine stderr and stdout\n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -o $JOB_NAME.o$JOB_ID 	# Name of the output file\n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -pe %dway %d 	# Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, N_MPIJOBS_ONEBATCH) )
+        fid_qsub_MPI_ONEBATCH.write( '#$ -q normal 	# Queue name normal\n')
+        if nhours == 0: # for testing
+            fid_qsub_MPI_ONEBATCH.write( '#$ -l h_rt=00:01:00 	# Run time (hh:mm:ss)\n' )
+        else:
+            fid_qsub_MPI_ONEBATCH.write( '#$ -l h_rt=%2d:00:00 	# Run time (hh:mm:ss)\n' % nhours)
+        #fid_qsub_MPI_ONEBATCH.write( '#$ -M rhiju@stanford.edu	# Address for email notification\n')
+        fid_qsub_MPI_ONEBATCH.write( '#$ -m be 	# Email at Begin and End of job\n')
+        fid_qsub_MPI_ONEBATCH.write( 'set -x 	# Echo commands, use set echo with csh\n')
+        fid_qsub_MPI_ONEBATCH.write( 'ibrun mpi_simple_job_submit.py %s	# Run the MPI python\n' % job_file_MPI_ONEBATCH)
 
 
 fid.close()
@@ -284,6 +357,6 @@ if DO_MPI:
         print '>qsub ',qsub_file_MPI_ONEBATCH
         print
 
-    if len( hostname ) == 0 or hostname == 'lonestar':
+    if len( hostname ) == 0 or hostname == 'lonestar' or hostname == "stampede":
         print 'Created MPI submission files ',qsub_file_MPI,' with ',tot_jobs, ' jobs queued. To run, type: '
         print '>source ',qsub_file_MPI

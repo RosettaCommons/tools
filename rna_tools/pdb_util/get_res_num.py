@@ -9,11 +9,7 @@ pdbs = argv[1:]
 
 for main_pdb in pdbs:
 
-    [ coords_main, lines_main, sequence_main ] = read_pdb( main_pdb )
+    [ coords_main, lines_main, sequence_main, chains, residues ] = read_pdb( main_pdb )
 
-    chains = lines_main.keys()
-    chains.sort()
-    for chain in chains:
-        residues = lines_main[ chain ].keys()
-        print make_tag_with_dashes( residues, [] )
+    print make_tag_with_dashes( residues )
 

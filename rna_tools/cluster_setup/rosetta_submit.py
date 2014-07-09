@@ -210,13 +210,13 @@ if DO_MPI:
         N_MPIJOBS_ONEBATCH += ( tot_jobs/ tasks_per_node_MPI + 1) * tasks_per_node_MPI
         tot_nodes += 1
 
+    count = 0
     for n in range( tot_nodes ):
         # big pain in the ass -- the way we submit jobs via ppserver.py  is
         # failing unless we split the job processor by processor!
         job_submit_file_MPI = '%s/qsubMPI%d.job' % (qsub_file_dir_MPI, n )
 
         fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
-        count = 0
         for m in range( tasks_per_node_MPI ):
             count = count + 1
             if ( count <= tot_jobs ):

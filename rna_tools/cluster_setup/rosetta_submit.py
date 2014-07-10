@@ -210,13 +210,13 @@ if DO_MPI:
         N_MPIJOBS_ONEBATCH += ( tot_jobs/ tasks_per_node_MPI + 1) * tasks_per_node_MPI
         tot_nodes += 1
 
+    count = 0
     for n in range( tot_nodes ):
         # big pain in the ass -- the way we submit jobs via ppserver.py  is
         # failing unless we split the job processor by processor!
         job_submit_file_MPI = '%s/qsubMPI%d.job' % (qsub_file_dir_MPI, n )
 
         fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
-        count = 0
         for m in range( tasks_per_node_MPI ):
             count = count + 1
             if ( count <= tot_jobs ):
@@ -250,8 +250,7 @@ if DO_MPI:
             fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
             fid_qsub_submit_file_MPI.write( '#SBATCH -A TG-MCB120152\n' )
             fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
-            fid_qsub_submit_file_MPI.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s\n' % job_submit_file_MPI )
+            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_submit_file_MPI )
 
             fid_qsub_submit_file_MPI.close()
 
@@ -302,7 +301,7 @@ if DO_MPI:
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A TG-MCB120152\n' )
         fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
         fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s\n' % job_file_MPI_ONEBATCH )
+        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_file_MPI_ONEBATCH )
     else:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
         fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')

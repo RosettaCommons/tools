@@ -47,6 +47,7 @@ data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
 cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
+extra_minimize_chi_res = parse_options( argv, "extra_minimize_chi_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
 obligate_pair = parse_options( argv, "obligate_pair", [-1] )
 obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
@@ -375,22 +376,22 @@ if len( chain_connection ) > 0:
 #    for i in mg_pos:
 #        cutpoint_open.append( i-1 )
 #        virtual_anchor.append( i )
-
-
-def get_rid_of_last_residue( cutpoint ):
-    cutpoint_no_last = []
+def get_rid_of_previously_defined_cutpoints( cutpoint, working_res ):
+    cutpoint_filter = []
     for m in cutpoint:
-        if ( m < len( working_res ) ): cutpoint_no_last.append( m )
-    return cutpoint_no_last
+        if ( m == len( working_res ) ): continue
+        if ( working_res[ m-1 ]+1 != working_res[ m ] ): continue # already recognized as a cutpoint.
+        cutpoint_filter.append( m )
+    return cutpoint_filter
 
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )
-    cutpoint_open = get_rid_of_last_residue( cutpoint_open )
+    cutpoint_open = get_rid_of_previously_defined_cutpoints( cutpoint_open, working_res )
     if len( cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
 
 if len( cutpoint_closed ) > 0:
     cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    cutpoint_closed = get_rid_of_last_residue( cutpoint_closed )
+    cutpoint_closed = get_rid_of_previosly_defined_cutpoints( cutpoint_closed, working_res )
     if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
@@ -480,6 +481,10 @@ elif len( native_pdb ) > 0:
 if len( extra_minimize_res ) > 0:
     extra_minimize_res = working_res_map( extra_minimize_res, working_res )
     command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res, [] )
+
+if len( extra_minimize_chi_res ) > 0:
+    extra_minimize_chi_res = working_res_map( extra_minimize_chi_res, working_res )
+    command += " -extra_minimize_chi_res " + make_tag_with_dashes( extra_minimize_chi_res, [] )
 
 if len( input_pdbs ) > 0:
     command += " -s"

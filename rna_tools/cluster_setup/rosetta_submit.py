@@ -244,12 +244,12 @@ if DO_MPI:
                 fid_qsub_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
             else:
                 fid_qsub_submit_file_MPI.write( '#SBATCH -t %d:00:00\n' % nhours )
-            fid_qsub_submit_file_MPI.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
-            fid_qsub_submit_file_MPI.write( '#SBATCH --mail-type=ALL\n' )
+            #fid_qsub_submit_file_MPI.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
+            #fid_qsub_submit_file_MPI.write( '#SBATCH --mail-type=ALL\n' )
             fid_qsub_submit_file_MPI.write( '#SBATCH -n %d\n' % tasks_per_node_MPI )
             fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
             fid_qsub_submit_file_MPI.write( '#SBATCH -A TG-MCB120152\n' )
-            fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
+            #fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
             fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_submit_file_MPI )
 
             fid_qsub_submit_file_MPI.close()
@@ -294,13 +294,13 @@ if DO_MPI:
             fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )
         else:
             fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t %d:00:00\n' % nhours )
-        fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
-        fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-type=ALL\n' )
+        #fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
+        #fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-type=ALL\n' )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -n %d\n' % tot_jobs )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -N %d\n' % tot_nodes )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A TG-MCB120152\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
+        #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
+        #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
         fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_file_MPI_ONEBATCH )
     else:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')

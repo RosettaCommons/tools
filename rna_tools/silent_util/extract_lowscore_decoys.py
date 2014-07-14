@@ -272,7 +272,7 @@ for infile in infiles:
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
         else:
-            command += " -out:file:residue_type_set rna "
+            command += " -out:file:residue_type_set rna -patch_selectors TERMINAL_PHOSPHATE"
 
         if output_virtual: command += " -output_virtual "
 

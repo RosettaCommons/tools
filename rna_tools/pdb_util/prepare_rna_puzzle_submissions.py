@@ -6,15 +6,27 @@ from os import system
 lines = open( 'submit_order.list' ).readlines()
 pdbs = map( lambda x:x[:-1], lines )
 
+def Help():
+    print
+    print argv[0], ' <Puzzle Number> '
+    print
+    print '  pdb file names should be specified in order in submit_order.list'
+    print
+    exit( 0 )
+if len( argv ) == 1:
+    Help()
+
+problem_number = int( argv[1] )
+
 count = 0
 for pdb in pdbs:
     count = count+1
 
-    command = 'rna_rosetta_to_pdb.py  -pdb %s ' % pdb
+    new_pdb = 'DASLAB_Problem%d_Rank%d.pdb' % (problem_number, count )
+    command = 'reorder_to_standard_pdb.py %s > %s' % ( pdb, new_pdb )
     print command
     system( command )
 
-    new_pdb = pdb.replace( '.pdb', '_standard.pdb' )
-    command = 'mv %s DASLAB_%04d.pdb' % (new_pdb, count )
-    print command
-    system( command )
+command = 'tar cvfz DASLAB_Problem%d.tgz DASLAB_Problem%d_Rank*.pdb' % (problem_number, problem_number)
+print command
+system( command )

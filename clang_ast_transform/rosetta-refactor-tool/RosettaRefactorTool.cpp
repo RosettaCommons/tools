@@ -178,6 +178,9 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
 			#include "matchers/dynamic_cast.hh"
 		}
+		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
+			#include "matchers/pose_dynamic_cast.hh"
+		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
 			#include "matchers/call_operator.hh"
 		}

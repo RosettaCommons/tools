@@ -4,7 +4,7 @@ from sys import argv
 from os import system
 
 lines = open( 'submit_order.list' ).readlines()
-pdbs = map( lambda x:x[:-1], lines )
+pdbs = map( lambda x.replace( '\n', ''), lines )
 
 def Help():
     print

@@ -158,6 +158,9 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "find" || matcher == "find_calls") {
 			#include "matchers/find_calls.hh"
 		}
+		if(matcher == "find" || matcher == "find_this_into_op") {
+			#include "matchers/find_this_into_op.hh"
+		}
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
@@ -177,6 +180,9 @@ int RosettaRefactorTool::runMatchers() {
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
 			#include "matchers/dynamic_cast.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_datamap_get") {
+			#include "matchers/datamap_get.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
 			#include "matchers/pose_dynamic_cast.hh"

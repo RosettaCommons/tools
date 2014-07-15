@@ -110,20 +110,12 @@ public:
 */
 
 Finder.addMatcher(
-	newExpr(
-		anyOf(
-			hasParent(
-				constructExpr(isUtilityPointer()).bind("castTo")
-			),
-			hasParent(
-				implicitCastExpr(
-					hasParent(
-						constructExpr(isUtilityPointer()).bind("castTo")
-					)
-				)
-			)
+	constructExpr(
+		isUtilityPointer(),
+		has(
+			newExpr().bind("castFrom")
 		)
-	).bind("castFrom"),
+	).bind("castTo"),
 	new RewriteCastFromNew(Replacements, "CastFromNew:constructExpr"));
 
 

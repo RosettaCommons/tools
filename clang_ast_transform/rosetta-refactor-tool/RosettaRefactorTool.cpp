@@ -152,14 +152,16 @@ int RosettaRefactorTool::runMatchers() {
 		/////////////////////////////////
 
 		// Finders
-		if(matcher == "find" || matcher == "find_naked_ptr_op_casts") {
-			#include "matchers/find_naked_ptr_op_casts.hh"
-		}
 		if(matcher == "find" || matcher == "find_calls") {
 			#include "matchers/find_calls.hh"
 		}
-		if(matcher == "find" || matcher == "find_this_into_op") {
-			#include "matchers/find_this_into_op.hh"
+		if(matcher == "find" || matcher == "find_naked_ptr_op_casts") {
+			#include "matchers/find_naked_ptr_op_casts.hh"
+		}
+
+		// Code quality checkers
+		if(matcher == "quality_check" || matcher == "find_bad_pointer_casts") {
+			#include "matchers/find_bad_pointer_casts.hh"
 		}
 
 		// Rewriters

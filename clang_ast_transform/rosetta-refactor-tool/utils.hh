@@ -9,8 +9,8 @@ std::string color(const char *_color) {
 		return "";
 
 	std::string color(_color);
-	if(color == "")       return "\033[30m";
-	if(color == "black")  return "\033[30m";
+	if(color == "")       return "\033[0m";
+	if(color == "black")  return "\033[0m";
 	if(color == "red")    return "\033[31m";
 	if(color == "green")  return "\033[32m";
 	if(color == "brown")  return "\033[33m";

@@ -36,11 +36,11 @@ public:
 
 */
 
-class PointerCastFinder : public ReplaceMatchCallback {
+class BadPointerCastFinder : public ReplaceMatchCallback {
 public:
-	PointerCastFinder(
+	BadPointerCastFinder(
 		tooling::Replacements *Replace,
-		const char *tag = "PointerCastFinder") :
+		const char *tag = "BadPointerCastFinder") :
 		ReplaceMatchCallback(Replace, tag) {}
 
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
@@ -51,19 +51,13 @@ public:
 		if(!rewriteThisFile(castFrom, sm))
 			return;
 
-		const std::string locStr( castFrom->getSourceRange().getBegin().printToString(sm) );
+		const std::string locStr = castFrom->getSourceRange().getBegin().printToString(sm);
 		const std::string castFromType = QualType::getAsString( castFrom->getType().split() );
 		const std::string castToType = QualType::getAsString( castTo->getType().split() );
+		const std::string castFromTypeD = QualType::getAsString( castFrom->getType().getSplitDesugaredType() );
+		const std::string castToTypeD = QualType::getAsString( castTo->getType().getSplitDesugaredType() );
 
-		// Desugared types
-		const std::string castFromTypeD(
-			castFrom ? QualType::getAsString( castFrom->getType().getSplitDesugaredType() ) : ""
-		);
-		const std::string castToTypeD(
-			castTo ? QualType::getAsString( castTo->getType().getSplitDesugaredType() ) : ""
-		);
-
-		if(Debug) {
+		if(Verbose) {
 			llvm::errs() << tag << ": " << locStr << "\n";
 
 			llvm::errs() << "castFrom: " << color("green") << castFromType << color("") << "\n";
@@ -87,7 +81,7 @@ Finder.addMatcher(
 			thisExpr().bind("castFrom")
 		)
 	).bind("castTo"),
-	new PointerCastFinder(Replacements, "PointerCastFinder:thisExpr"));
+	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:thisExpr"));
 
 
 // XOP x2 = &x1_r;
@@ -100,4 +94,4 @@ Finder.addMatcher(
 			constructExpr( isUtilityPointer() ).bind("castTo")
 		)
 	).bind("castFrom"),
-	new PointerCastFinder(Replacements, "PointerCastFinder:unaryOperator"));
+	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:unaryOperator"));

@@ -303,48 +303,58 @@ def erraser_single_res( option ) :
         minimize_option = deepcopy(option)
 
         #Scores for other rebuilt models
-        for i in xrange(0,9) :
-            rebuilt_pdb = './temp_pdb_res_%d/output_pdb/S_00000%d.pdb' % (option.rebuild_res, i)
+        for i in xrange(option.num_pose_kept_cluster) :
+            rebuilt_pdb = './temp_pdb_res_%d/output_pdb/S_%06d.pdb' % (option.rebuild_res, i)
             if exists(rebuilt_pdb) :
-                minimize_option.input_pdb = rebuilt_pdb
-                minimize_option.out_pdb = rebuilt_pdb.replace('.pdb', 'min.pdb')
-                minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_%d.out' % (option.rebuild_res, i)
-                erraser_minimize( minimize_option )
-                score = 0.0
-                min_out_lines = open(minimize_option.log_out).readlines()
-                for j in xrange( len(min_out_lines) - 1, -1, -1) :
-                    if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
-                        score = float(min_out_lines[j].split()[-1])
-                        break
-                if len(res_sliced) != 0 :
-                    sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, rebuilt_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
-                    final_pdb_list.append([score, rebuilt_pdb.replace('.pdb', '_merge.pdb')])
-                else :
-                    final_pdb_list.append([score, minimize_option.out_pdb])
+                if option.skip_single_res_minimize:
+                    if len(res_sliced) != 0 :
+                        merged_pdb = rebuilt_pdb.replace('.pdb', '_merge.pdb')
+                        sliced2orig_merge_back(native_pdb, rebuilt_pdb, merged_pdb, res_sliced )
+                    final_pdb_list.append([i, merged_pdb])
+                else:
+                    minimize_option.input_pdb = rebuilt_pdb
+                    minimize_option.out_pdb = rebuilt_pdb.replace('.pdb', 'min.pdb')
+                    minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_%d.out' % (option.rebuild_res, i)
+                    erraser_minimize( minimize_option )
+                    score = 0.0
+                    min_out_lines = open(minimize_option.log_out).readlines()
+                    for j in xrange( len(min_out_lines) - 1, -1, -1) :
+                        if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
+                            score = float(min_out_lines[j].split()[-1])
+                            break
+                    if len(res_sliced) != 0 :
+                        sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, rebuilt_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
+                        final_pdb_list.append([score, rebuilt_pdb.replace('.pdb', '_merge.pdb')])
+                    else :
+                        final_pdb_list.append([score, minimize_option.out_pdb])
             else :
                 break
         final_pdb_list = sorted(final_pdb_list)
 
         #Get (minimized) native score
-        native_merge_pdb = ''
-        if exists(native_pdb_sliced) :
-            minimize_option.input_pdb = native_pdb_sliced
-        else :
-            minimize_option.input_pdb = native_pdb
-        minimize_option.out_pdb = native_pdb.replace('.pdb', 'min.pdb')
-        minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_native.out' % option.rebuild_res
-        erraser_minimize( minimize_option )
-        native_score = 0.0
-        min_out_lines = open(minimize_option.log_out).readlines()
-        for j in xrange( len(min_out_lines) - 1, -1, -1) :
-            if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
-                native_score = float(min_out_lines[j].split()[-1])
-                break
-        if len(res_sliced) != 0 :
-            sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, native_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
-            native_merge_pdb = native_pdb.replace('.pdb', '_merge.pdb')
-        else :
-            native_merge_pdb = minimize_option.out_pdb
+        if option.skip_single_res_minimize:
+            native_merge_pdb = native_pdb
+            native_score = 0.0
+        else:
+            native_merge_pdb = ''
+            if exists(native_pdb_sliced) :
+                minimize_option.input_pdb = native_pdb_sliced
+            else :
+                minimize_option.input_pdb = native_pdb
+            minimize_option.out_pdb = native_pdb.replace('.pdb', 'min.pdb')
+            minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_native.out' % option.rebuild_res
+            erraser_minimize( minimize_option )
+            native_score = 0.0
+            min_out_lines = open(minimize_option.log_out).readlines()
+            for j in xrange( len(min_out_lines) - 1, -1, -1) :
+                if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
+                    native_score = float(min_out_lines[j].split()[-1])
+                    break
+            if len(res_sliced) != 0 :
+                sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, native_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
+                native_merge_pdb = native_pdb.replace('.pdb', '_merge.pdb')
+            else :
+                native_merge_pdb = minimize_option.out_pdb
 
         #Output scores
         out_score = open("../scores.out" ,'w')
@@ -829,15 +839,15 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
     sampling_cmd += " -sampler_extra_chi_rotamer true "
-    sampling_cmd += " -sampler_cluster_rmsd %s " % 0.3
+    sampling_cmd += " -cluster::radius %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "
     sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
-    sampling_cmd += " -sampler_native_rmsd_screen %s " % str(native_screen).lower()
     sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()
-    sampling_cmd += " -sampler_native_screen_rmsd_cutoff %s " % option.native_screen_RMSD
+    if native_screen:
+        sampling_cmd += " -rmsd_screen %s " % option.native_screen_RMSD
     sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
     sampling_cmd += " -PBP_clustering_at_chain_closure true "
     sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
@@ -927,7 +937,7 @@ def SWA_rebuild_erraser( option ) :
         cluster_args += " -rmsd_res %d " % rebuild_res_final
         cluster_args += " -add_lead_zero_to_tag true "
         cluster_args += " -add_virt_root true "
-        cluster_args += " -in:file:silent_struct_type  binary_rna"
+        cluster_args += " -in:file:silent_struct_type rna"
         cluster_args += " -in:file:silent %s/blah.out " % sampling_folder
         cluster_args += " -PBP_clustering_at_chain_closure true "
         cluster_args += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "

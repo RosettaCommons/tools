@@ -99,7 +99,7 @@ def main(args):
 
     # determing gcc version...
     (res, output) = commands.getstatusoutput('gcc -v')
-    res = output.rfind('version 4.8')
+    res = output.rfind('version 4.9')
     if res >= 0:
         print GCC_DowngradeMessage % output
         sys.exit(1)
@@ -114,7 +114,7 @@ def main(args):
     source_dir = working_dir + '/source'
     rosetta_source_dir = os.path.abspath(Options.rosetta_source)
 
-    i_cmake = 'cmake-2.8.10.2'  #'cmake-2.8.7'
+    i_cmake = 'cmake-2.8.12.2'  #'cmake-2.8.7'
     #i_pygccxml = 'pygccxml-1.0.0'
     #i_pyplusplus = 'Py++-1.0.0'
     i_boost_version = (1, 55, 0)  # (1, 54, 0)

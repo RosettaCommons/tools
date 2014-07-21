@@ -1,0 +1,75 @@
+Luki Goldschmidt <lugo@uw.edu>
+June 2014
+
+This is a clang tool to refactor the Rosetta codebase. It uses the clang AST
+matchers to find nodes in the AST and optionally rewrites the original source
+code associated with them. Tested with clang 3.5 (essentially trunk).
+
+
+SETUP:
+===============================================================================
+
+Get the llvm and clang sources per the instructions on their website:
+http://clang.llvm.org/get_started.html
+
+Add the rosetta-refactor-tool to the build:
+
+1) Adding to $LLVM_SRC/tools/clang/tools/extra/CMakeList.txt:
+	add_subdirectory(rosetta-refactor-tool)
+	
+2) Create a sym link LLVM_SRC/tools/clang/tools/extra/rosetta-refactor-tool
+to the subdirectory rosetta-refactor-tool in here.
+
+Build with whatever means (make, cmake, ninja). You should end up
+with a binary: build/bin/rosetta-refactor-tool
+
+See README.BUILDING for a transcript of build commands.
+
+
+AST MATCHERS:
+===============================================================================
+
+The AST matchers live in separate .hh files in the rosetta-refactor-tool/matchers
+directory. To add new matchers, create a new file there and include it in
+RosettaRefactorTool.cc in runMatchers() around 150. For each matcher, there is
+a callback class and method that will handle the rewrite or reporting, and a
+set of matchers (see http://clang.llvm.org/docs/LibASTMatchersReference.html)
+
+A good intro video to concepts of AST matchers is here (although the
+presented matcher syntax doesn't work for me):
+https://www.youtube.com/watch?v=yuIOGfcOH0k
+
+
+RUNNING:
+===============================================================================
+
+Take a look at the run.sh and rewrite_file.sh files; adjust paths as needed.
+See -help for additional run-time flags, which can be used with run.sh like:
+
+./run.sh test-cases.cc -matchers=find -verbose -debug
+
+Rewriting file example:
+./rewrite_file.sh src/numeric/expression_parser/Arithmetic.cc
+
+Finding suspicious statements:
+./run.sh test-cases.cc -matchers=find
+
+The matchers to execute can be selected at run time using the -matchers=
+argument, which takes a comma separated list of matchers. Matchers will be
+applied to the AST in the order specified in that argument, then finally
+any changes are written to an output file with the same name but in the
+specified output directory (same as source or a new directory).
+
+
+Running on all files:
+
+ME=$PWD
+ROOT=/data/rosetta
+SRC=$ROOT/main/source/src
+export PYTHONPATH=$ROOT/tools/python_cc_reader
+
+cd $SRC
+python $ME/run_on_all_files_w_fork.py -e $ME/rewrite_file.sh -n 20
+
+A full rewrite takes around 10-15 minutes on 20 cores.
+

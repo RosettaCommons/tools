@@ -1,0 +1,56 @@
+Luki Goldschmidt <lugo@uw.edu>
+April 2014
+
+These notes pertain to the pointer rewrite from our owning_ptr/access_ptr
+to std::shared_ptr and std::weak_ptr.
+
+Preparatory changes to the original code that help with rewrites are kept in
+the branch luki-mbi/ptr_rewrite_prep branch:
+https://github.com/RosettaCommons/main/tree/luki-mbi/ptr_rewrite_prep
+Those changes should patch easily to a newer revision of the master.
+
+Use those as the starting point for the rewrite, say in:
+/data/rosetta/main/
+
+Make a copy of that branch to a new location, i.e.:
+/data/rosetta/main-copy/
+
+Run the rosetta-refactor-tool on the entire code base to rewrite changes
+from /data/rosetta/main/ to /data/rosetta/main-copy/:
+
+ME=$PWD
+ROOT=/data/rosetta
+export PYTHONPATH=$ROOT/tools/python_cc_reader
+
+cd $ROOT/main/source/src
+python $ME/run_on_all_files_w_fork.py -e $ME/rewrite_file.sh -n 8
+
+After the rewrite, in main-copy:
+
+1) enable c++11 in source/tools/build/basic.settings
+
+2) replace the pointer management classes in source/src/utility/pointer/
+with those in source/src/utility/pointer/std/ (in luki-mbi/ptr_rewrite_prep)
+
+Try to compile it with scons.
+
+Keep track of the additional manual changes you make to the rewritten code
+in a separate directory, then make a patch file so that those can be
+later re-applied after a new rewrite easily.
+
+Example to make a patch:
+/data/rosetta/main-patches/ = tree with manual changes
+/data/rosetta/main-copy/ = tree without manual changes, but after rewrite
+
+#!/bin/bash
+cd /data/rosetta/main-patches/
+>manual-changes.patch
+for F in `find source/ -type f`; do
+	diff -Nuw ../main-copy/$F $F | sed -s '#../main-copy/##' >> manual-changes.patch
+done
+
+
+To apply the patch, just run:
+
+cd /data/rosetta/main-copy/
+patch -p0 --merge < /path/to/manual-changes.patch

@@ -20,7 +20,7 @@ for pdb in pdbs:
             if ( rsd-1 not in coords[chain].keys() ): continue
             if ( " P  "  in  coords[ chain ][ rsd ].keys() ):
                 x1 = coords[ chain ][ rsd   ][ " P  " ]
-                x2 = coords[ chain ][ rsd-1 ][ " O3*" ]
+                x2 = coords[ chain ][ rsd-1 ][ " O3'" ]
                 dist2 = 0
                 for k in range(3):
                     d = x1[k] - x2[k]
@@ -33,9 +33,9 @@ for pdb in pdbs:
     cutpoints = []
     for chain in coords.keys():
         for rsd in coords[ chain ].keys():
-            if ( " O5*"  in  coords[ chain ][ rsd ].keys() ):
-                x1 = coords[ chain ][ rsd   ][ " C5*" ]
-                x2 = coords[ chain ][ rsd   ][ " O5*" ]
+            if ( " O5'"  in  coords[ chain ][ rsd ].keys() ):
+                x1 = coords[ chain ][ rsd   ][ " C5'" ]
+                x2 = coords[ chain ][ rsd   ][ " O5'" ]
                 dist2 = 0
                 for k in range(3):
                     d = x1[k] - x2[k]
@@ -43,5 +43,5 @@ for pdb in pdbs:
                 dist = sqrt( dist2 )
                 if ( dist > CUTOFF ): cutpoints.append( rsd )
 
-    print "C5*-O5* problem: ", make_tag( cutpoints )
+    print "C5'-O5' problem: ", make_tag( cutpoints )
     print

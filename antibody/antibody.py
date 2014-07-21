@@ -1058,7 +1058,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         print '\nRunning antibody_graft'
         # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
         commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
-                      ' -antibody::h3_no_stem_graft -scorefile score-graft.sf'
+                      ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'

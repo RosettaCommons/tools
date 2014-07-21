@@ -62,7 +62,7 @@ for pdb in pdbs:
         print command
         system( command )
 
-        command = 'renumber_pdb_in_place.py %s_fixcutpoint.pdb   %s' (tag,resnum_line)
+        command = 'renumber_pdb_in_place.py %s_fixcutpoint.pdb  %s' (tag,resnum_line)
         print command
         system( command )
     else:

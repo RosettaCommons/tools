@@ -39,6 +39,7 @@ class erraser_option :
         self.fixed_res_rs = []
         self.cutpoint_rs = []
         self.rebuild_res_pdb = ""
+        self.skip_single_res_minimize = False
 
         #Minimize
         self.vary_geometry = True
@@ -148,6 +149,8 @@ class erraser_option :
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
+        self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
+        self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         self.finalize()
 
     def read_cmdline_erraser_single_res( self, argv ) :
@@ -165,6 +168,7 @@ class erraser_option :
 
         #erraser options
         self.rebuild_res_pdb = parse_options( argv, "rebuild_res", '' )
+        self.skip_single_res_minimize = parse_options( argv, "skip_single_res_minimize", "False" )
 
         #SWA rebuilding
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
@@ -172,6 +176,8 @@ class erraser_option :
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
+        self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
+        self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         self.finalize()
 
     def finalize( self ) :
@@ -205,9 +211,9 @@ class erraser_option :
 
         if self.scoring_file == "" :
             if self.map_file == "" :
-                self.scoring_file = "rna/rna_loop_hires_04092010 "
+                self.scoring_file = "stepwise/rna/rna_loop_hires_04092010 "
             else :
-                self.scoring_file = "rna/rna_hires_elec_dens "
+                self.scoring_file = "stepwise/rna/rna_hires_elec_dens "
 
         if self.rosetta_bin != '' and self.rosetta_folder != '':
             error_exit("The options 'rosetta_folder' and 'rosetta_bin' are incompatible! Specify only one of them.")

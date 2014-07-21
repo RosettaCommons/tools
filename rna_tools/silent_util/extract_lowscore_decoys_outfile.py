@@ -84,7 +84,7 @@ if output_to_file: assert( len( infiles ) == 1 )
 for infile in infiles:
 
     if len( firstlines ) == 0:
-        firstlines = popen('head -n 3 '+infile).readlines()
+        firstlines = popen('head -n 5 '+infile).readlines()
         scoretags = string.split( firstlines[1] )
         if firstlines[0].find( "SEQUENCE" ) < 0  and   firstlines[0].find("SCORE:") >= 0:
             IS_OUTFILE = 0
@@ -153,15 +153,22 @@ if output_to_file:
     newfile = newfile.replace( ".out", ".top%d.out" % NSTRUCT  )
     fid = open( newfile , 'w' )
 
+
 if not IS_OUTFILE:
     command = 'head -n 1 '+infile
     lines = popen(command).readlines()
 elif (firstlines[2][:6] == 'REMARK' ):
     command = 'head -n 3 '+infile
     lines = popen(command).readlines()
+elif (firstlines[4][:6] == 'REMARK' ):
+    command = 'head -n 5 '+infile
+    lines = popen(command).readlines()
+    del( lines[2] )
+    del( lines[2] )
 else:
     command = 'head -n 2 '+infile
     lines = popen(command).readlines()
+
 
 for line in lines: fid.write( line )
 

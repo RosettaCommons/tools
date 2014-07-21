@@ -39,6 +39,10 @@ if len( argv ) > 4:
     nhours = int( argv[4] )
     if ( nhours > 168 ):  Help()
 
+if not exists( infile ):
+    print 'Could not find: ', infile
+    exit( 0 )
+
 lines = open(infile).readlines()
 
 bsub_file = 'bsubMINI'
@@ -100,6 +104,7 @@ for line in lines:
     dir = outdir + '/$(Process)/'
     command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
+    command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
     command_line = command_line.replace( '-o ', '-o '+dir)
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
@@ -149,12 +154,13 @@ for line in lines:
         fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
         fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
         fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
+        fid_qsub_submit_file.write('#PBS -m n\n') # no mail
         fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
         fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
-        fid_qsub.write( 'qsub %s\n' % qsub_submit_file )
+        fid_qsub.write( 'qsub.sh %s\n' % qsub_submit_file )
 
         # MPI job file
         if DO_MPI: fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
@@ -244,7 +250,7 @@ if DO_MPI:
     else:
         fid_qsub_MPI_ONEBATCH.write( '#$ -l h_rt=%2d:00:00 	# Run time (hh:mm:ss)\n' % nhours)
     #fid_qsub_MPI_ONEBATCH.write( '#$ -M rhiju@stanford.edu	# Address for email notification\n')
-    fid_qsub_MPI_ONEBATCH.write( '#$ -m be 	# Email at Begin and End of job\n')
+    #fid_qsub_MPI_ONEBATCH.write( '#$ -m be 	# Email at Begin and End of job\n')
     fid_qsub_MPI_ONEBATCH.write( 'set -x 	# Echo commands, use set echo with csh\n')
     fid_qsub_MPI_ONEBATCH.write( 'ibrun mpi_simple_job_submit.py %s	# Run the MPI python\n' % job_file_MPI_ONEBATCH)
 

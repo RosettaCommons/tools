@@ -111,7 +111,7 @@ public:
 
 Finder.addMatcher(
 	constructExpr(
-		isUtilityPointer(),
+		isUtilityOwningPointer(),
 		has(
 			newExpr().bind("castFrom")
 		)
@@ -144,7 +144,7 @@ Finder.addMatcher(
 					declRefExpr(
 						allOf(
 							isNotClassOperator(),
-							isUtilityPointer()
+							isUtilityOwningPointer()
 						)
 					).bind("castTo")
 				)

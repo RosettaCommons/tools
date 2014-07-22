@@ -79,7 +79,8 @@ Finder.addMatcher(
 	constructExpr(
 		has(
 			thisExpr().bind("castFrom")
-		)
+		),
+		isUtilityPointer()
 	).bind("castTo"),
 	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:thisExpr"));
 

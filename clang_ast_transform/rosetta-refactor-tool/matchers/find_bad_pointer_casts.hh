@@ -92,6 +92,9 @@ Finder.addMatcher(
 	unaryOperator(
 		hasParent(
 			constructExpr( isUtilityPointer() ).bind("castTo")
+		),
+		has(
+			expr().bind("castFrom")
 		)
-	).bind("castFrom"),
+	),
 	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:unaryOperator"));

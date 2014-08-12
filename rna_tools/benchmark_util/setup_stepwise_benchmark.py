@@ -185,6 +185,8 @@ for name in names:
         fid.write( '-terminal_res %s  \n' % make_tag_with_conventional_numbering( terminal_res[ name ], resnums[ name ], chains[ name ] ) )
     if len( extra_min_res[ name ] ) > 0:
         fid.write( '-extra_min_res %s \n' % make_tag_with_conventional_numbering( extra_min_res[ name ], resnums[ name ], chains[ name ] ) )
+    if ( len( input_pdbs[ name ] ) == 0 ):
+        fid.write( '-superimpose_over_all\n' ) # RMSD over everything -- better test since helices are usually native
     fid.write( '-cycles 1000\n' )
     fid.write( '-nstruct 20\n' )
 

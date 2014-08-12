@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import sys
 import PSSM
 from Bio.PDB import *

@@ -179,6 +179,7 @@ for line in lines:
         fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
         fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
         fid_qsub_submit_file.write('#PBS -m n\n') # no mail
+        fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
         fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
         fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )

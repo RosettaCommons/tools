@@ -1,19 +1,26 @@
 #!/usr/bin/env python
-
-
 import sys
 import string
-from os import system,popen
-from os.path import basename, abspath, dirname
+from os import system,popen,getcwd,chdir
+from os.path import basename, abspath, dirname,exists
 from glob import glob
 
 outfiles = sys.argv[1:]
-
 scripts_path = dirname( abspath( sys.argv[0] ) )
 
 which_files_to_cat = {}
 
 for outfile in outfiles:
+    if not exists( outfile ): # look inside subdirectories
+        globdirs = glob( '*/%s' % outfile )
+        CWD = getcwd()
+        for globdir in globdirs:
+            chdir( dirname( globdir ) )
+            print dirname( globdir )
+            system( 'easy_cat.py %s' % outfile )
+            print
+            chdir( CWD )
+        continue
     if (outfile[-4:] == '.out' ):
         #Old style, user specified a bunch of outfiles.
         tag = string.join( string.split( outfile,'_' )[:-2] , '_')

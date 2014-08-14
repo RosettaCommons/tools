@@ -108,7 +108,7 @@ Please use the following references for external dependencies:
  Altschul, S.F., Madden, T.L., Schäffer, A.A., Zhang, J., Zhang, Z., Miller, W. & Lipman, D.J (1997) "Gapped
  BLAST and PSI-BLAST: a new generation of protein database search programs." Nucleic Acids Res. 25:3389-3402
 
-- SPARKS-X (http://sparks.informatics.iupui.edu/sparks-x/)
+- SPARKS-X (http://sparks-lab.org/yueyang/server/SPARKS-X/)
 
  Yuedong Yang, Eshel Faraggi, Huiying Zhao, Yaoqi Zhou. Improving protein fold recognition and template-based
  modeling by employing probabilistic-based matching between predicted one-dimensional structural properties of

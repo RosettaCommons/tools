@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import sys
 import string
-from os import system,popen,getcwd,chdir
-from os.path import basename, abspath, dirname,exists
+from os import system,popen,getcwd,chdir,listdir
+from os.path import basename,abspath, dirname,exists,join,isdir
 from glob import glob
 
 outfiles = sys.argv[1:]
@@ -12,11 +12,12 @@ which_files_to_cat = {}
 
 for outfile in outfiles:
     if not exists( outfile ): # look inside subdirectories
-        globdirs = glob( '*/%s' % outfile )
+        d = '.'
         CWD = getcwd()
-        for globdir in globdirs:
-            chdir( dirname( globdir ) )
-            print dirname( globdir )
+        subdirs = [o for o in listdir(d) if isdir(join(d,o))]
+        for subdir in subdirs:
+            chdir( subdir )
+            print subdir
             system( 'easy_cat.py %s' % outfile )
             print
             chdir( CWD )

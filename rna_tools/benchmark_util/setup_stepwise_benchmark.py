@@ -196,7 +196,13 @@ for name in names:
     # case-specific extra flags
     if len( extra_flags[name] ) > 0 : fid.write( '%s\n' % extra_flags[name] )
     # extra flags for whole benchmark
-    for flag in extra_flags_benchmark: fid.write( flag )
+    weights_file = ''
+    for flag in extra_flags_benchmark:
+        if ( flag.find( '-score:weights' ) == 0 ): weights_file = string.split( flag )[1]
+        fid.write( flag )
+    if len( weights_file ) > 0:
+        assert( exists( weights_file ) )
+        system( 'cp ' + weights_file + ' ' + name )
 
     fid.close()
 

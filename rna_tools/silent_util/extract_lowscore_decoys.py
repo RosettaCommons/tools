@@ -15,7 +15,10 @@ def Help():
     print '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>'
     print '    (for highest Rg).'
     print
-
+    print ' You might consider using an alias "ex" for this function. Add '
+    print '  alias ex="extract_lowscore_decoys.py" '
+    print ' to your ~/.bashrc script.'
+    print
     exit()
 
 
@@ -272,7 +275,7 @@ for infile in infiles:
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
         else:
-            command += " -out:file:residue_type_set rna -patch_selectors TERMINAL_PHOSPHATE"
+            command += " -out:file:residue_type_set rna "
 
         if output_virtual: command += " -output_virtual "
 

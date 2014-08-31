@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='Setup benchmark for stepwise monte
 parser.add_argument("info_file",       help='text file with information, in same directory as input_files/ (e.g., "../favorites.txt")')
 parser.add_argument("user_input_runs", nargs='*',help='specify particular cases to run (default: run all in info_file)' )
 parser.add_argument('-extra_flags', default='', help='Filename of text file with extra_flags for all cases.')
+parser.add_argument('-nhours', default='16', type=int, help='Number of hours to queue each job.')
 args = parser.parse_args()
 
 # read in benchmark information & create any missing input files.
@@ -187,8 +188,9 @@ for name in names:
         fid.write( '-extra_min_res %s \n' % make_tag_with_conventional_numbering( extra_min_res[ name ], resnums[ name ], chains[ name ] ) )
     if ( len( input_pdbs[ name ] ) == 0 ):
         fid.write( '-superimpose_over_all\n' ) # RMSD over everything -- better test since helices are usually native
-    fid.write( '-cycles 1000\n' )
+    fid.write( '-cycles 200\n' )
     fid.write( '-nstruct 20\n' )
+    fid.write( '-intermolecular_frequency 0.0\n' )
 
     if len( native[ name ] ) > 0:
         system( 'cp %s %s/' % (working_native[name],name) )
@@ -208,7 +210,7 @@ for name in names:
 
     CWD = getcwd()
     chdir( name )
-    system( 'rosetta_submit.py README_SWM SWM 10' )
+    system( 'rosetta_submit.py README_SWM SWM 10 %d' % args.nhours )
     chdir( CWD )
 
     fid_qsub.write( 'cd %s; source qsubMINI; cd %s\n' % ( name, CWD ) )

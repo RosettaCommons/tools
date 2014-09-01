@@ -13,7 +13,8 @@ from sys import argv
 parser = argparse.ArgumentParser(description='Setup benchmark for stepwise monte carlo')
 parser.add_argument("info_file",       help='text file with information, in same directory as input_files/ (e.g., "../favorites.txt")')
 parser.add_argument("user_input_runs", nargs='*',help='specify particular cases to run (default: run all in info_file)' )
-parser.add_argument('-extra_flags', default='', help='Filename of text file with extra_flags for all cases.')
+default_extra_flags_benchmark = 'extra_flags_benchmark.txt'
+parser.add_argument('-extra_flags', default=default_extra_flags_benchmark, help='Filename of text file with extra_flags for all cases.')
 parser.add_argument('-nhours', default='16', type=int, help='Number of hours to queue each job.')
 args = parser.parse_args()
 
@@ -162,7 +163,11 @@ for line in lines[ 1: ]:
         if ( next_moving and not prev_moving ): extra_min_res[ name ].append( m )
 
 if len (args.extra_flags) > 0:
-    extra_flags_benchmark = open( args.extra_flags ).readlines()
+    if exists( args.extra_flags ):
+        extra_flags_benchmark = open( args.extra_flags ).readlines()
+    else:
+        print 'Did not find ', args.extra_flags, ' so not using any extra flags for the benchmark'
+        assert ( args.extra_flags == default_extra_flags_benchmark )
 
 for name in names:
     dirname = name
@@ -209,6 +214,8 @@ for name in names:
 
     fid.close()
 
+    print
+    print 'Setting up submission files for: ', name
     CWD = getcwd()
     chdir( name )
     system( 'rosetta_submit.py README_SWM SWM 10 %d' % args.nhours )

@@ -31,15 +31,15 @@ def erraser( option ) :
     temp_dir = '%s/%s_erraser_temp/' % (base_dir, basename(option.input_pdb).replace('.pdb', ''))
     if exists(temp_dir) :
         if option.use_existing_temp_folder :
-            print 'Temporay directory %s exists... Use the data stored in the existing folder.' % temp_dir
+            print 'Temporary directory %s exists... Use the data stored in the existing folder.' % temp_dir
             print 'Because -use_existing_temp_folder is set to True.'
         else :
-            print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
+            print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
             print 'Because -use_existing_temp_folder is set to False.'
             remove(temp_dir)
             os.mkdir(temp_dir)
     else :
-        print 'Create temporay directory %s...' % temp_dir
+        print 'Create temporary directory %s...' % temp_dir
         os.mkdir(temp_dir)
     ########################################################################
     os.chdir(temp_dir)
@@ -236,7 +236,7 @@ def erraser_single_res( option ) :
     base_dir = os.getcwd()
     temp_dir = '%s/%s/' % (base_dir, basename(option.input_pdb).replace('.pdb', '_single_res_rebuild_temp') )
     if exists(temp_dir) :
-        print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
+        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
         remove(temp_dir)
         os.mkdir(temp_dir)
     else :
@@ -506,7 +506,7 @@ def full_struct_slice_and_minimize( option ) :
     base_dir = os.getcwd()
     temp_dir = '%s/%s' % (base_dir, basename(option.input_pdb).replace('.pdb', '_full_minimize_temp') )
     if exists(temp_dir) :
-        print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
+        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
         remove(temp_dir)
         os.mkdir(temp_dir)
     else :
@@ -584,7 +584,7 @@ def seq_rebuild( option ) :
     base_dir = os.getcwd()
     temp_dir = '%s/%s/' % (base_dir, basename(option.input_pdb).replace('.pdb', '_seq_rebuild_temp') )
     if exists(temp_dir) :
-        print 'Temporay directory %s exists... Remove it and create a new folder.' % temp_dir
+        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
         remove(temp_dir)
         os.mkdir(temp_dir)
     else :
@@ -851,6 +851,8 @@ def SWA_rebuild_erraser( option ) :
     sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
     sampling_cmd += " -PBP_clustering_at_chain_closure true "
     sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
+    sampling_cmd += " -allow_virtual_side_chains false"
+    sampling_cmd += " -sampler_perform_phosphate_pack false"
     sampling_cmd += " -add_virt_root true "
 
 

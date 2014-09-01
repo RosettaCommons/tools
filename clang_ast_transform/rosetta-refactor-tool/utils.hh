@@ -121,19 +121,29 @@ bool checkIsUtilityPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
 	return
 		type == "utility::pointer::owning_ptr" ||
-		type == "utility::pointer::access_ptr";
+		type == "utility::pointer::access_ptr" ||
+		type == "utility::pointer::shared_ptr" ||
+		type == "utility::pointer::weak_ptr" ||
+		type == "std::shared_ptr" ||
+		type == "std::weak_ptr";
 }
 
 // Is it our utility access pointer that we care about?
 bool checkIsUtilityAccessPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
-	return type == "utility::pointer::access_ptr";
+	return
+		type == "utility::pointer::access_ptr" ||
+		type == "utility::pointer::weak_ptr" ||
+		type == "std::weak_ptr";
 }
 
 // Is it our utility owning pointer that we care about?
 bool checkIsUtilityOwningPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
-	return type == "utility::pointer::owning_ptr";
+	return
+		type == "utility::pointer::owning_ptr" ||
+		type == "utility::pointer::shared_ptr" ||
+		type == "std::shared_ptr";
 }
 
 // Does it contain a pointer that we care about?

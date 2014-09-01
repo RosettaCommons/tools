@@ -24,7 +24,7 @@ $| = 1; # disable stdout buffering
 #    ./databases/nr        ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
 #    ./psipred             http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/
 #    ./databases/nr_pfilt  from ./databases/nr using ./psipred/bin/pfilt
-#    ./sparks-x            http://sparks.informatics.iupui.edu/index.php?pageLoc=Services
+#    ./sparks-x            http://sparks-lab.org/yueyang/server/SPARKS-X/
 
 # ROSETTA
 my $FRAGMENT_PICKER = "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
@@ -50,7 +50,7 @@ my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
 # $NR will be used if empty
 my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
 
-my $INTERNET_HOST = "ws0"; # "localhost";
+my $INTERNET_HOST = "localhost";
 
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################

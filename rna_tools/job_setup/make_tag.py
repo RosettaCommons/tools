@@ -31,3 +31,11 @@ def make_tag_with_dashes( int_vector, char_vector = 0 ):
             if ( i < len( int_vector) ): start_res = int_vector[i]
 
     return tag
+
+def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
+    tag_resnums = []
+    tag_chains  = []
+    for m in int_vector:
+        tag_resnums.append( resnums[ m - 1 ] )
+        tag_chains.append(  chains [ m - 1 ] )
+    return make_tag_with_dashes( tag_resnums, tag_chains )

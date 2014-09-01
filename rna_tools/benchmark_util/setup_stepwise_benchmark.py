@@ -191,6 +191,7 @@ for name in names:
     fid.write( '-cycles 200\n' )
     fid.write( '-nstruct 20\n' )
     fid.write( '-intermolecular_frequency 0.0\n' )
+    fid.write( '-save_times\n' )
 
     if len( native[ name ] ) > 0:
         system( 'cp %s %s/' % (working_native[name],name) )

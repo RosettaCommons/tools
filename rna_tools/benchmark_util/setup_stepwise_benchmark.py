@@ -58,8 +58,8 @@ for line in lines[ 1: ]:
     working_res[ name ] = cols[3]
     native[ name ]      = cols[4]
     input_res[ name ]   = cols[5]
-    extra_flags[ name ] = cols[6]
-    inpath[ name ]      = relpath + cols[7]
+    inpath[ name ]      = relpath + '/input_files/' + basename( args.info_file.replace('.txt','' ) )
+    extra_flags[ name ] = string.join( cols[6:] )
 
     if extra_flags[ name ] == '-': extra_flags[ name ] = ''
     sequences          = string.split( sequence[name], ',' )
@@ -148,19 +148,19 @@ for line in lines[ 1: ]:
 
     L = len( sequence_joined )
     terminal_res[ name ] = []
+    extra_min_res[ name ] = []
     for m in range( 1, L+1 ):
         if ( m not in input_resnum_fullmodel ): continue
-        if ( m == 1 or m - 1 in chainbreak_pos or \
-             m == L or m in chainbreak_pos ):
+        prev_moving = ( m - 1 not in input_resnum_fullmodel ) and ( m != 1 )
+        next_moving = ( m + 1 not in input_resnum_fullmodel ) and ( m != L )
+        right_before_chainbreak = ( m == L or m in chainbreak_pos )
+        right_after_chainbreak  = ( m == 1 or m - 1 in chainbreak_pos )
+        if ( ( right_after_chainbreak and not next_moving ) or \
+             ( right_before_chainbreak and not prev_moving ) ):
             terminal_res[ name ].append( m )
-
-    extra_min_res[ name ] = []
-    for m in range( 2, L ):
-        if ( m not in input_resnum_fullmodel ): continue
-        prev_moving = ( m - 1 not in input_resnum_fullmodel )
-        next_moving = ( m + 1 not in input_resnum_fullmodel )
-        if ( prev_moving and not next_moving ): extra_min_res[ name ].append( m )
-        if ( next_moving and not prev_moving ): extra_min_res[ name ].append( m )
+        if ( ( prev_moving and not next_moving and not right_before_chainbreak ) or \
+             ( next_moving and not prev_moving and not right_after_chainbreak ) ):
+            extra_min_res[ name ].append( m )
 
 if len (args.extra_flags) > 0:
     if exists( args.extra_flags ):

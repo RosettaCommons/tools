@@ -38,20 +38,20 @@ def cluster_check( cluster_in ):
         cluster_dir = '/scratch/scratch95/d/%s/' % old_teragrid_user_name
 
     if cluster == 'stampede':
-        cluster = '%s@stampede.tacc.xsede.org' % XSEDE_USER_NAME
-        cluster_dir = '/work/%s/%s/' % (XSEDE_DIR_NUMBER, XSEDE_USER_NAME)
+        cluster = '%s@stampede.tacc.xsede.org' % xsede_user_name
+        cluster_dir = '/work/%s/%s/' % (xsede_dir_number, xsede_user_name)
 
     if cluster == 'stampede_scratch':
-        cluster = '%s@stampede.tacc.xsede.org' % XSEDE_USER_NAME
-        cluster_dir = '/scratch/%s/%s/' % (XSEDE_DIR_NUMBER, XSEDE_USER_NAME)
+        cluster = '%s@stampede.tacc.xsede.org' % xsede_user_name
+        cluster_dir = '/scratch/%s/%s/' % (xsede_dir_number, xsede_user_name)
 
     if cluster == 'lonestar_work':
-        cluster ='%s@lonestar.tacc.xsede.org' % XSEDE_USER_NAME
-        cluster_dir = '/work/%s/%s/' % (XSEDE_DIR_NUMBER, XSEDE_USER_NAME)
+        cluster ='%s@lonestar.tacc.xsede.org' % xsede_user_name
+        cluster_dir = '/work/%s/%s/' % (xsede_dir_number, xsede_user_name)
 
     if cluster == 'lonestar_scratch':
-        cluster ='%s@lonestar.tacc.xsede.org' % XSEDE_USER_NAME
-        cluster_dir = '/scratch/%s/%s/' % (XSEDE_DIR_NUMBER, XSEDE_USER_NAME)
+        cluster ='%s@lonestar.tacc.xsede.org' % xsede_user_name
+        cluster_dir = '/scratch/%s/%s/' % (xsede_dir_number, xsede_user_name)
 
     if cluster == 'tg-condor_scratch':
         cluster = 'dasr@tg-condor.purdue.teragrid.org'
@@ -74,8 +74,8 @@ def cluster_check( cluster_in ):
         cluster_dir = '/home/%s/' % user_name
 
     if cluster == 'abe_scratch':
-        cluster = '%s@login-abe.ncsa.teragrid.org' % XSEDE_USER_NAME
-        cluster_dir = '/scratch/users/%s/' % XSEDE_USER_NAME
+        cluster = '%s@login-abe.ncsa.teragrid.org' % xsede_user_name
+        cluster_dir = '/scratch/users/%s/' % xsede_user_name
 
     if cluster == 'kwipapat':  cluster = 'kwipapat@biox3.stanford.edu'
     if cluster == 'kwip':      cluster = 'kwipapat@biox3.stanford.edu'

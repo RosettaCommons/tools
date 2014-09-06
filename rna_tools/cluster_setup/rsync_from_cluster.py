@@ -48,7 +48,10 @@ clusterdir = remotedir+clusterdir
 cluster_prefix = cluster+':'
 if len(cluster) == 0: cluster_prefix = ''
 
-command = 'rsync -avzL '+cluster_prefix+clusterdir + '/' + filename + ' . '+string.join(extra_args)+' --exclude="condor*log"'
+command = 'rsync -avzL '+cluster_prefix+clusterdir + '/' + filename + ' . '+string.join(extra_args)
 print(command)
 system(command)
+print
+print 'Ran the following command: '
+print(command)
 

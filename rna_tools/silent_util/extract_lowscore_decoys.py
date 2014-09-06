@@ -3,8 +3,7 @@
 from sys import argv,exit
 from os import popen, system
 from os.path import basename,exists,expanduser,expandvars
-import string
-import commands
+import string,subprocess,commands
 from glob import glob
 
 def Help():
@@ -15,9 +14,10 @@ def Help():
     print '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>'
     print '    (for highest Rg).'
     print
-    print ' You might consider using an alias "ex" for this function. Add '
-    print '  alias ex="extract_lowscore_decoys.py" '
-    print ' to your ~/.bashrc script.'
+    if ( subprocess.call( ['/bin/bash','-i','-c','alias ex']) == 1 ):
+        print ' You might consider using an alias "ex" for this function. Add '
+        print '  alias ex="extract_lowscore_decoys.py" '
+        print ' to your ~/.bashrc script.'
     print
     exit()
 

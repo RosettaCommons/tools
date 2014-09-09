@@ -37,6 +37,15 @@ def get_helix_stems(secstruct_file):
                 bp.append((left_base_in_bp.pop(), i + 1))
         if left_base_in_bp:
             raise ValueError("Invalid secstruct!")
+        for i, char in enumerate(secstruct):
+            if char == '[':
+                left_base_in_bp.append(i + 1)
+            elif char == ']':
+                if not left_base_in_bp:
+                    raise ValueError("Invalid secstruct!")
+                bp.append((left_base_in_bp.pop(), i + 1))
+        if left_base_in_bp:
+            raise ValueError("Invalid secstruct!")
         return bp
 
     def get_stems(bp):
@@ -48,7 +57,7 @@ def get_helix_stems(secstruct_file):
             else:
                 stems.append(stem)
                 stem = [(i, j)]
-        if not stem:
+        if stem:
             stems.append(stem)
         return stems
 

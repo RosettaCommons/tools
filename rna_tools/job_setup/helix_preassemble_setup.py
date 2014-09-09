@@ -75,7 +75,7 @@ cmdline_base = bytearray(
     "rna_denovo_setup.py -fixed_stems -rna::corrected_geo "
     "-score:rna_torsion_potential RNA11_based_new "
     "-chemical::enlarge_H_lj "
-    "-score:weights rna/rna_helix "
+    "-score:weights stepwise/rna/rna_helix "
 )
 cmdline_base += "-nstruct %d " % n_struct
 cmdline_base += "-cycles %d " % n_cycle

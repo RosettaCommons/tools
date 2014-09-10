@@ -44,9 +44,9 @@ for pdbname in pdbnames:
     pdblines = string.join( open(pdbname,'r').readlines(), '\n')
 
     outputstring = make_rna_rosetta_ready( pdblines, removechain, ignore_chain, chainids, no_renumber )
-
-    outfile = string.lower( basename( pdbname ) )
-    outfile = outfile.replace( '.pdb', '_RNA.pdb').replace('.gz','');
+    
+    outfile = string.upper( basename( pdbname ) )
+    outfile = outfile.replace( '.PDB', '_RNA.pdb').replace('.gz','');
 
     outid = open( outfile, 'w')
     outid.write( outputstring )

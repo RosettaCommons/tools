@@ -3,6 +3,8 @@
 from os.path import expanduser,expandvars,basename
 
 user_name = basename( expanduser('~') )
+biox3_user_name = expandvars( '$BIOX3_USER_NAME' )
+if biox3_user_name == '$BIOX3_USER_NAME': biox3_user_name = user_name
 xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
@@ -61,9 +63,13 @@ def cluster_check( cluster_in ):
         cluster = 'biox2.stanford.edu'
         cluster_dir = '/scratch/users/%s/' % user_name
 
+    if cluster == 'biox3':
+        cluster = 'biox3.stanford.edu'
+        cluster_dir = '/home/users/%s/' % biox3_user_name
+
     if cluster == 'biox3_scratch':
         cluster = 'biox3.stanford.edu'
-        cluster_dir = '/scratch/users/%s/' % user_name
+        cluster_dir = '/scratch/users/%s/' % biox3_user_name
 
     if cluster == 'ade_scratch':
         cluster = 'ade.stanford.edu'

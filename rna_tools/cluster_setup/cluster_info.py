@@ -21,7 +21,6 @@ def cluster_check( cluster_in ):
     old_teragrid_user_name = 'dasr' # defunct
 
     if cluster == 'biox2': cluster = 'biox2.stanford.edu'
-    if cluster == 'biox3': cluster = 'biox3.stanford.edu'
     if cluster == 'ade': cluster = '%s@ade.stanford.edu' % user_name
     if cluster == 'steele': cluster = '%s@tg-steele.purdue.teragrid.org' % old_teragrid_user_name
     if cluster == 'tg-condor': cluster ='%s@tg-condor.purdue.teragrid.org'  % old_teragrid_user_name

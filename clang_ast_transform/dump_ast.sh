@@ -13,6 +13,7 @@ $BD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \
 	-DBOOST_SYSTEM_NO_DEPRECATED \
 	-DNDEBUG \
+	-DPTR_REFCOUNT \
 	-Isrc \
 	-Iexternal/include \
 	-Isrc/platform/linux/64/clang/3.5-1ubuntu1 \

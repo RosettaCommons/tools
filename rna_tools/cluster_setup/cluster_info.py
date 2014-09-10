@@ -63,11 +63,11 @@ def cluster_check( cluster_in ):
         cluster_dir = '/scratch/users/%s/' % user_name
 
     if cluster == 'biox3':
-        cluster = 'biox3.stanford.edu'
+        cluster = '%s@biox3.stanford.edu' % biox3_user_name
         cluster_dir = '/home/users/%s/' % biox3_user_name
 
     if cluster == 'biox3_scratch':
-        cluster = 'biox3.stanford.edu'
+        cluster = '%s@biox3.stanford.edu' % biox3_user_name
         cluster_dir = '/scratch/users/%s/' % biox3_user_name
 
     if cluster == 'ade_scratch':

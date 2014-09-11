@@ -10,7 +10,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V',
               ' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
               '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
-              ' MG': 'Z'
+              ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
               }
 
 def get_sequences( pdbname, removechain = 0 ):

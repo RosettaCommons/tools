@@ -185,7 +185,14 @@ for line in lines:
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
-        fid_qsub.write( 'qsub.sh %s\n' % qsub_submit_file )
+        
+        if exists( '%s/src/qsub.sh' % HOMEDIR ):
+            fid_qsub.write( 'qsub.sh %s\n' % qsub_submit_file )
+        else:
+            fid_qsub.write( 'qsub %s\n' % qsub_submit_file )
+                 
+
+
 
         # MPI job file
         if DO_MPI:

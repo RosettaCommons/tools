@@ -53,7 +53,7 @@ fasta_file=parse_options( argv, "fasta", "" )
 if(is_release_mode() and single_stranded_loop_mode):
 
 	rna_torsion_potential_folder=parse_options(argv, "rna_torsion_potential_folder", "ps_03242010/" )
-	force_field_file=parse_options(argv, "force_field_file", 'rna/rna_loop_hires_04092010.wts') #Context Independent Geometric Solvation but no intra_base_phosphate terms.
+	force_field_file=parse_options(argv, "force_field_file", 'stepwise/rna/rna_loop_hires_04092010.wts') #Context Independent Geometric Solvation but no intra_base_phosphate terms.
 	sample_virt_ribose_in_sep_DAG=parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True" )
 	apply_VDW_rep_delete_matching_res=parse_options(argv, "apply_VDW_rep_delete_matching_res", "True")
 	clusterer_optimize_memory_usage=parse_options(argv, "clusterer_optimize_memory_usage", "true" )

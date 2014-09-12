@@ -118,6 +118,34 @@ Finder.addMatcher(
 	).bind("vardecl"),
 	new RewriteCastFromNewVarDecl(Replacements, "CastFromNewVarDecl:constructExpr"));
 
+
+/*
+DeclStmt 0xafdbec8 <line:1919:2, col:132>
+`-VarDecl 0xafd5a80 <col:2, col:131> col:47 pack_full_repack 'protocols::simple_moves::PackRotamersMoverOP':'class utility::pointer::owning_ptr<class protocols::simple_moves::PackRotamersMover>'
+  `-ExprWithCleanups 0xafdbe80 <col:47, col:131> 'protocols::simple_moves::PackRotamersMoverOP':'class utility::pointer::owning_ptr<class protocols::simple_moves::PackRotamersMover>'
+    `-CXXConstructExpr 0xafdbe48 <col:47, col:131> 'protocols::simple_moves::PackRotamersMoverOP':'class utility::pointer::owning_ptr<class protocols::simple_moves::PackRotamersMover>' 'void (pointer)'
+      `-CXXNewExpr 0xafd63e0 <col:66, col:129> 'protocols::simple_moves::PackRotamersMover *'
+...
+*/
+
+Finder.addMatcher(
+	varDecl(
+		has(
+			exprWithCleanups(
+				has(
+					constructExpr(
+						isUtilityOwningPointer(),
+						has(
+							newExpr().bind("castFrom")
+						)
+					).bind("castTo")
+				)
+			)
+		)
+	).bind("vardecl"),
+	new RewriteCastFromNewVarDecl(Replacements, "CastFromNewVarDecl:constructExpr+cleanups"));
+
+
 /*
   DeclStmt 0x5a27b28 <line:124:2, col:103>
   `-VarDecl 0x5a27610 <col:2, col:102> col:33 monteCarlo_ 'protocols::moves::MonteCarloOP':'class utility::pointer::owning_ptr<class protocols::moves::MonteCarlo>'

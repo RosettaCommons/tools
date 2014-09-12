@@ -84,6 +84,9 @@ fid_condor.write('notification = never\n')
 HOMEDIR = expanduser('~')
 CWD = getcwd()
 
+PATH_LIST = expandvars('$PATH').split(':')
+QSUB = ('qsub.sh' if sum([exists('%s/qsub.sh'%p) for p in PATH_LIST]) else 'qsub')
+
 qsub_file_dir = 'qsub_files/'
 if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
@@ -185,8 +188,8 @@ for line in lines:
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
-        fid_qsub.write( 'qsub.sh %s\n' % qsub_submit_file )
-
+        fid_qsub.write( '%s %s\n' % ( QSUB, qsub_submit_file ) )
+        
         # MPI job file
         if DO_MPI:
             if hostname == "stampede":

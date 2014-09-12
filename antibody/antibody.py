@@ -121,12 +121,12 @@ def main(args):
 
     parser.add_option('--rosetta-bin',
       action="store", default=None,
-      help="Specify path to 'rosetta/source/bin' dir where antibody_graft', idealize and relax executable expected to be found. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (plasce symlink there) and if not found corresponding steps will be skipped.",
+      help="Specify path to 'rosetta/source/bin' directory, expected to harbor 'antibody_graft', 'idealize' and 'relax' executables. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (place symlink there). If a particular executable is not found and that is non-critical, corresponding steps will be skipped.",
     )
 
     parser.add_option('--rosetta-platform',
       action="store", default=None,
-      help="Specify full extra+compier+build type for rosetta biniaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default is dynamic release build of current OS",
+      help="Specify full extra+compiler+build type for rosetta binaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default are dynamic release builds of the OS executing the script.",
     )
 
     parser.add_option("--idealize",

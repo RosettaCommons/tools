@@ -1,5 +1,5 @@
-BD=/data/rosetta/clang/build
-SRC=/data/rosetta/clang/llvm
+BD=/local/luki/clang/build
+SRC=/local/luki/clang/llvm
 
 $BD/bin/clang++ $1 -emit-ast -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \

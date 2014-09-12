@@ -378,7 +378,7 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
 
     command += " -tags " + tags_string
     command += " -in:file:silent " + silent_file_abs
-    command += " -in:file:silent_struct_type  binary_rna"
+    command += " -in:file:silent_struct_type rna"
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -remove_variant_cutpoint_atoms " + remove_variant_types
     command += " -output_virtual " + str(output_virtual).lower()
@@ -583,7 +583,7 @@ def find_nearby_res(input_pdb, input_res, dist_cutoff, is_reload = True):
     res_list = []
     for i in input_res :
         if not i in range(1, len(coord_all) + 1) :
-            error_exit("Input redidues outside the range of pdb residues!")
+            error_exit("Input residues outside the range of pdb residues!")
         for j in range(1, len(coord_all) + 1) :
             if (j in input_res or j in res_list) : continue
             dist_C1 = compute_dist( coord_C1[i-1], coord_C1[j-1] )
@@ -1202,13 +1202,17 @@ def pdb_slice_with_patching( input_pdb, out_name, slice_res_list ) :
 
     dist_cutoff = 5.0
 
+    print 'SLICE_RES_LIST: ', slice_res_list
     patched_res = find_nearby_res( input_pdb, slice_res_list, dist_cutoff )
+    print 'PATCHED_RES: ', patched_res
     patched_res.sort()
     all_res = slice_res_list + patched_res
     all_res.sort()
+    print 'ALL_RES ', all_res
     patched_res_new = []
     for res in patched_res :
         patched_res_new.append( all_res.index(res) + 1 )
+    print 'PATCHED_RES_NEW ', patched_res_new
 
     pdb_slice( input_pdb, out_name, all_res )
     return [all_res, patched_res_new]

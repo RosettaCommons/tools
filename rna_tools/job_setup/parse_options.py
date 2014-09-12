@@ -1,6 +1,11 @@
 #!/usr/bin/python
+import string
 
 def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:1-4 or A1-4 or 1-4
+
+    if ( input_string.find( ',' ) > -1 ):
+        for substring in string.split( input_string, ',' ): get_resnum_chain( substring, resnums, chains )
+        return True
 
     assert( len( input_string ) > 0 )
     assert( len( resnums ) == len( chains ) )
@@ -27,7 +32,7 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
         int_string = input_string[ pos: ]
 
     ints = []
-    if len( int_string ) == 0: # special case, get the whole chain.
+    if len( int_string ) == 0 and len( chain ) == 1: # special case, get the whole chain.
         resnums.append( 'all' ) # means get everything from this chain
         chains.append( chain )
     else:
@@ -41,7 +46,7 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
 
 
 def get_ints( int_string, value ): # could be of the form 5-8  or -9--5
-    assert( len( int_string ) > 0 )
+    if ( len( int_string ) == 0 ): return False
 
     # find hyphen separator
     dashpos = 0
@@ -77,6 +82,14 @@ def parse_options( argv, tag, default):
 
     value = default
 
+    if isinstance( default, list ): value = []
+    RESNUM_CHAIN = isinstance( default, list ) and len( default ) == 2 and \
+                   isinstance( default[0], list ) and \
+                   isinstance( default[0][0], int ) and \
+                   isinstance( default[1], list ) and \
+                   isinstance( default[1][0], str )
+    if RESNUM_CHAIN: value = [ [], [] ]; # need two lists.
+
     if argv.count( "-"+tag ):
 
         pos = argv.index( "-"+tag )
@@ -87,13 +100,15 @@ def parse_options( argv, tag, default):
                argv[ pos ][0] == '-' ) ): # Just a boolean
             value = 1
         elif( isinstance( default, list ) ):
-            value = []
             while ( pos < len (argv) and not (argv[ pos ][0] == '-') ):
                 if isinstance( default[0], int ):
                     ok_int_string = get_ints( argv[pos], value )
                     if not ok_int_string: break
                 elif isinstance( default[0], float ):
                     value.append( float( argv[ pos ] ) )
+                elif RESNUM_CHAIN:
+                    ok = get_resnum_chain( argv[pos], value[0],value[1] )
+                    if not ok: break
                 else:
                     value.append( argv[ pos ] )
                 del( argv[ pos ] )
@@ -106,8 +121,6 @@ def parse_options( argv, tag, default):
         else:
             value = argv[ pos ]
             del( argv[ pos ] )
-    else:
-        if isinstance( default, list ): value = []
 
     #print tag, value
 

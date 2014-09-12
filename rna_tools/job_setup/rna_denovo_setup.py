@@ -4,7 +4,7 @@ from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_a
 from sys import argv
 from os import system, getcwd
 from os.path import exists, dirname, basename
-from parse_options import parse_options
+from parse_options import parse_options, get_ints
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -47,12 +47,13 @@ data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
 cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
 extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
+extra_minimize_chi_res = parse_options( argv, "extra_minimize_chi_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
 obligate_pair = parse_options( argv, "obligate_pair", [-1] )
 obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
-chain_connection = parse_options( argv, "chain_connection", [-1] )
+chain_connection = parse_options( argv, "chain_connection", [""] )
 
 system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
@@ -255,9 +256,14 @@ if len( data_file ) > 0:
     working_data_string = ""
     for line in lines:
         cols = string.split( line.replace( '\n','') )
-        data_res = map( lambda x:int(x), cols[1:] )
-        working_data_res = working_res_map( data_res, working_res )
-        if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
+        if cols[0] == 'DMS':
+            data_res = int( cols[1] )
+            working_data_res = working_res_map( [data_res], working_res )
+            if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+' '+string.join(cols[2:]) + '\n'
+        else:
+            data_res = map( lambda x:int(x), cols[1:] )
+            working_data_res = working_res_map( data_res, working_res )
+            if len( working_data_res ) > 0: working_data_string += cols[0]+' '+make_tag(working_data_res)+'\n'
     if len( working_data_string ) > 0:
         working_data_file = tag + "_" + data_file
         fid = open( working_data_file, 'w' )
@@ -323,16 +329,43 @@ if len( obligate_pair_explicit ) > 0:
 
 
 if len( chain_connection ) > 0:
-    assert( len( chain_connection ) % 4 == 0 )
-    n_connect = len( chain_connection ) / 4
-    working_chain_connection = working_res_map( chain_connection, working_res )
-    for i in xrange(n_connect):
-        curr_0 = i * 4
-        seg1_start = working_chain_connection[curr_0]
-        seg1_stop  = working_chain_connection[curr_0 + 1]
-        seg2_start = working_chain_connection[curr_0 + 2]
-        seg2_stop = working_chain_connection[curr_0 + 3]
-        params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
+    assert( len( chain_connection ) >= 4 )
+    if 'SET1' in chain_connection: # new format is more flexible.
+        which_set = 0
+        chain_connection_sets = []
+        resnum1 = []
+        resnum2 = []
+        for k in range( len( chain_connection) + 1 ):
+            if k == len( chain_connection ) or chain_connection[k] == 'SET1':
+                working_resnum1 = working_res_map( resnum1, working_res )
+                working_resnum2 = working_res_map( resnum2, working_res )
+                if len( working_resnum1 ) > 0 and len( working_resnum2 ) > 0: chain_connection_sets.append( [working_resnum1, working_resnum2] )
+                resnum1 = []
+                resnum2 = []
+                which_set = 1
+                continue
+            if chain_connection[k] == 'SET2':
+                which_set = 2
+                continue
+            assert( which_set > 0 )
+            if which_set == 1: get_ints( chain_connection[k], resnum1 )
+            if which_set == 2: get_ints( chain_connection[k], resnum2 )
+        if len( chain_connection_sets ) > 0:
+            params_file_outstring += "CHAIN_CONNECTION"
+            for chain_connection_set in chain_connection_sets: params_file_outstring += "   SET1%s SET2%s" % (make_tag_with_dashes(chain_connection_set[0]), make_tag_with_dashes(chain_connection_set[1]) )
+            params_file_outstring += "\n"
+    else: # legacy format
+        chain_connection = map( lambda x:int(x), chain_connection )
+        assert( len( chain_connection ) % 4 == 0 )
+        n_connect = len( chain_connection ) / 4
+        working_chain_connection = working_res_map( chain_connection, working_res )
+        for i in xrange(n_connect):
+            curr_0 = i * 4
+            seg1_start = working_chain_connection[curr_0]
+            seg1_stop  = working_chain_connection[curr_0 + 1]
+            seg2_start = working_chain_connection[curr_0 + 2]
+            seg2_stop = working_chain_connection[curr_0 + 3]
+            params_file_outstring += "CHAIN_CONNECTION SEGMENT1 %d %d  SEGMENT2 %d %d \n" % (seg1_start, seg1_stop, seg2_start, seg2_stop )
 
 # need to handle Mg(2+)
 #mg_pos = []
@@ -343,14 +376,23 @@ if len( chain_connection ) > 0:
 #    for i in mg_pos:
 #        cutpoint_open.append( i-1 )
 #        virtual_anchor.append( i )
+def get_rid_of_previously_defined_cutpoints( cutpoint, working_res ):
+    cutpoint_filter = []
+    for m in cutpoint:
+        if ( m == len( working_res ) ): continue
+        if ( working_res[ m-1 ]+1 != working_res[ m ] ): continue # already recognized as a cutpoint.
+        cutpoint_filter.append( m )
+    return cutpoint_filter
 
 if len( cutpoint_open ) > 0:
     cutpoint_open = working_res_map( cutpoint_open, working_res )
-    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
+    cutpoint_open = get_rid_of_previously_defined_cutpoints( cutpoint_open, working_res )
+    if len( cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
 
 if len( cutpoint_closed ) > 0:
     cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
+    cutpoint_closed = get_rid_of_previosly_defined_cutpoints( cutpoint_closed, working_res )
+    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
     virtual_anchor = working_res_map( virtual_anchor, working_res )
@@ -438,7 +480,11 @@ elif len( native_pdb ) > 0:
 
 if len( extra_minimize_res ) > 0:
     extra_minimize_res = working_res_map( extra_minimize_res, working_res )
-    command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res )
+    command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res, [] )
+
+if len( extra_minimize_chi_res ) > 0:
+    extra_minimize_chi_res = working_res_map( extra_minimize_chi_res, working_res )
+    command += " -extra_minimize_chi_res " + make_tag_with_dashes( extra_minimize_chi_res, [] )
 
 if len( input_pdbs ) > 0:
     command += " -s"
@@ -455,7 +501,7 @@ if len( input_silent_files ) > 0:
     assert( len( input_res ) > 0 )
 
 if len( input_res ) > 0:
-    command += " -input_res " +make_tag_with_dashes( working_input_res )
+    command += " -input_res " +make_tag_with_dashes( working_input_res, [] )
 
 if len( working_cst_file ) > 0:
     command += " -cst_file " + working_cst_file
@@ -465,7 +511,7 @@ if len( working_data_file ) > 0:
 
 command += ' ' + extra_args
 
-command += ' -output_res_num ' + make_tag_with_dashes( working_res )
+command += ' -output_res_num ' + make_tag_with_dashes( working_res, [] )
 
 print command
 

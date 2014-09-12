@@ -1,11 +1,11 @@
 #!/bin/bash
 
-CLANG_BIN=/data/rosetta/clang/build/bin
-SOURCE=/data/rosetta/main/source
+CLANG_BIN=/local/luki/clang/build/bin
+SOURCE=/local/luki/main/source
 
 cd $SOURCE
 
-$CLANG_BIN/rosetta-refactor-tool $1 -- \
+$CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $1 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem external/boost_1_55_0/ \

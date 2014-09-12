@@ -14,8 +14,8 @@ def Help():
     print
     exit()
 
-#if len(argv)<3:
-#    Help()
+if len(argv)<2:
+    Help()
 
 outfiles = argv[1:]
 
@@ -30,11 +30,6 @@ if final_outfile == "":
     fid = stdout
 else:
     fid = open( final_outfile, "w" )
-
-#data = open( outfiles[ 0 ] ).readlines()
-#count = 0
-#for line in data:
-#    fid.write( line )
 
 sequence_line_found    = 0
 description_line_found = 0
@@ -58,17 +53,16 @@ for out_f in outfiles:
                 if description_line_found: continue
                 else: description_line_found = 1
 
-            if line.find( 'REMARK' ) > -1:
-                if remark_line_found: continue
-                else: remark_line_found = 1
+            #if line.find( 'REMARK' ) > -1:
+            #    if remark_line_found: continue
+            #    else: remark_line_found = 1
 
-            description_index = line.find('S_')
+            description_index = line.find(' S_')
             if description_index < 0:
-                description_index = line.find('F_')
-            #if description_index < 0:
-            #    description_index = line.find('_')
+                description_index = line.find(' F_')
 
             if description_index >= 0:
+                description_index -= 1 # to get rid of space.
                 tag = line[description_index:]
                 newtag = tag + "_%03d" % n_file
                 line = line[:description_index] + newtag

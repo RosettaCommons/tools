@@ -1140,7 +1140,9 @@ def run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_data
 
 
 def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
-    arguments = ' -s FR.pdb -restore_pre_talaris_2013_behavior -antibody::h3_no_stem_graft'
+    # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
+    #arguments = ' -s FR.pdb -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
+    arguments = ' -s FR.pdb -antibody::h3_no_stem_graft -scorefile score-graft.sf'
     model_file_prefix = 'grafted'
     direct_output_filename = prefix+'details/FR_0001.pdb'
     preferred_output_filename = prefix+model_file_prefix+'.pdb'

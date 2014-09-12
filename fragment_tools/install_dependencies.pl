@@ -116,10 +116,10 @@ PSIPREDCREDIT
 chdir($Bin);
 
 # SPARKS-X/SPINE-X
-# from http://sparks.informatics.iupui.edu/yueyang/download/SPARKS-X/sparksx-1.tgz
+# from http://sparks-lab.org/pmwiki/download/yueyang/SPARKS-X/sparksx-1.tgz
 if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 	my $package = "sparksx-1.tgz";
-	my $url = "http://sparks.informatics.iupui.edu/yueyang/download/SPARKS-X/$package";
+	my $url = "http://sparks-lab.org/pmwiki/download/yueyang/SPARKS-X/$package";
 	print "INSTALLING SPARKS-X from $url ....\n";
 	system("rm -rf sparks-x") if (-d "sparks-x"); # clean up interrupted attempts
 	system("wget -N $url");

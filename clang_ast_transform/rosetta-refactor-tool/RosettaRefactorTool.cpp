@@ -25,10 +25,10 @@
 #include "llvm/Support/system_error.h"
 
 #include <string>
+#include <set>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
 #include <sys/stat.h>
 
 using namespace clang;
@@ -36,7 +36,34 @@ using namespace clang::ast_matchers;
 using namespace llvm;
 using clang::tooling::Replacement;
 
-bool verbose = true;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Command line options
+
+cl::opt<bool> Debug(
+	"debug",
+	cl::desc("Enable debugging output"),
+	cl::init(false));
+
+cl::opt<bool> Verbose(
+	"verbose",
+	cl::desc("Enable verbose output"),
+	cl::init(false));
+
+cl::opt<bool> Colors(
+	"colors",
+	cl::desc("Enable color output"),
+	cl::init(true));
+
+cl::opt<bool> DangarousRewrites(
+	"danganous-rewrites",
+	cl::desc("Enable dangarous matchers in the rewriter"),
+	cl::init(false));
+
+cl::list<std::string> Matchers(
+	"matchers",
+	cl::CommaSeparated,
+	cl::OneOrMore,
+	cl::desc("Comma-separated list of matchers to apply"));
 
 cl::opt<std::string> BuildPath(
 	cl::Positional,
@@ -48,339 +75,150 @@ cl::list<std::string> SourcePaths(
 	cl::OneOrMore);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// String utils
+// Code includes
 
-namespace {
-
-void replace(std::string& str, const std::string& from, const std::string& to) {
-	size_t start_pos = 0;
-	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length();
-	}
-}
-
-std::string trim(const std::string & s, const char *whitespace =0) {
-	size_t start, end;
-	if(!whitespace)
-		whitespace = " \r\n\t";
-	for(start = 0; start < s.length() && strchr(whitespace, s[start]); start++);
-	for(end = s.length() -1; end > 0  && strchr(whitespace, s[end]);   end--);
-	return std::string(s, start, end);
-}
-
-bool endsWith(const std::string& a, const std::string& b) {
-	if (b.size() > a.size()) return false;
-	return std::equal(a.begin() + a.size() - b.size(), a.end(), b.begin());
-}
-
-bool beginsWith(const std::string& a, const std::string& b) {
-	return (a.compare(0, b.length(), b) == 0);
-}
-
-} // namespace
+#include "utils.hh"
+#include "ast_matchers.hh"
+#include "matchers_base.hh"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Own matchers
+// Main tool class
 
-namespace clang {
-namespace ast_matchers {
+class RosettaRefactorTool {
 
-AST_MATCHER(CastExpr, isNullToPointer) {
-  return Node.getCastKind() == CK_NullToPointer ||
-    Node.getCastKind() == CK_NullToMemberPointer;
-}
-
-AST_MATCHER(CastExpr, isNonNoopCast) {
-  return Node.getCastKind() != CK_NoOp;
-}
-
-AST_MATCHER(CastExpr, isLValueToRValueCast) {
-  return Node.getCastKind() == CK_LValueToRValue;
-}
-
-AST_MATCHER(CastExpr, isConstructorConversionCast) {
-  return Node.getCastKind() == CK_ConstructorConversion;
-}
-
-AST_MATCHER(Decl, isTypedefDecl) {
-  //return (Node.getKind() == NK_Typedef);
-  return !strcmp(Node.getDeclKindName(), "Typedef");
-}
-
-AST_MATCHER(Expr, isUtilityPointer) {
-	std::string type = QualType::getAsString(Node.getType().split());
-	if(beginsWith(type, "const ")) // trim const
-		type = std::string(type, 6);
-	return
-		beginsWith(type, "class utility::pointer::owning_ptr") ||
-		beginsWith(type, "class utility::pointer::access_ptr");
-}
-
-AST_MATCHER(Type, sugaredNullptrType) {
-  const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
-  if (const BuiltinType *BT = dyn_cast<BuiltinType>(DesugaredType))
-    return BT->getKind() == BuiltinType::NullPtr;
-  return false;
-}
-
-} // end namespace ast_matchers
-} // end namespace clang
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Clang Utils
-
-namespace {
-	
-// Returns the text that makes up 'node' in the source.
-// Returns an empty string if the text cannot be found.
-static std::string getText(
-	const SourceManager &SourceManager,
-	const SourceLocation &StartSpellingLocation, 
-	const SourceLocation &EndSpellingLocation
-) {
-  if (!StartSpellingLocation.isValid() || !EndSpellingLocation.isValid()) {
-    return std::string();
-  }
-  bool Invalid = true;
-  const char *Text =
-      SourceManager.getCharacterData(StartSpellingLocation, &Invalid);
-  if (Invalid) {
-    return std::string();
-  }
-  std::pair<FileID, unsigned> Start =
-      SourceManager.getDecomposedLoc(StartSpellingLocation);
-  std::pair<FileID, unsigned> End =
-      SourceManager.getDecomposedLoc(Lexer::getLocForEndOfToken(
-          EndSpellingLocation, 0, SourceManager, LangOptions()));
-  if (Start.first != End.first) {
-    // Start and end are in different files.
-    return std::string();
-  }
-  if (End.second < Start.second) {
-    // Shuffling text with macros may cause this.
-    return std::string();
-  }
-  return std::string(Text, End.second - Start.second);
-}
-
-template <typename T>
-static std::string getText(const SourceManager &SourceManager, const T *Node) {
-	if(!Node)
-		return std::string();
-	return getText(SourceManager,
-		SourceManager.getSpellingLoc(Node->getLocStart()), 
-		SourceManager.getSpellingLoc(Node->getLocEnd()));
-}
-
-template <typename T, typename U>
-static std::string getTextToDelim(const SourceManager &SourceManager, const T *Node, const U *DelimNode) {
-	if(!Node || !DelimNode)
-		return std::string();
-	return getText(SourceManager,
-		SourceManager.getSpellingLoc(Node->getLocStart()), 
-		SourceManager.getSpellingLoc(DelimNode->getLocStart()));
-}
-
-template <typename T>
-void dumpRewrite(SourceManager & sm, T * node, const std::string & newCodeStr) {
-	
-	if(!verbose)
-		return;
-		
-	const std::string origCodeStr = getText(sm, node);
-	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
-		
-	llvm::errs() 
-		<< "LOCATION:\t" << locStr << "\n" 
-		<< "OLD CODE:\t" << origCodeStr << "\n"
-		<< "NEW CODE:\t" << newCodeStr << "\n"
-		<< "\n";
-}
-
-} // anon namespace
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class ReplaceMatchCallback : public ast_matchers::MatchFinder::MatchCallback {
 public:
-	ReplaceMatchCallback(tooling::Replacements *Replace)
-			: Replace(Replace) {}
+	RosettaRefactorTool(int argc, const char **argv);
+	int Run();
+	int runMatchers();
+	int saveOutput();
 
 private:
-	tooling::Replacements *Replace;
-
-protected:
-	template <typename T>
-	void doRewrite(SourceManager &sm, T * node, const std::string & origCode, const std::string & newCode) {
-		if(origCode == newCode)
-			return;
-		dumpRewrite(sm, node, newCode);
-		Replace->insert(Replacement(sm, node, newCode));
-	}
-};
-	
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace owning_ptr/access_ptr in typedefs
-//   typedef utility::pointer::access_ptr< Some > SomeAP
-//   typedef utility::pointer::owning_ptr< Some > SomeOP
-//   typedef utility::pointer::access_ptr< Some const > SomeCAP
-//   typedef utility::pointer::owning_ptr< Some const > SomeCOP
-
-class RewriteTypedefDecl : public ReplaceMatchCallback {
-public:
-	RewriteTypedefDecl(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
-
-	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
-		SourceManager &sm = *Result.SourceManager;
-		const Decl *decl = Result.Nodes.getStmtAs<Decl>("typedefdecl");
-
-		const FullSourceLoc FullLocation = FullSourceLoc(decl->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
-			return;
-		
-		std::string origCode( getText(sm, decl) );
-		std::string newCode( origCode );
-
-		replace(newCode, "owning_ptr", "shared_ptr");
-		replace(newCode, "access_ptr", "weak_ptr");
-
-		doRewrite(sm, decl, origCode, newCode);
-	}
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in assignments
-//   SomeAP a = new Some;
-//   SomeAP a = 0;
-//   SomeAP a = NULL;
-
-class RewriteImplicitAssignmentOPCast : public ReplaceMatchCallback {
-public:
-	RewriteImplicitAssignmentOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
-
-	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
-		SourceManager &sm = *Result.SourceManager;
-		const CXXOperatorCallExpr *opercallexpr = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("opercallexpr");
-		const CastExpr *castexpr = Result.Nodes.getStmtAs<CastExpr>("castexpr");
-		const MemberExpr *memberexpr = Result.Nodes.getStmtAs<MemberExpr>("memberexpr");
-		
-		const FullSourceLoc FullLocation = FullSourceLoc(opercallexpr->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
-			return;
-
-		// Get original code			
-		const std::string type = QualType::getAsString(memberexpr->getType().split());
-		const std::string origCode = getText(sm, opercallexpr);
-		std::string leftSideCode = getTextToDelim(sm, opercallexpr, castexpr);
-		std::string rightSideCode(origCode, origCode.length() - leftSideCode.length());
-		
-		leftSideCode = trim(leftSideCode, " \t\n=");
-		rightSideCode = trim(rightSideCode, " \t\n=");
-
-		std::string newCode;
-		if(rightSideCode == "0" || rightSideCode == "NULL") {
-			//newCode = leftCode + " " + typedef_name + "()";
-			newCode = leftSideCode + ".reset()";
-		} else {
-			newCode = leftSideCode + " = " + type + "( " + rightSideCode + " )";
-		}
-
-		doRewrite(sm, opercallexpr, origCode, newCode);
-	}
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replace implicit casts in returns
-//   SomeAP function() { return new Some; }
-
-class RewriteImplicitReturnOPCast : public ReplaceMatchCallback {
-public:
-	RewriteImplicitReturnOPCast(tooling::Replacements *Replace) : ReplaceMatchCallback(Replace) {}
-
-	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
-		SourceManager &sm = *Result.SourceManager;
-		const CXXBindTemporaryExpr *temporaryexpr = Result.Nodes.getStmtAs<CXXBindTemporaryExpr>("temporaryexpr");
-
-		const FullSourceLoc FullLocation = FullSourceLoc(temporaryexpr->getLocStart(), sm);
-		if(FullLocation.getFileID() != sm.getMainFileID())
-			return;
-		
-		std::string type = QualType::getAsString( temporaryexpr->getType().split() );
-		std::string origCode( getText(sm, temporaryexpr) );
-		
-		// If original code was 0 then just leave it empty
-		std::string newCode(origCode);
-		if(origCode == "0" || origCode == "NULL")
-			newCode = type + "()";
-		else
-			newCode = type + "( " + origCode + " )";
-
-		doRewrite(sm, temporaryexpr, origCode, newCode);
-	}
+	clang::tooling::RefactoringTool * Tool;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int runMatchers(clang::tooling::RefactoringTool & Tool) {
+int main(int argc, const char **argv) {
 
+	RosettaRefactorTool rrt(argc, argv);
+	return rrt.Run();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Tool c'tor
+RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
+{
 	using namespace clang::tooling;
 
-	ast_matchers::MatchFinder Finder;
+	llvm::sys::PrintStackTraceOnErrorSignal();
+	std::unique_ptr<CompilationDatabase> Compilations(
+			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
 
-	// Typedefs for access_ptr and owning_ptr
-	RewriteTypedefDecl RewriteTypedefDeclCallback(&Tool.getReplacements());
-	Finder.addMatcher(
-		decl(isTypedefDecl()).bind("typedefdecl"),
-		&RewriteTypedefDeclCallback);
+	cl::ParseCommandLineOptions(argc, argv);
+	if(!Compilations) {
+		std::string ErrorMessage;
+		Compilations.reset(
+			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
+		if(!Compilations)
+			llvm::report_fatal_error(ErrorMessage);
+	}
 
-	// operator= calls with implicit conversions to OPs/APs
-	RewriteImplicitAssignmentOPCast RewriteImplicitAssignmentOPCastCallback(&Tool.getReplacements());
-	Finder.addMatcher(
-		operatorCallExpr(
-			allOf(
-				hasDescendant(
-					implicitCastExpr().bind("castexpr")
-				),
-				hasDescendant(
-					memberExpr().bind("memberexpr")
-				),
-				hasDescendant(
-					implicitCastExpr( isLValueToRValueCast() )
-				),
-				isUtilityPointer()
-			)
-		).bind("opercallexpr"),
-		&RewriteImplicitAssignmentOPCastCallback);
+	Tool = new RefactoringTool(*Compilations, SourcePaths);
+}
 
-	// Return statements with implicit conversions to OPs/APs
-	RewriteImplicitReturnOPCast RewriteImplicitReturnOPCastCallback(&Tool.getReplacements());
-	Finder.addMatcher(
-		returnStmt(
-			hasDescendant(
-				implicitCastExpr(
-					allOf(
-						hasDescendant(
-							bindTemporaryExpr(
-								hasDescendant(
-									implicitCastExpr( isNonNoopCast() )
-								)
-							).bind("temporaryexpr")
-						),
-						isUtilityPointer()
-					)
-				)
-			)
-		),
-		&RewriteImplicitReturnOPCastCallback);
-
-	// Run tool and generate change log
-	return Tool.run(newFrontendActionFactory(&Finder));
+/// Main tool runner
+int RosettaRefactorTool::Run() {
+	int r = runMatchers();
+	if(r)
+		return r;
+	return saveOutput();
 }
 	
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Run selected matchers
+int RosettaRefactorTool::runMatchers() {
 
-int saveOutput(clang::tooling::RefactoringTool & Tool) {
+	ast_matchers::MatchFinder Finder;
+	tooling::Replacements *Replacements = &(Tool->getReplacements());
+
+	for(cl::list<std::string>::const_iterator it(Matchers.begin()), end(Matchers.end());
+			it != end; ++it) {
+		std::string matcher( *it );
+		if(Verbose)
+			llvm::errs() << color("gray") << "Applying matcher: " << matcher << color("") << "\n";
+
+		/////////////////////////////////
+		// Include matchers to apply here
+		/////////////////////////////////
+
+		// Finders
+		if(matcher == "find" || matcher == "find_calls") {
+			#include "matchers/find/calls.hh"
+		}
+		if(matcher == "find" || matcher == "find_self_ptr_in_ctor") {
+			#include "matchers/find/self_ptr_in_ctor.hh"
+		}
+
+		// Code quality checkers
+		if(matcher == "code_quality_check" || matcher == "naked_ptr_op_casts") {
+			#include "matchers/code_quality/naked_ptr_op_casts.hh"
+		}
+		if(matcher == "code_quality_check" || matcher == "bad_pointer_casts") {
+			#include "matchers/code_quality/bad_pointer_casts.hh"
+		}
+		if(matcher == "code_quality_check" || matcher == "obj_ob_stack") {
+			#include "matchers/code_quality/obj_on_stack.hh"
+		}
+
+		// Rewriters
+		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
+			#include "matchers/rewrite/typedef.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
+			#include "matchers/rewrite/pointer_name.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
+			#include "matchers/rewrite/cast_from_new_vardecl.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
+			#include "matchers/rewrite/cast_from_new.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
+			#include "matchers/rewrite/cast_in_assignment.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
+			#include "matchers/rewrite/ctor_initializer.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
+			#include "matchers/rewrite/dynamic_cast.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_datamap_get") {
+			#include "matchers/rewrite/datamap_get.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
+			#include "matchers/rewrite/pose_dynamic_cast.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
+			#include "matchers/rewrite/call_operator.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
+			#include "matchers/rewrite/member_calls.hh"
+		}
+	
+		if(matcher == "rewrite_not_operator") {
+			// Not needed; see comment in file
+			#include "matchers/rewrite/not_operator.hh"
+		}
+	}
+
+	// Run tool and generate change log
+	return Tool->run(clang::tooling::newFrontendActionFactory(&Finder));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Save rewritten output to files or output to stdout
+int RosettaRefactorTool::saveOutput() {
 	
 	using namespace clang::tooling;
 	
@@ -390,9 +228,9 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 	DiagnosticsEngine Diagnostics(
 		IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()),
 		&*DiagOpts, &DiagnosticPrinter, false);
-	SourceManager Sources(Diagnostics, Tool.getFiles());
+	SourceManager Sources(Diagnostics, Tool->getFiles());
 	Rewriter Rewrite(Sources, DefaultLangOptions);
-	const Replacements & Replaces = Tool.getReplacements();
+	const Replacements & Replaces = Tool->getReplacements();
 	int result = 0;
 
 	if(BuildPath.empty())
@@ -400,15 +238,15 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 		// Output change log to stdout to be applied later
 		for(Replacements::const_iterator I = Replaces.begin(), E = Replaces.end(); I != E; ++I) {
 			const Replacement &r = *I;
-    	if (r.isApplicable()) {
-      	std::string replacementText = r.getReplacementText();
-      	replace(replacementText, "\n", "\\n");
-      	llvm::outs()
-      		<< r.getFilePath() << "\t"
-      		<< r.getOffset() << "\t"
-      		<< r.getLength() << "\t"
-      		<< replacementText << "\n";
-      }
+			if (r.isApplicable()) {
+				std::string replacementText = r.getReplacementText();
+				replace(replacementText, "\n", "\\n");
+				llvm::outs()
+					<< r.getFilePath() << "\t"
+					<< r.getOffset() << "\t"
+					<< r.getLength() << "\t"
+					<< replacementText << "\n";
+			}
 		}
 	}
 	else
@@ -425,7 +263,7 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 			}
 		}
 
-		llvm::errs() << "Output directory: " << outputBaseDir << "\n";
+		// llvm::errs() << "Output directory: " << outputBaseDir << "\n";
 				
 		for (Rewriter::buffer_iterator I = Rewrite.buffer_begin(),
 				E = Rewrite.buffer_end(); I != E; ++I) {
@@ -450,7 +288,6 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 			for(size_t i = 0; i < outputFileName.size(); ++i) {
 				if(i > 0 && outputFileName[i] == '/') {
 						std::string path(outputFileName, 0, i);
-						llvm::errs() << path << "\n";
 						mkdir(path.c_str(), 0755);
 				}
 			}
@@ -482,29 +319,4 @@ int saveOutput(clang::tooling::RefactoringTool & Tool) {
 	}
 	
 	return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int main(int argc, const char **argv) {
-
-	using namespace clang::tooling;
-	
-	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<CompilationDatabase> Compilations(
-			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
-
-	cl::ParseCommandLineOptions(argc, argv);
-	if(!Compilations) {
-		std::string ErrorMessage;
-		Compilations.reset(
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
-		if(!Compilations)
-			llvm::report_fatal_error(ErrorMessage);
-	}
-
-	RefactoringTool Tool(*Compilations, SourcePaths);
-	if(int r = runMatchers(Tool))
-		return r;
-	return saveOutput(Tool);
 }

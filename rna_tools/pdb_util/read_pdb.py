@@ -7,6 +7,10 @@ def read_pdb( filename ):
     pdb_lines = {}
     sequence = {}
 
+    old_resnum = 0
+    old_chain  = ''
+    chains = []
+    residues = []
     for line in open( filename ):
 
         if (len(line)>54 and  (line[0:4] == 'ATOM' or line[0:4] == 'HETA' ) ):
@@ -30,4 +34,11 @@ def read_pdb( filename ):
             coords[chain][resnum][atom_name] = position
             pdb_lines[chain][resnum][atom_name] = line[:-1]
 
-    return ( coords, pdb_lines, sequence )
+            if ( len(residues) == 0 or \
+                 resnum != old_resnum or chain != old_chain ):
+                chains.append( chain )
+                residues.append( resnum )
+            old_resnum = resnum
+            old_chain  = chain
+
+    return ( coords, pdb_lines, sequence, chains, residues )

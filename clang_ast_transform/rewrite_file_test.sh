@@ -1,12 +1,15 @@
 #!/bin/bash
 
-CLANG_BIN=/data/rosetta/clang/build/bin
-SOURCE=/data/rosetta/main/source
-OUT_DIR=/data/rosetta/main-copy/source
+CLANG_BIN=/local/luki/clang/build/bin
+SOURCE=/local/luki/main/source
+OUT_DIR=/local/luki/main-copy/source
+FILE=$1
 
 cd $SOURCE
 
-$CLANG_BIN/rosetta-refactor-tool $OUT_DIR $1 -- \
+cp -a $FILE $OUT_DIR/$FILE
+
+$CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $OUT_DIR $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem external/boost_1_55_0/ \
@@ -17,6 +20,7 @@ $CLANG_BIN/rosetta-refactor-tool $OUT_DIR $1 -- \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \
 	-DBOOST_SYSTEM_NO_DEPRECATED \
 	-DNDEBUG \
+	-DPTR_REFCOUNT \
 	-Isrc \
 	-Iexternal/include \
 	-Isrc/platform/linux/64/clang/3.5-1ubuntu1 \
@@ -25,5 +29,8 @@ $CLANG_BIN/rosetta-refactor-tool $OUT_DIR $1 -- \
 	-Isrc/platform/linux \
 	-Iexternal/boost_1_55_0 \
 	-Iexternal/dbio \
+	-Iexternal/cxxtest/ \
+	-Itest/ \
+	-I./ \
 	-I/usr/include \
 	-I/usr/local/include

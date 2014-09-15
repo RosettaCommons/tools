@@ -180,6 +180,9 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
 			#include "matchers/rewrite/cast_from_new_vardecl.hh"
 		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_expr") {
+			#include "matchers/rewrite/cast_from_new_expr.hh"
+		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
 			#include "matchers/rewrite/cast_from_new.hh"
 		}

@@ -60,9 +60,10 @@ if not exists( SCRIPTS_POST_DIR ):
 
 JOBS, SCRIPTS_PRE, SCRIPTS_POST = swa_rna_build_dag_parse()
 
-for job_name, job_fname in JOBS.iteritems():
-    print 'Writing command to ', JOBS_DIR + job_fname.split('/')[-1]
-    job_src = open( job_fname, 'r' )
+for job_name, job_ifname in JOBS.iteritems():
+    job_ofname = job_ifname.split('/')[-2] + '_' + job_ifname.split('/')[-1].split('.')[0]
+    print 'Writing command to ', JOBS_DIR + job_ofname
+    job_src = open( job_ifname, 'r' )
     lines = job_src.readlines()
     executable = lines[0].split(' = ')[1].strip('\n')
     arguments = lines[1].split(' = ')[1].strip('\n')
@@ -71,7 +72,7 @@ for job_name, job_fname in JOBS.iteritems():
     command = executable + ' ' + arguments
     command += ' ' + ' '.join(extra_flags)
 
-    job_fout = open( JOBS_DIR + job_fname.split('.')[-1], 'w' )
+    job_fout = open( JOBS_DIR + job_ofname, 'w' )
     job_fout.write( command )
     job_fout.close()
 

@@ -119,13 +119,15 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		silent_data=safe_open(silent_file, mode='r', Is_master=False)
 
-		first_silent_line=silent_data.readline();
+		first_silent_line=silent_data.readline()
 
 		silent_data.close()
 
 		Is_empty=False
 
-		if first_silent_line.index( "empty silent_file" ) > -1:
+		#if first_silent_line.index( "empty silent_file" ) > -1:
+		### ValueError: substring not found
+		if first_silent_line[-1] != "empty silent_file":
 			Is_empty=True
 		else:
 			assert_is_valid_non_empty_silent_file(silent_file)

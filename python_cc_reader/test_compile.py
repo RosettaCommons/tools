@@ -43,7 +43,7 @@ def central_compile_command() :
 
    include_directories = " -I./ -I../external/include -Iplatform/" + os + "/" + nbits + "/gcc -Iplatform/" + os + "/" + nbits +  " -Iplatform/" + os + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio"
 
-   generic_command = " -c -std=c++98 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store" + include_directories
+   generic_command = " -c -std=c++98 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store -DPTR_MODERN -DPTR_BOOST" + include_directories
    return compiler, generic_command
 
 # to be executed in the rosetta_source/src directory

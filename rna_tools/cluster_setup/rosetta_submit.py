@@ -116,7 +116,7 @@ for line in lines:
             command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
+    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ')#.replace( '-out:file:silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
     command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
@@ -189,7 +189,7 @@ for line in lines:
         fid_qsub_submit_file.close()
 
         fid_qsub.write( '%s %s\n' % ( QSUB, qsub_submit_file ) )
-        
+
         # MPI job file
         if DO_MPI:
             if hostname == "stampede":

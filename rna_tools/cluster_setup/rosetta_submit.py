@@ -161,7 +161,7 @@ for line in lines:
         errfile_general = '/dev/null'
 
     for i in range( n_jobs ):
-        dir_actual = dir.replace( '$(Process)', '%d' % i)
+        dir_actual = dir.replace( '$(Process)', '%d' % tot_jobs)
         system( 'mkdir -p '+ dirname(dir_actual) )
 
         outfile = outfile_general.replace( '$(Process)', '%d' % i )

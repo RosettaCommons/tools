@@ -32,6 +32,9 @@ def set_process_id( command_src ):
 
 #############################################################################
 
+build_commands = '$ROSETTA/tools/SWA_RNA_python/SWA_dagman_python/SWA_rna_build_commands_from_dagman.py'
+subprocess.call( 'python ' + build_commands , shell=True )
+
 JOBS_DIR = 'JOBS/'
 SCRIPTS_DIR = 'SCRIPTS/'
 SCRIPTS_PRE_DIR = 'SCRIPTS/PRE/'
@@ -168,7 +171,6 @@ queue = fill_queue( queue, job=JOB )
 ### RUN QUEUED COMMANDS IN SERIAL
 ############################################################################
 
-
 for ii in xrange( len( queue[ 'jobs' ] ) ):
 
     ### PRE PROCESSING SCRIPT
@@ -176,6 +178,7 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
         command_src = SCRIPTS_PRE_DIR + queue[ 'pre_process' ][ ii ]
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
+        subprocess.call( 'python ' + build_commands , shell=True )
 
     ### JOB
     if queue[ 'jobs' ][ ii ]:
@@ -183,12 +186,17 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
         set_process_id( command_src )
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
+        subprocess.call( 'python ' + build_commands , shell=True )
+
 
     ### POST PROCESSING SCRIPT
     if queue[ 'post_process' ][ ii ]:
         command_src = SCRIPTS_POST_DIR + queue[ 'post_process' ][ ii ]
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
+        subprocess.call( 'python ' + build_commands , shell=True )
+
+
 
 
 

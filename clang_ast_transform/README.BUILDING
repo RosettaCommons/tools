@@ -1,19 +1,24 @@
-BUILDING CLANG (transcript on Ubuntu 14.04):
+BUILDING CLANG
 
-mkdir clang
-cd clang
+Works on:
+	- Ubuntu 14.04
+	- Mac OS 10.9
+
+<commands>
+
+mkdir clang && cd clang
 
 # Get clang sources
-svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
+svn co -r 206320 http://llvm.org/svn/llvm-project/llvm/trunk llvm
 cd llvm/tools
-svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+svn co -r 206320 http://llvm.org/svn/llvm-project/cfe/trunk clang
 cd clang/tools
-svn co http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
+svn co -r 206320 http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
 cd extra
-vi CMakeLists.txt 
 ln -s /data/rosetta/tools/clang_ast_transform/rosetta-refactor-tool/
+echo 'add_subdirectory(rosetta-refactor-tool)' >> CMakeLists.txt
 cd ../../../../../llvm/projects/
-svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+svn co -r 206320 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
 cd ../..
 
 # Configure and build
@@ -23,7 +28,8 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ../llvm/
 make -j 8
 
-# You should get something like:
+</commands>
+
 luki@rosetta:~/clang/build$ ls -l bin/rosetta-refactor-tool 
 -rwxr-xr-x 1 luki lugosoft 13614708 Apr 15 12:56 bin/rosetta-refactor-tool
 

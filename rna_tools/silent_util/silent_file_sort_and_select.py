@@ -19,7 +19,11 @@ select_idx = None
 if args.select is not None:
     select_idx = []
     for i in args.select:
-        get_ints(i, select_idx)
+        if '-' in i:
+            get_ints(i, select_idx)
+        else:  
+            for j in xrange(1, int(i)+1):
+                select_idx.append(j)
 
 #Reads the silent file
 header = ''

@@ -10,6 +10,16 @@ import string
 
 from SWA_rna_build_dag_parse import swa_rna_build_dag_parse
 
+def replace_args( command ):
+    replace_args_dict = {}
+    replace_args_dict[ '-sample_virtual_ribose_list' ] = '-sample_virtual_sugar_list'
+    replace_args_dict[ 'rna_sample_virtual_ribose' ] = 'rna_sample_virtual_sugar'
+    for old_arg, new_arg in replace_args_dict.iteritems():
+        if old_arg in command.split():
+            command = command.replace( old_arg, new_arg )
+    return command
+
+
 extra_flags = [
     '-sampler_perform_phosphate_pack false',
     '-allow_virtual_side_chains false'
@@ -39,12 +49,13 @@ for job_name, job_ifname in JOBS.iteritems():
     job_src = open( job_ifname, 'r' )
     lines = job_src.readlines()
     executable = lines[0].split(' = ')[1].strip('\n')
-    arguments = lines[1].split(' = ')[1].strip('\n')
+    arguments = lines[1].split(' = ')[1].strip('\n')   
     job_src.close()
-
+    
     command = executable + ' ' + arguments
     command += ' ' + ' '.join(extra_flags)
-
+    command = replace_args( command )
+    
     job_fout = open( JOBS_DIR + job_ofname, 'w' )
     job_fout.write( command )
     job_fout.close()

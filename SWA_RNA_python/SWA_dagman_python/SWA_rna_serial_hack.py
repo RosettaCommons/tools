@@ -50,6 +50,8 @@ queue={
    'post_process': []
 }
 
+
+
 #############################################################################
 ### SAMPLING ROUND 1
 #############################################################################
@@ -183,7 +185,7 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
     ### JOB
     if queue[ 'jobs' ][ ii ]:
         command_src = JOBS_DIR + queue[ 'jobs' ][ ii ]
-        set_process_id( command_src )
+        #set_process_id( command_src )
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
         subprocess.call( 'python ' + build_commands , shell=True )

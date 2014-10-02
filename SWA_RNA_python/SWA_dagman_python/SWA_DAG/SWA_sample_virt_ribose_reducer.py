@@ -76,7 +76,7 @@ data=safe_open(START_silent_file, mode='r', Is_master=False)
 
 SEQUENCE_LINE=data.readline()
 COLUMN_NAME_LINE=data.readline()
-THIRD_LINE=data.readline() #Possible REMARK LINE!
+#THIRD_LINE=data.readline() #Possible REMARK LINE!
 
 COL_NAME_LIST=COLUMN_NAME_LINE.split()
 
@@ -101,7 +101,7 @@ while(True):
 	offset=data.tell()
 
 	line=data.readline()
-
+	
 	if(line==''): break #End of file!
 
 	if(len(line) <= 1): error_exit_with_message("len(line) <= 1") #check for line with only '\n'

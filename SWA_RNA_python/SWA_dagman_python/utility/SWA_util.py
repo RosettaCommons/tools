@@ -6,6 +6,11 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 ###############################################################
 
+####### SWA reviaval Oct. 2, 2014 #############################
+import subprocess
+
+###############################################################
+
 from sys import argv,exit
 import sys
 import traceback

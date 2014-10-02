@@ -282,7 +282,7 @@ def get_PYEXE(EXE_name):
 
 	#EXE_name could contain SLASH (/). For Windows, might want to convert SLASH (/) to BACK-SLASH
 
-	if(get_PYDIR() in EXE_name):
+	if(get_PYDIR() in EXE_name or '~/' in EXE_name):
 		pyexe_with_tilde=EXE_name
 	else:
 		pyexe_with_tilde=get_PYDIR() + EXE_name

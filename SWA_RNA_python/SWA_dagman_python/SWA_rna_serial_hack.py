@@ -19,16 +19,13 @@ def increment_pid():
     global pid
     pid += 1
 
-def set_process_id( command_src ):
+def set_process_id( command_src, process_id ):
     command_fin = open( command_src, 'r' )
     command = ' '.join( command_fin.readlines() )
     command_fin.close()
     if '$(Process)' in command:
-        command_fout = open( command_src, 'w' )
-        command_fout.write( command.replace( '$(Process)', '%i' % pid ) )
-        command_fout.close()
-        increment_pid()
-    return
+        command = command.replace( '$(Process)', '%i' % pid ) 
+    return command
 
 #############################################################################
 
@@ -49,8 +46,6 @@ queue={
    'pre_process' : [],
    'post_process': []
 }
-
-
 
 #############################################################################
 ### SAMPLING ROUND 1
@@ -185,10 +180,12 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
     ### JOB
     if queue[ 'jobs' ][ ii ]:
         command_src = JOBS_DIR + queue[ 'jobs' ][ ii ]
-        #set_process_id( command_src )
-        print "Running command: source " + command_src
-        subprocess.call( 'source ' + command_src, shell=True )
-        subprocess.call( 'python ' + build_commands , shell=True )
+        njobs = 1
+        for n in xrange( 1, njobs+1 ):
+            command = set_process_id( command_src, n )
+            print "Running command: " + command
+            subprocess.call( command, shell=True )
+            #subprocess.call( 'python ' + build_commands , shell=True )
 
 
     ### POST PROCESSING SCRIPT

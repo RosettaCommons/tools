@@ -327,7 +327,7 @@ README_SETUP.write( '#!/usr/bin/python\n' )
 README_SETUP.write( 'from os import system\n' )
 README_SETUP.write( 'import string\n\n' )
 
-README_SETUP.write( "command= '%s '\n\n" %(get_PYEXE("/home/geniesse/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/SWA_rna_build_dagman.py")) )
+README_SETUP.write( "command= '%s '\n\n" %(get_PYEXE("~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/SWA_rna_build_dagman.py")) )
 README_SETUP.write( "command+= '-s %s -fasta %s '\n\n" %(list_to_string(start_elements), fasta_file) )
 
 if(native_pdb!=""): README_SETUP.write( "command+= '-native %s '\n\n" %(native_pdb) )

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 ######################################################################
 from SWA_dagman_python.parser.SWA_parse_options import parse_options, parse_seq_num_list_option

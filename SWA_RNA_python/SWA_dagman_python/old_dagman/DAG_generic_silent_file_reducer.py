@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 
 from os import system,popen
@@ -97,7 +97,7 @@ for line in lines:
 		#For general case, can have more than one mapper_outfile (e.g. second example above...still have to rewrite code to account for this possibility!)
 		if( len(cols)!=3 ): error_exit_with_message("len(cols)!=3 for mapper_outfiles line=(%s)" %(line)) 
 
-		if( cols[1] != "=" ): error_exit_with_message("cols[1] != \"=\" for mapper_outfiles line (%s)" %(line))
+		if( cols[1] != "=" ): kill_all_slave_jobs_and_exit("cols[1] != \"=\" for mapper_outfiles line (%s)" %(line))
 
 		mapper_outfile  = cols[2]
 
@@ -124,7 +124,7 @@ for queue_ID in range(num_mapper_jobs):
 
 	if(exists(silent_file)==False): error_exit_with_message("silent_file (%s) doesn't exist!" %(silent_file))
 
-	silent_data=safe_open(silent_file, mode='r')
+	silent_data=safe_open(silent_file, mode='r', Is_master=False)
 
 	first_silent_line=silent_data.readline();
 

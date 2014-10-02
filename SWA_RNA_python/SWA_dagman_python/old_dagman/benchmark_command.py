@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 ######################################################################
 from benchmark_command_util import *
@@ -18,10 +18,10 @@ from os.path import basename, dirname, exists, expanduser
 from time import sleep
 ######################################################################
 
-#~/SWA_RNA_python/SWA_dagman_python/dagman/benchmark_command.py  -algorithm check_status -job_folder_patterns FARFAR_denovo/^/ SWA_denovo/^/  
+#~/SWA_RNA_python/SWA_dagman_python/dagman/benchmark_command.py  -algorithm check_status -job_folder_patterns FARFAR_denovo/^/ SWA_denovo/^/ 
 
 
-#~/SWA_RNA_python/SWA_dagman_python/dagman/benchmark_command.py -algorithm submit_jobs -job_folder_patterns FARFAR_denovo/^/ SWA_denovo/^/  -MAX_QUEUE_JOB 1000 -num_slave_nodes_per_job 50 >> log_submit_job_benchmark_command.out 2> log_submit_job_benchmark_command.err
+#~/SWA_RNA_python/SWA_dagman_python/dagman/benchmark_command.py -algorithm submit_jobs -job_folder_patterns FARFAR_denovo/^/ SWA_denovo/^/  -num_slave_nodes_per_job 100 >> log_submit_job_benchmark_command.out 2> log_submit_job_benchmark_command.err
 
 #  
 
@@ -46,11 +46,7 @@ if(algorithm not in ["submit_jobs", "REsubmit_jobs", "check_status"] ):  error_e
 
 num_slave_nodes_per_job=parse_options( argv, "num_slave_nodes_per_job", 100 )
 
-MAX_QUEUE_JOB=parse_options( argv, "MAX_QUEUE_JOB", 600 )
-
 if(len(argv)!=1): error_exit_with_message("len(argv)!=1, leftover_argv=%s" %(list_to_string(argv) ) )
-
-
 
 ############################################################################################
 
@@ -124,8 +120,8 @@ for round_ID in range(num_rounds):
 				submitted_job_list.append(job_folder)
 				num_job_queued_so_FAR+=num_slave_nodes_per_job
 
-			if(num_job_queued_so_FAR>MAX_QUEUE_JOB):
-				print "num_job_running_so_FAR=(%s)>%s EARLY EXIT!" %(num_job_queued_so_FAR, MAX_QUEUE_JOB)
+			if(num_job_queued_so_FAR>600):
+				print "num_job_running_so_FAR=(%s)>600 EARLY EXIT!" %(num_job_queued_so_FAR)
 				print "Submitted JOBS:",  submitted_job_list
 				sys.exit(1)
 

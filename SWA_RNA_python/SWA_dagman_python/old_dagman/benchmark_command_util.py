@@ -1,11 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 ######################################################################
 from SWA_dagman_python.utility.SWA_util import *
+from SWA_dagman_python.utility.DAGMAN_util import create_generic_README_SUB
 
-from SWA_dagman_python.dagman.DAG_general_util import create_generic_README_SUB
-
-from SWA_dagman_python.scheduler.scheduler_util import *
 ######################################################################
 
 from sys import argv,exit
@@ -22,37 +20,80 @@ README_SUB_PY="README_SUB.py"
 README_SETUP_PY="README_SETUP.py"
 ######################################################################
 
-
-##############################################################
-
 def get_num_job_queued_in_account():
 
-	queued_job_name_list=get_queued_job_name_list("ALL", ignore_problem_nodes=False)
-
 	###Ensure the slave jobs is really dead!###
-	#bjobs_lines=popen_and_readlines("bjobs -w | sort -nk1 ", tag="get_bjob_status.txt")
+	bjobs_lines=popen_and_readlines("bjobs -w | sort -nk1 ", Is_master=False, tag="get_bjob_status.txt")
 
-	return ( len(queued_job_name_list) )
+	return ( len(bjobs_lines) -1 )
 ######################################################################
 
 
-def get_num_existing_slave_jobs(): #This function allows that current_directory is the main_directory of the specific DAG job of interest.
+def get_num_existing_slave_jobs():
 
-	#e.g. /home/sripakpa/minirosetta/March_10_4X_CHEM_SHIFT_minimize_benchmark_run/main_folder/SWA_denovo/GGAC
+	total_slave=0
+	num_running=0
+	num_pending=0
 
-	total_slave=len(get_slave_job_name_list("ALL"))
-	num_running=len(get_slave_job_name_list("RUN"))
-	num_pending=len(get_slave_job_name_list("PEND"))
+	slave_tag = abspath( "SLAVE_JOBS/" ).replace('/','_')
+	#print "slave_tag=%s" %(slave_tag)
+
+	###Ensure the slave jobs is really dead!###
+	bjobs_lines=popen_and_readlines("bjobs -w | sort -nk1 ", Is_master=False, tag="get_bjob_status.txt")
+
+	for line in bjobs_lines:
+		
+		if(line.find( slave_tag ) > 0): 
+			total_slave+=1
+
+			if(line.split()[2]=="RUN"): 
+				num_running+=1
+			elif(line.split()[2]=="PEND"): 
+				num_pending+=1
+			elif(line.split()[2]=="STAT"):
+				pass
+			else:
+				error_exit_with_message("Invalid status for job=%s" %(line))		
 							
 	return (total_slave, num_running, num_pending)
 
+######################################################################
+def get_master_job_status():
+
+	master_tag = abspath( "MASTER" ).replace("/","_")
+	#print "master_tag=%s" %(master_tag)
+
+	###Ensure the slave jobs is really dead!###
+	bjobs_lines=popen_and_readlines("bjobs -w | sort -nk1 ", Is_master=False, tag="get_bjob_status.txt")
+
+	master_job_status="NOT_QUEUED"
+
+	num_master_job_line_found=0
+
+	for line in bjobs_lines:
+		
+		if(line.find( master_tag ) > 0): 
+			num_master_job_line_found+=1
+
+			if(line.split()[2]=="RUN"): 
+				master_job_status="RUNNING"
+			elif(line.split()[2]=="PEND"): 
+				master_job_status="PENDING"
+			elif(line.split()[2]=="STAT"):
+				pass
+			else:
+				error_exit_with_message("Invalid status for job=%s" %(line))		
+
+	if(num_master_job_line_found>1): error_exit_with_message("num_master_job_line_found>1")
+	
+	return master_job_status
 ######################################################################
 
 def check_job_is_done():
 
 	if(exists("master_log.out")==False): return False
 
-	master_log_out_tails=popen_and_readlines("less master_log.out | tail -n50", tag="master_log_out_tails.txt")
+	master_log_out_tails=popen_and_readlines("less master_log.out | tail -n50", Is_master=False, tag="master_log_out_tails.txt")
 
 	found_master_job_done_line=False
 
@@ -109,11 +150,11 @@ def attempt_resubmit_job():
 				if(exists("SLAVE_JOBS/")): 		submit_subprocess("mv SLAVE_JOBS/ %s/SLAVE_JOBS/" %(OLD_folder))
 				if(exists("CONDER/")):				submit_subprocess("mv CONDER/ %s/CONDER/" %(OLD_folder))
 				if(exists("COMMON_ARGS/")):		submit_subprocess("mv COMMON_ARGS/ %s/COMMON_ARGS/" %(OLD_folder))
-				if(exists("KEEP_LOG_FILE/")):	submit_subprocess("cp -r KEEP_LOG_FILE %s/KEEP_LOG_FILE" %(OLD_folder))
+				if(exists("KEEP_LOG_FILE/")):	submit_subprocess("cp KEEP_LOG_FILE %s/KEEP_LOG_FILE" %(OLD_folder))
 				break
 
 		#########################################################
-		sleep( 5 ) #April 22, 2012: Used to be 2 seconds. Change to 5 seconds since PBS/TORQUE have slower respond time! SLAVE jobs that haven't died yet should start dying after moving the SLAVE_JOBS folder.
+		sleep( 2 ) #SLAVE jobs that haven't died yet should start dying after moving the SLAVE_JOBS folder.
 
 		(total_slave,  num_running_slave, num_pending_slave)=get_num_existing_slave_jobs()			
 

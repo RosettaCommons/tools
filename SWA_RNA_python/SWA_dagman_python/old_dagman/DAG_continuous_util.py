@@ -1,18 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
-
-######################################################################
-from DAG_general_util import get_job_info, check_if_job_in_done
-
-
-######################################################################
-from SWA_dagman_python.utility.SWA_util import *
-from SWA_dagman_python.utility.master_util import *
-
-
-from SWA_dagman_python.scheduler.scheduler_util import *
-
-######################################################################
 
 from sys import argv,exit,stdout
 import string
@@ -22,17 +9,19 @@ from os.path import basename,exists,expanduser,dirname,abspath
 import os
 import time
 from time import sleep
-
-
 ######################################################################
 
+from SWA_dagman_python.utility.SWA_util import *
+######################################################################
 
 #######################################
 # This could actually be a class!
 #######################################
 
+SLAVE_EXE = get_PYEXE('dagman/DAG_slave.py')
+
 SEPERATE_CLUSTERER_SLAVE_NODES=False
-NUM_CLUSTERER_SLAVE_NODE=-1 #8
+NUM_CLUSTERER_SLAVE_NODE=-1 #6
 print "SEPERATE_CLUSTERER_SLAVE_NODES=%s | NUM_CLUSTERER_SLAVE_NODE=%d" %(SEPERATE_CLUSTERER_SLAVE_NODES, NUM_CLUSTERER_SLAVE_NODE)
 if(SEPERATE_CLUSTERER_SLAVE_NODES==True and NUM_CLUSTERER_SLAVE_NODE<=0): error_exit_with_message("SEPERATE_CLUSTERER_SLAVE_NODES==True and NUM_CLUSTERER_SLAVE_NODE<=0")
 
@@ -43,7 +32,7 @@ def wait_until_clusterer_slave_nodes_run():
 
 	while(True): #Make sure that at least 3 of the clusterer slave jobs are running!
 
-		running_job_tag_list=get_queued_job_name_list("RUN", ignore_problem_nodes=True)
+		bjobs_lines = popen_and_readlines('bjobs -w | grep " RUN " ', True)
 
 		running_clusterer_slave_nodes=[]
 
@@ -51,9 +40,12 @@ def wait_until_clusterer_slave_nodes_run():
 
 			slave_dir = 'SLAVE_JOBS/%d' % n
 
-			slave_tag = abspath( slave_dir ).replace('/','_')[1:]
+			slave_tag = abspath( slave_dir ).replace('/','_')
 
-			if(running_job_tag_list.count(slave_tag)>0): running_clusterer_slave_nodes.append(slave_tag)
+			for line in bjobs_lines:
+				if( line.find( slave_tag+' ' ) > 0 ):
+					running_clusterer_slave_nodes.append(slave_tag)
+					break
 
 		if(len(running_clusterer_slave_nodes)>=(NUM_CLUSTERER_SLAVE_NODE/2)): #At least half of them are running!
 			print "At least half (%d) of the clusterer_slave_nodes are running!" %(NUM_CLUSTERER_SLAVE_NODE/2)
@@ -66,162 +58,67 @@ def wait_until_clusterer_slave_nodes_run():
 		sleep(2)
 
 ##########################################################################################
-def assert_slave_jobs_not_already_queued(N_JOBS):
 
-	print_title_text("Enter assert_slave_jobs_not_already_queued | N_JOBS=%d " %(N_JOBS))
+
+def kick_off_slave_jobs( N_JOBS ):
+	print_title_text("Enter kick_off_slave_jobs N_JOBS=%d " %(N_JOBS))
+
+	if(exists('SLAVE_JOBS/')): 	kill_all_slave_jobs_and_exit( 'The folder SLAVE_JOBS/ already exist!')
+
+	sys.stdout.flush()
+	sys.stderr.flush()
+
+	for n in range( N_JOBS ):
+		SLAVE_DIR = 'SLAVE_JOBS/%d' % n
+		if( exists( SLAVE_DIR)==False ):
+			command = 'mkdir -p '+SLAVE_DIR
+			print( command )
+			submit_subprocess_allow_retry( command, True )
+		sys.stdout.flush()
+		sys.stderr.flush()
 
   # ENSURE THAT SLAVE_NODE with same name is NOT ALREADY SUBMITTED!.
-	existing_job_tag_list= get_queued_job_name_list("ALL", ignore_problem_nodes=True)
+	existing_bjobs_lines = popen_and_readlines( 'bjobs -w ' , True)
 
-	for job_num in range( N_JOBS ):
+	for n in range( N_JOBS ):
 
-		print "job_num=%s" %(job_num)
+		SLAVE_DIR = 'SLAVE_JOBS/%d' % n
 
-		SLAVE_DIR = 'SLAVE_JOBS/%d' %(job_num)
-
-		slave_tag = abspath( SLAVE_DIR ).replace('/','_')[1:]
+		slave_tag = abspath( SLAVE_DIR ).replace('/','_')
 
 		slave_already_queued = False
 
-		if(existing_job_tag_list.count(slave_tag)>0): slave_already_queued = True
+		for line in existing_bjobs_lines:
+			if(line.find( slave_tag+' ' ) > 0):
+				slave_already_queued = True
+				break
 
-		if(slave_already_queued):	error_exit_with_message("slave_node (%s) is already queued! " %(SLAVE_DIR) )
+		if (slave_already_queued):	 kill_all_slave_jobs_and_exit("slave_node (%s) is already queued! " %(SLAVE_DIR) )
 
-	print_title_text("Exit assert_slave_jobs_not_already_queued | N_JOBS=%d " %(N_JOBS))
+		slave_errfile = SLAVE_DIR + '/slave_jobs.err'
+		slave_outfile = SLAVE_DIR + '/slave_jobs.out'
 
-##########################################################################################
-
-def MPI_DAG_slave_wrapper(slave_num, TOTAL_SLAVE_JOBS, SLAVE_EXE): #This is the only function in this .py file that is called by the slave and not the master!
-
-	print_title_text("Enter MPI_DAG_slave_wrapper | slave_num=%d of TOTAL_SLAVE_JOBS=%d " %(slave_num, TOTAL_SLAVE_JOBS))
-
-	SLAVE_DIR = 'SLAVE_JOBS/%d' %(slave_num)
-
-	if( exists( SLAVE_DIR) ): error_exit_with_message("SLAVE_DIR (%s) already exist!" %(SLAVE_DIR))
-
-	command = 'mkdir -p %s' %(SLAVE_DIR)
-	print( command )
-	submit_subprocess_allow_retry( command )
-
-	##############################################################
-	sys.stdout.flush()
-	sys.stderr.flush()
-
-	slave_tag = abspath( SLAVE_DIR ).replace('/','_')[1:]
-
-	slave_outfile = SLAVE_DIR + '/slave_jobs.out' #Commented out on March 31, 2012 #Switch back to this on April 21, 2012
-	slave_errfile = SLAVE_DIR + '/slave_jobs.err' #Commented out on March 31, 2012 #Switch back to this on April 21, 2012
-
-	if(exists(slave_outfile)): submit_subprocess("rm %s" %(slave_outfile))
-	if(exists(slave_errfile)): submit_subprocess("rm %s" %(slave_errfile))
-
-	outfile= safe_open(slave_outfile, "w")
-	errfile= safe_open(slave_errfile, "w")
-
-	os.dup2(outfile.fileno(), sys.stdout.fileno())
-	os.dup2(errfile.fileno(), sys.stderr.fileno())
-
-	sys.stdout.flush()
-	sys.stderr.flush()
-	##############################################################
-
-	slave_job_script= "%s -slave_dir %s " %(SLAVE_EXE, SLAVE_DIR)
-
-	if(SEPERATE_CLUSTERER_SLAVE_NODES): error_exit_with_message("SEPERATE_CLUSTERER_SLAVE_NODES not yet implemented in MPI_mode!")
-
-	#Request of wall_time and memory_limit are already done at the MPI qsub submission phase.
-
-	print "slave_job_script=%s" %(slave_job_script)
-
-	submit_subprocess(slave_job_script)
-
-	sys.stdout.flush()
-	sys.stderr.flush()
-
-	###########################################################################################################################################################
-
-	print_title_text("Exit MPI_DAG_slave_wrapper | slave_num=%d of TOTAL_SLAVE_JOBS=%d " %(slave_num, TOTAL_SLAVE_JOBS))
-	print
-
-##########################################################################################
-def kick_off_slave_jobs( N_JOBS, SLAVE_EXE, wall_time ):
-	print_title_text("Enter kick_off_slave_jobs | N_JOBS=%d " %(N_JOBS))
-
-	if(exists('SLAVE_JOBS/')): error_exit_with_message( 'The folder SLAVE_JOBS/ already exist!')
-
-	sys.stdout.flush()
-	sys.stderr.flush()
-
-	for job_num in range( N_JOBS ):
-		SLAVE_DIR = 'SLAVE_JOBS/%d' %(job_num)
-		if( exists( SLAVE_DIR)==False ):
-			command = 'mkdir -p %s' %(SLAVE_DIR)
-			print( command )
-			master_submit_subprocess_allow_retry( command )
-		sys.stdout.flush()
-		sys.stderr.flush()
-
-
-	for job_num in range( N_JOBS ):
-
-		SLAVE_DIR = 'SLAVE_JOBS/%d' %(job_num)
-
-		slave_tag = abspath( SLAVE_DIR ).replace('/','_')[1:]
-
-		slave_errfile = SLAVE_DIR + '/slave_jobs.err' #Commented out on March 31, 2012 #Switch back to this on April 21, 2012
-		slave_outfile = SLAVE_DIR + '/slave_jobs.out' #Commented out on March 31, 2012 #Switch back to this on April 21, 2012
-
-		#slave_errfile = 'slave_jobs.err' #March 31, 2012 #Commented out on April 21, 2012
-		#slave_outfile = 'slave_jobs.out' #March 31, 2012 #Commented out on April 21, 2012
-
-		slave_job_script= "%s -slave_dir %s " %(SLAVE_EXE, SLAVE_DIR)
 		##########################################################################################
 
-		if(SEPERATE_CLUSTERER_SLAVE_NODES and (job_num==NUM_CLUSTERER_SLAVE_NODE) ): wait_until_clusterer_slave_nodes_run()
+		if(SEPERATE_CLUSTERER_SLAVE_NODES and (n==NUM_CLUSTERER_SLAVE_NODE) ): wait_until_clusterer_slave_nodes_run()
 
-		if(SEPERATE_CLUSTERER_SLAVE_NODES and (job_num<NUM_CLUSTERER_SLAVE_NODE ) ): #HACKY. High memory node for clustering!
-			queue_job(slave_tag, slave_outfile, slave_errfile, slave_job_script, SLAVE_DIR, walltime=wall_time, memory_limit=8192, memory_reserve=8192)
-			#Before April 27, 2012: walltime=140
+		if(SEPERATE_CLUSTERER_SLAVE_NODES and (n<NUM_CLUSTERER_SLAVE_NODE ) ): #HACKY. High memory node for clustering!
+			command = 'bsub -W 140:0 -M 8192000 -R "rusage[mem=8192]" -o %s -e %s -J %s %s -slave_dir %s ' % (slave_outfile, slave_errfile, slave_tag, SLAVE_EXE, SLAVE_DIR)
+			#command = 'bsub -W 140:0 -M 5000000 -R "rusage[mem=5000]" -o %s -e %s -J %s %s -slave_dir %s ' % (slave_outfile, slave_errfile, slave_tag, SLAVE_EXE, SLAVE_DIR)
+			#command = 'bsub -W 140:0 -M 4000000 -o %s -e %s -J %s %s -slave_dir %s ' % (slave_outfile, slave_errfile, slave_tag , SLAVE_EXE, SLAVE_DIR)
 		else: #Standard node.
-			#queue_job(slave_tag, slave_outfile, slave_errfile, slave_job_script, SLAVE_DIR, walltime=wall_time, memory_limit=4096, memory_reserve=0, verbose=True)
+			command = 'bsub -W 140:0 -M 4000000 -o %s -e %s -J %s %s -slave_dir %s ' % (slave_outfile, slave_errfile, slave_tag , SLAVE_EXE, SLAVE_DIR)
+			#command = 'bsub -W 140:0 -M 5000000 -R "rusage[mem=5000]" -o %s -e %s -J %s %s -slave_dir %s ' % (slave_outfile, slave_errfile, slave_tag, SLAVE_EXE, SLAVE_DIR)
 
-			queue_job(slave_tag, slave_outfile, slave_errfile, slave_job_script, SLAVE_DIR, walltime=wall_time, memory_limit=2048, memory_reserve=2048) #May 11, 2012
 
+		print( command )
+		submit_subprocess( command, True )
 
 		sys.stdout.flush()
 		sys.stderr.flush()
 
-	##############################Now identify slave nodes by the JOB_NAME. Could switch to identify by the JOB_ID############################################
 
-	all_slave_job_IDs_filename="ALL_SLAVE_JOB_IDS.txt"
-
-	if(exists(all_slave_job_IDs_filename)): submit_subprocess("rm %s" %(all_slave_job_IDs_filename))
-
-	ALL_SLAVE_JOB_IDS = open( all_slave_job_IDs_filename, 'w')
-	print "CURRENT_DIRECTORY=%s" %(os.path.abspath("."))
-	sleep(5)
-	file_count=0
-
-	for job_num in range( N_JOBS ):
-		slave_job_ID_filename = "SLAVE_JOBS/%d/JOB_ID.txt" %(job_num)
-
-		if(exists(slave_job_ID_filename)==False): continue #For the case where the slave node is broken.
-		file_count+=1
-
-		slave_job_ID_lines = master_safe_open(slave_job_ID_filename).readlines()
-
-		if(len(slave_job_ID_lines)!=1): error_exit_with_message("len(slave_job_ID_lines)=(%s)!=1 for slave_job_ID_filename=(%s)" %(len(slave_job_ID_lines), slave_job_ID_filename))
-
-		ALL_SLAVE_JOB_IDS.write('%s' %(slave_job_ID_lines[0]))
-
-	ALL_SLAVE_JOB_IDS.close()
-	print "%s out of %s slave_job_ID_filename found!" %(file_count, N_JOBS)
-
-	###########################################################################################################################################################
-
-	print_title_text("Exit kick_off_slave_jobs | N_JOBS=%d " %(N_JOBS))
-	print
-
+	print_title_text("Exit kick_off_slave_jobs N_JOBS=%d " %(N_JOBS))
 	return 0 #dummy number, not used for anything.
 
 
@@ -232,7 +129,7 @@ def send_finish_signal_to_slave_nodes(N_JOBS):
 
 	print_title_text("send_finish_signal_to_slave_nodes N_JOBS=%d " %(N_JOBS))
 
-	if(exists('SLAVE_JOBS/')==False):	master_kill_all_slave_jobs_and_exit( "The folder SLAVE_JOBS/ doesn't exist!")
+	if(exists('SLAVE_JOBS/')==False): 	kill_all_slave_jobs_and_exit( "The folder SLAVE_JOBS/ doesn't exist!")
 
 	sys.stdout.flush()
 	sys.stderr.flush()
@@ -241,9 +138,9 @@ def send_finish_signal_to_slave_nodes(N_JOBS):
 
 		SLAVE_DIR = 'SLAVE_JOBS/%d' % n
 
-		if(exists(SLAVE_DIR)==False): master_kill_all_slave_jobs_and_exit( "The folder SLAVE_DIR (%s) doesn't exist!" %(SLAVE_DIR) )
+		if(exists(SLAVE_DIR)==False): kill_all_slave_jobs_and_exit( "The folder SLAVE_DIR (%s) doesn't exist!" %(SLAVE_DIR) )
 
-		fid = master_safe_open( SLAVE_DIR + '/finished.txt','w' )
+		fid = safe_open( SLAVE_DIR + '/finished.txt','w' )
 		fid.write( ' Finished!! ' )
 		fid.close()
 
@@ -256,7 +153,7 @@ def send_finish_signal_to_slave_nodes(N_JOBS):
 
 	for slave_dir in slave_dir_list:
 
-		fid = master_safe_open( slave_dir + '/finished.txt','w' )
+		fid = safe_open( slave_dir + '/finished.txt','w' )
 		fid.write( ' Finished!! ' )
 		fid.close()
 	'''
@@ -280,14 +177,14 @@ def check_is_slave_node_broken(slave_dir, slave_errfile, slave_outfile, verbose=
 		sleep(5) # sleep for five more seconds to ensure that slave_errfile is properly closed..
 
 
-	if(master_line_counts(slave_errfile)!=0):
+	if(line_counts(slave_errfile)!=0):
 
-		data =master_safe_open(slave_errfile, 'r')
+		data =safe_open(slave_errfile, 'r', True)
 
 		for line in data:
 			if(line.find( 'createJobTmpDir: Unable to create the job level tmp directory' ) > 0):
 				print "check_is_slave_node_broken=True for slave_dir=%s: %s " %(slave_dir, line)
-				master_submit_subprocess( "echo broken slave node > %s" % ( broken_slave_node ) )
+				submit_subprocess( "echo broken slave node > %s" % ( broken_slave_node ), True )
 				data.close()
 				return True
 		data.close()
@@ -302,11 +199,11 @@ def check_is_slave_node_broken(slave_dir, slave_errfile, slave_outfile, verbose=
 			sleep(5) # sleep for five more seconds to ensure that slave_outfile is properly closed (Aug 10, 2011)..
 
 
-		if(master_line_counts(slave_outfile)==0): ###If error_message occur in slave_errfile even before slave_outfile is initialize then BROKEN!##
+		if(line_counts(slave_outfile)==0): ###If error_message occur in slave_errfile even before slave_outfile is initialize then BROKEN!##
 			print "slave_errfile= %s " %(slave_errfile)
 			print "slave_outfile= %s " %(slave_outfile)
-			print "check_is_slave_node_broken=True for slave_dir=%s: master_line_counts(slave_errfile)>0 but master_line_counts(slave_outfile)==0 " %(slave_dir)
-			master_submit_subprocess( "echo broken slave node > %s" % ( broken_slave_node ) )
+			print "check_is_slave_node_broken=True for slave_dir=%s: line_counts(slave_errfile)>0 but line_counts(slave_outfile)==0 " %(slave_dir)
+			submit_subprocess( "echo broken slave node > %s" % ( broken_slave_node ), True )
 			return True
 
 
@@ -324,13 +221,13 @@ def slave_job_error_check_method_1(slave_errfile, verbose=False):
 		if(verbose): print "exists(slave_errfile)==False"
 		return
 
-	if(master_line_counts(slave_errfile)!=0):
+	if (line_counts(slave_errfile)!=0):
 
-		exit_message="error_check_method_1=true, master_line_counts(slave_errfile)= %d, slave_errfile %s " %(master_line_counts(slave_errfile),  slave_errfile)
+		exit_message="error_check_method_1=true, line_counts(slave_errfile)= %d, slave_errfile %s " %(line_counts(slave_errfile),  slave_errfile)
 		print exit_message
 
 		print "----slave_errfile lines----"
-		data =master_safe_open(slave_errfile, 'r')
+		data =safe_open(slave_errfile, 'r', Is_master=True)
 
 		line_num=0
 
@@ -341,7 +238,7 @@ def slave_job_error_check_method_1(slave_errfile, verbose=False):
 		data.close()
 		print "----slave_errfile lines----"
 
-		master_kill_all_slave_jobs_and_exit(exit_message)
+		kill_all_slave_jobs_and_exit(exit_message)
 
 
 ##############################################
@@ -365,7 +262,7 @@ def error_check_all_slaves(verbose=False):
 ##############################################
 def check_if_slave_node_disappear(job_info_list):
 
-	running_job_tag_list = get_queued_job_name_list("RUN", ignore_problem_nodes=True)
+	bjobs_lines = popen_and_readlines('bjobs -w | grep " RUN " ', True)
 
 	for job in job_info_list:
 		found_slave_node=False
@@ -374,31 +271,26 @@ def check_if_slave_node_disappear(job_info_list):
 
 		if(job.has_key('slave_node_dir')==False):
 			print "ERROR! job: ", job
-			master_kill_all_slave_jobs_and_exit("job does not have key 'slave_node_dir'!" )
+			kill_all_slave_jobs_and_exit("job does not have key 'slave_node_dir'!" )
 
-		slave_tag = job['slave_node_dir'].replace('/','_')[1:]
+		slave_tag = job['slave_node_dir'].replace('/','_')
 
-		if(running_job_tag_list.count(slave_tag)>0):
-			#print basename(job['slave_node_dir']), " found in line %s " %(line)
-			found_slave_node=True
-
+		for line in bjobs_lines:
+			if( line.find( slave_tag+' ' ) > 0 ): #OK the +' ' is to distinguish between for example SLAVE_JOBS_19 and SLAVE_JOBS_191
+				#print basename(job['slave_node_dir']), " found in line %s " %(line)
+				found_slave_node=True
+				break
 
 		if(found_slave_node==False):
 			print "-----------------------------------------------------------------------------------------------------------"
-			print "ERROR!: slave_tag (%s) is no longer in the running_job_tag_list!" %(job['slave_node_dir'])
+			print "ERROR!: slave_node %s is no longer in the bjobs queue!" %(job['slave_node_dir'])
 			print "This slave_node was running the job:", job
-			print "queued_jobs_stat_lines BEFORE EXIT:"
-
-			QUEUED_JOBS_OUTFILE = open( "All_QUEUED_JOBS_BEFORE_EXIT.txt", 'w')
-			queued_jobs_stat_lines=get_queued_jobs_status_lines()
-
-			for n in range(len(queued_jobs_stat_lines)):
-				print "#%4d: %s" %(n, queued_jobs_stat_lines[n])
-				QUEUED_JOBS_OUTFILE.write('#%4d: %s\n' %(n, queued_jobs_stat_lines[n]))
+			print "bjobs -w | grep \" RUN \" before exit:"
+			for line in bjobs_lines:
+				print line,
 			print "-----------------------------------------------------------------------------------------------------------"
-			QUEUED_JOBS_OUTFILE.close()
-
-			master_kill_all_slave_jobs_and_exit("ERROR! slave_node (%s) is no longer in the running_job_tag_list!" %(job['slave_node_dir']) )
+			submit_subprocess("bjobs -w > All_bjobs_BEFORE_EXIT.txt")
+			kill_all_slave_jobs_and_exit("ERROR! slave_node (%s) is no longer in the bjobs queue!" %(job['slave_node_dir']) )
 
 
 ##############################################
@@ -414,15 +306,15 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 
 	rosetta_errfile_location=slave_dir + "/rosetta_errfile_location.txt"
 
-	if( ( exists( rosetta_errfile_location ) ) and ( master_line_counts( rosetta_errfile_location )!=0 ) ):
+	if( ( exists( rosetta_errfile_location ) ) and ( line_counts( rosetta_errfile_location )!=0 ) ):
 
-		rosetta_errfile = master_popen_and_readlines( "tail -n 1 %s" %( rosetta_errfile_location ) )[0]
+		rosetta_errfile = popen_and_readlines( "tail -n 1 %s" %( rosetta_errfile_location ), Is_master=True )[0]
 		rosetta_errfile = rosetta_errfile[:-1] #remove the new line (\n) character
 
-		if( ( exists(rosetta_errfile) ) and ( master_line_counts(rosetta_errfile)!=0 ) ):
+		if( ( exists(rosetta_errfile) ) and ( line_counts(rosetta_errfile)!=0 ) ):
 			print "NON-EMPTY rosetta_errfile (%s)!" %(rosetta_errfile)
 			print "Error slave_node=%s " %(slave_dir)
-			master_kill_all_slave_jobs_and_exit()
+			kill_all_slave_jobs_and_exit()
 
 
 ##############################################
@@ -434,22 +326,19 @@ def get_active_slave_dir_list(Is_clusterer_job):
 
 	slave_dir_list.sort()
 
-	running_job_tag_list = get_queued_job_name_list("RUN", ignore_problem_nodes=True)
-
-	#May 09, 2012: Hacky for debugging purpose!
-	update_scheduler_queue_log()
+	running_bjobs_lines = popen_and_readlines('bjobs -w | grep " RUN " ', True) #FOR checking if slave_node is still running
 
 	active_slave_dir_list = []
 
 	for slave_dir in slave_dir_list:
 
 		#####Make sure that slave_node is still RUNNING! (i.e not pending or dead!)####
-		slave_tag = slave_dir.replace('/','_')[1:]
+		slave_tag = slave_dir.replace('/','_')
 
 		slave_is_running=False
 
-		if(running_job_tag_list.count(slave_tag)>0):
-			slave_is_running=True
+		for line in running_bjobs_lines:
+			if(line.find( slave_tag + ' ' ) > 0): slave_is_running=True
 
 		if(slave_is_running==False): continue
 
@@ -464,10 +353,10 @@ def get_active_slave_dir_list(Is_clusterer_job):
 
 		####Aug 12, 2011####Check that slave_jobs.out is not empty.##########
 
-		if(exists(slave_outfile)==False):  master_kill_all_slave_jobs_and_exit("slave_outfile (%s) doesn't exist!!" %(slave_outfile) )
+		if(exists(slave_outfile)==False):  kill_all_slave_jobs_and_exit("slave_outfile (%s) doesn't exist!!" %(slave_outfile) )
 
-		if(master_line_counts(slave_outfile)==0):
-			print "Skipping slave_outfile (%s) since master_line_counts(slave_outfile)==0)" %(slave_outfile)
+		if(line_counts(slave_outfile)==0):
+			print "Skipping slave_outfile (%s) since line_counts(slave_outfile)==0)" %(slave_outfile)
 			continue
 
 		#####See if slave_node is still running a prior job#############################################
@@ -481,7 +370,7 @@ def get_active_slave_dir_list(Is_clusterer_job):
 		try:
 			slave_ID=int(slave_dir.split('/')[-1])
 		except:
-			master_kill_all_slave_jobs_and_exit("Cannot get slave_ID from slave_dir (%s)" %(slave_dir))
+			kill_all_slave_jobs_and_exit("Cannot get slave_ID from slave_dir (%s)" %(slave_dir))
 
 		if(SEPERATE_CLUSTERER_SLAVE_NODES):
 			if( (Is_clusterer_job==False) and (slave_ID<NUM_CLUSTERER_SLAVE_NODE ) ): continue
@@ -498,7 +387,7 @@ def get_active_slave_dir_list(Is_clusterer_job):
 ##############################################
 def get_next_job_queue_ID(job_queue_ID, job_info_list):
 
-	if(job_queue_ID>=len(job_info_list)): master_kill_all_slave_jobs_and_exit("job_queue_ID=(%s)>=(%s)=len(job_info_list)" %(job_queue_ID,len(job_info_list) ) )
+	if(job_queue_ID>=len(job_info_list)): kill_all_slave_jobs_and_exit("job_queue_ID=(%s)>=(%s)=len(job_info_list)" %(job_queue_ID,len(job_info_list) ) )
 
 	while(True): #find next job in the list that is not yet done.
 
@@ -519,16 +408,16 @@ def submit_job(job_info, slave_dir):
 	err_log_filename    =job_info['err_log_filename']
 	done_signal_filename=job_info['done_signal_filename']
 
-	master_submit_subprocess( "echo %s >> %s" % ( err_log_filename, slave_dir + "/rosetta_errfile_location.txt") )
+	submit_subprocess( "echo %s >> %s" % ( err_log_filename, slave_dir + "/rosetta_errfile_location.txt"), True )
 
 	run_this_script_file = get_run_this_script_file(slave_dir)
 
-	fid = master_safe_open( run_this_script_file, 'w' )
+	fid = safe_open( run_this_script_file, 'w' )
 	fid.write( '%s\n' % job_script_filename )
 	fid.write( '%s\n' % done_signal_filename )
 	fid.close()
 
-	if( exists( run_this_script_file ) == False ): master_kill_all_slave_jobs_and_exit("run_this_script_file (%s) doesn't exist!" %(run_this_script_file) )
+	if( exists( run_this_script_file ) == False ): kill_all_slave_jobs_and_exit("run_this_script_file (%s) doesn't exist!" %(run_this_script_file) )
 
 	print 'assigning %s to slave %d' % ( job_script_filename, int( basename( slave_dir ) ) )
 
@@ -544,11 +433,7 @@ def submit_jobs_to_slave( job_info_list, Is_clusterer_job):
 
 	job_queue_ID=-1
 
-	#hack_count=0
-
 	while( True ):
-
-		error_check_all_slaves() #Add on April 21, 2012
 
 		active_slave_dir_list=get_active_slave_dir_list(Is_clusterer_job) #Get active jobs that are not pending, not dead and not broken!
 
@@ -576,11 +461,7 @@ def submit_jobs_to_slave( job_info_list, Is_clusterer_job):
 
 			num_act_jobs_submitted+=1
 
-		#hack_count+=1
 
-		#if(hack_count==10):
-		#	print "hack_count==10!, master_kill_all_slave_jobs_and_exit()"
-		#	master_kill_all_slave_jobs_and_exit("hack_count==10")
 
 ##############################################
 def delete_log_files(job_info_list, keep_some_log_file):
@@ -601,41 +482,41 @@ def delete_log_files(job_info_list, keep_some_log_file):
 		command='rm %s ' %(out_log_filename)
 		if(exists(out_log_filename)):
 			print command
-			master_submit_subprocess_allow_retry(command)
+			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(err_log_filename)
 		if(exists(err_log_filename)):
 			print command
-			master_submit_subprocess_allow_retry(command)
+			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(job_script_filename)
 		if(exists(job_script_filename)):
 			print command
-			master_submit_subprocess_allow_retry(command)
+			submit_subprocess_allow_retry(command,  True )
 
 		command='rm %s ' %(done_signal_filename)
 		if(exists(done_signal_filename)):
 			print command
-			master_submit_subprocess_allow_retry(command)
+			submit_subprocess_allow_retry(command,  True )
 
 #		command='rm %s ' %(done_signal_filename+"'\n'")
 #		if(exists(done_signal_filename+'\n')):
 #			print command
-#			master_submit_subprocess_allow_retry(command)
+#			submit_subprocess_allow_retry(command,  True )
 
 
 ##############################################
-def DAG_submit( DAG_submit_file_ , reducer_command):
+def condor_submit( condor_submit_file_ , reducer_command):
 
-	DAG_submit_start_time=time.time()
+	condor_submit_start_time=time.time()
 
-	print_title_text('Run: '+ DAG_submit_file_)
+
+	print_title_text('Run: '+ condor_submit_file_)
 	sys.stdout.flush()
 	sys.stderr.flush()
 
+	lines = safe_open( condor_submit_file_ ).readlines()
 
-	lines = master_safe_open( DAG_submit_file_ ).readlines()
-	lines = [line for line in lines if len(line.split())>1 and '# ' not in line]
 
 	exe= ""
 	args= ""
@@ -651,34 +532,34 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 		cols = string.split( line )
 
-		if(len(cols)<2):  master_kill_all_slave_jobs_and_exit("len(cols)<2 for line (%s)\nline_number (%d) " %(line,line_number))
+		if(len(cols)<2): kill_all_slave_jobs_and_exit("len(cols)<2 for line (%s)" %(line))
 
 		if( cols[0] == "Queue"    ):
-			if( len( cols )!= 2 ): master_kill_all_slave_jobs_and_exit("len( cols )!=2 for Queue line (%s)!" %(line))
+			if( len( cols )!= 2 ): kill_all_slave_jobs_and_exit("len( cols )!=2 for Queue line (%s)!" %(line))
 			num_queue_line+=1
 			queue_num = int( cols[1] )
 			continue
 
 		####OK, all the other lines should have (cols[1] == "=")####
-		if( cols[1] != "=" ): master_kill_all_slave_jobs_and_exit("cols[1] != \"=\" for line (%s)" %(line))
+		if( cols[1] != "=" ): kill_all_slave_jobs_and_exit("cols[1] != \"=\" for line (%s)" %(line))
 
 		if( cols[0] ==  "executable" ):
-			if( len(cols) != 3 ): master_kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
+			if( len(cols) != 3 ): kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
 			exe = cols[2]
 
-		if( cols[0] == "#log_foldername" ):
-			if( len(cols) != 3 ): master_kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
+		if( check_tag( cols[0], "log_foldername") ):
+			if( len(cols) != 3 ): kill_all_slave_jobs_and_exit("len(cols) != 3 for line (%s)" %(line))
 			log_foldername = cols[2]
 
 		if( cols[0] == "arguments"        ): args             = string.join(cols[2:])
 
-		if( cols[0] == "#mapper_outfiles"  ): mapper_outfiles  = string.join(cols[2:])
+		if( check_tag( cols[0], "mapper_outfiles")  ): mapper_outfiles  = string.join(cols[2:])
 
-		if( cols[0] == "#reducer_outfiles" ): reducer_outfiles = string.join(cols[2:])
+		if( check_tag( cols[0], "reducer_outfiles") ): reducer_outfiles = string.join(cols[2:])
 
-		if( cols[0] == "#mapper_infiles"   ): mapper_infiles   = string.join(cols[2:]) #NOT CURRENLTY IN USE
+		if( check_tag( cols[0], "mapper_infiles")   ): mapper_infiles   = string.join(cols[2:]) #NOT CURRENLTY IN USE
 
-		if( cols[0] == "#reducer_infiles"  ): reducer_infiles  = string.join(cols[2:]) #NOT CURRENLTY IN USE
+		if( check_tag( cols[0], "reducer_infiles")  ): reducer_infiles  = string.join(cols[2:]) #NOT CURRENLTY IN USE
 
 	print "-----------------------------------------------------------------------------------------"
 	print "exe=%s" %(exe)
@@ -692,22 +573,17 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 	print "num_queue_line=%s" %(num_queue_line)
 	print "-----------------------------------------------------------------------------------------"
 
-	if(num_queue_line!=1):  master_kill_all_slave_jobs_and_exit("num_queue_line=(%s)!=1" %(num_queue_line))
-	if(queue_num==-1): master_kill_all_slave_jobs_and_exit("queue_num==-1")
+	if(num_queue_line!=1):  kill_all_slave_jobs_and_exit("num_queue_line=(%s)!=1" %(num_queue_line))
+	if(queue_num==-1): kill_all_slave_jobs_and_exit("queue_num==-1")
 
 	reducer_outfile_list=reducer_outfiles.split()
 	for reducer_outfile in reducer_outfile_list:
-		if(exists(reducer_outfile)): master_kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
+		if(exists(reducer_outfile)): kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
 
 
 	# Stolen from script for PBS.
 	all_job_info_list = []
 	#actually_submit_job_info_list = []
-
-	COMPUTER_CLUSTER_NAME=str(os.environ['COMPUTER_CLUSTER_NAME']) #June 15, 2012 TEST.
-
-	if(COMPUTER_CLUSTER_NAME=="LONESTAR-TACC-XSEDE"):
-		print "COMPUTER_CLUSTER_NAME==\"LONESTAR-TACC-XSEDE\", extra sleep 0.1 seconds between mkdir of outfile folders"
 
 	for q in range( queue_num + 1 ):
 
@@ -742,7 +618,7 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 			already_done=True
 
-			if(reducer_job): master_kill_all_slave_jobs_and_exit("done_signal for reducer_job %s already exist before job submission!" %(done_signal_filename) )
+			if(reducer_job): kill_all_slave_jobs_and_exit("done_signal for reducer_job %s already exist before job submission!" %(done_signal_filename) )
 
 			for outfile in outfile_list:
 
@@ -762,15 +638,15 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 			if(exists(out_log_filename)):
 				print ("job %s WAS NOT successfully_completed. Removing out_log_filename = %s " %(out_log_filename, out_log_filename))
-				master_submit_subprocess( 'rm %s' %(out_log_filename))
+				submit_subprocess( 'rm %s' %(out_log_filename), True)
 
 			if(exists(err_log_filename)):
 				print ("job %s WAS NOT successfully_completed. Removing err_log_filename = %s " %(out_log_filename, err_log_filename))
-				master_submit_subprocess( 'rm %s' %(err_log_filename))
+				submit_subprocess( 'rm %s' %(err_log_filename), True)
 
 			if(exists(job_script_filename)):
 				print ("job %s WAS NOT successfully_completed. Removing job_script_filename = %s " %(out_log_filename, job_script_filename))
-				master_submit_subprocess( 'rm %s' %(job_script_filename))
+				submit_subprocess( 'rm %s' %(job_script_filename) , True)
 
 			for outfile in outfile_list:
 
@@ -780,32 +656,31 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 					if(exists(outfolder)):
 						print ("job %s WAS NOT successfully_completed.	 Removing outfolder = %s " %(out_log_filename, outfolder))
-						master_submit_subprocess( 'rm -r %s' %(outfolder) )
+						submit_subprocess( 'rm -r %s' %(outfolder), True )
 
 				else:
 					if(exists(outfile)):
 						print ("job %s WAS NOT successfully_completed.	 Removing outfile = %s " %(out_log_filename, outfile))
-						master_submit_subprocess( 'rm %s' %(outfile) )
+						submit_subprocess( 'rm %s' %(outfile), True )
 
 			######CREATE THE JOB_SCRIPT FOR THIS JOB #######################################################
 
-			master_safe_mkdir( log_foldername )
-			master_safe_mkdir( dirname(out_log_filename) )
-			master_safe_mkdir( dirname(err_log_filename) )
-			master_safe_mkdir( dirname(job_script_filename) )
-			master_safe_mkdir( dirname(done_signal_filename) )
+
+			local_safe_mkdir( log_foldername , True)
+			local_safe_mkdir( dirname(out_log_filename) , True)
+			local_safe_mkdir( dirname(err_log_filename) , True)
+			local_safe_mkdir( dirname(job_script_filename) , True)
+			local_safe_mkdir( dirname(done_signal_filename) , True)
 
 			for outfile in outfile_list:
 
-				if(COMPUTER_CLUSTER_NAME=="LONESTAR-TACC-XSEDE"): sleep(0.1) #June 15, 2012.
-
 				if(outfile[0:7]=="FOLDER:"): #Oct 22, 2011
 					outfolder=outfile[7:]
-					master_safe_mkdir( dirname(outfolder) )
+					local_safe_mkdir( dirname(outfolder) , True)
 				else:
-					master_safe_mkdir( dirname(outfile) )
+					local_safe_mkdir( dirname(outfile) , True)
 
-			fid = master_safe_open( job_script_filename, 'w' )
+			fid = safe_open( job_script_filename, 'w' )
 
 			if(reducer_job):
 				fid.write('wrapper_script = %s\n' %(get_PYEXE("dagman/DAG_reducer.py")) )
@@ -832,12 +707,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 	Is_clusterer_job=False
 
-	if( (DAG_submit_file_.count('cluster')>0) or (DAG_submit_file_.count('CLUSTER')>0) ):
+	if( (condor_submit_file_.count('cluster')>0) or (condor_submit_file_.count('CLUSTER')>0) ):
 		Is_clusterer_job=True
-		print "%s is a clusterer job!" %(DAG_submit_file_)
+		print "%s is a clusterer job!" %(condor_submit_file_)
 	else:
 		Is_clusterer_job=False
-		print "%s is NOT a clusterer job!" %(DAG_submit_file_)
+		print "%s is NOT a clusterer job!" %(condor_submit_file_)
 
 	all_job_info_list=submit_jobs_to_slave( all_job_info_list, Is_clusterer_job )
 
@@ -845,12 +720,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 #	if(queue_num!=0):
 #	else:
-#		if(len(all_job_info_list)!=0): master_kill_all_slave_jobs_and_exit("queue_num==0 but len(all_job_info_list=0")
+#		if(len(all_job_info_list)!=0): kill_all_slave_jobs_and_exit("queue_num==0 but len(all_job_info_list)!=0")
 #		#consistency check
-#		print "Queue_num=0 for JOB %s, no actual job submission!" %(DAG_submit_file_)
+#		print "Queue_num=0 for JOB %s, no actual job submission!" %(condor_submit_file_)
 
 
-	print "A total of %f seconds is used to submit the JOB: %s " %( time.time()- DAG_submit_start_time, DAG_submit_file_)
+	print "A total of %f seconds is used to submit the JOB: %s " %( time.time()- condor_submit_start_time, condor_submit_file_)
 
 	return all_job_info_list
 

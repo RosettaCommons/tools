@@ -101,7 +101,8 @@ while(True):
 	offset=data.tell()
 
 	line=data.readline()
-	
+
+	if(line[:6] == 'REMARK'):	THIRD_LINE=line#REMARK line 	
 	if(line==''): break #End of file!
 
 	if(len(line) <= 1): error_exit_with_message("len(line) <= 1") #check for line with only '\n'
@@ -198,11 +199,13 @@ for n in range(len(START_silent_data_list)):
 
 	num_options_taken=0	
 
-	if(first_line=="no_virtual_ribose (FB_CC_JP_list.size()==0).\n"): #No virtual_ribose
+	if(first_line=="no_virtual_ribose (FB_CC_JP_list.size()==0).\n") or \
+	  (first_line=="no_virtual_sugar ( sugar_modeling_list.size() == 0 ).\n" ): #No virtual_ribose
 
 		NEW_silent_data_list.append(START_silent_data)
 
-	elif(first_line=="num_virtual_ribose != 0 but for one of the sampled virtual_ribose, curr_FB_JP.PDL.size()==0.\n"): #Virtual_ribose exist, but no valiable ribose rotamer!
+	elif(first_line=="num_virtual_ribose != 0 but for one of the sampled virtual_ribose, curr_FB_JP.PDL.size()==0.\n" ) or \
+		(first_line== "num_virtual_sugar != 0 but for one of the sampled virtual_sugar, curr_sugar_list.size()==0.\n" ): #Virtual_ribose exist, but no valiable ribose rotamer!
 
 		num_fail_ribose_sampling+=1 # Filler to prevent error!
 

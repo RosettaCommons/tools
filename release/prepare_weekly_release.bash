@@ -49,7 +49,8 @@ python remove_internal.py
 git commit -am "weekly release: remove 'internal' documentation"
 #generate static html
 #this is *really* stupid but I don't want to deal with tcsh and bash fighting today
-../tools/release/generate_documentation.tcsh
+#../tools/release/generate_documentation.tcsh
+#skipping for this weekly (gollum)
 
 #prepare tools
 if [ "$debug" = false ];

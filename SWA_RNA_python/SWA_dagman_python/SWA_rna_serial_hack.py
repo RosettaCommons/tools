@@ -14,18 +14,44 @@ def fill_queue( queue, job=None, script_pre=None, script_post=None ):
     queue[ 'post_process' ].append( script_post )
     return queue
 
-pid = 0
-def increment_pid():
-    global pid
-    pid += 1
-
 def set_process_id( command_src, process_id ):
     command_fin = open( command_src, 'r' )
     command = ' '.join( command_fin.readlines() )
     command_fin.close()
     if '$(Process)' in command:
-        command = command.replace( '$(Process)', '%i' % pid ) 
-    return command
+        command_fout = open( command_src, 'w' )
+        command_fout.write( command.replace( '$(Process)', '%i' % process_id ) ) 
+        command_fout.close()
+    return True
+
+def filter_cluster_out( jobname ):
+    if jobname == 'CLUSTERER_REGION_0_1_cluster':
+        cluster_out_fname = 'region_0_1_sample.cluster.out'
+
+    elif jobname == 'CLUSTERER_REGION_2_0_cluster':
+        cluster_out_fname = 'region_2_0_sample.cluster.out'
+
+    else: return
+
+
+    if exists( cluster_out_fname ):
+        print "cluster_out_fname: "+cluster_out_fname+" exists!!!"
+        fin = open( cluster_out_fname, 'r' )
+        lines = fin.readlines()
+        for line in lines:
+            if 'ANNOTATED_SEQUENCE:' in line.split()[0]:
+                tag = line.split()[-1]
+                break
+        fin.close()
+        fout = open( cluster_out_fname, 'w')
+        for line in lines:
+            if 'S_' in line.split()[-1] and tag not in line.split()[-1]: break
+            fout.write(line)
+        fout.close()
+
+        return
+
+
 
 #############################################################################
 
@@ -175,17 +201,17 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
         command_src = SCRIPTS_PRE_DIR + queue[ 'pre_process' ][ ii ]
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
-        subprocess.call( 'python ' + build_commands , shell=True )
 
     ### JOB
     if queue[ 'jobs' ][ ii ]:
         command_src = JOBS_DIR + queue[ 'jobs' ][ ii ]
-        njobs = 1
-        for n in xrange( 1, njobs+1 ):
-            command = set_process_id( command_src, n )
-            print "Running command: " + command
-            subprocess.call( command, shell=True )
-            #subprocess.call( 'python ' + build_commands , shell=True )
+        dummy = 0
+        set_process_id( command_src, dummy )
+        print "Running command: " + command_src
+        subprocess.call( 'source ' + command_src, shell=True )
+        if( queue[ 'jobs' ][ ii ] == 'CLUSTERER_REGION_0_1_cluster' or
+            queue[ 'jobs' ][ ii ] == 'CLUSTERER_REGION_2_0_cluster' ):
+            filter_cluster_out( queue[ 'jobs' ][ ii ])
 
 
     ### POST PROCESSING SCRIPT
@@ -193,7 +219,6 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
         command_src = SCRIPTS_POST_DIR + queue[ 'post_process' ][ ii ]
         print "Running command: source " + command_src
         subprocess.call( 'source ' + command_src, shell=True )
-        subprocess.call( 'python ' + build_commands , shell=True )
 
 
 

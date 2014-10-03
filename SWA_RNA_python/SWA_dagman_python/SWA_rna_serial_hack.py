@@ -49,7 +49,45 @@ def filter_cluster_out( jobname ):
             fout.write(line)
         fout.close()
 
-        return
+    return
+
+
+def get_condor_file( job ):
+    if 'VIRT_RIBOSE_SAMPLER' in job:
+        condor_dir='CONDOR/VIRT_RIBOSE_SAMPLER/'
+        condor_file=job.replace('VIRT_RIBOSE_SAMPLER_',condor_dir)+'.condor'
+    elif 'SAMPLER' in job:
+        condor_dir='CONDOR/SAMPLER/'
+        condor_file=job.replace('SAMPLER_',condor_dir)+'.condor'
+    elif 'CLUSTERER' in job:
+        condor_dir='CONDOR/CLUSTERER/'
+        condor_file=job.replace('CLUSTERER_',condor_dir)+'.condor'
+    else: 
+        condor_file=None
+    #print condor_file
+    return condor_file
+    
+def get_num_queue_from_condor_file( job ):
+    condor_file=get_condor_file( job )
+    for line in open(condor_file, 'r').readlines():
+        if len(line.split()) > 1:
+            if line.split()[0] == 'Queue':
+                num_queue=int(line.split()[1])
+    #print num_queue    
+    return num_queue
+
+def run_jobs( job ):
+    num_queue=get_num_queue_from_condor_file( job )
+    command_file = JOBS_DIR + job
+    for n in xrange( num_queue ):
+        command_src=open(command_file, 'r')
+        command=command_src.readline().replace('$(Process)','%d' % n)
+        command_src.close()
+        print "Running command: " + command
+        subprocess.call( command, shell=True )
+    return
+
+
 
 
 
@@ -87,15 +125,6 @@ JOB = 'SAMPLER_REGION_2_0_START_FROM_REGION_0_0'
 SCRIPT_POST = 'REGION_2_0_START_FROM_REGION_0_0'
 queue = fill_queue( queue, job=JOB, script_post=SCRIPT_POST )
 
-# SAMPLE 1 0
-JOB = 'SAMPLER_REGION_1_0_START_FROM_REGION_0_0'
-SCRIPT_POST = 'REGION_1_0_START_FROM_REGION_0_0'
-queue = fill_queue( queue, job=JOB, script_post=SCRIPT_POST )
-
-# SAMPLE 0 2
-JOB = 'SAMPLER_REGION_0_2_START_FROM_REGION_0_0'
-SCRIPT_POST = 'REGION_0_2_START_FROM_REGION_0_0'
-queue = fill_queue( queue, job=JOB, script_post=SCRIPT_POST )
 
 
 ############################################################################
@@ -166,6 +195,15 @@ SCRIPT_PRE =  'REGION_2_1_START_FROM_REGION_0_0_AND_2_0'
 SCRIPT_POST = 'REGION_2_1_START_FROM_REGION_0_0_AND_2_0'
 queue = fill_queue( queue, job=JOB, script_pre=SCRIPT_PRE, script_post=SCRIPT_POST )
 
+# SAMPLE 1 0
+JOB = 'SAMPLER_REGION_1_0_START_FROM_REGION_0_0'
+SCRIPT_POST = 'REGION_1_0_START_FROM_REGION_0_0'
+queue = fill_queue( queue, job=JOB, script_post=SCRIPT_POST )
+
+# SAMPLE 0 2
+JOB = 'SAMPLER_REGION_0_2_START_FROM_REGION_0_0'
+SCRIPT_POST = 'REGION_0_2_START_FROM_REGION_0_0'
+queue = fill_queue( queue, job=JOB, script_post=SCRIPT_POST )
 
 ############################################################################                                                                 ### CLUSTERING ROUND 2
 ############################################################################
@@ -204,16 +242,8 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
 
     ### JOB
     if queue[ 'jobs' ][ ii ]:
-        command_src = JOBS_DIR + queue[ 'jobs' ][ ii ]
-        dummy = 0
-        set_process_id( command_src, dummy )
-        print "Running command: " + command_src
-        subprocess.call( 'source ' + command_src, shell=True )
-        if( queue[ 'jobs' ][ ii ] == 'CLUSTERER_REGION_0_1_cluster' or
-            queue[ 'jobs' ][ ii ] == 'CLUSTERER_REGION_2_0_cluster' ):
-            filter_cluster_out( queue[ 'jobs' ][ ii ])
-
-
+        run_jobs( queue[ 'jobs' ][ ii ] )
+       
     ### POST PROCESSING SCRIPT
     if queue[ 'post_process' ][ ii ]:
         command_src = SCRIPTS_POST_DIR + queue[ 'post_process' ][ ii ]

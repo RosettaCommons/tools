@@ -23,6 +23,26 @@ public:
 		refactor_tool(t)
 		{}
 
+	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+		sm = Result.SourceManager;
+		handle_field_decl(Result);
+		handle_record_decl(Result);
+	}
+
+	// Collect class field declarations
+	void handle_field_decl(const ast_matchers::MatchFinder::MatchResult &Result) {
+
+		const FieldDecl *fielddecl = Result.Nodes.getStmtAs<FieldDecl>("fielddecl");
+		if(!rewriteThisFile(fielddecl, *sm))
+			return;
+
+		const std::string cls = fielddecl->getParent()->getQualifiedNameAsString();
+
+		if( class_fields.find(cls) == class_fields.end() )
+			class_fields[cls] = StringsOP( new Strings() );
+
+		// TODO: don't add raw pointers?
+
 		class_fields[cls]->push_back( fielddecl->getName() );
 	}
 

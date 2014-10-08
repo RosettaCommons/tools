@@ -1,8 +1,13 @@
-BD=/local/luki/clang/build
-SRC=/local/luki/clang/llvm
+#!/bin/bash
 
-cd /local/luki/main/source
-$BD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
+CLANG_BIN=/local/luki/clang/build/bin
+SOURCE=/data/rosetta/main/source
+OUT_DIR=/data/rosetta/main-copy/source
+FILE=$1
+
+cd $SOURCE
+
+$CLANG_BIN/rosetta-refactor-tool -matchers=add_serialization_code $OUT_DIR $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem external/boost_1_55_0/ \

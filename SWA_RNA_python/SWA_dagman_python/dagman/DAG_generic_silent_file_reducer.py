@@ -116,6 +116,7 @@ possible_empty_silent_file_message=[]
 
 possible_empty_silent_file_message.append("DAG_builge_bulge.py: Unsucessfully rebuild bulge(s)!!\n") #No virtaul_ribose
 possible_empty_silent_file_message.append("StepWiseRNA_Minimizer:: num_pose_outputted==0, empty silent_file!\n") 
+possible_empty_silent_file_message.append("StepWiseMinimizer:: num_pose_outputted==0, empty silent_file!\n") 
 ##ADD MORE MESSAGE AS NEEDED##
 
 for queue_ID in range(num_mapper_jobs):

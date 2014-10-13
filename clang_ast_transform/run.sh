@@ -15,6 +15,7 @@ $CLANG_BIN/rosetta-refactor-tool ${*:2} $FILE -- \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \
 	-DBOOST_SYSTEM_NO_DEPRECATED \
 	-DNDEBUG \
+	-DPTR_MODERN -DPTR_STD -DCXX11 \
 	-I$SOURCE/src \
 	-I$SOURCE/external/include \
 	-I$SOURCE/src/platform/linux/64/clang/3.5-1ubuntu1 \

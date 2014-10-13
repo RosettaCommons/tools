@@ -97,7 +97,8 @@ for i in xrange(args.proc):
     silent_fh[-1].write(header)
     out_silent = path.join(folder, args.tag + '.out')
     cmdline = cmdline_base + silent_file + ' -out:file:silent %s' % out_silent
-    out_script.write('./\t%s\n' % cmdline)
+    #out_script.write('./\t%s\n' % cmdline)
+    out_script.write('%s\n' % cmdline)
 out_script.close()
 
 

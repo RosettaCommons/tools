@@ -92,8 +92,8 @@ public:
 	int runMatchers();
 	int saveOutput();
 
-private:
 	clang::tooling::RefactoringTool * Tool;
+	std::string prefix_, suffix_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,11 +152,14 @@ int RosettaRefactorTool::runMatchers() {
 		/////////////////////////////////
 
 		// Finders
-		if(matcher == "find" || matcher == "find_calls") {
+		if(matcher == "find_calls") {
 			#include "matchers/find/calls.hh"
 		}
-		if(matcher == "find" || matcher == "find_self_ptr_in_ctor") {
+		if(matcher == "find_self_ptr_in_ctor") {
 			#include "matchers/find/self_ptr_in_ctor.hh"
+		}
+		if(matcher == "find_field_decl") {
+			#include "matchers/find/field_decl.hh"
 		}
 
 		// Code quality checkers
@@ -207,7 +210,12 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
 			#include "matchers/rewrite/member_calls.hh"
 		}
-	
+
+		// Adders
+		if(matcher == "add_serialization_code") {
+			#include "matchers/rewrite/add_serialization_code.hh"
+		}
+
 		if(matcher == "rewrite_not_operator") {
 			// Not needed; see comment in file
 			#include "matchers/rewrite/not_operator.hh"
@@ -305,8 +313,12 @@ int RosettaRefactorTool::saveOutput() {
 
 				if(!llvm::sys::fs::createUniqueFile(TempFilename.str(), FD, TempFilename))
 					FileStream.reset(new llvm::raw_fd_ostream(FD, /*shouldClose=*/true));
+
 				if(FileStream) {
+					*FileStream << prefix_;
 					I->second.write(*FileStream); // no error checking on raw_ostream
+					*FileStream << suffix_;
+
 					ok = !llvm::sys::fs::rename(TempFilename.str(), outputFileName);
 					llvm::sys::fs::remove(TempFilename.str()); // if rename fails
 				}

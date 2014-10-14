@@ -2,7 +2,7 @@
 
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import argparse 
+import argparse
 
 parser = argparse.ArgumentParser(description='Plot scores terms from silent files.')
 parser.add_argument('silent_file', help='Name of the Silent File')
@@ -15,8 +15,8 @@ silent_file=args.silent_file
 out_file=args.out_file+'.pdf'
 xvar=args.x
 yvar=args.y
-xlab=xvar.replace('_',' ').upper()
-ylab=yvar.replace('_',' ').upper()
+xlab=ur'RMSD (\u00c5)'#xvar.replace('_',' ').upper()
+ylab='Rosetta Energy'#yvar.replace('_',' ').upper()
 
 score_keys = [line for line in open(silent_file, 'r').readlines() if 'SCORE' in line and 'description' in line][0].split()
 score_lines = [line for line in open(silent_file, 'r').readlines() if 'SCORE' in line and 'description' not in line]

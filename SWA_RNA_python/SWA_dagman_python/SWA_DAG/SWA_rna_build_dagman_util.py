@@ -654,7 +654,7 @@ def get_user_input_pdb_info_list(input_pdbs, input_silent_file_list, input_res_f
 
 				if ( exists( input_pdb )==False ): error_exit_with_message("exists( %s )==False" %(input_pdb) )
 
-				input_pdb_sequence = popen( "SWA_pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
+				input_pdb_sequence = popen( "pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
 				input_seq_length = len( input_pdb_sequence )
 
 				starting_sequence = ""

@@ -59,7 +59,7 @@ optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False
 #   Consider the following 6 nucleotides loop:
 #           N-A1-A2-A3-U4-U5-U6-N
 #
-#   (1) Build regions such as: 
+#   (1) Build regions such as:
 #           N-A1-              -N
 #           N-A1-A2            -N
 #           N-               U6-N
@@ -108,7 +108,7 @@ OLLM_chain_closure_only = parse_options (argv, "OLLM_chain_closure_only", "False
 #   rather than O(n**2) steps where n is the number of loop nucleotides).
 #   Should be run only in
 #   conjunction with optimize_long_loop_mode.
-#   
+#
 #   (1) Modifies the behavior of the combine_long_loop mode:
 #
 #       Only regions combine regions that are 1 nt apart are combined, e.g.:
@@ -143,7 +143,7 @@ final_rebuild_bulge_step_only = parse_options(argv, "final_rebuild_bulge_step_on
 BMRB_chemical_shift_file = parse_options(argv, "BMRB_chemical_shift_file", "") #New option Oct 23, 2011.
 
 allow_combine_DS_regions = parse_options(argv, "allow_combine_DS_regions", "False")
-# allow_combine_DS_regions : 
+# allow_combine_DS_regions :
 #   DS is abbreviation for 'double-stranded'
 #   This option provides additional building steps when building double-
 #   stranded-motifs (e.g. activates combine_DS_regions mode.)
@@ -158,7 +158,7 @@ allow_combine_DS_regions = parse_options(argv, "allow_combine_DS_regions", "Fals
 #
 #   N-N-A1-A2
 #   N-N-G8-G7
-#           and 
+#           and
 #             A3-A4-N-N
 #             G6-G5-N-N
 #
@@ -415,21 +415,21 @@ combine_DS_regions=False
 if allow_combine_DS_regions:
 
 	#The two modes are not compatible!
-	if optimize_long_loop_mode: 
+	if optimize_long_loop_mode:
 		error_exit_with_message("BOTH optimize_long_loop_mode and allow_combine_DS_regions EQUALS True!")
 
 	#Might not be compatible especially if len(starting_elements)>=1
-	if len(starting_elements) > 0: 
+	if len(starting_elements) > 0:
 		error_exit_with_message("len(starting_elements) > 0 and allow_combine_DS_regions EQUALS True!")
 
 	#Not yet tested if the two modes are compatible!
-	if allow_build_from_scratch:  
+	if allow_build_from_scratch:
 		error_exit_with_message("BOTH allow_build_from_scratch and allow_combine_DS_regions EQUALS True!")
 
 	combine_DS_regions = len(cutpoints_open) != 0
 
 	if combine_DS_regions:
-		if len(user_input_pdb_info_list) != 2: 
+		if len(user_input_pdb_info_list) != 2:
 			error_exit_with_message("len(user_input_pdb_info_list)=(%s)!=2" %(len(user_input_pdb_info_list) ) )
 
 print "allow_combine_DS_regions=%s" % allow_combine_DS_regions,
@@ -549,7 +549,7 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 								  allow_bulge_right_next_to_input_helix,
 								  allow_normal_move_at_pathway_bulge_res,
 								  allow_bulge_move_at_non_pathway_bulge_res,
-								  dinucleotide_at_single_element_cc, 
+								  dinucleotide_at_single_element_cc,
 								  build_from_helix_to_helix_mode,
 								  check_attach_verbose):
 				start_regions.append([i_prev, j_prev])
@@ -778,15 +778,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					else:
 						filterer_mode="combine_long_loop_contact"
 
-					if sample_virt_ribose_in_sep_DAG: 
-						job_specific_filterer_args += " -filterer_undercount_ribose_rotamers true "
-						# Generally filterer will select and output a maximum 
+					if sample_virt_ribose_in_sep_DAG:
+						job_specific_filterer_args += " -filterer_undercount_sugar_rotamers true "
+						# Generally filterer will select and output a maximum
 						# counts of low energy conformations.
 						# -filterer_undercount_ribose_rotamers options tells
 						# the filterer that two conformations that differ only
 						# by the coordinates of theirs virtual ribose/sugar
 						# should be treated as a single count. In the mode,
-						# the number of conformations actually outputted 
+						# the number of conformations actually outputted
 						# by the filterer with exceed the 'maximum counts'
 
 				job_specific_common_args=add_input_res_to_common_args(job_specific_common_args, pose_info_list)

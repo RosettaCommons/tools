@@ -205,8 +205,8 @@ for n in range(len(START_silent_data_list)):
 		NEW_silent_data_list.append(START_silent_data)
 
 	elif(first_line=="num_virtual_ribose != 0 but for one of the sampled virtual_ribose, curr_FB_JP.PDL.size()==0.\n" ) or \
-		(first_line== "num_virtual_sugar != 0 but for one of the sampled virtual_sugar, curr_sugar_list.size()==0.\n" ): #Virtual_ribose exist, but no valiable ribose rotamer!
-
+		(first_line=="num_virtual_sugar != 0 but for one of the sampled virtual_sugar, curr_sugar_list.size()==0.\n" ) or \ #Virtual_ribose exist, but no valiable ribose rotamer!
+		(first_line=="num_virtual_sugar != 0 but for one of the sampled virtual_sugar,curr_modeling.pose_list.size() == 0.\n" ):
 		num_fail_ribose_sampling+=1 # Filler to prevent error!
 
 	else:	

@@ -6,13 +6,29 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Plot scores terms from silent files.')
 parser.add_argument('silent_file', help='Name of the Silent File')
-parser.add_argument('out_file', help='Name of Output File', default='score_vs_rms')
+parser.add_argument('-tag', help='Tag of Output File', default='score_vs_rmsd')
 parser.add_argument('x', help='X-axis variable', default='rms')
 parser.add_argument('y', help='Y-axis variable', default='score')
+parser.add_argument('-nstruct', default=None)
+parser.add_argument('-cycles', default=None)
 args=parser.parse_args()
 
 silent_file=args.silent_file
-out_file=args.out_file+'.pdf'
+tag=args.tag
+
+if args.cycles:
+	tag=args.cycles+'_cycles_'+tag
+if args.nstruct:
+	tag=args.nstruct+'_models_'+tag
+if '.out' in silent_file:
+	silent_tag=silent_file.replace('.out','_')
+if '_rebuild' in silent_tag:
+	silent_tag=silent_tag.replace('_rebuild','')
+tag=silent_tag+tag
+
+
+out_pdf=tag+'.pdf'
+out_png=tag+'.png'
 xvar=args.x
 yvar=args.y
 xlab=ur'RMSD (\u00c5)'#xvar.replace('_',' ').upper()
@@ -26,12 +42,32 @@ ydata = [float(cols[score_keys.index(yvar)]) for cols in [line.split() for line 
 
 #for s,r in zip(score_,rms_):
 #	print s,', ',r
+details=None
+models=None
+cycles=None
+if args.nstruct:
+	models = args.nstruct+' models'
+if args.cycles:
+	cycles = args.cycles+' cycles'
 
-pp=PdfPages(out_file)
+if models and cycles:
+	details='\n('+models+', '+cycles+')'
+elif models:
+	details='\n('+models+')'
+elif cycles:
+	details='\n('+cycles+')'
+else:
+	details=''
+
+
+pp=PdfPages(out_pdf)
 plot = plt.plot(xdata,ydata, marker='o', color='r', linestyle=' ')
+plt.title(ylab+' vs. '+xlab+details)
 plt.xlabel(xlab)
 plt.ylabel(ylab)
-plt.title(ylab+' vs. '+xlab)
+plt.xlim(0.0,8.0)
+plt.ylim(-48,-30)
 pp.savefig()
 pp.close()
-plt.show()
+#plt.show()
+plt.savefig(out_png)

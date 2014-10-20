@@ -235,7 +235,7 @@ for n in range(len(START_silent_data_list)):
 			print "file_name=%s" %(globfile_info["file_name"])
 			print "THIRD_LINE=", THIRD_LINE
 			print "third_line=", third_line
-			error_exit_with_message("(THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line))" )
+			#error_exit_with_message("(THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line))" )
 
 		offset=0
 

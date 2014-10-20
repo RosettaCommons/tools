@@ -3,6 +3,7 @@
 import urllib
 import subprocess
 import argparse
+from os.path import exists
 
 ###################################################################################################
 
@@ -63,11 +64,13 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('pdb_id', help='Name of a pdb')
 parser.add_argument('-sample_res', nargs='+', help='Sample residues', default=None)
 parser.add_argument('-chain_id', help='Chain ID', default=None)
+parser.add_argument('-new_dir', default=False)
 args=parser.parse_args()
 
 pdb_id=(args.pdb_id).lower()
 chain_id=(args.chain_id).lower()
 sample_res=args.sample_res
+new_dir=args.new_dir
 
 ###################################################################################################
 
@@ -75,8 +78,17 @@ print 'pdb_id = '+pdb_id
 print 'chain_id = '+chain_id
 print 'sample_res = ',sample_res
 
+if new_dir:		
+	subprocess.call('mkdir inputs', shell=True)
 pdb_file=download_pdb(pdb_id)
 if chain_id:	pdb_file=extract_chain(pdb_file, chain_id)
 rna_pdb_in=make_rna_rosetta_ready(pdb_file)
 setup_fasta(rna_pdb_in)
 if sample_res:	setup_scaffold(rna_pdb_in, sample_res)
+
+
+if exists('./swa/clean_directory'):
+	subprocess.call('cp *'+pdb_id+'* '+'./swa/clean_directory/', shell=True )
+if exists('./swm/clean_directory'):
+	subprocess.call('cp *'+pdb_id+'* '+'./swm/clean_directory/', shell=True )
+subprocess.call('rm ./*'+pdb_id+'*', shell=True)

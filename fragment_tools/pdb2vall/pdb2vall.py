@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 from optparse import OptionParser
 from sys import exit, stderr, stdout
 from os import popen, system, path

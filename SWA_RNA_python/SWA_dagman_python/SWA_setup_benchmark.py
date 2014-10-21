@@ -30,7 +30,7 @@ for target in TARGETS:
 	
 	target_dir=TARGET_DIRS[target]
 	safe_mkdir(target_dir)
-	print '\nCreating benchmark target: '+target_dir
+	print '\nCreating benchmark target ... '+target_dir
 
 	swm_dir=target_dir+'/swm'
 	swa_dir=target_dir+'/swa'
@@ -47,18 +47,18 @@ for target in TARGETS:
 	target_info=target.split()
 	pdb_id=target_info[0]
 	chain_id=target_info[1]
-	sample_res_list=[ str(x) for x in xrange(int(target_info[2]),int(target_info[3])+1) ]
-	pdb_input_files=pdbinputfactory.setup_pdb_inputs(	pdb_id, chain_id=chain_id, sample_res_list=sample_res_list, is_rna=True	 )
+	sample_res_str=' '.join([ str(x) for x in xrange(int(target_info[2]),int(target_info[3])+1) ])
+	pdbinputfactory.setup_pdb_inputs( pdb_id, chain_id, sample_res_str )
+	pdb_input_files=['./*.pdb','./*.fasta']
 	safe_cp(pdb_input_files, swm_clean_dir)
 	safe_cp(pdb_input_files, swa_clean_dir)
 	safe_rm(pdb_input_files)
 
 
 	### setup README and SUBMIT files
-	native_pdb=pdb_input_files[2]
-	fasta_file=pdb_input_files[3]
-	scaffold_file=pdb_input_files[4]
-	sample_res_str=' '.join(sample_res_list)
+	native_pdb=pdbinputfactory.native_pdb
+	fasta_file=pdbinputfactory.fasta_file
+	scaffold_file=pdbinputfactory.scaffold_file
 	jobfilefactory.setup_clean_directory( swm_clean_dir, native_pdb, fasta_file, scaffold_file, sample_res_str )
 	jobfilefactory.setup_clean_directory( swa_clean_dir, native_pdb, fasta_file, scaffold_file, sample_res_str )
 

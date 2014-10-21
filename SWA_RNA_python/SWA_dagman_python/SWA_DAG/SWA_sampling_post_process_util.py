@@ -44,7 +44,7 @@ def delete_sampler_outfiles_and_folders(indir_prefix, delete_files):
 		outfolder=indir_prefix +'/'
 		#if(exists(outfolder)==False): error_exit_with_message("outfolder (%s) doesn't exist!" %(outfolder))
 		if( not exists(outfolder) ):
-			print "outfolder (%s) doesn't exist!" % (outfolder)
+			print "WARNING, outfolder (%s) doesn't exist!" % (outfolder)
 			return False
 		print "rm -r %s" %(outfolder)
 		submit_subprocess("rm -r %s" %(outfolder))

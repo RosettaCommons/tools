@@ -7,7 +7,23 @@ from os.path import exists
 
 ###################################################################################################
 
-class PDBInputFactory(object):
+class FileManipulator(object):
+
+	def safe_cp(self, files, directory):
+		if exists(directory):
+			for file in files:
+				subprocess.call('cp '+file+' '+directory, shell=True)
+		return
+
+	def safe_rm(self, files):
+		for file in files:
+			if exists(file):
+				subprocess.call('rm '+file, shell=True)
+		return
+
+###################################################################################################
+
+class PDBInputFactory(FileManipulator):
 
 	def __init__(self):
 		return
@@ -94,4 +110,96 @@ class PDBInputFactory(object):
 		subprocess.call('pdbslice.py '+pdb_file+' -excise '+' '.join(self.sample_res_list_)+' '+scaffold_tag, shell=True)
 		return scaffold_file
 
+###################################################################################################
 
+class JobFileFactory(FileManipulator):
+
+	def __init__(self, use_oldscore=True):
+		### SWM README FILE
+		self.swm_out_file_silent='swm_rebuild_oldscore.out'
+		self.nstruct=10
+		self.ncycles=200
+		### SWM SUBMIT FILE
+		self.swm_out_dir='oldscore_out'
+		self.swm_num_slave_nodes=50
+		self.swm_master_wall_time=72
+		self.use_oldscore=use_oldscore
+		### SWA SUBMIT File
+		self.swa_num_slave_nodes=300 
+		self.swa_master_wall_time=72
+		self.swa_master_memory_reserve=2048 
+		self.swa_dagman_file='rna_build.dag'
+
+		### scorefuncion specifics for SWM
+		self.use_oldscore=use_oldscore
+		if not self.use_oldscore:
+			self.swm_out_dir='newscore_out'
+			self.swm_out_file_silent='swn_rebuild_newscore.out'
+
+	def init(self, directory, native_pdb, fasta_file, scaffold_file, sample_res_str ):
+		self.native_pdb=native_pdb
+		self.fasta_file=fasta_file
+		self.scaffold_file=scaffold_file
+		self.sample_res_str=sample_res_str 																	#40 41 42 43 44 45
+		self.all_res_str=str(open(directory+'/'+fasta_file, 'r').readline().split(':')[-1])			#1-77 from fasta
+		self.input_res_str=str(  self.all_res_str.split('-')[0]+'-'+sample_res_str.split(' ')[0]+' '
+								+sample_res_str.split(' ')[-1]+'-'+self.all_res_str.split('-')[-1]		) 	#1-39 45-77
+		
+	def setup_clean_directory(self, directory, native_pdb, fasta_file, scaffold_file, sample_res_str ):
+		self.init(directory, native_pdb, fasta_file, scaffold_file, sample_res_str )
+		self.write_README(directory)
+		self.write_SUBMIT(directory)
+
+	def write_README(self, directory):
+		command=None
+		if 'swm' in directory:
+			command='~/src/rosetta/main/source/bin/stepwise\\\n' 
+			command+='-out:file:silent %s\\\n'%self.swm_out_file_silent
+			if self.use_oldscore:
+				command+='-score:rna_torsion_potential ps_03242010/\\\n'
+				command+='-score:weights stepwise/rna/rna_loop_hires_04092010.wts\\\n'
+				command+='-analytic_etable_evaluation false\\\n'
+			command+='-constant_seed\\\n'
+			command+='-nstruct %d\\\n'%self.nstruct  
+			command+='-cycles %d\\\n'%self.ncycles
+			command+='-native %s\\\n'%self.native_pdb
+			command+='-fasta %s\\\n'%self.fasta_file 
+			command+='-s %s\\\n'%self.scaffold_file
+			command+='-sample_res %s\\\n'%self.sample_res_str
+			command+='-rmsd_res %s\\\n'%self.sample_res_str
+			command+='-global_sample_res_list %s\\\n'%self.sample_res_str  
+			command+='-cutpoint_closed %s\\\n'%self.sample_res_str
+			command+='-input_res %s\\\n'%self.input_res_str		#1-39 45-77
+			command+='-stepwise:fixed_res %s\\\n'%self.input_res_str 
+			command+='-alignment_res %s\\\n'%self.input_res_str
+			command+='-jump_point_pairs %s\\\n'%self.all_res_str 
+		if 'swa' in directory:
+			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py\\\n'
+			command+='-single_stranded_loop_mode True\\\n'  
+			command+='-native_pdb %s\\\n'%self.native_pdb					#3d2v_b_RNA.pdb'
+			command+='-fasta %s\\\n'%self.fasta_file						#3d2v_b_RNA.fasta' 
+			command+='-s %s\\\n'%self.scaffold_file							#noUUGAA_3d2v_b_RNA.pdb'  
+			command+='-sample_res %s\\\n'%self.sample_res_str					#40 41 42 43 44' 
+		if not command:	return None 
+		readme_file=directory+'/README'
+		open(readme_file,'w').write(command) 
+		return readme_file
+
+	def write_SUBMIT(self, directory):
+		command=None
+		if 'swm' in directory:
+			command='rosetta_submit.py\\\n'
+			command+='./README\\\n'
+			command+='%s\\\n'%self.swm_out_dir
+			command+='%d\\\n'%self.swm_num_slave_nodes
+			command+='%d\\\n'%self.swm_master_wall_time
+		if 'swa' in directory:
+			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/dagman/submit_DAG_job.py\\\n' 
+			command+='-master_wall_time %d\\\n'%self.swa_master_wall_time 
+			command+='-master_memory_reserve %d\\\n'%self.swa_master_memory_reserve 
+			command+='-num_slave_nodes %d\\\n'%self.swa_num_slave_nodes 
+			command+='-dagman_file %s\\\n'%self.swa_dagman_file
+		if not command:	return None 
+		submit_file=directory+'/SUBMIT'
+		open(submit_file, 'w').write(command)
+		return submit_file

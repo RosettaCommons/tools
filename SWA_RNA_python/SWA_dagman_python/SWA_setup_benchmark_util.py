@@ -162,7 +162,7 @@ class JobFileFactory(object):
 		self.fasta_file=fasta_file
 		self.scaffold_file=scaffold_file
 		self.sample_res_str=sample_res_str 																	#40 41 42 43 44 45
-		self.all_res_str=str(open(directory+'/'+fasta_file, 'r').readline().split(':')[-1])			#1-77 from fasta
+		self.all_res_str=str(open(directory+'/'+fasta_file, 'r').readline().split(':')[-1].replace('\n',''))			#1-77 from fasta
 		self.input_res_str=str(  self.all_res_str.split('-')[0]+'-'+str(int(sample_res_str.split(' ')[0])-1)+' '
 								+str(int(sample_res_str.split(' ')[-1])+1)+'-'+self.all_res_str.split('-')[-1]		) 	#1-39 45-77
 		

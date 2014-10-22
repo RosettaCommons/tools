@@ -433,8 +433,7 @@ def is_valid_error(errfile):
 		if 'G for (i):' in line:		continue
 		if not len(line):				continue
 		return True
-	else: 
-		return False
+	return False
 
 ##############################################
 

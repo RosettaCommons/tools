@@ -23,7 +23,7 @@ def safe_cp(files, directory):
 
 def safe_rm(files):
 	for file in files:
-		subprocess.call('rm '+file, shell=True)
+		subprocess.call('rm -r '+file, shell=True)
 	return
 
 
@@ -40,81 +40,96 @@ class PDBInputFactory(object):
 				
 		self.native_pdb=None
 		self.fasta_file=None
-		self.scaffold_file=None
+		self.template_pdb=None
+
+		self.surrounding_radius=5.0
+		self.no_renumber=True
+		self.verbose=True
 
 
 	def setup_pdb_inputs(self, pdb_id, chain_id, sample_res_str):
 		self.init(pdb_id, chain_id, sample_res_str)
 		self.download_pdb()
+		self.clean_rna()
+		#self.make_rna_rosetta_ready()
 		self.extract_chain()
 		self.setup_fasta()
-		self.setup_scaffold()
-		self.make_rna_rosetta_ready()
-		#slice_sample_res_and_surrounding(self):
-		return
+		#self.slice_sample_res_and_surrounding()
+		self.setup_template_pdb()
+		
 
+	def subprocess_call_command(self, command):
+		if self.verbose:	print "Running ... '"+command+"'"
+		subprocess.call( command, shell=True )
+		
 
 	def fetch_pdb(self):
 		url = 'http://www.rcsb.org/pdb/files/%s.pdb' % self.pdb_id_.upper()
-		print 'Getting ... '+url 
+		if self.verbose:	print 'Getting ... '+url 
 		return urllib.urlopen(url).read()
 
 
 	def download_pdb(self):
 		self.native_pdb=self.pdb_id_+'.pdb'
 		open(self.native_pdb,'w').write(self.fetch_pdb())
-		print 'Writing ... '+self.native_pdb
-		return
+		if self.verbose:	print 'Writing ... '+self.native_pdb
+
+	
+	def clean_rna(self):
+		pdb_in=open(self.native_pdb,'r').readlines()
+		open(self.native_pdb,'w').write(''.join([x for x in pdb_in if x.split()[0]=='ATOM' and x.split()[3] in 'AUGC'])) 
+		if self.verbose:	print 'Cleaning ... '+self.native_pdb
 
 
 	def extract_chain(self):
-		if self.chain_id_:
-			native_pdb_fixed=self.native_pdb.replace('.pdb',str('_'+self.chain_id_+'.pdb'))
-			pdblines=''
-			for line in open(self.native_pdb, 'r').readlines():
-				if( (line.split()[0]=='ATOM' and line.split()[4]==self.chain_id_.upper()) or 
-					(line.split()[0]=='TER'  and line.split()[3]==self.chain_id_.upper()) ):
-					pdblines+=line 
-			open(native_pdb_fixed,'w').write(pdblines)
-			self.native_pdb=native_pdb_fixed
-			print 'Writing ... '+self.native_pdb
-		return
-
+		pdb_in=open(self.native_pdb,'r').readlines()
+		self.native_pdb=self.native_pdb.replace(self.pdb_id_, str(self.pdb_id_+'_'+self.chain_id_))
+		open(self.native_pdb,'w').write(''.join([x for x in pdb_in if x.split()[0]=='ATOM' and x.split()[4][0]==self.chain_id_.upper()])) 
+		if self.verbose:	print 'Writing ... '+self.native_pdb
+		
 
 	def setup_fasta(self):
 		self.fasta_file=self.native_pdb.replace('.pdb','.fasta')
-		print "Running ... 'pdb2fasta.py "+self.native_pdb+" > "+self.fasta_file+"'"
-		subprocess.call(   'pdb2fasta.py '+self.native_pdb+' > '+self.fasta_file, shell=True  )
-		return
+		command="pdb2fasta.py "+self.native_pdb+" > "+self.fasta_file
+		self.subprocess_call_command(command)
+		
 
-
-	def setup_scaffold(self):
+	def get_template_pdb_tag(self):
 		nts=''
 		for sr in self.sample_res_str_.split(' '):
 			for line in open(self.native_pdb, 'r').readlines():
-				if line.split()[5] == sr:
+				if( ( line.split()[5]==sr ) or 	   ### for <  3 digit res nums i.e., X 999
+					( line.split()[4][1:]==sr ) ): ### for >= 4 digit res nums i.e., X1999
 					nts+=line.split()[3]
 					break	
-		scaffold_tag='no'+nts+'_'
-		self.scaffold_file=scaffold_tag+self.native_pdb
-		print "Running ... 'pdbslice.py "+self.native_pdb+" -excise "+self.sample_res_str_+" "+scaffold_tag+"'"
-		subprocess.call(   'pdbslice.py '+self.native_pdb+' -excise '+self.sample_res_str_+' '+scaffold_tag, shell=True  )
-		return
+		return 'no'+nts+'_'
 
+
+	def setup_template_pdb(self):
+		template_pdb_tag=self.get_template_pdb_tag()
+		self.template_pdb=template_pdb_tag+self.native_pdb
+		command='pdbslice.py '+self.native_pdb+' -excise '+self.sample_res_str_+' '+template_pdb_tag
+		self.subprocess_call_command(command)
+		
 
 	def make_rna_rosetta_ready(self):
-		print "Running ... 'make_rna_rosetta_ready.py "+self.native_pdb+"'"
-		subprocess.call(   'make_rna_rosetta_ready.py '+self.native_pdb, shell=True  )
+		command='make_rna_rosetta_ready.py '+self.native_pdb
+		if self.no_renumber: command+=' -no_renumber'
 		self.native_pdb=self.native_pdb.replace('.pdb','_RNA.pdb')
-		return
+		self.subprocess_call_command(command)
+		
 
 	def slice_sample_res_and_surrounding(self):
-		command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/misc/slice_sample_res_and_surrounding.py'
-		command+='-loop_segment_list %s'%str(self.sample_res_str_.split(' ')[0]+'-'+self.sample_res_str_.split(' ')[-1])
-		command+='-pose_name %s'%self.native_pdb
-		command+='-MODE manual_sub'
-		subprocess.call( command, shell=True  )
-		return
+		command='~/src/rosetta//main/source/bin/swa_rna_util.linuxgccrelease' 
+		command+=' -algorithm slice_ellipsoid_envelope' 
+		command+=' -database ~/src/rosetta//main/database/'
+		command+=' -s %s'%self.native_pdb
+		command+=' -sample_res %s'%self.sample_res_str_  
+		command+=' -surrounding_radius %d'%self.surrounding_radius
+		tag='no_loop_ellipsoid_expand_radius_%d_'%self.surrounding_radius*10
+		self.native_pdb=tag+self.native_pdb
+		self.subprocess_call_command(command)
+		
 
 ###################################################################################################
 
@@ -124,16 +139,16 @@ class JobFileFactory(object):
 	def __init__(self, use_oldscore=True):
 		### SWM README FILE
 		self.swm_out_file_silent='swm_rebuild_oldscore.out'
-		self.nstruct=10
+		self.nstruct=5
 		self.ncycles=200
 		### SWM SUBMIT FILE
 		self.swm_out_dir='oldscore_out'
-		self.swm_num_slave_nodes=50
-		self.swm_master_wall_time=72
+		self.swm_num_slave_nodes=100
+		self.swm_master_wall_time=8
 		self.use_oldscore=use_oldscore
 		### SWA SUBMIT File
 		self.swa_num_slave_nodes=300 
-		self.swa_master_wall_time=72
+		self.swa_master_wall_time=16
 		self.swa_master_memory_reserve=2048 
 		self.swa_dagman_file='rna_build.dag'
 
@@ -144,11 +159,11 @@ class JobFileFactory(object):
 			self.swm_out_file_silent='swn_rebuild_newscore.out'
 
 
-	def init(self, directory, native_pdb, fasta_file, scaffold_file, sample_res_str ):
+	def init(self, directory, native_pdb, fasta_file, template_pdb, sample_res_str ):
 		self.directory=directory
 		self.native_pdb=native_pdb
 		self.fasta_file=fasta_file
-		self.scaffold_file=scaffold_file
+		self.template_pdb=template_pdb
 		self.sample_res_str=sample_res_str																            #40 41 42 43 44 45
 		self.all_res_str=str( self.get_first_res()+'-'+self.get_last_res() )   												#1-77 
 		self.input_res_str=str( self.get_first_res()+'-'+str(int(sample_res_str.split(' ')[0])-1)+' '
@@ -156,21 +171,27 @@ class JobFileFactory(object):
 		
 
 	def get_first_res(self):
-		for line in open(self.directory+'/'+self.scaffold_file, 'r').readlines():
+		for line in open(self.directory+'/'+self.template_pdb, 'r').readlines():
 			if line.split()[0]=='ATOM':
-				first_res_idx=line.split()[5]
-				break
+				if len(line.split()[4]) > 1: 
+					first_res_idx=line.split()[4][1:]
+				else:
+					first_res_idx=line.split()[5]
+				break		
 		return first_res_idx
 
 	def get_last_res(self):
-		for line in reversed(open(self.directory+'/'+self.scaffold_file, 'r').readlines()):
+		for line in reversed(open(self.directory+'/'+self.template_pdb, 'r').readlines()):
 			if line.split()[0]=='ATOM':
-				last_res_idx=line.split()[5]
+				if len(line.split()[4]) > 1: 
+					last_res_idx=line.split()[4][1:]
+				else:
+					last_res_idx=line.split()[5]
 				break		
-		return last_res_idx
+		return str(last_res_idx)
 
-	def setup_clean_directory(self, directory, native_pdb, fasta_file, scaffold_file, sample_res_str ):
-		self.init(directory, native_pdb, fasta_file, scaffold_file, sample_res_str )
+	def setup_clean_directory(self, directory, native_pdb, fasta_file, template_pdb, sample_res_str ):
+		self.init(directory, native_pdb, fasta_file, template_pdb, sample_res_str )
 		self.write_README(directory)
 		self.write_SUBMIT(directory)
 
@@ -189,7 +210,7 @@ class JobFileFactory(object):
 			command+='-cycles %d \\\n'%self.ncycles
 			command+='-native %s \\\n'%self.native_pdb
 			command+='-fasta %s \\\n'%self.fasta_file 
-			command+='-s %s \\\n'%self.scaffold_file
+			command+='-s %s \\\n'%self.template_pdb
 			command+='-sample_res %s \\\n'%self.sample_res_str
 			command+='-rmsd_res %s \\\n'%self.sample_res_str
 			command+='-global_sample_res_list %s \\\n'%self.sample_res_str  
@@ -203,7 +224,7 @@ class JobFileFactory(object):
 			command+='-single_stranded_loop_mode True \\\n'  
 			command+='-native_pdb %s \\\n'%self.native_pdb					#3d2v_b_RNA.pdb'
 			command+='-fasta %s \\\n'%self.fasta_file						#3d2v_b_RNA.fasta' 
-			command+='-s %s \\\n'%self.scaffold_file							#noUUGAA_3d2v_b_RNA.pdb'  
+			command+='-s %s \\\n'%self.template_pdb							#noUUGAA_3d2v_b_RNA.pdb'  
 			command+='-sample_res %s \\\n'%self.sample_res_str					#40 41 42 43 44' 
 		if not command:	return None 
 		readme_file=directory+'/README'

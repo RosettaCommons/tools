@@ -49,7 +49,7 @@ for target in TARGETS:
 	chain_id=target_info[1]
 	sample_res_str=' '.join([ str(x) for x in xrange(int(target_info[2]),int(target_info[3])+1) ])
 	pdbinputfactory.setup_pdb_inputs( pdb_id, chain_id, sample_res_str )
-	pdb_input_files=['./*.pdb','./*.fasta']
+	pdb_input_files=['./*.pdb','./*.fasta']#,'Get_surr_*']
 	safe_cp(pdb_input_files, swm_clean_dir)
 	safe_cp(pdb_input_files, swa_clean_dir)
 	safe_rm(pdb_input_files)
@@ -58,8 +58,8 @@ for target in TARGETS:
 	### setup README and SUBMIT files
 	native_pdb=pdbinputfactory.native_pdb
 	fasta_file=pdbinputfactory.fasta_file
-	scaffold_file=pdbinputfactory.scaffold_file
-	jobfilefactory.setup_clean_directory( swm_clean_dir, native_pdb, fasta_file, scaffold_file, sample_res_str )
-	jobfilefactory.setup_clean_directory( swa_clean_dir, native_pdb, fasta_file, scaffold_file, sample_res_str )
+	template_pdb=pdbinputfactory.template_pdb
+	jobfilefactory.setup_clean_directory( swm_clean_dir, native_pdb, fasta_file, template_pdb, sample_res_str )
+	jobfilefactory.setup_clean_directory( swa_clean_dir, native_pdb, fasta_file, template_pdb, sample_res_str )
 
 ###################################################################################################

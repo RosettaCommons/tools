@@ -420,10 +420,18 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 		rosetta_errfile = rosetta_errfile[:-1] #remove the new line (\n) character
 
 		if( ( exists(rosetta_errfile) ) and ( master_line_counts(rosetta_errfile)!=0 ) ):
+			if is_warning_not_error(rosetta_errfile):	continue
 			print "NON-EMPTY rosetta_errfile (%s)!" %(rosetta_errfile)
 			print "Error slave_node=%s " %(slave_dir)
 			master_kill_all_slave_jobs_and_exit()
 
+##############################################
+
+def is_warning_not_error(errfile):
+	if 'ERROR' not in errfile:
+		return True
+	else: 
+		return False
 
 ##############################################
 

@@ -262,15 +262,16 @@ class Alignment:
 
     def read_fasta(self, lines):
         aln_line_numbers = [iline for iline in range(len(lines)) if lines[iline][0] == '>']
-        assert (len(aln_line_numbers) >= 2), "Wrong format for FASTA alignment file"
+        aln_line_numbers.append(len(lines))
+        assert (len(aln_line_numbers) >= 3), "Wrong format for FASTA alignment file"
         n_alignments = len(aln_line_numbers) - 1
-        for i_aln in range(n_alignments):
+        for i_aln in range(1,n_alignments):
             single_aln_lines = []
             # add target
             for iline in range(aln_line_numbers[i_aln], aln_line_numbers[i_aln+1]):
                 single_aln_lines.append(lines[iline])
             # add query
-            for iline in range(aln_line_numbers[-1], len(lines)):
+            for iline in range(aln_line_numbers[0], aln_line_numbers[1]):
                 single_aln_lines.append(lines[iline])
             aln = SingleAlingmnet()
             aln.read_fasta(single_aln_lines)
@@ -620,6 +621,11 @@ if __name__=="__main__":
     args = parser.parse_args()
     rosetta_bin = os.path.expanduser(args.rosetta_bin)
     rosetta_db = os.path.abspath("%s/../../database"%rosetta_bin)
+    if args.j > 1:
+        if args.build != 'mpi':
+            print "Add \"--build mpi\" for multiple processors"
+            sys.exit(-1)
+            
     rosetta_exe_ext = "%s.%s%s%s"%(args.build, args.platform, args.compiler, args.compiling_mode)
 
     run_dir = os.path.abspath(args.run_dir)
@@ -698,26 +704,32 @@ if __name__=="__main__":
         else:
             template_filenames = " %s"*len(input_templates)%(tuple(input_templates))
             template_fullnames = ["%s/%s.pdb"%(run_dir, os.path.basename(x)) for x in input_templates]
+
+        thread_fullnames = ["%s/%s.pdb"%(run_dir, x.target_tag) for x in alignment.alignments ];
             
         # get partial thread
-        exe_name="%s/partial_thread.%s%s%s"%(args.rosetta_bin, args.platform, args.compiler, args.compiling_mode)
+        exe_name="%s/partial_thread.default.%s%s%s"%(args.rosetta_bin, args.platform, args.compiler, args.compiling_mode)
         command = "%s -database %s -mute all -in:file:fasta %s -in:file:alignment %s -in:file:template_pdb %s -ignore_unrecognized_res"%(exe_name, rosetta_db, fasta_fn, converted_aln, template_filenames)
         if args.verbose: print "Running %s"%command
         loglines = os.popen( command ).readlines()
-        for name in template_fullnames: assert (os.path.exists(name)), "File %s doesn't exist"%(name)
+        for name in thread_fullnames: assert (os.path.exists(name)), "File %s doesn't exist"%(name)
         
         flag_fn = "flags"
         xml_fn = "rosetta_cm.xml"
         silent_out = "rosetta_cm.silent"
         write_flags(flag_fn, fasta_fn, xml_fn, silent_out)
-        write_xml(xml_fn, template_fullnames)
+        write_xml(xml_fn, thread_fullnames)
         write_stage1_wts("stage1.wts")
         write_stage2_wts("stage2.wts")
         write_stage3_wts("stage3_rlx.wts")
     
         # run hybridization
         exe_name="%s/rosetta_scripts.%s"%(args.rosetta_bin, rosetta_exe_ext)
-        command="%s @%s -database %s -nstruct 10"%(exe_name, flag_fn, rosetta_db)
+        if args.j == 1:
+            command="%s @%s -database %s -nstruct 10"%(exe_name, flag_fn, rosetta_db)
+        else:
+            command="mpirun -np %d %s @%s -database %s -nstruct 10"%(args.j, exe_name, flag_fn, rosetta_db)
+
         if not args.run:
             print "Run command: %s"%command
             sys.exit(-1)

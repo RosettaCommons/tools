@@ -429,6 +429,7 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 
 def is_valid_error(errfile):
 	for line in errfile:
+	####if '<TEXT THAT SHOULD NOT BE CAUGHT AS AN ERROR>' in line: continue
 		if 'HESSIN for (i,i):' in line:	continue	
 		if 'G for (i):' in line:		continue
 		if not len(line):				continue

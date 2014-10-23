@@ -7,7 +7,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Plot scores terms from silent files.')
 parser.add_argument('silent_file', help='Name of the Silent File')
 parser.add_argument('-tag', help='Tag of Output File', default='score_vs_rmsd')
-parser.add_argument('x', help='X-axis variable', default='rms')
+parser.add_argument('x', help='X-axis variable', default='NAT_rmsd')
 parser.add_argument('y', help='Y-axis variable', default='score')
 parser.add_argument('-nstruct', default=None)
 parser.add_argument('-cycles', default=None)

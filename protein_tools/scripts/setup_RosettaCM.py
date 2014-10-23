@@ -740,12 +740,12 @@ if __name__=="__main__":
             loglines = os.popen( command ).readlines()
         
             # selection
-            score_lines= os.popen('grep SCORE: %s'%silent_fn)
-            score_columns =[]
-            for line in score_lines:
-                if line.find(" score ") != -1:
-                    score_columns=line.strip().split()
-                    break
+            #score_lines= os.popen('grep SCORE: %s'%silent_fn)
+            #score_columns =[]
+            #for line in score_lines:
+            #    if line.find(" score ") != -1:
+            #        score_columns=line.strip().split()
+            #        break
             
     os.chdir(curr_dir)
     if not args.keep_files:

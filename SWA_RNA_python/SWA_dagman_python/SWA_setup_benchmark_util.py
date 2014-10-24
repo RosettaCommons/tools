@@ -54,7 +54,7 @@ class PDBInputFactory(object):
 		#self.make_rna_rosetta_ready()
 		self.extract_chain()
 		self.setup_fasta()
-		#self.slice_sample_res_and_surrounding()
+		self.slice_sample_res_and_surrounding()
 		self.setup_template_pdb()
 		
 
@@ -203,33 +203,33 @@ class JobFileFactory(object):
 	def write_README(self, directory):
 		command=None
 		if 'swm' in directory:
-			command='~/src/rosetta/main/source/bin/stepwise \\\n' 
-			command+='-out:file:silent %s \\\n'%self.swm_out_file_silent
+			command='~/src/rosetta/main/source/bin/stepwise' 
+			command+=' -out:file:silent %s'%self.swm_out_file_silent
 			if self.use_oldscore:
-				command+='-score:rna_torsion_potential ps_03242010/ \\\n'
-				command+='-score:weights stepwise/rna/rna_loop_hires_04092010.wts \\\n'
-				command+='-analytic_etable_evaluation false \\\n'
-			command+='-constant_seed \\\n'
-			command+='-nstruct %d \\\n'%self.nstruct  
-			command+='-cycles %d \\\n'%self.ncycles
-			command+='-native %s \\\n'%self.native_pdb
-			command+='-fasta %s \\\n'%self.fasta_file 
-			command+='-s %s \\\n'%self.template_pdb
-			command+='-sample_res %s \\\n'%self.sample_res_str
-			command+='-rmsd_res %s \\\n'%self.sample_res_str
-			command+='-global_sample_res_list %s \\\n'%self.sample_res_str  
-			command+='-cutpoint_closed %s \\\n'%self.sample_res_str
-			command+='-input_res %s \\\n'%self.input_res_str		#1-39 45-77
-			command+='-stepwise:fixed_res %s \\\n'%self.input_res_str 
-			command+='-alignment_res %s \\\n'%self.input_res_str
-			command+='-jump_point_pairs %s \\\n'%self.all_res_str 
+				command+=' -score:rna_torsion_potential ps_03242010/'
+				command+=' -score:weights stepwise/rna/rna_loop_hires_04092010.wts'
+				command+=' -analytic_etable_evaluation false'
+			command+=' -constant_seed'
+			command+=' -nstruct %d'%self.nstruct  
+			command+=' -cycles %d'%self.ncycles
+			command+=' -native %s'%self.native_pdb
+			command+=' -fasta %s'%self.fasta_file 
+			command+=' -s %s'%self.template_pdb
+			command+=' -sample_res %s'%self.sample_res_str
+			command+=' -rmsd_res %s'%self.sample_res_str
+			command+=' -global_sample_res_list %s'%self.sample_res_str  
+			command+=' -cutpoint_closed %s'%self.sample_res_str
+			command+=' -input_res %s'%self.input_res_str		#1-39 45-77
+			command+=' -stepwise:fixed_res %s'%self.input_res_str 
+			command+=' -alignment_res %s'%self.input_res_str
+			command+=' -jump_point_pairs %s'%self.all_res_str 
 		if 'swa' in directory:
-			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py \\\n'
-			command+='-single_stranded_loop_mode True \\\n'  
-			command+='-native_pdb %s \\\n'%self.native_pdb					#3d2v_b_RNA.pdb'
-			command+='-fasta %s \\\n'%self.fasta_file						#3d2v_b_RNA.fasta' 
-			command+='-s %s \\\n'%self.template_pdb							#noUUGAA_3d2v_b_RNA.pdb'  
-			command+='-sample_res %s \\\n'%self.sample_res_str					#40 41 42 43 44' 
+			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py'
+			command+=' -single_stranded_loop_mode True'  
+			command+=' -native_pdb %s'%self.native_pdb					#3d2v_b_RNA.pdb'
+			command+=' -fasta %s'%self.fasta_file						#3d2v_b_RNA.fasta' 
+			command+=' -s %s'%self.template_pdb							#noUUGAA_3d2v_b_RNA.pdb'  
+			command+=' -sample_res %s'%self.sample_res_str					#40 41 42 43 44' 
 		if not command:	return None 
 		readme_file=directory+'/README'
 		print 'Writing ... '+readme_file
@@ -240,17 +240,17 @@ class JobFileFactory(object):
 	def write_SUBMIT(self, directory):
 		command=None
 		if 'swm' in directory:
-			command='rosetta_submit.py \\\n'
-			command+='./README \\\n'
-			command+='%s \\\n'%self.swm_out_dir
-			command+='%d \\\n'%self.swm_num_slave_nodes
-			command+='%d \\\n'%self.swm_master_wall_time
+			command='rosetta_submit.py'
+			command+=' ./README'
+			command+=' %s'%self.swm_out_dir
+			command+=' %d'%self.swm_num_slave_nodes
+			command+=' %d'%self.swm_master_wall_time
 		if 'swa' in directory:
-			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/dagman/submit_DAG_job.py \\\n' 
-			command+='-master_wall_time %d \\\n'%self.swa_master_wall_time 
-			command+='-master_memory_reserve %d \\\n'%self.swa_master_memory_reserve 
-			command+='-num_slave_nodes %d \\\n'%self.swa_num_slave_nodes 
-			command+='-dagman_file %s \\\n'%self.swa_dagman_file
+			command='~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/dagman/submit_DAG_job.py' 
+			command+=' -master_wall_time %d'%self.swa_master_wall_time 
+			command+=' -master_memory_reserve %d'%self.swa_master_memory_reserve 
+			command+=' -num_slave_nodes %d'%self.swa_num_slave_nodes 
+			command+=' -dagman_file %s'%self.swa_dagman_file
 		if not command:	return None 
 		submit_file=directory+'/SUBMIT'
 		print 'Writing ... '+submit_file

@@ -63,7 +63,7 @@ if(is_release_mode() and single_stranded_loop_mode):
 else:
 
 	rna_torsion_potential_folder=parse_options(argv, "rna_torsion_potential_folder", "" )
-	force_field_file=parse_options(argv, "force_field_file", 'rna/rna_hires_07232011_with_intra_base_phosphate.wts')
+	force_field_file=parse_options(argv, "force_field_file", 'stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts')
 	sample_virt_ribose_in_sep_DAG=parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True" )
 	apply_VDW_rep_delete_matching_res=parse_options(argv, "apply_VDW_rep_delete_matching_res", "False")
 	clusterer_optimize_memory_usage=parse_options(argv, "clusterer_optimize_memory_usage", "false" )

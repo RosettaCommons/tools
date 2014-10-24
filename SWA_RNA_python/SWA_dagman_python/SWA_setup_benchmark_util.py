@@ -43,7 +43,7 @@ class PDBInputFactory(object):
 		self.template_pdb=None
 
 		self.surrounding_radius=5.0
-		self.no_renumber=True
+		self.no_renumber=False
 		self.verbose=True
 
 
@@ -113,9 +113,10 @@ class PDBInputFactory(object):
 		
 
 	def make_rna_rosetta_ready(self):
-		command='make_rna_rosetta_ready.py '+self.native_pdb
-		if self.no_renumber: command+=' -no_renumber'
+		command='misc/SWA_make_rna_rosetta_ready.py '+self.native_pdb
 		self.native_pdb=self.native_pdb.replace('.pdb','_RNA.pdb')
+		command+=' -output_pdb '+self.native_pdb
+		if self.no_renumber: command+=' -no_renumber'
 		self.subprocess_call_command(command)
 		
 
@@ -126,9 +127,12 @@ class PDBInputFactory(object):
 		command+=' -s %s'%self.native_pdb
 		command+=' -sample_res %s'%self.sample_res_str_  
 		command+=' -surrounding_radius %d'%self.surrounding_radius
-		tag='no_loop_ellipsoid_expand_radius_%d_'%self.surrounding_radius*10
-		self.native_pdb=tag+self.native_pdb
-		self.subprocess_call_command(command)
+		#tag='no_loop_ellipsoid_expand_radius_%d_'%self.surrounding_radius*10
+		#self.native_pdb=tag+self.native_pdb
+		#self.subprocess_call_command(command)
+		open('SLICE_SAMPLE_RES_AND_SURROUNDING.src','w').write(command)
+
+
 		
 
 ###################################################################################################

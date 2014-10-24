@@ -24,7 +24,7 @@ def get_general_rosetta_common_args_option(argv): #These are shared with FARFAR!
 		common_args += ' -silent_read_through_errors false '  #silent_read_through_errors used to be true for clusterer! #move this option to common_args on Sept 21, 2011
 		common_args += ' -output_extra_RMSDs true ' #For extra check.
 
-	force_field_file=parse_options( argv, "force_field_file", "rna/rna_hires_07232011_with_intra_base_phosphate.wts" )
+	force_field_file=parse_options( argv, "force_field_file", "stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts" )
 	force_syn_chi_res_list= parse_options( argv, "force_syn_chi_res_list", [ -1 ] ) #May 01, 2011
 	force_north_ribose_list=parse_options(argv, "force_north_ribose_list", [-1] ) #May 03, 2011
 	force_south_ribose_list=parse_options(argv, "force_south_ribose_list", [-1] ) #May 03, 2011

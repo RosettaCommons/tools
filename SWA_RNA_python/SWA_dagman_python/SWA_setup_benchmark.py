@@ -16,7 +16,7 @@ except:
 	print 'ERROR: could not find '+targets_file
 	exit(0)
 
-TARGETS=[' '.join(line.split()[:4]) for line in open(targets_file, 'r').readlines()]
+TARGETS=[' '.join(line.split()) for line in open(targets_file, 'r').readlines()]
 TARGET_DIRS=dict([(target,target.replace(' ','_')) for target in TARGETS])
 
 ###################################################################################################
@@ -48,8 +48,10 @@ for target in TARGETS:
 	pdb_id=target_info[0]
 	chain_id=target_info[1]
 	sample_res_str=' '.join([ str(x) for x in xrange(int(target_info[2]),int(target_info[3])+1) ])
+	if len(target_info) == 6:
+		sample_res_str+=' '+' '.join([ str(x) for x in xrange(int(target_info[4]),int(target_info[5])+1) ])
 	pdbinputfactory.setup_pdb_inputs( pdb_id, chain_id, sample_res_str )
-	pdb_input_files=['./*.pdb','./*.fasta']#,'Get_surr_*']
+	pdb_input_files=['./*.pdb','./*.fasta','./*.src']
 	safe_cp(pdb_input_files, swm_clean_dir)
 	safe_cp(pdb_input_files, swa_clean_dir)
 	safe_rm(pdb_input_files)

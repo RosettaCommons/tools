@@ -11,10 +11,12 @@ parser.add_argument('-x', help='X-axis variable', default='NAT_rmsd')
 parser.add_argument('-y', help='Y-axis variable', default='score')
 parser.add_argument('-nstruct', default=None)
 parser.add_argument('-cycles', default=None)
+parser.add_argument('-fit',default=True)
 args=parser.parse_args()
 
 silent_file=args.silent_file
 tag=args.tag
+fit=args.fit
 
 if args.cycles:
 	tag=args.cycles+'_cycles_'+tag
@@ -65,9 +67,10 @@ plot = plt.plot(xdata,ydata, marker='o', color='r', linestyle=' ')
 plt.title(ylab+' vs. '+xlab+details)
 plt.xlabel(xlab)
 plt.ylabel(ylab)
-#plt.xlim(0.0,6.0)
-#plt.ylim(-40,-5)
+if not fit:
+	plt.xlim(0.0,9.0)
+	plt.ylim(-40,0)
 pp.savefig()
 pp.close()
-#plt.show()
+plt.show()
 plt.savefig(out_png)

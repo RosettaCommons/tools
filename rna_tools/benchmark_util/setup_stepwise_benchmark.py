@@ -16,6 +16,7 @@ parser.add_argument("user_input_runs", nargs='*',help='specify particular cases 
 default_extra_flags_benchmark = 'extra_flags_benchmark.txt'
 parser.add_argument('-extra_flags', default=default_extra_flags_benchmark, help='Filename of text file with extra_flags for all cases.')
 parser.add_argument('-nhours', default='16', type=int, help='Number of hours to queue each job.')
+parser.add_argument('-swa', default=False, help='Additional flag for setting up SWA runs.')
 args = parser.parse_args()
 
 # read in benchmark information & create any missing input files.
@@ -169,10 +170,12 @@ if len (args.extra_flags) > 0:
         print 'Did not find ', args.extra_flags, ' so not using any extra flags for the benchmark'
         assert ( args.extra_flags == default_extra_flags_benchmark )
 
+
 for name in names:
+    
     dirname = name
     if not exists( dirname ): system( 'mkdir '+dirname )
-
+  
     fid = open( '%s/README_SWM' % name, 'w' )
     fid.write( 'stepwise @flags -out:file:silent swm_rebuild.out\n' )
     fid.close()
@@ -206,6 +209,7 @@ for name in names:
     # extra flags for whole benchmark
     weights_file = ''
     for flag in extra_flags_benchmark:
+        if ( flag.find('#') == 0 ): continue
         if ( flag.find( '-score:weights' ) == 0 ): weights_file = string.split( flag )[1]
         fid.write( flag )
     if len( weights_file ) > 0:
@@ -222,6 +226,61 @@ for name in names:
     chdir( CWD )
 
     fid_qsub.write( 'cd %s; source qsubMINI; cd %s\n' % ( name, CWD ) )
+
+
+    if args.swa: # SETUP for StepWise Assembly
+        
+        dirname = name+'/'+'SWA'
+        if not exists( dirname ): system( 'mkdir '+dirname )
+  
+        fid = open( '%s/README_SWA' % dirname, 'w' )
+        fid.write( '~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py' )
+        fid.write( ' -single_stranded_loop_mode True' )
+        sample_res = string.join([res.split(':')[1] for res in working_res[ name ].split(',')], ',')
+        fid.write( ' -sample_res %s' % sample_res )
+
+        #for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, name ) )
+
+        start_files = helix_files[ name ] + input_pdbs[ name ]
+        if len( start_files ) > 0 :
+            fid.write( ' -s' )
+            for infile in start_files:  fid.write( ' %s' % (basename(infile) ) )
+        fid.write( ' -fasta %s.fasta' % name )
+        if len( native[ name ] ) > 0:
+            #system( 'cp %s %s/' % (working_native[name],name) )
+            fid.write( ' -native_pdb %s' % basename( working_native[name] ) )
+        
+        # case-specific extra flags
+        if len( extra_flags[name] ) > 0 : fid.write( ' %s' % extra_flags[name] )
+        # extra flags for whole benchmark
+        weights_file = ''
+        for flag in extra_flags_benchmark:
+            if ( flag.find('#') == 0 ): continue
+            if ( flag.find( '-score:weights' ) == 0 ):
+                flag.replace( '-score:weights', '-force_field_file' ) 
+                weights_file = string.split( flag )[1]
+            if ( flag.find( '-score:rna_torsion_potential' ) == 0 ):
+                flag.replace( '-score:rna_torsion_potential', '-rna_torsion_potential_folder' )
+            fid.write( flag )
+        
+        #if len( weights_file ) > 0:
+        #    assert( exists( weights_file ) )
+        #    system( 'cp ' + weights_file + ' ' + name )
+
+        fid.close()
+
+        print
+        print 'Setting up submission files for: ', name
+        CWD = getcwd()
+        fid_submit = open( dirname+'/SUBMIT_SWA', 'w' )
+        fid_submit.write( '~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/dagman/submit_DAG_job.py' )
+        fid_submit.write( ' -master_wall_time %d'% args.nhours )
+        fid_submit.write( ' -master_memory_reserve 2048' )
+        fid_submit.write( ' -num_slave_nodes 100' )
+        fid_submit.write( ' -dagman_file rna_build.dag' )
+        fid_submit.close()
+
+        fid_qsub.write( 'cd %s; source ./README_SWA && source ./SUBMIT_SWA; cd %s\n' % ( dirname, CWD ) )
 
 fid_qsub.close()
 

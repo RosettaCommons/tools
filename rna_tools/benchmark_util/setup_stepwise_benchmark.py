@@ -167,6 +167,7 @@ if len (args.extra_flags) > 0:
     if exists( args.extra_flags ):
         extra_flags_benchmark = open( args.extra_flags ).readlines()
     else:
+        extra_flags_benchmark = None
         print 'Did not find ', args.extra_flags, ' so not using any extra flags for the benchmark'
         assert ( args.extra_flags == default_extra_flags_benchmark )
 
@@ -208,13 +209,14 @@ for name in names:
     if len( extra_flags[name] ) > 0 : fid.write( '%s\n' % extra_flags[name] )
     # extra flags for whole benchmark
     weights_file = ''
-    for flag in extra_flags_benchmark:
-        if ( flag.find('#') == 0 ): continue
-        if ( flag.find( '-score:weights' ) == 0 ): weights_file = string.split( flag )[1]
-        fid.write( flag )
-    if len( weights_file ) > 0:
-        assert( exists( weights_file ) )
-        system( 'cp ' + weights_file + ' ' + name )
+    if extra_flags_benchmark:
+        for flag in extra_flags_benchmark:
+            if ( flag.find('#') == 0 ): continue
+            if ( flag.find( '-score:weights' ) == 0 ): weights_file = string.split( flag )[1]
+            fid.write( flag )
+        if len( weights_file ) > 0:
+            assert( exists( weights_file ) )
+            system( 'cp ' + weights_file + ' ' + name )
 
     fid.close()
 
@@ -254,18 +256,19 @@ for name in names:
         if len( extra_flags[name] ) > 0 : fid.write( ' %s' % extra_flags[name] )
         # extra flags for whole benchmark
         weights_file = ''
-        for flag in extra_flags_benchmark:
-            if ( flag.find('#') == 0 ): continue
-            if ( flag.find( '-score:weights' ) == 0 ):
-                flag.replace( '-score:weights', '-force_field_file' ) 
-                weights_file = string.split( flag )[1]
-            if ( flag.find( '-score:rna_torsion_potential' ) == 0 ):
-                flag.replace( '-score:rna_torsion_potential', '-rna_torsion_potential_folder' )
-            fid.write( flag )
+        if extra_flags_benchmark:
+            for flag in extra_flags_benchmark:
+                if ( flag.find('#') == 0 ): continue
+                if ( flag.find( '-score:weights' ) == 0 ):
+                    flag.replace( '-score:weights', '-force_field_file' ) 
+                    weights_file = string.split( flag )[1]
+                if ( flag.find( '-score:rna_torsion_potential' ) == 0 ):
+                    flag.replace( '-score:rna_torsion_potential', '-rna_torsion_potential_folder' )
+                fid.write( flag )
         
-        #if len( weights_file ) > 0:
-        #    assert( exists( weights_file ) )
-        #    system( 'cp ' + weights_file + ' ' + name )
+            #if len( weights_file ) > 0:
+            #   assert( exists( weights_file ) )
+            #   system( 'cp ' + weights_file + ' ' + name )
 
         fid.close()
 

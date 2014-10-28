@@ -241,7 +241,7 @@ for name in names:
         sample_res = string.join([res.split(':')[1] for res in working_res[ name ].split(',')], ',')
         fid.write( ' -sample_res %s' % sample_res )
 
-        #for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, name ) )
+        for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, dirname ) )
 
         start_files = helix_files[ name ] + input_pdbs[ name ]
         if len( start_files ) > 0 :
@@ -249,7 +249,7 @@ for name in names:
             for infile in start_files:  fid.write( ' %s' % (basename(infile) ) )
         fid.write( ' -fasta %s.fasta' % name )
         if len( native[ name ] ) > 0:
-            #system( 'cp %s %s/' % (working_native[name],name) )
+            system( 'cp %s %s/' % (working_native[name],dirname) )
             fid.write( ' -native_pdb %s' % basename( working_native[name] ) )
         
         # case-specific extra flags

@@ -16,7 +16,7 @@ parser.add_argument("user_input_runs", nargs='*',help='specify particular cases 
 default_extra_flags_benchmark = 'extra_flags_benchmark.txt'
 parser.add_argument('-extra_flags', default=default_extra_flags_benchmark, help='Filename of text file with extra_flags for all cases.')
 parser.add_argument('-nhours', default='16', type=int, help='Number of hours to queue each job.')
-parser.add_argument('-swa', default=False, help='Additional flag for setting up SWA runs.')
+parser.add_argument('-legacy', default=False, help='Additional flag for setting up SWA runs.')
 args = parser.parse_args()
 
 # read in benchmark information & create any missing input files.
@@ -61,7 +61,8 @@ for line in lines[ 1: ]:
     input_res[ name ]   = cols[5]
     inpath[ name ]      = relpath + '/input_files/' + basename( args.info_file.replace('.txt','' ) )
     extra_flags[ name ] = string.join( cols[6:] )
-
+        
+    
     if extra_flags[ name ] == '-': extra_flags[ name ] = ''
     sequences          = string.split( sequence[name], ',' )
     working_res_blocks = string.split( working_res[name], ',' )
@@ -107,10 +108,12 @@ for line in lines[ 1: ]:
             input_pdb = slice_out( inpath[ name ], prefix, native[ name ],input_res_blocks[m] )
             input_pdbs[ name ].append( input_pdb )
             get_resnum_chain( input_res_blocks[m], input_resnums, input_chains )
+    
     def get_fullmodel_number( reschain, resnums, chains):
         for m in range( len( resnums ) ):
             if ( resnums[m] == reschain[0] ) and ( reschain[1] == '' or chains[m] == reschain[1] ): return m+1
         return 0
+    
     input_resnum_fullmodel = map( lambda x: get_fullmodel_number(x,resnums[name],chains[name]), zip( input_resnums, input_chains ) )
 
     # create any helices.
@@ -193,7 +196,7 @@ for name in names:
     fid.write( '-fasta %s.fasta\n' % name )
     if len( terminal_res[ name ] ) > 0:
         fid.write( '-terminal_res %s  \n' % make_tag_with_conventional_numbering( terminal_res[ name ], resnums[ name ], chains[ name ] ) )
-    if len( extra_min_res[ name ] ) > 0:
+    if len( extra_min_res[ name ] ) > 0 and not args.legacy: ### Turn extra_min_res off for SWM when comparing to SWA
         fid.write( '-extra_min_res %s \n' % make_tag_with_conventional_numbering( extra_min_res[ name ], resnums[ name ], chains[ name ] ) )
     if ( len( input_pdbs[ name ] ) == 0 ):
         fid.write( '-superimpose_over_all\n' ) # RMSD over everything -- better test since helices are usually native
@@ -230,7 +233,7 @@ for name in names:
     fid_qsub.write( 'cd %s; source qsubMINI; cd %s\n' % ( name, CWD ) )
 
 
-    if args.swa: # SETUP for StepWise Assembly
+    if args.legacy: # SETUP for StepWise Assembly
         
         dirname = name+'/'+'SWA'
         if not exists( dirname ): system( 'mkdir '+dirname )
@@ -239,9 +242,19 @@ for name in names:
         fid.write( '~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py' )
         fid.write( ' -single_stranded_loop_mode True' )
         sample_res = ''
-        sample_res_ranges = [res.split(':')[1] for res in working_res[ name ].split(',')]
+        sample_res_ranges = working_res[ name ].split(',')
         for res_range in sample_res_ranges:
-            sample_res += ' '+string.join([str(x) for x in xrange(int(res_range.split('-')[0]), int(res_range.split('-')[1])+1)],' ')       
+            chain = res_range.split(':')[0]
+            num_range = res_range.split(':')[1]
+            first_idx = int(num_range.split('-')[0])
+            last_idx = int(num_range.split('-')[1])
+            terminal_residues=make_tag_with_conventional_numbering( terminal_res[ name ], resnums[ name ], chains[ name ] )
+            extra_min_residues=make_tag_with_conventional_numbering( extra_min_res[ name ], resnums[ name ], chains[ name ] )
+            for x in xrange(first_idx, last_idx+1):
+                res = chain+':'+str(x) 
+                if ( res not in terminal_residues and 
+                     res not in extra_min_residues ):
+                    sample_res+=' '+str(x)
         fid.write( ' -sample_res %s' % sample_res )
 
         for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, dirname ) )
@@ -252,7 +265,7 @@ for name in names:
             for infile in start_files:  fid.write( ' %s' % (basename(infile) ) )
         fid.write( ' -fasta %s.fasta' % name )
         if len( native[ name ] ) > 0:
-            system( 'cp %s %s/' % (working_native[name],dirname) )
+            #system( 'cp %s %s/' % (working_native[name],dirname) )
             fid.write( ' -native_pdb %s' % basename( working_native[name] ) )
         
         # case-specific extra flags

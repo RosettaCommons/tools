@@ -241,7 +241,7 @@ for name in names:
         sample_res = ''
         sample_res_ranges = [res.split(':')[1] for res in working_res[ name ].split(',')]
         for res_range in sample_res_ranges:
-            sample_res += ' '+string.join([x for x in xrange(int(res_range.split('-')[0]), int(res_range.split('-')[1])+1)],' ')       
+            sample_res += ' '+string.join([str(x) for x in xrange(int(res_range.split('-')[0]), int(res_range.split('-')[1])+1)],' ')       
         fid.write( ' -sample_res %s' % sample_res )
 
         for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, dirname ) )

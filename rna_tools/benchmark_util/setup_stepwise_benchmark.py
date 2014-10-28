@@ -265,7 +265,7 @@ for name in names:
             for infile in start_files:  fid.write( ' %s' % (basename(infile) ) )
         fid.write( ' -fasta %s.fasta' % name )
         if len( native[ name ] ) > 0:
-            #system( 'cp %s %s/' % (working_native[name],dirname) )
+            system( 'cp %s %s/' % (working_native[name],dirname) )
             fid.write( ' -native_pdb %s' % basename( working_native[name] ) )
         
         # case-specific extra flags

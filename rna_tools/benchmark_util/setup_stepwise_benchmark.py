@@ -4,11 +4,11 @@ import string
 import argparse
 from os.path import exists,basename,dirname
 from os import system, getcwd, chdir
-from make_tag import make_tag_with_conventional_numbering
+from make_tag import make_tag_with_conventional_numbering, make_tag_from_list_of_int_ranges
 from parse_options import get_resnum_chain
 from get_sequence import get_sequences
 from rna_server_conversions import get_all_stems, join_sequence
-from sys import argv
+from sys import argv, exit
 
 parser = argparse.ArgumentParser(description='Setup benchmark for stepwise monte carlo')
 parser.add_argument("info_file",       help='text file with information, in same directory as input_files/ (e.g., "../favorites.txt")')
@@ -116,6 +116,19 @@ for line in lines[ 1: ]:
     
     input_resnum_fullmodel = map( lambda x: get_fullmodel_number(x,resnums[name],chains[name]), zip( input_resnums, input_chains ) )
 
+
+    # create secstruct if not defined
+    if secstruct[ name ] == '-': 
+        secstruct[ name ] = ''
+        res_ranges = working_res[ name ].split(',')
+        for res_range in res_ranges:
+            res_str = make_tag_from_list_of_int_ranges( [ res_range ] )
+            secstruct[ name ] += string.join(['.' for x in res_str.split()],'')
+            secstruct[ name ] += ','
+        secstruct[ name ] = secstruct[ name ][:-1]
+        print 'Secstruct for '+name+': '+secstruct[ name ]
+
+
     # create any helices.
     helix_files[ name ] = []
     (sequence_joined, chainbreak_pos)           = join_sequence( sequence[name] )
@@ -203,7 +216,7 @@ for name in names:
     fid.write( '-cycles 200\n' )
     fid.write( '-nstruct 20\n' )
     fid.write( '-intermolecular_frequency 0.0\n' )
-    fid.write( '-save_times\n' )
+    #fid.write( '-save_times\n' )
 
     if len( native[ name ] ) > 0:
         system( 'cp %s %s/' % (working_native[name],name) )
@@ -241,20 +254,20 @@ for name in names:
         fid = open( '%s/README_SWA' % dirname, 'w' )
         fid.write( '~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/setup_SWA_RNA_dag_job_files.py' )
         fid.write( ' -single_stranded_loop_mode True' )
-        sample_res = ''
-        sample_res_ranges = working_res[ name ].split(',')
-        for res_range in sample_res_ranges:
-            chain = res_range.split(':')[0]
-            num_range = res_range.split(':')[1]
-            first_idx = int(num_range.split('-')[0])
-            last_idx = int(num_range.split('-')[1])
-            terminal_residues=make_tag_with_conventional_numbering( terminal_res[ name ], resnums[ name ], chains[ name ] )
-            extra_min_residues=make_tag_with_conventional_numbering( extra_min_res[ name ], resnums[ name ], chains[ name ] )
-            for x in xrange(first_idx, last_idx+1):
-                res = chain+':'+str(x) 
-                if ( res not in terminal_residues and 
-                     res not in extra_min_residues ):
-                    sample_res+=' '+str(x)
+        
+        if input_res[ name ] != '':
+            working_res_ranges = working_res[ name ].split(',')
+            input_res_ranges = input_res[ name ].split(',')
+            working_res_str = make_tag_from_list_of_int_ranges( working_res_ranges )
+            input_res_str = make_tag_from_list_of_int_ranges( input_res_ranges )
+            print 'Working_res: '+working_res_str
+            print '  Input_res: '+input_res_str
+            offset = 1 - int(working_res_str.split()[0])
+            sample_res = string.join([ str(int(x)+offset) for x in working_res_str.split() if x not in input_res_str ],' ')     
+        else:
+            print "ERROR: Must define Input_res for SWA setup."
+            exit(0)
+        
         fid.write( ' -sample_res %s' % sample_res )
 
         for infile in [ fasta[name] ] + helix_files[ name ] + input_pdbs[ name ]:  system( 'cp %s %s/ ' % ( infile, dirname ) )
@@ -293,9 +306,9 @@ for name in names:
         CWD = getcwd()
         fid_submit = open( dirname+'/SUBMIT_SWA', 'w' )
         fid_submit.write( '~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/dagman/submit_DAG_job.py' )
-        fid_submit.write( ' -master_wall_time %d'% args.nhours )
+        fid_submit.write( ' -master_wall_time %d'% 72 ) #args.nhours )
         fid_submit.write( ' -master_memory_reserve 2048' )
-        fid_submit.write( ' -num_slave_nodes 100' )
+        fid_submit.write( ' -num_slave_nodes 50' )
         fid_submit.write( ' -dagman_file rna_build.dag' )
         fid_submit.close()
 

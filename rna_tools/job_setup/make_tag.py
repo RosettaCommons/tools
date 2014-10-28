@@ -39,3 +39,26 @@ def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
         tag_resnums.append( resnums[ m - 1 ] )
         tag_chains.append(  chains [ m - 1 ] )
     return make_tag_with_dashes( tag_resnums, tag_chains )
+
+
+def make_tag_from_list_of_int_ranges( list_of_int_ranges ):
+    tag = ''
+    for int_range in list_of_int_ranges:
+        tag +=' '+make_tag_from_int_range( int_range )
+    return tag 
+
+
+def make_tag_from_int_range( int_range ):
+    if ':' in int_range:
+        chain = int_range.split(':')[0]
+        int_range = int_range.split(':')[1]
+    else:  
+        int_range = int_range
+    if '-' in int_range:
+        first_idx = int(int_range.split('-')[0])
+        last_idx = int(int_range.split('-')[1])
+    else:
+        first_idx = int(int_range)
+        last_idx = int(int_range)
+    int_vector = [ x for x in xrange(first_idx, last_idx+1) ]
+    return make_tag( int_vector )

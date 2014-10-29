@@ -28,7 +28,7 @@ $| = 1; # disable stdout buffering
 
 # ROSETTA
 my $FRAGMENT_PICKER = "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
-my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
+#my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
 my $ROSETTA_DATABASE = "$Bin/../../main/database"; # rosetta database
 my $VALL = "$Bin/vall.jul19.2011"; # template database
 
@@ -192,6 +192,7 @@ $options{torsion_bin} = 0;
 $options{exclude_homologs_by_pdb_date} = 0;
 $options{old_name_format}              = 0;
 $options{add_pdbs_to_vall}             = "";
+$options{fragment_picker_num_cpus}     = 4;
 
 my @cleanup_files  = ();
 my @fragsizes      = ( 3, 9 );  #4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 );
@@ -1070,7 +1071,7 @@ CMDTXT
 
     if ( !-s $SLAVE_LAUNCHER ) {    # run in series
         my $cmd =
-"$FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS";
+"$FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $options{fragment_picker_num_cpus}";
         produce_output_with_cmd( $cmd,
             "$options{runid}.$options{n_frags}.$size" . "mers" );
     }
@@ -1081,7 +1082,7 @@ if (-s $SLAVE_LAUNCHER) {           # run in parallel
     foreach my $size (@fragsizes) {
         push( @results, "$options{runid}.$options{n_frags}.$size" . "mers" );
         push( @commands,
-"$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $FRAGMENT_PICKER_NUM_CPUS"
+"$SLAVE_LAUNCHER $FRAGMENT_PICKER \@$options{runid}\_picker_cmd_size$size.txt -j $options{fragment_picker_num_cpus}"
         );
     }
     &run_in_parallel( \@commands, \@results, "picker_parallel_job",

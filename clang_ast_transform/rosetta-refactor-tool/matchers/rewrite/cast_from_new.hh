@@ -86,7 +86,6 @@ public:
 			if(is_cop) {
 				std::string op = type;
 				replace(op, "COP", "OP");
-				replace(op, "const", "");
 				newCode = type + "( " + op + "( " + origCode + " ) )";
 			} else {
 				newCode = type + "( " + origCode + " )";

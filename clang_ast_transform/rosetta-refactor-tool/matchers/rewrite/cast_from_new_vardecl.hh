@@ -90,7 +90,6 @@ public:
 			if(is_cop) {
 				std::string op = castToType;
 				replace(op, "COP", "OP");
-				replace(op, "const", "");
 				newCode = prefix + "( " + op + "( " + newConstructCode + " ) )";
 			} else {
 				newCode = prefix + "( " + newConstructCode + " )";

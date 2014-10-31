@@ -49,7 +49,7 @@ def get_peripheral_res( pdbfile, sample_res_list, radius ):
 
 ##########################################################
 
-def get_input_res_tag( pdbfile, sample_res_list=[], radius=None ):
+def get_input_res_tag( pdbfile, sample_res_list='', radius=None ):
 
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 
@@ -67,10 +67,10 @@ def get_input_res_tag( pdbfile, sample_res_list=[], radius=None ):
 
 ##########################################################
 
-def get_input_res( pdbfile, sample_res_list=[], radius=None ):
+def get_input_res( pdbfile, sample_res_list='', radius=None ):
 	
-	if '-' in sample_res_list: sample_res_list = [ str(x) for x in xrange( int(sample_res_list.split('-')[0]), int(sample_res_list.split('-')[-1])+1 ) ]
-	sample_res_list = [ int( res ) for res in sample_res_list ]
+	if '-' in sample_res_list: sample_res_list = [ x for x in xrange( int(sample_res_list.split('-')[0]), int(sample_res_list.split('-')[-1])+1 ) ]
+	else:	sample_res_list = [ int( res ) for res in sample_res_list ]
 
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 	
@@ -95,11 +95,18 @@ if __name__=='__main__':
 
 	parser = argparse.ArgumentParser(description='.')
 	parser.add_argument('pdbfile')
+	parser.add_argument('-sample_res_range', default='')
 	parser.add_argument('-sample_res', nargs='+', default=[])
 	parser.add_argument('-radius', default=None)
+	parser.add_argument('-show_sequence', default=False)
 	args=parser.parse_args()
 
-		
-	input_res_tag = get_input_res_tag( pdbfile=args.pdbfile, sample_res_list=args.sample_res, radius=args.radius )
+	if len(args.sample_res_range):	
+		sample_res_list = [ x for x in xrange( int(args.sample_res_range.split('-')[0]), int(args.sample_res_range.split('-')[-1])+1 ) ]
+	if len(args.sample_res):
+		sample_res_list = args.sample_res
+
+
+	input_res_tag = get_input_res_tag( pdbfile=args.pdbfile, sample_res_list=sample_res_list, radius=args.radius )
 	print 'Input Residues: ',input_res_tag
 	

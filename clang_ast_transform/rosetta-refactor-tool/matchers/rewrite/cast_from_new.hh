@@ -76,13 +76,22 @@ public:
 			replace(type, "owning_ptr", "shared_ptr");
 			replace(type, "access_ptr", "weak_ptr");
 		}
+
 		type = stripQualifiers(type);
 
+		bool is_cop = castToTypeD.find("::shared_ptr<const") != std::string::npos;
 		if(origCode == "0" || origCode == "NULL")
 			newCode = type + "()";
-		else
-			newCode = type + "( " + origCode + " )";
-	
+		else {
+			if(is_cop) {
+				std::string op = type;
+				replace(op, "COP", "OP");
+				replace(op, "const", "");
+				newCode = type + "( " + op + "( " + origCode + " ) )";
+			} else {
+				newCode = type + "( " + origCode + " )";
+			}
+		}
 		doRewrite(sm, expr, origCode, newCode);
 	}
 };

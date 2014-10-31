@@ -83,10 +83,19 @@ public:
 		}
 		type = stripQualifiers(type);
 
+		bool is_cop = castToTypeD.find("::shared_ptr<const") != std::string::npos;
 		if(origCode == "0" || origCode == "NULL")
 			newCode = prefix;
-		else
-			newCode = prefix + "( " + newConstructCode + " )";
+		else {
+			if(is_cop) {
+				std::string op = castToType;
+				replace(op, "COP", "OP");
+				replace(op, "const", "");
+				newCode = prefix + "( " + op + "( " + newConstructCode + " ) )";
+			} else {
+				newCode = prefix + "( " + newConstructCode + " )";
+			}
+		}
 
 		doRewrite(sm, vardecl, origCode, newCode);
 		checkAndMarkSourceLocation(castFrom, sm);

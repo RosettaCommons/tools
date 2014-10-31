@@ -1,33 +1,26 @@
 /*
-	Find instances where get_self_ptr() or get_self_weak_ptr() is used in a c'tor.
-	This is illegal because the weak self-pointer isn't set yet, and will
-	result in bad_weak_ptr exception at runtime.
+	Find CXX records (class, struct, ...)
 */
 
-class FieldDeclFinder : public ReplaceMatchCallback {
+class RecordDeclFinder : public ReplaceMatchCallback {
 
 public:
-	FieldDeclFinder(tooling::Replacements *Replace) :
-		ReplaceMatchCallback(Replace, "FieldDeclFinder")
+	RecordDeclFinder(tooling::Replacements *Replace) :
+		ReplaceMatchCallback(Replace, "RecordDeclFinder")
 		{}
 
 	// Main callback for all matches
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 
 		SourceManager *sm = Result.SourceManager;
-		const FieldDecl *decl = Result.Nodes.getStmtAs<FieldDecl>("fielddecl");
+		const CXXRecordDecl *decl = Result.Nodes.getStmtAs<CXXRecordDecl>("recorddecl");
+		const Decl *parent = Result.Nodes.getStmtAs<Decl>("parent");
 		if(!rewriteThisFile(decl, *sm))
 			return;
-
-		const std::string type(
-			QualType::getAsString( decl->getType().split() )
-		);
-		const std::string typeD(
-			QualType::getAsString( decl->getType().getSplitDesugaredType() )
-		);
+		if(!decl->isCompleteDefinition())
+			return;
 
 		const std::string name = decl->getQualifiedNameAsString();
-		const std::string cls = decl->getParent()->getQualifiedNameAsString();
 		const std::string loc = decl->getSourceRange().getBegin().printToString(*sm);
 
 		const CharSourceRange range = CharSourceRange::getTokenRange(decl->getSourceRange());
@@ -37,22 +30,24 @@ public:
 		std::pair<FileID, unsigned> End = sm->getDecomposedLoc(SpellingEnd);
 
 		llvm::outs()
-			<< "field" << "\t"
+			<< decl->getKindName() << "\t"
 			<< name << "\t"
-			<< cls << "\t"
+			<< "" << "\t"
 			<< loc << "\t"
 			<< Start.second << "-" << End.second << "\t"
-			<< type << "\t"
-			<< typeD << "\t"
+			<< (parent && parent->getKind() == Decl::ClassTemplate) << "\t"
+			<< decl->getAccess() << "\t"
+			<< decl->isPolymorphic() << "\t"
 			;
 		llvm::outs() << "\n";
 	}
-
 };
 
-
-FieldDeclFinder *cb = new FieldDeclFinder(Replacements);
-
 Finder.addMatcher(
-	fieldDecl().bind("fielddecl"),
-	cb);
+	recordDecl(
+		hasParent(
+			decl().bind("parent")
+		)
+	).bind("recorddecl"),
+	new RecordDeclFinder(Replacements));
+	

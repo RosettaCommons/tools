@@ -1,30 +1,21 @@
 /*
-	Find instances where get_self_ptr() or get_self_weak_ptr() is used in a c'tor.
-	This is illegal because the weak self-pointer isn't set yet, and will
-	result in bad_weak_ptr exception at runtime.
+	Find constructors
 */
 
-class FieldDeclFinder : public ReplaceMatchCallback {
+class ConstructorDeclFinder : public ReplaceMatchCallback {
 
 public:
-	FieldDeclFinder(tooling::Replacements *Replace) :
-		ReplaceMatchCallback(Replace, "FieldDeclFinder")
+	ConstructorDeclFinder(tooling::Replacements *Replace) :
+		ReplaceMatchCallback(Replace, "ConstructorDeclFinder")
 		{}
 
 	// Main callback for all matches
 	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
 
 		SourceManager *sm = Result.SourceManager;
-		const FieldDecl *decl = Result.Nodes.getStmtAs<FieldDecl>("fielddecl");
+		const CXXConstructorDecl *decl = Result.Nodes.getStmtAs<CXXConstructorDecl>("constructordecl");
 		if(!rewriteThisFile(decl, *sm))
 			return;
-
-		const std::string type(
-			QualType::getAsString( decl->getType().split() )
-		);
-		const std::string typeD(
-			QualType::getAsString( decl->getType().getSplitDesugaredType() )
-		);
 
 		const std::string name = decl->getQualifiedNameAsString();
 		const std::string cls = decl->getParent()->getQualifiedNameAsString();
@@ -37,22 +28,21 @@ public:
 		std::pair<FileID, unsigned> End = sm->getDecomposedLoc(SpellingEnd);
 
 		llvm::outs()
-			<< "field" << "\t"
+			<< "constructor" << "\t"
 			<< name << "\t"
 			<< cls << "\t"
 			<< loc << "\t"
 			<< Start.second << "-" << End.second << "\t"
-			<< type << "\t"
-			<< typeD << "\t"
+			<< decl->getAccess() << "\t"
+			<< decl->isDefaultConstructor() << "\t"
+			<< decl->isCopyConstructor() << "\t"
+			<< decl->getNumCtorInitializers() << "\t"
+			<< decl->getMinRequiredArguments() << "\t"
 			;
 		llvm::outs() << "\n";
 	}
-
 };
 
-
-FieldDeclFinder *cb = new FieldDeclFinder(Replacements);
-
 Finder.addMatcher(
-	fieldDecl().bind("fielddecl"),
-	cb);
+	constructorDecl().bind("constructordecl"),
+	new ConstructorDeclFinder(Replacements));

@@ -158,8 +158,14 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "find_self_ptr_in_ctor") {
 			#include "matchers/find/self_ptr_in_ctor.hh"
 		}
+		if(matcher == "find_record_decl") {
+			#include "matchers/find/record_decl.hh"
+		}
 		if(matcher == "find_field_decl") {
 			#include "matchers/find/field_decl.hh"
+		}
+		if(matcher == "find_constructor_decl") {
+			#include "matchers/find/constructor_decl.hh"
 		}
 
 		// Code quality checkers

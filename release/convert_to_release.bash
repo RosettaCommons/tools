@@ -144,12 +144,13 @@ pwd
 #git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out
 rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out
 
-if [ "$debug" = false ];
-then #must not do this rm - it is a filesystem rm of git ignored files
-    rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
-else
-    echo "DEBUG MODE ACTIVATED: skipping filesystem ref deletion of manually removed integration tests"
-fi
+# if [ "$debug" = false ];
+# then #must not do this rm - it is a filesystem rm of git ignored files
+#     rm -r ref/loop_creation ref/inverse_rotamer_remodel ref/splice_in ref/splice_out
+# else
+#     echo "DEBUG MODE ACTIVATED: skipping filesystem ref deletion of manually removed integration tests"
+# fi
+
 #git commit -m "removing known-to-need-devel integration tests"
 source $ROSETTA/tools/release/detect_itest_exes.bash
 #git commit -m "deleting autoremoved integration tests"
@@ -172,17 +173,17 @@ cd $ROSETTA/main/source/
 
 
 # Removing .git dirs
-# cd $ROSETTA/tools
-# rm -rf .git
+cd $ROSETTA/tools
+rm -rf .git
 
-# cd $ROSETTA/demos
-# rm -rf .git
+cd $ROSETTA/demos
+rm -rf .git
 
-# cd $ROSETTA/main
-# rm -rf .git
+cd $ROSETTA/main
+rm -rf .git
 
-# cd $ROSETTA/documentation
-# rm -rf .git
+cd $ROSETTA/documentation
+rm -rf .git
 
 
 echo "Conversion to release is done!"

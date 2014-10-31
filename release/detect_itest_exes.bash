@@ -31,7 +31,7 @@ echo $directory $executable
 	    git rm -r tests/$directory #--dry-run
 	    if [ "$debug" = false ];
 	    then
-		rm -r ref/$directory
+		rm -rf ref/$directory
 	    else
 		echo "DEBUG MODE ACTIVATED: skipping filesystem ref deletion of autoremoved integration tests"
 	    fi #end debug switch

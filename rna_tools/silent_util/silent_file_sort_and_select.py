@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='Sort a slient file according to it
 parser.add_argument('file', help='Input silent file')
 parser.add_argument('-select', nargs='+', help='Selected output file index ranked by scores, ex. 1-9 for lowest score 9 decoys')
 parser.add_argument('-o', default='silent_sort.out', help='Filename of output silent file')
+parser.add_argument('-term', default='score', help='Option to input a specific column to sort by (e.g. fa_atr, rms); default is score')
 args = parser.parse_args()
 
 select_idx = None
@@ -28,8 +29,11 @@ new_score_data = None
 is_header_over = False
 for line in open(args.file):
     if not is_header_over:
-        if len(line) > 5 and line[:5] == 'SCORE' and is_number(line.split()[1]):
-            is_header_over = True
+        if len(line) > 5 and line[:5] == 'SCORE':
+            if is_number(line.split()[1]):
+                is_header_over = True
+            else:
+                term_col = line.split().index(args.term)
     if not is_header_over:
         header += line
     else:
@@ -37,8 +41,8 @@ for line in open(args.file):
             if new_score_data is not None:
                 scores_data.append(new_score_data)
             new_score_data = [0, '']
-            score = float(line.split()[1])
-            new_score_data[0] = score
+            term = float(line.split()[term_col])
+            new_score_data[0] = term
             new_score_data[1] = line
         else:
             new_score_data[1] += line

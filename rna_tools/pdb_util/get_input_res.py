@@ -37,7 +37,7 @@ def get_peripheral_res( pdbfile, sample_res_list, radius ):
 					if is_surrounding_res:	break
 					sample_atom_xyz = coords[chains[sample_rsd-1]][sample_rsd][sample_atom]
 
-					if ( np.power( distance( surr_atom_xyz, sample_atom_xyz ), 2 ) < np.power( radius, 2 ) ):
+					if ( np.power( distance( surr_atom_xyz, sample_atom_xyz ), 2 ) < np.power( float(radius), 2 ) ):
 						print "res ", seq_num, " is a surrounding res, distance() = ", distance( surr_atom_xyz, sample_atom_xyz )
 						keep_res_list.append( seq_num )
 						is_surrounding_res = True
@@ -59,7 +59,7 @@ def get_input_res_tag( pdbfile, sample_res_list=[], radius=None ):
 		input_chains = [ chains[res-1] for res in input_res_list ]
 		input_res_tag = make_tag.make_tag_with_dashes( input_res_list, input_chains )
 	else:
-		print 'ERROR: len(input_res_list) == ', len(input_res_list)
+		print 'WARNING: len(input_res_list) == ', len(input_res_list)
 		print 'Try a larger radius.'
 		input_res_tag = ''
 
@@ -75,8 +75,13 @@ def get_input_res( pdbfile, sample_res_list=[], radius=None ):
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 	
 	peripheral_res_list = []
-	if radius:	peripheral_res_list = get_peripheral_res( pdbfile, sample_res_list, radius )
-	
+	if radius:	
+		if len( sample_res_list ):
+			peripheral_res_list = get_peripheral_res( pdbfile, sample_res_list, radius )
+		else:
+			print 'WARNING: len(sample_res_list) == ', len(sample_res_list)
+			print 'Must supply sample_res to calculate peripheral residues.'
+
 	input_res_list = [ res for res in residues if res not in sample_res_list and res not in peripheral_res_list ]
 
 	return input_res_list
@@ -95,6 +100,6 @@ if __name__=='__main__':
 	args=parser.parse_args()
 
 		
-	input_res_tag = get_input_res_tag( pdbfile=args.pdbfile, sample_res_list=args.sample_res, radius=float(args.radius) )
+	input_res_tag = get_input_res_tag( pdbfile=args.pdbfile, sample_res_list=args.sample_res, radius=args.radius )
 	print 'Input Residues: ',input_res_tag
 	

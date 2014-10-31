@@ -52,6 +52,8 @@ allow_bulge_right_next_to_input_helix = parse_options( argv, "allow_bulge_right_
 dinucleotide_at_single_element_cc= parse_options( argv, "dinucleotide_at_single_element_cc", "all" )
 floating_base=parse_options( argv, "floating_base", "True" ) #change to true on April 9th 2011
 
+analytic_etable_evaluation = parse_options( argv, "analytic_etable_evaluation", "True" )
+
 optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False")
 # optimize_long_loop_mode:
 #   This is used in Sripakdeevong et al. 2011 PNAS
@@ -267,6 +269,8 @@ print "all_res=                ", all_res
 print "input_res_full=         ", input_res_full
 print "global_sample_res_list= ", global_sample_res_list
 print "global_sample_res_plus_bound= ", global_sample_res_plus_bound
+
+if ( not analytic_etable_evaluation ): common_args += ' -analytic_etable_evaluation false'
 
 common_args += ' -fasta %s  -global_sample_res_list %s ' %(fasta_file, list_to_string(global_sample_res_list) )
 

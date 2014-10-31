@@ -403,6 +403,8 @@ if(len(VDW_rep_screen_info_list) > 0):
 if(single_stranded_loop_mode):
 	README_SETUP.write( "command+= '-optimize_long_loop_mode True '\n\n" )
 	README_SETUP.write( "command+= '-OLLM_chain_closure_only True '\n\n" )
+else:
+	README_SETUP.write( "command+= '-analytic_etable_evaluation False '\n\n" ) 
 
 
 if(len(force_syn_chi_res_list)>0): README_SETUP.write( "command+= '-force_syn_chi_res_list %s '\n\n" %(list_to_string(force_syn_chi_res_list) ) )
@@ -443,5 +445,3 @@ create_generic_README_SUB(num_slave_nodes)
 print "----------------------------------------------------------------------------------------------------------------------------"
 print "Successfully RAN %s" %( list_to_string(start_argv) )
 print "----------------------------------------------------------------------------------------------------------------------------"
-
-

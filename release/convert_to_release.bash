@@ -101,7 +101,9 @@ pwd
 
 for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
 do
-    sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
+    #sed -i -e '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
+    # <- does not work on Mac OS X due to outdated sed verion
+    sed -i -e '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/s/.*/\/\/ DELETED BY RELEASE SCRIPT/' $do_not_release
 done
 #git commit -am "weekly release: stripping DONOTRELEASE-wrapped code"
 

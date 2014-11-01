@@ -144,7 +144,7 @@ ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r
 cd $ROSETTA/main/tests/integration/
 pwd
 #git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out
-rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out
+rm -rf tests/loop_creation tests/inverse_rotamer_remodel
 
 # if [ "$debug" = false ];
 # then #must not do this rm - it is a filesystem rm of git ignored files

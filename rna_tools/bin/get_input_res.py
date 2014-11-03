@@ -1,1 +1,0 @@
-.././pdb_util/get_input_res.py

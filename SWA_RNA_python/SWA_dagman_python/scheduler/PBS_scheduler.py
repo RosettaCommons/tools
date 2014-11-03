@@ -322,7 +322,7 @@ def get_queued_jobs_status():
 				while(True):
 					line=data.readline()	
 					check_line_list.append(line)
-					if(line==""): error_exit_with_message("Reach end of file: incomplete parsing of qstat!")
+					if(line=="") or (len(line)==0): error_exit_with_message("Reach end of file: incomplete parsing of qstat!")
 
 					if(len(check_line_list)>30): 
 						for n in range(len(check_line_list)):

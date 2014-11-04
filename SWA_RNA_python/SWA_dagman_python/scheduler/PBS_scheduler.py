@@ -10,7 +10,7 @@ MPI_SCHEDULER=False
 SCHEDULER_TYPE="PBS_scheduler"
 
 ######################################################################
-# Use this to run cluster using a PBS (Portable Batch System) scheduler. 
+# Use this to run cluster using a PBS (Portable Batch System) scheduler.
 # Note this is for the TORQUE (a fork of OpenPBS that is maintained by Adaptive
 # Computing Enterprises, Inc.) version.
 
@@ -28,7 +28,7 @@ def running_job_state_str():
 	return 'R'
 
 def pending_job_state_str():
-	return 'Q' #job is queued, eligible to run or routed. 
+	return 'Q' #job is queued, eligible to run or routed.
 
 	#Note another possibility is 'H' #Job is held.
 
@@ -48,7 +48,7 @@ def get_temp_qstat_filename(): #Wrapper that call this function have the duty to
 		temp_data_filename="temp_job_stat_V%s.txt" %(str(trail_num).zfill(3) )
 
 		#if(exists(temp_data_filename)): submit_subprocess_allow_retry("rm %s" %(temp_data_filename))
-		
+
 		if(exists(temp_data_filename)): continue
 
 		submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
@@ -75,9 +75,9 @@ def kill_all_queued_jobs_with_prefix(job_prefix, verbose=True):
 
 	if(verbose): print "kill_all_queued_jobs_with_prefix(prefix=%s)" %(job_prefix)
 
-	sleep(10) #April 21, 2012: Give sometime for dead jobs to properly exit. 
+	sleep(10) #April 21, 2012: Give sometime for dead jobs to properly exit.
 
-	if(isinstance(job_prefix, str )==False): 
+	if(isinstance(job_prefix, str )==False):
 		print "ERROR: job_prefix=", job_prefix
 		error_exit_with_message("job_prefix object is not a string!")
 
@@ -94,7 +94,7 @@ def kill_all_queued_jobs_with_prefix(job_prefix, verbose=True):
 
 		if(job_name[:len(job_prefix)]==job_prefix):
 			num_job_killed+=1
-			
+
 			job_ID=job_info['JOBID']
 
 			command=kill_job_command()
@@ -104,10 +104,10 @@ def kill_all_queued_jobs_with_prefix(job_prefix, verbose=True):
 			submit_subprocess( command )
 
 	if(num_job_killed==0):
-		print "WARNING: num_job_killed=0 for job_prefix (%s)" %(job_prefix) 
-		print 
+		print "WARNING: num_job_killed=0 for job_prefix (%s)" %(job_prefix)
+		print
 		#print "ERROR: job_prefix=%s" %(job_prefix)
-		#print "ERROR: num_job_with_matching_prefix=%d" %(num_job_with_matching_prefix) 
+		#print "ERROR: num_job_with_matching_prefix=%d" %(num_job_with_matching_prefix)
 		#error_exit_with_message("num_job_with_matching_prefix=0")
 
 	return num_job_killed
@@ -133,7 +133,7 @@ def 	master_kill_all_slave_jobs_and_exit_scheduler_specific(exit_message):
 '''#Don't need this!
 def kill_queued_job(job_name, verbose=True):
 
-	if(isinstance(job_name, str )==False): 
+	if(isinstance(job_name, str )==False):
 		print "ERROR: job_name=", job_name
 		error_exit_with_message("job_name object is not a string!")
 
@@ -147,7 +147,7 @@ def kill_queued_job(job_name, verbose=True):
 		job_info=copy.deepcopy(jobs_stat_list[job_ID])
 
 		if(job_info['JOB_NAME']==job_name):
-			num_job_kill+=1			
+			num_job_kill+=1
 
 			job_ID=job_info['JOBID']
 
@@ -156,10 +156,10 @@ def kill_queued_job(job_name, verbose=True):
 
 			if(verbose): print command
 			submit_subprocess( command )
-			
-	if(num_job_killed>1): 
+
+	if(num_job_killed>1):
 		print "ERROR: job_name=%s" %(job_name)
-		print "ERROR: num_job_killed=%d" %(num_job_killed) 
+		print "ERROR: num_job_killed=%d" %(num_job_killed)
 		error_exit_with_message("num_job_kill>1! PERHAPS JOBS FROM PRIOR SUBMISSION WEREN'T PROPERLY REMOVED?")
 
 	return num_job_killed
@@ -236,12 +236,12 @@ def get_queued_jobs_status():
 
 		if(line==''): break #End of file!
 
-		if(line[0:7]=="Job Id:"): 
+		if(line[0:7]=="Job Id:"):
 
 			JOB_OWNER='BLAH_BLAH_BLAH'
 			JOB_NAME='BLAH_BLAH_BLAH'
 
-			job_info={}	
+			job_info={}
 			job_info['JOBID']=line.split()[-1]
 
 			line=data.readline()
@@ -250,8 +250,8 @@ def get_queued_jobs_status():
 			if(line.split()[0]=='Job_Name'): #Parse Job_Name then Job_Owner
 				JOB_NAME=line.split()[-1]
 
-				while(True):				
-					line=data.readline()	
+				while(True):
+					line=data.readline()
 
 					#print "DEBUG line.split()=", line.split()
 
@@ -278,21 +278,21 @@ def get_queued_jobs_status():
 
 				JOB_OWNER=line.split()[-1]
 
-				line=data.readline()	
+				line=data.readline()
 
 				if(line.split()[0]!='Job_Name'): error_exit_with_message("line[0:9]!='Job_Owner' for line=%s" %(line))
 
 				JOB_NAME=line.split()[-1]
 
-				while(True):	
-					line=data.readline()	
+				while(True):
+					line=data.readline()
 
 					#print "DEBUG line.split()=", line.split()
 
-					if(len(line.split())==0): line=data.readline() #April 22, 2012: Deal with special empty line case. 
+					if(len(line.split())==0): line=data.readline() #April 22, 2012: Deal with special empty line case.
 
 					if(len(line.split())!=1): break
-				
+
 					JOB_NAME+=line.split()[0]
 
 				if(line.split()[1]!='='): error_exit_with_message("line.split()[1]!='=' for line=%s" %(line))
@@ -306,10 +306,10 @@ def get_queued_jobs_status():
 
 
 			while(True):
-				line=data.readline()	
+				line=data.readline()
 
-				if(line.split()[0]=='job_state'): 
-					job_info['STATE']=line.split()[-1]			
+				if(line.split()[0]=='job_state'):
+					job_info['STATE']=line.split()[-1]
 					break
 
 
@@ -320,16 +320,17 @@ def get_queued_jobs_status():
 				check_line_list=[]
 
 				while(True):
-					line=data.readline()	
+					line=data.readline()
 					check_line_list.append(line)
 					if(line=="") or (len(line)==0): error_exit_with_message("Reach end of file: incomplete parsing of qstat!")
 
-					if(len(check_line_list)>30): 
+					if(len(check_line_list)>30):
 						for n in range(len(check_line_list)):
-							print "ERROR #n: %s" %(check_line_list[n]), 
+							print "ERROR #n: %s" %(check_line_list[n]),
 						error_exit_with_message("len(check_line_list)>30!")
 
-					if(line.split()[0]=='exec_host'): 
+					#if(line.split('=')[0]=='exec_host'):
+					if ( 'exec_host' in line ):
 						job_info['EXEC_HOST']=line.split()[-1]
 						break
 
@@ -365,7 +366,7 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 	QSUB_JOB.write( '#PBS -o %s\n\n' %(outfile + "_QSUB" ))
 	QSUB_JOB.write( '#PBS -e %s\n\n' %(errfile + "_QSUB" ))
 	QSUB_JOB.write( '#PBS -l walltime=%d:00:00\n\n' %(walltime))
-	QSUB_JOB.write( '#PBS -l nodes=1:ppn=1\n\n' ) 
+	QSUB_JOB.write( '#PBS -l nodes=1:ppn=1\n\n' )
 
 	if(memory_reserve!=0):
 		QSUB_JOB.write( '#PBS -l mem=%dmb\n\n' %(memory_reserve))  #memory per job

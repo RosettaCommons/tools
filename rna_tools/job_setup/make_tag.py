@@ -5,6 +5,7 @@ def make_tag( int_vector ):
     for m in int_vector: tag += ' %d' % m
     return tag
 
+
 def make_tag_with_dashes( int_vector, char_vector = 0 ):
     tag = ''
     if not isinstance( char_vector, list ) or len( char_vector ) == 0:
@@ -32,6 +33,7 @@ def make_tag_with_dashes( int_vector, char_vector = 0 ):
 
     return tag
 
+
 def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
     tag_resnums = []
     tag_chains  = []
@@ -41,7 +43,21 @@ def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
     return make_tag_with_dashes( tag_resnums, tag_chains )
 
 
+def make_tag_with_dashes_and_commas( resnums, chains = 0 ):
+    #######################################################
+    ### >>> make_tag_with_dashes_and_commas( [4,5,7], ['A','B','C'] )
+    ### 'A:4,B:5,C:7'
+    #######################################################
+    tag  = make_tag_with_dashes( resnums, chains )
+    if tag[0] == ' ': tag = tag[1:]
+    return tag.replace(' ',',')
+
+
 def make_tag_from_list_of_int_ranges( list_of_int_ranges ):
+    #######################################################
+    ### >>> make_tag_from_list_of_int_ranges( ['A:4-5', 'B:6-10'] )
+    ### '  4 5  6 7 8 9 10'
+    #######################################################
     tag = ''
     for int_range in list_of_int_ranges:
         tag +=' '+make_tag_from_int_range( int_range )
@@ -49,6 +65,11 @@ def make_tag_from_list_of_int_ranges( list_of_int_ranges ):
 
 
 def make_tag_from_int_range( int_range ):
+    #####################################
+    ### >>> make_tag_from_int_range( 'B:4-5' )
+    ### ' 4 5'
+    ### Could ignoring the Chain ID be dangerous???
+    #####################################
     if ':' in int_range:
         chain = int_range.split(':')[0]
         int_range = int_range.split(':')[1]

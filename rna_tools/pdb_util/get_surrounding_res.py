@@ -9,7 +9,7 @@ from read_pdb import read_pdb
 
 ##########################################################
 
-def get_surrounding_res( pdbfile, sample_res_list=[], radius=None ):
+def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False ):
 
 	### Make sure sample_res_list is a list of integers [ 4, 5, 6, 7 ]
 	if ( len( sample_res_list ) == 1 ) and ( '-' in sample_res_list[0] ): 	
@@ -17,6 +17,10 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None ):
 	else:	
 		sample_res_list = [ int( res ) for res in sample_res_list ]
 	
+	### NEED TO TAKE CHAIN ID INTO ACCOUNT
+
+
+
 	### Read PDB file
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 
@@ -41,7 +45,7 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None ):
 
 						distance = sqrt( sum( power( subtract( surr_atom_xyz, sample_atom_xyz ) , 2 ) ) )
 						if ( power( distance, 2 ) < power( float(radius), 2 ) ):
-							print "res ", surr_rsd, " is a surrounding res, distance() = ", distance
+							if verbose:	print "res ", surr_rsd, " is a surrounding res, distance() = ", distance
 							keep_res_list.append( surr_rsd )
 							is_surrounding_res = True
 							break
@@ -49,11 +53,11 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None ):
 		if not len( keep_res_list ):
 
 			if not len( sample_res_list ):
-				print 'WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius
-				print 'Must supply sample_res to find residues within the given radius.' 
+				if verbose:	print 'WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius
+				if verbose:	print 'Must supply sample_res to find residues within the given radius.' 
 			else:
-				print 'WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius
-				print 'Try an expanded radius.'
+				if verbose:	print 'WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius
+				if verbose:	print 'Try an expanded radius.'
 		
 	### All residues are surrounding if radius == None
 	else:	keep_res_list = residues 
@@ -64,9 +68,9 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None ):
 
 ##########################################################
 
-def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None ):
+def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None, verbose=False ):
 
-	surrounding_res_list = get_surrounding_res( pdbfile, sample_res_list=sample_res_list, radius=radius )
+	surrounding_res_list = get_surrounding_res( pdbfile, sample_res_list=sample_res_list, radius=radius, verbose=verbose )
 
 	if len( surrounding_res_list ):
 		( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
@@ -89,11 +93,12 @@ if __name__=='__main__':
 	parser.add_argument('-sample_res', nargs='+', default=[])
 	parser.add_argument('-radius', default=None)
 	parser.add_argument('-make_tag', default=True)
+	parser.add_argument('-verbose', default=False)
 	args=parser.parse_args()
 
 	if args.make_tag == True:
-		surrounding_res_tag = get_surrounding_res_tag( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius )
-		print '\nSurrounding Residues: ',surrounding_res_tag
+		surrounding_res_tag = get_surrounding_res_tag( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius, verbose=args.verbose )
+		print '\nSurrounding Residues: ',surrounding_res_tag.replace(' ',',')
 	else: 
-		surrounding_residues = get_surrounding_res( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius )
+		surrounding_residues = get_surrounding_res( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius, verbose=args.verbose )
 		print '\nSurrounding Residues: ', string.join( [ str(x) for x in surrounding_residues ], ' ' ) 

@@ -21,6 +21,9 @@ import string
 ####################################################################
 
 def parse_tag( tag ):
+
+    if isinstance( tag, list ):
+        tag = string.join( tag, ' ' )
     
     int_vector = []
     char_vector= []
@@ -67,4 +70,18 @@ def parse_tag( tag ):
 
     assert( len(int_vector) == len(char_vector) ) 
     return int_vector, char_vector
+
+##########################################################
+##########################################################
+
+if __name__=='__main__':
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description='.')
+    parser.add_argument('tag', nargs='*')
+    args=parser.parse_args()
+
+    if isinstance( args.tag, list ): args.tag = string.join( args.tag, ' ' )
+    print parse_tag( args.tag )
 

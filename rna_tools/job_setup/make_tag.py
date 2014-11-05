@@ -44,10 +44,6 @@ def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
 
 
 def make_tag_with_dashes_and_commas( resnums, chains = 0 ):
-    #######################################################
-    ### >>> make_tag_with_dashes_and_commas( [4,5,7], ['A','B','C'] )
-    ### 'A:4,B:5,C:7'
-    #######################################################
     tag  = make_tag_with_dashes( resnums, chains )
     if tag[0] == ' ': tag = tag[1:]
     return tag.replace(' ',',')

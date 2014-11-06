@@ -276,8 +276,6 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
 
     if removeions:
         goodnames.remove(' MG')
-        #goodnames.remove(' IC')
-        #goodnames.remove(' IG')
 
 
     for line in lines:
@@ -305,7 +303,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 continue;
 
             if line_edit[0:4] == 'ATOM':
-                resnum = line_edit[23:26]
+                if line_edit[22] == ' ': resnum = line_edit[23:26]
+                else:                    resnum = line_edit[22:26]
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == 'GTP':

@@ -81,10 +81,12 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 
 ##########################################################
 
-def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None, verbose=False ):
+def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None, verbose=False, csv=False ):
 	surrounding_res_list, surrounding_res_chain_list = get_surrounding_res( pdbfile, sample_res_list=sample_res_list, radius=radius, verbose=verbose )
-	if len( surrounding_res_list ):	surrounding_res_tag = make_tag_with_dashes( surrounding_res_list, surrounding_res_chain_list )
-	else:							surrounding_res_tag = ''
+	if len( surrounding_res_list ):		surrounding_res_tag = make_tag_with_dashes( surrounding_res_list, surrounding_res_chain_list )
+	else:								surrounding_res_tag = ''
+	if csv:								surrounding_res_tag = surrounding_res_tag.replace( ' ', ',' )
+	if surrounding_res_tag[0] == ',':	surrounding_res_tag = surrounding_res_tag[1:]
 	return surrounding_res_tag
 
 ##########################################################
@@ -104,13 +106,11 @@ if __name__=='__main__':
 	args=parser.parse_args()
 
 
-	surrounding_res_tag = get_surrounding_res_tag( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius, verbose=args.verbose )
-	surrounding_residues, surrounding_chains = parse_tag( surrounding_res_tag )
-		
-	if args.make_tag_csv:	
-		surrounding_res_tag = surrounding_res_tag.replace( ' ', ',' )
-		if surrounding_res_tag[0] == ',': surrounding_res_tag = surrounding_res_tag[1:]
-	elif not args.make_tag:	surrounding_res_tag = string.join( [ str(x) for x in surrounding_residues ], ' ' )
+	surrounding_res_tag = get_surrounding_res_tag( args.pdbfile, sample_res_list=args.sample_res, radius=args.radius, verbose=args.verbose, csv=args.make_tag_csv )
+
+	if not args.make_tag and not args.make_tag_csv:	
+		surrounding_residues, surrounding_chains = parse_tag( surrounding_res_tag )
+		surrounding_res_tag = string.join( [ str(x) for x in surrounding_residues ], ' ' )
 
 	if args.verbose:	print '\nSurrounding Residues: ', surrounding_res_tag#.replace(' ',',')
 	else:				print surrounding_res_tag

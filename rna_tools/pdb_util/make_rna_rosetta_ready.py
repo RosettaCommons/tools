@@ -11,6 +11,13 @@ pdbname = argv[1]
 if (pdbname[-4:] != '.pdb' and pdbname[-7:] != '.pdb.gz'):
     pdbname += '.pdb'
 
+removeions = 0
+if argv.count('-remove_ions'):
+    pos = argv.index('-remove_ions')
+    del( argv[ pos ] )
+    removeions = 1
+
+
 removechain = 0
 if argv.count('-nochain'):
     pos = argv.index('-nochain')
@@ -43,7 +50,7 @@ for pdbname in pdbnames:
 
     pdblines = string.join( open(pdbname,'r').readlines(), '\n')
 
-    outputstring = make_rna_rosetta_ready( pdblines, removechain, ignore_chain, chainids, no_renumber )
+    outputstring = make_rna_rosetta_ready( pdblines, removechain, ignore_chain, chainids, no_renumber, removeions )
     
     outfile = string.lower( basename( pdbname ) )
     outfile = outfile.replace( '.pdb', '_RNA.pdb').replace('.gz','');

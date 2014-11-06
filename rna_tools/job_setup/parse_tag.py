@@ -18,6 +18,9 @@ import string
 ### ([1, 2, 3, 11, 13, 14, 15], ['A', 'A', 'A', 'B', 'B', 'B', 'B'])
 ### >>> parse_tag( 'A1-3,B11,C13-15')
 ### ([1, 2, 3, 11, 13, 14, 15], ['A', 'A', 'A', 'B', 'C', 'C', 'C'])
+### >>> parse_tag( '0:1-3,2:11,3:13-15')
+### ([1, 2, 3, 11, 13, 14, 15], ['0', '0', '0', '2', '3', '3', '3'])
+####################################################################
 ####################################################################
 
 def parse_tag( tag ):
@@ -45,25 +48,22 @@ def parse_tag( tag ):
             assert( ( start_char[0] == stop_char[0] ) or ( stop_char[0] == '' ) )
             if start_char[0] != '': 
                 xchar = start_char[0]
-            subtag = string.join([xchar+str(x) for x in xrange(start_idx[0],stop_idx[0]+1)], ' ')
+            subtag = string.join([xchar+':'+str(x) for x in xrange(start_idx[0],stop_idx[0]+1)], ' ')
             int_vector.extend( parse_tag( subtag )[0] )
             char_vector.extend( parse_tag( subtag )[1] )
             continue
-
-        try: # 100
-            xint = int(subtag)
-        except: # A:100 or A100
-            if ':' in subtag: # A:100
-                subtag = subtag.split(':')
-                xchar = subtag[0]
-                xint = int(subtag[-1])
-            else: # A100
-                for x in xrange( len( subtag ) ):
-                    try:
-                        xint = int(subtag[x:])
-                        break
-                    except:
-                        xchar = subtag[x]
+   
+        if ':' in subtag: # A:100
+            subtag = subtag.split(':')
+            xchar = subtag[0]
+            xint = int(subtag[-1])
+        else: # A100 or 100 or 0100            
+            for x in xrange( len( subtag ) ):
+                try: # 100
+                    xint = int(subtag[x:])
+                    break
+                except: # A100
+                    xchar = subtag[x]
           
         int_vector.append( xint )
         char_vector.append( xchar )

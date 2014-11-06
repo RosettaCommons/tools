@@ -45,9 +45,9 @@ def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
 
 def make_tag_with_dashes_and_commas( resnums, chains = 0 ):
     tag  = make_tag_with_dashes( resnums, chains )
-    if tag[0] == ' ': tag = tag[1:]
-    return tag.replace(' ',',')
-
+    tag = tag.replace(' ',',')
+    if tag[0] == ',' or tag[0] == ' ' or tag[0] == '': tag = tag[1:]
+    return tag
 
 def make_tag_from_list_of_int_ranges( list_of_int_ranges ):
     #######################################################

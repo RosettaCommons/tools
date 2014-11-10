@@ -251,7 +251,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 
 # accepts a pdb file name, returns a string with pdb entries -- or None if there is an error.
-def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False, removeions = False ):
+def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False, removeions = False, old_rna = False ):
 
     #fastaid = stderr
     num_model = 0
@@ -271,12 +271,12 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if chainids[i] == '_':
             chainids[i] = ' '
 
-    goodnames = ['  A','  C','  G','  U',' MG', ' IC',' IG']
+    goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
     hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG'  }
 
-    if removeions:
-        goodnames.remove(' MG')
 
+    if removeions:  goodnames.remove(' MG')
+   
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
@@ -335,6 +335,14 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                         longname = '  U'
                     elif longname == 'URI':
                         longname = '  U'
+                    elif longname == ' rA':
+                        longname =   '  A'
+                    elif longname == ' rC':
+                        longname =   '  C'
+                    elif longname == ' rU':
+                        longname =   '  U'
+                    elif longname == ' rG':
+                        longname =   '  G'
                     else:
                         if longname not in goodnames:    continue
 
@@ -368,6 +376,13 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = line_edit.replace('*', "'")
                 line_edit = line_edit.replace('O1P', 'OP1')
                 line_edit = line_edit.replace('O2P', 'OP2')
+
+              
+                if old_rna:
+                    line_edit = line_edit.replace('  A', ' rA')
+                    line_edit = line_edit.replace('  C', ' rC')
+                    line_edit = line_edit.replace('  G', ' rG')
+                    line_edit = line_edit.replace('  U', ' rU')
 
                 outstring += line_edit
 

@@ -23,7 +23,7 @@ import string
 ####################################################################
 ####################################################################
 
-def parse_tag( tag, sort=False ):
+def parse_tag( tag, alpha_sort=False ):
 
     if isinstance( tag, list ):
         tag = string.join( tag, ' ' )
@@ -70,7 +70,7 @@ def parse_tag( tag, sort=False ):
 
     assert( len(int_vector) == len(char_vector) ) 
 
-    if sort:
+    if alpha_sort:
         sorted = zip( char_vector, int_vector )
         sorted.sort()
         [ char_vector, int_vector ] = [ list(l) for l in zip(*sorted) ]
@@ -86,10 +86,10 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='.')
     parser.add_argument('tag', nargs='*')
-    parser.add_argument('--sort', action='store_true')
+    parser.add_argument('--alpha_sort', help='Sort alphabetically', action='store_true')
 
     args=parser.parse_args()
 
     if isinstance( args.tag, list ): args.tag = string.join( args.tag, ' ' )
-    print parse_tag( args.tag, sort=args.sort )
+    print parse_tag( args.tag, alpha_sort=args.alpha_sort )
 

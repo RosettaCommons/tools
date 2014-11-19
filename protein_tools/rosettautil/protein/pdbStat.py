@@ -484,7 +484,7 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
 
 
 def calculate_all_superpositions(native, decoy, residues, debug):
-    """calculates c alpha , backbone and all atom rmsds. You can pass a list of residues if you want. Pass the resfile 
+    """calculates c alpha , backbone and all atom rmsds. You can pass a list of residues if you want. Pass the resfile
     through the resfiles class first which returns a resfile list:\n
     1 G ALLAA\n
     3 H PIKAA G\n

@@ -4,22 +4,23 @@ from sys import argv
 from os import system
 from parse_options import parse_options, get_resnum_chain
 
-def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num = 0):
-    for pdbname in pdbnames:
+def renumber_pdb(pdbnames, new_numbers, chains = [], retain_atom_num = 0):
 
+    for pdbname in pdbnames:
         lines = open(pdbname,'r').readlines()
 
         oldresnum = '   '
         count = 0;
         outid  = open( 'temp.txt','w')
         atomnum  = 0
+        newchain = ''
         for line in lines:
             line_edit = line
             if line[0:3] == 'TER':
                 continue
 
             if line_edit[0:4] == 'ATOM' or line_edit[0:6] == 'HETATM':
-
+                if line[17:20] == 'HOH': continue
                 if not (line[16]==' ' or line[16]=='A'): continue
                 atomnum += 1
                 oldchain = line_edit[21]
@@ -30,7 +31,7 @@ def renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num = 0):
 
                 if ( count <= len( new_numbers ) ):
                     newnum = '%4d' % new_numbers[ count-1 ]
-                    newchain = chains[ count - 1]
+                    if len( chains ) > 0:  newchain = chains[ count - 1]
                     if newchain == '': newchain = line_edit[ 22 ]
                 else:
                     if len( new_numbers) > 0:

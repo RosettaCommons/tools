@@ -6,8 +6,7 @@ import os
 import time
 
 
-def parse_stampede_nodefile(filename):
-    inp = open(filename).read().strip()
+def parse_stampede_nodefile(inp):
     inp.replace('\n', ',')
     node_list = []
     while len(inp) != 0:
@@ -37,12 +36,17 @@ def parse_stampede_nodefile(filename):
     return node_list
 
 
-def stampede_init():
+def stampede_init( nodelist = '', job_cpus_per_node='' ):
     socket_timeout = 3600 * 24
     port = 32568
     key_phrase = '%x' % random.randrange(256**5)
-    nodes = parse_stampede_nodefile('nodefile.txt')
-    line = open('ncpus_per_node.txt').read().strip()
+    if len( nodelist ) == 0:
+        nodelist = open( 'nodefile.txt' ).read().strip()
+    nodes = parse_stampede_nodefile(nodelist)
+
+    if len( job_cpus_per_node ) == 0:
+        job_cpus_per_node = open('ncpus_per_node.txt').read().strip()
+    line = job_cpus_per_node
     if '(' in line:
         nworkers = int(line.split('(')[0])
     else:

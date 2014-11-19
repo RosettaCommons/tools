@@ -390,6 +390,18 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 	if( len(VDW_rep_screen_info_list)== 0): error_exit_with_message("len(VDW_rep_screen_info)== 0" )
 	if( len(VDW_rep_screen_info_list[0])== 0): return
 
+    ################################################################
+	### VDW_rep_screen_info_list no longer requires additional arguments, 
+	### user only needs to provide a pdb or a list of pdbs
+	###
+	if( len( VDW_rep_screen_info_list ) == 1 ): return True
+	if( len( VDW_rep_screen_info_list )  > 1 ):
+		### Check to see if VDW_rep_screen_info_list is a list of pdbs.
+		if( sum([ ('.pdb' in info) for info in VDW_rep_screen_info_list ]) == len( VDW_rep_screen_info_list ) ): return True
+    ###
+ 	### -- caleb, 11.19.2014
+    ################################################################
+
 	if( (len(VDW_rep_screen_info_list) % 3) != 0):
 		print "VDW_rep_screen_info_list: ", VDW_rep_screen_info_list
 		error_exit_with_message("len(VDW_rep_screen_info_list) % 3 != 0")

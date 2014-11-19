@@ -121,7 +121,7 @@ def main(args):
 
     parser.add_option('--rosetta-platform',
       action="store", default=None,
-      help="Specify full extra+compiler+build type for rosetta binaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default are dynamic release builds of the OS executing the script.",
+      help="Specify full extra+compiler+build type for rosetta binaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default are dynamic GCC release builds of the OS executing the script.",
     )
 
     parser.add_option("--idealize",
@@ -151,7 +151,7 @@ def main(args):
 
     parser.add_option("--skip-kink-constraints",
       action="store_false", dest='kink_constraints', default=True,
-      help="Skip generation of kink constraints file (require PyRosetta). Default is False.",
+      help="Skip generation of kink constraints file (require PyRosetta). Default is True.",
     )
 
     parser.add_option("--timeout",
@@ -162,6 +162,11 @@ def main(args):
     parser.add_option("--quick","-q",
       action="store_true", default=False,
       help="Specify fast run (structure will have clashes).  Prevents stem optimization and turns off relax, idealize.",
+    )
+
+    parser.add_option("--skip_stem_optimize",
+      action="store_true", default=False,
+      help="Skip the Stem Optimize step",
     )
 
     #parser.add_option('--rosetta-options',
@@ -1062,6 +1067,9 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
+        if Options.skip_stem_optimize: commandline = commandline + ' -antibody:stem_optimize false'
+
+	print commandline
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
@@ -1076,6 +1084,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             print 'Running idealize_jd2'
             commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
                           ' -fast -s %s.pdb -ignore_unrecognized_res -scorefile score-idealize.sf' % model_file_prefix
+
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
             if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
@@ -1091,6 +1100,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             commandline = 'cd "%s" && %s "%s" -database %s -overwrite' % (os.path.dirname(prefix), 'ulimit -t %s &&' % Options.timeout if Options.timeout else '', relax, rosetta_database) + \
                           ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc -scorefile score-relax.sf'
+
             res, output = commands.getstatusoutput(commandline)
             if Options.verbose or res: print commandline, output
             if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)

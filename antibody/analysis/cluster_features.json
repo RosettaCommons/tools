@@ -1,0 +1,18 @@
+{  
+    "output_dir" : "/home/jadolfbr/Documents/modeling/rosetta/projects/antibody_design/benchmarks/recovery/baseline_natives",  
+    "sample_source_comparisons" : [  
+	{
+            "analysis_scripts" : [  
+
+		"scripts/analysis/statistics/antibodies/cdr_cluster_recovery.R"
+            ],  
+            "output_formats" : [
+		"output_tab_delimited_table",
+		"output_csv",
+		"output_html",
+		"output_print_pdf",
+		"output_huge_pdf"
+            ]  
+        }  
+    ]  
+} 

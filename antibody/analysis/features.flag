@@ -1,0 +1,10 @@
+-ignore_unrecognized_res
+-ignore_waters
+-ignore_zero_occupancy false
+-ex1
+-ex2
+-use_input_sc
+-add_orbitals
+-no_output
+-check_cdr_chainbreaks false
+-check_cdr_pep_bond_geom false

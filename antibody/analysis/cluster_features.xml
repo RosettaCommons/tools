@@ -1,0 +1,15 @@
+<ROSETTASCRIPTS>
+	<SCOREFXNS>
+		< s weights=%%score%%/>
+	</SCOREFXNS>
+	<MOVERS>
+		<ReportToDB name=features database_name=%%name%%.%%score%%.db3 batch_description=%%batch%%>
+			<feature name=ResidueFeatures/>
+			<feature name=PdbDataFeatures/>
+			<feature name=CDRClusterFeatures/>
+		</ReportToDB>
+	</MOVERS>
+	<PROTOCOLS>
+		<Add mover_name=features/>
+	</PROTOCOLS>
+</ROSETTASCRIPTS>

@@ -7,16 +7,16 @@ from get_missing_den_from_disss import get_fulllength_fasta
 import ConfigParser
 
 '''
-the difference between this script and the previous version is introducing 
+the difference between this script and the previous version is introducing
 sequence alignment program bl2seq to find the missing density regions.
 
 the reference is taken from pdb_seqres.txt, and trying to match the pdb from get_pdb_new.py
 '''
- 
+
 def numbering_back_to_pdbseqres( pdb_target_name ):
     PDB2VALL_PATH = path.abspath(path.dirname(__file__)) + "/"
     if not PDB2VALL_PATH:
-            stderr.write("ERROR: you should specify the path where your packages are first.\n") 
+            stderr.write("ERROR: you should specify the path where your packages are first.\n")
             return 0
 
     ## read config
@@ -25,7 +25,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
 
     ## EXTERNAL PROGRAMS
     script_get_single_chain_pdb = PDB2VALL_PATH + "pdb_scripts/get_pdb_new.py"
-    script_pdb2fasta            = PDB2VALL_PATH + "pdb_scripts/pdb2fasta.py" 
+    script_pdb2fasta            = PDB2VALL_PATH + "pdb_scripts/pdb2fasta.py"
     bl2seq = ""
     if not exists( bl2seq ):
         bl2seq = PDB2VALL_PATH + "../../../../../src/blast/bin/bl2seq" # Robetta location
@@ -40,7 +40,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
 
     ## FILES
     pdb_seqres_fn = PDB2VALL_PATH + "database/rcsb_data/derived_data/pdb_seqres.txt"
-    
+
     if len( pdb_target_name.split(".")[0] ) == 5:
         pdb_id    = pdb_target_name[:4]
         pdb_chain = pdb_target_name[4]
@@ -49,13 +49,13 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
         return 0
 
 
-    ## MAKING TWO THINGS IN THIS WHILE LOOP: 
+    ## MAKING TWO THINGS IN THIS WHILE LOOP:
     ## 1. fasta_out_fn based on pdb_seqres.txt ( w/o missing_density_rsn )
     ## 2. seq_from_pdbseqres_Dict based on pdb_seqres.txt
-    seq_from_pdbseqres_Dict = {}  
+    seq_from_pdbseqres_Dict = {}
     fasta_out_fn            = open( pdb_id.lower() + pdb_chain.upper() + ".fasta", "w")
 
-    file  = open( pdb_seqres_fn, "r") 
+    file  = open( pdb_seqres_fn, "r")
     line  = file.readline()
     tag   = pdb_id.lower() + "_" + pdb_chain.upper()
     count = 1
@@ -78,14 +78,14 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
         stderr.write("ERROR: numbering_back_to_pdbseqres(): can't find %s in pdb_seqres.txt\n\n" % ( pdb_id.lower()+pdb_chain.upper()))
         return 0
 
-    ## RENUMBER PDB FROM get_pdb_new.py 
+    ## RENUMBER PDB FROM get_pdb_new.py
     ## make seq_from_getpdbpy_Dict
     seq_from_getpdbpy_Dict = {}
 
-    cmd = script_get_single_chain_pdb + " " + pdb_id.lower() + " " + pdb_chain.upper() 
+    cmd = script_get_single_chain_pdb + " " + pdb_id.lower() + " " + pdb_chain.upper()
     system( cmd )
 
-    pdb_fn = pdb_id.lower() + pdb_chain.upper() + ".pdb" 
+    pdb_fn = pdb_id.lower() + pdb_chain.upper() + ".pdb"
     count  = 1
     if exists( pdb_fn ):
         cmd = script_pdb2fasta + " " + pdb_fn + " | tee " + pdb_fn + ".fasta"
@@ -103,7 +103,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
         exit()
 
     ## RUN bl2seq
-    cmd = bl2seq + " -i " + pdb_fn + ".fasta -j " + pdb_fn[:5] + ".fasta -p blastp"
+    cmd = bl2seq + " -i " + pdb_fn + ".fasta -j " + pdb_fn[:5] + ".fasta -F F -p blastp"
     bl2seq_results = popen( cmd ).readlines()
     if not bl2seq_results:
         stderr.write("ERROR: not able to get results from bl2seq\n")
@@ -124,8 +124,8 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
             tmp_fasta_from_getpdbpy_bl2seq_list.append( line.strip() )
 
     '''### debug
-    print  "fasta_pdbseqres_bl2seq",     fasta_pdbseqres_bl2seq     
-    print  "fasta_from_getpdbpy_bl2seq", fasta_from_getpdbpy_bl2seq 
+    print  "fasta_pdbseqres_bl2seq",     fasta_pdbseqres_bl2seq
+    print  "fasta_from_getpdbpy_bl2seq", fasta_from_getpdbpy_bl2seq
     print tmp_fasta_pdbseqres_bl2seq_list #'''
 
     numbering_ref_Dict     = {}
@@ -146,7 +146,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
         count += 1
         newrsdnum += 1
     #print numbering_ref_rev_Dict
-    
+
     ## ADDING HEAD AND TAIL THAT THE BL2SEQ DIDN'T COVER
     '''debug
     print "sbjct_starting_numbers", sbjct_starting_number
@@ -166,12 +166,12 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
 
     disss_missing_den_list = get_fulllength_fasta( pdb_target_name, "missing_den_list" )
     '''debug
-    print disss_missing_den_list 
+    print disss_missing_den_list
     print missing_density_rsn_list #'''
 
     for missing_rsn_from_dissstxt in disss_missing_den_list:
         if missing_rsn_from_dissstxt not in missing_density_rsn_list:
-            #print  missing_rsn_from_dissstxt 
+            #print  missing_rsn_from_dissstxt
             ## check b factor believable or not
             pdblines = open( pdb_fn, "r").readlines()
             for pdbline in pdblines:
@@ -197,8 +197,8 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
 
                                 #return 0
                                 #exit()
-                        
-                    
+
+
 
 
 
@@ -212,7 +212,7 @@ def numbering_back_to_pdbseqres( pdb_target_name ):
 
 
 
-    results_Dict = { "numbering_ref_Dict"      :numbering_ref_Dict, 
+    results_Dict = { "numbering_ref_Dict"      :numbering_ref_Dict,
                      "seq_from_pdbseqres_Dict" :seq_from_pdbseqres_Dict,
                      "seq_from_getpdbpy_Dict"  :seq_from_getpdbpy_Dict,
                      "missing_density_rsn_list":missing_density_rsn_list,

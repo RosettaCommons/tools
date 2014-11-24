@@ -3,6 +3,7 @@
 
 import os
 import sys
+import re
 from collections import defaultdict
 
 class PyMolScriptWriter:
@@ -59,11 +60,16 @@ class PyMolScriptWriter:
             OUTFILE.write(line+"\n")
         OUTFILE.close()
 
+    def save_script(self, fname):
+        self.write_script(fname)
+
     def reset_script(self):
         self.script_lines = []
 
     def clear(self):
         self.reset_script()
+        self.pdbs = []
+        self.final_names = []
 
 
     ####################################################################################################
@@ -73,9 +79,18 @@ class PyMolScriptWriter:
     def get_color_types(self):
         return self.color_types.keys()
 
+    def get_vis_types(self):
+        return self.vis_options
+
     def get_colors_of_type(self, color_type):
         color_type = color_type.lower()
         return self.color_types[color_type]
+
+    def get_final_names(self):
+        """
+        Get the final names PyMOL will use after loading PDBs.
+        """
+        return self.final_names
 
     def get_sele(self, chain, resid_array):
         """
@@ -135,6 +150,12 @@ class PyMolScriptWriter:
         else:
             self.script_lines.append("show "+vis_type+", "+sele)
 
+    def add_center(self, sele = None):
+        if sele:
+            self.add_line("center "+sele)
+        else:
+            self.add_line("center")
+
     def add_hide(self, vis_type, sele=""):
         """
         Hide a representation.  Optionally with a particular selection.
@@ -147,26 +168,43 @@ class PyMolScriptWriter:
         else:
             self.script_lines.append("show "+vis_type+", "+sele)
 
+    def add_load_pdb(self, pdb_path, load_as):
+        """
+        Add line to load a PDB Path into PyMol
+        Optionally load them as a particular name
+        Will then set the final names PyMol uses to the object.
+        """
+        self.pdbs.append(pdb_path)
+        name = os.path.basename(pdb_path)
+        name = "".join(name.split(".")[0:-1])
+        basenameSP = name.split('.')
+        if re.search(".pdb.gz", name):
+            basename = "".join(basenameSP[:len(basenameSP)-2])
+        else:
+            basename = "".join(basenameSP[:len(basenameSP)-1])
+
+
+        if not load_as:
+            self.final_names.append(name)
+            self.script_lines.append("load "+pdb_path)
+        else:
+            self.final_names.append(load_as)
+            self.script_lines.append("load "+pdb_path+", "+load_as)
+
     def add_load_pdbs(self, pdb_paths, load_as = ""):
         """
         Add lines to load the list of PDB paths into PyMol
         Optionally load them as a particular name
         Will then set the final names PyMol uses to the object.
         """
-
-        self.pdbs = pdb_paths
-        self.final_names = []
-
+        i = 0
         for path in pdb_paths:
-            name = os.path.basename(path)
-            name = "".join(name.split(".")[0:-1])
-
-            self.final_names.append(name)
-            if not load_as:
-                self.script_lines.append("load "+path)
+            print path
+            if load_as:
+                self.add_load_pdb(path, load_as[i])
             else:
-                self.script_lines.append("load "+path+", "+load_as)
-
+                self.add_load_pdb(path)
+            i+=1
 
     def add_align_all(self, sele1 = "", sele2="", limit_to_bb=True, pair_fit = False):
         """
@@ -217,7 +255,6 @@ class PyMolScriptWriter:
             sys.exit("Color not understood by PyMol: "+color+" See simple_pymol_colors for list of acceptable colors")
 
         self.script_lines.append("color "+color+", "+name)
-
 
 
 

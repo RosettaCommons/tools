@@ -75,6 +75,7 @@ native_pdb= parse_options( argv, "native_pdb", "" )
 cutpoint_open=parse_options( argv, "cutpoint_open", 0)
 num_slave_nodes=parse_options( argv, "num_slave_nodes", 500)
 native_rmsd_screen=parse_options( argv, "native_rmsd_screen", "False")
+rmsd_screen=parse_options( argv, "rmsd_screen", 0.0 )
 clusterer_num_pose_kept=parse_options(argv, "nstruct", 1000)
 native_virtual_res=parse_options(argv, "native_virtual_res", [-1])
 force_bulge_res=parse_options(argv, "force_bulge_res", [-1])
@@ -359,8 +360,10 @@ README_SETUP.write( "command+= '-dinucleotide_at_single_element_cc %s '\n\n" %(d
 if(len(native_virtual_res) > 0):
 	README_SETUP.write( "command+= '-native_virtual_res %s '\n\n" %(list_to_string(native_virtual_res))  )
 
-if(native_rmsd_screen):
-	README_SETUP.write( "command+= '-native_rmsd_screen true '\n\n" )
+if( ( native_rmsd_screen ) or ( rmsd_screen > 0.0 )):
+	if( native_rmsd_screen ): README_SETUP.write( "command+= '-native_rmsd_screen true '\n\n" )
+	if( rmsd_screen > 0.0  ): README_SETUP.write( "command+= '-rmsd_screen %d '\n\n" % (rmsd_screen) )
+
 	README_SETUP.write( "command+= '-sampler_num_pose_kept 40 '\n\n" )
 
 	if(len(native_virtual_res) > 0):

@@ -143,6 +143,7 @@ def get_rosetta_common_args_option(argv):
 def get_rosetta_samplerer_args_option(argv):
 
 	native_rmsd_screen=parse_options( argv, "native_rmsd_screen", "false" )
+	rmsd_screen=parse_options( argv, "rmsd_screen", 0.0 )
 	sampler_native_screen_rmsd_cutoff=parse_options( argv, "sampler_native_screen_rmsd_cutoff", "2.0" )
 	sampler_num_pose_kept = parse_options( argv, "sampler_num_pose_kept", 108 )
 	sampler_extra_epsilon_rotamer = parse_options( argv, "sampler_extra_epsilon_rotamer", "true" ) #change default to true on April 17th, 2011
@@ -164,6 +165,8 @@ def get_rosetta_samplerer_args_option(argv):
 	if (native_rmsd_screen=="true"):
 		sampling_args += ' -sampler_native_rmsd_screen true '
 		sampling_args += ' -sampler_native_screen_rmsd_cutoff %s ' %(sampler_native_screen_rmsd_cutoff) #move this into if loop on April 9th, 2011
+
+	if( rmsd_screen > 0.0 ): sampling_args += ' -rmsd_screen %d ' % (rmsd_screen)
 
 	if(sampler_num_pose_kept!=108): sampling_args += ' -sampler_num_pose_kept %d ' %(sampler_num_pose_kept)
 

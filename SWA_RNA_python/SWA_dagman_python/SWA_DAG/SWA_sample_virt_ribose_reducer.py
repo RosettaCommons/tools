@@ -73,10 +73,14 @@ if(Is_valid_non_empty_silent_file(START_silent_file)==False):
 	error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
 
 data=safe_open(START_silent_file, mode='r', Is_master=False)
-
 SEQUENCE_LINE=data.readline()
 COLUMN_NAME_LINE=data.readline()
-#THIRD_LINE=data.readline() #Possible REMARK LINE!
+THIRD_LINE=data.readline() #Possible REMARK LINE!
+third_line_is_a_remark=("REMARK" in THIRD_LINE)
+data.close()
+
+print "THIRD_LINE="+THIRD_LINE.replace( '\n', '' )
+print "third_line_is_a_remark="+str(third_line_is_a_remark)
 
 COL_NAME_LIST=COLUMN_NAME_LINE.split()
 
@@ -96,13 +100,17 @@ START_silent_data_list=[]
 
 offset=0
 
+data=safe_open(START_silent_file, mode='r', Is_master=False)
+dummy_sequence_line=data.readline()
+dummy_column_name_line=data.readline()
+if third_line_is_a_remark:	dummy_third_line=data.readline()
+
 while(True):
 
 	offset=data.tell()
 
 	line=data.readline()
 
-	if(line[:6] == 'REMARK'):	THIRD_LINE=line#REMARK line
 	if(line==''): break #End of file!
 
 	if(len(line) <= 1): error_exit_with_message("len(line) <= 1") #check for line with only '\n'

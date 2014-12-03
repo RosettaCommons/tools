@@ -69,9 +69,13 @@ if( exists(reducer_outfile) ): #FEB 09, 2012
 num_column_name_line=0
 #count=0 ##Commented out on Feb 08, 2012
 
-if(Is_valid_non_empty_silent_file(START_silent_file)==False):
+if( !Is_valid_non_empty_silent_file(START_silent_file) ):
+	#if( Is_valid_empty_silent_file(START_silent_file) ):
+	#	print "START_silent_file (%s) is a not a valid_non_empty_silent_file, but is a valid_empty_silent_file!" % (START_silent_file)
+	#	exit(1)
 	error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
-
+	
+		
 data=safe_open(START_silent_file, mode='r', Is_master=False)
 SEQUENCE_LINE=data.readline()
 COLUMN_NAME_LINE=data.readline()
@@ -103,7 +107,7 @@ offset=0
 data=safe_open(START_silent_file, mode='r', Is_master=False)
 dummy_sequence_line=data.readline()
 dummy_column_name_line=data.readline()
-if third_line_is_a_remark:	dummy_third_line=data.readline()
+if third_line_is_a_remark:	dummy_third_line=data.readline() # only read third line if it is remark; otherwise, it could be the SCORE line.
 
 while(True):
 

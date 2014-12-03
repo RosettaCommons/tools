@@ -43,7 +43,7 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 
 						distance = sqrt( sum( power( subtract( surr_atom_xyz, sample_atom_xyz ) , 2 ) ) )
 						if ( power( distance, 2 ) < power( float(radius), 2 ) ):
-							if verbose:	print "res ", chains[surr_rsd_idx],':',surr_rsd, " is a surrounding res, distance() = ", distance
+							if verbose:	print "res "+str(chains[surr_rsd_idx])+':'+str(surr_rsd)+" is a surrounding res, distance() = ", distance
 							keep_res_list.append( surr_rsd )
 							keep_res_chain_list.append( chains[surr_rsd_idx] )
 							is_surrounding_res = True

@@ -411,6 +411,28 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 			if(exists( VDW_rep_screen_info_list[n] )==False): error_exit_with_message("'exists( VDW_rep_screen_info_list[%d] (%s) )==False" %(n, VDW_rep_screen_info_list[n]) )
 
 
+####################################################################
+def Is_valid_empty_silent_file(silent_file, verbose=True):
+
+	prefix_reason_string="silent_file (%s) is not a valid_empty_silent_file." %(silent_file)
+
+	if(exists(silent_file)==False):
+		if(verbose): print "%s REASON: silent_file doesn't exist!" %(prefix_reason_string)
+		return False
+
+	data = safe_open(silent_file, 'r', Is_master=False)
+
+	if( len( data ) < 1 ):
+		if(verbose): print "%s REASON: empty silent_file num_lines < 1!" %(prefix_reason_string)
+		return False
+
+	for line in data:
+		### EXCEPTIONS HERE
+		if( "empty cluster silent_file since all input_silent_file are empty." in line ):	return True
+
+	data.close()
+
+	return False
 
 ####################################################################
 def Is_valid_non_empty_silent_file(silent_file, verbose=True):

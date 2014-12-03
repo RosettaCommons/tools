@@ -69,7 +69,7 @@ if( exists(reducer_outfile) ): #FEB 09, 2012
 num_column_name_line=0
 #count=0 ##Commented out on Feb 08, 2012
 
-if( !Is_valid_non_empty_silent_file(START_silent_file) ):
+if( not Is_valid_non_empty_silent_file(START_silent_file) ):
 	#if( Is_valid_empty_silent_file(START_silent_file) ):
 	#	print "START_silent_file (%s) is a not a valid_non_empty_silent_file, but is a valid_empty_silent_file!" % (START_silent_file)
 	#	exit(1)

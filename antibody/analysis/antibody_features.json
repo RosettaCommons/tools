@@ -2,7 +2,8 @@
     "output_dir" : "build/lambda_kappa",  
     "sample_source_comparisons" : [  
 	{
-            "analysis_scripts" : [  
+            "analysis_scripts" : [
+        "scripts/analysis/plots/scores/total_score.R",
 		"scripts/analysis/plots/interfaces/composition/int_composition-dG_dSASA_stats_by_restype.R",
 		"scripts/analysis/plots/interfaces/composition/int_composition-hbond_stats_by_restype.R",
 		"scripts/analysis/plots/interfaces/composition/int_composition_den.R",
@@ -44,6 +45,7 @@
             ],  
             "output_formats" : [
 		"output_slide_raster"
+
             ]  
         }  
     ]  

@@ -26,7 +26,7 @@ def append_scripts_formats_to_json_dict(data, json_dict):
     json_dict["sample_source_comparisons"][0]["output_formats"].extend(data["sample_source_comparisons"][0]["output_formats"])
     json_dict["sample_source_comparisons"][0]["analysis_scripts"].extend(data["sample_source_comparisons"][0]["analysis_scripts"])
 
-def initialize_json_dict():
+def initialize_json_dict(out_dir):
 
     formats = defaultdict()
     formats["output_formats"] = []
@@ -36,6 +36,7 @@ def initialize_json_dict():
     json_dict = defaultdict()
     json_dict["sample_source_comparisons"] = []
     json_dict["sample_source_comparisons"].append(formats)
+    json_dict["output_dir"] = out_dir
 
     return json_dict
 
@@ -94,6 +95,58 @@ def _create_json_info_dic(db_path, id, ref=False):
 
 
 
+########################################################################################################################
+####### Class based implementation
+########################################################################################################################
+
+class JsonCreator:
+    """
+    Basic implementation of a simple JsonCreator to create Jsons.  Could be expanded to not load jsons with pre-set scripts.
+    A nicer implementation would be a GUI for running the FeaturesReporter scripts.
+    """
+    def __init__(self, out_path, script_type):
+        self.script_types = ["antibody", "interface", "cluster"]
+        if not script_type in self.script_types:
+            sys.exit(script_type +" unrecognized.  Available JSON script types are: "+repr(self.script_types))
+
+        self.json_dict = initialize_json_dict(out_path)
+        setup_baseline_scripts_and_formats(self.json_dict, script_type)
+
+    def add_sample_source_info(self, db_path, id, ref = False):
+        info = _create_json_info_dic(db_path, id, ref)
+        add_sample_source(self.json_dict, info)
+
+    def add_current_sample_sources_to_json_dict(self, json_file_path):
+        """
+        Combine a JSON with data held in this class
+        """
+        if os.path.exists(json_file_path):
+            add_sample_source_comparisons(self.json_dict, json_file_path)
+
+    def save_json(self, out_path = "local_json.txt"):
+        OUTFILE = open(out_path, 'w')
+
+
+        json.dump(self.json_dict, OUTFILE, indent=1)
+        OUTFILE.close()
+        self.json_path = out_path
+
+        print "Json written to: "+out_path
+        print "Json path set to JsonCreator"
+
+    def run_json(self):
+        run_features_json(self.json_path)
+
+
+def run_features_json(json_path):
+    """
+    Convenience function
+    Run compare_sample_sources with json path.  Must have compare_sample_sources.R in PATH
+    """
+    r_cmd = "compare_sample_sources.R --config "+json_path
+    print "Running: "+r_cmd
+    os.system(r_cmd)
+
 if __name__ == "__main__":
 
 
@@ -137,13 +190,9 @@ if __name__ == "__main__":
         sys.exit("Unrecognized script type. Options are: "+repr(script_types))
 
 
+    json_creator = JsonCreator(options.out_path, options.script)
+
     INFILE = open(options.databases, "r")
-
-
-    json_dict = initialize_json_dict()
-    json_dict["output_dir"] = options.out_path
-    setup_baseline_scripts_and_formats(json_dict, options.script)
-
     for line in INFILE:
 
         line = line.strip()
@@ -156,16 +205,12 @@ if __name__ == "__main__":
 
         db_path = options.db_path+"/"+lineSP[0]; id= lineSP[1]
 
-        add_sample_source(json_dict, _create_json_info_dic(db_path, id, ref))
+        json_creator.add_sample_source_info(db_path, id, ref)
         #print repr(json_dict)
 
     INFILE.close()
 
-    add_sample_source_comparisons(json_dict, options.add_comparison_to_this_json)
-    OUTFILE = open(options.out_name, 'w')
+    json_creator.add_current_sample_sources_to_json_dict(options.add_comparison_to_this_json)
+    json_creator.save_json(options.out_path)
 
-
-    json.dump(json_dict, OUTFILE, indent=1)
-    OUTFILE.close()
     print "Complete"
-

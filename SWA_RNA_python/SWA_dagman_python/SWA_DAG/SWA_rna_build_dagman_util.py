@@ -654,7 +654,7 @@ def get_user_input_pdb_info_list(input_pdbs, input_silent_file_list, input_res_f
 
 				if ( exists( input_pdb )==False ): error_exit_with_message("exists( %s )==False" %(input_pdb) )
 
-				input_pdb_sequence = popen( "SWA_pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
+				input_pdb_sequence = popen( "pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
 				input_seq_length = len( input_pdb_sequence )
 
 				starting_sequence = ""
@@ -1316,7 +1316,7 @@ def create_sampled_virt_ribose_silent_file(pose_info, standard_sampler_job_tag, 
 
 		if (basename(pose_info['silent_file'])==""): error_exit_with_message("basename(pose_info['silent_file']")
 
-		if (verbose): print "standard_sampler_job_tag= %s, sample_virtual_ribose_list %s " %(standard_sampler_job_tag, list_to_string(sample_virtual_ribose_list) )
+		if (verbose): print "standard_sampler_job_tag= %s, sample_virtual_sugar_list %s " %(standard_sampler_job_tag, list_to_string(sample_virtual_ribose_list) )
 
 		#####################Simple preprocess script (same as preprocess of standard sampler)######################################################
 		# this has to go after job declaration in condor DAGMAN file... moved below
@@ -1328,10 +1328,10 @@ def create_sampled_virt_ribose_silent_file(pose_info, standard_sampler_job_tag, 
 
 		mapper_outfile = mapper_output_foldername + '/sample_virt_ribose_region_%d_%d.out' %(pose_info['i_prev'], pose_info['j_prev'])
 
-		job_args = ' -algorithm rna_sample_virtual_ribose -database %s ' %(DB)
+		job_args = ' -algorithm rna_sample_virtual_sugar -database %s ' %(DB)
 		job_args += common_args
 		job_args += ' -in:file:silent %s -tags %s -out:file:silent %s ' %(pose_info['silent_file'], pose_info["tag"], mapper_outfile)
-		job_args += ' -sample_virtual_ribose_list %s ' %(list_to_string(sample_virtual_ribose_list))
+		job_args += ' -sample_virtual_sugar_list %s ' %(list_to_string(sample_virtual_ribose_list))
 
 		if ( native_pdb!="" ):
 			if (exists( native_pdb )==False): error_exit_with_message("exists( native_pdb (%s) )==False" %(native_pdb))

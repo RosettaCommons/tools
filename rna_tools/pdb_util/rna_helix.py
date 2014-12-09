@@ -15,6 +15,7 @@ parser.add_argument('-weights', default='', help='Weights file defining score fu
 parser.add_argument('-finish_weights', default='', help='Weights file defining a finisher score function')
 parser.add_argument('-silent', default='', help='silent file output')
 parser.add_argument('-dump', action='store_true', default=False, help='dump intermediate pdbs')
+parser.add_argument('-put_intra_into_total', action='store_true',default=False, help='calculate intra-res terms and include in totals')
 args = parser.parse_args()
 
 
@@ -31,6 +32,7 @@ if len( args.weights ) > 0:        cmdline += '-score:weights %s ' % args.weight
 if len( args.finish_weights ) > 0: cmdline += '-finish_weights %s ' % args.finish_weights
 if len( args.silent ) > 0: cmdline += '-out:file:silent %s ' % args.silent
 if args.dump: cmdline += '-dump '
+if args.put_intra_into_total: cmdline += '-put_intra_into_total '
 
 print 'Rosetta cmdline:', cmdline
 subprocess.check_call(cmdline.split())

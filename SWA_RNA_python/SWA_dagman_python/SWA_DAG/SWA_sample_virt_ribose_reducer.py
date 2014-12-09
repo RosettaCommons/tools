@@ -82,7 +82,8 @@ COLUMN_NAME_LINE=data.readline()
 THIRD_LINE=data.readline() #Possible REMARK LINE!
 third_line_is_a_remark=("REMARK" in THIRD_LINE)
 data.close()
-
+print "SEQUENCE_LINE="+SEQUENCE_LINE.replace( '\n', '' )
+print "COLUMN_NAME_LINE="+COLUMN_NAME_LINE.replace( '\n', '' )
 print "THIRD_LINE="+THIRD_LINE.replace( '\n', '' )
 print "third_line_is_a_remark="+str(third_line_is_a_remark)
 
@@ -236,7 +237,7 @@ for n in range(len(START_silent_data_list)):
 		error3=( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) )
 
 		if ( error1 or error2 or error3 ):
-			print "file_name=%s" %(globfile_info["file_name"])
+			print "\nfile_name=%s" %(globfile_info["file_name"])
 
 		if ( error1 ):	#(SEQUENCE_LINE!=first_line):
 			print "SEQUENCE_LINE =", SEQUENCE_LINE.replace('\n','')

@@ -42,10 +42,13 @@ def delete_sampler_outfiles_and_folders(indir_prefix, delete_files):
 
 	if(delete_files):
 		outfolder=indir_prefix +'/'
-		if(exists(outfolder)==False): error_exit_with_message("outfolder (%s) doesn't exist!" %(outfolder))
+		#if(exists(outfolder)==False): error_exit_with_message("outfolder (%s) doesn't exist!" %(outfolder))
+		if( not exists(outfolder) ):
+			print "WARNING, outfolder (%s) doesn't exist!" % (outfolder)
+			return False
 		print "rm -r %s" %(outfolder)
 		submit_subprocess("rm -r %s" %(outfolder))
-
+		return True
 
 #############################################################################
 def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
@@ -119,13 +122,14 @@ def concatenate_sampler_silent_file(condor_submit_file, cat_outfile):
 
 		silent_data=safe_open(silent_file, mode='r', Is_master=False)
 
-		first_silent_line=silent_data.readline();
+		first_silent_line=silent_data.readline()
 
 		silent_data.close()
 
 		Is_empty=False
 
-		if first_silent_line.index( "empty silent_file" ) > -1:
+		#if first_silent_line.index( "empty silent_file" ) > -1:
+		if "empty silent_file" in first_silent_line:
 			Is_empty=True
 		else:
 			assert_is_valid_non_empty_silent_file(silent_file)

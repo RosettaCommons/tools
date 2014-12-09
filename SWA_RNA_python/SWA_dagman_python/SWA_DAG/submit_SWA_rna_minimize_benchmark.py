@@ -22,7 +22,7 @@ import copy
 
 ######################################################################
 
-#submit_SWA_rna_minimize_benchmark.py -num_slave_nodes_per_job 50 -star_mode False  -force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts  -remove_virtual_res_variant_during_minimize true > log_submit_swa_minimize_benchmark.out 2> log_submit_swa_minimize_benchmark.err
+#submit_SWA_rna_minimize_benchmark.py -num_slave_nodes_per_job 50 -star_mode False  -force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts  -remove_virtual_res_variant_during_minimize true > log_submit_swa_minimize_benchmark.out 2> log_submit_swa_minimize_benchmark.err
 
 #-perform_minimize false 
 #rna_4X_CS_03022011_w_intra_terms.wts

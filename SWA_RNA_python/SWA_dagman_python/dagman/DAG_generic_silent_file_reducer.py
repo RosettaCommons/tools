@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 from os import system,popen
@@ -97,7 +97,7 @@ for line in lines:
 		#For general case, can have more than one mapper_outfile (e.g. second example above...still have to rewrite code to account for this possibility!)
 		if( len(cols)!=3 ): error_exit_with_message("len(cols)!=3 for mapper_outfiles line=(%s)" %(line)) 
 
-		if( cols[1] != "=" ): kill_all_slave_jobs_and_exit("cols[1] != \"=\" for mapper_outfiles line (%s)" %(line))
+		if( cols[1] != "=" ): error_exit_with_message("cols[1] != \"=\" for mapper_outfiles line (%s)" %(line))
 
 		mapper_outfile  = cols[2]
 
@@ -116,6 +116,7 @@ possible_empty_silent_file_message=[]
 
 possible_empty_silent_file_message.append("DAG_builge_bulge.py: Unsucessfully rebuild bulge(s)!!\n") #No virtaul_ribose
 possible_empty_silent_file_message.append("StepWiseRNA_Minimizer:: num_pose_outputted==0, empty silent_file!\n") 
+possible_empty_silent_file_message.append("StepWiseMinimizer:: num_pose_outputted==0, empty silent_file!\n") 
 ##ADD MORE MESSAGE AS NEEDED##
 
 for queue_ID in range(num_mapper_jobs):
@@ -124,7 +125,7 @@ for queue_ID in range(num_mapper_jobs):
 
 	if(exists(silent_file)==False): error_exit_with_message("silent_file (%s) doesn't exist!" %(silent_file))
 
-	silent_data=safe_open(silent_file, mode='r', Is_master=False)
+	silent_data=safe_open(silent_file, mode='r')
 
 	first_silent_line=silent_data.readline();
 

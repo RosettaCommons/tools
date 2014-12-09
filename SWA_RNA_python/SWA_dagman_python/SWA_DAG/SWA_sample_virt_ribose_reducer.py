@@ -231,22 +231,27 @@ for n in range(len(START_silent_data_list)):
 		second_line=data.readline()
 		third_line=data.readline()
 
-		if(SEQUENCE_LINE!=first_line):
-			print "file_name=%s" %(globfile_info["file_name"])
-			print "SEQUENCE_LINE =", SEQUENCE_LINE
-			print "first_line    =", first_line
-			error_exit_with_message("SEQUENCE_LINE !=first_line")
+		error1=( SEQUENCE_LINE!=first_line )
+		error2=( not Is_equivalent_list(COL_NAME_LIST, second_line.split()) )
+		error3=( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) )
 
-		if( Is_equivalent_list(COL_NAME_LIST, second_line.split())==False ) :
+		if ( error1 or error2 or error3 ):
 			print "file_name=%s" %(globfile_info["file_name"])
+
+		if ( error1 ):	#(SEQUENCE_LINE!=first_line):
+			print "SEQUENCE_LINE =", SEQUENCE_LINE.replace('\n','')
+			print "first_line    =", first_line.replace('\n','')
+			### If full_model_info is defined, the full_model sequence will be written to the silent file, causing some reducing steps to error out.
+			#error_exit_with_message("SEQUENCE_LINE !=first_line")
+
+		if ( error2 ):	#( Is_equivalent_list(COL_NAME_LIST, second_line.split())==False ) :
 			print "COL_NAME_LIST      =", COL_NAME_LIST
 			print "second_line.split()=", second_line.split()
 			error_exit_with_message("Is_equivalent_list(COL_NAME_LIST, second_line.split()==False)" )
 
-		if( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) ):
-			print "file_name=%s" %(globfile_info["file_name"])
-			print "THIRD_LINE=", THIRD_LINE
-			print "third_line=", third_line
+		if ( error3 ):	#( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) ):
+			print "THIRD_LINE=", THIRD_LINE.replace('\n','')
+			print "third_line=", third_line.replace('\n','')
 			#error_exit_with_message("(THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line))" )
 
 		offset=0

@@ -15,7 +15,7 @@ import copy
 from FARFAR_dag_util import *
 ######################################################################
 
-from SWA_dagman_python.SWA_cat_outfiles import *
+from SWA_dagman_python.misc.SWA_cat_outfiles import *
 from SWA_dagman_python.utility.SWA_util import *
 from SWA_dagman_python.parser.SWA_parse_options import parse_options
 ######################################################################

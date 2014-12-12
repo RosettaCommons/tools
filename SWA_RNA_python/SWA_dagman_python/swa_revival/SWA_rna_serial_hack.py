@@ -20,7 +20,7 @@ def set_process_id( command_src, process_id ):
     command_fin.close()
     if '$(Process)' in command:
         command_fout = open( command_src, 'w' )
-        command_fout.write( command.replace( '$(Process)', '%i' % process_id ) ) 
+        command_fout.write( command.replace( '$(Process)', '%i' % process_id ) )
         command_fout.close()
     return True
 
@@ -62,18 +62,18 @@ def get_condor_file( job ):
     elif 'CLUSTERER' in job:
         condor_dir='CONDOR/CLUSTERER/'
         condor_file=job.replace('CLUSTERER_',condor_dir)+'.condor'
-    else: 
+    else:
         condor_file=None
     #print condor_file
     return condor_file
-    
+
 def get_num_queue_from_condor_file( job ):
     condor_file=get_condor_file( job )
     for line in open(condor_file, 'r').readlines():
         if len(line.split()) > 1:
             if line.split()[0] == 'Queue':
                 num_queue=int(line.split()[1])
-    #print num_queue    
+    #print num_queue
     return num_queue
 
 def run_jobs( job ):
@@ -93,7 +93,7 @@ def run_jobs( job ):
 
 #############################################################################
 
-build_commands = '$ROSETTA/tools/SWA_RNA_python/SWA_dagman_python/SWA_rna_build_commands_from_dagman.py'
+build_commands = '$ROSETTA/tools/SWA_RNA_python/SWA_dagman_python/swa_revival/SWA_rna_build_commands_from_dagman.py'
 subprocess.call( 'python ' + build_commands , shell=True )
 
 JOBS_DIR = 'JOBS/'
@@ -243,7 +243,7 @@ for ii in xrange( len( queue[ 'jobs' ] ) ):
     ### JOB
     if queue[ 'jobs' ][ ii ]:
         run_jobs( queue[ 'jobs' ][ ii ] )
-       
+
     ### POST PROCESSING SCRIPT
     if queue[ 'post_process' ][ ii ]:
         command_src = SCRIPTS_POST_DIR + queue[ 'post_process' ][ ii ]

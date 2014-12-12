@@ -76,21 +76,21 @@ if( not Is_valid_non_empty_silent_file(START_silent_file) ):
 	error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
 	
 		
-data=safe_open(START_silent_file, mode='r', Is_master=False)
-SEQUENCE_LINE=data.readline()
-COLUMN_NAME_LINE=data.readline()
-THIRD_LINE=data.readline() #Possible REMARK LINE!
-third_line_is_a_remark=("REMARK" in THIRD_LINE)
+data = safe_open(START_silent_file, mode='r', Is_master=False)
+SEQUENCE_LINE = data.readline()
+COLUMN_NAME_LINE = data.readline()
+THIRD_LINE = data.readline() #Possible REMARK LINE!
+third_line_is_a_remark = ("REMARK" in THIRD_LINE)
 data.close()
-print "SEQUENCE_LINE="+SEQUENCE_LINE.replace( '\n', '' )
-print "COLUMN_NAME_LINE="+COLUMN_NAME_LINE.replace( '\n', '' )
-print "THIRD_LINE="+THIRD_LINE.replace( '\n', '' )
-print "third_line_is_a_remark="+str(third_line_is_a_remark)
+print "SEQUENCE_LINE=", SEQUENCE_LINE.replace('\n', '')
+print "COLUMN_NAME_LINE=", COLUMN_NAME_LINE.replace('\n', '')
+print "THIRD_LINE=", THIRD_LINE.replace('\n', '')
+print "third_line_is_a_remark=", str(third_line_is_a_remark)
 
-COL_NAME_LIST=COLUMN_NAME_LINE.split()
+COL_NAME_LIST = COLUMN_NAME_LINE.split()
 
 try:
-	score_col_index=COL_NAME_LIST.index('score')
+	score_col_index = COL_NAME_LIST.index('score')
 except:
 	print "COL_NAME_LIST=", COL_NAME_LIST
 	error_exit_with_message("Cannot find score column index!" )
@@ -101,14 +101,15 @@ except:
 	print "COL_NAME_LIST=", COL_NAME_LIST
 	error_exit_with_message("Cannot find description column index!")
 
-START_silent_data_list=[]
+START_silent_data_list = []
 
-offset=0
+offset = 0
 
-data=safe_open(START_silent_file, mode='r', Is_master=False)
-dummy_sequence_line=data.readline()
-dummy_column_name_line=data.readline()
-if third_line_is_a_remark:	dummy_third_line=data.readline() # only read third line if it is remark; otherwise, it could be the SCORE line.
+data = safe_open(START_silent_file, mode='r', Is_master=False)
+dummy_sequence_line = data.readline()
+dummy_column_name_line = data.readline()
+if third_line_is_a_remark:	
+	dummy_third_line = data.readline() # only read third line if it is remark; otherwise, it could be the SCORE line.
 
 while(True):
 
@@ -214,46 +215,48 @@ for n in range(len(START_silent_data_list)):
 
 	if(first_line=="no_virtual_ribose (FB_CC_JP_list.size()==0).\n") or \
 	  (first_line=="no_virtual_sugar ( sugar_modeling_list.size() == 0 ).\n" ): #No virtual_ribose
-
+	
 		NEW_silent_data_list.append(START_silent_data)
 
 	elif(first_line=="num_virtual_ribose != 0 but for one of the sampled virtual_ribose, curr_FB_JP.PDL.size()==0.\n" ) or \
 		(first_line=="num_virtual_sugar != 0 but for one of the sampled virtual_sugar, curr_sugar_list.size()==0.\n" ) or \
 		(first_line=="num_virtual_sugar != 0 but for one of the sampled virtual_sugar,curr_modeling.pose_list.size() == 0.\n" ): #Virtual_ribose exist, but no valiable ribose rotamer!
+	
 		num_fail_ribose_sampling+=1 # Filler to prevent error!
 
 	else:
 
 		assert_is_valid_non_empty_silent_file(globfile_info["file_name"])
 
-		data=safe_open(globfile_info["file_name"], mode='r', Is_master=False)
+		data = safe_open(globfile_info["file_name"], mode='r', Is_master=False)
 
-		first_line=data.readline()
-		second_line=data.readline()
-		third_line=data.readline()
+		first_line = data.readline()
+		second_line = data.readline()
+		third_line = data.readline()
 
-		error1=( SEQUENCE_LINE!=first_line )
-		error2=( not Is_equivalent_list(COL_NAME_LIST, second_line.split()) )
-		error3=( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) )
+		error1 = (SEQUENCE_LINE != first_line)
+		error2 = (not Is_equivalent_list(COL_NAME_LIST, second_line.split()))
+		error3 = ((THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE != third_line))
 
-		if ( error1 or error2 or error3 ):
-			print "\nfile_name=%s" %(globfile_info["file_name"])
+		if error1 or error2 or error3:	
+			
+			print "\nfile_name=%s" % (globfile_info["file_name"])
 
-		if ( error1 ):	#(SEQUENCE_LINE!=first_line):
-			print "SEQUENCE_LINE =", SEQUENCE_LINE.replace('\n','')
-			print "first_line    =", first_line.replace('\n','')
-			### If full_model_info is defined, the full_model sequence will be written to the silent file, causing some reducing steps to error out.
-			#error_exit_with_message("SEQUENCE_LINE !=first_line")
+			if error1:	#(SEQUENCE_LINE!=first_line):
+				print "SEQUENCE_LINE =", SEQUENCE_LINE.replace('\n','')
+				print "first_line    =", first_line.replace('\n','')
+				### If full_model_info is defined, the full_model sequence will be written to the silent file, causing some reducing steps to error out.
+				#error_exit_with_message("SEQUENCE_LINE !=first_line")
 
-		if ( error2 ):	#( Is_equivalent_list(COL_NAME_LIST, second_line.split())==False ) :
-			print "COL_NAME_LIST      =", COL_NAME_LIST
-			print "second_line.split()=", second_line.split()
-			error_exit_with_message("Is_equivalent_list(COL_NAME_LIST, second_line.split()==False)" )
+			if error2:	#( Is_equivalent_list(COL_NAME_LIST, second_line.split())==False ) :
+				print "COL_NAME_LIST      =", COL_NAME_LIST
+				print "second_line.split()=", second_line.split()
+				error_exit_with_message("Is_equivalent_list(COL_NAME_LIST, second_line.split()==False)" )
 
-		if ( error3 ):	#( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) ):
-			print "THIRD_LINE=", THIRD_LINE.replace('\n','')
-			print "third_line=", third_line.replace('\n','')
-			#error_exit_with_message("(THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line))" )
+			if error3:	#( (THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line) ):
+				print "THIRD_LINE=", THIRD_LINE.replace('\n','')
+				print "third_line=", third_line.replace('\n','')
+				#error_exit_with_message("(THIRD_LINE[:6] == 'REMARK') and (THIRD_LINE!=third_line))" )
 
 		offset=0
 

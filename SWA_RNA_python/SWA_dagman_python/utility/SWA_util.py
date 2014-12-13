@@ -6,6 +6,11 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 ###############################################################
 
+####### SWA reviaval Oct. 2, 2014 #############################
+import subprocess
+
+###############################################################
+
 from sys import argv,exit
 import sys
 import traceback
@@ -385,6 +390,18 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 	if( len(VDW_rep_screen_info_list)== 0): error_exit_with_message("len(VDW_rep_screen_info)== 0" )
 	if( len(VDW_rep_screen_info_list[0])== 0): return
 
+    ################################################################
+	### VDW_rep_screen_info_list no longer requires additional arguments, 
+	### user only needs to provide a pdb or a list of pdbs
+	###
+	if( len( VDW_rep_screen_info_list ) == 1 ): return True
+	if( len( VDW_rep_screen_info_list )  > 1 ):
+		### Check to see if VDW_rep_screen_info_list is a list of pdbs.
+		if( sum([ ('.pdb' in info) for info in VDW_rep_screen_info_list ]) == len( VDW_rep_screen_info_list ) ): return True
+    ###
+ 	### -- caleb, 11.19.2014
+    ################################################################
+
 	if( (len(VDW_rep_screen_info_list) % 3) != 0):
 		print "VDW_rep_screen_info_list: ", VDW_rep_screen_info_list
 		error_exit_with_message("len(VDW_rep_screen_info_list) % 3 != 0")
@@ -394,6 +411,28 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 			if(exists( VDW_rep_screen_info_list[n] )==False): error_exit_with_message("'exists( VDW_rep_screen_info_list[%d] (%s) )==False" %(n, VDW_rep_screen_info_list[n]) )
 
 
+####################################################################
+def Is_valid_empty_silent_file(silent_file, verbose=True):
+
+	prefix_reason_string="silent_file (%s) is not a valid_empty_silent_file." %(silent_file)
+
+	if(exists(silent_file)==False):
+		if(verbose): print "%s REASON: silent_file doesn't exist!" %(prefix_reason_string)
+		return False
+
+	data = safe_open(silent_file, 'r', Is_master=False)
+
+	if( len( data ) < 1 ):
+		if(verbose): print "%s REASON: empty silent_file num_lines < 1!" %(prefix_reason_string)
+		return False
+
+	for line in data:
+		### EXCEPTIONS HERE
+		if( "empty cluster silent_file since all input_silent_file are empty." in line ):	return True
+
+	data.close()
+
+	return False
 
 ####################################################################
 def Is_valid_non_empty_silent_file(silent_file, verbose=True):

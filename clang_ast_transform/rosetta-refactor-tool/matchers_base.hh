@@ -5,7 +5,7 @@ class ReplaceMatchCallback : public ast_matchers::MatchFinder::MatchCallback {
 public:
 	ReplaceMatchCallback(tooling::Replacements *Replace, const char *tag)
 			: Replace(Replace), tag(tag) {}
-
+	
 private:
 	tooling::Replacements *Replace;
 

@@ -10,7 +10,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V',
               ' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
               '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
-              ' MG': 'Z'
+              ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
               }
 
 def get_sequences( pdbname, removechain = 0 ):
@@ -47,7 +47,7 @@ def get_sequences( pdbname, removechain = 0 ):
                     line_edit = line_edit[0:76]+' S'+line_edit[78:]
 
         if line_edit[0:4] == 'ATOM':
-            resnum = line_edit[23:26]
+            resnum = line_edit[22:26].replace( ' ', '' )
             chain = line_edit[21]
 
         if ( line[0:3] == 'TER' or ( not chain == oldchain ) ) and len( sequence ) > 0:

@@ -71,7 +71,7 @@ import copy
 ###LOCAL###:
 #SWA_rna_minimize.py -silent_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/WITH_SHIFT_STATS_Jan_23_SWA.out  -tag_range 0 5  -force_field_file rna/rna_M1X_CS_03022011_w_intra_terms.wts     -chemical_shift_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/renumbered_short_bmr5705.bmrb   -chemical_shift_res_list 2-7  -common_args common_args_region_FINAL.out -native_pdb short_2koc_RNA_A.pdb 
 
-#-force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts 
+#-force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts 
 #-force_field_file rna/rna_12X_CS_03022011_w_intra_terms.wts 
 #-force_field_file rna/rna_4X_CS_03022011_w_intra_terms.wts 
 #-force_field_file rna/rna_1X_CS_03022011_w_intra_terms.wts 

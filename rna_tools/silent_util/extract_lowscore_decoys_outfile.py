@@ -3,9 +3,7 @@
 from sys import argv,exit,stderr,stdout
 from os import popen, system
 from os.path import basename
-import string
-
-
+import string,subprocess
 
 def Help():
     print
@@ -17,13 +15,15 @@ def Help():
     print '  If N is a float, it will be treated as a score cutoff, rather than'
     print '    desired number of models.'
     print
+    if ( subprocess.call( ['/bin/bash','-i','-c','alias exo']) == 1 ):
+        print ' You might consider using an alias "exo" for this function. Add '
+        print '   alias exo="extract_lowscore_decoys_outfile.py -out"'
+        print ' to your ~/.bashrc script.'
 
     exit()
 
-
-if len(argv)<2:
+if len(argv)<2 or ( len( argv ) == 2 and argv[1] == "-out" ):
     Help()
-
 
 output_to_file = False
 if "-out" in argv:

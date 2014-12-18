@@ -83,6 +83,7 @@ def get_rosetta_common_args_option(argv):
 	VDW_rep_screen_info = parse_options( argv, "VDW_rep_screen_info", [""]  )
 	VDW_rep_alignment_RMSD_CUTOFF = parse_options( argv, "VDW_rep_alignment_RMSD_CUTOFF", "0.001"  ) #Nov 12, 2010, to allow for imperfect alignment
 	VDW_rep_delete_matching_res = parse_options( argv, "VDW_rep_delete_matching_res", [""]  ) #delete residues in VDW_rep_pose that exist in the working_pose
+	VDW_rep_optimize_memory_usage = parse_options( argv, "VDW_rep_optimize_memory_usage", "false")
 
 
 	if(FAST=="true"): common_args += ' -fast true'
@@ -134,6 +135,8 @@ def get_rosetta_common_args_option(argv):
 
 		if(VDW_rep_delete_matching_res!=[""]):
 			common_args += ' -VDW_rep_delete_matching_res %s ' %(list_to_string(VDW_rep_delete_matching_res) )
+
+	if(VDW_rep_optimize_memory_usage=="true"): common_args += ' -VDW_rep_optimize_memory_usage true '
 	########################################################################################
 
 	return common_args
@@ -157,8 +160,6 @@ def get_rosetta_samplerer_args_option(argv):
 	allow_bulge_at_chainbreak = parse_options( argv, "allow_bulge_at_chainbreak", "true"  ) #combine_long_file filterer need to know this information (still need to implement)??? #change to true on April 9th, 2011
 
 	tether_jump = parse_options( argv, "tether_jump", "true")
-	bin_checker_optimize_memory_usage = parse_options( argv, "bin_checker_optimize_memory_usage", "false")
-
 
 	include_syn_chi = parse_options( argv, "include_syn_chi", "true"  ) #Move from common_args on Oct 28, 2011
 
@@ -193,8 +194,6 @@ def get_rosetta_samplerer_args_option(argv):
 	if(allow_bulge_at_chainbreak=="false"): sampling_args += ' -allow_bulge_at_chainbreak false '
 
 	if(tether_jump=="false"): sampling_args += ' -tether_jump false '
-
-	if(bin_checker_optimize_memory_usage=="true"): sampling_args += ' -bin_checker_optimize_memory_usage true '
 
 	if(include_syn_chi=="false"): sampling_args += ' -include_syn_chi false'
 

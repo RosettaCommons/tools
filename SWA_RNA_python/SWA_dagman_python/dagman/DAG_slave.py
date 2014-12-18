@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os import system
 from os.path import exists
@@ -8,11 +8,15 @@ from time import sleep
 
 from SWA_dagman_python.utility.SWA_util import *
 from SWA_dagman_python.parser.SWA_parse_options import parse_options
+
 ######################################################################
 
 
 #######################################################################
-print 'Enter: ', list_to_string(argv)	#Important to input at least one line into outfile to let master_node know that this slave_job is not broken! Aug 10th, 2011.
+
+START_argv=copy.deepcopy(argv)
+
+print 'Enter: ', list_to_string(START_argv)	#Important to input at least one line into outfile to let master_node know that this slave_job is not broken! Aug 10th, 2011.
 
 sys.stdout.flush()
 sys.stderr.flush()
@@ -28,7 +32,11 @@ if( exists( jobdir ) == False): error_exit_with_message("jobdir (%s) doesn't exi
 finished_file = jobdir + '/finished.txt'
 
 
-while not exists( finished_file ):
+while(True):
+
+	if(exists(finished_file)):
+		print "received finished_file signal (%s). EXITING..."
+		break
 
 	command_file_name = jobdir + '/run_this_script.txt'
 
@@ -38,7 +46,7 @@ while not exists( finished_file ):
 
 		sleep( 5 ) # stupid file locking.....POTENTIAL BUG HERE..assume that after 5 seconds, the file will be written....
 
-		lines = safe_open( command_file_name , mode='r' ,Is_master=False).readlines() 
+		lines = safe_open( command_file_name , mode='r').readlines() 
 
 		if(len(lines)!=2): 
 			print "lines= " , lines
@@ -51,7 +59,7 @@ while not exists( finished_file ):
 			error_exit_with_message("done_signal_filename (%s) already exist!" %(done_signal_filename) )
 
 		
-		job_script_lines = safe_open( job_script_filename, mode='r', Is_master=False).readlines() 
+		job_script_lines = safe_open( job_script_filename, mode='r' ).readlines() 
 
 		JS_line= job_script_lines[0][:-1]
 		cols = string.split( JS_line )
@@ -77,7 +85,7 @@ while not exists( finished_file ):
 		print "-----" 
 		
 		#OK if reach this point means that job was successfully ran. Create the done_signal file;
-		fid = safe_open( done_signal_filename, 'w' , Is_master= False)
+		fid = safe_open( done_signal_filename, 'w' )
 		fid.write( 'MESSAGE FROM SLAVE_NODE at jobdir %s: JOB %s SUCCESSFULLY RAN!\n ' %(jobdir, job_script_filename) )
 		fid.close()
 
@@ -87,4 +95,6 @@ while not exists( finished_file ):
 
 
 	sleep( 2 )
+
+print "SUCCESSFULLY RAN: %s" %(list_to_string(START_argv))
 

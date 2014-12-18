@@ -43,13 +43,13 @@ from SWA_dagman_python.parser.SWA_parse_options import parse_options, parse_seq_
 ###LOCAL:
 #Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/short_2koc_RNA_A.pdb   -force_field_file rna/rna_CS_03022011_w_intra_terms.wts    -chemical_shift_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/renumbered_short_bmr5705.bmrb  -deriv_check False -chemical_shift_res_list 2-7  -min_type dfpmin
 
-#Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/short_2koc_RNA_A.pdb   -force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts     -chemical_shift_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/renumbered_short_bmr5705.bmrb  -deriv_check False -chemical_shift_res_list 2-7  -min_type dfpmin
+#Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/short_2koc_RNA_A.pdb   -force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts     -chemical_shift_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/renumbered_short_bmr5705.bmrb  -deriv_check False -chemical_shift_res_list 2-7  -min_type dfpmin
 
 
 #Rosetta_all_atom_derivative_check.py -silent_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/WITH_SHIFT_STATS_Jan_23_SWA.out  -silent_tag S_1413 -force_field_file rna/rna_12X_CS_03022011_w_intra_terms.wts          -chemical_shift_file ~/minirosetta/test/Feb_22_Rosetta_chem_shift_CODE/renumbered_short_bmr5705.bmrb  -deriv_check False -chemical_shift_res_list 2-7  -min_type dfpmin
 
 #-force_field_file rna/rna_CS_03022011_w_intra_terms.wts  
-#-force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts  
+#-force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts  
 
 
 
@@ -67,11 +67,11 @@ from SWA_dagman_python.parser.SWA_parse_options import parse_options, parse_seq_
 
 #Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_06_compare_CD_and_CI_geom_sol_intra_RNA/short_TL1_1f7y_RNA.pdb  -force_field_file rna/test.wts  -min_type dfpmin  -deriv_check False
 
-#Rosetta_all_atom_derivative_check.py -silent_file ~/minirosetta/test/Feb_04_COMPARE_TORSION_WITHOUT_AND_WITH_rna_torsion_skip_chainbreak/Jan_07_2012_SWA_ss_loop.out  -force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts -rna_torsion_potential_folder ps_04282011  -deriv_check False -rna_torsion_skip_chainbreak true
+#Rosetta_all_atom_derivative_check.py -silent_file ~/minirosetta/test/Feb_04_COMPARE_TORSION_WITHOUT_AND_WITH_rna_torsion_skip_chainbreak/Jan_07_2012_SWA_ss_loop.out  -force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts -rna_torsion_potential_folder ps_04282011  -deriv_check False -rna_torsion_skip_chainbreak true
 
 #rna_torsion_skip_chainbreak			Oct_20_2011_SWA.out   Jan_28_FARFAR.out 
 
-#Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_04_COMPARE_OLD_AND_NEW_SWA_IDEALIZE_HELIX_ENERGY/RESETTED_BEFORE_o2star_pack_OLD_SWA_helix.pdb  -force_field_file rna/rna_hires_07232011_with_intra_base_phosphate.wts   -rna_torsion_potential_folder ps_03242010/ -deriv_check False 
+#Rosetta_all_atom_derivative_check.py -pdb ~/minirosetta/test/Feb_04_COMPARE_OLD_AND_NEW_SWA_IDEALIZE_HELIX_ENERGY/RESETTED_BEFORE_o2star_pack_OLD_SWA_helix.pdb  -force_field_file stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts   -rna_torsion_potential_folder ps_03242010/ -deriv_check False 
 
 #OLD_SWA_helix.pdb   NEW_SWA_helix.pdb RESETTED_BEFORE_o2star_pack_NEW_SWA_helix.pdb  RESETTED_BEFORE_o2star_pack_OLD_SWA_helix.pdb
 

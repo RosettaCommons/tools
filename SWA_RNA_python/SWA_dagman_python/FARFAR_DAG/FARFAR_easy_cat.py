@@ -11,7 +11,7 @@ import os
 
 from SWA_dagman_python.utility.SWA_util import *
 from SWA_dagman_python.parser.SWA_parse_options import parse_options
-from SWA_dagman_python.SWA_cat_outfiles import *
+from SWA_dagman_python.misc.SWA_cat_outfiles import *
 ######################################################################
 
 cat_file=parse_options( argv, "cat_file", "cat_file.out" )

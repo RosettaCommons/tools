@@ -116,7 +116,8 @@ for line in lines:
             command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ')#.replace( '-out:file:silent ', '-out:file:silent '+dir)
+    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ')
+    command_line = command_line.replace( '-out:file:silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
     command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
     command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)

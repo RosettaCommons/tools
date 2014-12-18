@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os import system,chdir
 from os.path import exists,dirname
@@ -10,6 +10,8 @@ import os
 
 from SWA_dagman_python.utility.SWA_util import *
 from SWA_dagman_python.parser.SWA_parse_options import parse_options
+from SWA_dagman_python.dagman.DAG_general_util import get_job_info, check_if_job_in_done
+
 ######################################################################
 
 print 'Enter: ', list_to_string(argv)
@@ -18,7 +20,7 @@ if(len(argv)<2): error_exit_with_message("len(argv)<2")
 
 job_script_file = argv[ 1 ]
 
-lines = safe_open(job_script_file, mode='r' ,Is_master=False).readlines()  
+lines = safe_open(job_script_file, mode='r').readlines()  
 
 command=""
 reducer_job_name=""
@@ -68,8 +70,8 @@ err_log_filename     =reducer_job_info['err_log_filename']
 job_script_filename  =reducer_job_info['job_script_filename'] #this is the file which contain the log_foldername and the reducer job_name
 done_signal_filename =reducer_job_info['done_signal_filename'] #creating the done signal is taken care for by the DAG_slave for now..
 
-outfile= safe_open(out_log_filename, mode="w" , Is_master=False)
-errfile= safe_open(err_log_filename, mode="w" , Is_master=False)
+outfile= safe_open(out_log_filename, mode="w")
+errfile= safe_open(err_log_filename, mode="w")
 
 sys.stdout.flush()
 

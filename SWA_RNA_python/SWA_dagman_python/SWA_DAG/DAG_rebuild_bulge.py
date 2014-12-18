@@ -201,7 +201,8 @@ for bulge_ID in range(len(rebuild_seq_num_list)):
 
 	silent_data.close()
 
-	if(first_silent_line=="StepWiseRNA_Minimizer:: num_pose_outputted==0, empty silent_file!\n"):
+	if( first_silent_line=="StepWiseRNA_Minimizer:: num_pose_outputted==0, empty silent_file!\n" or
+	    first_silent_line=="StepWiseMinimizer:: num_pose_outputted==0, empty silent_file!\n" ):
 
 		print "WARNING rebuild_silent_file (%s) contains NO structure ... setting rebuild_struct_exist to False" %(rebuild_silent_file)
 		rebuild_struct_exist=False

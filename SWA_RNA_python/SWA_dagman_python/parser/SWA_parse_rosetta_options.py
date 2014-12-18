@@ -156,6 +156,10 @@ def get_rosetta_samplerer_args_option(argv):
 	sample_ONLY_multiple_virtual_sugar = parse_options( argv, "sample_ONLY_multiple_virtual_sugar", "false" ) #this only effect the dinucleotide floating base mode..
 	allow_bulge_at_chainbreak = parse_options( argv, "allow_bulge_at_chainbreak", "true"  ) #combine_long_file filterer need to know this information (still need to implement)??? #change to true on April 9th, 2011
 
+	tether_jump = parse_options( argv, "tether_jump", "true")
+	bin_checker_optimize_memory_usage = parse_options( argv, "bin_checker_optimize_memory_usage", "false")
+
+
 	include_syn_chi = parse_options( argv, "include_syn_chi", "true"  ) #Move from common_args on Oct 28, 2011
 
 	sampler_perform_o2star_pack = parse_options( argv, "sampler_perform_o2star_pack", "true" ) #Move from common_args on Oct 28, 2011
@@ -187,6 +191,10 @@ def get_rosetta_samplerer_args_option(argv):
 	if(sample_ONLY_multiple_virtual_sugar=="true"): sampling_args += ' -sample_ONLY_multiple_virtual_sugar true '
 
 	if(allow_bulge_at_chainbreak=="false"): sampling_args += ' -allow_bulge_at_chainbreak false '
+
+	if(tether_jump=="false"): sampling_args += ' -tether_jump false '
+
+	if(bin_checker_optimize_memory_usage=="true"): sampling_args += ' -bin_checker_optimize_memory_usage true '
 
 	if(include_syn_chi=="false"): sampling_args += ' -include_syn_chi false'
 

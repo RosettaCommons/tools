@@ -89,6 +89,9 @@ allow_combine_DS_regions=parse_options( argv, "allow_combine_DS_regions", "False
 
 no_bulge = parse_options( argv, "no_bulge", "False")
 
+tether_jump = parse_options( argv, "tether_jump", "True")
+bin_checker_optimize_memory_usage = parse_options( argv, "bin_checker_optimize_memory_usage", "False")
+
 #################################################################################
 VDW_rep_screen_info_list=parse_options(argv, "VDW_rep_screen_info", [""])
 
@@ -428,6 +431,12 @@ if(is_release_mode()==False): #Not yet RELEASED!
 if ( not no_bulge ): README_SETUP.write( "command+= '-sample_virt_ribose_in_sep_DAG %s '\n\n" %(sample_virt_ribose_in_sep_DAG) )
 
 if ( no_bulge ): README_SETUP.write( "command+= '-floating_base False -allow_bulge_at_chainbreak false ' \n\n" )
+
+if ( not tether_jump ):
+	README_SETUP.write( "command+= '-tether_jump false ' \n\n" )
+
+if ( bin_checker_optimize_memory_usage ):
+	README_SETUP.write( "command+= '-bin_checker_optimize_memory_usage true ' \n\n" )
 
 README_SETUP.write( "command+= '>LOG_SWA_rna_build_dagman.out '\n\n" )
 

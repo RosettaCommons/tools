@@ -2,7 +2,7 @@
 
 from os import system,chdir
 from os.path import exists,dirname
-from sys import argv
+from sys import argv,exit
 from time import sleep
 import os
 ######################################################################
@@ -14,7 +14,9 @@ from SWA_dagman_python.dagman.DAG_general_util import get_job_info, check_if_job
 
 ######################################################################
 
-print 'Enter: ', list_to_string(argv)
+wrapper_command = list_to_string(argv)
+print 'Enter: ', wrapper_command
+
 
 if(len(argv)<2): error_exit_with_message("len(argv)<2")
 
@@ -90,6 +92,10 @@ print "-------------------------------------------------------------------------
 	
 ##############################Check that all the mapper jobs are finish#################################
 
+if (num_mapper_jobs == 0):
+	print "EARLY EXIT: num_mapper_jobs=%d " % (num_mapper_jobs)
+	print_title_text("Exit: " + wrapper_command) #Early exit
+	exit(0)
 
 count=0
 any_mapper_still_running=True

@@ -46,6 +46,9 @@ ROSETTA=`pwd`
 #prepare documentation
 cd $ROSETTA/documentation
 pwd
+echo "Created on $(date)" >> $ROSETTA/release_info.txt
+echo "Documentation "$( git merge-base master master) >> $ROSETTA/release_info.txt
+
 #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 python remove_internal.py
 #git commit -am "weekly release: remove 'internal' documentation"
@@ -66,8 +69,14 @@ pwd
 #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
 #prepare main with fresh & clean compile (for later itest references)
+
+cd $ROSETTA/main
+pwd
+echo "Main "$( git merge-base master master) >> $ROSETTA/release_info.txt
+
 cd $ROSETTA
 pwd
+
 simple_clean #function call to simple_clean above
 cd $ROSETTA/main/source
 pwd

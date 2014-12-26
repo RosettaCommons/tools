@@ -116,12 +116,14 @@ for line in lines:
             command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    command_line = command_line.replace( 'out:file:silent  ','out:file:silent ')
-    command_line = command_line.replace( '-out:file:silent ', '-out:file:silent '+dir)
-    command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
-    command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
-    command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
-    command_line = command_line.replace( '-o ', '-o '+dir)
+    if command_line.find( '-csa_bank_size' ) > -1:
+        print "Detected CSA mode"
+    else:
+        command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
+        command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
+        command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
+        command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
+        command_line = command_line.replace( '-o ', '-o '+dir)
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
     command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
     command_line = command_line.replace( 'macosgcc', 'linuxgcc')
@@ -184,6 +186,7 @@ for line in lines:
         fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
         fid_qsub_submit_file.write('#PBS -m n\n') # no mail
         fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
+        #fid_qsub_submit_file.write('#PBS -l mem=500Mb\n'  )
         fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
         fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )

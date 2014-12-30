@@ -2,6 +2,7 @@
 # from cgkit.cgtypes import vec3
 from vector3d import vector3d
 import copy
+
 from amino_acids import *
 
 
@@ -300,14 +301,25 @@ class PDBStructure:
 
         print "Found %s hetatms in structure " % len(self.hetatm)
 
-        #for atom in self.protein:
-        #    print atom.name
+    def remove_other_conformations(self):
+        for res in self.protein:
+            for atom in res.atoms:
+                if (atom.conformer !=" "):
+                    if (atom.conformer !="A"):
+                        res.atoms.remove(atom)
 
 
-        #for atom in self.hetatm:
-        #    print atom.name
+    def get_active_site_res(self,cutoff):
+        from math import sqrt
+        for atom in self.protein:
+            for ligand_atom in self.hetatm:
+                dist = sqrt(atom.xyz.distance_squared(ligand_atom.xyz))
+                print "Distance is %s" %dist
+                if (dist < cutoff ):
+                    print "This is less than the cutoff (%s) " %cutoff
 
-#   def get_active_site_res(self,cutoff):
+
+
 
 def nresidues(pdb):
     count = 0

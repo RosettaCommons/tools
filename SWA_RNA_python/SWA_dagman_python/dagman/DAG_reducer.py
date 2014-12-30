@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from os import system,chdir
-from os.path import exists,dirname
+from os.path import dirname
 from sys import argv,exit
 from time import sleep
 import os

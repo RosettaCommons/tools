@@ -5,7 +5,7 @@ from SWA_dagman_python.parser.SWA_parse_options import parse_options, parse_seq_
 from SWA_dagman_python.utility.SWA_util import *
 
 ######################################################################
-from os.path import exists,dirname,basename,expanduser
+from os.path import dirname,basename,expanduser
 from sys import exit, argv
 import string
 ######################################################################

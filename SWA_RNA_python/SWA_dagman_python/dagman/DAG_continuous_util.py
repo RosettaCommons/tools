@@ -18,7 +18,7 @@ from sys import argv,exit,stdout
 import string
 from glob import glob
 from os import system,popen,getcwd
-from os.path import basename,exists,expanduser,dirname,abspath
+from os.path import basename,expanduser,dirname,abspath
 import os
 import time
 from time import sleep
@@ -35,6 +35,7 @@ SEPERATE_CLUSTERER_SLAVE_NODES=False
 NUM_CLUSTERER_SLAVE_NODE=-1 #8
 print "SEPERATE_CLUSTERER_SLAVE_NODES=%s | NUM_CLUSTERER_SLAVE_NODE=%d" %(SEPERATE_CLUSTERER_SLAVE_NODES, NUM_CLUSTERER_SLAVE_NODE)
 if(SEPERATE_CLUSTERER_SLAVE_NODES==True and NUM_CLUSTERER_SLAVE_NODE<=0): error_exit_with_message("SEPERATE_CLUSTERER_SLAVE_NODES==True and NUM_CLUSTERER_SLAVE_NODE<=0")
+
 
 ####################################################################################
 def wait_until_clusterer_slave_nodes_run():

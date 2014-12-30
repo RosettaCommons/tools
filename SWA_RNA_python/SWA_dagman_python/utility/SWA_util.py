@@ -17,7 +17,7 @@ import traceback
 from glob import glob
 import string
 from os import system
-from os.path import basename, dirname, exists, expanduser, abspath
+from os.path import basename, dirname, expanduser, abspath
 from time import sleep
 import popen2
 import copy
@@ -33,6 +33,22 @@ from PATHS import get_rosetta_EXE_specified_no_graphic_string, PATH_exists, is_r
 #######################################################
 
 
+####################################################################################
+
+def exists( filename ):
+	### This overload is important for preventing false negatives
+	from os.path import exists as os_path_exists
+	attempt = 0
+	max_attempts = 3
+	while attempt < max_attempts:
+		status = os_path_exists( filename )
+		if status:	break
+		attempt += 1
+		sleep(0.5) # change to 0.1 is too slow 
+	return status
+
+
+####################################################################################
 
 def submit_subprocess_allow_retry(command, Is_master=False):
 

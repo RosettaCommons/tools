@@ -18,6 +18,7 @@ from glob import glob
 import string
 from os import system
 from os.path import basename, dirname, expanduser, abspath
+from os.path import exists as os_path_exists
 from time import sleep
 import popen2
 import copy
@@ -37,14 +38,13 @@ from PATHS import get_rosetta_EXE_specified_no_graphic_string, PATH_exists, is_r
 
 def exists( filename ):
 	### This overload is important for preventing false negatives
-	from os.path import exists as os_path_exists
 	attempt = 0
-	max_attempts = 3
+	max_attempts = 2
 	while attempt < max_attempts:
 		status = os_path_exists( filename )
-		if status:	break
+		if status:  break
 		attempt += 1
-		sleep(0.5) # change to 0.1 is too slow 
+		sleep(0.1) # change to 0.1 is too slow
 	return status
 
 
@@ -407,7 +407,7 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 	if( len(VDW_rep_screen_info_list[0])== 0): return
 
     ################################################################
-	### VDW_rep_screen_info_list no longer requires additional arguments, 
+	### VDW_rep_screen_info_list no longer requires additional arguments,
 	### user only needs to provide a pdb or a list of pdbs
 	###
 	if( len( VDW_rep_screen_info_list ) == 1 ): return True

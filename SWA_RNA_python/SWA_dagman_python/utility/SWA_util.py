@@ -38,15 +38,12 @@ from PATHS import get_rosetta_EXE_specified_no_graphic_string, PATH_exists, is_r
 
 def exists( filename ):
 	### This overload is important for preventing false negatives
-	#attempt = 0
-	#max_attempts = 2
-	#while attempt < max_attempts:
-	#	status = os_path_exists( filename )
-	#	if status:  break
-	#	attempt += 1
-	#	sleep(0.1) # change to 0.1 is too slow
-	#return status
-	return os_path_exists( filename )
+	attempt = 0
+	while attempt < 2:
+		status = os_path_exists( filename )
+		if status:  break
+		attempt += 1
+	return status
 
 ####################################################################################
 

@@ -268,23 +268,17 @@ class PDBStructure:
     #                self.nohohres.append(res)
 
     def remove_hydrogens(self):
-        import re
-        self.noh=[]
-        #search_h = re.compile('(\d|[A-Z])*(H)([A-Z]|\d)*')
-        #search_h2 = re.compile('([0-9]|[A-Z])H\d{1,2}')
+        from re import findall
         print "Removing Hydrogens"
+
         for chain in self.chains:
-            #print chain
             for res in chain.residues:
-                #print res.resstring
                 for atom in res.atoms:
                     print str(atom.name)
-                    #if ( search_h.search(atom.name) ):
-                    #matches = re.search('H',str(atom.name))
-                    if ( 'H' not in atom.name ):
+                    regex = findall('[^A-Z][H][A-Z0-9]?[ ]?[0-9]?',atom.name)
+                    if regex != []:
                         print "Found a Hydrogen, removing %s " % str(atom.name)
-                        #res.atoms.remove(atom)
-                        self.noh.append(atom)
+                        res.atoms.remove(atom)
 
 
     def split_hetatm_protein(self):
@@ -379,3 +373,18 @@ def xyz_limits_for_pdb(pdb):
                     upper_xyz.max(atom.xyz)
     #print "xyz from", count, "atoms"
     return lower_xyz, upper_xyz
+
+class ActiveSiteStructure(PDBStructure):
+    def __init__(self,cutoff):
+        PDBStructure.__init__(self)
+        self.cutoff = cutoff
+
+    def clean(self):
+        self.remove_hydrogens()
+
+
+def activesitestructure_from_file(fname,cutoff):
+    activesite = ActiveSiteStructure(cutoff)
+    activesite.read_from_lines(open(fname).readlines())
+    activesite.clean()
+    return activesite

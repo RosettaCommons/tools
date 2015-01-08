@@ -23,7 +23,8 @@ class Atom:
         self.bfactor = 0
         self.het = False
         self.conformer = ""
-
+        self.ishet = False
+        self.isprot = False
 
 class Residue:
     def __init__(self):
@@ -144,9 +145,9 @@ class PDBStructure:
                     atom.ishet = False
 
                 if line[0:4] == "ATOM":
-                    atom.isprotein = True
+                    atom.isprot = True
                 else:
-                    atom.isprotein = False
+                    atom.isprot = False
                 atom.conformer = line[16]
 #                atom.conformer = self.conformer_from_pdbline(line)
 
@@ -289,24 +290,26 @@ class PDBStructure:
 
 
     def split_hetatm_protein(self):
-        #     self.
+
         print "Splitting structure into hetatm and protein "
         self.hetatm=[]
         self.protein=[]
 
-        for atom in self.noh:
-            if (atom.het):
-                self.hetatm.append(atom)
-            else:
-                self.protein.append(atom)
+        for chain in self.chains:
+            for res in chain.residues:
+                for atom in res.atoms:
 
+                    if (atom.ishet):
+                        self.hetatm.append(atom)
+                    else:
+                        self.protein.append(atom)
         print "Found %s hetatms in structure " % len(self.hetatm)
 
     def remove_other_conformations(self):
         for chain in self.chains:
             for res in chain.residues:
                 for atom in res.atoms:
-                    #print atom.name
+
                     if (atom.conformer !=" "):
                         if (atom.conformer !="A"):
                             print "Removing alternate conformations atom name %s conf %s" %(atom.name, atom.conformer)
@@ -392,6 +395,7 @@ class ActiveSiteStructure(PDBStructure):
     def clean(self):
         self.remove_hydrogens()
         self.remove_other_conformations()
+        self.split_hetatm_protein()
 
 def activesitestructure_from_file(fname,cutoff):
     activesite = ActiveSiteStructure(cutoff)

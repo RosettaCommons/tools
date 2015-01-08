@@ -137,11 +137,18 @@ class PDBStructure:
                 atom.pdb_index = self.atnum_from_pdbline(line)
                 atom.occupancy = self.occupancy_from_pdbline(line)
                 atom.bfactor = self.bfactor_from_pdbline(line)
-                atom.het = line[0:6] == "HETATM"
-                if (atom.het):
-                    atom.conformer = self.conformer_from_pdbline(line)# line[16] #only true for protein
+
+                if line[0:6] == "HETATM":
+                    atom.ishet =  True
                 else:
-                    atom.conformer = " "
+                    atom.ishet = False
+
+                if line[0:4] == "ATOM":
+                    atom.isprotein = True
+                else:
+                    atom.isprotein = False
+                atom.conformer = line[16]
+#                atom.conformer = self.conformer_from_pdbline(line)
 
                 last_residue.add_atom(atom)
         if last_residue.resname != "":
@@ -156,7 +163,7 @@ class PDBStructure:
         return (  6, 11 )
 
     def pdb_conformer_range(self):
-        return ( 16 )
+        return 16
     def pdb_resname_range(self):
         return ( 17, 20 )
 
@@ -208,7 +215,7 @@ class PDBStructure:
         return float(line[self.pdb_occupancy_range()[0]:self.pdb_occupancy_range()[1]])
 
     def conformer_from_pdbline(self,line):
-        return str(line[self.pdb_conformer_range() ] )
+        return str( line[self.pdb_conformer_range() ])
 
     def bfactor_from_pdbline(self, line):
         return float(line[self.pdb_bfactor_range()[0]:self.pdb_bfactor_range()[1]])
@@ -296,11 +303,14 @@ class PDBStructure:
         print "Found %s hetatms in structure " % len(self.hetatm)
 
     def remove_other_conformations(self):
-        for res in self.protein:
-            for atom in res.atoms:
-                if (atom.conformer !=" "):
-                    if (atom.conformer !="A"):
-                        res.atoms.remove(atom)
+        for chain in self.chains:
+            for res in chain.residues:
+                for atom in res.atoms:
+                    #print atom.name
+                    if (atom.conformer !=" "):
+                        if (atom.conformer !="A"):
+                            print "Removing alternate conformations atom name %s conf %s" %(atom.name, atom.conformer)
+                            res.atoms.remove(atom)
 
 
     def get_active_site_res(self,cutoff):
@@ -381,7 +391,7 @@ class ActiveSiteStructure(PDBStructure):
 
     def clean(self):
         self.remove_hydrogens()
-
+        self.remove_other_conformations()
 
 def activesitestructure_from_file(fname,cutoff):
     activesite = ActiveSiteStructure(cutoff)

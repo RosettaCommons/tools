@@ -1,15 +1,16 @@
 #! /usr/bin/python
 """
-Helix denovo generator
+Helix denovo symmetry definition file generator with restraints on cn symmetry
+Usage: imake_helix_denovo_cnsm.py -p 16.15 -c 5 -n 40 -v 1 -u 2
+where p - a helical pitch, n - number of subunits to be included in symm def file
+u - number of helical units, v - number of helical turns 
+c - Cn symmetry order
 """
 __author__ = "Wojtek Potrzebowski"
-__copyright__ = "Copyright 2013"
 __credits__ = ["Wojtek Potrzebowski and Ingemar Andre"]
-__license__ = "GPL"
 __version__ = "0.1.0"
 __maintainer__ = "Wojtek Potrzebowski"
 __email__ = "Wojciech.Potrzebowski@biochemistry.lu.se"
-__status__ = "Prototype"
 
 #Optparse and os import
 import optparse
@@ -120,7 +121,6 @@ class Helixer(object):
         root_name = "VRT_0_0_0_base"
         E_line = "E = "+str(self.cn_symm)+"*"+root_name
         #for i in range(-self.nsub/2, self.nsub/2+1):
-	#TODO It is done once only
 	i = 0
         E_line+=" + 2*("+root_name+":"+self.vrt_names[i+1]+")"
 	E_line+=" + 2*("+root_name+":"+self.vrt_names[i+2]+")"
@@ -135,9 +135,6 @@ class Helixer(object):
         self.output.append("recenter\n")
         self.output.append("virtual_coordinates_start\n")
         # First root virtual
-        #x=array( [-0.781068,-0.624446,-0.000003 ])
-        #y=array( [-0.624446,0.781068,0.000000 ])
-        #o=array( [0.000036,0.000366,-8.698052 ])
         x = array( [1,0,0] )
         y = array( [0,1,0] )
         o = array( [0,0,0] )
@@ -213,30 +210,24 @@ class Helixer(object):
         for i in range(-self.nsub/2, self.nsub/2):
             self.output.append("connect_virtual "+self.jump_names[i]+" "+self.vrt_names[i]+" "+self.vrt_names[i+1]+"\n")
         #vrts-subunits connects
-#	for i in range(-self.nsub/2, self.nsub/2+1):
-#            self.output.append("connect_virtual "+self.jump_names[i]+"_to_com "+self.vrt_names_subs[i]+" "+self.vrt_names[i]+"\n")
 
         for i in range(-self.nsub/2, self.nsub/2+1):
             self.output.append("connect_virtual "+self.jump_sub_names[i]+" "+self.vrt_names[i]+" SUBUNIT\n")
 
     def __setupDofs(self):
-#	self.output.append("set_dof "+self.jump_names[0]+"_to_com x \n")
         self.output.append("set_dof "+self.jump_sub_names[0]+ " x angle_x angle_y angle_z\n")
     
     def __setupJumpGroups(self):
         jump_line1 = "set_jump_group JUMPGROUP1"
-#	jump_line2 = "set_jump_group JUMPGROUP2"
         jump_line3 = "set_jump_group JUMPGROUP3"
 	olicounter = 0 
         for i in range(self.nsub/2):
-#            jump_line2+="  "+self.jump_names[i]+"_to_com"
             jump_line3+="  "+self.jump_sub_names[i]
             if i>0:
 		if i%self.cn_symm==0:
 			olicounter+=1
 			jump_line1+="  "+self.jump_names[-i-1]
 			jump_line1+="  "+self.jump_names[i-1]+":"+str(olicounter)
-#		jump_line2+="  "+self.jump_names[-i]+"_to_com"
                 jump_line3+="  "+self.jump_sub_names[-i]
         #Ading last negative subuint - isn't a bit inconsitent?
 	#Adding zero line and last 
@@ -245,10 +236,8 @@ class Helixer(object):
 	if self.nsub/2%self.cn_symm==0:
 		olicounter+=1
 		jump_line1+="  "+self.jump_names[self.nsub/2-1]+":"+str(olicounter)
-#	jump_line2 +="  "+self.jump_names[-self.nsub/2]+"_to_com  "+self.jump_names[self.nsub/2]+"_to_com"
         jump_line3 +="  "+self.jump_sub_names[-self.nsub/2]+"  "+self.jump_sub_names[self.nsub/2]
         self.output.append(jump_line1+"\n")
-#	self.output.append(jump_line2+"\n")
         self.output.append(jump_line3+"\n")
     
     def writePDBlines(self):

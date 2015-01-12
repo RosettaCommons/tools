@@ -1,15 +1,14 @@
 #! /usr/bin/python
 """
-Helix denovo generator
+Helix denovo symmetry definition file generator
+Usage example: make_helix_denovo.py -p 3.0 -n 40 -v 5 -u 27 
+where p - a helical pitch, n - number of subunits to be included in symm def file
+u - number of helical units, v - number of helical turns 
 """
 __author__ = "Wojtek Potrzebowski"
-__copyright__ = "Copyright 2013"
 __credits__ = ["Wojtek Potrzebowski and Ingemar Andre"]
-__license__ = "GPL"
-__version__ = "0.1.0"
 __maintainer__ = "Wojtek Potrzebowski"
 __email__ = "Wojciech.Potrzebowski@biochemistry.lu.se"
-__status__ = "Prototype"
 
 #Optparse and os import
 import optparse
@@ -114,8 +113,6 @@ class Helixer(object):
     def __setupEnergyLines(self):
         root_name = "VRT_0_0_0_base"
         E_line = "E = 1*"+root_name
-        #for i in range(-self.nsub/2, self.nsub/2+1):
-	#TODO Have to fix odd numbers cases
         for i in range(self.nsub/2+1):
             if i!=0:
                 E_line+=" + 1*("+root_name+":"+self.vrt_names[i]+")"
@@ -126,9 +123,6 @@ class Helixer(object):
         self.output.append("recenter\n")
         self.output.append("virtual_coordinates_start\n")
         # First root virtual
-        #x=array( [-0.781068,-0.624446,-0.000003 ])
-        #y=array( [-0.624446,0.781068,0.000000 ])
-        #o=array( [0.000036,0.000366,-8.698052 ])
         x = array( [1,0,0] )
         y = array( [0,1,0] )
         o = array( [0,0,0] )
@@ -171,7 +165,6 @@ class Helixer(object):
 
     def __setupDofs(self):
         #TODO: x value?
-        #self.output.append("set_dof "+self.jump_sub_names[0]+ " x(17.939251207769) angle_x angle_y angle_z\n")
         self.output.append("set_dof "+self.jump_sub_names[0]+ " x angle_x angle_y angle_z\n")
     
     def __setupJumpGroups(self):

@@ -19,6 +19,8 @@ for line in qstat:
         job_name = info_line.split('=')[1]
         if '=' not in full_job_info[i+1]:
             job_name += full_job_info[i+1]
+        if '=' not in full_job_info[i+2]:
+            job_name += full_job_info[i+2]
     job_name = job_name.replace('\n','').replace('\t','').replace(' ','')
     job_name = job_name[job_name.index(target):]
     death_row.append( (job_id, job_name) )
@@ -35,7 +37,7 @@ for ( job_id, job_name ) in death_row:
 
 print 'found_master: ',found_master
 
-while not found_master:
+while True:#not found_master:
     kill = raw_input('Would you like to kill jobs [y/N]: ').lower()
     if 'n' in kill:
         break

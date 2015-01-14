@@ -707,9 +707,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 	if(num_queue_line!=1):  master_kill_all_slave_jobs_and_exit("num_queue_line=(%s)!=1" %(num_queue_line))
 	if(queue_num==-1): master_kill_all_slave_jobs_and_exit("queue_num==-1")
 
+	reducer_outfile_already_exists = False 
 	reducer_outfile_list=reducer_outfiles.split()
-	#for reducer_outfile in reducer_outfile_list:
-	#	if(exists(reducer_outfile)): master_kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
+	for reducer_outfile in reducer_outfile_list:
+		if(exists(reducer_outfile)): 
+			reducer_outfile_already_exists = True 
+			#master_kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
 
 
 	# Stolen from script for PBS.
@@ -721,7 +724,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 	if(COMPUTER_CLUSTER_NAME=="LONESTAR-TACC-XSEDE"):
 		print "COMPUTER_CLUSTER_NAME==\"LONESTAR-TACC-XSEDE\", extra sleep 0.1 seconds between mkdir of outfile folders"
 
-	for q in range( queue_num + 1 ):
+	if reducer_outfile_already_exists:
+		start = queue_num
+	else:
+		start = 0
+
+	for q in range(start, queue_num + 1 ):
 
 		reducer_job=False
 

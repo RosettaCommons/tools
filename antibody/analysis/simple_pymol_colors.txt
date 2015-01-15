@@ -1,0 +1,99 @@
+#TYPE COLOR R G B
+
+TYPE MAGENTA
+magenta 	1.0 	0.0 	1.0
+lightmagenta 	1.0 	0.2 	0.8
+hotpink 	1.0 	0.0 	0.5
+pink 	1.0 	0.65 	0.85
+lightpink 	1.00 	0.75 	0.87
+dirtyviolet 	0.70 	0.50 	0.50
+violet 	1.0 	0.5 	1.0
+violetpurple 	0.55 	0.25 	0.60
+purple 	0.75 	0.00 	0.75
+deeppurple 	0.6 	0.1 	0.6
+
+TYPE BLUE
+blue 	0.0 	0.0 	1.0
+tv_blue 	0.3 	0.3 	1.0
+marine 	0.0 	0.5 	1.0
+slate 	0.5 	0.5 	1.0
+lightblue 	0.75 	0.75 	1.0
+skyblue 	0.20 	0.50 	0.80
+purpleblue 	0.5 	0.0 	1.0
+deepblue 	0.25 	0.25 	0.65
+density 	0.1 	0.1 	0.6
+
+TYPE CYAN
+cyan 	0.0 	1.0 	1.0
+palecyan 	0.8 	1.0 	1.0
+aquamarine 	0.5 	1.0 	1.0
+greencyan 	0.25 	1.00 	0.75
+teal 	0.00 	0.75 	0.75
+deepteal 	0.1 	0.6 	0.6
+lightteal 	0.4 	0.7 	0.7
+
+TYPE GREEN
+green 	0.0 	1.0 	0.0
+tv_green 	0.2 	1.0 	0.2
+chartreuse 	0.5 	1.0 	0.0
+splitpea 	0.52 	0.75 	0.00
+smudge 	0.55 	0.70 	0.40
+palegreen 	0.65 	0.9 	0.65
+limegreen 	0.0 	1.0 	0.5
+lime 	0.5 	1.0 	0.5
+limon 	0.75 	1.00 	0.25
+forest 	0.2 	0.6 	0.2
+
+TYPE YELLOW
+yellow 	1.0 	1.0 	0.0
+tv_yellow 	1.0 	1.0 	0.2
+paleyellow 	1.0 	1.0 	0.5
+yelloworange 	1.0 	0.87 	0.37
+limon 	0.75 	1.00 	0.25
+wheat 	0.99 	0.82 	0.65
+sand 	0.72 	0.55 	0.30
+
+TYPE ORANGE
+orange 	1.0 	0.5 	0.0
+tv_orange 	1.0 	0.55 	0.15
+brightorange 	1.0 	0.7 	0.2
+lightorange 	1.0 	0.8 	0.5
+yelloworange 	1.0 	0.87 	0.37
+olive 	0.77 	0.70 	0.00
+deepolive 	0.6 	0.6 	0.1
+
+TYPE RED
+red 	1.0 	0.0 	0.0
+tv_red 	1.0 	0.2 	0.2
+raspberry 	0.70 	0.30 	0.40
+darksalmon 	0.73 	0.55 	0.52
+salmon 	1.0 	0.6 	0.6
+deepsalmon 	1.00 	0.42 	0.42
+warmpink 	0.85 	0.20 	0.50
+firebrick 	0.698 	0.13 	0.13
+ruby 	0.6 	0.2 	0.2
+chocolate 	0.555 	0.222 	0.111
+brown 	0.65 	0.32 	0.17
+
+TYPE TINT
+wheat 	0.99 	0.82 	0.65
+palegreen 	0.65 	0.9 	0.65
+lightblue 	0.75 	0.75 	1.0
+paleyellow 	1.0 	1.0 	0.5
+lightpink 	1.00 	0.75 	0.87
+palecyan 	0.8 	1.0 	1.0
+lightorange 	1.0 	0.8 	0.5
+bluewhite 	0.85 	0.85 	1.00
+
+TYPE GRAY
+white 	1.0 	1.0 	1.0
+grey90 	0.9 	0.9 	0.9
+grey80 	0.8 	0.8 	0.8
+grey70 	0.7 	0.7 	0.7
+grey60 	0.6 	0.6 	0.6
+grey50 	0.5 	0.5 	0.5
+grey40 	0.4 	0.4 	0.4
+grey30 	0.3 	0.3 	0.3
+grey20 	0.2 	0.2 	0.2
+grey10 	0.1 	0.1 	0.1
+black 	0.0 	0.0 	0.0

@@ -216,6 +216,9 @@ int RosettaRefactorTool::runMatchers() {
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
 			#include "matchers/rewrite/member_calls.hh"
 		}
+		if(matcher == "rewrite" || matcher == "rewrite_real_comparison") {
+			#include "matchers/rewrite/real_comparison.hh"
+		}
 
 		// Adders
 		if(matcher == "add_serialization_code") {

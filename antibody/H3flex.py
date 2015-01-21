@@ -17,7 +17,7 @@ def compute_pairwise_flex(allPoses,allAbInfos):
             if j<i:
                 flex[i,j] = 0
             else:
-                flex[i,j] = global_loop_flex(p1,p2,ai2.get_CDR_in_loopsop(h3))
+                flex[i,j] = global_loop_rmsd(p1,p2,ai2.get_CDR_in_loopsop(h3))
 
     print flex
     iu = triu_indices(npdbs, 1)

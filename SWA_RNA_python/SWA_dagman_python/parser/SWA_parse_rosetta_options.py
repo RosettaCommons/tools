@@ -161,8 +161,6 @@ def get_rosetta_samplerer_args_option(argv):
 
 	tether_jump = parse_options( argv, "tether_jump", "true")
 
-	precompute_fixed_res_geom_sol = parse_options( argv, "score:precompute_fixed_res_geom_sol", "false")
-
 	include_syn_chi = parse_options( argv, "include_syn_chi", "true"  ) #Move from common_args on Oct 28, 2011
 
 	sampler_perform_o2star_pack = parse_options( argv, "sampler_perform_o2star_pack", "true" ) #Move from common_args on Oct 28, 2011
@@ -196,8 +194,6 @@ def get_rosetta_samplerer_args_option(argv):
 	if(allow_bulge_at_chainbreak=="false"): sampling_args += ' -allow_bulge_at_chainbreak false '
 
 	if(tether_jump=="false"): sampling_args += ' -tether_jump false '
-
-	if(precompute_fixed_res_geom_sol=="true"): sampling_args += ' -score:precompute_fixed_res_geom_sol true '
 
 	if(include_syn_chi=="false"): sampling_args += ' -include_syn_chi false'
 

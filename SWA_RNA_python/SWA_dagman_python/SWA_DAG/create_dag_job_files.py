@@ -90,7 +90,6 @@ allow_combine_DS_regions=parse_options( argv, "allow_combine_DS_regions", "False
 no_bulge = parse_options( argv, "no_bulge", "False")
 
 tether_jump = parse_options( argv, "tether_jump", "True")
-precompute_fixed_res_geom_sol = parse_options( argv, "score:precompute_fixed_res_geom_sol", "False")
 
 VDW_rep_optimize_memory_usage = parse_options( argv, "VDW_rep_optimize_memory_usage", "False")
 
@@ -436,9 +435,6 @@ if ( no_bulge ): README_SETUP.write( "command+= '-floating_base False -allow_bul
 
 if ( not tether_jump ):
 	README_SETUP.write( "command+= '-tether_jump false ' \n\n" )
-
-if ( precompute_fixed_res_geom_sol ):
-	README_SETUP.write( "command+= '-score:precompute_fixed_res_geom_sol true ' \n\n" )
 
 if ( VDW_rep_optimize_memory_usage ):
 	README_SETUP.write( "command+= '-VDW_rep_optimize_memory_usage true ' \n\n" )

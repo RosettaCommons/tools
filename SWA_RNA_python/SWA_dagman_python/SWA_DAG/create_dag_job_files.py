@@ -90,6 +90,7 @@ allow_combine_DS_regions=parse_options( argv, "allow_combine_DS_regions", "False
 no_bulge = parse_options( argv, "no_bulge", "False")
 
 tether_jump = parse_options( argv, "tether_jump", "True")
+
 VDW_rep_optimize_memory_usage = parse_options( argv, "VDW_rep_optimize_memory_usage", "False")
 
 #################################################################################

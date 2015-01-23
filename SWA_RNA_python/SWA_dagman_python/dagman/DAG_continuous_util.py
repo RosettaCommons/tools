@@ -421,7 +421,7 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 		rosetta_errfile = rosetta_errfile[:-1] #remove the new line (\n) character
 
 		if( ( exists(rosetta_errfile) ) and ( master_line_counts(rosetta_errfile)!=0 ) ):
-			if is_valid_error(rosetta_errfile):	
+			if is_valid_error(rosetta_errfile):
 				print "NON-EMPTY rosetta_errfile (%s)!" %(rosetta_errfile)
 				print "Error slave_node=%s " %(slave_dir)
 				master_kill_all_slave_jobs_and_exit()
@@ -431,7 +431,7 @@ def ensure_previous_job_has_no_error(slave_dir): ####Check for errors of the pre
 def is_valid_error(errfile):
 	for line in errfile:
 	####if '<TEXT THAT SHOULD NOT BE CAUGHT AS AN ERROR>' in line: continue
-		if 'HESSIN for (i,i):' in line:	continue	
+		if 'HESSIN for (i,i):' in line:	continue
 		if 'G for (i):' in line:		continue
 		if not len(line):				continue
 		return True
@@ -707,9 +707,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 	if(num_queue_line!=1):  master_kill_all_slave_jobs_and_exit("num_queue_line=(%s)!=1" %(num_queue_line))
 	if(queue_num==-1): master_kill_all_slave_jobs_and_exit("queue_num==-1")
 
+	reducer_outfile_already_exists = False 
 	reducer_outfile_list=reducer_outfiles.split()
 	for reducer_outfile in reducer_outfile_list:
-		if(exists(reducer_outfile)): master_kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
+		if(exists(reducer_outfile)): 
+			reducer_outfile_already_exists = True 
+			#master_kill_all_slave_jobs_and_exit("reducer_outfile %s already exist before job submission!" %(reducer_outfile) )
 
 
 	# Stolen from script for PBS.
@@ -721,7 +724,12 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 	if(COMPUTER_CLUSTER_NAME=="LONESTAR-TACC-XSEDE"):
 		print "COMPUTER_CLUSTER_NAME==\"LONESTAR-TACC-XSEDE\", extra sleep 0.1 seconds between mkdir of outfile folders"
 
-	for q in range( queue_num + 1 ):
+	if reducer_outfile_already_exists:
+		start = queue_num
+	else:
+		start = 0
+
+	for q in range(start, queue_num + 1 ):
 
 		reducer_job=False
 
@@ -754,7 +762,7 @@ def DAG_submit( DAG_submit_file_ , reducer_command):
 
 			already_done=True
 
-			if(reducer_job): master_kill_all_slave_jobs_and_exit("done_signal for reducer_job %s already exist before job submission!" %(done_signal_filename) )
+			#if(reducer_job): master_kill_all_slave_jobs_and_exit("done_signal for reducer_job %s already exist before job submission!" %(done_signal_filename) )
 
 			for outfile in outfile_list:
 

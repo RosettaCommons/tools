@@ -105,7 +105,7 @@ class JsonCreator:
     A nicer implementation would be a GUI for running the FeaturesReporter scripts.
     """
     def __init__(self, out_path, script_type):
-        self.script_types = ["antibody", "interface", "cluster"]
+        self.script_types = ["antibody", "interface", "cluster", "antibody_min_hbond_analysis", "antibody_no_hbond_analysis"]
         if not script_type in self.script_types:
             sys.exit(script_type +" unrecognized.  Available JSON script types are: "+repr(self.script_types))
 

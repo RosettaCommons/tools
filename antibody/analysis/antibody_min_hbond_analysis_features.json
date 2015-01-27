@@ -1,0 +1,49 @@
+{  
+    "output_dir" : "build/lambda_kappa",  
+    "sample_source_comparisons" : [  
+	{
+            "analysis_scripts" : [
+        "scripts/analysis/plots/scores/total_score.R",
+		"scripts/analysis/plots/interfaces/composition/int_composition-dG_dSASA_stats_by_restype.R",
+		"scripts/analysis/plots/interfaces/composition/int_composition_den.R",
+		"scripts/analysis/plots/interfaces/energies/int_energies_den.R",
+		"scripts/analysis/plots/interfaces/energies/int_energies_residue_den.R",
+		"scripts/analysis/plots/interfaces/energies/int_dG_vs.R",
+		"scripts/analysis/plots/interfaces/energies/int_dG_cross_vs.R",
+		"scripts/analysis/plots/interfaces/hbonds/int_unsat_polars_den.R",
+		"scripts/analysis/plots/interfaces/hbonds/int_unsat_polars_vs.R",
+		"scripts/analysis/plots/interfaces/hbonds/int_hbonds_den.R",
+		"scripts/analysis/plots/interfaces/packing/int_packing_den.R",
+		"scripts/analysis/plots/interfaces/packing/int_packstat_vs.R",
+		"scripts/analysis/plots/interfaces/packing/int_sc_value_vs.R",
+		"scripts/analysis/plots/interfaces/SASA/int_SASA_den.R",
+		"scripts/analysis/plots/interfaces/SASA/int_dSASA_vs.R",
+		"scripts/analysis/plots/interfaces/SASA/int_SASA_residue_avgs_den.R",
+		"scripts/analysis/plots/interfaces/SASA/int_SASA_residue_den.R",
+		"scripts/analysis/plots/interfaces/SASA/int_SASA_residue_vs.R",
+		"scripts/analysis/plots/interfaces/SASA/int_dhSASA_vs.R",
+		"scripts/analysis/plots/interfaces/secondary_structure/int_ss_den.R",
+		"scripts/analysis/plots/antibodies/composition/ab_composition_den.R",
+		"scripts/analysis/plots/antibodies/composition/ab_cdr_length_correlations.R",
+		"scripts/analysis/plots/antibodies/composition/ab_cdr_cluster_composition_den.R",
+		"scripts/analysis/plots/antibodies/anchor_distances/ab_cdr_anchor_dis_den.R",
+		"scripts/analysis/plots/antibodies/charge/ab_charge_den.R",
+		"scripts/analysis/plots/antibodies/charge/ab_cdr_cluster_charge_den.R",
+		"scripts/analysis/plots/antibodies/packing_angle/ab_packing_angle_den.R",
+		"scripts/analysis/plots/antibodies/SASA/ab_paratope_SASA_den.R",
+		"scripts/analysis/plots/antibodies/SASA/ab_cdr_SASA_den.R",
+		"scripts/analysis/plots/antibodies/SASA/ag_ab_cdr_dSASA_den.R",
+		"scripts/analysis/plots/antibodies/h3_kink/h3_kink_den.R",
+		"scripts/analysis/plots/antibodies/energies/ab_cdr_energy_den.R",
+		"scripts/analysis/plots/antibodies/hbonds/ag_ab_cdr_hbonds_den.R",
+		"scripts/analysis/plots/antibodies/contacts/ag_ab_contact_den.R"
+		
+		
+            ],  
+            "output_formats" : [
+		"output_slide_raster"
+
+            ]  
+        }  
+    ]  
+} 

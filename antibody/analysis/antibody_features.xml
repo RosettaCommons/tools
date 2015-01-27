@@ -9,7 +9,7 @@
 			<feature name=ResidueTypesFeatures/>
 			<feature name=ScoreTypeFeatures/>
                 	<feature name=StructureScoresFeatures scorefxn=s/>
-			<feature name=CDRClusterFeatures/>
+			<feature name=CDRClusterFeatures numbering_scheme=AHO_Scheme/>
 			<feature name=AntibodyFeatures scorefxn=s numbering_scheme=AHO_Scheme cdr_definition=North interface=LH_A pack_separated=true pack_together=true/>
 			<feature name=ResidueSecondaryStructureFeatures/>
 			<feature name=ResidueScoresFeatures scorefxn=s/>

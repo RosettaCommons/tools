@@ -59,7 +59,7 @@ def get_sequences( pdbname, removechain = 0 ):
             resnums  = []
             old_resnum = ''
 
-        if (not resnum == oldresnum):
+        if (not (resnum == oldresnum and chain == oldchain) ):
             count = count + 1
             longname = line_edit[17:20]
             if longer_names.has_key(longname):

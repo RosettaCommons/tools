@@ -24,14 +24,11 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 		keep_res_list = []
 		keep_res_chain_list = []
 
-
-		for surr_rsd_idx in xrange( len(residues) ):
+		for surr_rsd_idx, surr_rsd in enumerate(residues):
 			is_surrounding_res = False		
-			surr_rsd = residues[ surr_rsd_idx ]
 
-			for sample_rsd_idx in xrange( len(sample_res_list) ):
+			for sample_rsd_idx, sample_rsd in enumerate(sample_res_list):
 				if is_surrounding_res:	break
-				sample_rsd = sample_res_list[ sample_rsd_idx ]
 
 				for surr_atom in coords[chains[surr_rsd_idx]][surr_rsd]:
 					if is_surrounding_res:	break
@@ -68,10 +65,10 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 	### Remove sample residues from keep_res_list
 	surrounding_res_list = []
 	surrounding_res_chain_list = []
-	for rsd_idx in xrange( len( keep_res_list ) ):
-		rsd = keep_res_list[ rsd_idx ]
+	for rsd_idx, rsd in enumerate(keep_res_list):
 		chain = keep_res_chain_list[ rsd_idx ]
-		if rsd in sample_res_list: continue
+		if rsd in sample_res_list:
+			if chain == sample_chain_list[ sample_res_list.index(rsd) ]:  continue
 		surrounding_res_list.append( rsd )
 		surrounding_res_chain_list.append( chain )
 

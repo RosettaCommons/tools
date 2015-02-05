@@ -59,7 +59,7 @@ def get_sequences( pdbname, removechain = 0 ):
             resnums  = []
             old_resnum = ''
 
-        if (not resnum == oldresnum):
+        if (not (resnum == oldresnum and chain == oldchain) ):
             count = count + 1
             longname = line_edit[17:20]
             if longer_names.has_key(longname):
@@ -83,3 +83,16 @@ def get_sequence( pdbname, removechain = 0 ):
     ( sequences, chains, resnums ) = get_sequences( pdbname, removechain )
     return sequences[0]
 
+
+if __name__=='__main__':
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Get sequence from pdb.')
+    parser.add_argument('pdbname', help='pdbfile to get sequence from')
+    parser.add_argument('--removechain', action='store_true')
+    args=parser.parse_args()
+    
+    ( sequences, all_chains, all_resnums ) = get_sequences( args.pdbname, removechain = args.removechain )
+    print string.join(sequences, '')
+    

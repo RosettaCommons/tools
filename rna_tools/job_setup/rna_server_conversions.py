@@ -110,8 +110,8 @@ def output_stems( stems, fixed_stems = False, input_res = None ):
     return outstring
 
 def get_all_stems( secstruct, chainbreak_pos = [], sequence_for_fasta='' ):
-    chainbreak_pos = []
-    sequence_for_fasta = ''
+    #chainbreak_pos = []
+    #sequence_for_fasta = ''
     stems = []
     for stem in get_stems( secstruct, chainbreak_pos, '(', ')', sequence_for_fasta ): stems.append( stem )
     for stem in get_stems( secstruct, chainbreak_pos, '[', ']', sequence_for_fasta ): stems.append( stem )
@@ -138,7 +138,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             pair_map[ res2 ] = res1
             all_pairs.append( [res1,res2] )
             if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
-                raise ValidationError( "Not complementary at positions %d and %d!"  % (res1, res2) )
+                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
@@ -276,7 +276,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
 
 
     if removeions:  goodnames.remove(' MG')
-   
+
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
@@ -377,7 +377,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = line_edit.replace('O1P', 'OP1')
                 line_edit = line_edit.replace('O2P', 'OP2')
 
-              
+
                 if old_rna:
                     line_edit = line_edit.replace('  A', ' rA')
                     line_edit = line_edit.replace('  C', ' rC')

@@ -272,7 +272,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             chainids[i] = ' '
 
     goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG'  }
+    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG' }
 
 
     if removeions:  goodnames.remove(' MG')
@@ -309,12 +309,6 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                     longname = line_edit[17:20]
                     if longname == 'GTP':
                         longname = '  G'
-                    elif longname == '  A':
-                        longname =   '  A'
-                    elif longname == '  C':
-                        longname =   '  C'
-                    elif longname == '  U':
-                        longname =   '  U'
                     elif longname == 'G  ':
                         longname =   '  G'
                     elif longname == ' DG':
@@ -342,6 +336,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                     elif longname == ' rU':
                         longname =   '  U'
                     elif longname == ' rG':
+                        longname =   '  G'
+                    elif longname == '  I':
                         longname =   '  G'
                     else:
                         if longname not in goodnames:    continue

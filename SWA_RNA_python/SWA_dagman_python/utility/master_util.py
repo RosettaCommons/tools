@@ -37,8 +37,8 @@ def master_submit_subprocess(command):
 	sys.stdout.flush()
 	sys.stderr.flush()
 		
-	#retcode = system(command) #Comment out on June 05, 2012
-	retcode = subprocess.call(command, shell=True) #Change to this on June 05, 2012
+	retcode = system(command) #Comment out on June 05, 2012
+	#retcode = subprocess.call(command, shell=True) #Change to this on June 05, 2012
 	retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
 
 	master_error_check(retcode, command)	
@@ -58,8 +58,8 @@ def master_submit_subprocess_allow_retry(command):
 		if(n==num_try_max):
 			master_submit_subprocess(command)
 		else:
-			#retcode = system(command + ' 2> submit_subprocess_retry_err.txt') #Comment out on June 05, 2012
-			retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True) #Change to this on June 05, 2012
+			retcode = system(command + ' 2> submit_subprocess_retry_err.txt') #Comment out on June 05, 2012
+			#retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True) #Change to this on June 05, 2012
 			retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
 
 			if(retcode==0):

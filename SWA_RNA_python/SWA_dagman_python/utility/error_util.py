@@ -51,6 +51,9 @@ def kill_all_slave_jobs_and_exit(exit_message=""):
 	
 def error_check(retcode, command, Is_master=False):
 
+	if( retcode < 0 or retcode > 255 ):
+		retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 	if(retcode != 0):
 		sys.stderr.write("Child was terminated by signal %d \n" %retcode)
 		sys.stderr.write("Error subprocess: %s \n" %command)

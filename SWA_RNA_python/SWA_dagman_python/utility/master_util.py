@@ -19,6 +19,9 @@ from SWA_dagman_python.scheduler.scheduler_util import *
 ######################################################################
 def master_error_check(retcode, command):
 
+	if( retcode < 0 or retcode > 255 ):
+		retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 	if(retcode != 0):
 		sys.stderr.write("Child was terminated by signal %d \n" %retcode)
 		sys.stderr.write("Error subprocess: %s \n" %command)
@@ -36,6 +39,7 @@ def master_submit_subprocess(command):
 		
 	#retcode = system(command) #Comment out on June 05, 2012
 	retcode = subprocess.call(command, shell=True) #Change to this on June 05, 2012
+	retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
 
 	master_error_check(retcode, command)	
 	sys.stdout.flush()
@@ -56,6 +60,7 @@ def master_submit_subprocess_allow_retry(command):
 		else:
 			#retcode = system(command + ' 2> submit_subprocess_retry_err.txt') #Comment out on June 05, 2012
 			retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True) #Change to this on June 05, 2012
+			retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
 
 			if(retcode==0):
 				break

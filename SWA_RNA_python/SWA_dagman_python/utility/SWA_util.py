@@ -59,8 +59,10 @@ def submit_subprocess_allow_retry(command, Is_master=False):
 		if(n==num_try_max):
 			submit_subprocess(command, Is_master)
 		else:
-			retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True)
-			#retcode = system(command + ' 2> submit_subprocess_retry_err.txt')
+			#retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True)
+			retcode = system(command + ' 2> submit_subprocess_retry_err.txt')
+			retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 			if(retcode==0):
 				break
 			else:
@@ -84,8 +86,10 @@ def submit_subprocess(command, Is_master=False):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	retcode = subprocess.call(command , shell=True) #This is not avialable in python 2.3.4 (current Biox's python version) might have to make shell false on BIOX??
-	#retcode = system(command)
+	#retcode = subprocess.call(command , shell=True) #This is not avialable in python 2.3.4 (current Biox's python version) might have to make shell false on BIOX??
+	retcode = system(command)
+	retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 
 	error_check(retcode, command, Is_master)
 	sys.stdout.flush()

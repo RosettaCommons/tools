@@ -67,7 +67,7 @@ def main(args):
     parser.add_option("--omit-cmake",
       default=False,
       action="store_true",
-      help="Disbale installation of cmake. Use if system already have it installed..",
+      help="Disable installation of cmake. Use if it is already installed.",
     )
 
     parser.add_option("--compiler",
@@ -86,7 +86,7 @@ def main(args):
 
     parser.add_option("-d",
       action="store_true", dest="debug",
-      help="Enable DEBUG mode. Disable 30 secons waiting before start working.",
+      help="Enable DEBUG mode. Disable 30 seconds wait before start working.",
     )
 
     parser.add_option("--debug",
@@ -106,7 +106,7 @@ def main(args):
 
 
 
-    print 'Starting setting up PyRosetta build environment in 30 seconds. Please inspect the settings and press ctrl-c if you want to abort...'
+    print 'Starting set-up of PyRosetta build environment in 30 seconds. Please inspect the settings and press ctrl-c if you want to abort...'
 
     prefix = os.path.abspath(Options.prefix)
     #data_dir = os.path.abspath('./data')

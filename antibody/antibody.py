@@ -1342,8 +1342,8 @@ def self_test():
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()
 
         if Options.verbose:
-            print 'light_chain:', light_chain
-            print 'heavy_chain:', heavy_chain
+            print 'light_chain: %s (%d residues)' % (light_chain, len(light_chain))
+            print 'heavy_chain: %s (%d residues)' % (heavy_chain, len(heavy_chain))
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)

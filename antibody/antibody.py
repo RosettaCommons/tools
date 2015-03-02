@@ -818,10 +818,21 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
         #print 'Filtering results...'
         table, legend = [], ''
-        for l in file(prefix +k + '.align'):
-            if l.startswith('# Fields: '): legend = [ i.strip().replace('. ', '.').replace(' ', '-') for i in l[10:-1].split(',')]
-            elif l.startswith('Query_1') or l.startswith(k): table.append( dict( zip(legend, l.split() ) ) )  # Sergey: Blast+ 2.2.27 have lines starts with Query_1 and 2.2.28 with name of the file (framework-name)
+        table_rows=0
+        blast_result_file = prefix+k+'.align'
+        if not os.path.isfile(blast_result_file):
+            print "Error: blast did not create output file, but had not returned an error, either. The command line was:\n"+commandline
+            sys.exit(1)
 
+        queryname="unset"
+        for l in file(blast_result_file):
+            if l.startswith('# Fields: '): legend = [ i.strip().replace('. ', '.').replace(' ', '-') for i in l[10:-1].split(',')]
+            elif l.startswith('# Query: '): queryname = l.strip().split(" ")[2]; print "I: Queryname="+queryname
+            elif l.startswith('Query_1') or l.startswith(queryname):
+                table.append( dict( zip(legend, l.split() ) ) )
+                table_rows += 1
+
+        print "I: Found %d blast results (limit 600)" % table_rows
         table_original = table[:]
 
         def sort_and_write_results(table, file_name):

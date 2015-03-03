@@ -1,15 +1,18 @@
 #!/usr/bin/python
 
 from os.path import expanduser,expandvars,basename
+import subprocess
 
 user_name = basename( expanduser('~') )
 biox3_user_name = expandvars( '$BIOX3_USER_NAME' )
 if biox3_user_name == '$BIOX3_USER_NAME': biox3_user_name = user_name
+sherlock_user_name = expandvars( '$SHERLOCK_USER_NAME' )
+if not len(sherlock_user_name): sherlock_user_name = user_name
 xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
 def cluster_check( cluster_in ):
-    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch' ];
+    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock' ];
 
     cluster = cluster_in
     if cluster not in clusterlist:
@@ -85,6 +88,10 @@ def cluster_check( cluster_in ):
     if cluster == 'kwipapat':  cluster = 'kwipapat@biox3.stanford.edu'
     if cluster == 'kwip':      cluster = 'kwipapat@biox3.stanford.edu'
     if cluster == 'tsuname':   cluster = 'tsuname@biox3.stanford.edu'
+
+    if cluster == 'sherlock':
+        cluster = '%s@sherlock.stanford.edu' % sherlock_user_name
+        cluster_dir = '/home/%s/' % sherlock_user_name
 
     return (cluster,cluster_dir)
 

@@ -26,12 +26,19 @@ hostname_tag = popen( 'hostname' ).readlines()[0]
 if hostname_tag.find( 'ls4' ) > -1: hostname = 'lonestar'
 if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostname = 'ade'
 if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
+if hostname_tag.find( 'sherlock' ) > -1: hostname = 'sherlock'
+
 if hostname == 'lonestar':
     DO_MPI = True
     tasks_per_node_MPI = 12 # lonestar
 if hostname == 'stampede':
     DO_MPI = True
     tasks_per_node_MPI = 16
+    account = 'TG-MCB120152'
+if hostname == 'sherlock':
+    DO_MPI = True
+    tasks_per_node_MPI = 16
+    account = None
 
 save_logs = False
 if argv.count( '-save_logs' )>0:
@@ -62,7 +69,7 @@ qsub_file_MPI = 'qsubMPI'
 qsub_file_MPI_ONEBATCH = 'qsubMPI_ONEBATCH'
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
 all_commands_file = 'all_commands.sh'
-if hostname == "stampede": qsub_file_MPI_ONEBATCH = "job.batch"
+if hostname == "stampede" or hostname == "sherlock": qsub_file_MPI_ONEBATCH = "job.batch"
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
@@ -196,7 +203,7 @@ for line in lines:
 
         # MPI job file
         if DO_MPI:
-            if hostname == "stampede":
+            if hostname == "stampede" or hostname == "sherlock":
                 fid_job_MPI_ONEBATCH.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
             else:
                 fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
@@ -235,13 +242,13 @@ if DO_MPI:
             count = count + 1
             if ( count <= tot_jobs ):
                 command_line_explicit = command_lines_explicit[ count-1 ]
-                if hostname == "stampede":
+                if hostname == "stampede" or hostname == "sherlock":
                     fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
                 else:
                     fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
         fid_job_submit_file_MPI.close()
 
-        if hostname == "stampede":
+        if hostname == "stampede" or hostname == "sherlock":
             # qsub MPI
             jobname= (CWD + '/' + outdir).replace( '/', '_' )
             jobname = jobname[-30:]
@@ -262,7 +269,7 @@ if DO_MPI:
             #fid_qsub_submit_file_MPI.write( '#SBATCH --mail-type=ALL\n' )
             fid_qsub_submit_file_MPI.write( '#SBATCH -n %d\n' % tasks_per_node_MPI )
             fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
-            fid_qsub_submit_file_MPI.write( '#SBATCH -A TG-MCB120152\n' )
+            if account: fid_qsub_submit_file_MPI.write( '#SBATCH -A %s\n' % account )
             #fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
             fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_submit_file_MPI )
 
@@ -296,7 +303,7 @@ if DO_MPI:
             fid_qsub_MPI.write( 'qsub %s\n' % qsub_submit_file_MPI )
 
     # single batch. does not appear to work...
-    if hostname == "stampede":
+    if hostname == "stampede" or hostname == "sherlock":
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash\n' )
         job_name = (basename(CWD)).replace( '/', '_' )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
@@ -312,7 +319,7 @@ if DO_MPI:
         #fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-type=ALL\n' )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -n %d\n' % tot_jobs )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -N %d\n' % tot_nodes )
-        fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A TG-MCB120152\n' )
+        if account: fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A %s\n' % account )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
         fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_file_MPI_ONEBATCH )
@@ -370,6 +377,6 @@ if DO_MPI:
         print '>qsub ',qsub_file_MPI_ONEBATCH
         print
 
-    if len( hostname ) == 0 or hostname == 'lonestar' or hostname == "stampede":
+    if len( hostname ) == 0 or hostname == 'lonestar' or hostname == "stampede" or hostname == "sherlock":
         print 'Created MPI submission files ',qsub_file_MPI,' with ',tot_jobs, ' jobs queued. To run, type: '
         print '>source ',qsub_file_MPI

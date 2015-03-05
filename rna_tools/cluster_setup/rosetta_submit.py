@@ -36,8 +36,7 @@ if hostname == 'stampede':
     tasks_per_node_MPI = 16
     account = 'TG-MCB120152'
 if hostname == 'sherlock':
-    DO_MPI = False #True
-    #tasks_per_node_MPI = 16
+    DO_MPI = False
     account = None
 
 save_logs = False
@@ -209,11 +208,11 @@ for line in lines:
         fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
 
         if hostname == 'sherlock':
-            
+
             # sbatch (no mpi)
             queue = 'normal'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
-            if nhours > 48: nhours = 48 # time limit          
+            if nhours > 48: nhours = 48 # time limit
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )

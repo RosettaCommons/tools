@@ -209,18 +209,19 @@ for line in lines:
             
             # sbatch (no mpi)
             queue = 'normal'
-            job_name = (basename(CWD)).replace( '/', '_' )
+            job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
             if nhours > 48: nhours = 48 # time limit          
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
             fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
             fid_sbatch_submit_file.write( '#SBATCH -J %s\n' % job_name )
-            fid_sbatch_submit_file.write( '#SBATCH -o %s.o%%j\n' % job_name )
+            fid_sbatch_submit_file.write( '#SBATCH -o %s\n' % outfile )
+            fid_sbatch_submit_file.write( '#SBATCH -e %s\n' % errfile )
             fid_sbatch_submit_file.write( '#SBATCH -p %s\n' % queue )
             fid_sbatch_submit_file.write( '#SBATCH -t %d:00:00\n' % nhours )
-            fid_sbatch_submit_file.write( '#SBATCH -n %d\n' % 1 )#tot_jobs )
-            fid_sbatch_submit_file.write( '#SBATCH -N %d\n' % 1 )#tot_nodes )
+            fid_sbatch_submit_file.write( '#SBATCH -n %d\n' % 1 )
+            fid_sbatch_submit_file.write( '#SBATCH -N %d\n' % 1 )
             if account: fid_sbatch_submit_file.write( '#SBATCH -A %s\n' % account )
             fid_sbatch_submit_file.write( 'cd %s\n\n' % CWD )
             fid_sbatch_submit_file.write( '%s\n' % (command_line_explicit) )

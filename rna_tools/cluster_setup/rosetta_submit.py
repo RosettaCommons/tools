@@ -100,6 +100,10 @@ SBATCH_SUBMIT_CMD = 'sbatch'
 qsub_file_dir = 'qsub_files/'
 if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
+if hostname == 'sherlock':
+    sbatch_file_dir = 'sbatch_files/'
+    if not exists( sbatch_file_dir ): system( 'mkdir '+sbatch_file_dir )
+
 if DO_MPI:
     qsub_file_dir_MPI = 'qsub_files_MPI/'
     if not exists( qsub_file_dir_MPI ): system( 'mkdir '+qsub_file_dir_MPI )
@@ -211,7 +215,7 @@ for line in lines:
             job_name = (basename(CWD)).replace( '/', '_' )
             if nhours > 48: nhours = 48 # time limit          
 
-            sbatch_submit_file = '%s/sbatch%d.sh' % (sbatch_file_dir, tot_jobs )
+            sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
             fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
             fid_sbatch_submit_file.write( '#SBATCH -J %s\n' % job_name )

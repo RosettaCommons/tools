@@ -36,8 +36,8 @@ if hostname == 'stampede':
     tasks_per_node_MPI = 16
     account = 'TG-MCB120152'
 if hostname == 'sherlock':
-    DO_MPI = True
-    tasks_per_node_MPI = 16
+    DO_MPI = False #True
+    #tasks_per_node_MPI = 16
     account = None
 
 save_logs = False
@@ -65,6 +65,7 @@ lines = open(infile).readlines()
 bsub_file = 'bsubMINI'
 condor_file = 'condorMINI'
 qsub_file = 'qsubMINI'
+sbatch_file = 'sbatchMINI'
 qsub_file_MPI = 'qsubMPI'
 qsub_file_MPI_ONEBATCH = 'qsubMPI_ONEBATCH'
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
@@ -74,6 +75,7 @@ if hostname == "stampede" or hostname == "sherlock": qsub_file_MPI_ONEBATCH = "j
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
 fid_qsub = open( qsub_file,'w')
+fid_sbatch = open( sbatch_file, 'w')
 fid_all_commands = open( all_commands_file, 'w' )
 
 if DO_MPI:
@@ -92,7 +94,8 @@ HOMEDIR = expanduser('~')
 CWD = getcwd()
 
 PATH_LIST = expandvars('$PATH').split(':')
-QSUB = ('qsub.sh' if sum([exists('%s/qsub.sh'%p) for p in PATH_LIST]) else 'qsub')
+QSUB_SUBMIT_CMD = ('qsub.sh' if sum([exists('%s/qsub.sh'%p) for p in PATH_LIST]) else 'qsub')
+SBATCH_SUBMIT_CMD = 'sbatch'
 
 qsub_file_dir = 'qsub_files/'
 if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
@@ -199,7 +202,30 @@ for line in lines:
         fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
         fid_qsub_submit_file.close()
 
-        fid_qsub.write( '%s %s\n' % ( QSUB, qsub_submit_file ) )
+        fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
+
+        if hostname == 'sherlock':
+            
+            # sbatch (no mpi)
+            queue = 'normal'
+            job_name = (basename(CWD)).replace( '/', '_' )
+            if nhours > 48: nhours = 48 # time limit          
+
+            sbatch_submit_file = '%s/sbatch%d.sh' % (sbatch_file_dir, tot_jobs )
+            fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
+            fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
+            fid_sbatch_submit_file.write( '#SBATCH -J %s\n' % job_name )
+            fid_sbatch_submit_file.write( '#SBATCH -o %s.o%%j\n' % job_name )
+            fid_sbatch_submit_file.write( '#SBATCH -p %s\n' % queue )
+            fid_sbatch_submit_file.write( '#SBATCH -t %d:00:00\n' % nhours )
+            fid_sbatch_submit_file.write( '#SBATCH -n %d\n' % 1 )#tot_jobs )
+            fid_sbatch_submit_file.write( '#SBATCH -N %d\n' % 1 )#tot_nodes )
+            if account: fid_sbatch_submit_file.write( '#SBATCH -A %s\n' % account )
+            fid_sbatch_submit_file.write( 'cd %s\n\n' % CWD )
+            fid_sbatch_submit_file.write( '%s\n' % (command_line_explicit) )
+            fid_sbatch_submit_file.close()
+            fid_sbatch.write( '%s %s\n' % ( SBATCH_SUBMIT_CMD, sbatch_submit_file ) )
+
 
         # MPI job file
         if DO_MPI:
@@ -345,6 +371,7 @@ if DO_MPI:
 fid.close()
 fid_condor.close()
 fid_qsub.close()
+fid_sbatch.close()
 fid_all_commands.close()
 
 if DO_MPI:
@@ -370,6 +397,12 @@ if len( hostname ) == 0:
     print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',qsub_file
     print
+
+if len( hostname ) > 0 and hostname == 'sherlock':
+    print 'Created qsub submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: '
+    print '>source ',sbatch_file
+    print
+
 
 if DO_MPI:
     if len( hostname ) == 0:

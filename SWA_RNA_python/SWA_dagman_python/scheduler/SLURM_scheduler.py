@@ -336,7 +336,7 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 
 	if(memory_reserve!=0):
 		SBATCH_JOB.write( '#SBATCH --mem=%d\n\n' %(memory_reserve))  #memory per job
-		SBATCH_JOB.write( '#SBATCH -mem-per-cpu=%d\n\n' %(memory_reserve)) #memory per CPU process. Note mem and mem-per-cpu is the same for a single CPU job (which is the case here!).
+		SBATCH_JOB.write( '#SBATCH --mem-per-cpu=%d\n\n' %(memory_reserve)) #memory per CPU process. Note mem and mem-per-cpu is the same for a single CPU job (which is the case here!).
 
 	if(queue_name!="DEFAULT"): #Note on Biox2, defualt is the SP queue.
 		SBATCH_JOB.write( '#SBATCH -p %s\n\n' %(queue_name))
@@ -384,10 +384,10 @@ def submit_DAG_job_scheduler_specific(master_wall_time, master_memory_reserve, n
 
 	master_queue_name="normal" #This is specific to the SHERLOCK cluster (update if rhiju buys in).
 
+
+
 	#Submit the master_job. #In this non-MPI implementation, the master_job will then submit the slave_jobs inside the DAG_continuous.py script.
 	queue_job_command(master_tag, master_outfile, master_errfile, DAG_master_script_command, job_dir_name, master_wall_time, master_memory_reserve, master_memory_reserve, master_queue_name)
-
-
 
 
 

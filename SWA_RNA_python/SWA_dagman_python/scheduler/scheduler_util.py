@@ -35,6 +35,10 @@ elif COMPUTER_CLUSTER_NAME in ["TRESTLES-SDSC-XSEDE",
 
 	from MPI_PBS_scheduler import *
 
+elif COMPUTER_CLUSTER_NAME in ["SHERLOCK-STANFORD"]:
+
+	from SLURM_scheduler import *
+
 else:
 	error_exit_with_message("Unsupported COMPUTER_CLUSTER_NAME=%s" %(COMPUTER_CLUSTER_NAME))
 

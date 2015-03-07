@@ -5,13 +5,11 @@ from SWA_dagman_python.utility.SWA_util import *
 
 import string
 import subprocess
-import glob
+from glob import glob 
 
 MPI_SCHEDULER=False
 
 SCHEDULER_TYPE="SLURM_scheduler"
-
-ALL_JOB_IDS_FILE = 'ALL_JOB_IDS.txt'
 
 ######################################################################
 # Use this to run cluster using a SLURM (Simple Linux Utility for Resource Management) scheduler.
@@ -21,59 +19,24 @@ ALL_JOB_IDS_FILE = 'ALL_JOB_IDS.txt'
 # clusters (see below).
 ######################################################################
 
-def queue_status_user_command():
-	from os.path import expandvars
-	return 'squeue --user=%s' % expandvars('$USER') 
-
 def get_job_id_list():
 	job_id_list = []
-	'''
-	if not exists( ALL_JOB_IDS_FILE ): 
-		open( ALL_JOB_IDS_FILE, 'w' )
-		return job_id_list
-	with  open( ALL_JOB_IDS_FILE, 'r') as fid:
-		job_id_list = string.split(fid.read(), '\n')
-	
-	'''
-	JOB_ID_FILES = ['JOB_ID.txt'] + glob.glob('SLAVE_JOBS/*/JOB_ID.txt')
-	for FILE in JOB_ID_FILES:
-		with open( FILE, 'r' ) as fid:
-			for job_id in fid.readlines():
-				job_id = job_id.replace('\n','').replace(' ','')
-				if not len(job_id): continue 
-				job_id_list.append(job_id)
-	print job_id_list
+	for FILE in ['JOB_ID.txt'] + glob('SLAVE_JOBS/*/JOB_ID.txt'):
+		with open(FILE, 'r') as f:
+			job_id_list += string.split(string.strip(f.read()),'\n')
+	job_id_list = [string.strip(id) for id in job_id_list if len(string.strip(id))]
 	return job_id_list
 
-def job_status():
-	job_status = ''
-	all_job_ids = get_job_id_list()	
-	if not len(all_job_ids):
-		return job_status
-	all_job_ids_string = string.join(all_job_ids, ' ')
-	command = ['qstat', '-f'] + all_job_ids
-	
-	for job_id in all_job_ids:
-		print job_id
-	print all_job_ids_string
-	print command
-
-	job_status, err = subprocess.Popen(command, 
-					   stdout=subprocess.PIPE, 
-					   stderr=subprocess.PIPE).communicate()
-	
-	print job_status
-	print err
-
-	return job_status
+def get_job_ids_str(delimiter=' '):
+	return string.join(get_job_id_list(), str(delimiter))
 
 ######################################################################
 
 def job_status_command():
-	command = 'qstat -f'
-	for job_id in get_job_id_list():
-		command += ' %s' % str(job_id)
-	print command
+	command = "squeue"
+	command += " --format='%i %j %u %t %B'"
+	command += " --sort='i'"
+	command += " --jobs=" + get_job_ids_str(delimiter=',') 
 	return command
 
 def kill_job_command():
@@ -83,10 +46,8 @@ def running_job_state_str():
 	return 'R'
 
 def pending_job_state_str():
-	return 'Q' #job is queued, eligible to run or routed.
-
-	#Note another possibility is 'H' #Job is held.
-
+	return 'PD' #job is queued, eligible to run or routed.
+	#Note another possibility is 'S' #Job is suspended.
 
 ######################################################################
 def get_temp_qstat_filename(): #Wrapper that call this function have the duty to delete temp_data_filename after using it!
@@ -106,8 +67,6 @@ def get_temp_qstat_filename(): #Wrapper that call this function have the duty to
 		if(exists(temp_data_filename)): continue
 
 		submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
-		#with open( temp_data_filename, 'w' ) as fid:
-		#	fid.write(job_status())
 
 		return temp_data_filename
 
@@ -133,7 +92,7 @@ def kill_all_queued_jobs_with_prefix(job_prefix, verbose=True):
 
 	sleep(10) #April 21, 2012: Give sometime for dead jobs to properly exit.
 
-	if(isinstance(job_prefix, str )==False):
+	if(isinstance(job_prefix, str)==False):
 		print "ERROR: job_prefix=", job_prefix
 		error_exit_with_message("job_prefix object is not a string!")
 
@@ -189,118 +148,51 @@ def 	master_kill_all_slave_jobs_and_exit_scheduler_specific(exit_message):
 
 def get_queued_jobs_status():
 
-	'''qstat -f:
-	
-	SHERLOCK:
-	Job Id:	1710705
-		Job_Name = STAR_Mapping%j
-		Job_Owner = klane@sh-2-34
-		job_state = Q
-		queue = mcovert
-		qtime = Fri Mar  6 15:18:08 2015
-		mtime = Sat Mar  7 15:22:10 2015
-		Account_Name = mcovert
-		Priority = 1073
-		euser = klane(6753)
-		egroup = mcovert(38308)
-		Resource_List.walltime = 24:00:00
-		Resource_List.nodect = 1
-		Resource_List.ncpus = 1
-
-	BIOX3
-	Job Id: 2323754.biox3-frontend-1.stanford.edu
-	    Job_Name = biox3_home_geniesse_src_stepwise_benchmark_new_swa_revival_swa_
-		ss_loop_mode_vdw_rep_screen_tether_jump_false_23s_rrna_2003_2012_SLAVE
-		_JOBS_499
-	    Job_Owner = geniesse@biox3-1-1.Stanford.EDU
-	    job_state = Q
-	    queue = SP
-	    server = biox3-frontend-1.stanford.edu
-	    Checkpoint = u
-	    ctime = Fri Mar  6 09:00:57 2015
-	    Error_Path = biox3-1-1.stanford.edu:/biox3/home/geniesse/src/stepwise_benc
-		hmark/new/swa_revival/swa_ss_loop_mode_vdw_rep_screen_tether_jump_fals
-		e/23s_rrna_2003_2012/SLAVE_JOBS/499/slave_jobs.err_QSUB
-	    Hold_Types = n
-	    Join_Path = n
-	    Keep_Files = n
-	    Mail_Points = a
-	    mtime = Fri Mar  6 09:00:57 2015
-	    Output_Path = biox3-1-1.stanford.edu:/biox3/home/geniesse/src/stepwise_ben
-		chmark/new/swa_revival/swa_ss_loop_mode_vdw_rep_screen_tether_jump_fal
-		se/23s_rrna_2003_2012/SLAVE_JOBS/499/slave_jobs.out_QSUB
-	    Priority = 0
-	    qtime = Fri Mar  6 09:00:57 2015
-	    Rerunable = True
-	    Resource_List.mem = 2048mb
-	    Resource_List.nodect = 1
-	    Resource_List.nodes = 1:ppn=1
-	    Resource_List.pmem = 2048mb
-	    Resource_List.walltime = 71:00:00
-	    Variable_List = PBS_O_QUEUE=SP,PBS_O_HOME=/home/geniesse,
+	job_info_list = []
+	temp_data_filename = get_temp_qstat_filename()
+	data = safe_open(temp_data_filename, 'r')   #Sept 30, 2010
 
 	'''
+	SHERLOCK: 
+	$ squeue --format="%i %j %u %t %B" --sort="i" --jobs=1713223,1713224,1713125
+	JOBID NAME USER ST EXEC_HOST
+	1713125 l2_viral_rna_pseudoknot_MASTER geniesse R sh-3-20
+	1713223 l2_viral_rna_pseudoknot_SLAVE_JOBS_97 geniesse R sh-2-29
+	1713224 l2_viral_rna_pseudoknot_SLAVE_JOBS_98 geniesse PD n/a
+	'''
 
-	temp_data_filename=get_temp_qstat_filename()
+	# init empty header column list
+        H = []
+	
+	# each line holds info for a single jobid
+	for idx, line in enumerate(data.readlines()):
+			
+		# split into columns
+		cols = string.split(string.strip(line))
 
-	#data=safe_open(temp_data_filename, 'r')   #Sept 30, 2010
-
-	#	JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
-	job_info_list=[]
-
-	with open( temp_data_filename, 'r' ) as fid:
-		data = fid.readlines()
-
-	for idx, line in enumerate(data):
-		
-		line = line.replace('\n','')
-		if not len(line): 
-			continue
-
-		if ':' in line:
-			split_line = line.split(':')
-		elif '=' in line:
-			split_line = line.split('=')
-		else:
-			continue 
-		
-		attribute_name = split_line[0].replace(' ','').replace('\t','')
-		value = split_line[-1].replace(' ','').replace('\t','')
-
-		if 'Job Id' in attribute_name:
-			job_info = {}
-			job_info['JOBID'] = value
-			continue
-
-		if 'Job_Name' in attribute_name:
-			job_info['JOB_NAME'] = value
-			for n in xrange(1, 5):
-				next_line = data[idx+n].replace('\n','').replace(' ','')
-				if '=' in next_line or not len(next_line):
-					break
-			job_info['JOB_NAME'] += next_line
+		# skip empty lines, okay for now
+		if not len(cols):
 			continue
 		
-		if 'Job_Owner' in attribute_name:
-			job_info['USER'] = value
+		# read header 
+		if not len(H):
+			H = cols
 			continue
+		
+		# init new job_info
+		job_info = {}
 
-		if 'job_state' in attribute_name:
-			job_info['EXEC_HOST'] = 'NONE'
-			job_info['STATE'] = value
-   			if not running_job_state_str() in value: 
-				job_info_list.append(job_info)
-   				break
-			continue
+		# set values of attributes, based on index in header
+		job_info['JOBID']     = cols[H.index('JOBID')]
+		job_info['JOB_NAME']  = cols[H.index('NAME')]
+		job_info['USER']      = cols[H.index('USER')]
+		job_info['STATE']     = cols[H.index('ST')]
+		job_info['EXEC_HOST'] = cols[H.index('EXEC_HOST')]
 
-		if 'exec_host' in attribute_name:
-			job_info['EXEC_HOST'] = value
-			job_info_list.append(job_info)
-			break
+		# append job_info to job_info_list
+		job_info_list.append(job_info)
 		
 	submit_subprocess_allow_retry("rm %s" %(temp_data_filename))
-
-	print job_info_list
 
 	return job_info_list
 
@@ -363,8 +255,6 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 
 		SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID > %s\n' % JOB_ID_FILE )
 
-		#SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID >> %s\n' % ALL_JOB_IDS_FILE )
-
 		SBATCH_JOB_SCRIPT.write( '\n%s >%s 2>%s\n' %(job_script, outfile, errfile))
 		
 	submit_subprocess_allow_retry('sbatch %s' %(sbatch_submit_file))
@@ -384,10 +274,7 @@ def submit_DAG_job_scheduler_specific(master_wall_time, master_memory_reserve, n
 	if( exists(master_outfile) ): submit_subprocess("rm %s" %(master_outfile))
 	if( exists(master_errfile) ): submit_subprocess("rm %s" %(master_errfile))
 
-	if( exists(ALL_JOB_IDS_FILE) ): submit_subprocess("rm %s" %(ALL_JOB_IDS_FILE))
-
 	if( exists("JOB_ID.txt") ): submit_subprocess("rm -rf JOB_ID.txt")
-
 	if( exists("SLAVE_JOBS/") ): submit_subprocess("rm -rf SLAVE_JOBS/")
 
 	#Make slave_nodes wall_time 1 hour less than the master_node to ensure that the slave_nodes will die before the master_node!

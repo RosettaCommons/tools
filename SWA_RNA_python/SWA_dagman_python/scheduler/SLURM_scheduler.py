@@ -231,7 +231,7 @@ def get_queued_jobs_status():
 		data = fid.readlines()
 
 	for idx, line in enumerate(data):
-
+		
 		line = line.replace('\n','')
 		if not len(line): 
 			continue
@@ -253,29 +253,29 @@ def get_queued_jobs_status():
 
 		if 'Job_Name' in key:
 			job_info['JOB_NAME'] = value
-	        for n in xrange(1, 5):
-	        	next_line = data[idx+n].replace('\n','').replace('\t','').replace(' ','')
-	            if '=' in next_line or not len(next_line):
-	            	break
-	            job_info['JOB_NAME'] += next_line
-	        continue
+			for n in xrange(1, 5):
+				next_line = data[idx+n].replace('\n','').replace(' ','')
+				if '=' in next_line or not len(next_line):
+					break
+			job_info['JOB_NAME'] += next_line
+			continue
+		
+		if 'Job_Owner' in key:
+			job_info['USER'] = value
+			continue
 
-	    if 'Job_Owner' in key:
-	    	job_info['USER'] = value
-	    	continue
-
-	    if 'job_state' in key:
-   			job_info['EXEC_HOST'] = 'NONE'
-	    	job_info['STATE'] = value
+		if 'job_state' in key:
+			job_info['EXEC_HOST'] = 'NONE'
+			job_info['STATE'] = value
    			if not running_job_state_str() in value: 
 				job_info_list.append(job_info)
    				break
-	    	continue
+			continue
 
-	    if 'exec_host' in key:
-	    	job_info['EXEC_HOST'] = value
+		if 'exec_host' in key:
+			job_info['EXEC_HOST'] = value
 			job_info_list.append(job_info)
-	    	break
+			break
 		
 	submit_subprocess_allow_retry("rm %s" %(temp_data_filename))
 

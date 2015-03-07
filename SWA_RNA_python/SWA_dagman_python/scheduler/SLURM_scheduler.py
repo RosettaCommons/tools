@@ -4,13 +4,14 @@
 from SWA_dagman_python.utility.SWA_util import *
 
 import string
-from subprocess import Popen, PIPE
+import subprocess
+import glob
 
 MPI_SCHEDULER=False
 
 SCHEDULER_TYPE="SLURM_scheduler"
 
-ALL_JOB_IDS_FILE = 'ALL_SLURM_JOB_IDS.txt'
+ALL_JOB_IDS_FILE = 'ALL_JOB_IDS.txt'
 
 ######################################################################
 # Use this to run cluster using a SLURM (Simple Linux Utility for Resource Management) scheduler.
@@ -25,11 +26,24 @@ def queue_status_user_command():
 	return 'squeue --user=%s' % expandvars('$USER') 
 
 def get_job_id_list():
+	job_id_list = []
+	'''
 	if not exists( ALL_JOB_IDS_FILE ): 
 		open( ALL_JOB_IDS_FILE, 'w' )
-		return []
+		return job_id_list
 	with  open( ALL_JOB_IDS_FILE, 'r') as fid:
-		return string.split(fid.read(), '\n')
+		job_id_list = string.split(fid.read(), '\n')
+	
+	'''
+	JOB_ID_FILES = ['JOB_ID.txt'] + glob.glob('SLAVE_JOBS/*/JOB_ID.txt')
+	for FILE in JOB_ID_FILES:
+		with open( FILE, 'r' ) as fid:
+			for job_id in fid.readlines():
+				job_id = job_id.replace('\n','').replace(' ','')
+				if not len(job_id): continue 
+				job_id_list.append(job_id)
+	print job_id_list
+	return job_id_list
 
 def job_status():
 	job_status = ''
@@ -37,14 +51,17 @@ def job_status():
 	if not len(all_job_ids):
 		return job_status
 	all_job_ids_string = string.join(all_job_ids, ' ')
-	command = ['qstat', '-f', all_job_ids_string]
+	command = ['qstat', '-f'] + all_job_ids
 	
 	for job_id in all_job_ids:
 		print job_id
 	print all_job_ids_string
 	print command
 
-	job_status, err = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
+	job_status, err = subprocess.Popen(command, 
+					   stdout=subprocess.PIPE, 
+					   stderr=subprocess.PIPE).communicate()
+	
 	print job_status
 	print err
 
@@ -53,7 +70,11 @@ def job_status():
 ######################################################################
 
 def job_status_command():
-	return 'qstat -f %s' % (' '.join(get_job_id_list()))
+	command = 'qstat -f'
+	for job_id in get_job_id_list():
+		command += ' %s' % str(job_id)
+	print command
+	return command
 
 def kill_job_command():
 	return 'scancel'  #NOTE: scancel --user=user_name.
@@ -84,9 +105,9 @@ def get_temp_qstat_filename(): #Wrapper that call this function have the duty to
 
 		if(exists(temp_data_filename)): continue
 
-		#submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
-		with open( temp_data_filename, 'w' ) as fid:
-			fid.write(job_status())
+		submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
+		#with open( temp_data_filename, 'w' ) as fid:
+		#	fid.write(job_status())
 
 		return temp_data_filename
 
@@ -243,15 +264,15 @@ def get_queued_jobs_status():
 		else:
 			continue 
 		
-		key = split_line[0].replace(' ','').replace('\t','')
+		attribute_name = split_line[0].replace(' ','').replace('\t','')
 		value = split_line[-1].replace(' ','').replace('\t','')
 
-		if 'Job Id' in key:
+		if 'Job Id' in attribute_name:
 			job_info = {}
 			job_info['JOBID'] = value
 			continue
 
-		if 'Job_Name' in key:
+		if 'Job_Name' in attribute_name:
 			job_info['JOB_NAME'] = value
 			for n in xrange(1, 5):
 				next_line = data[idx+n].replace('\n','').replace(' ','')
@@ -260,11 +281,11 @@ def get_queued_jobs_status():
 			job_info['JOB_NAME'] += next_line
 			continue
 		
-		if 'Job_Owner' in key:
+		if 'Job_Owner' in attribute_name:
 			job_info['USER'] = value
 			continue
 
-		if 'job_state' in key:
+		if 'job_state' in attribute_name:
 			job_info['EXEC_HOST'] = 'NONE'
 			job_info['STATE'] = value
    			if not running_job_state_str() in value: 
@@ -272,7 +293,7 @@ def get_queued_jobs_status():
    				break
 			continue
 
-		if 'exec_host' in key:
+		if 'exec_host' in attribute_name:
 			job_info['EXEC_HOST'] = value
 			job_info_list.append(job_info)
 			break
@@ -296,18 +317,27 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 	if walltime > 48: walltime = 48
 
 	sbatch_submit_file="JOB_SCRIPT.sbatch" #"sbatch_submit_file"
+	sbatch_outfile = outfile + "_SBATCH" 
+	sbatch_errfile = errfile + "_SBATCH" 
 
-	if(job_dir_name!=""): sbatch_submit_file= job_dir_name + "/" + sbatch_submit_file
+	if(job_dir_name!=""): 
+		sbatch_submit_file = job_dir_name + "/" + sbatch_submit_file
+		if not '/' in sbatch_outfile:
+			sbatch_outfile = job_dir_name + "/" + sbatch_outfile
+		if not '/' in sbatch_outfile:
+			sbatch_errfile = job_dir_name + "/" + sbatch_errfile
 
 	if(exists(sbatch_submit_file)): submit_subprocess("rm %s" %(sbatch_submit_file))
+	if(exists(sbatch_outfile)): submit_subprocess("rm %s" %(sbatch_outfile))
+	if(exists(sbatch_errfile)): submit_subprocess("rm %s" %(sbatch_errfile))
 
 	with open( sbatch_submit_file, 'w') as SBATCH_JOB_SCRIPT:
 
 		SBATCH_JOB_SCRIPT.write( '#!/bin/bash\n\n' )
 
 		SBATCH_JOB_SCRIPT.write( '#SBATCH -J %s\n' %(job_name))
-		SBATCH_JOB_SCRIPT.write( '#SBATCH -o %s\n' %(outfile + "_SBATCH" ))
-		SBATCH_JOB_SCRIPT.write( '#SBATCH -e %s\n' %(errfile + "_SBATCH" ))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -o %s\n' %(sbatch_outfile))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -e %s\n' %(sbatch_errfile))
 		SBATCH_JOB_SCRIPT.write( '#SBATCH -t %d:00:00\n' %(walltime))
 		SBATCH_JOB_SCRIPT.write( '#SBATCH -n 1\n' )
 		SBATCH_JOB_SCRIPT.write( '#SBATCH -N 1\n' )
@@ -329,15 +359,14 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 		JOB_ID_FILE = 'JOB_ID.txt'
 		
 		if(job_dir_name!=""):
-			JOB_ID_FILE = '%s/%s' %(job_dir_name, JOB_ID_FILE)
+			JOB_ID_FILE = job_dir_name + '/' + JOB_ID_FILE
 
 		SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID > %s\n' % JOB_ID_FILE )
 
-		SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID > %s\n' % ALL_JOB_IDS_FILE )
+		#SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID >> %s\n' % ALL_JOB_IDS_FILE )
 
 		SBATCH_JOB_SCRIPT.write( '\n%s >%s 2>%s\n' %(job_script, outfile, errfile))
-
-
+		
 	submit_subprocess_allow_retry('sbatch %s' %(sbatch_submit_file))
 
 
@@ -354,6 +383,10 @@ def submit_DAG_job_scheduler_specific(master_wall_time, master_memory_reserve, n
 
 	if( exists(master_outfile) ): submit_subprocess("rm %s" %(master_outfile))
 	if( exists(master_errfile) ): submit_subprocess("rm %s" %(master_errfile))
+
+	if( exists(ALL_JOB_IDS_FILE) ): submit_subprocess("rm %s" %(ALL_JOB_IDS_FILE))
+
+	if( exists("JOB_ID.txt") ): submit_subprocess("rm -rf JOB_ID.txt")
 
 	if( exists("SLAVE_JOBS/") ): submit_subprocess("rm -rf SLAVE_JOBS/")
 

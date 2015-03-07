@@ -16,9 +16,34 @@ SCHEDULER_TYPE="SLURM_scheduler"
 # Note this implementation is somewhat specific to the Stanford's SHERLOCK
 # clusters (see below).
 ######################################################################
+def queue_status_user_command():
+	from os.path import expandvars
+	return 'squeue --user=%s' % expandvars('$USER') 
+
+def get_job_id_list():
+	'''
+	 		 JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+           1710723       dev     sdev geniesse  R      31:02      1 sh-5-35
+    '''
+	import string
+	from subprocess import Popen, PIPE
+	cmd = string.split(queue_status_user_command())
+	out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
+	for line in out.split('\n'):
+		cols = line.split()
+		if len(cols) < 1: continue
+		if 'JOBID' in cols[0]: continue
+		try:
+			is_int = int(cols[0])
+		except:
+			continue
+		job_id_list.append(str(cols[0]))
+	return job_id_list
+
+######################################################################
 
 def job_status_command():
-	return 'qstat -f'
+	return 'qstat -f %s' % (' '.join(get_job_id_list()))
 
 def kill_job_command():
 	return 'scancel'  #NOTE: scancel --user=user_name.
@@ -132,58 +157,57 @@ def 	master_kill_all_slave_jobs_and_exit_scheduler_specific(exit_message):
 def get_queued_jobs_status():
 
 	'''qstat -f:
-	Job Id: 11982.frontend1.local
-		  Job_Name = LONG_LONG_LONG_LONG_AAAAAAAAAAAA_LONG_LONG_LONG_LONG_BBBBBBBBBB
-		      B_NAME
-		  Job_Owner = sripakpa@frontend1.local
-		  job_state = R
-		  queue = SP
-		  server = frontend1.local
-		  Checkpoint = u
-		  ctime = Fri Mar 30 22:35:26 2012
-		  Error_Path = frontend1.local:/home/sripakpa/QSUB_TEST/parin_test_job.err
-		  exec_host = node-2-1.local/7
-		  Hold_Types = n
-		  Join_Path = n
-		  Keep_Files = n
-		  Mail_Points = be
-		  mtime = Fri Mar 30 22:35:31 2012
-		  Output_Path = frontend1.local:/home/sripakpa/QSUB_TEST/parin_test_job.out
-		  Priority = 0
-		  qtime = Fri Mar 30 22:35:26 2012
+	
+	SHERLOCK:
+	Job Id:	1710705
+		Job_Name = STAR_Mapping%j
+		Job_Owner = klane@sh-2-34
+		job_state = Q
+		queue = mcovert
+		qtime = Fri Mar  6 15:18:08 2015
+		mtime = Sat Mar  7 15:22:10 2015
+		Account_Name = mcovert
+		Priority = 1073
+		euser = klane(6753)
+		egroup = mcovert(38308)
+		Resource_List.walltime = 24:00:00
+		Resource_List.nodect = 1
+		Resource_List.ncpus = 1
+
+	BIOX3
+	Job Id: 2323754.biox3-frontend-1.stanford.edu
+	    Job_Name = biox3_home_geniesse_src_stepwise_benchmark_new_swa_revival_swa_
+		ss_loop_mode_vdw_rep_screen_tether_jump_false_23s_rrna_2003_2012_SLAVE
+		_JOBS_499
+	    Job_Owner = geniesse@biox3-1-1.Stanford.EDU
+	    job_state = Q
+	    queue = SP
+	    server = biox3-frontend-1.stanford.edu
+	    Checkpoint = u
+	    ctime = Fri Mar  6 09:00:57 2015
+	    Error_Path = biox3-1-1.stanford.edu:/biox3/home/geniesse/src/stepwise_benc
+		hmark/new/swa_revival/swa_ss_loop_mode_vdw_rep_screen_tether_jump_fals
+		e/23s_rrna_2003_2012/SLAVE_JOBS/499/slave_jobs.err_QSUB
+	    Hold_Types = n
+	    Join_Path = n
+	    Keep_Files = n
+	    Mail_Points = a
+	    mtime = Fri Mar  6 09:00:57 2015
+	    Output_Path = biox3-1-1.stanford.edu:/biox3/home/geniesse/src/stepwise_ben
+		chmark/new/swa_revival/swa_ss_loop_mode_vdw_rep_screen_tether_jump_fal
+		se/23s_rrna_2003_2012/SLAVE_JOBS/499/slave_jobs.out_QSUB
+	    Priority = 0
+	    qtime = Fri Mar  6 09:00:57 2015
+	    Rerunable = True
+	    Resource_List.mem = 2048mb
+	    Resource_List.nodect = 1
+	    Resource_List.nodes = 1:ppn=1
+	    Resource_List.pmem = 2048mb
+	    Resource_List.walltime = 71:00:00
+	    Variable_List = PBS_O_QUEUE=SP,PBS_O_HOME=/home/geniesse,
+
 	'''
 
-	'''qstat -f:
-	#Umm there seem to be some variability in the order of the entries.
-	Job Id: 11979.frontend1.local
-		  Job_Name = qsub_script_create_file_test.txt
-		  Job_Owner = sripakpa@frontend1.local
-		  resources_used.cput = 00:00:00
-		  resources_used.mem = 0kb
-		  resources_used.vmem = 0kb
-		  resources_used.walltime = 00:00:00
-		  job_state = E
-		  queue = SP
-		  server = frontend1.local
-		  Checkpoint = u
-		  ctime = Fri Mar 30 21:24:36 2012
-		  Error_Path = frontend1.local:/home/sripakpa/QSUB_TEST/qsub_script_create_file_test.txt.e11979
-		  exec_host = node-2-1.local/7
-	.
-	.
-	.
-	.
-	Job Id: 11980.frontend1.local
-		  Job_Name = qsub_script_create_file_test.txt
-		  Job_Owner = sripakpa@frontend1.local
-		  job_state = Q
-		  queue = SP
-		  server = frontend1.local
-		  Checkpoint = u
-		  ctime = Fri Mar 30 21:24:37 2012
-		  Error_Path = frontend1.local:/home/sripakpa/QSUB_TEST/qsub_script_create_file_test.txt.e11980
-		  Hold_Types = n
-	'''
 
 	temp_data_filename=get_temp_qstat_filename()
 

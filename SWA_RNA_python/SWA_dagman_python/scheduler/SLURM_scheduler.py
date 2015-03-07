@@ -233,7 +233,8 @@ def get_queued_jobs_status():
 	for idx, line in enumerate(data):
 
 		line = line.replace('\n','')
-		if not len(line): continue
+		if not len(line): 
+			continue
 
 		if ':' in line:
 			split_line = line.split(':')
@@ -254,7 +255,8 @@ def get_queued_jobs_status():
 			job_info['JOB_NAME'] = value
 	        for n in xrange(1, 5):
 	        	next_line = data[idx+n].replace('\n','').replace('\t','').replace(' ','')
-	            if '=' in next_line or not len(next_line):  break
+	            if '=' in next_line or not len(next_line):
+	            	break
 	            job_info['JOB_NAME'] += next_line
 	        continue
 

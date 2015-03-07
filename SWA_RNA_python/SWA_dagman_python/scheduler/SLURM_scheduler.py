@@ -29,6 +29,7 @@ def get_job_id_list():
 	from subprocess import Popen, PIPE
 	cmd = string.split(queue_status_user_command())
 	out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
+	job_id_list = []
 	for line in out.split('\n'):
 		cols = line.split()
 		if len(cols) < 1: continue

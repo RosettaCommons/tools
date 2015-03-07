@@ -3,11 +3,14 @@
 ######################################################################
 from SWA_dagman_python.utility.SWA_util import *
 
-
+import string
+from subprocess import Popen, PIPE
 
 MPI_SCHEDULER=False
 
 SCHEDULER_TYPE="SLURM_scheduler"
+
+ALL_JOB_IDS_FILE = 'ALL_SLURM_JOB_IDS.txt'
 
 ######################################################################
 # Use this to run cluster using a SLURM (Simple Linux Utility for Resource Management) scheduler.
@@ -16,30 +19,36 @@ SCHEDULER_TYPE="SLURM_scheduler"
 # Note this implementation is somewhat specific to the Stanford's SHERLOCK
 # clusters (see below).
 ######################################################################
+
 def queue_status_user_command():
 	from os.path import expandvars
 	return 'squeue --user=%s' % expandvars('$USER') 
 
 def get_job_id_list():
-	'''
-	 		 JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
-           1710723       dev     sdev geniesse  R      31:02      1 sh-5-35
-    '''
-	import string
-	from subprocess import Popen, PIPE
-	cmd = string.split(queue_status_user_command())
-	out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
-	job_id_list = []
-	for line in out.split('\n'):
-		cols = line.split()
-		if len(cols) < 1: continue
-		if 'JOBID' in cols[0]: continue
-		try:
-			is_int = int(cols[0])
-		except:
-			continue
-		job_id_list.append(str(cols[0]))
-	return job_id_list
+	if not exists( ALL_JOB_IDS_FILE ): 
+		open( ALL_JOB_IDS_FILE, 'w' )
+		return []
+	with  open( ALL_JOB_IDS_FILE, 'r') as fid:
+		return string.split(fid.read(), '\n')
+
+def job_status():
+	job_status = ''
+	all_job_ids = get_job_id_list()	
+	if not len(all_job_ids):
+		return job_status
+	all_job_ids_string = string.join(all_job_ids, ' ')
+	command = ['qstat', '-f', all_job_ids_string]
+	
+	for job_id in all_job_ids:
+		print job_id
+	print all_job_ids_string
+	print command
+
+	job_status, err = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
+	print job_status
+	print err
+
+	return job_status
 
 ######################################################################
 
@@ -75,7 +84,9 @@ def get_temp_qstat_filename(): #Wrapper that call this function have the duty to
 
 		if(exists(temp_data_filename)): continue
 
-		submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
+		#submit_subprocess_allow_retry( job_status_command() + ' > %s' %(temp_data_filename))
+		with open( temp_data_filename, 'w' ) as fid:
+			fid.write(job_status())
 
 		return temp_data_filename
 
@@ -209,123 +220,64 @@ def get_queued_jobs_status():
 
 	'''
 
-
 	temp_data_filename=get_temp_qstat_filename()
 
-	data=safe_open(temp_data_filename, 'r')   #Sept 30, 2010
+	#data=safe_open(temp_data_filename, 'r')   #Sept 30, 2010
 
 	#	JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
 	job_info_list=[]
 
-	while(True):
+	with open( temp_data_filename, 'r' ) as fid:
+		data = fid.readlines()
 
-		line=data.readline()
+	for idx, line in enumerate(data):
 
-		if(line==''): break #End of file!
+		line = line.replace('\n','')
+		if not len(line): continue
 
-		if(line[0:7]=="Job Id:"):
+		if ':' in line:
+			split_line = line.split(':')
+		elif '=' in line:
+			split_line = line.split('=')
+		else:
+			continue 
+		
+		key = split_line[0].replace(' ','').replace('\t','')
+		value = split_line[-1].replace(' ','').replace('\t','')
 
-			JOB_OWNER='BLAH_BLAH_BLAH'
-			JOB_NAME='BLAH_BLAH_BLAH'
+		if 'Job Id' in key:
+			job_info = {}
+			job_info['JOBID'] = value
+			continue
 
-			job_info={}
-			job_info['JOBID']=line.split()[-1]
+		if 'Job_Name' in key:
+			job_info['JOB_NAME'] = value
+	        for n in xrange(1, 5):
+	        	next_line = data[idx+n].replace('\n','').replace('\t','').replace(' ','')
+	            if '=' in next_line or not len(next_line):  break
+	            job_info['JOB_NAME'] += next_line
+	        continue
 
-			line=data.readline()
+	    if 'Job_Owner' in key:
+	    	job_info['USER'] = value
+	    	continue
 
-			####################################################################################################
-			if(line.split()[0]=='Job_Name'): #Parse Job_Name then Job_Owner
-				JOB_NAME=line.split()[-1]
+	    if 'job_state' in key:
+   			job_info['EXEC_HOST'] = 'NONE'
+	    	job_info['STATE'] = value
+   			if not running_job_state_str() in value: 
+				job_info_list.append(job_info)
+   				break
+	    	continue
 
-				while(True):
-					line=data.readline()
-
-					#print "DEBUG line.split()=", line.split()
-
-					if(len(line.split())==0): line=data.readline() #April 22, 2012: Deal with special empty line case (see right below)
-
-					if(len(line.split())!=1): break
-
-					JOB_NAME+=line.split()[0]
-
-					'''
-					Job_Name = home_sripakpa_minirosetta_April_22_4X_CHEM_SHIFT_minimize_bench
-					mark_run_main_folder_FARFAR_denovo_4X4_R2_Retrotransposon_SLAVE_JOBS_0
-		      											<--Empty line here!
-		  			Job_Owner = sripakpa@node-9-34.local
-					'''
-
-				if(line.split()[0]!='Job_Owner'): error_exit_with_message("line.split()[0]!='Job_Owner' for line=%s" %(line))
-				if(line.split()[1]!='='): error_exit_with_message("line.split()[1]!='=' for line=%s" %(line))
-
-				JOB_OWNER=line.split()[-1]
-
-
-			elif(line.split()[0]=='Job_Owner'):  #Parse Job_Name then Job_Owner
-
-				JOB_OWNER=line.split()[-1]
-
-				line=data.readline()
-
-				if(line.split()[0]!='Job_Name'): error_exit_with_message("line[0:9]!='Job_Owner' for line=%s" %(line))
-
-				JOB_NAME=line.split()[-1]
-
-				while(True):
-					line=data.readline()
-
-					#print "DEBUG line.split()=", line.split()
-
-					if(len(line.split())==0): line=data.readline() #April 22, 2012: Deal with special empty line case.
-
-					if(len(line.split())!=1): break
-
-					JOB_NAME+=line.split()[0]
-
-				if(line.split()[1]!='='): error_exit_with_message("line.split()[1]!='=' for line=%s" %(line))
-
-			else:
-				error_exit_with_message("Invalid first job status line=%s" %(line))
-			####################################################################################################
-
-			job_info['JOB_NAME']=JOB_NAME
-			job_info['USER']=JOB_OWNER
-
-
-			while(True):
-				line=data.readline()
-
-				if(line.split()[0]=='job_state'):
-					job_info['STATE']=line.split()[-1]
-					break
-
-
-			job_info['EXEC_HOST']="NONE"
-
-			if(job_info['STATE']==running_job_state_str()):
-
-				check_line_list=[]
-
-				while(True):
-					line=data.readline()
-					check_line_list.append(line)
-					if(line=="") or (len(line)==0): error_exit_with_message("Reach end of file: incomplete parsing of qstat!")
-
-					if(len(check_line_list)>30):
-						for n in range(len(check_line_list)):
-							print "ERROR #n: %s" %(check_line_list[n]),
-						error_exit_with_message("len(check_line_list)>30!")
-
-					#if(line.split('=')[0]=='exec_host'):
-					if ( 'exec_host' in line ):
-						job_info['EXEC_HOST']=line.split()[-1]
-						break
-
+	    if 'exec_host' in key:
+	    	job_info['EXEC_HOST'] = value
 			job_info_list.append(job_info)
-
-	data.close()
-
+	    	break
+		
 	submit_subprocess_allow_retry("rm %s" %(temp_data_filename))
+
+	print job_info_list
 
 	return job_info_list
 
@@ -341,48 +293,51 @@ def queue_job_command(job_name, outfile, errfile, job_script, job_dir_name, wall
 	### current walltime limit for SHERLOCK is 48 hours
 	if walltime > 48: walltime = 48
 
-	sbatch_submit_file="JOB.sbatch" #"sbatch_submit_file"
+	sbatch_submit_file="JOB_SCRIPT.sbatch" #"sbatch_submit_file"
 
 	if(job_dir_name!=""): sbatch_submit_file= job_dir_name + "/" + sbatch_submit_file
 
 	if(exists(sbatch_submit_file)): submit_subprocess("rm %s" %(sbatch_submit_file))
 
-	SBATCH_JOB = open( sbatch_submit_file, 'w')
+	with open( sbatch_submit_file, 'w') as SBATCH_JOB_SCRIPT:
 
-	SBATCH_JOB.write( '#!/bin/bash\n\n' )
+		SBATCH_JOB_SCRIPT.write( '#!/bin/bash\n\n' )
 
-	SBATCH_JOB.write( '#SBATCH -J %s\n\n' %(job_name))
-	SBATCH_JOB.write( '#SBATCH -o %s\n\n' %(outfile + "_SBATCH" ))
-	SBATCH_JOB.write( '#SBATCH -e %s\n\n' %(errfile + "_SBATCH" ))
-	SBATCH_JOB.write( '#SBATCH -t %d:00:00\n\n' %(walltime))
-	SBATCH_JOB.write( '#SBATCH -n 1\n\n' )
-	SBATCH_JOB.write( '#SBATCH -N 1\n\n' )
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -J %s\n' %(job_name))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -o %s\n' %(outfile + "_SBATCH" ))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -e %s\n' %(errfile + "_SBATCH" ))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -t %d:00:00\n' %(walltime))
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -n 1\n' )
+		SBATCH_JOB_SCRIPT.write( '#SBATCH -N 1\n' )
 
+		if(memory_reserve!=0):
+			SBATCH_JOB_SCRIPT.write( '#SBATCH --mem=%d\n' %(memory_reserve))  #memory per job
+			SBATCH_JOB_SCRIPT.write( '#SBATCH --mem-per-cpu=%d\n' %(memory_reserve)) #memory per CPU process. Note mem and mem-per-cpu is the same for a single CPU job (which is the case here!).
 
-	if(memory_reserve!=0):
-		SBATCH_JOB.write( '#SBATCH --mem=%d\n\n' %(memory_reserve))  #memory per job
-		SBATCH_JOB.write( '#SBATCH --mem-per-cpu=%d\n\n' %(memory_reserve)) #memory per CPU process. Note mem and mem-per-cpu is the same for a single CPU job (which is the case here!).
+		if(queue_name!="DEFAULT"): #Note on Biox2, defualt is the SP queue.
+			SBATCH_JOB_SCRIPT.write( '#SBATCH -p %s\n' %(queue_name))
 
-	if(queue_name!="DEFAULT"): #Note on Biox2, defualt is the SP queue.
-		SBATCH_JOB.write( '#SBATCH -p %s\n\n' %(queue_name))
+		
+		current_directory=os.path.abspath(".")
 
-	
-	current_directory=os.path.abspath(".")
+		SBATCH_JOB_SCRIPT.write( '\ncd %s\n\n' %(current_directory)) #Important since by default SBATCH job starts in the home directory.
 
-	SBATCH_JOB.write( 'cd %s\n\n' %(current_directory)) #Important since by default SBATCH job starts in the home directory.
+		#SBATCH_JOB_SCRIPT.write( 'cd $SLURM_SUBMIT_DIR\n\n' ) #This doesn't work if the node submitting the job is not the frontend (i.e. is itself a working_node)
 
-	#SBATCH_JOB.write( 'cd $SLURM_SUBMIT_DIR\n\n' ) #This doesn't work if the node submitting the job is not the frontend (i.e. is itself a working_node)
+		JOB_ID_FILE = 'JOB_ID.txt'
+		
+		if(job_dir_name!=""):
+			JOB_ID_FILE = '%s/%s' %(job_dir_name, JOB_ID_FILE)
 
-	if(job_dir_name!=""):
-		SBATCH_JOB.write( 'echo $SLURM_JOBID > %s/JOB_ID.txt\n\n' %(job_dir_name))
-	else:
-		SBATCH_JOB.write( 'echo $SLURM_JOBID > JOB_ID.txt\n\n')
+		SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID > %s\n' % JOB_ID_FILE )
 
-	SBATCH_JOB.write( '%s >%s 2>%s\n\n' %(job_script, outfile, errfile))
+		SBATCH_JOB_SCRIPT.write( 'echo $SLURM_JOBID > %s\n' % ALL_JOB_IDS_FILE )
 
-	SBATCH_JOB.close()
+		SBATCH_JOB_SCRIPT.write( '\n%s >%s 2>%s\n' %(job_script, outfile, errfile))
+
 
 	submit_subprocess_allow_retry('sbatch %s' %(sbatch_submit_file))
+
 
 ######################################################################
 def submit_DAG_job_scheduler_specific(master_wall_time, master_memory_reserve, num_slave_nodes, dagman_file, verbose):
@@ -408,8 +363,6 @@ def submit_DAG_job_scheduler_specific(master_wall_time, master_memory_reserve, n
 	job_dir_name=""
 
 	master_queue_name="normal" #This is specific to the SHERLOCK cluster (update if rhiju buys in).
-
-
 
 	#Submit the master_job. #In this non-MPI implementation, the master_job will then submit the slave_jobs inside the DAG_continuous.py script.
 	queue_job_command(master_tag, master_outfile, master_errfile, DAG_master_script_command, job_dir_name, master_wall_time, master_memory_reserve, master_memory_reserve, master_queue_name)

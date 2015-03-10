@@ -814,7 +814,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
         res, output = commands.getstatusoutput(commandline)
         if verbose and not res: print commandline+'\n', output
-        if res: print commandline+'\n', 'ERROR: Blast execution faild with code %s and message: %s' % (res, output);  sys.exit(1)
+        if res: print commandline+'\n', 'ERROR: Blast execution failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
         #print 'Filtering results...'
         table, legend = [], ''
@@ -887,7 +887,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
 def create_virtual_template_pdbs(prefix):
-    # Make a template PDB file, which has psuedo atoms, so that the query and a template can have the same length sequence.
+    # Make a template PDB file, which has pseudo atoms, so that the query and a template can have the same sequence length.
     for chain in [ 'L', 'H' ]:
         with file(prefix+'/template.tmp.FR'+chain+'.pdb', 'w') as o:
             # Count the number of lines of a template PDB file

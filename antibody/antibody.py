@@ -394,8 +394,8 @@ def safelen(seq):
 def IdentifyCDRs(light_chain, heavy_chain):
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
-    light_first, light_second = (light_chain[:65], light_chain[50:50+80]) if len(light_chain) > 130 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:70], heavy_chain[50:50+95]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    light_first, light_second = (light_chain[:65], light_chain[50:50+80])
+    heavy_first, heavy_second = (heavy_chain[:70], heavy_chain[50:50+95])
 
     # L1
     res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)

@@ -434,23 +434,35 @@ def Is_valid_empty_silent_file(silent_file, verbose=True):
 
 	prefix_reason_string="silent_file (%s) is not a valid_empty_silent_file." %(silent_file)
 
-	if(exists(silent_file)==False):
-		if(verbose): print "%s REASON: silent_file doesn't exist!" %(prefix_reason_string)
+	if ( not exists(silent_file) ):
+		if (verbose): 
+			print "%s REASON: silent_file doesn't exist!" % (prefix_reason_string)
 		return False
 
 	data = safe_open(silent_file, 'r', Is_master=False)
-
-	if( len( data ) < 1 ):
-		if(verbose): print "%s REASON: empty silent_file num_lines < 1!" %(prefix_reason_string)
-		return False
-
-	for line in data:
-		### EXCEPTIONS HERE
-		if( "empty cluster silent_file since all input_silent_file are empty." in line ):	return True
-
+	data_lines = data.readlines()
 	data.close()
 
-	return False
+	if ( len(data_lines) < 1 ):
+		if (verbose): 
+			print "%s REASON: empty silent_file num_lines < 1!" % (prefix_reason_string)
+		return False
+
+	first_line = data_lines[0]
+	if (verbose):
+			print "first_line= ", first_line
+
+	### EXCEPTIONS HERE
+	valid_exceptions = [
+		"empty cluster silent_file since all input_silent_file are empty.",
+		"empty filtered silent_file since no non-empty sampler silent_file.",
+		"Empty filterer_outfile. No struct_pair passed screen.",
+		"empty cluster silent_file since at least one of the two input_silent_file is empty.",
+		"empty cluster silent_file since at least of the two input_silent_file is empty."
+	]
+
+	return ( any ( exception in first_line for exception in valid_exceptions ) )
+		
 
 ####################################################################
 def Is_valid_non_empty_silent_file(silent_file, verbose=True):

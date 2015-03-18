@@ -70,10 +70,15 @@ num_column_name_line=0
 #count=0 ##Commented out on Feb 08, 2012
 
 if( not Is_valid_non_empty_silent_file(START_silent_file) ):
-	#if( Is_valid_empty_silent_file(START_silent_file) ):
-	#	print "START_silent_file (%s) is a not a valid_non_empty_silent_file, but is a valid_empty_silent_file!" % (START_silent_file)
-	#	exit(1)
-	error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
+	if( Is_valid_empty_silent_file(START_silent_file) ):
+		print "START_silent_file (%s) is a not a valid_non_empty_silent_file, but is a valid_empty_silent_file!" % (START_silent_file)
+		
+		with open( reducer_outfile , 'w') as REDUCER_OUTFILE:
+			REDUCER_OUTFILE.write( "empty cluster silent_file since all input_silent_file are empty." )
+
+		exit(0)
+	else:
+		error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
 	
 		
 data = safe_open(START_silent_file, mode='r', Is_master=False)

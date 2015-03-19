@@ -491,9 +491,9 @@ def IdentifyCDRs(light_chain, heavy_chain):
 
     if not (L1 and L3 and H1 and H3):
         if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
-        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)'
+        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
         if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
-        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(L|W)(G|A|C)[A-Z](S|G|R)'
+        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)'
         sys.exit(1)
 
     res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)

@@ -138,7 +138,7 @@ sub findcdrs{
 
 	#***********L3********************
 	# C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)
-	$var = $lightseq_second =~/C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)/;
+	$var = $lightseq_second =~/C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)/;
 	if($var){
 		$temp=$&;
 		$lenl3=length ($temp)-5;

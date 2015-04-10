@@ -1036,9 +1036,8 @@ def	create_samplerer_dag_job_file(job_specific_common_args, job_specific_samplin
 				job_specific_filterer_args += ' -combine_helical_silent_file true  '
 				job_specific_sampling_args += ' -combine_helical_silent_file true  '
 
-			elif (filterer_mode=="combine_long_loop_clash"):
+			elif (filterer_mode=="combine_long_loop_allow_previous_clash"):
 
-				#job_specific_filterer_args += ' -filter_for_previous_clash true  '
 				#### filtering for previous clashes is causing problems in native
 				#### rmsd_screen runs -- specifically, 5P_j55a_group_I_intron
 				#### CHANGE turn off filter_for_previous_clash -- will revert if causes problems
@@ -1046,6 +1045,10 @@ def	create_samplerer_dag_job_file(job_specific_common_args, job_specific_samplin
 				job_specific_filterer_args += ' -filter_for_previous_clash false  '
 				job_specific_sampling_args += ' -combine_long_loop_mode true '
 
+			elif (filterer_mode=="combine_long_loop_clash"):
+
+				job_specific_filterer_args += ' -filter_for_previous_clash true  '
+				job_specific_sampling_args += ' -combine_long_loop_mode true '
 
 			elif (filterer_mode=="combine_long_loop_contact"):
 

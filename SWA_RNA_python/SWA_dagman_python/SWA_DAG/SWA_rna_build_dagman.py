@@ -777,10 +777,15 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					print "region i=%d j=%d, Is_combine_long_loop_chain_closure_step= %s" %(i,j,Is_combine_long_loop_chain_closure_step)
 
 					####CHANGE to filter for clash instead of contact at Closure closure step even if OLLM_chain_closure_only==False Nov 13, 2010
+					####
+					#### WHY? This filtering for previous clashes is causing problems in native
+					####      rmsd_screen runs -- specifically, 5P_j55a_group_I_intron
+					#### CHANGE to filter for contact at closure step -- will revert if causes problems
+					#### - Caleb April 10, 2015      
 					if (OLLM_chain_closure_only or Is_combine_long_loop_chain_closure_step):
-						filterer_mode="combine_long_loop_clash"
-					else:
 						filterer_mode="combine_long_loop_contact"
+					else:
+						filterer_mode="combine_long_loop_clash"
 
 					if sample_virt_ribose_in_sep_DAG:
 						job_specific_filterer_args += " -filterer_undercount_sugar_rotamers true "

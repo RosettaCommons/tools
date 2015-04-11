@@ -1,11 +1,25 @@
 #!/usr/bin/env python
+''' This script cleans PDBs for Rosetta by removing extraneous information, converting residues names and renumbering.
 
-"Written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
+It outputs both the cleaned PDB and a fasta file of the cleaned sequence.
+
+Required parameters are the name of the PDB you want to clean, and the chain ids of the chains you want.
+
+The PDB name may be specified with or without the .pdb file handle and may be provided as a gziped file.
+If the PDB isn't found locally, the given 4 letter code will be fetched from the internet.
+
+Chain id: only the specified chains will be extracted. You may specify more than one: "AB" gets you chain A and B,
+and "C" gets you just chain C. Special notations are "nochain" to remove chain identiry from the output, and "ignorechain"
+to get all the chains.
+
+(Script written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca, Jordan Willis and Rocco Moretti from the Meiler Lab.)
+'''
 
 # Function of this script: "clean" raw pdb file by following tasks so that rosetta modeling becomes easier
 
 ## starts residue number at 1
-## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM if a residue is not MSE)
+## translates certain residues to their cannonical amino acid equivalents
+## removes unknown residues
 ## removes residues with 0 occupancy
 ## generates a fasta file
 ## and leaves the 1st model among many NMR models
@@ -15,8 +29,13 @@ import os
 from sys import argv, stderr, stdout
 from os import popen, system
 from os.path import exists, basename
+from optparse import OptionParser
+
+# Local package imports
+
 from amino_acids import longer_names
 from amino_acids import modres
+
 # remote host for downloading pdbs
 remote_host = ''
 
@@ -136,51 +155,47 @@ def open_pdb( name ):
 
     return lines, stem
 
-def print_help():
-    print "clean_pdb.py <pdb> <chain id>"
+#############################################
+# Program Start
+#############################################
 
-    print "pdb = file name of the file. Can be with or without the .pdb file handle"
-    print "chain id = The chain id you are interested in. If more than one chain, "
-    print "you can pass the chain id without spaces. For example \"AB\" gets you"
-    print "chain A and B. \"A\" gets you chain A."
-    print "\n",
-    print "chain id = nochain. Removes chain identity from output"
-    print "chain id = ignorechain. Gets all the chains for pdb"
-    print "\n",
-    print "Written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
-    sys.exit()
+parser = OptionParser(usage="%prog [options] <pdb> <chain id>",
+        description=__doc__)
+parser.add_option("--nopdbout", action="store_true",
+        help="Don't output a PDB.")
+parser.add_option("--allchains", action="store_true",
+        help="Use all the chains from the input PDB.")
+parser.add_option("--removechain", action="store_true",
+        help="Remove chain information from output PDB.")
+parser.add_option("--keepzeroocc", action="store_true",
+        help="Keep zero occupancy atoms in output.")
 
-if argv.count('-h'):
-    print_help()
-    exit()
+options, args = parser.parse_args()
+
+if 'nopdbout' in args:
+    options.nopdbout = True
+    args.remove('nopdbout')
+
+if 'ignorechain' in args:
+    options.allchains = True
+    #Don't remove, because we're also using it as a chain designator
+
+if 'nochain' in args:
+    options.removechain = True
+    options.allchains = True
+    #Don't remove, because we're also using it as a chain designator
+
+if len(args) != 2:
+    parse.error("Must specify both the pdb and the chain id")
 
 files_to_unlink = []
-try:
-    assert(len(argv) > 2)
-except AssertionError:
-    print_help()
 
-if argv[2].strip() != "ignorechain" and argv[2].strip() != "nochain":
-    chainid = argv[2].upper()
+if args[1].strip() != "ignorechain" and args[1].strip() != "nochain":
+    chainid = args[1].upper()
 else:
-    chainid = argv[2]
+    chainid = args[1]
 
-nopdbout = 0
-if argv.count('nopdbout'):
-    nopdbout = 1
-
-removechain = 0
-if argv.count('nochain'):
-    removechain = 1
-
-ignorechain = 0
-if argv.count('ignorechain'):
-    ignorechain = 1
-
-lines, filename_stem = open_pdb( argv[1] )
-
-# outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
-outfile = filename_stem + "_" + chainid + ".pdb"
+lines, filename_stem = open_pdb( args[0] )
 
 oldresnum = '   '
 count = 1
@@ -191,12 +206,10 @@ residue_letter = ''
 if chainid == '_':
     chainid = ' '
 
-for i in range(len(lines)):
-    line = lines[i]
+for line in lines:
 
-    if len(line) > 5 and line[:6] == 'ENDMDL': break  # Its an NMR model.
-    chainid = [i for i in chainid]
-    if len(line) > 21 and ( line[21] in chainid or ignorechain or removechain):
+    if line.startswith('ENDMDL'): break  # Only take the first NMR model
+    if len(line) > 21 and ( line[21] in chainid or options.allchains):
         if line[0:4] != "ATOM" and line[0:6] != 'HETATM':
             continue
 
@@ -255,8 +268,11 @@ for i in range(len(lines)):
                 # Don't take the second and following alternate locations
                 continue
 
-        if removechain:
-            line_edit = line_edit[0:21]+' '+line_edit[22:]
+        if options.removechain:
+            line_edit = line_edit[:21]+' '+line_edit[22:]
+
+        if options.keepzeroocc:
+            line_edit = line_edit[:55] +" 1.00"+ line_edit[60:]
 
         residue_buffer.append(line_edit)
 
@@ -287,23 +303,23 @@ flag_successful = "OK"
 if nres <= 0:
     flag_successful = "BAD"
 
+if chainid == ' ':
+    chainid = '_'
 
 print filename_stem, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
 
-
-if chainid == ' ':
-    chainid = '_'
 if nres > 0:
-    if (nopdbout == 0):
-        # outfile = string.lower( basename(outfile) )
-        outfile = outfile.replace('.pdb1.gz', '.pdb')
+    if not options.nopdbout:
+        # outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
+        outfile = filename_stem + "_" + chainid + ".pdb"
+
         outid = open(outfile, 'w')
         outid.write(pdbfile)
         outid.write("TER\n")
         outid.close()
 
     fastaid = stdout
-    if argv[2] != "ignorechain" and argv[2] != "nochain":
+    if not options.allchains:
         for chain in fastaseq:
             fastaid.write('>'+filename_stem+"_"+chain+'\n')
             fastaid.write(fastaseq[chain])
@@ -315,11 +331,11 @@ if nres > 0:
             handle.close()
     else:
         fastaseq = ["".join(fastaseq.values())]
-        fastaid.write('>'+filename_stem+"_"+argv[2]+'\n')
+        fastaid.write('>'+filename_stem+"_"+chainid+'\n')
         fastaid.writelines(fastaseq)
         fastaid.write('\n')
-        handle = open(filename_stem+"_"+argv[2] + ".fasta", 'w')
-        handle.write('>'+filename_stem+"_"+argv[2]+'\n')
+        handle = open(filename_stem+"_"+chainid + ".fasta", 'w')
+        handle.write('>'+filename_stem+"_"+chainid+'\n')
         handle.writelines(fastaseq)
         handle.write('\n')
         handle.close()

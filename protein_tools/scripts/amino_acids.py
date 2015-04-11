@@ -349,7 +349,10 @@ modres={
 'HHK':'ALA',                    ##  HHK ALA  (2S)-2,8-DIAMINOOCTANOIC ACID
 'HIA':'HIS',                    ##  HIA HIS  L-HISTIDINE AMIDE
 'HIC':'HIS',                    ##  HIC HIS  4-METHYL-HISTIDINE
-'HIP':'HIS',                    ##  HIP HIS  ND1-PHOSPHONOHISTIDINE
+'HID':'HIS',                    ##  HID HIS  Not an official code, but used by some programs as delta-protonated histidine
+'HIE':'HIS',                    ##  HIE HIS  Not an official code, but used by some programs as epsilon-protonated histidine
+# The backbone check in clean_pdb.py will take care of "official" usage of HID and HIE residues
+'HIP':'HIS',                    ##  HIP HIS  ND1-PHOSPHONOHISTIDINE, also non-officially as protonated histidine
 'HIQ':'HIS',                    ##  HIQ HIS  MODIFIED HISTIDINE
 'HIS':'HIS',                    ##  HIS HIS
 'HLU':'LEU',                    ##  HLU LEU  BETA-HYDROXYLEUCINE

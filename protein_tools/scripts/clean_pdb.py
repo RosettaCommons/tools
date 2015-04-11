@@ -136,8 +136,6 @@ def open_pdb( name ):
 
     return lines, stem
 
-
-
 def print_help():
     print "clean_pdb.py <pdb> <chain id>"
 
@@ -186,12 +184,9 @@ outfile = filename_stem + "_" + chainid + ".pdb"
 
 oldresnum = '   '
 count = 1
-modifiedres = ''
-
 
 residue_buffer = []
 residue_letter = ''
-residue_invalid = False
 
 if chainid == '_':
     chainid = ' '
@@ -201,96 +196,77 @@ for i in range(len(lines)):
 
     if len(line) > 5 and line[:6] == 'ENDMDL': break  # Its an NMR model.
     chainid = [i for i in chainid]
-    if ignorechain or removechain or (len(line) < 21) or (line[21] in chainid):
-        line_edit = line
-        if line[0:3] == 'TER':
+    if len(line) > 21 and ( line[21] in chainid or ignorechain or removechain):
+        if line[0:4] != "ATOM" and line[0:6] != 'HETATM':
             continue
-        elif (line[0:6] == 'HETATM'):
-            ok = False
 
-            # Is it a modified residue ?
-            if modres.has_key(line[17:20]):
-              # if so replace it with its canonical equivalent !
-                line_edit = 'ATOM  '+line[6:17]+modres[line[17:20]] + line[20:]
-                modifiedres = modifiedres + line[17:20] + ',  '
-                # dont count MSEs as modiied residues (cos they're so common and get_pdb deal with them previosuly)
-                if line[17:20] != "MSE":
-                    shit_stat_modres = True
-                ok = True
+        line_edit = line
+        resn = line[17:20]
 
-            # other substitution (of atoms mainly)
-            if (line[17:20] == 'MSE'):  # Selenomethionine
+        # Is it a modified residue ?
+        # (Looking for modified residues in both ATOM and HETATM records is deliberate)
+        if modres.has_key(resn):
+            # if so replace it with its canonical equivalent !
+            orig_resn = resn
+            resn = modres[resn]
+            line_edit = 'ATOM  '+line[6:17]+ resn + line[20:]
+
+            if orig_resn == "MSE":
+                # don't count MSE as modified residues for flagging purposes (because they're so common)
+                # Also, fix up the selenium atom naming
                 if (line_edit[12:14] == 'SE'):
                     line_edit = line_edit[0:12]+' S'+line_edit[14:]
                 if len(line_edit) > 75:
                     if (line_edit[76:78] == 'SE'):
                         line_edit = line_edit[0:76]+' S'+line_edit[78:]
+            else:
+                shit_stat_modres = True
 
-            if not ok:
-                continue  # skip this atom if we havnt found a conversion
+        # Only process residues we know are valid.
+        if not longer_names.has_key(resn):
+            continue
 
-        if line_edit[0:4] == 'ATOM':  # or line_edit[0:6] == 'HETATM':
+        resnum = line_edit[22:27]
 
-# if line_edit[13:14]=='P': #Nucleic acid? Skip.
-# resnum = line_edit[23:26]
-# oldresnum = resnum
-# while (resnum == oldresnum):
-# print "HERE"
-# i += 1
-# line = lines[i]
-# resnum = line_edit[23:26]
-
-            resnum = line_edit[22:27]
-
-            insres = line[26]
-            if insres != ' ':
-                shit_stat_insres = True
-
-            altpos = line[16]
-            if altpos != ' ':
-                shit_stat_altpos = True
-            # Is thresidue_letter
-            if not resnum == oldresnum:
-                if residue_buffer != []:  # is there a residue in the buffer ?
-                    if not residue_invalid:
-                        if not check_and_print_pdb(count, residue_buffer, residue_letter):
-                            # if unsuccessful
-                            shit_stat_misdns = True
-                        else:
-                            count = count + 1
-
-                residue_buffer = []
-                residue_letter = ""
-                residue_invalid = False
-
-                longname = line_edit[17:20]
-                if longer_names.has_key(longname):
-                    residue_letter = longer_names[longname]
+        # Is this a new residue
+        if not resnum == oldresnum:
+            if residue_buffer != []:  # is there a residue in the buffer ?
+                if not check_and_print_pdb(count, residue_buffer, residue_letter):
+                    # if unsuccessful
+                    shit_stat_misdns = True
                 else:
-                    residue_letter = 'X'
-                    residue_invalid = True
+                    count = count + 1
 
-            oldresnum = resnum
+            residue_buffer = []
+            residue_letter = longer_names[resn]
 
-            # What does this do ?
-            if line_edit[16:17] == 'A':
+        oldresnum = resnum
+
+        insres = line[26]
+        if insres != ' ':
+            shit_stat_insres = True
+
+        altpos = line[16]
+        if altpos != ' ':
+            shit_stat_altpos = True
+            if altpos == 'A':
                 line_edit = line_edit[:16]+' '+line_edit[17:]
-
-            if line_edit[16:17] != ' ':
+            else:
+                # Don't take the second and following alternate locations
                 continue
 
-            if removechain:
-                line_edit = line_edit[0:21]+' '+line_edit[22:]
+        if removechain:
+            line_edit = line_edit[0:21]+' '+line_edit[22:]
 
-            residue_buffer.append(line_edit)
+        residue_buffer.append(line_edit)
 
 
-if not check_and_print_pdb(count, residue_buffer, residue_letter):
-    # if unsuccessful
-    shit_stat_misdns = True
-else:
-    count = count + 1
-
+if residue_buffer != []: # is there a residue in the buffer ?
+    if not check_and_print_pdb(count, residue_buffer, residue_letter):
+        # if unsuccessful
+        shit_stat_misdns = True
+    else:
+        count = count + 1
 
 flag_altpos = "---"
 if shit_stat_altpos:

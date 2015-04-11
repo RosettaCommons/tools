@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-"written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis  from the Meiler Lab."
+"Written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
 
 # Function of this script: "clean" raw pdb file by following tasks so that rosetta modeling becomes easier
 
@@ -32,7 +32,7 @@ pdbfile = ""
 def download_pdb(pdb_id, dest_dir):
     # print "downloading %s" % ( pdb_id )
     url = 'http://www.rcsb.org/pdb/files/%s.pdb.gz' % (pdb_id.upper())
-    dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id.lower())
+    dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id)
     wget_cmd = 'wget --quiet %s -O %s' % (url, dest)
     print wget_cmd
     if remote_host:
@@ -82,6 +82,61 @@ def check_and_print_pdb(count, residue_buffer, residue_letter):
         return True
     return False
 
+def get_pdb_filename( name ):
+    '''Tries various things to get the filename to use.
+    Returns None if no acceptable file exists.'''
+    if( os.path.exists( name ) ):
+        return name
+    if( os.path.exists( name + '.pdb' ) ):
+        return name + '.pdb'
+    if( os.path.exists( name + '.pdb.gz' ) ):
+        return name + '.pdb.gz'
+    if( os.path.exists( name + '.pdb1.gz' ) ):
+        return name + '.pdb1.gz'
+    name = name.upper()
+    if( os.path.exists( name ) ):
+        return name
+    if( os.path.exists( name + '.pdb' ) ):
+        return name + '.pdb'
+    if( os.path.exists( name + '.pdb.gz' ) ):
+        return name + '.pdb.gz'
+    if( os.path.exists( name + '.pdb1.gz' ) ):
+        return name + '.pdb1.gz'
+    # No acceptable file found
+    return None
+
+
+def open_pdb( name ):
+    '''Open the PDB given in the filename (or equivalent).
+    If the file is not found, then try downloading it from the internet.
+
+    Returns: (lines, filename_stem)
+    '''
+    filename = get_pdb_filename( name )
+    if filename is not None:
+        print "Found existing PDB file at", filename
+    else:
+        print "File for %s doesn't exist, downloading from internet." % (name)
+        filename = download_pdb(name[0:4].upper(), '.')
+        global files_to_unlink
+        files_to_unlink.append(filename)
+
+    stem = os.path.basename(filename)
+    if stem[-3:] == '.gz':
+        stem = stem[:-3]
+    if stem[-5:] == '.pdb1':
+        stem = stem[:-5]
+    if stem[-4:] == '.pdb':
+        stem = stem[:-4]
+
+    if filename[-3:] == '.gz':
+        lines = popen('zcat '+filename, 'r').readlines()
+    else:
+        lines = open(filename, 'r').readlines()
+
+    return lines, stem
+
+
 
 def print_help():
     print "clean_pdb.py <pdb> <chain id>"
@@ -94,30 +149,23 @@ def print_help():
     print "chain id = nochain. Removes chain identity from output"
     print "chain id = ignorechain. Gets all the chains for pdb"
     print "\n",
-    print "written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
+    print "Written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
     sys.exit()
-
 
 if argv.count('-h'):
     print_help()
+    exit()
+
 files_to_unlink = []
 try:
     assert(len(argv) > 2)
 except AssertionError:
     print_help()
 
-pdbname = argv[1].upper()
-
 if argv[2].strip() != "ignorechain" and argv[2].strip() != "nochain":
     chainid = argv[2].upper()
 else:
     chainid = argv[2]
-
-if (pdbname[-4:] != '.pdb' and pdbname[-8:] != '.pdb1.gz'):
-    pdbname += '.pdb'
-
-# outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
-outfile = pdbname[0:-4] + "_" + chainid + ".pdb"
 
 nopdbout = 0
 if argv.count('nopdbout'):
@@ -131,25 +179,10 @@ ignorechain = 0
 if argv.count('ignorechain'):
     ignorechain = 1
 
-netpdbname = pdbname
-if not exists(netpdbname):
-    netpdbname = pdbname
+lines, filename_stem = open_pdb( argv[1] )
 
-fixed_pdb = pdbname
-print "Looking for: ", fixed_pdb
-if os.path.isfile(fixed_pdb):
-    print "Found preoptimised or otherwise fixed PDB file. "
-    netpdbname = fixed_pdb
-else:
-    print "File %s doesn't exist, downloading from internet." % (netpdbname)
-    netpdbname = download_pdb(pdbname[0:4], '.')
-    files_to_unlink.append(netpdbname)
-
-if netpdbname[-3:] == '.gz':
-    lines = popen('zcat '+netpdbname, 'r').readlines()
-else:
-    lines = open(netpdbname, 'r').readlines()
-
+# outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
+outfile = filename_stem + "_" + chainid + ".pdb"
 
 oldresnum = '   '
 count = 1
@@ -168,7 +201,7 @@ for i in range(len(lines)):
 
     if len(line) > 5 and line[:6] == 'ENDMDL': break  # Its an NMR model.
     chainid = [i for i in chainid]
-    if (line[21] in chainid or ignorechain or removechain):
+    if ignorechain or removechain or (len(line) < 21) or (line[21] in chainid):
         line_edit = line
         if line[0:3] == 'TER':
             continue
@@ -279,7 +312,7 @@ if nres <= 0:
     flag_successful = "BAD"
 
 
-print netpdbname, pdbname, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
+print filename_stem, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
 
 
 if chainid == ' ':
@@ -296,21 +329,21 @@ if nres > 0:
     fastaid = stdout
     if argv[2] != "ignorechain" and argv[2] != "nochain":
         for chain in fastaseq:
-            fastaid.write('>'+pdbname[0:4]+"_"+chain+'\n')
+            fastaid.write('>'+filename_stem+"_"+chain+'\n')
             fastaid.write(fastaseq[chain])
             fastaid.write('\n')
-            handle = open(pdbname[0:4]+"_"+"".join(chain) + ".fasta", 'w')
-            handle.write('>'+pdbname[0:4]+"_"+"".join(chain)+'\n')
+            handle = open(filename_stem+"_"+"".join(chain) + ".fasta", 'w')
+            handle.write('>'+filename_stem+"_"+"".join(chain)+'\n')
             handle.write(fastaseq[chain])
             handle.write('\n')
             handle.close()
     else:
         fastaseq = ["".join(fastaseq.values())]
-        fastaid.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
+        fastaid.write('>'+filename_stem+"_"+argv[2]+'\n')
         fastaid.writelines(fastaseq)
         fastaid.write('\n')
-        handle = open(pdbname[0:4]+"_"+argv[2] + ".fasta", 'w')
-        handle.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
+        handle = open(filename_stem+"_"+argv[2] + ".fasta", 'w')
+        handle.write('>'+filename_stem+"_"+argv[2]+'\n')
         handle.writelines(fastaseq)
         handle.write('\n')
         handle.close()

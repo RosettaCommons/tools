@@ -237,7 +237,7 @@ common_args=""
 common_args_file = parse_options(argv, "common_args", "")
 if(common_args_file != ""):
 	print "common_args_file= ", common_args_file
-	common_args=open( common_args_file  ).readlines()[0][:-1]
+	common_args=open( common_args_file  ).xreadlines()[0].strip()
 
 	
 print common_args

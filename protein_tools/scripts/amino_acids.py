@@ -268,6 +268,7 @@ modres={
 'CYQ':'CYS',                    ##  CYQ CYS
 'CYR':'CYS',                    ##  CYR CYS
 'CYS':'CYS',                    ##  CYS CYS
+'CYX':'CYS',                    ##  CYX CYS  Not an official code, but used by some programs as disulfide residues
 'CZ2':'CYS',                    ##  CZ2 CYS  S-(DIHYDROXYARSINO)CYSTEINE
 'CZZ':'CYS',                    ##  CZZ CYS  THIARSAHYDROXY-CYSTEINE
 'DA2':'ARG',                    ##  DA2 ARG  MODIFIED ARGININE

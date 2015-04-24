@@ -236,6 +236,7 @@ class HeavyCodeReader( CodeReader ) :
       self.function_name = ""
       self.function_is_explicitly_virtual = False
       self.function_args = []
+      self.function_arg_names = []
       self.function_return_type = ""
       self.function_body_present = False
       self.vartype = ""
@@ -390,6 +391,7 @@ class HeavyCodeReader( CodeReader ) :
          self.function_name = ""
          self.function_is_explicitly_virtual = False
          self.function_args = []
+         self.function_arg_names = []
          self.function_return_type = ""
          self.function_body_present = False
          self.vartype = ""
@@ -667,16 +669,19 @@ class HeavyCodeReader( CodeReader ) :
                count = ind_of_lparen
                start = ind_of_lparen + 1
                self.function_args = []
+               self.function_arg_names = []
                while count < len( toks ) -1 : 
                   count += 1
                   if toks[ count ] == "," :
                      paramtype, paramname = self.interpret_toks_as_funcparam( toks[ start : count ] )
                      if paramtype :
                         self.function_args.append( paramtype )
+                        self.function_arg_names.append( paramname )
                      start = count + 1
                paramtype, paramname = self.interpret_toks_as_funcparam( toks[ start : count ] )
                if paramtype :
                   self.function_args.append( paramtype )
+                  self.function_arg_names.append( paramname )
                self.statement_string = ""
             elif self.enum_pattern.match( self.statement_string ) :
                # don't read enums listed in classes -- clear out the statement string.  I don't know if this will work for multi-line enums

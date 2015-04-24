@@ -212,9 +212,9 @@ if '__main__' == __name__:
     option_parser_class = optparse.OptionParser
     parser = option_parser_class( usage = usage, version='0.1' )
 
-    parser.add_option("-p", "--pitch", dest="pitch", default = None,
+    parser.add_option("-p", "--rise", dest="pitch", default = None,
                       type = 'float',
-                      help="Helical pitch [OBLIGATORY]")
+                      help="Helical rise [OBLIGATORY]")
     parser.add_option("-u", "--unit", dest="unit", default =None,
                       type = 'float',
                       help="Unit rise, subunit axial transition")

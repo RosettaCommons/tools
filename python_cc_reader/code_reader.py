@@ -170,6 +170,7 @@ class CodeReader :
             print "#define directive should be followed by a macro variable name"
             sys.exit(1)
          self.defined_macros.append( toks[ 1 ] )
+
    def stringless_line( self ) :
       #take the commentless line and remove all string and character literals
       newline = ""
@@ -216,7 +217,7 @@ class CodeReader :
          sys.exit(1)
 
    # read the contents of the line, removing any comments
-   # and then determine the visibility of 
+   # and then determine the visibility of the line
    def examine_line( self, line ) :
       self.line_num_stack[ -1 ] += 1
       self.commentless_line = self.decomment_line( line )
@@ -225,7 +226,8 @@ class CodeReader :
       if ( self.line_is_visible() ) :
          self.count_nesting()
 
-
+# This class is designed to keep track of class and function declarations as a header
+# file is being read.
 class HeavyCodeReader( CodeReader ) :
    def __init__( self ) :
       CodeReader.__init__( self )

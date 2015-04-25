@@ -1,11 +1,25 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+''' This script cleans PDBs for Rosetta by removing extraneous information, converting residues names and renumbering.
 
-"written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis  from the Meiler Lab."
+It outputs both the cleaned PDB and a fasta file of the cleaned sequence.
+
+Required parameters are the name of the PDB you want to clean, and the chain ids of the chains you want.
+
+The PDB name may be specified with or without the .pdb file handle and may be provided as a gziped file.
+If the PDB isn't found locally, the given 4 letter code will be fetched from the internet.
+
+Chain id: only the specified chains will be extracted. You may specify more than one: "AB" gets you chain A and B,
+and "C" gets you just chain C. Special notations are "nochain" to remove chain identiry from the output, and "ignorechain"
+to get all the chains.
+
+(Script written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca, Jordan Willis and Rocco Moretti from the Meiler Lab.)
+'''
 
 # Function of this script: "clean" raw pdb file by following tasks so that rosetta modeling becomes easier
 
 ## starts residue number at 1
-## leaves lines only those start with 'ATOM' or 'TER' (removes HETATM if a residue is not MSE)
+## translates certain residues to their cannonical amino acid equivalents
+## removes unknown residues
 ## removes residues with 0 occupancy
 ## generates a fasta file
 ## and leaves the 1st model among many NMR models
@@ -15,8 +29,13 @@ import os
 from sys import argv, stderr, stdout
 from os import popen, system
 from os.path import exists, basename
+from optparse import OptionParser
+
+# Local package imports
+
 from amino_acids import longer_names
 from amino_acids import modres
+
 # remote host for downloading pdbs
 remote_host = ''
 
@@ -32,7 +51,7 @@ pdbfile = ""
 def download_pdb(pdb_id, dest_dir):
     # print "downloading %s" % ( pdb_id )
     url = 'http://www.rcsb.org/pdb/files/%s.pdb.gz' % (pdb_id.upper())
-    dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id.lower())
+    dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id)
     wget_cmd = 'wget --quiet %s -O %s' % (url, dest)
     print wget_cmd
     if remote_host:
@@ -82,182 +101,188 @@ def check_and_print_pdb(count, residue_buffer, residue_letter):
         return True
     return False
 
+def get_pdb_filename( name ):
+    '''Tries various things to get the filename to use.
+    Returns None if no acceptable file exists.'''
+    if( os.path.exists( name ) ):
+        return name
+    if( os.path.exists( name + '.pdb' ) ):
+        return name + '.pdb'
+    if( os.path.exists( name + '.pdb.gz' ) ):
+        return name + '.pdb.gz'
+    if( os.path.exists( name + '.pdb1.gz' ) ):
+        return name + '.pdb1.gz'
+    name = name.upper()
+    if( os.path.exists( name ) ):
+        return name
+    if( os.path.exists( name + '.pdb' ) ):
+        return name + '.pdb'
+    if( os.path.exists( name + '.pdb.gz' ) ):
+        return name + '.pdb.gz'
+    if( os.path.exists( name + '.pdb1.gz' ) ):
+        return name + '.pdb1.gz'
+    # No acceptable file found
+    return None
 
-def print_help():
-    print "clean_pdb.py <pdb> <chain id>"
 
-    print "pdb = file name of the file. Can be with or without the .pdb file handle"
-    print "chain id = The chain id you are interested in. If more than one chain, "
-    print "you can pass the chain id without spaces. For example \"AB\" gets you"
-    print "chain A and B. \"A\" gets you chain A."
-    print "\n",
-    print "chain id = nochain. Removes chain identity from output"
-    print "chain id = ignorechain. Gets all the chains for pdb"
-    print "\n",
-    print "written by Phil Bradley, Rhiju Das, Michael Tyka, TJ Brunette, and James Thompson from the Baker Lab. Edits done by Steven Combs, Sam Deluca and Jordan Willis from the Meiler Lab."
-    sys.exit()
+def open_pdb( name ):
+    '''Open the PDB given in the filename (or equivalent).
+    If the file is not found, then try downloading it from the internet.
 
+    Returns: (lines, filename_stem)
+    '''
+    filename = get_pdb_filename( name )
+    if filename is not None:
+        print "Found existing PDB file at", filename
+    else:
+        print "File for %s doesn't exist, downloading from internet." % (name)
+        filename = download_pdb(name[0:4].upper(), '.')
+        global files_to_unlink
+        files_to_unlink.append(filename)
 
-if argv.count('-h'):
-    print_help()
+    stem = os.path.basename(filename)
+    if stem[-3:] == '.gz':
+        stem = stem[:-3]
+    if stem[-5:] == '.pdb1':
+        stem = stem[:-5]
+    if stem[-4:] == '.pdb':
+        stem = stem[:-4]
+
+    if filename[-3:] == '.gz':
+        lines = popen('zcat '+filename, 'r').readlines()
+    else:
+        lines = open(filename, 'r').readlines()
+
+    return lines, stem
+
+#############################################
+# Program Start
+#############################################
+
+parser = OptionParser(usage="%prog [options] <pdb> <chain id>",
+        description=__doc__)
+parser.add_option("--nopdbout", action="store_true",
+        help="Don't output a PDB.")
+parser.add_option("--allchains", action="store_true",
+        help="Use all the chains from the input PDB.")
+parser.add_option("--removechain", action="store_true",
+        help="Remove chain information from output PDB.")
+parser.add_option("--keepzeroocc", action="store_true",
+        help="Keep zero occupancy atoms in output.")
+
+options, args = parser.parse_args()
+
+if 'nopdbout' in args:
+    options.nopdbout = True
+    args.remove('nopdbout')
+
+if 'ignorechain' in args:
+    options.allchains = True
+    #Don't remove, because we're also using it as a chain designator
+
+if 'nochain' in args:
+    options.removechain = True
+    options.allchains = True
+    #Don't remove, because we're also using it as a chain designator
+
+if len(args) != 2:
+    parse.error("Must specify both the pdb and the chain id")
+
 files_to_unlink = []
-try:
-    assert(len(argv) > 2)
-except AssertionError:
-    print_help()
 
-pdbname = argv[1].upper()
-
-if argv[2].strip() != "ignorechain" and argv[2].strip() != "nochain":
-    chainid = argv[2].upper()
+if args[1].strip() != "ignorechain" and args[1].strip() != "nochain":
+    chainid = args[1].upper()
 else:
-    chainid = argv[2]
+    chainid = args[1]
 
-if (pdbname[-4:] != '.pdb' and pdbname[-8:] != '.pdb1.gz'):
-    pdbname += '.pdb'
-
-# outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
-outfile = pdbname[0:-4] + "_" + chainid + ".pdb"
-
-nopdbout = 0
-if argv.count('nopdbout'):
-    nopdbout = 1
-
-removechain = 0
-if argv.count('nochain'):
-    removechain = 1
-
-ignorechain = 0
-if argv.count('ignorechain'):
-    ignorechain = 1
-
-netpdbname = pdbname
-if not exists(netpdbname):
-    netpdbname = pdbname
-
-fixed_pdb = pdbname
-print "Looking for: ", fixed_pdb
-if os.path.isfile(fixed_pdb):
-    print "Found preoptimised or otherwise fixed PDB file. "
-    netpdbname = fixed_pdb
-else:
-    print "File %s doesn't exist, downloading from internet." % (netpdbname)
-    netpdbname = download_pdb(pdbname[0:4], '.')
-    files_to_unlink.append(netpdbname)
-
-if netpdbname[-3:] == '.gz':
-    lines = popen('zcat '+netpdbname, 'r').readlines()
-else:
-    lines = open(netpdbname, 'r').readlines()
-
+lines, filename_stem = open_pdb( args[0] )
 
 oldresnum = '   '
 count = 1
-modifiedres = ''
-
 
 residue_buffer = []
 residue_letter = ''
-residue_invalid = False
 
 if chainid == '_':
     chainid = ' '
 
-for i in range(len(lines)):
-    line = lines[i]
+for line in lines:
 
-    if len(line) > 5 and line[:6] == 'ENDMDL': break  # Its an NMR model.
-    chainid = [i for i in chainid]
-    if (line[21] in chainid or ignorechain or removechain):
-        line_edit = line
-        if line[0:3] == 'TER':
+    if line.startswith('ENDMDL'): break  # Only take the first NMR model
+    if len(line) > 21 and ( line[21] in chainid or options.allchains):
+        if line[0:4] != "ATOM" and line[0:6] != 'HETATM':
             continue
-        elif (line[0:6] == 'HETATM'):
-            ok = False
 
-            # Is it a modified residue ?
-            if modres.has_key(line[17:20]):
-              # if so replace it with its canonical equivalent !
-                line_edit = 'ATOM  '+line[6:17]+modres[line[17:20]] + line[20:]
-                modifiedres = modifiedres + line[17:20] + ',  '
-                # dont count MSEs as modiied residues (cos they're so common and get_pdb deal with them previosuly)
-                if line[17:20] != "MSE":
-                    shit_stat_modres = True
-                ok = True
+        line_edit = line
+        resn = line[17:20]
 
-            # other substitution (of atoms mainly)
-            if (line[17:20] == 'MSE'):  # Selenomethionine
+        # Is it a modified residue ?
+        # (Looking for modified residues in both ATOM and HETATM records is deliberate)
+        if modres.has_key(resn):
+            # if so replace it with its canonical equivalent !
+            orig_resn = resn
+            resn = modres[resn]
+            line_edit = 'ATOM  '+line[6:17]+ resn + line[20:]
+
+            if orig_resn == "MSE":
+                # don't count MSE as modified residues for flagging purposes (because they're so common)
+                # Also, fix up the selenium atom naming
                 if (line_edit[12:14] == 'SE'):
                     line_edit = line_edit[0:12]+' S'+line_edit[14:]
                 if len(line_edit) > 75:
                     if (line_edit[76:78] == 'SE'):
                         line_edit = line_edit[0:76]+' S'+line_edit[78:]
+            else:
+                shit_stat_modres = True
 
-            if not ok:
-                continue  # skip this atom if we havnt found a conversion
+        # Only process residues we know are valid.
+        if not longer_names.has_key(resn):
+            continue
 
-        if line_edit[0:4] == 'ATOM':  # or line_edit[0:6] == 'HETATM':
+        resnum = line_edit[22:27]
 
-# if line_edit[13:14]=='P': #Nucleic acid? Skip.
-# resnum = line_edit[23:26]
-# oldresnum = resnum
-# while (resnum == oldresnum):
-# print "HERE"
-# i += 1
-# line = lines[i]
-# resnum = line_edit[23:26]
-
-            resnum = line_edit[22:27]
-
-            insres = line[26]
-            if insres != ' ':
-                shit_stat_insres = True
-
-            altpos = line[16]
-            if altpos != ' ':
-                shit_stat_altpos = True
-            # Is thresidue_letter
-            if not resnum == oldresnum:
-                if residue_buffer != []:  # is there a residue in the buffer ?
-                    if not residue_invalid:
-                        if not check_and_print_pdb(count, residue_buffer, residue_letter):
-                            # if unsuccessful
-                            shit_stat_misdns = True
-                        else:
-                            count = count + 1
-
-                residue_buffer = []
-                residue_letter = ""
-                residue_invalid = False
-
-                longname = line_edit[17:20]
-                if longer_names.has_key(longname):
-                    residue_letter = longer_names[longname]
+        # Is this a new residue
+        if not resnum == oldresnum:
+            if residue_buffer != []:  # is there a residue in the buffer ?
+                if not check_and_print_pdb(count, residue_buffer, residue_letter):
+                    # if unsuccessful
+                    shit_stat_misdns = True
                 else:
-                    residue_letter = 'X'
-                    residue_invalid = True
+                    count = count + 1
 
-            oldresnum = resnum
+            residue_buffer = []
+            residue_letter = longer_names[resn]
 
-            # What does this do ?
-            if line_edit[16:17] == 'A':
+        oldresnum = resnum
+
+        insres = line[26]
+        if insres != ' ':
+            shit_stat_insres = True
+
+        altpos = line[16]
+        if altpos != ' ':
+            shit_stat_altpos = True
+            if altpos == 'A':
                 line_edit = line_edit[:16]+' '+line_edit[17:]
-
-            if line_edit[16:17] != ' ':
+            else:
+                # Don't take the second and following alternate locations
                 continue
 
-            if removechain:
-                line_edit = line_edit[0:21]+' '+line_edit[22:]
+        if options.removechain:
+            line_edit = line_edit[:21]+' '+line_edit[22:]
 
-            residue_buffer.append(line_edit)
+        if options.keepzeroocc:
+            line_edit = line_edit[:55] +" 1.00"+ line_edit[60:]
+
+        residue_buffer.append(line_edit)
 
 
-if not check_and_print_pdb(count, residue_buffer, residue_letter):
-    # if unsuccessful
-    shit_stat_misdns = True
-else:
-    count = count + 1
-
+if residue_buffer != []: # is there a residue in the buffer ?
+    if not check_and_print_pdb(count, residue_buffer, residue_letter):
+        # if unsuccessful
+        shit_stat_misdns = True
+    else:
+        count = count + 1
 
 flag_altpos = "---"
 if shit_stat_altpos:
@@ -278,39 +303,39 @@ flag_successful = "OK"
 if nres <= 0:
     flag_successful = "BAD"
 
-
-print netpdbname, pdbname, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
-
-
 if chainid == ' ':
     chainid = '_'
+
+print filename_stem, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
+
 if nres > 0:
-    if (nopdbout == 0):
-        # outfile = string.lower( basename(outfile) )
-        outfile = outfile.replace('.pdb1.gz', '.pdb')
+    if not options.nopdbout:
+        # outfile = string.lower(pdbname[0:4]) + chainid + pdbname[4:]
+        outfile = filename_stem + "_" + chainid + ".pdb"
+
         outid = open(outfile, 'w')
         outid.write(pdbfile)
         outid.write("TER\n")
         outid.close()
 
     fastaid = stdout
-    if argv[2] != "ignorechain" and argv[2] != "nochain":
+    if not options.allchains:
         for chain in fastaseq:
-            fastaid.write('>'+pdbname[0:4]+"_"+chain+'\n')
+            fastaid.write('>'+filename_stem+"_"+chain+'\n')
             fastaid.write(fastaseq[chain])
             fastaid.write('\n')
-            handle = open(pdbname[0:4]+"_"+"".join(chain) + ".fasta", 'w')
-            handle.write('>'+pdbname[0:4]+"_"+"".join(chain)+'\n')
+            handle = open(filename_stem+"_"+"".join(chain) + ".fasta", 'w')
+            handle.write('>'+filename_stem+"_"+"".join(chain)+'\n')
             handle.write(fastaseq[chain])
             handle.write('\n')
             handle.close()
     else:
         fastaseq = ["".join(fastaseq.values())]
-        fastaid.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
+        fastaid.write('>'+filename_stem+"_"+chainid+'\n')
         fastaid.writelines(fastaseq)
         fastaid.write('\n')
-        handle = open(pdbname[0:4]+"_"+argv[2] + ".fasta", 'w')
-        handle.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
+        handle = open(filename_stem+"_"+chainid + ".fasta", 'w')
+        handle.write('>'+filename_stem+"_"+chainid+'\n')
         handle.writelines(fastaseq)
         handle.write('\n')
         handle.close()

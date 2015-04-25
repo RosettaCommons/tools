@@ -110,8 +110,8 @@ def output_stems( stems, fixed_stems = False, input_res = None ):
     return outstring
 
 def get_all_stems( secstruct, chainbreak_pos = [], sequence_for_fasta='' ):
-    chainbreak_pos = []
-    sequence_for_fasta = ''
+    #chainbreak_pos = []
+    #sequence_for_fasta = ''
     stems = []
     for stem in get_stems( secstruct, chainbreak_pos, '(', ')', sequence_for_fasta ): stems.append( stem )
     for stem in get_stems( secstruct, chainbreak_pos, '[', ']', sequence_for_fasta ): stems.append( stem )
@@ -138,7 +138,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             pair_map[ res2 ] = res1
             all_pairs.append( [res1,res2] )
             if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
-                raise ValidationError( "Not complementary at positions %d and %d!"  % (res1, res2) )
+                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
@@ -251,7 +251,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 
 # accepts a pdb file name, returns a string with pdb entries -- or None if there is an error.
-def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False ):
+def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False, removeions = False, old_rna = False ):
 
     #fastaid = stderr
     num_model = 0
@@ -271,8 +271,12 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if chainids[i] == '_':
             chainids[i] = ' '
 
-    goodnames = ['  A','  C','  G','  U',' MG', ' IC',' IG']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG'  }
+    goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
+    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG' }
+
+
+    if removeions:  goodnames.remove(' MG')
+
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
@@ -299,17 +303,12 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 continue;
 
             if line_edit[0:4] == 'ATOM':
-                resnum = line_edit[23:26]
+                if line_edit[22] == ' ': resnum = line_edit[23:26]
+                else:                    resnum = line_edit[22:26]
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == 'GTP':
                         longname = '  G'
-                    elif longname == '  A':
-                        longname =   '  A'
-                    elif longname == '  C':
-                        longname =   '  C'
-                    elif longname == '  U':
-                        longname =   '  U'
                     elif longname == 'G  ':
                         longname =   '  G'
                     elif longname == ' DG':
@@ -330,6 +329,16 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                         longname = '  U'
                     elif longname == 'URI':
                         longname = '  U'
+                    elif longname == ' rA':
+                        longname =   '  A'
+                    elif longname == ' rC':
+                        longname =   '  C'
+                    elif longname == ' rU':
+                        longname =   '  U'
+                    elif longname == ' rG':
+                        longname =   '  G'
+                    elif longname == '  I':
+                        longname =   '  G'
                     else:
                         if longname not in goodnames:    continue
 
@@ -363,6 +372,13 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = line_edit.replace('*', "'")
                 line_edit = line_edit.replace('O1P', 'OP1')
                 line_edit = line_edit.replace('O2P', 'OP2')
+
+
+                if old_rna:
+                    line_edit = line_edit.replace('  A', ' rA')
+                    line_edit = line_edit.replace('  C', ' rC')
+                    line_edit = line_edit.replace('  G', ' rG')
+                    line_edit = line_edit.replace('  U', ' rU')
 
                 outstring += line_edit
 

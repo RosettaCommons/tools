@@ -150,5 +150,9 @@ AST_MATCHER(Type, sugaredNullptrType) {
 	return false;
 }
 
+AST_MATCHER(QualType, isReal) {
+	return Node->isRealFloatingType();
+}
+
 } // end namespace ast_matchers
 } // end namespace clang

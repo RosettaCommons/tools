@@ -1,0 +1,88 @@
+This folder provides Python scripts for analyzing the RECCES data.
+
+util.py contains utility functions for analyzing the data.
+data.py contains high-level classes for reweighting and minimizing
+the loss function.
+
+The APIs of the functions and classes have been documented in
+Python docstrings.
+
+Examples
+--------
+
+1. Preparing input data
+
+The input data need to be first generated using the "recces_turner" Rosetta
+app. All output files for each sequence should be stored into a folder named by
+the sequence. For example, outputs for "AAA-UUU" should be put into a folder
+named "aaa_uuu" (using "_" to join sequences of different strands). A typical
+folder structure looks like follows:
+
+results/
+results/aaa
+results/aaa_uuu
+results/gc_cgc
+......
+
+To perform reweighting, you need to use the "-save_score_terms" option in
+"recces_turner" app, to store all the score term contributions for all
+sampled conformations. By default "recces_turner" app only outputs the score
+histogram, which can be used to compute delta-G but not for reweighting.
+
+2. Loading data
+
+First import the recces python scripts:
+
+>>> from recces.data import *
+
+To load the data for a single sequence:
+
+>>> single_sim = SingleSimulation("results/aaa")
+
+Or we may load all sequences into memory:
+
+>>> sim_dict = load_raw_simulations("results/", down_sampling_ratio=0.01)
+
+Here in above I down-sampled the data, using only 1% of the data for
+each sequence. This is neccessary when the simulated data is too large for
+the memory.
+
+The above examples assume the data were generated using "-save_score_terms".
+The histogram data can be also loaded for analysis:
+
+>>> hist_sim = SingleHistSimulation("results/aaa")
+
+3. Delta-G computation and reweighting
+
+The delta-G can be easily computed with the data classes, for both
+full score terms data or histogram data:
+
+>>> dG = single_sim.value
+>>> dG = hist_sim.value
+
+Reweighting is possible with the full data:
+
+>>> new_weight = [2 for _ in xrange(N_SCORE_TERMS)]
+>>> single_sim.reweight(new_weight)
+>>> dG_rewt = single_sim.value
+
+4. Weight minimization
+
+We may minimize the weights to obtain the best weight that fits Turner's
+nearesr-neighbor parameters:
+
+>>> start_wt = [1, 1, 0.01, 1, 5, 5, 1, 1, 1, 1]
+>>> turner_min = TurnerRuleMinimizeFunc(sim_dict)
+
+>>> def min_func(wt, turner_min):
+>>>     turner_min.reweight(wt)
+>>>     return turner_min.value, turner_min.deriv
+
+>>> from scipy.optimize import minimize
+>>> result = minimize(min_func, x0=start_wt, method="TNC", jac=True)
+>>> min_wt = result.x
+
+The above shows a simplified examples. We recommend trying different
+initial weights (x0) during the minimization to get different local minima
+(target function is not convexed). Also we constrain the minimization to be
+within certain ranges using the "bound" option in scipy.optimize.minimize.

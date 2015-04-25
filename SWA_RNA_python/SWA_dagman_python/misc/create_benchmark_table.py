@@ -14,7 +14,7 @@ import copy
 
 from create_benchmark_table_util import *
 
-from SWA_dagman_python.SWA_cat_outfiles import concatenate_outfiles
+from SWA_dagman_python.misc.SWA_cat_outfiles import concatenate_outfiles
 
 from SWA_dagman_python.utility.SWA_util import *
 

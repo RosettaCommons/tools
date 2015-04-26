@@ -51,14 +51,19 @@ def main(args):
 
     parser.add_option('-L','--light-chain',
         action="store",
-        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
+        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, optional FASTA headers.",
     )
 
     parser.add_option('-H','--heavy-chain',
         action="store",
-        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
+        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, optional FASTA headers.",
     )
 
+    parser.add_option('-B','--both-chains',
+      action="store",
+      help="Specify single FASTA-formatted file with both the light and the heavy chain. If the heavy chain is not longer than the light chain, then use the direct assignment with -H and -L.",
+    )
+ 
     parser.add_option('--prefix',
       action="store", default='grafting/',
       help="Prefix for output files (directory name). Default is grafting/.",
@@ -251,15 +256,27 @@ def main(args):
 
     if Options.self_test: self_test();  return
 
-    if not(options.light_chain and options.heavy_chain):
+    if not((options.light_chain and options.heavy_chain) or options.both_chains):
         print 'Script for preparing detecting antibodys and preparing info for Rosetta protocol.'
-        print 'At miminum you need to specify options --light-chain and --heavy-chain.'
-        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
+        print 'At miminum you need to specify options --light-chain and --heavy-chain, or --both-chains, alternatively.'
+        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specified... exiting...'
         sys.exit(1)
 
     #read fasta files
-    light_chain = read_fasta_file(options.light_chain)
-    heavy_chain = read_fasta_file(options.heavy_chain)
+    if options.both_chains:
+        both = read_fasta_file(options.both_chains)
+        if (len(both)!=2):
+            print 'Error: Expected 2 FASTA entries, read %d in %s.' % (len(both),options.both_chains)
+            sys.exit(1)
+        if len(both[0])<len(both[1]):
+            light_chain=both[0]
+            heavy_chain=both[1]
+        else:
+            light_chain=both[1]
+            heavy_chain=both[0]
+    else:
+	light_chain = read_fasta_file(options.light_chain)[0]
+	heavy_chain = read_fasta_file(options.heavy_chain)[0]
 
     print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
 
@@ -373,7 +390,19 @@ def main(args):
 
 ########################################################
 def read_fasta_file(file_name):
-    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '') . upper()
+    seqArray=[]
+    seqArrayNames=[]
+    seq=""
+    for l in file(file_name):
+        if l.startswith('>'):
+            if not "" == seq:
+	        seqArray.append(seq) 
+		seq=""
+            seqArrayNames.append(l.rstrip())
+        else:
+            seq=seq+l.rstrip()
+    seqArray.append(seq)
+    return seqArray
 
 
 def write_fasta_file(file_name, data, prefix):
@@ -1344,8 +1373,8 @@ def self_test():
     for t in tests:
         test_dir = Options.self_test_dir+t+'/';  os.makedirs(test_dir)
         if Options.verbose: print 'Testing target: %s...' % t
-        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)
-        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)
+        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)[0]
+        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)[0]
         answers = json.load( file('test/%s/%s.json' % (t, t) ) )
         answers['numbering_L'] = file('test/%s/numbering_L.txt' % t).read()
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()

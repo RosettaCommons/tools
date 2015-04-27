@@ -397,49 +397,50 @@ def find_error_res(input_pdb) :
     Return a list of error resdiue in the given pdb file (RNA only).
     Use phenix.rna_validate.
     """
+
     check_path_exist(input_pdb)
     output = ""
     output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
 
-    error_types = ["Pucker", "Bond", "Angle", "Suite"]
-    current_error = 0
-    line = 0
-    error_res = [ [], [], [], [] ] #Pucker, Bond, Angle, Suite error_res
+    error_types = [
+        "Backbone bond lengths",
+        "Backbone bond angles",
+        "Sugar pucker",
+        "Backbone torsion suites",
+        # legacy names
+        "Bond",
+        "Angle",
+        "Pucker", 
+        "Suite"
+    ]
+    error_res = []
+    current_error = None
 
-    while current_error != 4 or line < len(output) - 1 :
-        if len( output[line] ) < 7 :
+    for line in output:
+        if any (error in line for error in error_types):
+            current_error = [error for error in error_types if error in line][0]
             continue
-        if error_types[current_error] in output[line] :
-            line += 2
-            while line < len(output) - 1 and len( output[line] ) > 7 :
-                res_string = output[line].split(':') [0]
-                res_string = res_string.replace(' ', '')
-                res = int( res_string[2:] )
-                if current_error == 3 :
-                    suitename = output[line].split(':') [1]
-                    suiteness = float( output[line].split(':') [2] )
-                    if suitename != '__' and suiteness < 0.1 :
-                        error_res[current_error].append( res )
-                else :
-                    error_res[current_error].append( res )
-                line += 1
-            current_error += 1
-        line += 1
+        if current_error is None:
+            continue        
+        if not line.startswith("   "):
+            continue
+        numeric_cols = [col for col in line.split() if col.isdigit()]
+        if not len(numeric_cols):
+            continue
+        res = int( numeric_cols[0] )
+        if "suite" in current_error.lower():
+            line = line.replace(":","  ")
+            suitename = line.split()[3]
+            suiteness = float( line.split()[4] )
+            if suitename == "__" or not suiteness < 0.1:
+                continue
+            if res > 1:
+                error_res.append( res - 1 )
+        error_res.append( res )
 
-    suite_res = []
-    for res in error_res[3] :
-        if res - 1 > 0 :
-           suite_res.append(res - 1)
-    error_res.append(suite_res)
-
-    error_res_final = []
-    for res_list in error_res :
-        for res in res_list :
-            if not res in error_res_final :
-                error_res_final.append(res)
-    error_res_final.sort()
+    error_res_final = list(set(sorted(error_res)))
     return error_res_final
-#############################################
+##################################################### 
 def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
     """
     Extract fasta info from pdb.

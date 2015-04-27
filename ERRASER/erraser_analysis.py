@@ -41,14 +41,25 @@ suite2 = []
 
 current_entry = ''
 for line in open('start.rna_validate') :
-    if "Pucker" in line :
+    if "Pucker" in line or "Sugar pucker" in line:
         current_entry = 'pucker'
-    elif "Bond" in line :
+        continue
+    elif "Bond" in line or "Backbone bond lengths" in line:
         current_entry = 'bond'
-    elif "Angle" in line :
+        continue
+    elif "Angle" in line or "Backbone bond angles" in line:
         current_entry = 'angle'
-    elif "Suite" in line :
+        continue
+    elif "Suite" in line or "Backbone torsion suites" in line:
         current_entry = 'suite'
+        continue
+
+    # revert line to format prior to dev-1703, for now 
+    if line.startswith("   ") and ":" not in line:
+        cols = line.split()
+        if current_entry != 'suite':
+            cols.insert(0, cols.pop(2))
+        line = "   %s %s %3s :%s" % (cols[0],cols[1],cols[2],":".join(cols[3:]))
 
     if line[0] != '#' and ' :' in line :
         if current_entry == 'pucker' :
@@ -61,14 +72,25 @@ for line in open('start.rna_validate') :
             suite1.append( line.split(':') [0:2] )
 
 for line in open('ERRASER.rna_validate') :
-    if "Pucker" in line :
+    if "Pucker" in line or "Sugar pucker" in line:
         current_entry = 'pucker'
-    elif "Bond" in line :
+        continue
+    elif "Bond" in line or "Backbone bond lengths" in line:
         current_entry = 'bond'
-    elif "Angle" in line :
+        continue
+    elif "Angle" in line or "Backbone bond angles" in line:
         current_entry = 'angle'
-    elif "Suite" in line :
+        continue
+    elif "Suite" in line or "Backbone torsion suites" in line:
         current_entry = 'suite'
+        continue
+
+    # revert line to format prior to dev-1703, for now 
+    if line.startswith("   ") and ":" not in line:
+        cols = line.split()
+        if current_entry != 'suite':
+            cols.insert(0, cols.pop(2))
+        line = "   %s %s %3s :%s" % (cols[0],cols[1],cols[2],":".join(cols[3:]))
 
     if line[0] != '#' and ' :' in line :
         if current_entry == 'pucker' :

@@ -392,6 +392,14 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     os.chdir( base_dir )
     return True
 #####################################################
+def phenix_release_tag():
+    output = subprocess_out('phenix.version')
+    for line in output:
+        if 'Release tag:' in line:
+            return int( line.split()[-1] )
+    return None    
+
+#####################################################
 def phenix_rna_validate(input_pdb, options=""):
     """
     Parse output of phenix.rna_validate.
@@ -403,15 +411,29 @@ def phenix_rna_validate(input_pdb, options=""):
     output = filter(None, output)
 
     data_type = None
-    data_types = ["pucker", "bond length", "angle", "suite"]
+    data_types = ["pucker", "bond", "angle", "suite"]
     data = dict([(type, []) for type in data_types])
     
+    phenix_release = phenix_release_tag()
+    if phenix_release and phenix_release < 1703:
+        data_titles = [
+            "Pucker", 
+            "Bond Length",
+            "Angle",
+            "Suite"
+        ]
+    else:
+        data_titles = [
+            "Sugar pucker",
+            "Backbone bond lenths",
+            "Backbone bond angles",
+            "Backbone torsion suites"
+        ]
+
     for line_idx, line in enumerate(output):
-        line = line.replace("lenth", "length") # typo in phenix.rna_validate output
-        if any (type in line.lower() for type in data_types):
-            data_type = filter(line.lower().count, data_types)[0]
-            if line_idx+1 < len(output):
-                colnames = output.pop(line_idx+1)
+        if any (title in line for title in data_titles):
+            data_title = filter(line.count, data_titles)[0]
+            data_type = data_types[data_titles.index(data_title)]
             continue
         if data_type and line.startswith("   "):
             cols = line.strip().replace(':','  ').split()

@@ -30,13 +30,13 @@ for line in open('ERRASER.clash') :
 
 START_rna_validate_data = phenix_rna_validate(pdb1, options="outliers_only=False")
 pucker1 = START_rna_validate_data['pucker']
-bond1   = START_rna_validate_data['bond length']
+bond1   = START_rna_validate_data['bond']
 angle1  = START_rna_validate_data['angle']
 suite1  = START_rna_validate_data['suite']
 
 ERRASER_rna_validate_data = phenix_rna_validate(pdb2, options="outliers_only=False")
 pucker2 = ERRASER_rna_validate_data['pucker']
-bond2   = ERRASER_rna_validate_data['bond length']
+bond2   = ERRASER_rna_validate_data['bond']
 angle2  = ERRASER_rna_validate_data['angle']
 suite2  = ERRASER_rna_validate_data['suite']
 
@@ -155,7 +155,7 @@ for i in angle1 :
     res = '%4s%2s%4s ' % tuple(line_split[:3])
     atoms = line_split [3] + '-' + line_split[4] + '-' + line_split[5]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[5])
+    sigma = float(line_split[6])  
     temp.append( [res, atoms, sigma] )
 angle1 = temp[:]
 
@@ -165,7 +165,7 @@ for i in angle2 :
     res = '%4s%2s%4s ' % tuple(line_split[:3])
     atoms = line_split [3] + '-' + line_split[4] + '-' + line_split[5]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[5])
+    sigma = float(line_split[6])
     temp.append( [res, atoms, sigma] )
 angle2 = temp[:]
 

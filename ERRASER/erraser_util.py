@@ -392,55 +392,59 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     os.chdir( base_dir )
     return True
 #####################################################
+def phenix_rna_validate(input_pdb, options=""):
+    """
+    Parse output of phenix.rna_validate.
+    """
+    
+    check_path_exist(input_pdb)
+    command = "phenix.rna_validate %s %s" % (input_pdb, options)
+    output = subprocess_out(command)
+    output = filter(None, output)
+
+    data_type = None
+    data_types = ["pucker", "bond length", "angle", "suite"]
+    data = dict([(type, []) for type in data_types])
+    
+    for line_idx, line in enumerate(output):
+        line = line.replace("lenth", "length") # typo in phenix.rna_validate output
+        if any (type in line.lower() for type in data_types):
+            data_type = filter(line.lower().count, data_types)[0]
+            if line_idx+1 < len(output):
+                colnames = output.pop(line_idx+1)
+            continue
+        if data_type and line.startswith("   "):
+            cols = line.strip().replace(':','  ').split()
+            if cols[2].isalpha():
+                cols.insert(0, cols.pop(2))
+            data[data_type].append( cols )
+
+    return data   
+#####################################################
 def find_error_res(input_pdb) :
     """
     Return a list of error resdiue in the given pdb file (RNA only).
     Use phenix.rna_validate.
     """
-
-    check_path_exist(input_pdb)
-    output = ""
-    output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
-
-    error_types = [
-        "Backbone bond lengths",
-        "Backbone bond angles",
-        "Sugar pucker",
-        "Backbone torsion suites",
-        # legacy names
-        "Bond",
-        "Angle",
-        "Pucker", 
-        "Suite"
-    ]
+    
+    data = phenix_rna_validate(input_pdb, options="suite_outliers_only=False")
     error_res = []
-    current_error = None
-
-    for line in output:
-        if any (error in line for error in error_types):
-            current_error = [error for error in error_types if error in line][0]
-            continue
-        if current_error is None:
-            continue        
-        if not line.startswith("   "):
-            continue
-        numeric_cols = [col for col in line.split() if col.isdigit()]
-        if not len(numeric_cols):
-            continue
-        res = int( numeric_cols[0] )
-        if "suite" in current_error.lower():
-            line = line.replace(":","  ")
-            suitename = line.split()[3]
-            suiteness = float( line.split()[4] )
-            if suitename == "__" or not suiteness < 0.1:
-                continue
-            if res > 1:
-                error_res.append( res - 1 )
-        error_res.append( res )
-
-    error_res_final = list(set(sorted(error_res)))
-    return error_res_final
-##################################################### 
+    
+    for error_type, output in data.iteritems():
+        for cols in output:
+            res = int( cols[2] )
+            if "suite" in error_type:
+                suitename = cols[3]
+                suiteness = float( cols[4] )
+                if suitename == "__" or not suiteness < 0.1:
+                    continue
+                if res > 1:
+                    error_res.append( res - 1 )
+            error_res.append( res )
+    
+    error_res = list(set(sorted(error_res)))
+    return error_res
+#####################################################
 def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
     """
     Extract fasta info from pdb.

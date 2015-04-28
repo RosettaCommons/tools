@@ -13,9 +13,7 @@ from erraser_util import *
 pdb1 = abspath( sys.argv[1] )
 pdb2 = abspath( sys.argv[2] )
 
-subprocess_call( 'phenix.rna_validate outliers_only=False %s > start.rna_validate' % pdb1 )
 subprocess_call( 'phenix.clashscore %s > start.clash' % pdb1 )
-subprocess_call( 'phenix.rna_validate outliers_only=False %s > ERRASER.rna_validate' % pdb2 )
 subprocess_call( 'phenix.clashscore %s > ERRASER.clash' % pdb2 )
 
 clash1 = 0
@@ -30,86 +28,20 @@ for line in open('ERRASER.clash') :
         clash2 = float( line.split() [-1] )
         break
 
-bond1 = []
-bond2 = []
-angle1 = []
-angle2 = []
-pucker1 = []
-pucker2 = []
-suite1 = []
-suite2 = []
+START_rna_validate_data = phenix_rna_validate(pdb1, options="outliers_only=False")
+pucker1 = START_rna_validate_data['pucker']
+bond1   = START_rna_validate_data['bond length']
+angle1  = START_rna_validate_data['angle']
+suite1  = START_rna_validate_data['suite']
 
-current_entry = ''
-for line in open('start.rna_validate') :
-    if "Pucker" in line or "Sugar pucker" in line:
-        current_entry = 'pucker'
-        continue
-    elif "Bond" in line or "Backbone bond lengths" in line:
-        current_entry = 'bond'
-        continue
-    elif "Angle" in line or "Backbone bond angles" in line:
-        current_entry = 'angle'
-        continue
-    elif "Suite" in line or "Backbone torsion suites" in line:
-        current_entry = 'suite'
-        continue
+ERRASER_rna_validate_data = phenix_rna_validate(pdb2, options="outliers_only=False")
+pucker2 = ERRASER_rna_validate_data['pucker']
+bond2   = ERRASER_rna_validate_data['bond length']
+angle2  = ERRASER_rna_validate_data['angle']
+suite2  = ERRASER_rna_validate_data['suite']
 
-    # revert line to format prior to dev-1703, for now 
-    if line.startswith("   ") and ":" not in line:
-        cols = line.split()
-        if current_entry != 'suite':
-            cols.insert(0, cols.pop(2))
-        line = "   %s %s %3s :%s" % (cols[0],cols[1],cols[2],":".join(cols[3:]))
-
-    if line[0] != '#' and ' :' in line :
-        if current_entry == 'pucker' :
-            pucker1.append( line )
-        elif current_entry == 'bond' :
-            bond1.append( line )
-        elif current_entry == 'angle' :
-            angle1.append( line )
-        elif current_entry == 'suite' :
-            suite1.append( line.split(':') [0:2] )
-
-for line in open('ERRASER.rna_validate') :
-    if "Pucker" in line or "Sugar pucker" in line:
-        current_entry = 'pucker'
-        continue
-    elif "Bond" in line or "Backbone bond lengths" in line:
-        current_entry = 'bond'
-        continue
-    elif "Angle" in line or "Backbone bond angles" in line:
-        current_entry = 'angle'
-        continue
-    elif "Suite" in line or "Backbone torsion suites" in line:
-        current_entry = 'suite'
-        continue
-
-    # revert line to format prior to dev-1703, for now 
-    if line.startswith("   ") and ":" not in line:
-        cols = line.split()
-        if current_entry != 'suite':
-            cols.insert(0, cols.pop(2))
-        line = "   %s %s %3s :%s" % (cols[0],cols[1],cols[2],":".join(cols[3:]))
-
-    if line[0] != '#' and ' :' in line :
-        if current_entry == 'pucker' :
-            pucker2.append( line )
-        elif current_entry == 'bond' :
-            bond2.append( line )
-        elif current_entry == 'angle' :
-            angle2.append( line )
-        elif current_entry == 'suite' :
-            suite2.append( line.split(':') [0:2] )
-
-suite_outlier1 = 0
-suite_outlier2 = 0
-for i in suite1 :
-    if i[1] == '!!' :
-        suite_outlier1 += 1
-for i in suite2 :
-    if i[1] == '!!' :
-        suite_outlier2 += 1
+suite_outlier1 = sum( ['!!' in suite[3] for suite in suite1] )
+suite_outlier2 = sum( ['!!' in suite[3] for suite in suite2] )
 
 print "Geometric Changes Introduced by ERRASER\n"
 print "====Overall Statistics=================================="
@@ -125,8 +57,9 @@ print "====Suite Changes======================================="
 
 lines = []
 for i, j in zip(suite1, suite2) :
-    if i[0] == j[0] and i[1] != j[1] :
-        lines.append( i[0] + '               ' + i[1] + '              ' + j[1] )
+    if i[:3] == j[:3] and i[3] != j[3] :
+        res = '%4s%2s%4s ' % tuple(i[:3])
+        lines.append( res + '               ' + i[3] + '              ' + j[3] )
 if lines != [] :
     print "'!!' stands for an outlier suite.\n"
     print "    Residue            Start         ERRASER            "
@@ -141,8 +74,9 @@ if suite_outlier2 != 0 :
     print "'!!' stands for an outlier suite.\n"
     print "    Residue            Start         ERRASER            "
     for i, j in zip(suite1, suite2) :
-        if j[1] == '!!' :
-            print i[0], '             ', i[1], '            ', j[1]
+        if j[3] == '!!' :
+            res = '%4s%2s%4s ' % tuple(i[:3])
+            print res, '             ', i[3], '            ', j[3]
 else :
     print 'None'
 print "\n"
@@ -153,22 +87,22 @@ if len(pucker1) + len(pucker2) != 0 :
     print "Format: (delta torsion)/(!! or OK).\n"
     print "    Residue            Start         ERRASER            "
     for line1 in pucker1 :
-        res1 = line1.split(':') [0]
-        delta1 = float(line1.split(':') [1])
+        res1 = '%4s%2s%4s ' % tuple(line1[:3])
+        delta1 = float(line1[3])
         info1 = '%8.1f/!!' % delta1
         info2 = '         OK'
         for line2 in pucker2 :
-            res2 = line2.split(':') [0]
+            res2 = '%4s%2s%4s ' % tuple(line2[:3])
             if res2 == res1 :
-                delta2 = float(line2.split(':') [1])
+                delta2 = float(line2[3])
                 info2 = '%8.1f/!!' % delta2
                 pucker2.remove(line2)
                 break
         print res1, '     %s' % info1, '    %s' % info2
 
     for line2 in pucker2 :
-        res2 = line2.split(':') [0]
-        delta2 = float(line2.split(':') [1])
+        res2 = '%4s%2s%4s ' % tuple(line2[:3])
+        delta2 = float(line2[3])
         info2 = '%8.1f/!!' % delta2
         info1 = '         OK'
         print res2, '     %s' % info1, '    %s' % info2
@@ -178,21 +112,21 @@ print '\n'
 #################################
 temp = []
 for i in bond1 :
-    line_split = i.split(':')
-    res = line_split [0]
-    atoms = line_split [1] + '-' + line_split[2]
+    line_split = i
+    res = '%4s%2s%4s ' % tuple(line_split[:3])
+    atoms = line_split [3] + '-' + line_split[4]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[3])
+    sigma = float(line_split[5])
     temp.append( [res, atoms, sigma] )
 bond1 = temp[:]
 
 temp = []
 for i in bond2 :
-    line_split = i.split(':')
-    res = line_split [0]
-    atoms = line_split [1] + '-' +  line_split[2]
+    line_split = i
+    res = '%4s%2s%4s ' % tuple(line_split[:3])
+    atoms = line_split [3] + '-' + line_split[4]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[3])
+    sigma = float(line_split[5])
     temp.append( [res, atoms, sigma] )
 bond2 = temp[:]
 
@@ -217,21 +151,21 @@ print '\n'
 #################################
 temp = []
 for i in angle1 :
-    line_split = i.split(':')
-    res = line_split [0]
-    atoms = line_split [1] + '-' + line_split[2] + '-' + line_split[3]
+    line_split = i
+    res = '%4s%2s%4s ' % tuple(line_split[:3])
+    atoms = line_split [3] + '-' + line_split[4] + '-' + line_split[5]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[4])
+    sigma = float(line_split[5])
     temp.append( [res, atoms, sigma] )
 angle1 = temp[:]
 
 temp = []
 for i in angle2 :
-    line_split = i.split(':')
-    res = line_split [0]
-    atoms = line_split [1] + '-' + line_split[2] + '-' + line_split[3]
+    line_split = i
+    res = '%4s%2s%4s ' % tuple(line_split[:3])
+    atoms = line_split [3] + '-' + line_split[4] + '-' + line_split[5]
     atoms = atoms.replace(' ', '')
-    sigma = float(line_split[4])
+    sigma = float(line_split[5])
     temp.append( [res, atoms, sigma] )
 angle2 = temp[:]
 
@@ -335,7 +269,5 @@ print '\n'
 
 print "========================================================\n"
 
-remove( 'start.rna_validate' )
 remove( 'start.clash' )
-remove( 'ERRASER.rna_validate' )
 remove( 'ERRASER.clash' )

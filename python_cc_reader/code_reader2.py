@@ -1,11 +1,13 @@
 import sys
 
+debug = True
+
 contexts = [ "namespace",
-             "namespace-scope"
+             "namespace-scope",
              "scope",
              "for",
              "for-declaration",
-             "for-scope"
+             "for-scope",
              "do-while",
              "do-while-condition",
              "do-while-scope",
@@ -15,24 +17,24 @@ contexts = [ "namespace",
              "else",
              "else-scope",
              "while",
-             "while-condition"
-             "while-scope"
+             "while-condition",
+             "while-scope",
              "switch",
              "switch-expression",
-             "switch-scope"
+             "switch-scope",
              "case",
              "case-scope",
              "default-case",
              "default-case-scope",
              "class",
              "class-inheritance-list",
-             "class-scope"
+             "class-scope",
              "class-privacy",
              "struct",
              "struct-inheritance-list",
-             "struct-scope"
+             "struct-scope",
              "union",
-             "union-scope"
+             "union-scope",
              "function",
              "function-decl-argument-list",
              "function-scope",
@@ -59,10 +61,12 @@ class AdvancedCodeReader :
     def __init__( self ) :
         self.line = ""
         self.all_lines = []
+        self.new_lines = []
         self.line_number = 0
         self.this_line_tokens = []
         self.all_tokens = [] # tokens for the entire file
         self.line_tokens = [] # the tokens for each line
+        self.new_line_tokens = [] # the set of tokens for each line as the lines are getting rewritten
         self.namespace_stack = []
         self.indentation_depth = 0
         self.context_stack = []
@@ -269,12 +273,13 @@ class AdvancedCodeReader :
         while i < len( self.all_tokens ) :
             # print "while top", i, depth
             i = self.process_statement( i, stack )
+            print "minimally_parse_file", i
         self.print_depth_stack( stack )
 
     def process_statement( self, i, stack ) :
-        print "process_statement", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_statement", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         i = self.find_next_visible_token(i,len(stack),stack[-1][0])
-        if i > len( self.all_tokens ) : return i
+        if i == len( self.all_tokens ) : return i
         i_spelling = self.all_tokens[i].spelling
         if i_spelling == "for" :
             return self.process_for(i,stack)
@@ -327,18 +332,19 @@ class AdvancedCodeReader :
     def read_to_end_paren( self, i, stack ) :
         paren_depth = 0
         while i < len( self.all_tokens ) :
+            print (" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
             self.set_depth_and_context(i,len(stack),stack[-1][0])
             if self.all_tokens[i].spelling == ")" :
                 paren_depth -= 1
                 if paren_depth == 0 :
-                    return i
+                    return i+1
             elif self.all_tokens[i].spelling == "(" :
                 paren_depth += 1
             i += 1
         self.handle_read_all_tokens_error("process_for", stack)
 
     def process_simple_statement(self,i,stack) :
-        print "process_simple_statement", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_simple_statement", i, self.all_tokens[i].spelling, stack[-1][0], self.all_tokens[i].line_number
         # print "process simple statement", i, len(stack)
         # read all the tokes from i until the next semicolon
         last = i
@@ -359,18 +365,19 @@ class AdvancedCodeReader :
         # so we should gobble up the tokens that make this a function
         # and see if we have a constructor, in which case, we should also
         # be watchful for an intializer list
-        print "process_function_preamble_or_variable", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_function_preamble_or_variable", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         classname = ""
         arglist = "not-begun"
         is_ctor = False
         found_init_list = False
-        stack.append( "function" )
+        stack.append( ("function", self.all_tokens[i]) )
         while i < len(self.all_tokens) :
+            print (" "*len(stack)), "process function preamble or variable", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
             if not self.all_tokens[i].is_visible :
                 # don't do anything special; just don't try and interpret this token as having meaning
                 pass
             elif self.all_tokens[i].spelling == ":" :
-                if is_ctor and arglist == "ended" :
+                if is_ctor and arglist == "ended" and not found_init_list :
                     # we're now reading the initializer list
                     stack.append(( "ctor-initializer-list", self.all_tokens[i] ))
                     found_init_list = True
@@ -390,7 +397,6 @@ class AdvancedCodeReader :
                     i = self.read_to_end_paren( i, stack )
                     arglist = "ended"
                     stack.pop() # remove decl-argument-list from stack
-                    i += 1
                     continue
             elif self.all_tokens[i].spelling == ";" :
                 # ok, there's no function body here, just a function name declaration
@@ -398,7 +404,7 @@ class AdvancedCodeReader :
                 # in fact, this may not have been a function at all -- it might have
                 # been a variale!
                 assert( not found_init_list )
-                self.set_depth_and_context(i,len(stack),context)
+                self.set_depth_and_context(i,len(stack),stack[-1])
                 stack.pop(); # get rid of "function" on stack
                 return i+1
 
@@ -412,9 +418,10 @@ class AdvancedCodeReader :
 
             self.set_depth_and_context(i,len(stack),stack[-1][0])
             i+=1
+        self.handle_read_all_tokens_error( "process_function_preamble_or_variable", stack )
 
     def process_for(self,i,stack) :
-        print "process_for", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_for", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         arglist = "not-yet-begun"
         stack.append(( "for",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
@@ -427,7 +434,7 @@ class AdvancedCodeReader :
                     i = self.read_to_end_paren( i, stack )
                     # now remove for-declaration from the stack and process the next statment
                     stack.pop()
-                    i = self.process_statement( i+1, stack )
+                    i = self.process_statement( i, stack )
                     stack.pop()
                     return i
             self.set_depth_and_context(i,len(stack),stack[-1][0])
@@ -436,7 +443,7 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_for", stack )
 
     def process_if(self,i,stack) :
-        print "process_if", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_if", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(("if",self.all_tokens[i]))
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible :
@@ -445,7 +452,7 @@ class AdvancedCodeReader :
                 stack.append(( "if-condition",self.all_tokens[i] ))
                 i = self.read_to_end_paren(i,stack)
                 stack.pop() #remove if-condition
-                i = self.process_statement( i+1, stack )
+                i = self.process_statement( i, stack )
                 stack.pop() #remove if
                 j = self.find_next_visible_token( i )
                 if self.all_tokens[j].spelling == "else" :
@@ -462,7 +469,7 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_if", stack )
 
     def process_do_while( self, i, stack ) :
-        print "process_do_while", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_do_while", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "do-while",self.all_tokens[i] ))
         self.set_depth_and_context(i,len(stack),stack[-1][0])
         i+=1
@@ -481,7 +488,7 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_do_while", stack )
 
     def process_while(self,i,stack) :
-        print "process_while", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_while", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "while",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible :
@@ -501,7 +508,7 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_while", stack )
 
     def process_namespace(self,i,stack) :
-        print "process_namespace", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_namespace", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "namespace",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
             i = self.find_next_visible_token( i, len(stack), stack[-1][0] )
@@ -515,7 +522,7 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_namespace", stack )
 
     def process_class_decl(self,i,stack) :
-        print "process_class_decl", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_class_decl", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         seen_inheritance_colon = False
         stack.append(( "class",self.all_tokens[i] ))
         while i < len( self.all_tokens ) :
@@ -539,7 +546,7 @@ class AdvancedCodeReader :
     def process_union(self,i,stack) :
         print "STUB process_union"
     def process_switch(self,i,stack) :
-        print "process_switch", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_switch", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "switch",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible :
@@ -555,7 +562,7 @@ class AdvancedCodeReader :
             i+=1
         self.handle_read_all_tokens_error( "process_class_decl", stack )
     def process_case(self,i,stack) :
-        print "process_case", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_case", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "case",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible :
@@ -580,21 +587,23 @@ class AdvancedCodeReader :
         self.handle_read_all_tokens_error( "process_case_or_default_case", stack )
 
     def process_scope(self,i,stack) :
-        print "process_scope", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_scope", i, self.all_tokens[i].spelling, stack[-1][0], self.all_tokens[i].line_number
         self.set_depth_and_context(i,len(stack),stack[-1][0])
-        i+=1
         stack.append(( stack[-1][0]+"-scope",self.all_tokens[i] ))
         if stack[-1][0] not in contexts :
             stack.pop()
             stack.append(( "scope", self.all_tokens[i] ))
+        i+=1
         while i < len(self.all_tokens) :
             i = self.find_next_visible_token(i,len(stack),stack[-1][0])
             if self.all_tokens[i].spelling == "}" :
+                print (" "*len(stack)), "process_scope", i, "found end }", self.all_tokens[i].line_number
                 #ok, done processing at this depth
                 stack.pop()
                 self.set_depth_and_context(i,len(stack),stack[-1][0])                
                 return i+1
             else :
+                print (" "*len(stack)), "process_scope encountered non-{, non-} at", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
                 i = self.process_statement(i,stack)
         self.handle_read_all_tokens_error( "process_scope", stack )
 
@@ -603,7 +612,7 @@ class AdvancedCodeReader :
     #     self.set_depth_and_context(i,depth-1,stack.pop())
     #     return i+1, depth-1
     def process_privacy_declaration(self,i,stack) :
-        print "process_privacy_declaration", i, self.all_tokens[i].spelling
+        if debug : print (" "*len(stack)), "process_privacy_declaration", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number
         stack.append(( "class-privacy",self.all_tokens[i] ))
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible :
@@ -615,3 +624,40 @@ class AdvancedCodeReader :
             self.set_depth_and_context(i,len(stack),stack[-1][0])
             i+=1
         self.handle_read_all_tokens_error( "process_privacy_declaration", stack )
+
+    def set_indentation_for_line( self, line_number ) :
+        pass
+
+    def whole_line_invisible( self, line_number ) :
+        for tok in self.line_tokens[ line_number ] :
+            if tok.is_visible : return False
+        return True
+
+    def next_visible_token_on_line( self, line_number, starting_token_ind = 0 ) :
+        i = starting_token_ind
+        while i < len( self.line_tokens[line_number] )  :
+            if self.line_tokens[line_number][i].is_visible return i
+        return i
+
+    def determine_indentation_level( self, line, line_number, indentation_level ) :
+
+        if len( self.line_tokens[ line_number ] ) == 0 : return ( indentation_level, indentation_level )
+        if self.whole_line_invisible( line_number ) : return ( indentation_level, indentation_level )
+        
+        next_line_indentation = indentation_level
+        # look at the first token on this line
+        # first_token = 
+        context = self.line_tokens[ line_number ][ 0 ]
+
+    def beautify_code( self ) :
+        # first pass: add lines, remove lines, or move code between lines and renumber
+
+        # second pass: change spacing between code elements
+
+        # final pass: change indentation
+        self.new_lines = []
+        indentation_level = 0
+        for line_number, line in enumerate(self.lines) :
+            indentation_level, next_line_indentation = self.determine_indentation_level( line, line_number, indentation_level )
+            new_line = self.line_from_line_tokens( indentation_level, line_number )
+            self.new_lines.append( new_line )

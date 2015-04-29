@@ -88,7 +88,7 @@ def extract_info( pdb, res, name ) :
             clash_out = '%.2f' % clash
             break
 
-    rna_validate_data = phenix_rna_validate(pdb, options="outliers_only=False")
+    rna_validate_data = phenix_rna_validate( pdb )
     pucker_data = rna_validate_data['pucker']
     suite_data  = rna_validate_data['suite']
    

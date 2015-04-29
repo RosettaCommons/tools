@@ -28,13 +28,13 @@ for line in open('ERRASER.clash') :
         clash2 = float( line.split() [-1] )
         break
 
-START_rna_validate_data = phenix_rna_validate(pdb1, options="outliers_only=False")
+START_rna_validate_data = phenix_rna_validate( pdb1 )
 pucker1 = START_rna_validate_data['pucker']
 bond1   = START_rna_validate_data['bond']
 angle1  = START_rna_validate_data['angle']
 suite1  = START_rna_validate_data['suite']
 
-ERRASER_rna_validate_data = phenix_rna_validate(pdb2, options="outliers_only=False")
+ERRASER_rna_validate_data = phenix_rna_validate( pdb2 )
 pucker2 = ERRASER_rna_validate_data['pucker']
 bond2   = ERRASER_rna_validate_data['bond']
 angle2  = ERRASER_rna_validate_data['angle']

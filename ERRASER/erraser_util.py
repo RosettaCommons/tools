@@ -400,20 +400,17 @@ def phenix_release_tag():
     return None    
 
 #####################################################
-def phenix_rna_validate(input_pdb, options=""):
+def phenix_rna_validate(input_pdb, outliers_only = False):
     """
     Parse output of phenix.rna_validate.
     """
     
     check_path_exist(input_pdb)
-    command = "phenix.rna_validate %s %s" % (input_pdb, options)
+    command = "phenix.rna_validate " + input_pdb
+    if outliers_only is False:
+        command += " outliers_only=False"
     output = subprocess_out(command)
-    output = filter(None, output)
-
-    data_type = None
-    data_types = ["pucker", "bond", "angle", "suite"]
-    data = dict([(type, []) for type in data_types])
-    
+  
     phenix_release = phenix_release_tag()
     if phenix_release and phenix_release < 1703:
         data_titles = [
@@ -430,12 +427,22 @@ def phenix_rna_validate(input_pdb, options=""):
             "Backbone torsion suites"
         ]
 
+    data_type = None
+    data_types = ["pucker", "bond", "angle", "suite"]
+    data = dict([(type, []) for type in data_types])
+
+    output = filter(None, output)
     for line_idx, line in enumerate(output):
         if any (title in line for title in data_titles):
             data_title = filter(line.count, data_titles)[0]
             data_type = data_types[data_titles.index(data_title)]
             continue
+        if line.isalpha():
+            continue
         if data_type and line.startswith("   "):
+            if "pucker" in data_type:
+                if "yes" not in line:
+                    continue
             cols = line.strip().replace(':','  ').split()
             if cols[2].isalpha():
                 cols.insert(0, cols.pop(2))
@@ -449,7 +456,7 @@ def find_error_res(input_pdb) :
     Use phenix.rna_validate.
     """
     
-    data = phenix_rna_validate(input_pdb, options="suite_outliers_only=False")
+    data = phenix_rna_validate( input_pdb )
     error_res = []
     
     for error_type, output in data.iteritems():

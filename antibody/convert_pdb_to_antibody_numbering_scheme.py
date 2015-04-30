@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 import urllib2 as url
+# The Bio module is provided by BioPython
 from Bio.PDB import PDBParser as pdbp
 from Bio.PDB.Polypeptide import three_to_one
 from Bio.PDB import PDBIO

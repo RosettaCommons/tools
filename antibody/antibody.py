@@ -183,6 +183,11 @@ def main(args):
       action="store", default=2.0,
       help="Specify minimum orientational distance between all light_heavy orientational templates"
     )
+	
+    parser.add_option("--all-one-framework",
+      action="store_true", default=False, dest="all_one_framework",
+      help="Force light, heavy, and light_heavy templates to come from the same pdb"
+    )
 
     parser.add_option("--timeout",
       default=900, type="int",
@@ -209,6 +214,11 @@ def main(args):
           action="store_true", default=False,
           help="Turn on multi-template grafting of %s region." % name,
         )
+	
+    parser.add_option("--multi-graft-all-on",
+	    action="store_true", default=False,
+        help="Turn on multi-template grafting of all regions.",
+    )
 
     parser.add_option('--self-test',
       action="store_true",
@@ -404,7 +414,7 @@ def main(args):
 
     if Options.h3_modeling:
         print "\nRunning launch_h3_modeling.py..."
-        command = script_dir + "/launch_h3_modeling.py --split-ratio " + Options.split_ratio + " --n-grafted-structures " + str(Options.number_of_templates) + " --nstruct-total " + Options.nstruct_total + " --rosetta-database " + Options.rosetta_database + " --rosetta-bin " + Options.rosetta_bin + " --rosetta-platform " + Options.rosetta_platform
+        command = script_dir + "/launch_h3_modeling.py --split-ratio " + Options.split_ratio + " --n-grafted-structures " + str(Options.number_of_templates) + " --nstruct-total " + Options.nstruct_total + " --rosetta-database " + Options.rosetta_database + " --rosetta-bin " + Options.rosetta_bin + " --rosetta-platform " + Options.rosetta_platform + " --prefix " + Options.prefix
         print command
         res, output = commands.getstatusoutput(command)
         print output
@@ -842,8 +852,21 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                 print k, i[k], i[k+'_length'], len(i[k])
             sys.exit(1)
 
+    if Options.all_one_framework:
+        ordered_framework_names = ['light_heavy', 'FRL', 'FRH', 'light', 'heavy', 'L1', 'L2', 'L3', 'H1', 'H2', 'H3']
+        Options.light = ''
+        Options.heavy = ''
+        Options.FRL = ''
+        Options.FRH = ''
+        Options.heavy_multi_graft = str(Options.light_heavy_multi_graft)
+        Options.light_multi_graft = str(Options.light_heavy_multi_graft)
+        Options.FRH_multi_graft = str(Options.light_heavy_multi_graft)
+        Options.FRL_multi_graft = str(Options.light_heavy_multi_graft)
+    else:
+        ordered_framework_names = _framework_names_
+
     alignment = {'summary':[]}
-    for k in _framework_names_:
+    for k in ordered_framework_names:
         input_query = k + '.fasta'
         output = k + '.align'  # Options.prefix +
 
@@ -911,7 +934,11 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         while len(custom_template_list) < Options.number_of_templates:
             custom_template_list.append('void')
 
-        multi_template_on = getattr(Options, k+'_multi_graft')
+        multi_graft_all_on = getattr(Options, 'multi_graft_all_on')
+        if multi_graft_all_on:
+            multi_template_on = getattr(Options, 'multi_graft_all_on')
+        else:
+            multi_template_on = getattr(Options, k+'_multi_graft')
 
         for decoy in range(0, Options.number_of_templates):
             dummy_decoy = str(decoy)
@@ -938,6 +965,11 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                 print 'Custom %s template: %s...' % (k, custom_template_list[decoy])
                 selected_template = custom_template_list[decoy]
             shutil.copy(Options.antibody_database+'/'+selected_template, prefix+'/template.'+k+'.'+dummy_decoy+'.pdb')
+            if (Options.all_one_framework and (k == 'light_heavy')):
+                Options.light = Options.light + selected_template + ','
+                Options.heavy = Options.heavy + selected_template + ','
+                Options.FRL = Options.FRL + selected_template + ','
+                Options.FRH = Options.FRH + selected_template + ','
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
@@ -1123,7 +1155,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, d
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR%s.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database, decoy) + ' -antibody::h3_no_stem_graft -scorefile score-graft.sf'
+        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR%s.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database, decoy) + ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
         if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
@@ -1346,7 +1378,7 @@ def filter_by_orientational_distance(k, results, cdr_query, cdr_info):
                 print "Warning: may not be enough distinct light_heavy orientations; some may be used repeatedly"
                 break
             top_pdb = results[i]['subject-id']
-            (grep_status, grep_output) = commands.getstatusoutput("grep " + top_pdb + " ~/Output/pyantibody_test/comparisons.txt")
+            (grep_status, grep_output) = commands.getstatusoutput("grep " + top_pdb + " " + script_dir + "/comparisons.txt")
             orientational_dictionary = {}
             (keystring, valstring) = grep_output.split("\n")
             orient_keys = keystring.split(" ")

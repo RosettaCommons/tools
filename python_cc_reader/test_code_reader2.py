@@ -114,6 +114,11 @@ def test_code_reader( lines_initial, lines_final ) :
         cr.tokenize_line( line )
     cr.minimally_parse_file()
     cr.beautify_code()
+
+    # print the tokens
+    # for tok in cr.all_tokens :
+    #    print tok.spelling, tok.line_number, tok.type, tok.parent.type
+
     good = True
     for i, line in enumerate( cr.new_lines ) :
         if i >= len(lines_final) :
@@ -128,6 +133,9 @@ def test_code_reader( lines_initial, lines_final ) :
             print "Failed to generate expected output line", i+1, ":", lines_final[i],
 
     if not good :
+        print "Input:"
+        for line in lines_initial :
+            print line,
         print "Expected:"
         for line in lines_final :
             print line,
@@ -154,7 +162,7 @@ def test_code_reader( lines_initial, lines_final ) :
                     tok2
                     print "Tree mismatch:"
                     print "  ", tok.spelling, "vs", tok2.spelling
-                    print "  ", tok.line, "vs", tok2.line
+                    print "  ", tok.line_number, "vs", tok2.line_number
                     print "  ", tok.type, "vs", tok2.type
                     print "  ", tok.context(), "vs", tok2.context()
                     good = False
@@ -162,24 +170,23 @@ def test_code_reader( lines_initial, lines_final ) :
     return good
 
 def replace_leading_spaces_w_tabs( line ) :
-    print "line", line
+    # print "line", line
     newline = []
     found_non_space = False
-    if len(line) < 4 :
-        "print shorter than 4"
-        for i in xrange(len(line)) :
-            if line[i] != " " and line[i] != "\n" and line[i] != "\t" :
-                found_non_space = True
-    else :
-        i = 0
-        while i+4 < len(line) :
-            print i, line[i:(i+4)]
-            if line[i:(i+4)] == "    " :
-                newline.append( "\t" )
-                i+=4
-            else :
-                found_non_space = True
-                break
+    i = 0
+    while i+4 < len(line) :
+        # print i, line[i:(i+4)]
+        if line[i:(i+4)] == "    " :
+            newline.append( "\t" )
+            i+=4
+        else :
+            found_non_space = True
+            break
+
+    # now look at the characters we didn't examine; are any of them non-whitespace?
+    for i in xrange(i,len(line)) :
+        if line[i] != " " and line[i] != "\n" and line[i] != "\t" :
+            found_non_space = True
 
     if found_non_space :
         newline.append( line.strip() )
@@ -207,8 +214,8 @@ def read_test_cases( fname ) :
             if line[0:3] == "---" :
                 init_lines = trim_empty_blank_lines( init_lines )
                 final_lines = trim_empty_blank_lines( final_lines )
-                print init_lines
-                print final_lines
+                # print init_lines
+                # print final_lines
                 test = BeautifierTest( init_lines, final_lines, line[3:].strip() )
                 init_lines = []; final_lines = []
                 tests.append( test )
@@ -231,6 +238,7 @@ if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str( "filename" )
         p.flag( "old_tests" )
+        p.int("just_one")
 
     if filename :
         lines = open( filename ).readlines()
@@ -242,7 +250,8 @@ if __name__ == "__main__" :
     else :
         tests = read_test_cases( "beautifier_test_cases.txt" )
         count_pass = 0
-        for test in tests :
+        for i,test in enumerate( tests ) :
+            if just_one is not None and i+1 != just_one : continue
             ok = test_code_reader( test.lines_initial, test.lines_final )
             if not ok :
                 print "Failed test", test.name

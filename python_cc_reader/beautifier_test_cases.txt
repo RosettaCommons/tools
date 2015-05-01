@@ -4,32 +4,32 @@ void test()                                 | void test()
         std::cout << "i: " << i;            |         std::cout << "i: " << i;  
 }                                           |     }
                                             | }                        
---- 1 for curly brace placement
+--- 1 for-curly-brace placement
 void test()                                 | void test()                                 
 {                                           | {                                           
     for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) {        
         std::cout << "i: " << i; }          |         std::cout << "i: " << i;     
 }                                           |     }                                   
                                             | }                                    
---- 2 for curly brace placement
+--- 2 for-curly-brace placement
 void test()                                 | void test()                          
 {                                           | {                                           
     for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) { 
-        statement(); } // comment           |         statement(); // comment     
+        statement(); } // comment           |         statement();   // comment     
 }                                           |     }                                   
                                             |  }                                    
---- 3 for curly brace placement
+--- 3 for-curly-brace placement
 void test()                                 | void test()
 {                                           | {
     for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) {}
     }                                       | }
 }                                           |
---- 4 for curly brace placement
+--- 4 for-curly-brace placement
 void test()                                 | void test()                                 
 {                                           | {                                           
     for ( int i = 0; i < 10; ++i );         |     for ( int i = 0; i < 10; ++i );         
 }                                           | }                                           
---- 5 for curly brace placement
+--- 5 for-curly-brace placement
 void test()                                     | void test()                          
 {                                               | {                                           
     for ( int i = 0; i < 10; ++i ) // comment   |     for ( int i = 0; i < 10; ++i ) { // comment
@@ -37,14 +37,14 @@ void test()                                     | void test()
         statement();                            |     }
     }                                           | }
 }                                               |
---- 6 for curly brace placement
+--- 6 for-curly-brace placement
 void test()                                 | void test()                                 
 {                                           | {                                           
     for ( int i = 0; i < 10; ++i )          |     for ( int i = 0; i < 10; ++i ) {        
     { std::cout << "i: " << i; }            |         std::cout << "i: " << i;     
 }                                           |     }                                   
                                             | }                                    
---- 7 for curly brace placement
+--- 7 for-curly-brace placement
 void test()                                           | void test()                                 
 {                                                     | {                                           
     for ( int i = 0; i < 10; ++i ) {                  |     for ( int i = 0; i < 10; ++i ) {        
@@ -52,7 +52,7 @@ void test()                                           | void test()
 }                                                     |     }                                   
                                                       |     statement2();                                    
                                                       | }
---- 8 for curly brace placement
+--- 8 for-curly-brace placement
 void test()                                           | void test()
 {                                                     | {
     for ( int i = 0; i < 10; ++i ) statement( arg1,   |     for ( int i = 0; i < 10; ++i ) {
@@ -60,16 +60,16 @@ void test()                                           | void test()
 }                                                     |             arg2, arg3 );
                                                       |     }
                                                       | }
---- 9 for curly brace placement
+--- 9 for-curly-brace placement
 void test()                                           | void test()                                 
 {                                                     | {                                           
     for ( int i = 0; i < 10; ++i ) s1(); s2();        |     for ( int i = 0; i < 10; ++i ) s1();        
 }                                                     |     s2();
                                                       | }
---- 10 for curly brace placement                                                      
+--- 10 for-curly-brace placement                                                      
 void test()                                           | void test()                                 
 {                                                     | {                                           
     for ( int i = 0; i < 10; ++i ) statement();       |     for ( int i = 0; i < 10; ++i ) statement();        
 }                                                     | }
---- 11 for curly brace placement
+--- 11 for-curly-brace placement
 

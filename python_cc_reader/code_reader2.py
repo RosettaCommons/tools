@@ -303,7 +303,15 @@ class AdvancedCodeReader :
         stack = [ toplevel_token ] # you start at namespace scope
         while i < len( self.all_tokens ) :
             i = self.process_statement( i, stack )
+
+        for i in xrange(len(self.all_tokens)) :
+            assert( not self.all_tokens[ i ].parent is self.all_tokens[i] )
+            for tok in self.all_tokens[ i ].children :
+                assert( not tok is self.all_tokens[i] )
+
         if debug : self.print_depth_stack( stack )
+
+
 
     def process_statement( self, i, stack ) :
         if debug : self.print_entry("process_statement",i,stack)
@@ -824,8 +832,10 @@ class AdvancedCodeReader :
                 # indent one from the parent's indentation
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number] + 1
         elif first_token.context() == "for" :
-            # this is an odd case -- let's indent twice
-            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number] + 2
+            # this case might happen if a for-scope isn't inserted around a
+            # for statement with only a single sub-statement and that statement
+            # is on a second line; that should not happen, though.
+            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number] + 1
         elif first_token.context() == "for-declaration" :
             # this is where where the three statements in a for loop take more than one line
             # indent twice
@@ -1049,10 +1059,11 @@ class AdvancedCodeReader :
     def last_descendent( self, token ) :
         # return the last descendent of a given token
         # does not require that the index of the token be up-to-date
+        # print token.spelling, token.line_number
         if not token.children :
             return token
         else :
-            return self.last_descendent( token )
+            return self.last_descendent( token.children[-1] )
 
     def excise_left_curly_brace_and_move_after( self, lcb_tok, dest_tok ) :
         # move lcb_tok up to the line that dest_tok is on
@@ -1065,9 +1076,9 @@ class AdvancedCodeReader :
         dest_tok_ind = dest_line.index( dest_tok )
         lcb_tok.line_number = dest_line_number
         lcb_tok.start = dest_tok.one_past_end + 1
-        lcb_tok.end = lcb_tok.start+1
+        lcb_tok.one_past_end = lcb_tok.start+1
         # shift the rest of the tokens on this line right by two spaces
-        for i in xrange( dest_tok_ind+2, len(dest_line) ) :
+        for i in xrange( dest_tok_ind+1, len(dest_line) ) :
             tok = dest_line[i]
             tok.start += 2
             tok.one_past_end += 2
@@ -1082,13 +1093,12 @@ class AdvancedCodeReader :
                     continue
                 if i == orig_line_number :
                     if tok is lcb_tok :
-                        found_lcb_tok = True
                         break
                 orig_parent = tok.parent
                 orig_parent.children.remove( tok )
                 tok.parent = lcb_tok
                 new_children.append( tok )
-            if i == orig_line_number and found_lcb_tok : break;
+
         lcb_tok.children = new_children + lcb_tok.children
         if new_children :
             # we also have to adjust self.all_tokens
@@ -1096,7 +1106,7 @@ class AdvancedCodeReader :
             while i > 0 :
                 self.all_tokens[i] = self.all_tokens[i-1]
                 if self.all_tokens[i] is new_children[0] :
-                    self.all_tokens[i] = lcb_tok
+                    self.all_tokens[i-1] = lcb_tok
                     break
                 i-=1
             assert( i != 0 )
@@ -1123,12 +1133,12 @@ class AdvancedCodeReader :
                 tok.line_number += nlines
     
     def insert_line_with_single_token( self, tok ) :
-        self.insert_token_lines( [ tok ] )
+        self.insert_token_lines( [[ tok ]] )
 
-    def excise_right_curly_brace_and_move_to_next_line( self, rcb ) :
+    def excise_right_curly_brace_and_move_to_next_line_on_own( self, rcb ) :
         rcb_line = self.line_tokens[ rcb.line_number ]
                 
-        if rcb_ind is not rcb_line[ -1 ] :
+        if rcb is not rcb_line[ -1 ] :
             # ok, we have comments or something at the end of this line
             # if its nothing but comments, then leave them on this line
             # otherwise, they should be on their own line after the }
@@ -1146,7 +1156,7 @@ class AdvancedCodeReader :
                 self.line_tokens[ rcb.line_number ] = rcb_line[:rcb_ind]
                 rcb.line_number += 1
                 newlines = []
-                newlines.append( [ rcb_tok ] )
+                newlines.append( [ rcb ] )
                 newlines.append( toks_to_move[1:] )
                 for tok in newlines[1] :
                     tok.line_number += 2
@@ -1184,6 +1194,7 @@ class AdvancedCodeReader :
         lcb.spelling = "{"
         lcb.start = tok_before.one_past_end + 1
         lcb.one_past_end = lcb.start + 1
+        lcb.line_number = tok_before.line_number
         line_toks = self.line_tokens[ tok_before.line_number ]
         tok_before_index = line_toks.index( tok_before )
         for i in xrange( tok_before_index+1, len( line_toks ) ) :
@@ -1191,8 +1202,9 @@ class AdvancedCodeReader :
             line_toks[i].one_past_end += 2
         line_toks.insert( tok_before_index+1, lcb )
         self.all_tokens.insert( self.all_tokens.index( tok_before ) + 1, lcb )
+        return lcb
 
-    def add_right_curly_brace_on_own_line_after( self, lcb_tok, tok_before ) :
+    def add_right_curly_brace_on_own_line_after( self, tok_before, lcb_tok ) :
         rcb_tok = Token()
         rcb_tok.spelling = "}"
         rcb_tok.start = 0 # don't worry about the indentation
@@ -1202,12 +1214,21 @@ class AdvancedCodeReader :
         self.insert_line_with_single_token( rcb_tok )
         rcb_tok.set_parent( lcb_tok )
 
+    def move_tokens_after_to_their_own_next_line( self, tok ) :
+        tok_line = self.line_tokens[ tok.line_number ]
+        tok_pos = tok_line.index( tok )
+        toks_for_next_line = tok_line[ (tok_pos+1): ]
+        for nltok in toks_for_next_line :
+            nltok.line_number += 1
+        self.line_tokens[ tok.line_number ] = tok_line[:(tok_pos+1)]
+        self.insert_token_lines( [ toks_for_next_line ] )
+
     def adjust_token_tree( self, new_parent, child ) :
         # adds "new_parent" as the last child of child's former parent
         # and sets new_parent up as the parent of child.
         old_parent = child.parent
         old_parent.children.remove( child )
-        old_parent.append( new_parent )
+        new_parent.set_parent( old_parent )
         child.set_parent( new_parent )
 
     def adjust_for( self, i ) :
@@ -1254,33 +1275,46 @@ class AdvancedCodeReader :
                 if last_before_rcb.line_number == right_curly_brace.line_number :
                     # ok! move rcb to its own line
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
+            else :
+                # make sure the {} are on the same line together
+                rcb = for_body.children[0]
+                assert( rcb.spelling == "}" )
+                if rcb.line_number != for_body.line_number :
+                    # move rcb up to the line with the lcb
+                    self.line_tokens[rcb.line_number].remove( rcb )
+                    if len( self.line_tokens[ rcb.line_number ] ) == 0 :
+                        self.line_tokens = self.line_tokens[:rcb.line_number] + self.line_tokens[(rcb.line_number+1):]
+                    self.line_tokens[for_body.line_number].append( rcb )
+                    rcb.line_number = for_body.line_number
+                    rcb.start = for_body.one_past_end
+                    rcb.one_past_end = rcb.start+1
         else :
             last_fs_desc = self.last_descendent( for_body )
-            if last_fs_desc.line_number != tak.line_number :
+            if last_fs_desc.line_number != tok.line_number :
                 # we need to add a pair of curly braces
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "for-scope"
                 self.adjust_token_tree( lcb_tok, for_body )
+                if for_body.line_number == lcb_tok.line_number :
+                    # move these tokens down to their own line
+                    self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 self.add_right_curly_brace_on_own_line_after( last_fs_desc, lcb_tok )
+            else :
+                # make sure that there are no other tokens on this line
+                if self.line_tokens[ last_fs_desc.line_number ][ -1 ] is not last_fs_desc :
+                    self.move_tokens_after_to_their_own_next_line( last_fs_desc )
 
     # go through all the tokens in the all_tokens list;
     # through this function, the line_tokens array will get updated
     # and tokens moved around.  Token indices will not be correct.
     # Token line numbers will be correct
     def adjust_lines_as_necessary( self ) :
-        return
-        self.new_lines = []
-        self.new_line_tokens = []
         i = 0
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible : i+=1; continue;
             if self.all_tokens[i].type == "for" :
-                i = self.adjust_for( i )
-                
-            
-
-        self.all_lines = self.new_lines
-        self.line_tokens = self.new_line_tokens
+                self.adjust_for( i )
+            i+=1
         self.renumber_tokens()
 
     def beautify_code( self ) :
@@ -1293,8 +1327,8 @@ class AdvancedCodeReader :
         # final pass: change indentation
         
         self.new_lines = []
-        self.line_indentations = [0] * len(self.all_lines)
-        for line_number, line in enumerate(self.all_lines) :
+        self.line_indentations = [0] * len(self.line_tokens)
+        for line_number, line in enumerate(self.line_tokens) :
             self.determine_indentation_level( line_number )
             new_line = self.line_from_line_tokens( line_number )
             self.new_lines.append( new_line )

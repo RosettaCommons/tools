@@ -111,7 +111,10 @@ class BeautifierTest :
 def test_code_reader( lines_initial, lines_final ) :
     cr = code_reader2.AdvancedCodeReader()
     for line in lines_initial :
+        # print line,
         cr.tokenize_line( line )
+    # for i,tok_line in enumerate(cr.line_tokens) :
+    #     print i, [x.spelling for x in tok_line ]
     cr.minimally_parse_file()
     cr.beautify_code()
 

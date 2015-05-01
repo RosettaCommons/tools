@@ -89,3 +89,35 @@ void test()                                     | void test()
     }                                           |     }
 }                                               | }
 --- 13 for-curly-brace placement
+void test()                                       | void test()                                       
+{                                                 | {                                                 
+    for ( std::list< int >::const_iterator        |     for ( std::list< int >::const_iterator        
+        iter     = mylist.begin(),                |             iter     = mylist.begin(),                
+        iter_end = mylist.end();                  |             iter_end = mylist.end();                  
+        iter != iter_end; ++iter ) {              |             iter != iter_end; ++iter ) {              
+        std::cout << "test!" << std::endl;        |         std::cout << "test!" << std::endl;        
+    }                                             |     }                                             
+}                                                 | }                                                 
+--- 14 for-loop indentation
+void test()                                     | void test()                          
+{                                               | {                                           
+for ( int i = 0; i < 10; ++i ) {                |     for ( int i = 0; i < 10; ++i ) {
+statement();                                    |         statement();
+}                                               |     }
+}                                               | }
+--- 15 for-loop indentation
+void test()                                     | void test()                          
+{                                               | {                                           
+    for(int i = 0;i < 10;++i){                  |     for ( int i = 0; i < 10; ++i ) {
+        statement();                            |         statement();
+    }                                           |     }
+}                                               | }
+--- 16 for-loop spacing
+void test()                                     | void test()                          
+{                                               | {                                           
+    for(int i=0;i < 10;++i){                    |     for ( int i=0; i < 10; ++i ) {
+        statement();                            |         statement();
+    }                                           |     }
+}                                               | }
+--- 17 for-loop spacing
+

@@ -167,6 +167,7 @@ class AdvancedCodeReader :
                     if start >= 0 :
                         self.take_token_for_range( start, i )
                     self.take_token_for_range( i,i+1)
+                    start = -1
                     i += 1
                     continue
             # if its not whitespace
@@ -842,9 +843,9 @@ class AdvancedCodeReader :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number] + 2
         elif first_token.context() == "for-scope" :
             if first_token.spelling == "}" :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "do-while" :
             # this is an odd case -- between the "do" and the "{"
             self.line_indentations[line_number] = self.line_indentions[first_token.parent.line_number]
@@ -950,6 +951,7 @@ class AdvancedCodeReader :
 
     def line_from_line_tokens( self, line_number ) :
         toks = self.line_tokens[line_number]
+        # print line_number, [ x.spelling for x in toks ]
         spellings = ["\t" * self.line_indentations[line_number] ]
         for i, tok in enumerate( toks ) :
             spellings.append( tok.spelling )
@@ -1252,7 +1254,7 @@ class AdvancedCodeReader :
         if for_body.type == "for-scope" :
             # ok -- so the curly braces are there.  Check that they are in the right place.
             if end_paren.line_number != for_body.line_number :
-                # ok! we need to move the "{" up to the ")" line
+                # print 'ok! we need to move the "{" up to the ")" line'
                 # ask -- are there other tokens on the "{" line?
                 if for_body.children[0].spelling == "}" :
                     pass; # handled below
@@ -1260,7 +1262,7 @@ class AdvancedCodeReader :
                     # ok, the line is not going to be empty after we remove the "{"
                     self.excise_left_curly_brace_and_move_after( for_body, end_paren )
                 else :
-                    # ok, excise the "{" and delete the line it was on
+                    # print 'ok, excise the "{" and delete the line it was on'
                     old_line = for_body.line_number
                     self.excise_left_curly_brace_and_move_after( for_body, end_paren )
                     self.delete_empty_line( old_line )
@@ -1271,14 +1273,14 @@ class AdvancedCodeReader :
             if len(for_body.children) != 1 :
                 last_before_rcb = self.last_descendent( for_body.children[-2] )
                 if last_before_rcb.line_number == right_curly_brace.line_number :
-                    # ok! move rcb to its own line
+                    # print 'ok! move rcb to its own line'
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
             else :
                 # make sure the {} are on the same line together
                 rcb = for_body.children[0]
                 assert( rcb.spelling == "}" )
                 if rcb.line_number != for_body.line_number :
-                    # move rcb up to the line with the lcb
+                    # print 'move rcb up to the line with the lcb'
                     self.line_tokens[rcb.line_number].remove( rcb )
                     if len( self.line_tokens[ rcb.line_number ] ) == 0 :
                         self.line_tokens = self.line_tokens[:rcb.line_number] + self.line_tokens[(rcb.line_number+1):]
@@ -1289,17 +1291,18 @@ class AdvancedCodeReader :
         else :
             last_fs_desc = self.last_descendent( for_body )
             if last_fs_desc.line_number != tok.line_number :
-                # we need to add a pair of curly braces
+                # print 'we need to add a pair of curly braces'
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "for-scope"
                 self.adjust_token_tree( lcb_tok, for_body )
                 if for_body.line_number == lcb_tok.line_number :
-                    # move these tokens down to their own line
+                    # print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 self.add_right_curly_brace_on_own_line_after( last_fs_desc, lcb_tok )
             else :
                 # make sure that there are no other tokens on this line
                 if self.line_tokens[ last_fs_desc.line_number ][ -1 ] is not last_fs_desc :
+                    # print 'move these tokens onto their own line'
                     self.move_tokens_after_to_their_own_next_line( last_fs_desc )
 
     # go through all the tokens in the all_tokens list;

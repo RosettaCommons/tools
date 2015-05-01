@@ -43,7 +43,8 @@ token_types = [ "top-level",
                 "statement",
                 "substatement",
                 "template",
-                "template-arg-list" ]
+                "template-arg-list",
+                "empty-statement" ]
 
 class Token :
     def __init__( self ) :
@@ -70,6 +71,12 @@ class Token :
     def set_parent( self, parent ) :
         self.parent = parent
         parent.children.append( self )
+    def equivalent( self, other ) :
+        if self.spelling != other.spelling : return False
+        elif self.context() != other.context() : return False
+        elif self.invisible_by_macro != other.invisible_by_macro : return False
+        elif self.is_visible != other.is_visible : return False
+        return True
 
 class AdvancedCodeReader :
     def __init__( self ) :
@@ -275,7 +282,7 @@ class AdvancedCodeReader :
         while i < len(self.all_tokens) :
             if self.all_tokens[i].is_visible : return i
             if stack != None :
-                self.set_depth_and_context( i, stack )
+                self.set_parent( i, stack )
             i += 1
         return i
     def print_entry( self, fname, i, stack ) :
@@ -325,7 +332,7 @@ class AdvancedCodeReader :
         elif i_spelling == "{" :
             return self.process_scope(i,stack)
         elif i_spelling == ";" :
-            self.set_depth_and_context(i,stack)
+            self.set_parent(i,stack,"empty-statement")
             return i+1;
         #elif i_spelling == "}" :
         #    return self.process_scope_end(i,stack)
@@ -353,9 +360,9 @@ class AdvancedCodeReader :
         sys.exit(1)
 
     def print_depth_stack( self, stack ) :
-        print "Depth stack: "
+        print "Depth stack: ",
         for elem in reversed( stack ) :
-            print "  ", elem[0], ("\n" if elem[1] == None else "%d %s" % ( elem[1].line_number+1, self.all_lines[ elem[1].line_number ])),
+            print "  ", elem.spelling, ("\n" if elem == None else "%d %s" % ( elem.line_number+1, self.all_lines[ elem.line_number ])),
 
     def read_to_end_paren( self, i, stack ) :
         # the starting "(" should have already been read
@@ -430,7 +437,7 @@ class AdvancedCodeReader :
         # be watchful for an intializer list
         if debug : self.print_entry("process_function_preamble_or_variable",i,stack)
         classname = ""
-        if stack[-1][0] == "class-scope" :
+        if stack[-1].context() == "class-scope" :
             classname = self.current_classname( i, stack )
         arglist = "not-begun"
         is_ctor = False
@@ -495,7 +502,7 @@ class AdvancedCodeReader :
                 # ok! now descend into the function block
                 i = self.process_statement( i, stack )
                 stack.pop()
-                return i
+                return i+1
 
             self.set_parent(i,stack)
             i+=1
@@ -577,8 +584,11 @@ class AdvancedCodeReader :
                 i+=1
                 i = self.read_to_end_paren( i, stack )
                 stack.pop() # pop do-while-condition
+                i = self.find_next_visible_token(i,stack)
+                assert( self.all_tokens[i].spelling == ";" )
+                self.set_parent(i,stack)
                 stack.pop() # pop do-while
-                return i
+                return i+1
             self.set_parent(i,stack)
             i+=1
 
@@ -740,7 +750,7 @@ class AdvancedCodeReader :
     def process_scope(self,i,stack) :
         if debug : self.print_entry("process_scope",i,stack)
 
-        scopename = stack[-1][0]+"-scope"
+        scopename = stack[-1].type + "-scope"
         if scopename not in token_types :
             scopename = "scope"
         self.set_parent(i,stack,scopename)
@@ -1045,46 +1055,142 @@ class AdvancedCodeReader :
             return self.last_descendent( token )
 
     def excise_left_curly_brace_and_move_after( self, lcb_tok, dest_tok ) :
+        # move lcb_tok up to the line that dest_tok is on
         # dest_tok == the token after which the left-curly-brace (lcb) is to be placed.
-        pass
+        # if there were comments between lcb_tok and dest_tok, adjust their parentage
+        orig_line_number = lcb_tok.line_number
+        orig_line = self.line_tokens[ orig_line_number ]
+        dest_line_number = dest_tok.line_number
+        dest_line = self.line_tokens[ dest_line_number ]
+        dest_tok_ind = dest_line.index( dest_tok )
+        lcb_tok.line_number = dest_line_number
+        lcb_tok.start = dest_tok.one_past_end + 1
+        lcb_tok.end = lcb_tok.start+1
+        # shift the rest of the tokens on this line right by two spaces
+        for i in xrange( dest_tok_ind+2, len(dest_line) ) :
+            tok = dest_line[i]
+            tok.start += 2
+            tok.one_past_end += 2
+        dest_line.insert( dest_tok_ind+1, lcb_tok )
+        new_children = []
+        for i in xrange( dest_line_number, orig_line_number+1 ) :
+            found_lcb_tok = False
+            for tok in self.line_tokens[ i ] :
+                if i == dest_line_number and not found_lcb_tok :
+                    if tok is lcb_tok :
+                        found_lcb_tok = True
+                    continue
+                if i == orig_line_number :
+                    if tok is lcb_tok :
+                        found_lcb_tok = True
+                        break
+                orig_parent = tok.parent
+                orig_parent.children.remove( tok )
+                tok.parent = lcb_tok
+                new_children.append( tok )
+            if i == orig_line_number and found_lcb_tok : break;
+        lcb_tok.children = new_children + lcb_tok.children
+        if new_children :
+            # we also have to adjust self.all_tokens
+            i = self.all_tokens.index( lcb_tok )
+            while i > 0 :
+                self.all_tokens[i] = self.all_tokens[i-1]
+                if self.all_tokens[i] is new_children[0] :
+                    self.all_tokens[i] = lcb_tok
+                    break
+                i-=1
+            assert( i != 0 )
+        orig_line.remove( lcb_tok )
 
     def delete_empty_line( self, old_line ) :
         # iterate across all the tokens and decrement the line_number for any that are after
         # this old line number; also delete one line from the line_toks table
-        for tok in self.all_tokens) :
+        for tok in self.all_tokens :
             if tok.line_number > old_line : tok.line_number -= 1
         self.line_tokens = self.line_tokens[:old_line] + self.line_tokens[old_line+1:]
 
-    def insert_line_with_single_token( self, tok ) :
-        # the token should know what line it belongs on
-        self.line_tokens.insert( tok.line_number, [ tok ] )
-        for i in xrange( tok.line_number+1, len( self.line_tokens ) ) :
+        
+    def insert_token_lines( self, tok_lines ) :
+        # tokens must already know their new line numbers.
+        # first and last lines of tok_lines can't be empty.
+        # adjusts self.line_tokens, but not self.all_tokens.
+        nlines = len( tok_lines )
+        assert( len(tok_lines[-1]) > 0 and len(tok_lines[0]) > 0 ) 
+        firstline = tok_lines[0][0].line_number
+        self.line_tokens = self.line_tokens[:firstline] + tok_lines + self.line_tokens[firstline:]
+        for i in xrange( tok_lines[-1][0].line_number + 1, len(self.line_tokens) ) :
             for tok in self.line_tokens[i] :
-                tok.line_number += 1
+                tok.line_number += nlines
+    
+    def insert_line_with_single_token( self, tok ) :
+        self.insert_token_lines( [ tok ] )
 
     def excise_right_curly_brace_and_move_to_next_line( self, rcb ) :
-        parent = rcb.parent
-        if parent.children[-1] is not rcb :
-            # case where there are comments at the end of the line after rcb
-            parent.children.remove( rcb )
-            parent.children.append( rcb )
-        rcb_ind = self.line_tokens[ rcb.line_number ].index( rcb )
-        if rcb_ind + 1 != len( self.line_tokens[ rcb.line_number ] ) :
+        rcb_line = self.line_tokens[ rcb.line_number ]
+                
+        if rcb_ind is not rcb_line[ -1 ] :
             # ok, we have comments or something at the end of this line
             # if its nothing but comments, then leave them on this line
             # otherwise, they should be on their own line after the }
+            rcb_ind = rcb_line.index( rcb )
 
             any_visible = False
-            for i in xrange( rcb_ind+1, len( self.line_tokens[ rcb.line_number ] ) ) :
+            for i in xrange( rcb_ind+1, len( rcb_line )) :
                 if self.line_tokens[ rcb.line_number ][ i ].is_visible :
                     any_visible = True
                     break;
             if any_visible :
                 # ok! then we need to move these statements to their own line
-                # that's on the to-do list.
+                # we don't have to ajust parentage or the all_tokens list
+                toks_to_move = rcb_line[ rcb_ind: ]
+                self.line_tokens[ rcb.line_number ] = rcb_line[:rcb_ind]
+                rcb.line_number += 1
+                newlines = []
+                newlines.append( [ rcb_tok ] )
+                newlines.append( toks_to_move[1:] )
+                for tok in newlines[1] :
+                    tok.line_number += 2
+                self.insert_token_lines( newlines )
+                return;
+            else :
+                # case where there are comments at the end of the line after rcb.
+                # let's not adjust the start and one_past_end positions of these tokens
+                # but do adjust the tree so that these tokens are assigned rcb's parent
+                for i in xrange(rcb_ind+1,len(rcb_line)) :
+                    tok = rcb_line[i]
+                    orig_parent = tok.parent
+                    orig_parent.children.remove( tok )
+                    tok.set_parent( rcb.parent )
+                # update the all_tokens list
+                i = self.all_tokens.index( rcb )
+                while i < len(self.all_tokens)-1 :
+                    self.all_tokens[i] = self.all_tokens[i+1]
+                    if self.all_tokens[i] is rcb_line[-1] :
+                        self.all_tokens[i+1] = rcb
+                        break
+                    i+=1
+                assert( i < len(self.all_tokens)-1 )
+        else :
+            # the rcb is the last token on its line
+            # no need to adjust parentage or the all_tokens list
+            pass
+        rcb_line.remove( rcb )
+        rcb.line_number += 1
+        self.insert_line_with_single_token( rcb )
+                
 
     def add_left_curly_brace_after( self, tok_before ) :
-        pass
+        lcb = Token()
+        lcb.spelling = "{"
+        lcb.start = tok_before.one_past_end + 1
+        lcb.one_past_end = lcb.start + 1
+        line_toks = self.line_tokens[ tok_before.line_number ]
+        tok_before_index = line_toks.index( tok_before )
+        for i in xrange( tok_before_index+1, len( line_toks ) ) :
+            line_toks[i].start += 2
+            line_toks[i].one_past_end += 2
+        line_toks.insert( tok_before_index+1, lcb )
+        self.all_tokens.insert( self.all_tokens.index( tok_before ) + 1, lcb )
 
     def add_right_curly_brace_on_own_line_after( self, lcb_tok, tok_before ) :
         rcb_tok = Token()

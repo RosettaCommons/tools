@@ -72,4 +72,20 @@ void test()                                           | void test()
     for ( int i = 0; i < 10; ++i ) statement();       |     for ( int i = 0; i < 10; ++i ) statement();        
 }                                                     | }
 --- 11 for-curly-brace placement
-
+void test()                                     | void test()                          
+{                                               | {                                           
+    for ( int i = 0; i < 10; ++i )              |     for ( int i = 0; i < 10; ++i ) {
+        // comment                              |         // comment
+    {                                           |         statement();
+        statement();                            |     }
+    }                                           | }
+}                                               |
+--- 12 for-curly-brace placement
+void test()                                     | void test()                          
+{                                               | {                                           
+    for ( int i = 0; i < 10; ++i )              |     for ( int i = 0; i < 10; ++i ) {
+        /* comment */ {                         |         /* comment */
+        statement();                            |         statement();
+    }                                           |     }
+}                                               | }
+--- 13 for-curly-brace placement

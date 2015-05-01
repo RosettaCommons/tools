@@ -1255,10 +1255,8 @@ class AdvancedCodeReader :
                 # ok! we need to move the "{" up to the ")" line
                 # ask -- are there other tokens on the "{" line?
                 if for_body.children[0].spelling == "}" :
-                    # ok, keep the "{" and "}" pair on the same line together
-                    # to do!
-                    assert( False )
-                elif for_body.children[0].line_number == for_body.line_number :
+                    pass; # handled below
+                elif len( self.line_tokens[ for_body.line_number ] ) != 1 :
                     # ok, the line is not going to be empty after we remove the "{"
                     self.excise_left_curly_brace_and_move_after( for_body, end_paren )
                 else :

@@ -7,6 +7,7 @@ import array
 from rosettautil.protein import util
 from rosettautil.protein import alignment
 from rosettautil.protein import pdbStat
+from rosettautil.protein import amino_acids
 from rosettautil.util import fileutil
 
 
@@ -109,8 +110,10 @@ for align_resn, temp_resn,gap_temp_resn in zip(alignment_data[target_id],alignme
         template_residues.next() #pull a residue out of the pdb and throw it away
         continue
     elif align_resn != '-' and temp_resn != '-': #we're aligned, copy backbone from old pdb to new, if the sidechain is identical, copy that too
-        align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
-        temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
+        align_name3 = amino_acids.one_letter_names[align_resn]
+        #align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
+        temp_name3 = amino_acids.one_letter_names[temp_resn]
+        #temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
         current_res = template_residues.next() #pull the next residue out of the pdb file 
         if(current_res.get_resname() != temp_name3):  #if the current residue from the pdb isnt the same type as the current from the template, something's broken
             print current_res.get_resname(),temp_name3

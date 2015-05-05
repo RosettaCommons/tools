@@ -418,13 +418,24 @@ def write_results(CDRs, prefix):
 
 
 def IdentifyCDRs(light_chain, heavy_chain):
+
+    L1_pattern=r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+    L3_pattern=r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
+    H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)' # Jeff's mod for ATHM set
+   #H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
+    H3_pattern=r'C[A-Z]{1,33}(W)(G|A|C)[A-Z]{1,2}(Q|S|G|R)'
+    
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
-    light_first, light_second = (light_chain[:65], light_chain[50:50+80]) if len(light_chain) > 130 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:70], heavy_chain[50:50+95]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    light_first = light_chain[:65] if len(light_chain) > 130 else light_chain[:60]
+    heavy_first = heavy_chain[:70] if len(heavy_chain) > 140 else heavy_chain[:60]
 
-    # L1
-    res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
+    # LL II GG HH TT
+
+    ## L1
+
+    len_FR_L1=0
+    res = re.search(L1_pattern,light_first)
     FR_L1 = L1 = False
     if res:
         L1 = res.group()[1:-3]
@@ -438,10 +449,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     else:
         print "L1 detected: False"
 
+    light_second = light_chain[L1_end+16+7:L1_end+16+7+80] if len(light_chain) > 130 else light_chain[L1_end+16+7:]
 
-    # L3
+    ## L3
+
     L3 = False
-    res = re.search( r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)', light_second)
+    res = re.search(L3_pattern,light_second)
     if res:
         L3 = res.group()[1:-4]
         L3_start = light_chain.index(L3)
@@ -461,9 +474,9 @@ def IdentifyCDRs(light_chain, heavy_chain):
         print "L2 detected: %s (%d residues at positions %d to %d)" % (L2, len(L2), L2_start, L2_end)
 
         #FR_L1 = light_chain[:L1_start]
-        FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
-        FR_L3 = light_chain[L2_end+1 : L2_end+1 +L3_start - L2_end - 1 ]
-        FR_L4 = light_chain[L3_end + 1 : L3_end + 1 + 12]
+        FR_L2 = light_chain[ L1_end + 1  :  L1_end + 1 + 15                    ]
+        FR_L3 = light_chain[ L2_end + 1  :  L2_end + 1 + L3_start - L2_end - 1 ]
+        FR_L4 = light_chain[ L3_end + 1  :  L3_end + 1 + 12                    ]
 
         print "FR_L1: ", FR_L1
         print "FR_L2: ", FR_L2
@@ -476,10 +489,13 @@ def IdentifyCDRs(light_chain, heavy_chain):
         # FR classification by AHo. This might be useful in the future. But currently this is not used.
         # ... skipped, see Google doc for details
 
-    # H1
-    res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)', heavy_first) # jeff's mod for ATHM set
-    #res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
+
+    # HH EE AA VV YY
+
+    ## H1
+    res = re.search(H1_pattern, heavy_first)
     H1 = False
+    len_FR_H1 = 0
     if res:
         H1 = res.group()[4:-4]
         H1_start = heavy_chain.index(H1)
@@ -492,9 +508,12 @@ def IdentifyCDRs(light_chain, heavy_chain):
     else:
         print "H1 detected: False"
 
-    # H3
+
+    heavy_second = heavy_chain[H1_end+33+15:H1_end+33+15+95+len_FR_H1] if len(heavy_chain) > 140 else heavy_chain[H1_end+33+15:]
+
+    ## H3
     H3 = False #H3_and_stem=False
-    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
+    res = re.search(H3_pattern,heavy_second)
     if res:
         H3 = res.group()[3:-4] #H3_and_stem = res.group()[0:-4]
         H3_start = heavy_chain.index(H3)
@@ -528,10 +547,10 @@ def IdentifyCDRs(light_chain, heavy_chain):
         print "H segments: ",FR_H1,H1,FR_H2,H2,FR_H3,H3,FR_H4
 
     if not (L1 and L3 and H1 and H3):
-        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
-        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
-        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
-        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)'
+        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: %s' % L1_pattern # C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: %s' % L3_pattern # C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)
+        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: %s' % H1_pattern # C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)
+        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: %s' % H3_pattern # C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)
         sys.exit(1)
 
     res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)

@@ -36,8 +36,8 @@ if hostname == 'stampede':
     tasks_per_node_MPI = 16
     account = 'TG-MCB120152'
 if hostname == 'sherlock':
-    DO_MPI = False #True
-    #tasks_per_node_MPI = 16
+    DO_MPI = True
+    tasks_per_node_MPI = 16
     account = None
 
 save_logs = False
@@ -302,8 +302,8 @@ if DO_MPI:
             fid_qsub_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
             if account: fid_qsub_submit_file_MPI.write( '#SBATCH -A %s\n' % account )
             #fid_qsub_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
-            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_submit_file_MPI )
-
+            fid_qsub_submit_file_MPI.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n'
+                                            % (job_submit_file_MPI, hostname) )
             fid_qsub_submit_file_MPI.close()
 
             fid_qsub_MPI.write( 'sbatch %s\n' % qsub_submit_file_MPI )
@@ -353,7 +353,8 @@ if DO_MPI:
         if account: fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A %s\n' % account )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' % job_file_MPI_ONEBATCH )
+        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' 
+                                     % (job_file_MPI_ONEBATCH, hostname) )
     else:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
         fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')

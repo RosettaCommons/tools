@@ -867,6 +867,8 @@ class AdvancedCodeReader :
         elif first_token.context() == "if-scope" :
             if first_token.spelling == "}" :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            elif first_token.parent.parent.context() == "else" :
+                self.line_indentation[line_number] == self.line_indentations[first_token.parent.parent.line_number ]+1
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "else" :
@@ -1305,6 +1307,9 @@ class AdvancedCodeReader :
                     # print 'move these tokens onto their own line'
                     self.move_tokens_after_to_their_own_next_line( last_fs_desc )
 
+    def adjust_if( self, i ) :
+        pass
+
     # go through all the tokens in the all_tokens list;
     # through this function, the line_tokens array will get updated
     # and tokens moved around.  Token indices will not be correct.
@@ -1315,6 +1320,8 @@ class AdvancedCodeReader :
             if not self.all_tokens[i].is_visible : i+=1; continue;
             if self.all_tokens[i].type == "for" :
                 self.adjust_for( i )
+            elif self.all_tokens[i].type == "if" :
+                self.adjust_if( i )
             i+=1
         self.renumber_tokens()
 

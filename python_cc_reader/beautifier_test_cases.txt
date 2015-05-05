@@ -1,23 +1,23 @@
-void test()                                 | void test()                                 
-{                                           | {                        
-    for ( int i = 0; i < 10; ++i )          |     for ( int i = 0; i < 10; ++i ) {        
-        std::cout << "i: " << i;            |         std::cout << "i: " << i;  
+void test()                                 | void test()
+{                                           | {
+    for ( int i = 0; i < 10; ++i )          |     for ( int i = 0; i < 10; ++i ) {
+        std::cout << "i: " << i;            |         std::cout << "i: " << i;
 }                                           |     }
-                                            | }                        
+                                            | }
 --- 1 for-curly-brace placement
-void test()                                 | void test()                                 
-{                                           | {                                           
-    for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) {        
-        std::cout << "i: " << i; }          |         std::cout << "i: " << i;     
-}                                           |     }                                   
-                                            | }                                    
+void test()                                 | void test()
+{                                           | {
+    for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) {
+        std::cout << "i: " << i; }          |         std::cout << "i: " << i;
+}                                           |     }
+                                            | }
 --- 2 for-curly-brace placement
-void test()                                 | void test()                          
-{                                           | {                                           
-    for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) { 
-        statement(); } // comment           |         statement();   // comment     
-}                                           |     }                                   
-                                            |  }                                    
+void test()                                 | void test()
+{                                           | {
+    for ( int i = 0; i < 10; ++i ) {        |     for ( int i = 0; i < 10; ++i ) {
+        statement(); } // comment           |         statement();   // comment
+}                                           |     }
+                                            |  }
 --- 3 for-curly-brace placement
 void test()                                 | void test()
 {                                           | {
@@ -25,32 +25,32 @@ void test()                                 | void test()
     }                                       | }
 }                                           |
 --- 4 for-curly-brace placement
-void test()                                 | void test()                                 
-{                                           | {                                           
-    for ( int i = 0; i < 10; ++i );         |     for ( int i = 0; i < 10; ++i );         
-}                                           | }                                           
+void test()                                 | void test()
+{                                           | {
+    for ( int i = 0; i < 10; ++i );         |     for ( int i = 0; i < 10; ++i );
+}                                           | }
 --- 5 for-curly-brace placement
-void test()                                     | void test()                          
-{                                               | {                                           
+void test()                                     | void test()
+{                                               | {
     for ( int i = 0; i < 10; ++i ) // comment   |     for ( int i = 0; i < 10; ++i ) { // comment
     {                                           |         statement();
         statement();                            |     }
     }                                           | }
 }                                               |
 --- 6 for-curly-brace placement
-void test()                                 | void test()                                 
-{                                           | {                                           
-    for ( int i = 0; i < 10; ++i )          |     for ( int i = 0; i < 10; ++i ) {        
-    { std::cout << "i: " << i; }            |         std::cout << "i: " << i;     
-}                                           |     }                                   
-                                            | }                                    
+void test()                                 | void test()
+{                                           | {
+    for ( int i = 0; i < 10; ++i )          |     for ( int i = 0; i < 10; ++i ) {
+    { std::cout << "i: " << i; }            |         std::cout << "i: " << i;
+}                                           |     }
+                                            | }
 --- 7 for-curly-brace placement
-void test()                                           | void test()                                 
-{                                                     | {                                           
-    for ( int i = 0; i < 10; ++i ) {                  |     for ( int i = 0; i < 10; ++i ) {        
-        statement1(); } statement2();                 |         statement1();     
-}                                                     |     }                                   
-                                                      |     statement2();                                    
+void test()                                           | void test()
+{                                                     | {
+    for ( int i = 0; i < 10; ++i ) {                  |     for ( int i = 0; i < 10; ++i ) {
+        statement1(); } statement2();                 |         statement1();
+}                                                     |     }
+                                                      |     statement2();
                                                       | }
 --- 8 for-curly-brace placement
 void test()                                           | void test()
@@ -61,19 +61,19 @@ void test()                                           | void test()
                                                       |     }
                                                       | }
 --- 9 for-curly-brace placement
-void test()                                           | void test()                                 
-{                                                     | {                                           
-    for ( int i = 0; i < 10; ++i ) s1(); s2();        |     for ( int i = 0; i < 10; ++i ) s1();        
+void test()                                           | void test()
+{                                                     | {
+    for ( int i = 0; i < 10; ++i ) s1(); s2();        |     for ( int i = 0; i < 10; ++i ) s1();
 }                                                     |     s2();
                                                       | }
---- 10 for-curly-brace placement                                                      
-void test()                                           | void test()                                 
-{                                                     | {                                           
-    for ( int i = 0; i < 10; ++i ) statement();       |     for ( int i = 0; i < 10; ++i ) statement();        
+--- 10 for-curly-brace placement
+void test()                                           | void test()
+{                                                     | {
+    for ( int i = 0; i < 10; ++i ) statement();       |     for ( int i = 0; i < 10; ++i ) statement();
 }                                                     | }
 --- 11 for-curly-brace placement
-void test()                                     | void test()                          
-{                                               | {                                           
+void test()                                     | void test()
+{                                               | {
     for ( int i = 0; i < 10; ++i )              |     for ( int i = 0; i < 10; ++i ) {
         // comment                              |         // comment
     {                                           |         statement();
@@ -81,43 +81,281 @@ void test()                                     | void test()
     }                                           | }
 }                                               |
 --- 12 for-curly-brace placement
-void test()                                     | void test()                          
-{                                               | {                                           
+void test()                                     | void test()
+{                                               | {
+    for ( int i = 0; i < 10; ++i )              |     for ( int i = 0; i < 10; ++i ) {
+        // comment                              |         // comment
+        statement();                            |         statement();
+}                                               |     }
+                                                | }
+--- 13 for-curly-brace placement
+void test()                                     | void test()
+{                                               | {
     for ( int i = 0; i < 10; ++i )              |     for ( int i = 0; i < 10; ++i ) {
         /* comment */ {                         |         /* comment */
         statement();                            |         statement();
     }                                           |     }
 }                                               | }
---- 13 for-curly-brace placement
-void test()                                       | void test()                                       
-{                                                 | {                                                 
-    for ( std::list< int >::const_iterator        |     for ( std::list< int >::const_iterator        
-        iter     = mylist.begin(),                |             iter     = mylist.begin(),                
-        iter_end = mylist.end();                  |             iter_end = mylist.end();                  
-        iter != iter_end; ++iter ) {              |             iter != iter_end; ++iter ) {              
-        std::cout << "test!" << std::endl;        |         std::cout << "test!" << std::endl;        
-    }                                             |     }                                             
-}                                                 | }                                                 
---- 14 for-loop indentation
-void test()                                     | void test()                          
-{                                               | {                                           
+--- 14 for-curly-brace placement
+void test()                                       | void test()
+{                                                 | {
+    for ( std::list< int >::const_iterator        |     for ( std::list< int >::const_iterator
+        iter     = mylist.begin(),                |             iter     = mylist.begin(),
+        iter_end = mylist.end();                  |             iter_end = mylist.end();
+        iter != iter_end; ++iter ) {              |             iter != iter_end; ++iter ) {
+        std::cout << "test!" << std::endl;        |         std::cout << "test!" << std::endl;
+    }                                             |     }
+}                                                 | }
+--- 15 for-loop indentation
+void test()                                     | void test()
+{                                               | {
 for ( int i = 0; i < 10; ++i ) {                |     for ( int i = 0; i < 10; ++i ) {
 statement();                                    |         statement();
 }                                               |     }
 }                                               | }
---- 15 for-loop indentation
-void test()                                     | void test()                          
-{                                               | {                                           
+--- 16 for-loop indentation
+void test()                                     | void test()
+{                                               | {
     for(int i = 0;i < 10;++i){                  |     for ( int i = 0; i < 10; ++i ) {
         statement();                            |         statement();
     }                                           |     }
 }                                               | }
---- 16 for-loop spacing
-void test()                                     | void test()                          
-{                                               | {                                           
+--- 17 for-loop spacing
+void test()                                     | void test()
+{                                               | {
     for(int i=0;i < 10;++i){                    |     for ( int i=0; i < 10; ++i ) {
         statement();                            |         statement();
     }                                           |     }
 }                                               | }
---- 17 for-loop spacing
-
+--- 18 for-loop spacing
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    }                          |     }
+}                              | }
+--- 19 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+    {                          |         statement;
+        statement;             |     }
+    }                          | }
+}                              |
+--- 20 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) { // comment
+    {                          |         statement;
+        statement;             |     }
+    }                          | }
+}                              |
+--- 21 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+    /* comment */ {            |         /* comment */
+        statement;             |         statement;
+    }                          |     }
+}                              | }
+--- 22 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) statement;   |     if ( i < 10 ) statement;
+}                              | }
+--- 23 if-curly-brace placement
+void test()                               | void test()
+{                                         | {
+    if ( i < 10 ) statement; // comment   |     if ( i < 10 ) statement; // comment
+}                                         | }
+--- 24 if-curly-brace placement
+void test()                                      | void test()
+{                                                | {
+    if ( i < 10 ) statement; /* comment */ s2;   |     if ( i < 10 ) statement;
+}                                                |     /* comment */ s2;
+                                                 | }
+--- 25 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+        statement;             |         statement;
+}                              |     }
+                               | }
+--- 26 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+        // comment             |         // comment
+        statement;             |         statement;
+}                              |     }
+                               | }
+--- 27 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) statement;   |     if ( i < 10 ) statement;
+    else statement2;           |     else statement2;
+}                              | }
+--- 28 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) { // comment
+        statement;             |         statement;
+}                              |     }
+                               | }
+--- 29 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+        statement;             |         statement;
+    else                       |     } else {
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 30 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else                     |     } else {
+    {                          |         statement2;
+         statement2;           |     }
+    }                          | }
+}
+--- 31 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else                     |     } else {
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 32 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else // comment          |     } else { // comment
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 33 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else /* comment */       |     } else { /* comment */
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 34 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else                     |     } else {
+        // comment             |         // comment
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 35 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else                     |     } else {
+        /* comment */          |         /* comment */
+        statement2;            |         statement2;
+}                              |     }
+                               | }
+--- 36 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else statement2;         |     } else statement2;
+}                              | }
+--- 37 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else s2; s3;             |     } else s2;
+}                              |     s3;
+                               | }
+--- 38 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else s2; //comment       |     } else s2; // comment
+}                              | }
+--- 39 if-curly-brace placement
+void test()                        | void test()
+{                                  | {
+    if ( i < 10 ) {                |     if ( i < 10 ) {
+        statement;                 |         statement;
+    } else s2; /* comment */ s3;   |     } else s2;
+}                                  |     /* comment */ s3;
+                                   | }
+--- 40 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else {                   |     } else {
+        statement2;            |         statement2;
+    }                          |     }
+}                              | }
+--- 41 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else {                   |     } else {
+        statement2;            |         statement2;
+        statement3;            |         statement3;
+    }                          |     }
+}                              | }
+--- 42 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) {            |     if ( i < 10 ) {
+        statement;             |         statement;
+    } else if ( i > 100 ) {    |     } else if ( i > 100 ) {
+        statement2;            |         statement2;
+    } else {                   |     } else {
+        statement3;            |         statement3;
+    }                          |     }
+}                              | }
+--- 43 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 )              |     if ( i < 10 ) {
+        statement;             |         statement;
+    else if ( i > 100 )        |     } else if ( i > 100 ) {
+        statement2;            |         statement2;
+    else                       |     } else {
+        statement3;            |         statement3;
+}                              |     }
+                               | }
+--- 44 if-curly-brace placement
+void test()                            | void test()
+{                                      | {
+    if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
+    else if ( i > 100 )  statement2;   |     else if ( i > 100 ) statement2;
+    else                               |     else {
+        statement3;                    |         statement3;
+}                                      |      }
+                                       | }
+--- 45 if-curly-brace placement
+void test()                            | void test()
+{                                      | {
+    if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
+    else if ( i > 100 )                |     else if ( i > 100 ) {
+        statement2;                    |         statement2;
+    else                               |     } else {
+        statement3;                    |         statement3;
+}                                      |      }
+                                       | }
+--- 46 if-curly-brace placement

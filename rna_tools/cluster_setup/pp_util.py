@@ -95,8 +95,9 @@ def parse_sherlock_nodefile(inp):
 
 
 def sherlock_init( nodelist = '', job_cpus_per_node='' ):
+    submit_command = 'srun'
     socket_timeout = 3600 * 24
-    port = 32568
+    port = None
     key_phrase = '%x' % random.randrange(256**5)
     if len( nodelist ) == 0:
         nodelist = open( 'nodefile.txt' ).read().strip()
@@ -111,9 +112,16 @@ def sherlock_init( nodelist = '', job_cpus_per_node='' ):
         nworkers = int(line)
     ncpus = nworkers * len(nodes)
     print 'Submitting the ppserver...'
-    subprocess.Popen([
-        'srun', 'ppserver.py', '-k', str(socket_timeout), '-p', str(port),
-        '-w', str(nworkers), '-s', key_phrase])
+    submit_cmdline = [submit_command, 'ppserver.py']
+    if not nworkers is None:
+        submit_cmdline += ['-w', str(nworkers)]
+    if not socket_timeout is None:
+        submit_cmdline += ['-k', str(socket_timeout)]
+    if not port is None:
+        submit_cmdline += ['-p', str(port)]
+    if not key_phrase is None:
+        submit_cmdline += ['-s', key_phrase]
+    subprocess.Popen(submit_cmdline)
     ppservers = tuple([node + ':' + str(port) for node in nodes])
     jobserver = pp.Server(
         ncpus=0, ppservers=ppservers, secret=key_phrase,

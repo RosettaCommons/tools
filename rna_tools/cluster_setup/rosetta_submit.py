@@ -37,7 +37,7 @@ if hostname == 'stampede':
     account = 'TG-MCB120152'
 if hostname == 'sherlock':
     DO_MPI = True
-    tasks_per_node_MPI = 16
+    tasks_per_node_MPI = n_jobs if n_jobs < 16 else 16
     account = None
 
 save_logs = False

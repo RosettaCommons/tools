@@ -122,7 +122,10 @@ def sherlock_init( nodelist = '', job_cpus_per_node='' ):
     if not key_phrase is None:
         submit_cmdline += ['-s', key_phrase]
     subprocess.Popen(submit_cmdline)
-    ppservers = tuple([node + ':' + str(port) for node in nodes])
+    if port is None:
+        ppservers = tuple([node for node in nodes])
+    else:
+        ppservers = tuple([node + ':' + str(port) for node in nodes])
     jobserver = pp.Server(
         ncpus=0, ppservers=ppservers, secret=key_phrase,
         socket_timeout=socket_timeout)

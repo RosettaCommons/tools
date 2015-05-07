@@ -99,7 +99,7 @@ def main(args):
 
     # determing gcc version...
     (res, output) = commands.getstatusoutput('gcc -v')
-    res = output.rfind('version 4.9')
+    res = output.rfind('version 5.0')
     if res >= 0:
         print GCC_DowngradeMessage % output
         sys.exit(1)

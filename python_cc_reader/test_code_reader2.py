@@ -108,6 +108,19 @@ class BeautifierTest :
         self.lines_final = lf
         self.name = name
 
+def depth( token ) :
+    if token.parent :
+        return 1 + depth( token.parent )
+    else :
+        return 0
+
+def print_token( token ) :
+    print "%s (%s %d) %s %d %s" % ( " " * depth(token), token.parent.type, token.parent.line_number, token.type, token.line_number, token.spelling )
+
+def print_all_tokens( cr ) :
+    for token in cr.all_tokens :
+        print_token( token )
+
 def test_code_reader( lines_initial, lines_final ) :
     cr = code_reader2.AdvancedCodeReader()
     for line in lines_initial :
@@ -123,6 +136,16 @@ def test_code_reader( lines_initial, lines_final ) :
     #    print tok.spelling, tok.line_number, tok.type, tok.parent.type
 
     good = True
+
+    # make sure line_tokens and all_tokens agree
+    token_counter = -1
+    for line_number in xrange(len( cr.line_tokens )) :
+        for tok in cr.line_tokens[line_number] :
+            token_counter += 1
+            if cr.all_tokens[ token_counter ] is not tok :
+                good = False
+                print "all_tokens and line_tokens discrepancy", self.all_tokens[ token_counter ].spelling, "vs", tok.spelling
+
     for i, line in enumerate( cr.new_lines ) :
         if i >= len(lines_final) :
             print "Generated too many output lines", line,
@@ -136,6 +159,8 @@ def test_code_reader( lines_initial, lines_final ) :
             print "Failed to generate expected output line", i+1, ":", lines_final[i],
 
     if not good :
+        print_all_tokens( cr )
+
         print "Input:"
         for line in lines_initial :
             print line,

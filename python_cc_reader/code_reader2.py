@@ -299,9 +299,9 @@ class AdvancedCodeReader :
         # interpret the tokens into a structure
         self.renumber_tokens()
         i = 0
-        toplevel_token = Token()
-        toplevel_token.type = "namespace-scope"
-        stack = [ toplevel_token ] # you start at namespace scope
+        self.toplevel_token = Token()
+        self.toplevel_token.type = "namespace-scope"
+        stack = [ self.toplevel_token ] # you start at namespace scope
         while i < len( self.all_tokens ) :
             i = self.process_statement( i, stack )
 
@@ -851,24 +851,27 @@ class AdvancedCodeReader :
             self.line_indentations[line_number] = self.line_indentions[first_token.parent.line_number]
         elif first_token.context() == "do-while-condition" :
             # the do-while condition has occupied more than one line, I guess.  Indent twice like for and if
-            self.line_indentaitons[line_number] = self.line_indentations[first_token.parent.line_number]+2
+            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "do-while-scope" :
             if first_token.spelling == "}" :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "if" :
-            # this can only happen for the "(" at the beginning of the if-condition or if you have a comment
-            # after the if-condition but before the {
-            self.line_indentaitons[line_number] = self.line_indentations[first_token.parent.line_number]+2
+            if first_token.type == "else" :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            else :
+                # the "(" at the beginning of the if-condition or a comment
+                # after the if-condition but before the {
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "if-condition" :
             # indent twice if the if-condition has gone on so long that it wraps to a second line
-            self.line_indentaitons[line_number] = self.line_indentations[first_token.parent.line_number]+2
+            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "if-scope" :
             if first_token.spelling == "}" :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             elif first_token.parent.parent.context() == "else" :
-                self.line_indentation[line_number] == self.line_indentations[first_token.parent.parent.line_number ]+1
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number ]+1
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "else" :
@@ -1069,52 +1072,59 @@ class AdvancedCodeReader :
         else :
             return self.last_descendent( token.children[-1] )
 
-    def excise_left_curly_brace_and_move_after( self, lcb_tok, dest_tok ) :
-        # move lcb_tok up to the line that dest_tok is on
-        # dest_tok == the token after which the left-curly-brace (lcb) is to be placed.
-        # if there were comments between lcb_tok and dest_tok, adjust their parentage
-        orig_line_number = lcb_tok.line_number
+    #def excise_left_curly_brace_and_move_after( self, lcb_tok, dest_tok ) :
+    def excise_token_and_move_upwards_and_after( self, moving_token, dest_tok, adjust_parentage=True ) :
+        # move moving_token up to the line that dest_tok is on.
+        # dest_tok == the token after which the moving token is to be placed.
+        # if adjust_parentage is true, then if there were tokens between moving_token and
+        # dest_tok, adjust their parent to be the moving_token -- this must make sense.
+        # i.e. a for statement may only have one child besides the for-declaration child.
+
+        orig_line_number = moving_token.line_number
         orig_line = self.line_tokens[ orig_line_number ]
         dest_line_number = dest_tok.line_number
         dest_line = self.line_tokens[ dest_line_number ]
         dest_tok_ind = dest_line.index( dest_tok )
-        lcb_tok.line_number = dest_line_number
-        lcb_tok.start = dest_tok.one_past_end + 1
-        lcb_tok.one_past_end = lcb_tok.start+1
+        moving_token.line_number = dest_line_number
+        moving_token_length = moving_token.one_past_end - moving_token.start
+        moving_token.start = dest_tok.one_past_end + 1
+        moving_token.one_past_end = moving_token.start + moving_token_length
         # shift the rest of the tokens on this line right by two spaces
         for i in xrange( dest_tok_ind+1, len(dest_line) ) :
             tok = dest_line[i]
-            tok.start += 2
-            tok.one_past_end += 2
-        dest_line.insert( dest_tok_ind+1, lcb_tok )
-        new_children = []
-        for i in xrange( dest_line_number, orig_line_number+1 ) :
-            found_lcb_tok = False
-            for tok in self.line_tokens[ i ] :
-                if i == dest_line_number and not found_lcb_tok :
-                    if tok is lcb_tok :
-                        found_lcb_tok = True
-                    continue
-                if i == orig_line_number :
-                    if tok is lcb_tok :
-                        break
-                orig_parent = tok.parent
-                orig_parent.children.remove( tok )
-                tok.parent = lcb_tok
-                new_children.append( tok )
-
-        lcb_tok.children = new_children + lcb_tok.children
-        if new_children :
-            # we also have to adjust self.all_tokens
-            i = self.all_tokens.index( lcb_tok )
-            while i > 0 :
-                self.all_tokens[i] = self.all_tokens[i-1]
-                if self.all_tokens[i] is new_children[0] :
-                    self.all_tokens[i-1] = lcb_tok
-                    break
-                i-=1
-            assert( i != 0 )
-        orig_line.remove( lcb_tok )
+            tok.start += 1+moving_token_length
+            tok.one_past_end += 1+moving_token_length
+        dest_line.insert( dest_tok_ind+1, moving_token )
+        if adjust_parentage :
+            new_children = []
+            for i in xrange( dest_line_number, orig_line_number+1 ) :
+                found_moving_token = False
+                for tok in self.line_tokens[ i ] :
+                    if i == dest_line_number and not found_moving_token :
+                        if tok is moving_token :
+                            found_moving_token = True
+                        continue
+                    if i == orig_line_number :
+                        if tok is moving_token :
+                            break
+                    orig_parent = tok.parent
+                    orig_parent.children.remove( tok )
+                    print "move upward:", tok.spelling, "added as child of", moving_token.spelling
+                    tok.parent = moving_token
+                    new_children.append( tok )
+    
+            if new_children :
+                moving_token.children = new_children + moving_token.children
+                # we also have to adjust self.all_tokens
+                # i = self.all_tokens.index( moving_token )
+                # while i > 0 :
+                #     self.all_tokens[i] = self.all_tokens[i-1]
+                #     if self.all_tokens[i] is new_children[0] :
+                #         self.all_tokens[i-1] = moving_token
+                #         break
+                #     i-=1
+                # assert( i != 0 )
+        orig_line.remove( moving_token )
 
     def delete_empty_line( self, old_line ) :
         # iterate across all the tokens and decrement the line_number for any that are after
@@ -1176,14 +1186,14 @@ class AdvancedCodeReader :
                     orig_parent.children.remove( tok )
                     tok.set_parent( rcb.parent )
                 # update the all_tokens list
-                i = self.all_tokens.index( rcb )
-                while i < len(self.all_tokens)-1 :
-                    self.all_tokens[i] = self.all_tokens[i+1]
-                    if self.all_tokens[i] is rcb_line[-1] :
-                        self.all_tokens[i+1] = rcb
-                        break
-                    i+=1
-                assert( i < len(self.all_tokens)-1 )
+                # Dont bother i = self.all_tokens.index( rcb )
+                # Dont bother while i < len(self.all_tokens)-1 :
+                # Dont bother     self.all_tokens[i] = self.all_tokens[i+1]
+                # Dont bother     if self.all_tokens[i] is rcb_line[-1] :
+                # Dont bother         self.all_tokens[i+1] = rcb
+                # Dont bother         break
+                # Dont bother     i+=1
+                # Dont bother assert( i < len(self.all_tokens)-1 )
         else :
             # the rcb is the last token on its line
             # no need to adjust parentage or the all_tokens list
@@ -1205,7 +1215,8 @@ class AdvancedCodeReader :
             line_toks[i].start += 2
             line_toks[i].one_past_end += 2
         line_toks.insert( tok_before_index+1, lcb )
-        self.all_tokens.insert( self.all_tokens.index( tok_before ) + 1, lcb )
+        #self.all_tokens.insert( self.all_tokens.index( tok_before ) + 1, lcb )
+        self.all_tokens.append( lcb )
         return lcb
 
     def add_right_curly_brace_on_own_line_after( self, tok_before, lcb_tok ) :
@@ -1214,7 +1225,8 @@ class AdvancedCodeReader :
         rcb_tok.start = 0 # don't worry about the indentation
         rcb_tok.one_past_end = 1
         rcb_tok.line_number = tok_before.line_number + 1
-        self.all_tokens.insert( self.all_tokens.index( tok_before )+1, rcb_tok )
+        #self.all_tokens.insert( self.all_tokens.index( tok_before )+1, rcb_tok )
+        self.all_tokens.append( rcb_tok )
         self.insert_line_with_single_token( rcb_tok )
         rcb_tok.set_parent( lcb_tok )
 
@@ -1227,19 +1239,285 @@ class AdvancedCodeReader :
         self.line_tokens[ tok.line_number ] = tok_line[:(tok_pos+1)]
         self.insert_token_lines( [ toks_for_next_line ] )
 
-    def adjust_token_tree( self, new_parent, child ) :
-        # adds "new_parent" as the last child of child's former parent
-        # and sets new_parent up as the parent of child.
-        old_parent = child.parent
-        old_parent.children.remove( child )
-        new_parent.set_parent( old_parent )
-        child.set_parent( new_parent )
+    def adjust_token_tree( self, new_parent, child_begin, child_end ) :
+        # takes an inclusive range of children between child_begin and child_end
+        # of a particular node (old_parent) and makes all of them children
+        # of new_parent; then new_parent is inserted as a child of new_parent
+        # into the position that child_begin formerly occupied.
+        assert( child_begin.parent is child_end.parent )
+        old_parent = child_begin.parent
+        children_copy = list( old_parent.children )
+        child_begin_index = old_parent.children.index( child_begin )
+        i = child_begin_index
+        while i < len( children_copy ) :
+            child = children_copy[i]
+            old_parent.children.remove( child )
+            child.set_parent( new_parent )
+            if child is child_end :
+                break
+            i+=1
+        assert( i < len( children_copy ))
+        new_parent.parent = old_parent
+        old_parent.children.insert( child_begin_index, new_parent )
+            
 
-    def adjust_for( self, i ) :
+    def put_empty_curly_braces_on_line_together( self, lcb, rcb ) :
+        # move the rcb up to the lcb
+        self.line_tokens[ rcb.line_number ].remove( rcb )
+        old_line_number = rcb.line_number
+        self.line_tokens[ lcb.line_number ].append( rcb )
+        rcb.line_number = lcb.line_number
+        rcb.start = lcb.one_past_end
+        rcb.one_past_end = rcb.start+1
+        if len( self.line_tokens[ old_line_number ] ) == 0 :
+            # excise the now-empty line
+            self.delete_empty_line( old_line_number )
+
+    def visible_tokens_on_line_after( self, tok ) :
+        line = self.line_tokens[ tok.line_number ]
+        ind = line.index( tok )
+        i = ind+1
+        while i < len( line ) :
+            if line[i].is_visible :
+                return True
+            i+=1
+        return False
+    def recurse_to_ifelse_block_parent_if( self, elsetok ) :
+        ifparent = elsetok.parent
+        if ifparent.context() == "else" :
+            return self.recurse_to_ifelse_block_parent_if( ifparent.parent )
+        else :
+            return ifparent
+    def find_last_visible_token_on_line( self, line_number ) :
+        line = self.line_tokens[line_number]
+        i = len(line)-1
+        while i > 0 :
+            if line[i].is_visible : return i
+            i -=1
+        return i
+
+    def adjust_parentage_of_comments_after( self, last_visible, comments_new_parent, prev_child_of_comment ) :
+        line = self.line_tokens[ last_visible.line_number ]
+        last_vis_ind = line.index( last_visible )
+        new_child_ind = comments_new_parent.children.index( prev_child_of_comment )+1 if prev_child_of_comment else 0
+        for i in xrange( last_vis_ind+1, len(line) ) :
+            itok = line[i]
+            itok.parent.children.remove( itok )
+            itok.parent = comments_new_parent
+            comments_new_parent.children.insert( new_child_ind, itok )
+            new_child_ind += 1
+
+    def get_parent_for_eol_comments_for_else( self, else_tok, last_desc, line_number ) :
+        # if we're moving the entirety of line_number upwards in front of existing comments,
+        # then those comments need to be assigned a new parent to rework the tree
+        # return last_visible_ind, the index of the last token on this line that is visible
+        # (this line should have at least one visible token on it), the new parent for
+        # the comments at the end of the line, and the child of this new parent that should be
+        # the older child of the those comments
+
+        last_visible_ind = self.find_last_visible_token_on_line( line_number )
+        assert( last_visible_ind != -1 )
+        last_visible = self.line_tokens[ line_number ][ last_visible_ind ]
+        
+        if line_number == last_desc.line_number :
+            iftok = self.recurse_to_ifelse_block_parent_if(else_tok)
+            comments_new_parent = iftok.parent
+            prev_child = iftok # comments will be appended after iftok
+        else :
+            if len( last_visible.children ) != 0 :
+                comments_new_parent = last_visible
+                prev_child = None
+            else :
+                last_desc_of_last_vis_parent = self.last_descendent( last_visible.parent )
+                if last_visible is not last_desc_of_last_vis_parent :
+                    comments_new_parent = last_visible.parent
+                    prev_child = last_visible
+                else :
+                    comments_new_parent = last_visible.parent.parent
+                    prev_child = last_visible.parent
+        # print last_visible_ind, comments_new_parent.type, prev_child.spelling
+        return last_visible_ind, comments_new_parent, prev_child
+
+    def move_line_upwards_and_after( self, tok, tok_before, last_visible_ind, comments_new_parent, prev_child ) :
+        # take everything after tok on its line and move it upwards to just after the tok_before token
+
+        orig_line_number = tok.line_number
+        orig_line = list( self.line_tokens[ tok.line_number ] )
+        tok_line_index = orig_line.index( tok )
+        i = tok_line_index 
+        before_tok = tok_before
+        last_tok = self.line_tokens[ tok_before.line_number ][-1]
+
+        while i < len( orig_line ) :
+            itok = orig_line[i]
+            if itok.is_visible or i <= last_visible_ind :
+                self.excise_token_and_move_upwards_and_after( itok, before_tok, False )
+                before_tok = itok
+            else :
+                # move already-at-the-end-of-the-line comments to the end of the line
+                self.excise_token_and_move_upwards_and_after( itok, last_tok, False )
+                itok.parent.children.remove(itok)
+                itok.set_parent(comments_new_parent)
+                last_tok = itok
+            i+=1
+        self.adjust_parentage_of_comments_after( orig_line[ last_visible_ind ], comments_new_parent, prev_child )
+        if tok_line_index == 0  :
+            self.delete_empty_line( orig_line_number )
+
+        
+    def adjust_else( self, tok ) :
+        # print "adjust else", tok.line_number
+        last_desc = self.last_descendent( tok )
+        else_body = None
+        for child in tok.children :
+            if child.is_visible :
+                else_body = child
+                break
+        # ok -- first check if the previous child of the parent was an if-scope
+        # and if so, and if the if-scope starts and ends on different lines, then
+        # make sure the else is moved up to the line the if-scope ends on
+        parent_if = tok.parent
+        # for child in parent_if.children :
+        #     print "parent if child:", child.spelling, child.type
+        else_ind = parent_if.children.index( tok )
+        # print "else ind:", else_ind
+        prev_visible_child_ind = else_ind - 1
+        assert( else_ind != 0 )
+        while prev_visible_child_ind >= 0 :
+            # print "prev_child:", parent_if.children[ prev_visible_child_ind ].spelling
+            if parent_if.children[ prev_visible_child_ind ].is_visible :
+                break
+            prev_visible_child_ind -= 1
+        assert( prev_visible_child_ind != -1 )
+        prev_child = parent_if.children[ prev_visible_child_ind ]
+        if prev_child.type == "if-scope" :
+            if_lcb = prev_child #rename for clarity
+            if_rcb = prev_child.children[-1]
+            assert( if_rcb.spelling == "}" )
+            if if_rcb.line_number != tok.line_number and if_lcb.line_number != if_rcb.line_number :
+                # ok -- move the "else" up to behind the rcb
+                last_visible_ind, comments_new_parent, prev_child = self.get_parent_for_eol_comments_for_else( tok, last_desc, tok.line_number )
+                self.move_line_upwards_and_after( tok, if_rcb, last_visible_ind, comments_new_parent, prev_child )
+
+            #otherwise, leave the else in place.
+
+        if else_body.type == "if" :
+            if tok.line_number != else_body.line_number :
+                # ok, make sure that the whole line that the "if" statement is on ends up on this line
+                last_visible_ind, comments_new_parent, prev_child = self.get_parent_for_eol_comments_for_else( tok, last_desc, else_body.line_number )
+                self.move_line_upwards_and_after( else_body, tok, last_visible_ind, comments_new_parent, prev_child )
+        elif else_body.type == "else-scope" :
+            else_lcb = else_body
+            else_rcb = else_body.children[-1]
+            assert( else_lcb.spelling == "{" and else_rcb.spelling == "}" )
+            if tok.line_number != else_lcb.line_number :
+                # move the else_lcb up to the line with the else 
+                orig_line_number = else_lcb.line_number
+                self.excise_token_and_move_upwards_and_after( else_lcb, tok )
+                if len( self.line_tokens[ orig_line_number ] ) == 0 : self.delete_empty_line( orig_line_number )
+
+            if len( else_lcb.children ) != 1 :
+                # make sure the rcb is not on the same line as the last token
+                # of the second-to-last child of the else_lcb
+                last_before_rcb = self.last_descendent( else_lcb.children[-2] )
+                if last_before_rcb.line_number == else_rcb.line_number :
+                    # ok -- move rcb to its own line
+                    self.excise_right_curly_brace_and_move_to_next_line_on_own( else_rcb )
+            else :
+                # make sure the {}s are on the same line together
+                if else_lcb.line_number != else_rcb.line_number :
+                    self.put_empty_curly_braces_on_line_together( else_lcb, else_rcb )
+        else :
+            # check to see if we ought to have curly braces
+            last_es_desc = self.last_descendent( else_body )
+            if last_es_desc.line_number != tok.line_number :
+                # print 'we need to add a pair of curly braces'
+                lcb_tok = self.add_left_curly_brace_after( tok )
+                lcb_tok.type = "else-scope"
+                self.adjust_token_tree( lcb_tok, tok.children[0], else_body ) # start with the first child of the else (possibly a comment)
+                if else_body.line_number == lcb_tok.line_number :
+                    # print 'move these tokens down to their own line'
+                    self.move_tokens_after_to_their_own_line( lcb_tok )
+                self.add_right_curly_brace_on_own_line_after( last_es_desc, lcb_tok )
+            else :
+                # make sure that there are no other tokens on this line
+                if self.line_tokens[ last_es_desc.line_number ][ -1 ] is not last_es_desc :
+                    if self.visible_tokens_on_line_after( last_es_desc ) :
+                        # print 'move these tokens onto their own line'
+                        self.move_tokens_after_to_their_own_next_line( last_es_desc )
+        self.adjust_lines_for_children( tok ) # recurse
+
+    def adjust_if( self, tok ) :
+        #print "adjust if", tok.line_number
+        # ok -- let's look at the descendents; they should be an if-condition and
+        # a statement
+        last_desc = self.last_descendent( tok )
+        if_cond = None
+        if_body = None
+        for child in tok.children :
+            if child.type == "if-condition" :
+                if_cond = child
+            elif child.is_visible :
+                if_body = child
+                break # the last descendent may be an else statement
+        end_paren = if_cond.children[-1]
+        assert( end_paren.spelling == ")" )
+        if if_body.type == "if-scope" :
+            # ok -- so the curly braces are there.  Check that they are in the right place.
+            if end_paren.line_number != if_body.line_number :
+                # print 'ok! we need to move the "{" up to the ")" line'
+                # ask -- are there other tokens on the "{" line?
+                if if_body.children[0].spelling == "}" :
+                    pass; #handled below
+                elif len( self.line_tokens[ if_body.line_number ] ) != 1 :
+                    # ok, the line is not going to be empty after we remove the "{"
+                    self.excise_token_and_move_upwards_and_after( if_body, end_paren )
+                else :
+                    # print 'ok, excise the "{" and delete the line it was on'
+                    old_line = if_body.line_number
+                    self.excise_token_and_move_upwards_and_after( if_body, end_paren )
+                    self.delete_empty_line( old_line )
+            right_curly_brace = if_body.children[-1]
+            assert( right_curly_brace.spelling == "}" )
+            # the right curly brace should be on its own line unless its the sole child
+            if len( if_body.children ) != 1  :
+                last_before_rcb = self.last_descendent( if_body.children[-2] )
+                if last_before_rcb.line_number == right_curly_brace.line_number :
+                    # print 'ok! move rcb to its own line'
+                    self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
+            else :
+                # make sure the {} are on the same line together
+                rcb = for_body.children[0]
+                assert( rcb.spelling == "}" )
+                if rcb.line_number != if_body.line_number :
+                    self.put_empty_curly_braces_on_line_together( if_body, rcb )
+        else :
+            # ok -- just a single unscoped statement
+            last_is_desc = self.last_descendent( if_body )
+            last_ic_desc = self.last_descendent( if_cond )
+            if last_is_desc.line_number != last_ic_desc.line_number :
+                # print 'we need to add a pair of curly braces'
+                lcb_tok = self.add_left_curly_brace_after( end_paren )
+                lcb_tok.type = "if-scope"
+                self.adjust_token_tree( lcb_tok, tok.children[ tok.children.index(if_cond)+1 ], if_body )
+                if if_body.line_number == lcb_tok.line_number :
+                    # print 'move these tokens down to their own line'
+                    self.move_tokens_after_to_their_own_next_line( lcb_tok )
+                self.add_right_curly_brace_on_own_line_after( last_is_desc, lcb_tok )
+            else :
+                # make sure that there are no other tokens on this line
+                if self.line_tokens[ last_is_desc.line_number ][ -1 ] is not last_is_desc :
+                    if self.visible_tokens_on_line_after( last_is_desc ) :
+                        # print 'move these tokens onto their own line'
+                        self.move_tokens_after_to_their_own_next_line( last_is_desc )
+        self.adjust_lines_for_children( tok ) # recurse
+
+
+    def adjust_for( self, tok ) :
         # ok -- let's look at the descendents; they should be
         # the for-declaration descendent and then either a statement of some form
         # or a for-scope
-        tok = self.all_tokens[i]
+
         last_desc = self.last_descendent( tok )
         for_dec_tok = None
         for_body = None
@@ -1262,11 +1540,11 @@ class AdvancedCodeReader :
                     pass; # handled below
                 elif len( self.line_tokens[ for_body.line_number ] ) != 1 :
                     # ok, the line is not going to be empty after we remove the "{"
-                    self.excise_left_curly_brace_and_move_after( for_body, end_paren )
+                    self.excise_token_and_move_upwards_and_after( for_body, end_paren )
                 else :
                     # print 'ok, excise the "{" and delete the line it was on'
                     old_line = for_body.line_number
-                    self.excise_left_curly_brace_and_move_after( for_body, end_paren )
+                    self.excise_token_and_move_upwards_and_after( for_body, end_paren )
                     self.delete_empty_line( old_line )
 
             right_curly_brace = for_body.children[-1]
@@ -1282,21 +1560,16 @@ class AdvancedCodeReader :
                 rcb = for_body.children[0]
                 assert( rcb.spelling == "}" )
                 if rcb.line_number != for_body.line_number :
-                    # print 'move rcb up to the line with the lcb'
-                    self.line_tokens[rcb.line_number].remove( rcb )
-                    if len( self.line_tokens[ rcb.line_number ] ) == 0 :
-                        self.line_tokens = self.line_tokens[:rcb.line_number] + self.line_tokens[(rcb.line_number+1):]
-                    self.line_tokens[for_body.line_number].append( rcb )
-                    rcb.line_number = for_body.line_number
-                    rcb.start = for_body.one_past_end
-                    rcb.one_past_end = rcb.start+1
+                    self.put_empty_curly_braces_on_line_together( for_body, rcb )
         else :
+            # no curly braces
             last_fs_desc = self.last_descendent( for_body )
-            if last_fs_desc.line_number != tok.line_number :
+            last_fd_desc = self.last_descendent( for_dec_tok )
+            if last_fs_desc.line_number != last_fd_desc.line_number :
                 # print 'we need to add a pair of curly braces'
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "for-scope"
-                self.adjust_token_tree( lcb_tok, for_body )
+                self.adjust_token_tree( lcb_tok, tok.children[ tok.children.index( for_dec_tok ) + 1 ], for_body )
                 if for_body.line_number == lcb_tok.line_number :
                     # print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
@@ -1304,26 +1577,62 @@ class AdvancedCodeReader :
             else :
                 # make sure that there are no other tokens on this line
                 if self.line_tokens[ last_fs_desc.line_number ][ -1 ] is not last_fs_desc :
-                    # print 'move these tokens onto their own line'
-                    self.move_tokens_after_to_their_own_next_line( last_fs_desc )
+                    if self.visible_tokens_on_line_after( last_fs_desc ) :
+                        # print 'move these tokens onto their own line'
+                        self.move_tokens_after_to_their_own_next_line( last_fs_desc )
+        self.adjust_lines_for_children( tok ) # recurse
 
-    def adjust_if( self, i ) :
-        pass
+    def update_all_tokens_list_from_line_tokens( self ) :
+        count = 0
+        for line in self.line_tokens :
+            for tok in line :
+                self.all_tokens[ count ] = tok
+                count += 1
 
-    # go through all the tokens in the all_tokens list;
+    # go through all the tokens in the tokens list;
     # through this function, the line_tokens array will get updated
-    # and tokens moved around.  Token indices will not be correct.
+    # and tokens moved around.  Token indices will not be correct, but
+    # the all_tokens array will be updated.
     # Token line numbers will be correct
-    def adjust_lines_as_necessary( self ) :
-        i = 0
-        while i < len(self.all_tokens) :
-            if not self.all_tokens[i].is_visible : i+=1; continue;
-            if self.all_tokens[i].type == "for" :
-                self.adjust_for( i )
-            elif self.all_tokens[i].type == "if" :
-                self.adjust_if( i )
-            i+=1
+    def adjust_lines_as_necessary( self ) :        
+        self.adjust_lines_for_children( self.toplevel_token )
+        self.update_all_tokens_list_from_line_tokens()
         self.renumber_tokens()
+
+    def adjust_lines_for_token( self, token ) :
+        if not token.is_visible :
+            return
+        elif token.type == "for" :
+            self.adjust_for( token )
+        elif token.type == "if" : 
+            self.adjust_if( token )
+        elif token.type == "else" :
+            self.adjust_else( token )
+        else :
+            self.adjust_lines_for_children( token )
+
+    def adjust_lines_for_children( self, token ) :
+        # iterate across all children, adjust them
+        if len( token.children ) == 0 : return
+        child_iter = token.children[ 0 ]
+        ind = 0
+        while True :
+            self.adjust_lines_for_token( child_iter )
+
+            # find the next token to adjust
+            if ind < len(token.children) and child_iter is token.children[ind] :
+                new_ind = ind+1
+            else :
+                new_ind = token.children.index( child_iter )
+                new_ind += 1
+
+            if new_ind == len( token.children ) :
+                break
+
+            # o/w increment
+            ind = new_ind
+            child_iter = token.children[ ind ]
+
 
     def beautify_code( self ) :
         # first pass: add lines, remove lines, or move code between lines and renumber

@@ -6,7 +6,10 @@ import os
 import time
 
 
-def parse_stampede_nodefile(inp):
+def parse_nodefile(inp):
+	'''
+	Parse nodelist from file. Currently requires SLURM_NODELIST format.
+	'''
     inp.replace('\n', ',')
     node_list = []
     while len(inp) != 0:
@@ -36,81 +39,23 @@ def parse_stampede_nodefile(inp):
     return node_list
 
 
-def stampede_init( nodelist = '', job_cpus_per_node='' ):
-    socket_timeout = 3600 * 24
+def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
+	if cluster_name == 'stampede':
+    	submit_command = 'ibrun'
+    else:
+		submit_command = 'srun'
     port = 32568
+    socket_timeout = 3600 * 24
     key_phrase = '%x' % random.randrange(256**5)
+    
     if len( nodelist ) == 0:
         nodelist = open( 'nodefile.txt' ).read().strip()
-    nodes = parse_stampede_nodefile(nodelist)
-
     if len( job_cpus_per_node ) == 0:
         job_cpus_per_node = open('ncpus_per_node.txt').read().strip()
-    line = job_cpus_per_node
-    if '(' in line:
-        nworkers = int(line.split('(')[0])
-    else:
-        nworkers = int(line)
+   	nodes = parse_nodefile(nodelist)
+    nworkers = int(job_cpus_per_node.split('(')[0])
     ncpus = nworkers * len(nodes)
-    print 'Submitting the ppserver...'
-    subprocess.Popen([
-        'ibrun', 'ppserver.py', '-k', str(socket_timeout), '-p', str(port),
-        '-w', str(nworkers), '-s', key_phrase])
-    ppservers = tuple([node + ':' + str(port) for node in nodes])
-    jobserver = pp.Server(
-        ncpus=0, ppservers=ppservers, secret=key_phrase,
-        socket_timeout=socket_timeout)
-    time.sleep(30)
-    return jobserver, ncpus
-
-
-def parse_sherlock_nodefile(inp):
-    inp.replace('\n', ',')
-    node_list = []
-    while len(inp) != 0:
-        if inp[0] == ',':
-            inp = inp[1:]
-        nodes = inp.split(', ', 1)
-        if '[' not in nodes[0]:
-            node_list.append(nodes[0])
-            if len(nodes) > 1:
-                inp = nodes[1]
-            else:
-                inp = ''
-        else:
-            start_brc = inp.index('[')
-            end_brc = inp.index(']')
-            initial = inp[:start_brc]
-            nodeids = inp[(start_brc+1):end_brc]
-            for i in nodeids.split(','):
-                if '-' not in i:
-                    node_list.append(initial + i)
-                else:
-                    start_id = int(i.split('-')[0])
-                    end_id = int(i.split('-')[1])
-                    for j in xrange(start_id, end_id+1):
-                        node_list.append(initial + '%03d' % j)
-            inp = inp[(end_brc+1):]
-    return node_list
-
-
-def sherlock_init( nodelist = '', job_cpus_per_node='' ):
-    submit_command = 'srun'
-    socket_timeout = 3600 * 24
-    port = 32568
-    key_phrase = '%x' % random.randrange(256**5)
-    if len( nodelist ) == 0:
-        nodelist = open( 'nodefile.txt' ).read().strip()
-    nodes = parse_sherlock_nodefile(nodelist)
-
-    if len( job_cpus_per_node ) == 0:
-        job_cpus_per_node = open('ncpus_per_node.txt').read().strip()
-    line = job_cpus_per_node
-    if '(' in line:
-        nworkers = int(line.split('(')[0])
-    else:
-        nworkers = int(line)
-    ncpus = nworkers * len(nodes)
+    
     print 'Submitting the ppserver...'
     submit_cmdline = [submit_command, 'ppserver.py']
     if not nworkers is None:

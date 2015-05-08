@@ -1,4 +1,5 @@
 import sys
+import blargs
 
 debug = False
 
@@ -2125,3 +2126,23 @@ class Beautifier :
                 print "unprocessed tokens in other"
                 return False, i_this, i_other
         return True, i_this, i_other
+
+def beautify_file( filename, overwrite ) :
+    beaut = Beautifier()
+    lines = open( filename ).readlines()
+    for line in lines :
+        beaut.tokenize_line( line )
+    beaut.minimally_parse_file()
+    beaut.beautify_code()
+
+    if overwrite :
+        open( filename, "w" ).writelines( beaut.new_lines )
+    else :
+        open( filename +".beaut", "w" ).writelines( beaut.new_lines )
+
+
+if __name__ == "__main__" :
+    with blargs.Parser(locals()) as p :
+        p.str("filename").required()
+        p.flag("overwrite")
+    beautify_file( filename, overwrite )

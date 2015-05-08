@@ -79,7 +79,7 @@ class Token :
         elif self.is_visible != other.is_visible : return False
         return True
 
-class AdvancedCodeReader :
+class Beautifier :
     def __init__( self ) :
         self.line = ""
         self.all_lines = [] # this doesn't change after the file is read

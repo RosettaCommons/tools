@@ -1,4 +1,4 @@
-import code_reader2
+import beautifier
 import blargs
 import sys
 
@@ -78,27 +78,27 @@ def class_dec_w_privacy() :
 all_funcs.append( class_dec_w_privacy )
 
 def test_code_reader_on_lines( lines ) :
-    cr = code_reader2.AdvancedCodeReader()
+    beaut = beautifier.Beautifier()
     for line in lines :
         print line,
-        cr.tokenize_line( line )
+        beaut.tokenize_line( line )
     print
     
-    cr.minimally_parse_file()
-    for tok in cr.all_tokens :
+    beaut.minimally_parse_file()
+    for tok in beaut.all_tokens :
         assert( tok.parent != None )
         assert( tok in tok.parent.children )
 
-    # for i,line_toks in enumerate( cr.line_tokens ):
+    # for i,line_toks in enumerate( beaut.line_tokens ):
     #     print lines[i],
     #     for tok in line_toks :
     #         print "(sp=%s,v=%s,cxt=%s,d=%d)" % ( tok.spelling, tok.is_visible, tok.context, tok.depth ),
     #     print
-    # print len(cr.all_tokens)
+    # print len(beaut.all_tokens)
 
-    cr.beautify_code()
+    beaut.beautify_code()
     print "Beautified"
-    for line in cr.new_lines :
+    for line in beaut.new_lines :
         print line,
     print
 
@@ -117,49 +117,49 @@ def depth( token ) :
 def print_token( token ) :
     print "%s (%s %d) %s %d %s" % ( " " * depth(token), token.parent.type, token.parent.line_number, token.type, token.line_number, token.spelling )
 
-def print_all_tokens( cr ) :
-    for token in cr.all_tokens :
+def print_all_tokens( beaut ) :
+    for token in beaut.all_tokens :
         print_token( token )
 
 def test_code_reader( lines_initial, lines_final ) :
-    cr = code_reader2.AdvancedCodeReader()
+    beaut = beautifier.Beautifier()
     for line in lines_initial :
         # print line,
-        cr.tokenize_line( line )
-    # for i,tok_line in enumerate(cr.line_tokens) :
+        beaut.tokenize_line( line )
+    # for i,tok_line in enumerate(beaut.line_tokens) :
     #     print i, [x.spelling for x in tok_line ]
-    cr.minimally_parse_file()
-    cr.beautify_code()
+    beaut.minimally_parse_file()
+    beaut.beautify_code()
 
     # print the tokens
-    # for tok in cr.all_tokens :
+    # for tok in beaut.all_tokens :
     #    print tok.spelling, tok.line_number, tok.type, tok.parent.type
 
     good = True
 
     # make sure line_tokens and all_tokens agree
     token_counter = -1
-    for line_number in xrange(len( cr.line_tokens )) :
-        for tok in cr.line_tokens[line_number] :
+    for line_number in xrange(len( beaut.line_tokens )) :
+        for tok in beaut.line_tokens[line_number] :
             token_counter += 1
-            if cr.all_tokens[ token_counter ] is not tok :
+            if beaut.all_tokens[ token_counter ] is not tok :
                 good = False
                 print "all_tokens and line_tokens discrepancy", self.all_tokens[ token_counter ].spelling, "vs", tok.spelling
 
-    for i, line in enumerate( cr.new_lines ) :
+    for i, line in enumerate( beaut.new_lines ) :
         if i >= len(lines_final) :
             print "Generated too many output lines", line,
             good = False
         elif line != lines_final[i] :
             print "Generated line",i+1, "of:", line[:-1], "did not match", lines_final[i][:-1]
             good = False
-    if len(cr.new_lines) < len(lines_final) :
+    if len(beaut.new_lines) < len(lines_final) :
         good = False
-        for i in xrange(len(cr.new_lines),len(lines_final)) :
+        for i in xrange(len(beaut.new_lines),len(lines_final)) :
             print "Failed to generate expected output line", i+1, ":", lines_final[i],
 
     if not good :
-        print_all_tokens( cr )
+        print_all_tokens( beaut )
 
         print "Input:"
         for line in lines_initial :
@@ -168,24 +168,24 @@ def test_code_reader( lines_initial, lines_final ) :
         for line in lines_final :
             print line,
         print "Generated:"
-        for line in cr.new_lines :
+        for line in beaut.new_lines :
             print line,
         print "for failed test."
     else :
         # now, make sure that all the tokens in the tree after beautification
         # represent the same tree that'd be created by parsing the beautified
         # code!
-        cr2 = code_reader2.AdvancedCodeReader()
+        beaut2 = beautifier.Beautifier()
         for line in lines_final :
-            cr2.tokenize_line( line )
-        cr2.minimally_parse_file()
-        if len(cr2.all_tokens) != len(cr.all_tokens) :
+            beaut2.tokenize_line( line )
+        beaut2.minimally_parse_file()
+        if len(beaut2.all_tokens) != len(beaut.all_tokens) :
             good = False
             print "Reparsing the final lines produces a different number of tokens!"
-            print "Beautified:", len(cr.all_tokens), "Parsed Expected Output:", len(cr2.all_tokens)
+            print "Beautified:", len(beaut.all_tokens), "Parsed Expected Output:", len(beaut2.all_tokens)
         else :
-            for i, tok in enumerate(cr.all_tokens) :
-                tok2 = cr2.all_tokens[i]
+            for i, tok in enumerate(beaut.all_tokens) :
+                tok2 = beaut2.all_tokens[i]
                 if not tok.equivalent( tok2 ) :
                     tok2
                     print "Tree mismatch:"
@@ -196,24 +196,24 @@ def test_code_reader( lines_initial, lines_final ) :
                     good = False
 
 
-    cr = code_reader2.AdvancedCodeReader()
+    beaut = beautifier.Beautifier()
     for line in lines_initial :
-        cr.tokenize_line( line )
-    cr.minimally_parse_file()
+        beaut.tokenize_line( line )
+    beaut.minimally_parse_file()
 
-    cr2 = code_reader2.AdvancedCodeReader()
+    beaut2 = beautifier.Beautifier()
     for line in lines_final :
-        cr2.tokenize_line( line )
-    cr2.minimally_parse_file()
+        beaut2.tokenize_line( line )
+    beaut2.minimally_parse_file()
 
-    good2, i_cr, i_cr2 = cr.equivalent( cr2 )
+    good2, i_beaut, i_beaut2 = beaut.equivalent( beaut2 )
     if not good2 :
         print "Input lines for test were not found equivalent"
         print "They differ at tokens: "
-        cr_tok = cr.all_tokens[i_cr]
-        cr2_tok = cr2.all_tokens[i_cr2]
-        print cr_tok.type, cr_tok.line_number, cr_tok.spelling
-        print cr2_tok.type, cr2_tok.line_number, cr2_tok.spelling
+        beaut_tok = beaut.all_tokens[i_beaut]
+        beaut2_tok = beaut2.all_tokens[i_beaut2]
+        print beaut_tok.type, beaut_tok.line_number, beaut_tok.spelling
+        print beaut2_tok.type, beaut2_tok.line_number, beaut2_tok.spelling
         print "lines initial:"
         for line in lines_initial :
             print line,

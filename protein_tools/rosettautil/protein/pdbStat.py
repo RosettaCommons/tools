@@ -391,7 +391,7 @@ def copy_b_factor(native_pdb, designed_pdb):
     return designed_pdb
 
 
-def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, force):
+def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug=False, force=False):
     native_atoms = []
     decoy_atoms = []
     residue_set = set()

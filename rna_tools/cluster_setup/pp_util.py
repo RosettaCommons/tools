@@ -153,8 +153,14 @@ def submit_cmdline(work_dir, cmdline):
     output = ''
     returncode = 0
     try:
-        output = subprocess.check_output(
-            cmdline.split(), stderr=subprocess.STDOUT)
+        output, error = subprocess.Popen(
+            cmdline.split(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT ).communicate()
+        if error:
+            print error
+            output = error
+            returncode = 1
     except subprocess.CalledProcessError as err:
         output = err.output
         returncode = err.returncode

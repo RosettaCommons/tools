@@ -97,7 +97,7 @@ def parse_sherlock_nodefile(inp):
 def sherlock_init( nodelist = '', job_cpus_per_node='' ):
     submit_command = 'srun'
     socket_timeout = 3600 * 24
-    port = None
+    port = 32568
     key_phrase = '%x' % random.randrange(256**5)
     if len( nodelist ) == 0:
         nodelist = open( 'nodefile.txt' ).read().strip()

@@ -40,10 +40,10 @@ def parse_nodefile(inp):
 
 
 def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
-	if cluster_name == 'stampede':
-    	submit_command = 'ibrun'
+    if cluster_name == 'stampede':
+        submit_command = 'ibrun'
     else:
-		submit_command = 'srun'
+        submit_command = 'srun'
     port = 32568
     socket_timeout = 3600 * 24
     key_phrase = '%x' % random.randrange(256**5)
@@ -52,7 +52,7 @@ def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
         nodelist = open( 'nodefile.txt' ).read().strip()
     if len( job_cpus_per_node ) == 0:
         job_cpus_per_node = open('ncpus_per_node.txt').read().strip()
-   	nodes = parse_nodefile(nodelist)
+    nodes = parse_nodefile(nodelist)
     nworkers = int(job_cpus_per_node.split('(')[0])
     ncpus = nworkers * len(nodes)
     

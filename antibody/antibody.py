@@ -912,7 +912,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
         res, output = commands.getstatusoutput(commandline)
         if verbose and not res: print commandline+'\n', output
-        if res: print commandline+'\n', 'ERROR: Blast execution faild with code %s and message: %s' % (res, output);  sys.exit(1)
+        if res: print commandline+'\n', 'ERROR: Blast execution failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
         #print 'Filtering results...'
         table, legend = [], ''
@@ -1483,8 +1483,8 @@ def self_test():
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()
 
         if Options.verbose:
-            print 'light_chain:', light_chain
-            print 'heavy_chain:', heavy_chain
+            print 'light_chain: %s (%d residues)' % (light_chain, len(light_chain))
+            print 'heavy_chain: %s (%d residues)' % (heavy_chain, len(heavy_chain))
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)

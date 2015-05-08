@@ -1,6 +1,6 @@
 import sys
 
-debug = False
+debug = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -52,6 +52,7 @@ class Token :
         self.start = 0
         self.one_past_end = 0
         self.line_number = 0
+        self.orig_line_number = 0
         self.parent = None
         self.children = []
         self.is_reserve = False
@@ -81,7 +82,7 @@ class Token :
 class AdvancedCodeReader :
     def __init__( self ) :
         self.line = ""
-        self.all_lines = []
+        self.all_lines = [] # this doesn't change after the file is read
         self.new_lines = []
         self.line_number = -1 # so that the first line ends up line 0
         self.this_line_tokens = []
@@ -151,6 +152,7 @@ class AdvancedCodeReader :
                     if start >= 0  :
                         self.take_token_for_range( start, i )
                     self.take_token_for_range( i, i+2 )
+                    start = -1
                     i+=2
                     continue
             # make block-comment ending symbols their own tokens
@@ -159,6 +161,7 @@ class AdvancedCodeReader :
                     if start >= 0 :
                         self.take_token_for_range( start, i )
                     self.take_token_for_range( i, i+2 )
+                    start = -1
                     i+=2
                     continue
             # make string opening or closing symbols their own tokens
@@ -197,6 +200,7 @@ class AdvancedCodeReader :
         for i, tok in enumerate( self.this_line_tokens ) :
             if not self.macro_definitions_say_line_visible() :
                 tok.is_visible = False
+                tok.invisible_by_macro = True
             if self.in_comment_block :
                 tok.is_visible = False
                 tok.is_commented = True
@@ -306,7 +310,10 @@ class AdvancedCodeReader :
             i = self.process_statement( i, stack )
 
         for i in xrange(len(self.all_tokens)) :
-            assert( not self.all_tokens[ i ].parent is self.all_tokens[i] )
+            if self.all_tokens[ i ].parent is self.all_tokens[i] :
+                itok = self.all_tokens[i]
+                print "Token", i, "is it's own parent:", itok.spelling, itok.line_number, itok.type
+                assert( not self.all_tokens[ i ].parent is self.all_tokens[i] )
             for tok in self.all_tokens[ i ].children :
                 assert( not tok is self.all_tokens[i] )
 
@@ -353,7 +360,7 @@ class AdvancedCodeReader :
             # just ignore templates, treat them like statements that don't end in ;'s
             i = self.process_template(i,stack)
             return self.process_statement(i,stack)
-        elif stack[-1].context() == "namespace-scope" or stack[-1].context() == "class-scope" :
+        elif stack[-1].type == "namespace-scope" or stack[-1].type == "class-scope" :
             return self.process_function_preamble_or_variable(i,stack)
         else :
             return self.process_simple_statement(i,stack)
@@ -392,17 +399,22 @@ class AdvancedCodeReader :
         if debug : self.print_entry("process_template",i,stack)
         self.set_parent(i,stack,"template")
         stack.append(self.all_tokens[i])
+        i+=1
         template_params = "not-begun"
         while i < len(self.all_tokens) :
+            print "process template ", i, self.all_tokens[i].spelling
             if self.all_tokens[i].spelling == "<" :
                 assert( template_params == "not-begun" )
                 self.set_parent(i,stack,"template-arg-list")
+                stack.append(self.all_tokens[i])
                 template_params = "started"
+                i+=1
                 continue
             elif self.all_tokens[i].spelling == ">" :
                 self.set_parent(i,stack)
                 stack.pop() #pop template-arg-list
                 stack.pop() #pop template
+                if debug : self.print_entry("exitting process_template",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i+=1
@@ -421,6 +433,7 @@ class AdvancedCodeReader :
                 # print "statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] )
                 self.set_parent(i,stack)
                 stack.pop()
+                if debug : self.print_entry("exitting process_simple_statement",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i+=1
@@ -503,6 +516,7 @@ class AdvancedCodeReader :
                     token_i = self.all_tokens[i_initial].parent.children.pop()
                     assert( token_i is self.all_tokens[i_initial] )
                     i = self.process_simple_statement(i_initial,stack)
+                if debug : self.print_entry("exitting process_function_preamble_or_variable",i,stack)
                 return i
 
             elif self.all_tokens[i].spelling == "{" :
@@ -511,7 +525,8 @@ class AdvancedCodeReader :
                 # ok! now descend into the function block
                 i = self.process_statement( i, stack )
                 stack.pop()
-                return i+1
+                if debug : self.print_entry("exitting process_function_preamble_or_variable",i,stack)
+                return i
 
             self.set_parent(i,stack)
             i+=1
@@ -539,6 +554,7 @@ class AdvancedCodeReader :
                     stack.pop()
                     i = self.process_statement( i, stack )
                     stack.pop()
+                    if debug : self.print_entry("exitting process_scope",i,stack)
                     return i
             self.set_parent(i,stack)
             i += 1
@@ -569,6 +585,7 @@ class AdvancedCodeReader :
                     i = self.process_statement(i+1,stack)
                     stack.pop() #remove else
                 stack.pop() #remove if
+                if debug : self.print_entry("exitting process_if",i,stack)
                 return i
             self.set_parent(i,stack)
             i += 1
@@ -597,6 +614,7 @@ class AdvancedCodeReader :
                 assert( self.all_tokens[i].spelling == ";" )
                 self.set_parent(i,stack)
                 stack.pop() # pop do-while
+                if debug : self.print_entry("exitting process_do_while",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i+=1
@@ -621,6 +639,7 @@ class AdvancedCodeReader :
                 stack.pop() # remove while-condition
                 i = self.process_statement( i, stack )
                 stack.pop() # remove while
+                if debug : self.print_entry("exitting process_while",i,stack)
                 return i
             self.set_parent(i,stack)
             i+=1
@@ -637,6 +656,7 @@ class AdvancedCodeReader :
             if self.all_tokens[i].spelling == "{" :
                 i = self.process_statement( i, stack )
                 stack.pop()
+                if debug : self.print_entry("exitting process_namespace",i,stack)
                 return i
             self.set_parent(i,stack)
             i+=1
@@ -664,6 +684,7 @@ class AdvancedCodeReader :
                 assert( self.all_tokens[i].spelling == ";" )
                 self.set_parent( i, stack )
                 stack.pop()
+                if debug : self.print_entry("exitting process_class_decl",i,stack)
                 return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if not seen_inheritance_colon :
@@ -675,6 +696,7 @@ class AdvancedCodeReader :
                 # this is just a forward declaration
                 self.set_parent(i,stack)
                 stack.pop()
+                if debug : self.print_entry("exitting process_class_decl",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i += 1
@@ -696,6 +718,7 @@ class AdvancedCodeReader :
                 assert( self.all_tokens[i].spelling == ";" )
                 self.set_parent(i,stack)
                 stack.pop() # remove union
+                if debug : self.print_entry("exitting process_union",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i+=1
@@ -718,12 +741,13 @@ class AdvancedCodeReader :
                 stack.pop() # remove switch-expression
                 i = self.process_statement( i, stack )
                 stack.pop() # remove switch
+                if debug : self.print_entry("exitting process_switch",i,stack)
                 return i
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_class_decl", stack )
     def process_case(self,i,stack) :
-        assert( self.all_tokens[i] == "case" or self.all_tokens[i] == "default" )
+        assert( self.all_tokens[i].spelling == "case" or self.all_tokens[i].spelling == "default" )
         if debug : self.print_entry("process_case",i,stack)
 
         self.set_parent(i,stack,"case")
@@ -744,6 +768,7 @@ class AdvancedCodeReader :
                       if i_spelling == "case" or i_spelling == "default" or i_spelling == "}" :
                           stack.pop() # pop case-block
                           stack.pop() # pop case
+                          if debug : self.print_entry("exitting process_case",i,stack)
                           return i
                       else :
                           i = self.process_statement(i,stack)
@@ -767,11 +792,13 @@ class AdvancedCodeReader :
         i+=1
         while i < len(self.all_tokens) :
             i = self.find_next_visible_token(i,stack)
+            assert( i < len(self.all_tokens) )
             if self.all_tokens[i].spelling == "}" :
                 # print (" "*len(stack)), "process_scope", i, "found end }", self.all_tokens[i].line_number+1
                 #ok, done processing at this depth
                 self.set_parent(i,stack)
                 stack.pop() # remove "scope" or "*-scope"
+                if debug : self.print_entry("exitting process_scope",i,stack)
                 return i+1
             else :
                 # print (" "*len(stack)), "process_scope encountered non-{, non-} at", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1
@@ -793,6 +820,7 @@ class AdvancedCodeReader :
             elif self.all_tokens[i].spelling == ":" :
                 self.set_parent(i,stack)
                 stack.pop()
+                if debug : self.print_entry("exitting process_privacy_declaration",i,stack)
                 return i+1
             self.set_parent(i,stack)
             i+=1
@@ -827,7 +855,7 @@ class AdvancedCodeReader :
             if line_number != 0 :
                 self.line_indentations[line_number] = self.line_indentations[line_number-1]
         elif first_token.context() == "scope" :
-            if first_token.spelling == "}" :
+            if first_token.spelling == "}" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 # indent one from the parent's indentation
@@ -842,7 +870,7 @@ class AdvancedCodeReader :
             # indent twice
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number] + 2
         elif first_token.context() == "for-scope" :
-            if first_token.spelling == "}" :
+            if first_token.spelling == "}" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
@@ -853,7 +881,7 @@ class AdvancedCodeReader :
             # the do-while condition has occupied more than one line, I guess.  Indent twice like for and if
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "do-while-scope" :
-            if first_token.spelling == "}" :
+            if first_token.spelling == "}" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -868,18 +896,19 @@ class AdvancedCodeReader :
             # indent twice if the if-condition has gone on so long that it wraps to a second line
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "if-scope" :
-            if first_token.spelling == "}" :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            if first_token.spelling == "}" and first_token.is_visible :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             elif first_token.parent.parent.context() == "else" :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number ]+1
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.parent.line_number ]+1
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "else" :
             # indent to the same level as the if
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
         elif first_token.context() == "else-scope" :
-            if first_token.spelling == "}" :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            if first_token.spelling == "}" and first_token.is_visible :
+                # print "else-scope indentation:", first_token.parent.parent.spelling, self.line_indentations[first_token.parent.parent.line_number]
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "while" :
@@ -888,7 +917,7 @@ class AdvancedCodeReader :
         elif first_token.context() == "while-condition" :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+2
         elif first_token.context() == "while-scope" :
-            if first_token.spelling == "}" :
+            if first_token.spelling == "}" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -899,7 +928,7 @@ class AdvancedCodeReader :
         elif first_token.context() == "switch-scope" :
             # don't indent for case: and default: statements, only for case-block and case-block-scopes.
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
-            #if first_token.spelling == "}" :
+            #if first_token.spelling == "}" and first_token.is_visible :
             #    self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             #else :
             #    self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -910,14 +939,14 @@ class AdvancedCodeReader :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
             pass
         elif first_token.context() == "case-block-scope" :
-            if first_token.spelling == "}" :
+            if first_token.spelling == "}" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "class" :
             # kind of an odd duck
             # indent once if we're in the process of declaring a class unless we're a "{"
-            if self.line_tokens[line_number][0].spelling == "{" :
+            if self.line_tokens[line_number][0].spelling == "{" and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -926,7 +955,7 @@ class AdvancedCodeReader :
             pass
         elif first_token.context() == "class-scope" :
             # print "class scope ", line_number, " and parent on ", first_token.parent.line_number
-            if first_token.spelling == "}" or first_token.type == "class-privacy" :
+            if ( first_token.spelling == "}" or first_token.type == "class-privacy" ) and first_token.is_visible :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -944,10 +973,11 @@ class AdvancedCodeReader :
         elif first_token.context() == "function-decl-argument-list" :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "function-scope" :
-            if first_token.spelling == "}" :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            # use grand-parent's indentation as the reference; "function-scope" is the parent, "function" is the grandparent
+            if first_token.spelling == "}" and first_token.is_visible :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
-                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "ctor-initializer-list" :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "statement" :
@@ -1073,7 +1103,7 @@ class AdvancedCodeReader :
             return self.last_descendent( token.children[-1] )
 
     #def excise_left_curly_brace_and_move_after( self, lcb_tok, dest_tok ) :
-    def excise_token_and_move_upwards_and_after( self, moving_token, dest_tok, adjust_parentage=True ) :
+    def excise_token_and_move_upwards_and_after( self, moving_token, dest_tok, adjust_parentage=True, space_from_prev=1 ) :
         # move moving_token up to the line that dest_tok is on.
         # dest_tok == the token after which the moving token is to be placed.
         # if adjust_parentage is true, then if there were tokens between moving_token and
@@ -1087,13 +1117,13 @@ class AdvancedCodeReader :
         dest_tok_ind = dest_line.index( dest_tok )
         moving_token.line_number = dest_line_number
         moving_token_length = moving_token.one_past_end - moving_token.start
-        moving_token.start = dest_tok.one_past_end + 1
+        moving_token.start = dest_tok.one_past_end + space_from_prev
         moving_token.one_past_end = moving_token.start + moving_token_length
         # shift the rest of the tokens on this line right by two spaces
         for i in xrange( dest_tok_ind+1, len(dest_line) ) :
             tok = dest_line[i]
-            tok.start += 1+moving_token_length
-            tok.one_past_end += 1+moving_token_length
+            tok.start += space_from_prev+moving_token_length
+            tok.one_past_end += space_from_prev+moving_token_length
         dest_line.insert( dest_tok_ind+1, moving_token )
         if adjust_parentage :
             new_children = []
@@ -1109,7 +1139,7 @@ class AdvancedCodeReader :
                             break
                     orig_parent = tok.parent
                     orig_parent.children.remove( tok )
-                    print "move upward:", tok.spelling, "added as child of", moving_token.spelling
+                    # print "move upward:", tok.spelling, "added as child of", moving_token.spelling
                     tok.parent = moving_token
                     new_children.append( tok )
     
@@ -1138,6 +1168,7 @@ class AdvancedCodeReader :
         # tokens must already know their new line numbers.
         # first and last lines of tok_lines can't be empty.
         # adjusts self.line_tokens, but not self.all_tokens.
+        # print "insert token lines: ", [ " ".join( [ x.spelling for x in line ]) for line in tok_lines ]
         nlines = len( tok_lines )
         assert( len(tok_lines[-1]) > 0 and len(tok_lines[0]) > 0 ) 
         firstline = tok_lines[0][0].line_number
@@ -1154,7 +1185,7 @@ class AdvancedCodeReader :
                 
         if rcb is not rcb_line[ -1 ] :
             # ok, we have comments or something at the end of this line
-            # if its nothing but comments, then leave them on this line
+            # if it's nothing but comments, then leave them on this line
             # otherwise, they should be on their own line after the }
             rcb_ind = rcb_line.index( rcb )
 
@@ -1165,7 +1196,7 @@ class AdvancedCodeReader :
                     break;
             if any_visible :
                 # ok! then we need to move these statements to their own line
-                # we don't have to ajust parentage or the all_tokens list
+                # we don't have to ajust parentage or the all_tokens list                
                 toks_to_move = rcb_line[ rcb_ind: ]
                 self.line_tokens[ rcb.line_number ] = rcb_line[:rcb_ind]
                 rcb.line_number += 1
@@ -1234,6 +1265,7 @@ class AdvancedCodeReader :
         tok_line = self.line_tokens[ tok.line_number ]
         tok_pos = tok_line.index( tok )
         toks_for_next_line = tok_line[ (tok_pos+1): ]
+        # print "toks_for_next_line", [ x.spelling for x in toks_for_next_line ]
         for nltok in toks_for_next_line :
             nltok.line_number += 1
         self.line_tokens[ tok.line_number ] = tok_line[:(tok_pos+1)]
@@ -1347,18 +1379,21 @@ class AdvancedCodeReader :
         i = tok_line_index 
         before_tok = tok_before
         last_tok = self.line_tokens[ tok_before.line_number ][-1]
+        prev_end = 0
 
         while i < len( orig_line ) :
             itok = orig_line[i]
+            itok_end = itok.one_past_end
             if itok.is_visible or i <= last_visible_ind :
-                self.excise_token_and_move_upwards_and_after( itok, before_tok, False )
+                self.excise_token_and_move_upwards_and_after( itok, before_tok, False, 1 if i==tok_line_index else itok.start-prev_end )
                 before_tok = itok
             else :
                 # move already-at-the-end-of-the-line comments to the end of the line
-                self.excise_token_and_move_upwards_and_after( itok, last_tok, False )
+                self.excise_token_and_move_upwards_and_after( itok, last_tok, False, 1 if i+1==last_visible_ind else itok.start-prev_end )
                 itok.parent.children.remove(itok)
                 itok.set_parent(comments_new_parent)
                 last_tok = itok
+            prev_end = itok_end
             i+=1
         self.adjust_parentage_of_comments_after( orig_line[ last_visible_ind ], comments_new_parent, prev_child )
         if tok_line_index == 0  :
@@ -1421,7 +1456,7 @@ class AdvancedCodeReader :
                 # of the second-to-last child of the else_lcb
                 last_before_rcb = self.last_descendent( else_lcb.children[-2] )
                 if last_before_rcb.line_number == else_rcb.line_number :
-                    # ok -- move rcb to its own line
+                    # print 'ok -- move rcb to its own line'
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( else_rcb )
             else :
                 # make sure the {}s are on the same line together

@@ -306,14 +306,12 @@ void test()                             | void test()
 {                                       | {
     if ( i < 10 ) {                     |     if ( i < 10 ) {
         statement;                      |         statement;
-    } // comment                        |     } else if ( i > 100 && 
+    } // comment                        |     } else if ( i > 100 && // comment // comment2 // comment3
     else // comment2                    |              i < 150 ) {
-        if ( i > 100  && // comment3    |          // comment
-               i < 150 )                |          // comment2
-            statement2;                 |          // comment3
-}                                       |         statement2;
-                                        |     }
-                                        | }
+        if ( i > 100 && // comment3    |         statement2;
+               i < 150 )                |     }    
+            statement2;                 | }        
+}                                       |         
 --- 43 if-curly-brace placement
 void test()                    | void test()
 {                              | {
@@ -400,7 +398,7 @@ void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement;             |         statement;
-    } else s2; //comment       |     } else s2; // comment
+    } else s2; //comment       |     } else s2; //comment
 }                              | }
 --- 53 if-curly-brace placement
 void test()                        | void test()
@@ -486,7 +484,7 @@ void test()                    | void test()
 void test()                            | void test()
 {                                      | {
     if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
-    else if ( i > 100 )  statement2;   |     else if ( i > 100 ) statement2;
+    else if ( i > 100 ) statement2;    |     else if ( i > 100 ) statement2;
     else                               |     else {
         statement3;                    |         statement3;
 }                                      |      }

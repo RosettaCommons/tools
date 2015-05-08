@@ -1,6 +1,6 @@
 import sys
 
-debug = True
+debug = False
 
 token_types = [ "top-level",
                 "namespace",
@@ -74,7 +74,7 @@ class Token :
         parent.children.append( self )
     def equivalent( self, other ) :
         if self.spelling != other.spelling : return False
-        elif self.context() != other.context() : return False
+        elif self.type != other.type : return False
         elif self.invisible_by_macro != other.invisible_by_macro : return False
         elif self.is_visible != other.is_visible : return False
         return True
@@ -98,9 +98,12 @@ class AdvancedCodeReader :
             "repeat", "public", "private", "protected", "template", "typedef", "typename", \
             "operator", "inline", "explicit", "static", "mutable", "virtual", "friend", \
             "unsigned", "struct", "union" ] )
+        self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif", "#define", "#undef" ] )
         self.whitespace = set([" ", "\t", "\n"])
         self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|"])
         self.privacy_types = set([ "public", "protected", "private"])
+        self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope", "else-scope", "while-scope", "switch-scope",
+                                 "case-block-scope", "class-scope", "struct-scope", "union-scope", "function-scope" ] )
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
@@ -186,6 +189,7 @@ class AdvancedCodeReader :
         tok.start = start
         tok.one_past_end = end_plus_one
         tok.line_number = self.line_number
+        tok.orig_line_number = self.line_number
         self.this_line_tokens.append( tok )
 
     def process_strings_and_comments( self ) :
@@ -236,6 +240,11 @@ class AdvancedCodeReader :
         tok0 = self.this_line_tokens[ 0 ]
         if tok0.spelling == "#include" :
             return
+        if tok0.spelling in self.macros_at_zero_indentation :
+            # treat certain macros that may be invisible as if they are visible for
+            # the sake of indenting them to level 0.
+            for tok in self.this_line_tokens :
+                tok.invisible_by_macro = False
         elif tok0.spelling == "#define" :
             self.defined_macros.add( self.this_line_tokens[1] )
         elif tok0.spelling == "#ifdef" :
@@ -846,7 +855,9 @@ class AdvancedCodeReader :
         first_token = self.line_tokens[ line_number ][ 0 ]
         # print "first token: ", first_token.spelling, "" if not first_token.parent else first_token.parent.spelling
 
-        if first_token.context() == "namespace" :
+        if first_token.spelling in self.macros_at_zero_indentation :
+            self.line_indentations[ line_number ] = 0
+        elif first_token.context() == "namespace" :
             # declaring new namespace -- use the indentation level of previous line
             if line_number != 0 :
                 self.line_indentations[line_number] = self.line_indentations[line_number-1]
@@ -969,9 +980,15 @@ class AdvancedCodeReader :
         elif first_token.context() == "function" :
             # we're in the middle of a function declaration -- e.g. "inline \n void \n etc"
             # or we're declaring a variable -- it's hard to tell
+            # or its the first "(" opening the argument list
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
         elif first_token.context() == "function-decl-argument-list" :
-            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+            if first_token.spelling == ")" and first_token is first_token.parent.children[-1] :
+                # the final closing parenthesis in an argument list gets indented at it's grandparent's indentation
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
+            else :
+                # mid-argument-list
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "function-scope" :
             # use grand-parent's indentation as the reference; "function-scope" is the parent, "function" is the grandparent
             if first_token.spelling == "}" and first_token.is_visible :
@@ -986,14 +1003,18 @@ class AdvancedCodeReader :
 
     def line_from_line_tokens( self, line_number ) :
         toks = self.line_tokens[line_number]
-        # print line_number, [ x.spelling for x in toks ]
-        spellings = ["\t" * self.line_indentations[line_number] ]
-        for i, tok in enumerate( toks ) :
-            spellings.append( tok.spelling )
-            if i+1 != len( toks ) :
-                spellings.append( " " * ( toks[i+1].start - tok.one_past_end ) ) #preserve spaces
-        spellings.append("\n")
-        return "".join( spellings )
+        if len(toks) == 0 or not toks[0].invisible_by_macro :
+            # print line_number, [ x.spelling for x in toks ]
+            spellings = ["\t" * self.line_indentations[line_number] ]
+            for i, tok in enumerate( toks ) :
+                spellings.append( tok.spelling )
+                if i+1 != len( toks ) :
+                    spellings.append( " " * ( toks[i+1].start - tok.one_past_end ) ) #preserve spaces
+            spellings.append("\n")
+            return "".join( spellings )
+        else :
+            # do not modify lines that are invisible 
+            return self.all_lines[ toks[0].orig_line_number ]
 
     def insert_space_after( self, tok ) :
         line_toks = self.line_tokens[ tok.line_number ]
@@ -1684,3 +1705,423 @@ class AdvancedCodeReader :
             self.determine_indentation_level( line_number )
             new_line = self.line_from_line_tokens( line_number )
             self.new_lines.append( new_line )
+
+    def two_toks( self, other, i_this, i_other ) :
+        return self.all_tokens[i_this], other.all_tokens[i_other]
+
+    def two_next_visible( self, other, i_this, i_other ) :
+        i_this = self.find_next_visible_token( i_this )
+        i_other = other.find_next_visible_token( i_other )
+        return i_this, i_other
+
+    def equiv_if_both_empty_or_if_neither_empty_and_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_this.type == "empty-statement" or tok_other == "empty-statement" :
+            if tok_this.type != tok_other.type :
+                return False, i_this, i_other
+            else :
+                return True, i_this+1, i_other+1
+        else :
+            return self.statement_equiv( other, i_this, i_other )
+
+
+    def for_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        assert( tok_this.type == "for" )
+        if tok_other.type == "empty-statement" : return self.for_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.for_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if tok_other.type != "for" :
+            return False, i_this, i_other
+        i_this += 1
+        i_other += 1
+        still_good, i_this, i_other = self.paren_block_equiv( other, i_this, i_other, "for", "for-declaration" )
+        if not still_good : return still_good, i_this, i_other
+        return self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other )
+
+    def if_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        assert( tok_this.type == "if" )
+        if tok_other.type == "empty-statement" : return self.if_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.if_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if tok_other.type != "if" : return False, i_this, i_other
+        still_good, i_this, i_other = self.paren_block_equiv( other, i_this, i_other, "if", "if-condition" )
+        if not still_good : return still_good, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this, i_other )
+        still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other )
+        if not still_good : return still_good, i_this, i_other
+
+        # ok -- let's go fishing for an else
+        i_this2, i_other2 = self.two_next_visible( other, i_this, i_other )
+        tok_this, tok_other = self.two_toks( other, i_this2, i_other2 )
+        if tok_this.type == "else" or tok_other.type == "else" :
+            if tok_this.type != tok_other.type : return False, i_this2, i_other2
+            i_this, i_other = self.two_next_visible( other, i_this2+1, i_other2+1 )
+            return self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other )            
+        else :
+            return True, i_this, i_other
+        
+    def paren_block_equiv( self, other, i_this, i_other, end_context, left_paren_type ) :
+        found_open_paren = False
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this = self.all_tokens[i_this]
+            tok_other = other.all_tokens[i_other]
+            if tok_this.context() == end_context and tok_this.type != left_paren_type and found_open_paren :
+                return True, i_this, i_other
+            if tok_this.type == left_paren_type :
+                found_open_paren = True
+            if not tok_this.equivalent( tok_other ) :
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+
+        print "Ran out of tokens in paren_block_equiv, end_context =", end_context,"left_paren_type =", left_paren_type
+        return False, i_this, i_other
+                
+    def do_while_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        assert( tok_this.type == "do-while" )
+        if tok_other.type == "empty-statement" : return self.do_while_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.do_while_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if tok_other.type != "do-while" : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other )
+        if not still_good : return still_good, i_this, i_other
+        still_good, i_this, i_other = self.paren_block_equiv( other, i_this, i_other, "do-while", "do-while-scope" )
+        if not still_good : return still_good, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_this.spelling == ";" and tok_other.spelling == ";" :
+            return True, i_this+1, i_other+1
+        else :
+            return False, i_this, i_other
+        
+    def namespace_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.namespace_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(self.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "namespace-scope" or tok_other == "namespace-scope" :
+                if tok_this.type != tok_other.type :
+                    return False, i_this, i_other
+                else :
+                    return self.statement_equiv( other, i_this, i_other )
+            if not tok_this.equivalent( tok_other ) :
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+
+        print "Ran out of tokens in namespace_equiv"
+        return False, i_this, i_other
+
+    def class_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.class_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "class-scope" or tok_other.type == "class-scope" :
+                if tok_this.type != tok_other.type : 
+                    return False, i_this, i_other
+                else :
+                    still_good, i_this, i_other = self.statement_equiv( other, i_this, i_other )
+                    if not still_good : return still_good, i_this, i_other
+                    i_this, i_other = self.two_next_visible( other, i_this, i_other )
+                    tok_this, tok_other = self.two_toks( other, i_this, i_other )
+                    if tok_this.spelling == ";" and tok_other.spelling == ";" :
+                        return True, i_this+1, i_other+1
+                    else :
+                        return False, i_this, i_other
+            if tok_this.spelling == ";" or tok_other.spelling == ";" :
+                if tok_this.spelling != tok_other.spelling :
+                    return False, i_this, i_other
+                else :
+                    return True, i_this+1, i_other+1
+            if not tok_this.equivalent( tok_other ) :
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+
+        print "Ran out of tokens in class_equiv"
+        return False, i_this, i_other                
+
+    def union_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.union_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "union-scope" or tok_other.type == "union-scope" :
+                if tok_this.type != tok_other.type : 
+                    return False, i_this, i_other
+                else :
+                    still_good, i_this, i_other = self.statement_equiv( other, i_this, i_other )
+                    if not still_good : return still_good, i_this, i_other
+                    i_this, i_other = self.two_next_visible( other, i_this, i_other )
+                    tok_this, tok_other = self.two_toks( other, i_this, i_other )
+                    if tok_this.spelling == ";" and tok_other.spelling == ";" :
+                        return True, i_this+1, i_other+1
+                    else :
+                        return False, i_this, i_other
+            if tok_this.spelling == ";" or tok_other.spelling == ";" :
+                if tok_this.spelling != tok_other.spelling :
+                    return False, i_this, i_other
+                else :
+                    return True, i_this+1, i_other+1
+            if not tok_this.equivalent( tok_other ) :
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        print "Ran out of tokens in union_equiv"
+        return False, i_this, i_other                
+
+    def switch_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.union_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.switch_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.switch_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "switch-scope" or tok_other.type == "switch-scope" :
+                if tok_this.type != tok_other.type : 
+                    return False, i_this, i_other
+                else :
+                    return self.statement_equiv( other, i_this, i_other )
+            if not tok_this.equivalent( tok_other ) :
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        print "Ran out of tokens in union_equiv"
+        return False, i_this, i_other                
+
+    def switch_scope_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "case" or other_tok.type == "case" :
+                if tok_this.type != other_tok.type : return False, i_this, i_other
+                still_good, i_this, i_other = self.case_equiv( other, i_this, i_other )
+                if not still_good : return still_good, i_this, i_other
+            elif tok_this.spelling == "}" or tok_other.spelling == "}" :
+                return tok_this.spelling == tok_other.spelling, i_this+1, i_other+1
+            else :
+                if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        print "Ran out of tokens in switch_scope_equiv"
+            
+    def case_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.case_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "empty-statement" or tok_other.type == "empty-statement" :
+                if tok_this.type == "empty-statement" : i_this += 1
+                if tok_other.type == "empty-statement" : i_other += 1
+                i_this, i_other = self.two_next_visible( other, i_this, i_bother )
+                continue
+            elif tok_this.type == "case" or tok_other.type == "case" :
+                if tok_this.type != tok_other.type : return False, i_this, i_other
+                return True, i_this, i_other
+            elif tok_this.spelling == "}" or tok_other.spelling == "}" :
+                if tok_this.spelling != tok_other.spelling : return False, i_this, i_other
+                return True, i_this, i_other
+            else :
+                still_good, i_this, i_other = self.statement_equiv( other, i_this, i_other )
+                if not still_good : return still_good, i_this, i_other
+                i_this, i_other = self.two_next_visible( other, i_this, i_bother )
+
+        print "Ran out of tokens in case_equiv"
+        return False, i_this, i_other                
+
+    def scope_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.scope_equiv( other, i_this, other.find_next_visible_token( i_other+1 ) )
+
+        if tok_other.type not in self.scope_types :
+            # this might be equivalent if tok_this contains only a single statement
+            still_good, i_this, i_other = self.statement_equiv( other, self.find_next_visible_token( i_this+1), i_other )
+            if not still_good : return still_good, i_this, i_other
+            i_this = self.find_next_visible_token( i_this )
+            if tok_this.children[-1] is self.all_tokens[i_this] :
+                return True, i_this+1, i_other
+            else :
+                return False, i_this, i_other
+
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
+            tok_this, tok_other = self.two_toks( other, i_this, i_other )
+            if tok_this.type == "empty-statement" or tok_other.type == "empty-statement" :
+                if tok_this.type == "empty-statement" : i_this += 1
+                if tok_other.type == "empty-statement" : i_other += 1
+            elif tok_this.spelling == "}" or tok_other.spelling == "}" :
+                if tok_this.spelling != tok_other.spelling : return False, i_this, i_other
+                return True, i_this+1, i_other+1
+            else :
+                still_good, i_this, i_other = self.statement_equiv( other, i_this, i_other )
+                if not still_good : return still_good, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this, i_other )
+
+        print "Ran out of tokens in scope_equiv"
+        return False, i_this, i_other                
+
+    def empty_statement_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        assert( tok_this.type == "empty-statement" )
+        if tok_other.type == "empty-statement" : return True, i_this+1, i_other+1
+        else : return self.statement_equiv( other, self.find_next_visible_token(i_this+1), i_other )
+
+    def simple_statement_equiv( self, other, i_this, i_other ) :        
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+
+        if tok_other.type in self.scope_types :
+            # this might be equivalent if tok_other contains only a single statement
+            still_good, i_this, i_other = self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+            if not still_good : return still_good, i_this, i_other
+            i_other = other.find_next_visible_token( i_other )
+            if tok_other.children[-1] is other.all_tokens[i_other] :
+                return True, i_this, i_other+1
+            else :
+                return False, i_this, i_other
+
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
+            tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
+                if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other : return True, i_this, i_other
+                return False, i_this, i_other
+            if not tok_this2.equivalent( tok_other2 ) : return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        
+    def template_equiv( self, other, i_this, i_other ) :
+        return self.simple_statement_equiv( other, i_this, i_other )
+
+    def function_equiv( self, other, i_this, i_other ) :
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_other.type == "empty-statement" : return self.function_equiv( other, i_this, other.find_next_visible_token(i_other+1) )
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        
+        still_good, i_this, i_other = self.paren_block_equiv( other, i_this, i_other, "function", "function-decl-argument-list" )
+        if not still_good : return still_good, i_this, i_other
+
+        i_this, i_other = self.two_next_visible( other, i_this, i_other )
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+        if tok_this.spelling == "{" or tok_other.spelling == "{" :
+            return self.statement_equiv( other, i_this, i_other )
+        elif tok_this.spelling == ";" or tok_other.spelling == ";" :
+            if tok_this.spelling == tok_other.spelling : return True, i_this+1, i_other+1
+            else : return False, i_this, i_other
+        else :
+            print "Reached unexpected tokens in function_equiv", tok_this.spelling, "and", tok_other.spelling
+            return False, i_this, i_other
+                
+
+    def statement_equiv( self, other, i_this, i_other ) :
+        tok_this = self.all_tokens[ i_this ]
+        if tok_this.type == "for" :
+            return self.for_equiv( other, i_this, i_other )
+        elif tok_this.type == "if" :
+            return self.if_equiv( other, i_this, i_other )
+        elif tok_this.type == "do-while" :
+            return self.do_while_equiv( other, i_this, i_other )
+        elif tok_this.type == "namespace" :
+            return self.namespace_equiv( other, i_this, i_other )
+        elif tok_this.type == "class" :
+            return self.class_equiv( other, i_this, i_other )
+        elif tok_this.type == "union" :
+            return self.union_equiv( other, i_this, i_other )
+        elif tok_this.type == "switch" :
+            return self.switch_equiv( other, i_this, i_other )
+        elif tok_this.type == "case" :
+            return self.case_equiv( other, i_this, i_other )
+        elif tok_this.type in self.scope_types :
+            return self.scope_equiv( other, i_this, i_other )
+        elif tok_this.type == "empty-statement" :
+            return self.empty_statement_equiv( other, i_this, i_other )
+        elif tok_this.type == "statement" :
+            return self.simple_statement_equiv( other, i_this, i_other )
+        elif tok_this.type == "template" :
+            return self.template_equiv( other, i_this, i_other )
+        elif tok_this.type == "function" :
+            return self.function_equiv( other, i_this, i_other )
+        else :
+            print "We should not have reached here!", tok_this.type, tok_this.line_number, tok_this.spelling
+            return False, i_this, i_other
+
+    def equivalent( self, other ) :
+        i_this = 0
+        i_other = 0
+        while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
+            i_this = self.find_next_visible_token( i_this )
+            i_other = other.find_next_visible_token( i_other )
+            still_equiv, i_this, i_other = self.statement_equiv( other, i_this, i_other )
+            if not still_equiv :
+                return False, i_this, i_other
+        if i_this < len( self.all_tokens ) :
+            # make sure there are no visible tokens remaining for self
+            i_this = self.find_next_visible_token( i_this )
+            if i_this < len( self.all_tokens ) :
+                print "unprocessed tokens in self"
+                return False, i_this, i_other
+        elif i_other < len( other.all_tokens ) :
+            # make sure there are no visible tokens remaining for other
+            i_other = self.find_next_visible_token( i_other )
+            if i_other < len( other.all_tokens ) :
+                print "unprocessed tokens in other"
+                return False, i_this, i_other
+        return True, i_this, i_other

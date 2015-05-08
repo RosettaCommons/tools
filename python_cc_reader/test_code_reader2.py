@@ -195,7 +195,33 @@ def test_code_reader( lines_initial, lines_final ) :
                     print "  ", tok.context(), "vs", tok2.context()
                     good = False
 
-    return good
+
+    cr = code_reader2.AdvancedCodeReader()
+    for line in lines_initial :
+        cr.tokenize_line( line )
+    cr.minimally_parse_file()
+
+    cr2 = code_reader2.AdvancedCodeReader()
+    for line in lines_final :
+        cr2.tokenize_line( line )
+    cr2.minimally_parse_file()
+
+    good2, i_cr, i_cr2 = cr.equivalent( cr2 )
+    if not good2 :
+        print "Input lines for test were not found equivalent"
+        print "They differ at tokens: "
+        cr_tok = cr.all_tokens[i_cr]
+        cr2_tok = cr2.all_tokens[i_cr2]
+        print cr_tok.type, cr_tok.line_number, cr_tok.spelling
+        print cr2_tok.type, cr2_tok.line_number, cr2_tok.spelling
+        print "lines initial:"
+        for line in lines_initial :
+            print line,
+        print "lines final:"
+        for line in lines_final :
+            print line,
+
+    return good and good2
 
 def replace_leading_spaces_w_tabs( line ) :
     # print "line", line

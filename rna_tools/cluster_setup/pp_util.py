@@ -7,9 +7,9 @@ import time
 
 
 def parse_nodefile(inp):
-	'''
-	Parse nodelist from file. Currently requires SLURM_NODELIST format.
-	'''
+    '''
+    Parse nodelist from file. Currently requires SLURM_NODELIST format.
+    '''
     inp.replace('\n', ',')
     node_list = []
     while len(inp) != 0:

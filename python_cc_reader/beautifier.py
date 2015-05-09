@@ -1,7 +1,7 @@
 import sys
 import blargs
 
-debug = False
+debug = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -39,6 +39,11 @@ token_types = [ "top-level",
                 "function",
                 "function-decl-argument-list",
                 "function-scope",
+                "try",
+                "try-scope",
+                "catch",
+                "catch-arg",
+                "catch-scope",
                 "ctor-initializer-list",
                 "block-comment",
                 "statement",
@@ -98,7 +103,7 @@ class Beautifier :
         self.reserve_words = set( [ "using", "namespace", "class", "for", "while", "do", \
             "repeat", "public", "private", "protected", "template", "typedef", "typename", \
             "operator", "inline", "explicit", "static", "mutable", "virtual", "friend", \
-            "unsigned", "struct", "union" ] )
+            "unsigned", "struct", "union", "try", "catch" ] )
         self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif", "#define", "#undef" ] )
         self.whitespace = set([" ", "\t", "\n"])
         self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|"])
@@ -355,6 +360,8 @@ class Beautifier :
             return self.process_switch(i,stack)
         elif i_spelling == "case" or i_spelling == "default" :
             return self.process_case(i,stack)
+        elif i_spelling == "try" :
+            return self.process_try(i,stack)
         elif i_spelling == "{" :
             return self.process_scope(i,stack)
         elif i_spelling == ";" :
@@ -491,6 +498,7 @@ class Beautifier :
                     # stack.pop() # remove the function-decl-argument-list
                     self.set_parent( i,stack,"ctor-initializer-list")
                     stack.append(self.all_tokens[i])
+                    i+=1
                     found_init_list = True
                     continue
                 elif arglist == "not-begun" :
@@ -630,6 +638,53 @@ class Beautifier :
             i+=1
 
         self.handle_read_all_tokens_error( "process_do_while", stack )
+
+    def process_try( self, i, stack ) :
+        assert( self.all_tokens[i].spelling == "try" )
+        if debug : self.print_entry("process_try",i,stack)
+
+        self.set_parent(i,stack,"try")
+        stack.append(self.all_tokens[i])
+        i+=1
+        found_catch = False
+        while i < len(self.all_tokens ) :
+            if not self.all_tokens[i].is_visible :
+                pass
+            elif self.all_tokens[i].spelling == "catch" :
+                i = self.process_catch(i,stack)
+                found_catch = True
+                continue
+            elif found_catch :
+                stack.pop() # remove try
+                return i
+            elif self.all_tokens[i].spelling == "{" :
+                i = self.process_statement(i,stack)
+                continue
+            self.set_parent(i,stack)
+            i+=1
+
+        self.handle_read_all_tokens_error( "process_try", stack )
+    def process_catch( self, i, stack ) :
+        assert( self.all_tokens[i].spelling == "catch" )
+        self.set_parent(i,stack,"catch")
+        stack.append(self.all_tokens[i])
+        i+=1
+        while i < len( self.all_tokens ) :
+            if not self.all_tokens[i].is_visible :
+                pass
+            elif self.all_tokens[i].spelling == "(" :
+                self.set_parent(i,stack,"catch-arg")
+                stack.append(self.all_tokens[i])
+                i+=1
+                i = self.read_to_end_paren(i,stack)
+                stack.pop() # remove catch-arg
+                i = self.process_statement(i,stack)
+                stack.pop() # remove catch
+                return i
+            self.set_parent(i,stack)
+            i+=1
+        self.handle_read_all_tokens_error( "process-catch", stack )
+
 
     def process_while(self,i,stack) :
         assert( self.all_tokens[i].spelling == "while" )
@@ -1001,6 +1056,17 @@ class Beautifier :
         elif first_token.context() == "statement" :
             # this statement has run on to a second line, indent once
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+        elif first_token.context() == "try-scope" :
+            if first_token.spelling == "}" and first_token.is_visible :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
+            else :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+        elif first_token.context() == "catch-scope" :
+            if first_token.spelling == "}" and first_token.is_visible :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
+            else :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+
 
     def line_from_line_tokens( self, line_number ) :
         toks = self.line_tokens[line_number]

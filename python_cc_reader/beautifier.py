@@ -1,7 +1,7 @@
 import sys
 import blargs
 
-debug = True
+debug = False
 
 token_types = [ "top-level",
                 "namespace",
@@ -124,7 +124,6 @@ class Beautifier :
     # and understood.
     def tokenize_line( self, line ) :
         self.line_number += 1
-        print self.line_number+1, line.strip()[0] if len(line.strip()) > 0 else ""
         self.breakup_line_into_tokens( line )
         self.process_strings_and_comments()
 
@@ -207,11 +206,6 @@ class Beautifier :
         process_as_macro_line = False
         if not self.in_comment_block and len(self.this_line_tokens) > 0 and self.this_line_tokens[0].spelling[0] == "#" :
             process_as_macro_line = True
-            print len(self.all_lines), "is a macro", len(self.this_line_tokens)
-        elif len(self.this_line_tokens) > 0 :
-            print len(self.all_lines), "not a macro:", self.this_line_tokens[0].spelling[0] 
-        else :
-            print "empty"
 
         for i, tok in enumerate( self.this_line_tokens ) :
             if not self.macro_definitions_say_line_visible() :

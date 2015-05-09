@@ -412,7 +412,7 @@ class Beautifier :
         i+=1
         template_params = "not-begun"
         while i < len(self.all_tokens) :
-            print "process template ", i, self.all_tokens[i].spelling
+            #print "process template ", i, self.all_tokens[i].spelling
             if self.all_tokens[i].spelling == "<" :
                 assert( template_params == "not-begun" )
                 self.set_parent(i,stack,"template-arg-list")

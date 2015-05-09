@@ -1,7 +1,7 @@
 import sys
 import blargs
 
-debug = False
+debug = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -110,6 +110,7 @@ class Beautifier :
         self.privacy_types = set([ "public", "protected", "private"])
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope", "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope", "function-scope" ] )
+        self.for_types = set( [ "for", "BOOST_FOREACH", "foreach", "foreach_", "boost_foreach" ] )
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
@@ -343,7 +344,7 @@ class Beautifier :
         i = self.find_next_visible_token(i,stack)
         if i == len( self.all_tokens ) : return i
         i_spelling = self.all_tokens[i].spelling
-        if i_spelling == "for" :
+        if i_spelling in self.for_types :
             return self.process_for(i,stack)
         elif i_spelling == "if" :
             return self.process_if(i,stack)
@@ -556,7 +557,7 @@ class Beautifier :
     def process_for(self,i,stack) :
         if debug : self.print_entry("process_for",i,stack)
 
-        assert( self.all_tokens[i].spelling == "for" )
+        assert( self.all_tokens[i].spelling in self.for_types )
         self.set_parent(i,stack,"for")
         stack.append(self.all_tokens[i] )
         i+=1

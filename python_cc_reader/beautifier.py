@@ -124,6 +124,7 @@ class Beautifier :
     # and understood.
     def tokenize_line( self, line ) :
         self.line_number += 1
+        print self.line_number+1, line.strip()[0] if len(line.strip()) > 0 else ""
         self.breakup_line_into_tokens( line )
         self.process_strings_and_comments()
 
@@ -206,6 +207,11 @@ class Beautifier :
         process_as_macro_line = False
         if not self.in_comment_block and len(self.this_line_tokens) > 0 and self.this_line_tokens[0].spelling[0] == "#" :
             process_as_macro_line = True
+            print len(self.all_lines), "is a macro", len(self.this_line_tokens)
+        elif len(self.this_line_tokens) > 0 :
+            print len(self.all_lines), "not a macro:", self.this_line_tokens[0].spelling[0] 
+        else :
+            print "empty"
 
         for i, tok in enumerate( self.this_line_tokens ) :
             if not self.macro_definitions_say_line_visible() :
@@ -229,7 +235,7 @@ class Beautifier :
                     for j in xrange(i,len(self.this_line_tokens)) :
                         self.this_line_tokens[j].is_visible = False
                         self.this_line_tokens[j].is_commented = True
-                    return
+                    break
                 if tok.spelling == "/*" :
                     #we're in a comment block
                     self.in_comment_block = True
@@ -241,8 +247,10 @@ class Beautifier :
 
     def process_macro_line( self ) :
         # this line has been shown to start with "#" so the entire line is being treated as a macro definition
+        # print "process macro line: ", self.all_lines[-1].strip()
         for tok in self.this_line_tokens :
             tok.is_visible = False
+            # print "tok: ", tok.spelling, "is now invisible"
         tok0 = self.this_line_tokens[ 0 ]
         if tok0.spelling == "#include" :
             return
@@ -395,7 +403,8 @@ class Beautifier :
     def print_depth_stack( self, stack ) :
         print "Depth stack: ",
         for elem in reversed( stack ) :
-            print "  ", elem.spelling, ("\n" if elem == None else "%d %s" % ( elem.line_number+1, self.all_lines[ elem.line_number ])),
+            if elem :
+                print "  ", elem.spelling, (  "%d %s" % ( elem.line_number+1, self.all_lines[ elem.line_number ].strip() ) ), "vis" if elem.is_visible else "invis"
 
     def read_to_end_paren( self, i, stack ) :
         # the starting "(" should have already been read
@@ -756,6 +765,7 @@ class Beautifier :
                     seen_inheritance_colon = True
                     self.set_parent(i,stack,"class-inheritance-list")
                     stack.append(self.all_tokens[i])
+                    i+=1
                     continue
             elif self.all_tokens[i].spelling == ";" :
                 # this is just a forward declaration

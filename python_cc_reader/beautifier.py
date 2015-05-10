@@ -44,6 +44,8 @@ token_types = [ "top-level",
                 "catch",
                 "catch-arg",
                 "catch-scope",
+                "enum",
+                "enum-scope",
                 "ctor-initializer-list",
                 "block-comment",
                 "statement",
@@ -380,6 +382,8 @@ class Beautifier :
             # just ignore templates, treat them like statements that don't end in ;'s
             i = self.process_template(i,stack)
             return self.process_statement(i,stack)
+        elif i_spelling == "enum" :
+            return self.process_enum(i,stack)
         elif stack[-1].type == "namespace-scope" or stack[-1].type == "class-scope" :
             return self.process_function_preamble_or_variable(i,stack)
         else :
@@ -733,7 +737,7 @@ class Beautifier :
         self.handle_read_all_tokens_error( "process_namespace", stack )
 
     def process_class_decl(self,i,stack) :
-        assert( self.all_tokens[i].spelling == "class" )
+        assert( self.all_tokens[i].spelling == "class" or self.all_tokens[i].spelling == "struct" )
         if debug : self.print_entry("process_class_decl",i,stack)
 
         seen_inheritance_colon = False
@@ -749,9 +753,10 @@ class Beautifier :
                 if seen_inheritance_colon :
                     stack.pop() # remove class-inheritance-list
                 i = self.process_statement( i, stack )
-                i = self.find_next_visible_token( i, stack )
-                assert( self.all_tokens[i].spelling == ";" )
-                self.set_parent( i, stack )
+                while i < len( self.all_tokens ) :
+                    i = self.find_next_visible_token( i, stack )
+                    self.set_parent( i, stack )
+                    if self.all_tokens[i].spelling == ";" : break; # case where struct is anon and struct variables declared next
                 stack.pop()
                 if debug : self.print_entry("exitting process_class_decl",i,stack)
                 return i+1
@@ -816,6 +821,7 @@ class Beautifier :
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_class_decl", stack )
+
     def process_case(self,i,stack) :
         assert( self.all_tokens[i].spelling == "case" or self.all_tokens[i].spelling == "default" )
         if debug : self.print_entry("process_case",i,stack)
@@ -850,6 +856,33 @@ class Beautifier :
             i+=1
         # we should not have gotten here
         self.handle_read_all_tokens_error( "process_case_or_default_case", stack )
+
+    def process_enum(self,i,stack) :
+        if debug : self.print_entry("process_enum",i,stack)
+        assert( self.all_tokens[i].spelling == "enum" )
+        self.set_parent(i,stack,"enum")
+        stack.append(self.all_tokens[i])
+        i+=1
+        while i < len( self.all_tokens ) :
+            i = self.find_next_visible_token(i,stack)
+            assert( i < len(self.all_tokens))
+            if self.all_tokens[i].spelling == "{" :
+                self.set_parent(i,stack,"enum-scope")
+                stack.append(self.all_tokens[i])
+                i+=1
+                continue
+            elif self.all_tokens[i].spelling == "}" :
+                self.set_parent(i,stack)
+                stack.pop()
+                i = self.find_next_visible_token(i+1,stack)
+                assert( self.all_tokens[i].spelling == ";" )
+                self.set_parent(i,stack)
+                stack.pop()
+                return i+1
+            self.set_parent(i,stack)
+            i+=1
+        # we should not have gotten here
+        self.handle_read_all_tokens_error( "process_enum", stack )
 
     def process_scope(self,i,stack) :
         if debug : self.print_entry("process_scope",i,stack)

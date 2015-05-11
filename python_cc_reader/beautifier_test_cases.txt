@@ -308,11 +308,31 @@ void test()                             | void test()
         statement;                      |         statement;
     } // comment                        |     } else if ( i > 100 && // comment // comment2 // comment3
     else // comment2                    |              i < 150 ) {
-        if ( i > 100 && // comment3    |         statement2;
+        if ( i > 100 && // comment3     |         statement2;
                i < 150 )                |     }    
             statement2;                 | }        
 }                                       |         
 --- 43 if-curly-brace placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    } // comment                        |     } else { // comment // comment2 
+    else { // comment2                  |         statement2;
+        statement2;                     |     }
+    }                                   | }    
+}                                       |        
+--- 44 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } else { // comment2 
+    else { // comment2                  |         statement2;
+        statement2;                     |     }
+    }                                   | }    
+}                                       |        
+--- 45 if-curly-brace-placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -322,7 +342,7 @@ void test()                    | void test()
          statement2;           |     }
     }                          | }
 }                              |
---- 44 if-curly-brace placement
+--- 46 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -331,7 +351,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 45 if-curly-brace placement
+--- 47 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -340,7 +360,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 46 if-curly-brace placement
+--- 48 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -349,7 +369,7 @@ void test()                    | void test()
         statement2;            |         statement2;
     }                          |     }
 }                              | }
---- 47 if-curly-brace placement
+--- 49 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -358,7 +378,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 48 if-curly-brace placement
+--- 50 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -368,7 +388,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 49 if-curly-brace placement
+--- 51 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -378,14 +398,14 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 50 if-curly-brace placement
+--- 52 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement;             |         statement;
     } else statement2;         |     } else statement2;
 }                              | }
---- 51 if-curly-brace placement
+--- 53 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -393,14 +413,14 @@ void test()                    | void test()
     } else s2; s3;             |     } else s2;
 }                              |     s3;
                                | }
---- 52 if-curly-brace placement
+--- 54 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement;             |         statement;
     } else s2; //comment       |     } else s2; //comment
 }                              | }
---- 53 if-curly-brace placement
+--- 55 if-curly-brace placement
 void test()                        | void test()
 {                                  | {
     if ( i < 10 ) {                |     if ( i < 10 ) {
@@ -408,7 +428,7 @@ void test()                        | void test()
     } else s2; /* comment */ s3;   |     } else s2;
 }                                  |     /* comment */ s3;
                                    | }
---- 54 if-curly-brace placement
+--- 56 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -417,7 +437,7 @@ void test()                    | void test()
         statement2;            |         statement2;
     }                          |     }
 }                              | }
---- 55 if-curly-brace placement
+--- 57 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -427,7 +447,7 @@ void test()                    | void test()
         statement3;            |         statement3;
     }                          |     }
 }                              | }
---- 56 if-curly-brace placement
+--- 58 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -437,7 +457,7 @@ void test()                    | void test()
         statement3; }          |         statement3;
 }                              |     }
                                | }
---- 57 if-curly-brace placement
+--- 59 if-curly-brace placement
 void test()                           | void test()
 {                                     | {
     if ( i < 10 ) {                   |     if ( i < 10 ) {
@@ -447,7 +467,7 @@ void test()                           | void test()
         statement3; } //comment       |         statement3;   //comment
 }                                     |     }
                                       | }
---- 58 if-curly-brace placement
+--- 60 if-curly-brace placement
 void test()                               | void test()
 {                                         | {
     if ( i < 10 ) {                       |     if ( i < 10 ) {
@@ -458,7 +478,7 @@ void test()                               | void test()
 }                                         |     }
                                           |     /*comment*/ s4();
                                           | }
---- 59 if-curly-brace placement
+--- 61 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -469,7 +489,7 @@ void test()                    | void test()
         statement3;            |         statement3;
     }                          |     }
 }                              | }
---- 60 if-curly-brace placement
+--- 62 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -480,7 +500,7 @@ void test()                    | void test()
         statement3;            |         statement3;
 }                              |     }
                                | }
---- 61 if-curly-brace placement
+--- 63 if-curly-brace placement
 void test()                            | void test()
 {                                      | {
     if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
@@ -489,7 +509,7 @@ void test()                            | void test()
         statement3;                    |         statement3;
 }                                      |      }
                                        | }
---- 62 if-curly-brace placement
+--- 64 if-curly-brace placement
 void test()                            | void test()
 {                                      | {
     if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
@@ -499,7 +519,7 @@ void test()                            | void test()
         statement3;                    |         statement3;
 }                                      |      }
                                        | }
---- 63 if-curly-brace placement
+--- 65 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -510,4 +530,4 @@ void test()                    | void test()
     else                       |         statement3;
         statement3;            |     }
 }                              | }
---- 64 if-curly-brace placement
+--- 66 if-curly-brace placement

@@ -2,7 +2,7 @@ import sys
 import blargs
 
 debug = False
-#debug = True
+# debug = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -108,7 +108,7 @@ class Beautifier :
             "repeat", "public", "private", "protected", "template", "typedef", "typename", \
             "operator", "inline", "explicit", "static", "mutable", "virtual", "friend", \
             "unsigned", "struct", "union", "try", "catch" ] )
-        self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif", "#define", "#undef" ] )
+        self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif" ] )
         self.whitespace = set([" ", "\t", "\n"])
         self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"'])
         self.privacy_types = set([ "public", "protected", "private"])
@@ -118,6 +118,7 @@ class Beautifier :
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
+        self.in_macro_definition = False
 
     def macro_definitions_say_line_visible( self ) :
         return self.nested_ifdefs[-1][2]
@@ -212,6 +213,18 @@ class Beautifier :
         if not self.in_comment_block and len(self.this_line_tokens) > 0 and self.this_line_tokens[0].spelling[0] == "#" :
             process_as_macro_line = True
 
+        if self.in_macro_definition :
+            # just don't mess with macro definitions; they shouldn't even be there!
+            if debug: print "still in macro definition", self.line_number
+            for tok in self.this_line_tokens :
+                tok.is_visible = False
+                tok.invisible_by_macro = True
+            assert( len( self.this_line_tokens ) != 0 )
+            if self.this_line_tokens[-1].spelling != "\\" :
+                self.in_macro_definition = False
+                if debug: print "final line in macro definition", self.line_number
+            return
+
         escape_tok = None
         for i, tok in enumerate( self.this_line_tokens ) :
             if not self.macro_definitions_say_line_visible() :
@@ -271,7 +284,11 @@ class Beautifier :
             for tok in self.this_line_tokens :
                 tok.invisible_by_macro = False
         elif tok0.spelling == "#define" :
-            self.defined_macros.add( self.this_line_tokens[1] )
+            self.defined_macros.append( self.this_line_tokens[1].spelling )
+            if debug: print "#defined:", self.this_line_tokens[-1].spelling
+            if self.this_line_tokens[-1].spelling == "\\" :
+                self.in_macro_definition = True
+                if debug: print "in macro definition", self.line_number
         elif tok0.spelling == "#ifdef" :
             if len(self.this_line_tokens) > 1 :
                 name = self.this_line_tokens[1]
@@ -362,6 +379,7 @@ class Beautifier :
         if debug : self.print_entry("process_statement",i,stack)
         i = self.find_next_visible_token(i,stack)
         if i == len( self.all_tokens ) : return i
+        if debug : self.print_entry("process_statement",i,stack)
         i_spelling = self.all_tokens[i].spelling
         if i_spelling in self.for_types :
             return self.process_for(i,stack)
@@ -532,6 +550,9 @@ class Beautifier :
         arglist = "not-begun"
         is_ctor = False
         found_init_list = False
+        found_square_brackets = False
+        found_parens = False
+        found_operator = False
 
         i_initial = i # save this in case we aren't actually entering a function; treat it like a statement in that case
         self.set_parent(i,stack,"function")
@@ -542,6 +563,10 @@ class Beautifier :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 # don't do anything special; just don't try and interpret this token as having meaning
                 pass
+            elif self.all_tokens[i].spelling == "[" :
+                # ok -- maybe we're looking at an array declaration
+                if not found_parens :
+                    found_square_brackets = True
             elif self.all_tokens[i].spelling == ":" :
                 # print "found : -- ", classname, is_ctor, arglist, found_init_list
                 if is_ctor and arglist == "ended" and not found_init_list :
@@ -558,6 +583,7 @@ class Beautifier :
                     if i+1 < len(self.all_tokens) and self.all_tokens[i+1].spelling == ":" :
                         classname = self.all_tokens[i-1].spelling
             elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" :
+                found_parens = True
                 funcname = self.all_tokens[i-1].spelling
                 if funcname != "operator" :
                     if funcname == classname :
@@ -589,13 +615,23 @@ class Beautifier :
                 return i
 
             elif self.all_tokens[i].spelling == "{" :
-                if ( found_init_list ) :
-                    stack.pop() # remove ctor-initializer-list
-                # ok! now descend into the function block
-                i = self.process_statement( i, stack )
-                stack.pop()
-                if debug : self.print_entry("exitting process_function_preamble_or_variable",i,stack)
-                return i
+                if found_square_brackets and not found_operator :
+                    i = self.process_to_end_rcb(i,stack,"array-value-initializer")
+                    i = self.find_next_visible_token(i,stack)
+                    assert( self.all_tokens[i].spelling == ";" )
+                    self.set_parent(i,stack)
+                    stack.pop() # remove function
+                    return i+1
+                else :
+                    if ( found_init_list ) :
+                        stack.pop() # remove ctor-initializer-list
+                    # ok! now descend into the function block
+                    i = self.process_statement( i, stack )
+                    stack.pop()
+                    if debug : self.print_entry("exitting process_function_preamble_or_variable",i,stack)
+                    return i
+            elif self.all_tokens[i].spelling == "operator" :
+                found_operator = True
 
             self.set_parent(i,stack)
             i+=1
@@ -902,6 +938,34 @@ class Beautifier :
         # we should not have gotten here
         self.handle_read_all_tokens_error( "process_case_or_default_case", stack )
 
+    def process_to_end_rcb(self,i,stack,scopename) :
+        if debug : self.print_entry( "process_to_end_rcb", i, stack )
+        found_initial_lcb = False
+        cbdepth = 0
+        while i < len( self.all_tokens ) :
+            if self.all_tokens[i].is_inside_string or not self.all_tokens[i].is_visible :
+                pass
+            elif self.all_tokens[i].spelling == "{" :
+                cbdepth += 1
+                if not found_initial_lcb :
+                    self.set_parent(i,stack,scopename)
+                    found_initial_lcb = True
+                    stack.append(self.all_tokens[i])
+                    i+=1
+                    continue
+            elif self.all_tokens[i].spelling == "}" :
+                assert( found_initial_lcb )
+                cbdepth -= 1
+                if cbdepth == 0 :
+                    self.set_parent(i,stack)
+                    stack.pop()
+                    return i+1
+            self.set_parent(i,stack)
+            i+=1
+        #whoops!
+        self.handle_read_all_tokens_error("process_read_to_end_rcb",stack)
+            
+
     def process_enum(self,i,stack) :
         if debug : self.print_entry("process_enum",i,stack)
         assert( self.all_tokens[i].spelling == "enum" )
@@ -912,14 +976,8 @@ class Beautifier :
             i = self.find_next_visible_token(i,stack)
             assert( i < len(self.all_tokens))
             if self.all_tokens[i].spelling == "{" :
-                self.set_parent(i,stack,"enum-scope")
-                stack.append(self.all_tokens[i])
-                i+=1
-                continue
-            elif self.all_tokens[i].spelling == "}" :
-                self.set_parent(i,stack)
-                stack.pop()
-                i = self.find_next_visible_token(i+1,stack)
+                i = self.process_to_end_rcb(i,stack,"enum-scope")
+                i = self.find_next_visible_token(i,stack)
                 assert( self.all_tokens[i].spelling == ";" )
                 self.set_parent(i,stack)
                 stack.pop()

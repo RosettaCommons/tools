@@ -41,8 +41,9 @@
 		
             ],  
             "output_formats" : [
-		"output_slide_raster"
-
+		"output_slide_raster",
+       "output_huge_raster",
+        "output_huge_vector"
             ]  
         }  
     ]  

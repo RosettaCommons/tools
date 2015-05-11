@@ -44,8 +44,12 @@
 		
             ],  
             "output_formats" : [
-		"output_slide_raster"
-
+		"output_slide_raster",
+        "output_tab_delimited_table",
+        "output_html",
+        "output_csv",
+        "output_huge_raster",
+        "output_huge_vector"
             ]  
         }  
     ]  

@@ -2,7 +2,7 @@ import sys
 import blargs
 
 debug = False
-# debug = True
+#debug = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -110,7 +110,7 @@ class Beautifier :
             "unsigned", "struct", "union", "try", "catch" ] )
         self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif" ] )
         self.whitespace = set([" ", "\t", "\n"])
-        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"'])
+        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"',"'"]) # * is not a divider, but is treated like one
         self.privacy_types = set([ "public", "protected", "private"])
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope", "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope", "function-scope" ] )
@@ -179,6 +179,12 @@ class Beautifier :
                     start = -1
                     i+=2
                     continue
+                if start >= 0 :
+                    self.take_token_for_range( start, i )
+                self.take_token_for_range(i,i+1)
+                start = -1
+                i+=1
+                continue
             # make string opening or closing symbols their own tokens
             if self.line[ i ] == '"' :
                 if i > 0 and ( self.line[i-1] != "\\" ) :
@@ -226,6 +232,7 @@ class Beautifier :
             return
 
         escape_tok = None
+        single_char = False
         for i, tok in enumerate( self.this_line_tokens ) :
             if not self.macro_definitions_say_line_visible() :
                 tok.is_visible = False
@@ -236,7 +243,7 @@ class Beautifier :
                 if tok.spelling == "*/" and self.macro_definitions_say_line_visible() :
                     self.in_comment_block = False
             elif self.in_string :
-                # print "in string", tok.spelling, tok.line_number
+                if debug : print "in string", tok.spelling, tok.line_number
                 tok.is_inside_string = True
                 if tok.spelling == "\\" :
                     if escape_tok and tok.start == escape_tok.one_past_end :
@@ -264,8 +271,21 @@ class Beautifier :
                     #we're in a comment block
                     self.in_comment_block = True
             elif tok.spelling == '"' :
+                # double check we're not inside the single character " held inside two single quotes
+                if i > 0 and self.this_line_tokens[i-1].spelling == "'" : continue
+                if debug : print "in string", tok.spelling, tok.line_number
                 tok.is_inside_string = True
                 self.in_string = True
+            elif tok.spelling == "'" and not self.in_string :
+                if single_char :
+                    single_char = False
+                else :
+                    single_char = True
+                if debug : print "in string", tok.spelling, tok.line_number
+                tok.is_inside_string = True
+            elif single_char :
+                if debug : print "in string", tok.spelling, tok.line_number
+                tok.is_inside_string = True
 
         if process_as_macro_line : self.process_macro_line()
 
@@ -285,7 +305,7 @@ class Beautifier :
                 tok.invisible_by_macro = False
         elif tok0.spelling == "#define" :
             self.defined_macros.append( self.this_line_tokens[1].spelling )
-            if debug: print "#defined:", self.this_line_tokens[-1].spelling
+            if debug: print "#defined:", self.this_line_tokens[1].spelling
             if self.this_line_tokens[-1].spelling == "\\" :
                 self.in_macro_definition = True
                 if debug: print "in macro definition", self.line_number
@@ -395,7 +415,7 @@ class Beautifier :
             # treat classes and structs identically
             return self.process_class_decl(i,stack)
         elif i_spelling == "union" :
-            return self.process_union_decl(i,stack)
+            return self.process_union(i,stack)
         elif i_spelling == "switch" :
             return self.process_switch(i,stack)
         elif i_spelling == "case" or i_spelling == "default" :
@@ -407,8 +427,17 @@ class Beautifier :
         elif i_spelling == ";" :
             self.set_parent(i,stack,"empty-statement")
             return i+1;
-        elif i_spelling == "using" or i_spelling == "typedef" :
+        elif i_spelling == "using" :
             return self.process_simple_statement(i,stack)
+        elif i_spelling == "typedef" :
+            j = self.find_next_visible_token(i+1)
+            #print "encountered typedef", self.all_tokens[j].spelling
+            if self.all_tokens[j].spelling == "struct" :
+                self.set_parent(i,stack,"statement")
+                i = self.find_next_visible_token(i+1,stack)
+                return self.process_class_decl(i,stack)
+            else :
+                return self.process_simple_statement(i,stack)
         elif i_spelling == "public" or i_spelling == "protected" or i_spelling == "private" :
             return self.process_privacy_declaration(i,stack)
         elif i_spelling == "template" :
@@ -444,7 +473,9 @@ class Beautifier :
         while i < len( self.all_tokens ) :
             if debug : print (" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1
             self.set_parent(i,stack)
-            if self.all_tokens[i].spelling == ")" :
+            if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
+                pass
+            elif self.all_tokens[i].spelling == ")" :
                 paren_depth -= 1
                 if paren_depth == 0 :
                     return i+1
@@ -503,6 +534,7 @@ class Beautifier :
                 return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if self.all_tokens[i+1].spelling != ":" :
+                    if debug : print "found colon:", i, self.all_tokens[i].line_number, self.all_tokens[i].is_inside_string, self.all_tokens[i].start
                     if not seen_question_mark :
                         # goto handling; you're allowed to define statements on a line and end them with a colon
                         # I hope I'm not missing anything important here
@@ -838,6 +870,7 @@ class Beautifier :
                     i = self.find_next_visible_token( i, stack )
                     self.set_parent( i, stack )
                     if self.all_tokens[i].spelling == ";" : break; # case where struct is anon and struct variables declared next
+                    i+=1
                 stack.pop()
                 if debug : self.print_entry("exitting process_class_decl",i,stack)
                 return i+1
@@ -864,14 +897,17 @@ class Beautifier :
         if debug : self.print_entry("process_union",i,stack)
         self.set_parent(i,stack,"union")
         stack.append(self.all_tokens[i])
+        i+=1
+        processed_types = False
         while i < len( self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
-            elif self.all_tokens[i].spelling == "{" :
+            elif self.all_tokens[i].spelling == "{" and not processed_types :
                 i = self.process_statement(i,stack)
-                # read semi-colon
-                i = self.find_next_visible_token(i,stack)
-                assert( self.all_tokens[i].spelling == ";" )
+                processed_types = True;
+                continue
+            elif self.all_tokens[i].spelling == ";" :
+                assert( processed_types )
                 self.set_parent(i,stack)
                 stack.pop() # remove union
                 if debug : self.print_entry("exitting process_union",i,stack)

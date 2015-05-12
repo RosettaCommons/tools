@@ -40,7 +40,7 @@ class Dummy :
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.int( "num_cpu" ).shorthand("n").default(1)  #required()
-        p.str( "pound_if_setting" ) # can be take_if or take_else
+        p.str( "pound_if_setting" ).default("take_if") # can be take_if or take_else
         p.flag("overwrite")
 
     includes = scan_compilable_files()

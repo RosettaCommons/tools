@@ -110,7 +110,8 @@ class Beautifier :
             "unsigned", "struct", "union", "try", "catch" ] )
         self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif" ] )
         self.whitespace = set([" ", "\t", "\n"])
-        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"',"'","?"]) # * is not a divider, but is treated like one
+        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",
+                             '"',"'","?","!","+","-"]) # *, and / are not dividers, but are treated like one
         self.privacy_types = set([ "public", "protected", "private"])
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope", "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope", "function-scope" ] )
@@ -173,6 +174,13 @@ class Beautifier :
                     self.take_token_for_range( i, i+2 )
                     start = -1
                     i+=2
+                    continue
+                else :
+                    if start >= 0 :
+                        self.take_token_for_range( start, i )
+                    self.take_token_for_range(start,i)
+                    start = -1
+                    i+=1
                     continue
             # make block-comment ending symbols their own tokens
             if self.line[ i ] == "*" :
@@ -392,7 +400,7 @@ class Beautifier :
     def print_entry( self, fname, i, stack ) :
         if stack :
             if i < len(self.all_tokens) :
-                print (" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1
+                print (" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible
             else :
                 print (" "*len(stack)),fname,i,"reached last token"
         else :
@@ -694,6 +702,9 @@ class Beautifier :
                 return i
 
             elif self.all_tokens[i].spelling == "{" :
+                # print "found_square_brackets", found_square_brackets
+                # print "found_equals", found_equals
+                # print "found_operator", found_operator
                 if ( found_square_brackets or found_equals ) and not found_operator :
                     i = self.process_to_end_rcb(i,stack,"array-value-initializer")
                     i = self.find_next_visible_token(i,stack)
@@ -2509,7 +2520,7 @@ if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str("filename").required()
         p.flag("overwrite")
-        p.str("pound_if_setting") # can be take_if or take_else
+        p.str("pound_if_setting").default("take_if") # can be take_if or take_else
     opts = BeautifierOpts()
     if pound_if_setting : opts.pound_if_setting = pound_if_setting
     beautify_file( filename, overwrite, opts )

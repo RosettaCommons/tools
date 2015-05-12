@@ -178,7 +178,7 @@ class Beautifier :
                 else :
                     if start >= 0 :
                         self.take_token_for_range( start, i )
-                    self.take_token_for_range(start,i)
+                    self.take_token_for_range(i,i+1)
                     start = -1
                     i+=1
                     continue
@@ -2498,7 +2498,7 @@ def beautify_file( filename, overwrite, opts = None ) :
     beaut = Beautifier()
     if opts :
         if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
-            print "Setting beautifier pound_if_setting:", opts.pound_if_setting
+            # print "Setting beautifier pound_if_setting:", opts.pound_if_setting
             beaut.pound_if_setting = opts.pound_if_setting
 
     lines = open( filename ).readlines()

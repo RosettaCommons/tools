@@ -355,17 +355,25 @@ class Beautifier :
             print "WARNING: Unhandled macro:", tok0.spelling
 
     def find_next_visible_token( self, i, stack=None ) :
+        if debug : self.print_entry( "find_next_visible_token", i, stack )
         while i < len(self.all_tokens) :
             if self.all_tokens[i].is_visible : return i
             if stack != None :
                 self.set_parent( i, stack )
             i += 1
         return i
+
     def print_entry( self, fname, i, stack ) :
-        if i < len(self.all_tokens) :
-            print (" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1
+        if stack :
+            if i < len(self.all_tokens) :
+                print (" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1
+            else :
+                print (" "*len(stack)),fname,i,"reached last token"
         else :
-            print (" "*len(stack)),fname,i,"reached last token"
+            if i < len(self.all_tokens) :
+                print "stack-less", fname, "token", i, ",", self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1
+            else :
+                print "stack-less", fname, "token", i, "beyond last token"
 
     def renumber_tokens( self ) :
         for i,tok in enumerate(self.all_tokens) :
@@ -854,6 +862,8 @@ class Beautifier :
         if debug : self.print_entry("process_class_decl",i,stack)
 
         seen_inheritance_colon = False
+        found_square_brackets = False
+        found_parens = False
 
         self.set_parent(i,stack,"class")
         stack.append(self.all_tokens[i])
@@ -862,18 +872,31 @@ class Beautifier :
         while i < len( self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
+            elif self.all_tokens[i].spelling == "[" :
+                # ok -- maybe we're looking at an array declaration; this happens with structs
+                # where you say struct structname varname[] = {};
+                found_square_brackets = True
             elif self.all_tokens[i].spelling == "{" :
-                if seen_inheritance_colon :
-                    stack.pop() # remove class-inheritance-list
-                i = self.process_statement( i, stack )
-                while i < len( self.all_tokens ) :
-                    i = self.find_next_visible_token( i, stack )
-                    self.set_parent( i, stack )
-                    if self.all_tokens[i].spelling == ";" : break; # case where struct is anon and struct variables declared next
-                    i+=1
-                stack.pop()
-                if debug : self.print_entry("exitting process_class_decl",i,stack)
-                return i+1
+                if found_square_brackets :
+                    assert( not seen_inheritance_colon );
+                    i = self.process_to_end_rcb(i,stack,"array-value-initializer")
+                    i = self.find_next_visible_token(i,stack)
+                    assert( self.all_tokens[i].spelling == ";" )
+                    self.set_parent(i,stack)
+                    stack.pop() # remove class
+                    return i+1
+                else :
+                    if seen_inheritance_colon :
+                        stack.pop() # remove class-inheritance-list
+                    i = self.process_statement( i, stack )
+                    while i < len( self.all_tokens ) :
+                        i = self.find_next_visible_token( i, stack )
+                        self.set_parent( i, stack )
+                        if self.all_tokens[i].spelling == ";" : break; # case where struct is anon and struct variables declared next
+                        i+=1
+                    stack.pop()
+                    if debug : self.print_entry("exitting process_class_decl",i,stack)
+                    return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if not seen_inheritance_colon :
                     seen_inheritance_colon = True

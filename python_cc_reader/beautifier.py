@@ -110,11 +110,15 @@ class Beautifier :
             "unsigned", "struct", "union", "try", "catch" ] )
         self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif" ] )
         self.whitespace = set([" ", "\t", "\n"])
-        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"',"'"]) # * is not a divider, but is treated like one
+        self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",'"',"'","?"]) # * is not a divider, but is treated like one
         self.privacy_types = set([ "public", "protected", "private"])
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope", "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope", "function-scope" ] )
-        self.for_types = set( [ "for", "BOOST_FOREACH", "foreach", "foreach_", "boost_foreach", "FEM_DO", "FEM_DO_SAFE", "FEM_DOSTEP" ] )
+        self.for_types = set( [ "for", "BOOST_FOREACH", "foreach", "foreach_", "boost_foreach", "FEM_DO",
+                                "FEM_DO_SAFE", "FEM_DOSTEP",
+                                "FORVC", "FORTAGS" ] )
+        self.pound_if_setting = "" # can be "take_if" or "take_else" to broadly specify to take one or the other for a file
+                                   # without providing a full-fledged preprocessor directive reader
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
@@ -222,14 +226,20 @@ class Beautifier :
         if self.in_macro_definition :
             # just don't mess with macro definitions; they shouldn't even be there!
             if debug: print "still in macro definition", self.line_number
-            for tok in self.this_line_tokens :
-                tok.is_visible = False
-                tok.invisible_by_macro = True
-            assert( len( self.this_line_tokens ) != 0 )
-            if self.this_line_tokens[-1].spelling != "\\" :
+            if self.this_line_tokens :
+                for tok in self.this_line_tokens :
+                    tok.is_visible = False
+                    tok.invisible_by_macro = True
+                assert( len( self.this_line_tokens ) != 0 )
+                if self.this_line_tokens[-1].spelling != "\\" :
+                    self.in_macro_definition = False
+                    if debug: print "final line in macro definition", self.line_number
+                return
+            else :
+                # empty line
                 self.in_macro_definition = False
                 if debug: print "final line in macro definition", self.line_number
-            return
+                return
 
         escape_tok = None
         single_char = False
@@ -260,7 +270,7 @@ class Beautifier :
             elif len(tok.spelling) == 2 and ( tok.spelling == "//" or ( tok.spelling == "/*" and self.macro_definitions_say_line_visible() ) ) :
                 # comment begin
                 tok.is_visible = False
-                tok.is_comment = True
+                tok.is_commented = True
                 if tok.spelling == "//" :
                     #the rest of the line is a comment
                     for j in xrange(i,len(self.this_line_tokens)) :
@@ -303,7 +313,7 @@ class Beautifier :
             # the sake of indenting them to level 0.
             for tok in self.this_line_tokens :
                 tok.invisible_by_macro = False
-        elif tok0.spelling == "#define" :
+        if tok0.spelling == "#define" :
             self.defined_macros.append( self.this_line_tokens[1].spelling )
             if debug: print "#defined:", self.this_line_tokens[1].spelling
             if self.this_line_tokens[-1].spelling == "\\" :
@@ -326,12 +336,20 @@ class Beautifier :
                 else :
                     self.nested_ifdefs.append( (name, "ifndef", False ))
         elif tok0.spelling == "#if" :
-            # conservative -- don't try to parse or logically evaluate this line
-            # just say "yeah, it's probably true" and if you hit an else later, then
-            # instead of negating it, say the else is also true.
-            # this could cause problems
-            name = " ".join( [ x.spelling for x in self.this_line_tokens[1:] if not x.is_comment ] )
-            self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ))
+            name = " ".join( [ x.spelling for x in self.this_line_tokens[1:] if not x.is_commented ] )
+            # print "hit #if", self.pound_if_setting
+            if self.pound_if_setting == "take_if" :
+                print "Take if, arived at #if:", self.all_lines[-1].strip()
+                self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ) )
+            elif self.pound_if_setting == "take_else" :
+                print "Take else, arived at #if:", self.all_lines[-1].strip()
+                self.nested_ifdefs.append( (name, "if", False ) )
+            else :
+                # conservative -- don't try to parse or logically evaluate this line
+                # just say "yeah, it's probably true" and if you hit an else later, then
+                # instead of negating it, say the else is also true.
+                # this could cause problems
+                self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ))
         elif tok0.spelling == "#else" :
             name, iftype, truthval = self.nested_ifdefs.pop()
             if iftype == "else" :
@@ -345,14 +363,22 @@ class Beautifier :
                     self.nested_ifdefs.append( (name, "else", not truthval) )
                 else :
                     assert( iftype == "if" )
-                    self.nested_ifdefs.append( (name, "else", True) )
+                    if self.pound_if_setting == "take_if" :
+                        print "Take if, arived at #else:", self.all_lines[-1].strip()
+                        self.nested_ifdefs.append( (name, "else", False ) )
+                    elif self.pound_if_setting == "take_else" :
+                        print "Take else, arived at #else:", self.all_lines[-1].strip()
+                        self.nested_ifdefs.append( (name, "else", True ) )
+                    else :
+                        # conservative -- take both
+                        self.nested_ifdefs.append( (name, "else", True) )
             else :
-                self.netsted_ifdefs.append( (name, "else", "False" ))
+                self.nested_ifdefs.append( (name, "else", "False" ))
         elif tok0.spelling == "#endif" :
             assert( self.nested_ifdefs[-1][1] in set( ["if", "ifdef", "ifndef", "else" ]) )
             self.nested_ifdefs.pop()
         else :
-            print "WARNING: Unhandled macro:", tok0.spelling
+            print "WARNING: Unhandled preprocessor directive:", tok0.spelling
 
     def find_next_visible_token( self, i, stack=None ) :
         if debug : self.print_entry( "find_next_visible_token", i, stack )
@@ -525,16 +551,20 @@ class Beautifier :
     def process_simple_statement(self,i,stack) :
         if debug : self.print_entry("process_simple_statement",i,stack)
 
+        paren_depth = 0
+        if self.all_tokens[i].spelling == "(" and not self.all_tokens[i].is_inside_string :
+            paren_depth += 1
+
         self.set_parent(i,stack,"statement")
         stack.append(self.all_tokens[i])
         i+=1;
         # read all the tokes from i until the next semicolon
         last = i
-        seen_question_mark = False
+        n_question_marks = 0
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 pass
-            elif self.all_tokens[i].spelling == ";":
+            elif self.all_tokens[i].spelling == ";" and paren_depth == 0 :
                 # print "statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] )
                 self.set_parent(i,stack)
                 stack.pop()
@@ -542,8 +572,8 @@ class Beautifier :
                 return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if self.all_tokens[i+1].spelling != ":" :
-                    if debug : print "found colon:", i, self.all_tokens[i].line_number, self.all_tokens[i].is_inside_string, self.all_tokens[i].start
-                    if not seen_question_mark :
+                    if debug : print "found colon:", i, self.all_tokens[i].line_number, self.all_tokens[i].is_inside_string, self.all_tokens[i].start, "n?s", n_question_marks
+                    if n_question_marks == 0 :
                         # goto handling; you're allowed to define statements on a line and end them with a colon
                         # I hope I'm not missing anything important here
                         self.set_parent(i,stack)
@@ -552,14 +582,18 @@ class Beautifier :
                         if debug : self.print_entry("label declaration; soldiering onwards",i,stack)
                         return self.process_statement(i,stack)
                     else :
-                        seen_question_mark = False;
+                        n_question_marks -= 1;
                 else :
                     self.set_parent(i,stack)
                     self.set_parent(i+1,stack)
                     i+=2
                     continue
             elif self.all_tokens[i].spelling == "?" :
-                seen_question_mark = True
+                n_question_marks += 1
+            elif self.all_tokens[i].spelling == "(" :
+                paren_depth += 1
+            elif self.all_tokens[i].spelling == ")" :
+                paren_depth -= 1
                     
             self.set_parent(i,stack)
             i+=1
@@ -593,6 +627,7 @@ class Beautifier :
         found_square_brackets = False
         found_parens = False
         found_operator = False
+        found_equals = False
 
         i_initial = i # save this in case we aren't actually entering a function; treat it like a statement in that case
         self.set_parent(i,stack,"function")
@@ -607,6 +642,10 @@ class Beautifier :
                 # ok -- maybe we're looking at an array declaration
                 if not found_parens :
                     found_square_brackets = True
+            elif self.all_tokens[i].spelling == "=" :
+                # ok -- maybe we're looking at a variable declaration w/ assignment
+                if not found_parens :
+                    found_equals = True
             elif self.all_tokens[i].spelling == ":" :
                 # print "found : -- ", classname, is_ctor, arglist, found_init_list
                 if is_ctor and arglist == "ended" and not found_init_list :
@@ -655,7 +694,7 @@ class Beautifier :
                 return i
 
             elif self.all_tokens[i].spelling == "{" :
-                if found_square_brackets and not found_operator :
+                if ( found_square_brackets or found_equals ) and not found_operator :
                     i = self.process_to_end_rcb(i,stack,"array-value-initializer")
                     i = self.find_next_visible_token(i,stack)
                     assert( self.all_tokens[i].spelling == ";" )
@@ -899,12 +938,18 @@ class Beautifier :
                     return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if not seen_inheritance_colon :
+                    if debug: print " " * len(stack), "encountered inheritance colon"
                     seen_inheritance_colon = True
                     self.set_parent(i,stack,"class-inheritance-list")
                     stack.append(self.all_tokens[i])
                     i+=1
                     continue
             elif self.all_tokens[i].spelling == ";" :
+                if seen_inheritance_colon :
+                    # ok, we didn't actually see an inheritance colon; what we saw was a colon and probably because this
+                    # isn't a class or struct declaration so much as it's a struct-instance declaration
+                    # e.g. "struct mystruct varname = std::somefunction();"
+                    stack.pop() # remove class-inheritance-list
                 # this is just a forward declaration
                 self.set_parent(i,stack)
                 stack.pop()
@@ -1036,8 +1081,8 @@ class Beautifier :
             assert( i < len(self.all_tokens))
             if self.all_tokens[i].spelling == "{" :
                 i = self.process_to_end_rcb(i,stack,"enum-scope")
-                i = self.find_next_visible_token(i,stack)
-                assert( self.all_tokens[i].spelling == ";" )
+                continue
+            elif self.all_tokens[i].spelling == ";" :
                 self.set_parent(i,stack)
                 stack.pop()
                 return i+1
@@ -2438,8 +2483,13 @@ class Beautifier :
                 return False, i_this, i_other
         return True, i_this, i_other
 
-def beautify_file( filename, overwrite ) :
+def beautify_file( filename, overwrite, opts = None ) :
     beaut = Beautifier()
+    if opts :
+        if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
+            print "Setting beautifier pound_if_setting:", opts.pound_if_setting
+            beaut.pound_if_setting = opts.pound_if_setting
+
     lines = open( filename ).readlines()
     for line in lines :
         beaut.tokenize_line( line )
@@ -2451,9 +2501,15 @@ def beautify_file( filename, overwrite ) :
     else :
         open( filename +".beaut", "w" ).writelines( beaut.new_lines )
 
+class BeautifierOpts :
+    def __init__( self ) :
+        self.pound_if_setting = ""
 
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str("filename").required()
         p.flag("overwrite")
-    beautify_file( filename, overwrite )
+        p.str("pound_if_setting") # can be take_if or take_else
+    opts = BeautifierOpts()
+    if pound_if_setting : opts.pound_if_setting = pound_if_setting
+    beautify_file( filename, overwrite, opts )

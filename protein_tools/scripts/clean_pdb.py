@@ -17,6 +17,7 @@ shit_stat_altpos = False
 shit_stat_modres = False
 shit_stat_misdns = False  # missing density!
 
+pdb_resnum_mapping = ""
 fastaseq = {}
 pdbfile = ""
 
@@ -59,7 +60,8 @@ def check_and_print_pdb(count, residue_buffer, residue_letter):
         for line in residue_buffer:
             # add linear residue count
             newnum = '%4d ' % count
-            line_edit = line[0:22] + newnum + line[27:]
+            line_edit = line[0:22] + newnum + line[27:] 
+            #print "%s\t%s" % (line[22:27], newnum,)
             # write the residue line
             pdbfile = pdbfile + line_edit
 
@@ -151,6 +153,7 @@ modifiedres = ''
 residue_buffer = []
 residue_letter = ''
 residue_invalid = False
+chain = ''
 
 if chainid == '_':
     chainid = ' '
@@ -161,7 +164,7 @@ for i in range(len(lines)):
     if len(line) > 5 and line[:6] == 'ENDMDL': break  # Its an NMR model.
     chainid = [i for i in chainid]
     if (line[21] in chainid or ignorechain or removechain):
-        line_edit = line
+        line_edit = line 
         if line[0:3] == 'TER':
             continue
         elif (line[0:6] == 'HETATM'):
@@ -199,7 +202,7 @@ for i in range(len(lines)):
 # line = lines[i]
 # resnum = line_edit[23:26]
 
-            resnum = line_edit[22:27]
+            resnum = line_edit[22:27] 
 
             insres = line[26]
             if insres != ' ':
@@ -216,7 +219,9 @@ for i in range(len(lines)):
                             # if unsuccessful
                             shit_stat_misdns = True
                         else:
-                            count = count + 1
+                            print "%s%s : %s" % (oldresnum, chain, count)
+                            pdb_resnum_mapping += "%s%s : %s\n" % (oldresnum.strip(), chain.strip(), count)
+                            count = count + 1 
 
                 residue_buffer = []
                 residue_letter = ""
@@ -229,7 +234,8 @@ for i in range(len(lines)):
                     residue_letter = 'X'
                     residue_invalid = True
 
-            oldresnum = resnum
+            oldresnum = resnum 
+            chain = line[21]
 
             # What does this do ?
             if line_edit[16:17] == 'A':
@@ -248,7 +254,9 @@ if not check_and_print_pdb(count, residue_buffer, residue_letter):
     # if unsuccessful
     shit_stat_misdns = True
 else:
-    count = count + 1
+    print "%s%s : %s" % (oldresnum, chain, count)
+    pdb_resnum_mapping += "%s%s : %s\n" % (oldresnum.strip(), chain.strip(), count)
+    count = count + 1 
 
 
 flag_altpos = "---"
@@ -296,6 +304,13 @@ if nres > 0:
             handle.write(fastaseq[chain])
             handle.write('\n')
             handle.close()
+
+			#kdrew: write out pdb number mapping 
+            handle = open(pdbname[0:4]+"_"+argv[2] + ".resnum_map", 'w') 
+            handle.writelines(pdb_resnum_mapping) 
+            handle.write('\n') 
+            handle.close()
+
     else:
         fastaseq = ["".join(fastaseq.values())]
         fastaid.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
@@ -305,6 +320,12 @@ if nres > 0:
         handle.write('>'+pdbname[0:4]+"_"+argv[2]+'\n')
         handle.writelines(fastaseq)
         handle.write('\n')
+        handle.close()
+
+		#kdrew: write out pdb number mapping 
+        handle = open(pdbname[0:4]+"_"+argv[2] + ".resnum_map", 'w') 
+        handle.writelines(pdb_resnum_mapping) 
+        handle.write('\n') 
         handle.close()
 
 if len(files_to_unlink) > 0:

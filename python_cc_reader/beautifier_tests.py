@@ -2,106 +2,6 @@ import beautifier
 import blargs
 import sys
 
-all_funcs = []
-
-def simple_function1() :
-    return [ "void add_one( int & input )\n",
-             "{\n",
-             "input += 1;\n",
-             "}\n" ]
-all_funcs.append( simple_function1 )
-
-def two_functions() :
-    return [ "void add_one( int & input )\n",
-             "{\n",
-             "input += 1;\n",
-             "}\n",
-             "\n",
-             "void add_two( int & input, std::vector< int > const & some_vector ) {\n",
-             "input += 2;",
-             "some_vector[0] += 2;\n",
-             "}\n" ];
-             
-all_funcs.append( two_functions )
-
-
-def function_w_for() :
-    return [ "void to_ten()\n",
-             "{\n",
-             "for(int i = 0; i < 10; ++i){\n",
-             "std::cout << i << std::endl;\n",
-             "}\n",
-             "}\n" ];
-all_funcs.append( function_w_for )
-
-def function_w_while() :
-    return [ "void to_ten()\n",
-             "{\n",
-             "int i = 0;",
-             "while( i < 10 ) {\n",
-             "std::cout << i << std::endl;\n",
-             "++i;\n",
-             "}\n",
-             "}\n" ];
-all_funcs.append( function_w_while )
-
-def namespace_and_function() :
-    return [ "namespace testing {\n",
-             "void add_one( int & input )\n",
-             "{\n",
-             "input += 1;\n",
-             "}\n",
-             "}\n" ]
-all_funcs.append( namespace_and_function )
-
-def class_dec_w_inheritance() :
-    return [ "class MyClass : public MyOtherClass {\n",
-             "MyClass();\n",
-             "~MyClass();\n",
-             "void testing() { ++i; };\n",
-             "};" ]
-all_funcs.append( class_dec_w_inheritance )
-
-def class_dec_w_ctor() :
-    return [ "class MyClass {\n",
-             "MyClass() : my_int_( 5 ) {}\n",
-             "int my_int_;\n",
-             "};\n" ]
-all_funcs.append( class_dec_w_ctor )
-
-def class_dec_w_privacy() :
-    return [ "class MyClass {\n",
-             "private :\n",
-             "MyClass();\n",
-             "MyClass( int );\n",
-             "};\n" ]
-all_funcs.append( class_dec_w_privacy )
-
-def test_code_reader_on_lines( lines ) :
-    beaut = beautifier.Beautifier()
-    for line in lines :
-        print line,
-        beaut.tokenize_line( line )
-    print
-    
-    beaut.minimally_parse_file()
-    for tok in beaut.all_tokens :
-        assert( tok.parent != None )
-        assert( tok in tok.parent.children )
-
-    # for i,line_toks in enumerate( beaut.line_tokens ):
-    #     print lines[i],
-    #     for tok in line_toks :
-    #         print "(sp=%s,v=%s,cxt=%s,d=%d)" % ( tok.spelling, tok.is_visible, tok.context, tok.depth ),
-    #     print
-    # print len(beaut.all_tokens)
-
-    beaut.beautify_code()
-    print "Beautified"
-    for line in beaut.new_lines :
-        print line,
-    print
-
 class BeautifierTest :
     def __init__( self, li, lf, name ) :
         self.lines_initial = li
@@ -273,7 +173,9 @@ def read_test_cases( fname ) :
                 test = BeautifierTest( init_lines, final_lines, line[3:].strip() )
                 init_lines = []; final_lines = []
                 tests.append( test )
-            elif line[0] == "#" :
+            elif line[0] == "%" :
+                # matlab style comments; we need to allow c++ style comments and c++ style macros
+                # so // and # are both out as possible comment delimiters
                 continue
             else :
                 cols = line.split("|")

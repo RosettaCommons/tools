@@ -158,9 +158,7 @@ void test()                                     | void test()
 --- 22 for-loop spacing
 void test()                                     | void test()
 {                                               | {
-    for(int i=0;i < 10;++i){                    |     for ( int i=0; i < 10; ++i ) {
-        statement();                            |         statement();
-    }                                           |     }
+    for(int i=0;i < 10;++i)statement;           |     for ( int i=0; i < 10; ++i ) statement;
 }                                               | }
 --- 23 for-loop spacing
 void test()                    | void test()
@@ -169,7 +167,7 @@ void test()                    | void test()
         statement;             |         statement;
     }                          |     }
 }                              | }
---- 24 if-curly-brace placement
+--- 24 for-loop spacing
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -211,38 +209,71 @@ void test()                               | void test()
     if ( i < 10 ) statement; // comment   |     if ( i < 10 ) statement; // comment
 }                                         | }
 --- 30 if-curly-brace placement
+void test()                                   | void test()
+{                                             | {
+    if ( i < 10 ) { statement; } // comment   |     if ( i < 10 ) { statement; } // comment
+}                                             | }
+--- 31 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) {} // comment
+    {}                         | }
+}                              |
+--- 32 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) {} // comment
+    {                          |     // comment 2
+    } // comment 2             | }
+}                              |
+--- 33 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) {} // comment
+    {                          | }
+    }                          |
+}                              |
+--- 34 if-curly-brace placement
+void test()                    | void test()
+{                              | {
+    if ( i < 10 ) // comment   |     if ( i < 10 ) {} // comment
+    {                          | }
+                               |
+    }                          |
+}                              |
+--- 35 if-curly-brace placement
 void test()                                | void test()
 {                                          | {
     if ( i < 10 ) statement; /* comment */ |     if ( i < 10 ) statement; /* comment */
 }                                          | }
---- 31 if-curly-brace placement
+--- 36 if-curly-brace placement
 void test()                                      | void test()
 {                                                | {
     if ( i < 10 ) statement; /* comment */ s2;   |     if ( i < 10 ) statement;
 }                                                |     /* comment */ s2;
                                                  | }
---- 32 if-curly-brace placement
+--- 37 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
         statement;             |         statement;
 }                              |     }
                                | }
---- 33 if-curly-brace placement
+--- 38 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement; }           |         statement;
 }                              |     }
                                | }
---- 34 if-curly-brace placement
+--- 39 if-curly-brace placement
 void test()                     | void test()
 {                               | {
     if ( i < 10 ) {             |     if ( i < 10 ) {
         statement; } // comment |         statement;   // comment
 }                               |     }
                                 | }
---- 35 if-curly-brace placement
+--- 40 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -250,20 +281,20 @@ void test()                    | void test()
         statement;             |         statement;
 }                              |     }
                                | }
---- 36 if-curly-brace placement
+--- 41 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) statement;   |     if ( i < 10 ) statement;
     else statement2;           |     else statement2;
 }                              | }
---- 37 if-curly-brace placement
+--- 42 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) // comment   |     if ( i < 10 ) { // comment
         statement;             |         statement;
 }                              |     }
                                | }
---- 38 if-curly-brace placement
+--- 43 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -272,7 +303,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 39 if-curly-brace placement
+--- 44 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -281,7 +312,7 @@ void test()                    | void test()
     else                       |         statement2;
         statement2;            |     }
 }                              | }
---- 40 if-curly-brace placement
+--- 45 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -291,7 +322,7 @@ void test()                    | void test()
         if ( i > 100 )         |     }
             statement2;        | }
 }                              |
---- 41 if-curly-brace placement
+--- 46 if-curly-brace placement
 void test()                             | void test()
 {                                       | {
     if ( i < 10 ) {                     |     if ( i < 10 ) {
@@ -301,7 +332,7 @@ void test()                             | void test()
         if ( i > 100 ) // comment3      |     }
             statement2;                 | }     
 }                                       |
---- 42 if-curly-brace placement
+--- 47 if-curly-brace placement
 void test()                             | void test()
 {                                       | {
     if ( i < 10 ) {                     |     if ( i < 10 ) {
@@ -312,7 +343,7 @@ void test()                             | void test()
                i < 150 )                |     }    
             statement2;                 | }        
 }                                       |         
---- 43 if-curly-brace placement
+--- 48 if-curly-brace placement
 void test()                             | void test()
 {                                       | {
     if ( i < 10 ) {                     |     if ( i < 10 ) {
@@ -322,7 +353,155 @@ void test()                             | void test()
         statement2;                     |     }
     }                                   | }    
 }                                       |        
---- 44 if-curly-brace-placement
+--- 49 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    } // comment                        |     } else if ( i > 100 ) { // comment // comment2 
+    else if ( i > 100 ) { // comment2   |         statement2;
+        statement2;                     |     }
+    }                                   | }    
+}                                       |        
+--- 50 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } else if ( i > 100 ) { 
+    // comment                          |         // comment
+    else if ( i > 100 ) {               |         statement2;
+        statement2;                     |     }
+    }                                   | }    
+}                                       |       
+--- 51 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } else if ( i > 100 ) { 
+    // comment                          |         // comment
+    // comment two                      |         // comment two
+    else if ( i > 100 ) {               |         statement2;
+        statement2;                     |     }
+    }                                   | }    
+}                                       |       
+--- 52 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } else if ( i > 100 ) { 
+    // comment                          |         // comment
+    /* note */ else if ( i > 100 ) {    |         /* note */
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 53 if-curly-brace-placement
+% make sure blank lines between the if's rcb and the else get removed
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } else if ( i > 100 ) { 
+                                        |         // comment
+    // comment                          |         /* note */
+    /* note */ else if ( i > 100 ) {    |         statement2;
+        statement2;                     |     }    
+    }                                   | }      
+}                                       |
+--- 54 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } 
+#ifdef DUMMY                            | #ifdef DUMMY
+    else if ( dummy ) {                 |     else if ( dummy ) {
+        statement3;                     |         statement3;
+    }                                   |     }
+#endif                                  | #endif
+    else if ( i > 100 ) {               |     else if ( i > 100 ) { 
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 55 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } 
+#ifdef DUMMY                            | #ifdef DUMMY
+    else if ( dummy ) {                 |     else if ( dummy ) {
+        statement3;                     |         statement3;
+    }                                   |     }
+#endif                                  | #endif
+    /* note */ else if ( i > 100 ) {    |     /* note */ else if ( i > 100 ) { 
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 56 if-curly-brace-placement
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    }                                   |     } 
+#ifdef DUMMY                            | #ifdef DUMMY
+    else if ( dummy ) {                 |     else if ( dummy ) {
+        statement3;                     |         statement3;
+    }                                   |     }
+#endif                                  | #endif
+    // comment                          |     // comment
+    else if ( i > 100 ) {               |     else if ( i > 100 ) { 
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 57 if-curly-brace-placement
+% Make sure a curly brace isn't moved upwards onto an "else" line
+% if there are invisible-by-macro or preprocessor-directive tokens
+% in between the curly brace and the "else".
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    } else                              |     } else
+#ifdef DUMMY                            | #ifdef DUMMY
+    if ( dummy )                        |     if ( dummy )
+#endif                                  | #endif
+    {                                   |     { 
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 58 if-curly-brace-placement
+% Make sure an "if" isn't moved upwards onto an "else" line in an else-if clause
+% if there are preprocessor-directive tokens in between the "else" and the "if".
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    } else                              |     } else
+#ifndef DUMMY                           | #ifndef DUMMY
+    if ( dummy )                        |     if ( dummy )
+#endif                                  | #endif
+    {                                   |     { 
+        statement2;                     |         statement2;
+    }                                   |     }    
+}                                       | }      
+--- 59 if-curly-brace-placement
+% make sure that the else's "{" and "}" are not moved onto the same line together.
+void test()                             | void test()
+{                                       | {
+    if ( i < 10 ) {                     |     if ( i < 10 ) {
+        statement;                      |         statement;
+    } else {                            |     } else {
+#ifdef DUMMY                            | #ifdef DUMMY
+        if ( dummy ) {                  |         if ( dummy ) {
+            statement2;                 |             statement2;
+        }                               |         }    
+#endif                                  | #endif
+    }                                   |     }
+}                                       | }      
+--- 60 if-curly-brace-placement
 void test()                             | void test()
 {                                       | {
     if ( i < 10 ) {                     |     if ( i < 10 ) {
@@ -332,7 +511,7 @@ void test()                             | void test()
         statement2;                     |     }
     }                                   | }    
 }                                       |        
---- 45 if-curly-brace-placement
+--- 61 if-curly-brace-placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -342,7 +521,7 @@ void test()                    | void test()
          statement2;           |     }
     }                          | }
 }                              |
---- 46 if-curly-brace placement
+--- 62 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -351,7 +530,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 47 if-curly-brace placement
+--- 63 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -360,7 +539,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 48 if-curly-brace placement
+--- 64 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -369,7 +548,7 @@ void test()                    | void test()
         statement2;            |         statement2;
     }                          |     }
 }                              | }
---- 49 if-curly-brace placement
+--- 65 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -378,7 +557,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 50 if-curly-brace placement
+--- 66 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -388,7 +567,7 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 51 if-curly-brace placement
+--- 67 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -398,14 +577,14 @@ void test()                    | void test()
         statement2;            |         statement2;
 }                              |     }
                                | }
---- 52 if-curly-brace placement
+--- 68 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement;             |         statement;
     } else statement2;         |     } else statement2;
 }                              | }
---- 53 if-curly-brace placement
+--- 69 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -413,14 +592,14 @@ void test()                    | void test()
     } else s2; s3;             |     } else s2;
 }                              |     s3;
                                | }
---- 54 if-curly-brace placement
+--- 70 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
         statement;             |         statement;
     } else s2; //comment       |     } else s2; //comment
 }                              | }
---- 55 if-curly-brace placement
+--- 71 if-curly-brace placement
 void test()                        | void test()
 {                                  | {
     if ( i < 10 ) {                |     if ( i < 10 ) {
@@ -428,7 +607,7 @@ void test()                        | void test()
     } else s2; /* comment */ s3;   |     } else s2;
 }                                  |     /* comment */ s3;
                                    | }
---- 56 if-curly-brace placement
+--- 72 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -437,7 +616,7 @@ void test()                    | void test()
         statement2;            |         statement2;
     }                          |     }
 }                              | }
---- 57 if-curly-brace placement
+--- 73 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -447,7 +626,7 @@ void test()                    | void test()
         statement3;            |         statement3;
     }                          |     }
 }                              | }
---- 58 if-curly-brace placement
+--- 74 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -457,7 +636,7 @@ void test()                    | void test()
         statement3; }          |         statement3;
 }                              |     }
                                | }
---- 59 if-curly-brace placement
+--- 75 if-curly-brace placement
 void test()                           | void test()
 {                                     | {
     if ( i < 10 ) {                   |     if ( i < 10 ) {
@@ -467,7 +646,7 @@ void test()                           | void test()
         statement3; } //comment       |         statement3;   //comment
 }                                     |     }
                                       | }
---- 60 if-curly-brace placement
+--- 76 if-curly-brace placement
 void test()                               | void test()
 {                                         | {
     if ( i < 10 ) {                       |     if ( i < 10 ) {
@@ -478,7 +657,7 @@ void test()                               | void test()
 }                                         |     }
                                           |     /*comment*/ s4();
                                           | }
---- 61 if-curly-brace placement
+--- 77 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 ) {            |     if ( i < 10 ) {
@@ -489,7 +668,7 @@ void test()                    | void test()
         statement3;            |         statement3;
     }                          |     }
 }                              | }
---- 62 if-curly-brace placement
+--- 78 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -500,7 +679,7 @@ void test()                    | void test()
         statement3;            |         statement3;
 }                              |     }
                                | }
---- 63 if-curly-brace placement
+--- 79 if-curly-brace placement
 void test()                            | void test()
 {                                      | {
     if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
@@ -509,7 +688,7 @@ void test()                            | void test()
         statement3;                    |         statement3;
 }                                      |      }
                                        | }
---- 64 if-curly-brace placement
+--- 80 if-curly-brace placement
 void test()                            | void test()
 {                                      | {
     if ( i < 10 ) statement;           |     if ( i < 10 ) statement;
@@ -519,7 +698,7 @@ void test()                            | void test()
         statement3;                    |         statement3;
 }                                      |      }
                                        | }
---- 65 if-curly-brace placement
+--- 81 if-curly-brace placement
 void test()                    | void test()
 {                              | {
     if ( i < 10 )              |     if ( i < 10 ) {
@@ -530,4 +709,4 @@ void test()                    | void test()
     else                       |         statement3;
         statement3;            |     }
 }                              | }
---- 66 if-curly-brace placement
+--- 82 if-curly-brace placement

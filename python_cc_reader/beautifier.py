@@ -2,7 +2,7 @@ import sys
 import blargs
 
 debug = False
-#daebug = True
+#debug = True
 
 debug_equiv = False
 #debug_equiv = True
@@ -2153,6 +2153,9 @@ class Beautifier :
                 if for_body.line_number == lcb_tok.line_number :
                     # print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
+                if self.visible_tokens_on_line_after( last_fs_desc ) :
+                    print "Possible bug identified on line", last_fs_desc.orig_line_number, "of file", self.filename
+                    self.move_tokens_after_to_their_own_next_line( last_fs_desc )
                 self.add_right_curly_brace_on_own_line_after( last_fs_desc, lcb_tok )
             else :
                 # make sure that there are no other tokens on this line

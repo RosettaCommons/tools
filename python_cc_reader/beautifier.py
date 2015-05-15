@@ -1999,12 +1999,14 @@ class Beautifier :
                     self.move_tokens_after_to_their_own_next_line( last_es_desc )
                 self.add_right_curly_brace_on_own_line_after( last_es_desc, lcb_tok )
             else :
-                # make sure that there are no other tokens on this line
+                # make sure that there are no other tokens on this line except a scope-ending "}"
                 if self.line_tokens[ last_es_desc.line_number ][ -1 ] is not last_es_desc :
                     if self.visible_tokens_on_line_after( last_es_desc ) :
-                        # print 'move these tokens onto their own line'
-                        print "Possible bug identified on line", last_es_desc.orig_line_number, "of file", self.filename
-                        self.move_tokens_after_to_their_own_next_line( last_es_desc )
+                        next_visible = self.next_visible_token_on_line_after( last_es_desc )
+                        if not self.token_is_scope_ender( next_visible ) :
+                            # print 'move these tokens onto their own line'
+                            print "Possible bug identified on line", last_es_desc.orig_line_number, "of file", self.filename
+                            self.move_tokens_after_to_their_own_next_line( last_es_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
     def adjust_if( self, tok ) :

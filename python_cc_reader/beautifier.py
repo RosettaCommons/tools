@@ -2,7 +2,7 @@ import sys
 import blargs
 
 debug = False
-#debug = True
+#daebug = True
 
 debug_equiv = False
 #debug_equiv = True
@@ -1745,6 +1745,19 @@ class Beautifier :
                 return True
             i+=1
         return False
+
+    def next_visible_token_on_line_after( self, tok ) :
+        line = self.line_tokens[ tok.line_number ]
+        i = line.index( tok )+1
+        while i < len( line ) :
+            if line[i].is_visible :
+                return line[i]
+        return -1
+
+    def token_is_scope_ender( self, tok ) :
+        return tok.is_visible and not tok.is_inside_string and tok.spelling == "}" \
+            and tok.parent.children[-1] is tok and tok.parent.type in self.scope_types
+
     def recurse_to_ifelse_block_parent_if( self, elsetok ) :
         ifparent = elsetok.parent
         if ifparent.context() == "else" :
@@ -2069,12 +2082,14 @@ class Beautifier :
                     self.move_tokens_after_to_their_own_next_line( last_is_desc )
                 self.add_right_curly_brace_on_own_line_after( last_is_desc, lcb_tok )
             else :
-                # make sure that there are no other tokens on this line
+                # make sure that there are no other tokens on this line, except an "else" or a scope-ending "}"
                 if self.line_tokens[ last_is_desc.line_number ][ -1 ] is not last_is_desc :
                     if self.visible_tokens_on_line_after( last_is_desc ) :
                         # print 'move these tokens onto their own line'
-                        print "Possible bug identified on line", last_is_desc.orig_line_number, "of file", self.filename
-                        self.move_tokens_after_to_their_own_next_line( last_is_desc )
+                        next_visible = self.next_visible_token_on_line_after( last_is_desc )
+                        if not self.token_is_scope_ender( next_visible ) and next_visible.type != "else" :
+                            print "Possible bug identified on line", last_is_desc.orig_line_number, "of file", self.filename
+                            self.move_tokens_after_to_their_own_next_line( last_is_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
 
@@ -2227,14 +2242,36 @@ class Beautifier :
         return i_this, i_other
 
     def equiv_if_both_empty_or_if_neither_empty_and_equiv( self, other, i_this, i_other, stack ) :        
+        if debug_equiv: self.enter_equiv( other, "equiv_if_both_empty_or_if_neither_empty_and_equiv", i_this, i_other, stack )
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
         if tok_this.type == "empty-statement" or tok_other == "empty-statement" :
-            if tok_this.type != tok_other.type :
-                return False, i_this, i_other
-            else :
+            if tok_this.equivalent( tok_other ) :
                 return True, i_this+1, i_other+1
+            elif tok_this.type == "empty-statement" and tok_other.type in self.scope_types :
+                return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.empty_statement_equiv )
+            elif tok_this.type in self.scope_types :
+                retval = other.equiv_to_scoped_statement( self, i_other, i_this, stack, other.empty_statement_equiv )
+                return retval[0], retval[2], retval[1]
+            else :
+                #print "tok_this", tok_this.spelling, tok_this.line_number+1, tok_this.type, \
+                #    "tok_other", tok_other.spelling, tok_other.line_number+1, tok_other.type
+                return False, i_this, i_other
         else :
+            #print "tok_this:", tok_this.spelling,"tok_other:", tok_other.spelling
             return self.statement_equiv( other, i_this, i_other, stack )
+
+    def equiv_to_scoped_statement( self, other, i_this, i_other, stack, func ) :
+        assert( other.all_tokens[i_other].type in other.scope_types )
+        # this might be equivalent if tok_other contains only a single statement
+        # print func
+        still_good, i_this, i_other = func( other, i_this, other.find_next_visible_token(i_other+1), stack )
+        if not still_good : return still_good, i_this, i_other
+        i_other = other.find_next_visible_token( i_other )
+        tok_other = other.all_tokens[i_other]
+        if tok_other.parents_last_child() :
+            return True, i_this, i_other+1
+        else :
+            return False, i_this, i_other
 
 
     def for_equiv( self, other, i_this, i_other, stack ) :
@@ -2243,15 +2280,7 @@ class Beautifier :
         assert( tok_this.type == "for" )
         if tok_other.type == "empty-statement" : return self.for_equiv( other, i_this, other.find_next_visible_token( i_other+1 ), stack )
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.for_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.for_equiv )
         if tok_other.type != "for" :
             return False, i_this, i_other
 
@@ -2260,7 +2289,7 @@ class Beautifier :
         i_other += 1
         still_good, i_this, i_other = self.paren_block_equiv( other, i_this, i_other, "for", "for-declaration", stack )
         if not still_good :
-            stack.pop()
+            stack.pop("paren block not equiv")
             return still_good, i_this, i_other
         retval = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
         stack.pop()
@@ -2272,15 +2301,7 @@ class Beautifier :
         assert( tok_this.type == "if" )
         if tok_other.type == "empty-statement" : return self.if_equiv( other, i_this, other.find_next_visible_token( i_other+1 ), stack )
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.if_equiv( other, i_this, other.find_next_visible_token(i_other+1),stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.if_equiv )
         if tok_other.type != "if" : return False, i_this, i_other
 
         stack.append( "if_equiv" )
@@ -2331,15 +2352,7 @@ class Beautifier :
         assert( tok_this.type == "do-while" )
         if tok_other.type == "empty-statement" : return self.do_while_equiv( other, i_this, other.find_next_visible_token( i_other+1 ), stack )
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.do_while_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.do_while_equiv )
         if tok_other.type != "do-while" : return False, i_this, i_other
 
         stack.append( "do_while_equiv" )
@@ -2372,16 +2385,7 @@ class Beautifier :
         if tok_other.type == "empty-statement" : return self.while_equiv( other, i_this, other.find_next_visible_token( i_other+1 ), stack )
 
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.while_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
-
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.while_equiv )
         if tok_other.type != "while" : return False, i_this, i_other
         stack.append( "while_equiv" )
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
@@ -2509,15 +2513,7 @@ class Beautifier :
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
         if tok_other.type == "empty-statement" : return self.switch_equiv( other, i_this, other.find_next_visible_token( i_other+1 ), stack )
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.switch_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.switch_equiv )
         if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
 
         stack.append( "switch_equiv" )
@@ -2571,15 +2567,7 @@ class Beautifier :
         if debug_equiv: self.enter_equiv( other, "case_equiv", i_this, i_other, stack )
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.case_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                return True, i_this, i_other+1
-            else :
-                return False, i_this, i_other
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.case_equiv )
         if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
 
         stack.append( "case_equiv" )
@@ -2658,7 +2646,10 @@ class Beautifier :
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
         assert( tok_this.type == "empty-statement" )
         if tok_other.type == "empty-statement" : return True, i_this+1, i_other+1
-        else : return self.statement_equiv( other, self.find_next_visible_token(i_this+1), i_other, stack )
+        elif tok_other.type in self.scope_types :
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.empty_statement_equiv )
+        else :
+            return self.statement_equiv( other, self.find_next_visible_token(i_this+1), i_other, stack )
 
     def simple_statement_equiv( self, other, i_this, i_other, stack ) :
         if debug_equiv: self.enter_equiv( other, "simple_statement_equiv", i_this, i_other, stack )
@@ -2666,18 +2657,7 @@ class Beautifier :
         if tok_other.type == "empty-statement" : return self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
 
         if tok_other.type in self.scope_types :
-            # this might be equivalent if tok_other contains only a single statement
-            still_good, i_this, i_other = self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
-            if not still_good : print "what?"; return still_good, i_this, i_other
-            i_other = other.find_next_visible_token( i_other )
-            tok_other = other.all_tokens[i_other]
-            if tok_other.parents_last_child() :
-                if debug_equiv: print " "*len(stack)+"tok_other is last child"
-                return True, i_this, i_other+1
-            else :
-                if debug_equiv: print " "*len(stack)+"tok_other is not last child", tok_other.spelling, tok_other.line_number+1, tok_other.parent.spelling
-                return False, i_this, i_other
-
+            return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
         if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 

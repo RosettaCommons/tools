@@ -410,32 +410,29 @@ def phenix_rna_validate(input_pdb, outliers_only = False):
     if outliers_only is False:
         command += " outliers_only=False"
     output = subprocess_out(command)
-  
-    phenix_release = phenix_release_tag()
-    if phenix_release and phenix_release < 1703:
-        data_titles = [
-            "Pucker", 
-            "Bond Length",
-            "Angle",
-            "Suite"
-        ]
-    else:
-        data_titles = [
-            "Sugar pucker",
-            "Backbone bond lenths",
-            "Backbone bond angles",
-            "Backbone torsion suites"
-        ]
 
     data_type = None
     data_types = ["pucker", "bond", "angle", "suite"]
+    data_headers = {
+        # "<header>" : "<type>"
+        "Sugar pucker" : "pucker",
+        "Backbone bond lenths" : "bond",
+        "Backbone bond angles" : "angle",
+        "Backbone torsion suites" : "suite",
+        # legacy format used prior to phenix release 1703
+        "Pucker Outliers:" : "pucker", 
+        "Bond Length Outliers:" : "bond",
+        "Angle Outliers:" : "angle",
+        "Suite Outliers:" : "suite",
+        "Suite Validation:" : "suite"
+    }
     data = dict([(type, []) for type in data_types])
-
+    
     output = filter(None, output)
     for line_idx, line in enumerate(output):
-        if any (title in line for title in data_titles):
-            data_title = filter(line.count, data_titles)[0]
-            data_type = data_types[data_titles.index(data_title)]
+        if any (header in line for header in data_headers):
+            data_header = filter(line.count, data_headers.keys())[0]
+            data_type = data_headers[data_header]
             continue
         if line.isalpha():
             continue

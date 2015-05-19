@@ -392,54 +392,85 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     os.chdir( base_dir )
     return True
 #####################################################
+def phenix_release_tag():
+    output = subprocess_out('phenix.version')
+    for line in output:
+        if 'Release tag:' in line:
+            return int( line.split()[-1] )
+    return None    
+
+#####################################################
+def phenix_rna_validate(input_pdb, outliers_only = False):
+    """
+    Parse output of phenix.rna_validate.
+    """
+    
+    check_path_exist(input_pdb)
+    command = "phenix.rna_validate " + input_pdb
+    if outliers_only is False:
+        command += " outliers_only=False"
+    output = subprocess_out(command)
+
+    data_type = None
+    data_types = ["pucker", "bond", "angle", "suite"]
+    data_headers = {
+        # "<header>" : "<type>"
+        "Sugar pucker" : "pucker",
+        "Backbone bond lenths" : "bond",
+        "Backbone bond angles" : "angle",
+        "Backbone torsion suites" : "suite",
+        # legacy format used prior to phenix release 1703
+        "Pucker Outliers:" : "pucker", 
+        "Bond Length Outliers:" : "bond",
+        "Angle Outliers:" : "angle",
+        "Suite Outliers:" : "suite",
+        "Suite Validation:" : "suite"
+    }
+    data = dict([(type, []) for type in data_types])
+    
+    output = filter(None, output)
+    for line_idx, line in enumerate(output):
+        if any (header in line for header in data_headers):
+            data_header = filter(line.count, data_headers.keys())[0]
+            data_type = data_headers[data_header]
+            continue
+        if line.isalpha():
+            continue
+        if data_type and line.startswith("   "):
+            if "pucker" in data_type:
+                if "yes" not in line:
+                    continue
+            cols = line.strip().replace(':','  ').split()
+            if cols[2].isalpha():
+                cols.insert(0, cols.pop(2))
+            data[data_type].append( cols )
+
+    return data   
+#####################################################
 def find_error_res(input_pdb) :
     """
     Return a list of error resdiue in the given pdb file (RNA only).
     Use phenix.rna_validate.
     """
-    check_path_exist(input_pdb)
-    output = ""
-    output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
-
-    error_types = ["Pucker", "Bond", "Angle", "Suite"]
-    current_error = 0
-    line = 0
-    error_res = [ [], [], [], [] ] #Pucker, Bond, Angle, Suite error_res
-
-    while current_error != 4 or line < len(output) - 1 :
-        if len( output[line] ) < 7 :
-            continue
-        if error_types[current_error] in output[line] :
-            line += 2
-            while line < len(output) - 1 and len( output[line] ) > 7 :
-                res_string = output[line].split(':') [0]
-                res_string = res_string.replace(' ', '')
-                res = int( res_string[2:] )
-                if current_error == 3 :
-                    suitename = output[line].split(':') [1]
-                    suiteness = float( output[line].split(':') [2] )
-                    if suitename != '__' and suiteness < 0.1 :
-                        error_res[current_error].append( res )
-                else :
-                    error_res[current_error].append( res )
-                line += 1
-            current_error += 1
-        line += 1
-
-    suite_res = []
-    for res in error_res[3] :
-        if res - 1 > 0 :
-           suite_res.append(res - 1)
-    error_res.append(suite_res)
-
-    error_res_final = []
-    for res_list in error_res :
-        for res in res_list :
-            if not res in error_res_final :
-                error_res_final.append(res)
-    error_res_final.sort()
-    return error_res_final
-#############################################
+    
+    data = phenix_rna_validate( input_pdb )
+    error_res = []
+    
+    for error_type, output in data.iteritems():
+        for cols in output:
+            res = int( cols[2] )
+            if "suite" in error_type:
+                suitename = cols[3]
+                suiteness = float( cols[4] )
+                if suitename == "__" or not suiteness < 0.1:
+                    continue
+                if res > 1:
+                    error_res.append( res - 1 )
+            error_res.append( res )
+    
+    error_res = list(set(sorted(error_res)))
+    return error_res
+#####################################################
 def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
     """
     Extract fasta info from pdb.

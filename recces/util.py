@@ -83,7 +83,7 @@ DG_ALL = dict(DG_CANONICAL.items() + DG_DANGLING.items() +
 
 DG_TERMINAL = {('a', 'u'): 0.45,
                ('g', 'u'): 0,
-               ('Z[IGU]', 'Z[ICY]'): -0.19}
+               ('Z[ICY]', 'Z[IGU]'): -0.19}
 
 
 def get_base_cmdline(save_terms=True, save_scores=True,

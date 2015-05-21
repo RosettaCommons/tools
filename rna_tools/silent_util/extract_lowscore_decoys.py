@@ -3,8 +3,7 @@
 from sys import argv,exit
 from os import popen, system
 from os.path import basename,exists,expanduser,expandvars
-import string
-import commands
+import string,subprocess,commands
 from glob import glob
 
 def Help():
@@ -15,7 +14,11 @@ def Help():
     print '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>'
     print '    (for highest Rg).'
     print
-
+    if ( subprocess.call( ['/bin/bash','-i','-c','alias ex']) == 1 ):
+        print ' You might consider using an alias "ex" for this function. Add '
+        print '  alias ex="extract_lowscore_decoys.py" '
+        print ' to your ~/.bashrc script.'
+    print
     exit()
 
 
@@ -60,10 +63,11 @@ if argv.count('-output_virtual'):
 #    pos = argv.index('-no_virtual')
 #    del( argv[pos] )
 #    output_virtual = 0
-
+NSTRUCT_defined = 0
 try:
     NSTRUCT = int(argv[-1])
     del(argv[-1])
+    NSTRUCT_defined = 1 
 except:
     NSTRUCT = 2
 
@@ -82,18 +86,35 @@ if scorecol > 0:
 
 #Another possibility... user supplies -rms or +rms
 scorecol_name_defined = 0
+match_score_defined = 0
 if not scorecol_defined:
     scorecol_name = argv[-1]
     if scorecol_name[0] == '-':
         scorecol_name_defined = 1
         scorecol_name = scorecol_name[1:]
-        del( argv[-1] )
         REVERSE = ''
     if scorecol_name[0] == '+':
         scorecol_name_defined = 1
         scorecol_name = scorecol_name[1:]
         REVERSE = '-r'
+    if '=' in scorecol_name:
+        scorecol_name_defined = 1
+        scorecol_name_split = scorecol_name.split('=')
+        scorecol_name = scorecol_name_split[0]
+        try:
+            match_score = float(scorecol_name_split[-1])
+            match_score_defined = 1 
+            if not REVERSE:
+                REVERSE = ''
+            if not NSTRUCT_defined:
+                NSTRUCT = None
+        except:
+            match_score_defined = 0
+    if scorecol_name_defined:
         del( argv[-1] )
+
+       
+
 
 infiles = argv[1:]
 
@@ -121,6 +142,8 @@ for infile in infiles:
             scorecol = scoretags.index( s )
             scorecols.append( scorecol )
         scoretag = scorecol_name
+        if match_score_defined:
+            scoretag += "_%d" % int(match_score)
     else:
         scorecols  = [scorecol]
 
@@ -169,8 +192,10 @@ for infile in infiles:
         score_plus_lines.append( ( score, line ))
 
     score_plus_lines.sort()
+    if match_score_defined:
+        score_plus_lines = filter( lambda x: float(x[0]) == match_score, score_plus_lines)
     lines = map( lambda x:x[-1], score_plus_lines[:NSTRUCT] )
-
+    
     templist_name = 'temp.%s.list'% basename(infile)
 
     fid = open(templist_name,'w')
@@ -182,7 +207,7 @@ for infile in infiles:
             fid.write(tag+'\n')
             tags.append(tag)
             count = count+1
-        if count >= NSTRUCT:
+        if NSTRUCT and count >= NSTRUCT:
             break
     outfilename = infile
 
@@ -272,7 +297,8 @@ for infile in infiles:
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
         else:
-            command += " -out:file:residue_type_set rna -patch_selectors TERMINAL_PHOSPHATE"
+            pass # will default to fa_standard, which holds rna residue types now.
+            #command += " -out:file:residue_type_set rna "
 
         if output_virtual: command += " -output_virtual "
 

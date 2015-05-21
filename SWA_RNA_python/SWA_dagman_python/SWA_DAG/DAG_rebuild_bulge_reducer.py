@@ -12,7 +12,7 @@ import fileinput
 import os
 ######################################################################
 
-from SWA_dagman_python.SWA_cat_outfiles import concatenate_outfiles
+from SWA_dagman_python.misc.SWA_cat_outfiles import concatenate_outfiles
 ######################################################################
 
 

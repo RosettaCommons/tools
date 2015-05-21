@@ -3,9 +3,6 @@
 from sys import argv
 from os import system
 
-lines = open( 'submit_order.list' ).readlines()
-pdbs = map( lambda x:x.replace( '\n', ''), lines )
-
 def Help():
     print
     print argv[0], ' <Puzzle Number> '
@@ -15,6 +12,10 @@ def Help():
     exit( 0 )
 if len( argv ) == 1:
     Help()
+
+
+lines = open( 'submit_order.list' ).readlines()
+pdbs = map( lambda x:x.replace( '\n', ''), lines )
 
 problem_number = int( argv[1] )
 

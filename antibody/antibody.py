@@ -51,14 +51,19 @@ def main(args):
 
     parser.add_option('-L','--light-chain',
         action="store",
-        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
+        help="Specify file with the light chain - pure IUPAC ASCII letter sequence, optional FASTA headers.",
     )
 
     parser.add_option('-H','--heavy-chain',
         action="store",
-        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, no FASTA headers.",
+        help="Specify file with the heavy chain - pure IUPAC ASCII letter sequence, optional FASTA headers.",
     )
 
+    parser.add_option('-B','--both-chains',
+      action="store",
+      help="Specify single FASTA-formatted file with both the light and the heavy chain. If the heavy chain is not longer than the light chain, then use the direct assignment with -H and -L.",
+    )
+ 
     parser.add_option('--prefix',
       action="store", default='grafting/',
       help="Prefix for output files (directory name). Default is grafting/.",
@@ -116,12 +121,12 @@ def main(args):
 
     parser.add_option('--rosetta-bin',
       action="store", default=None,
-      help="Specify path to 'rosetta/source/bin' dir where antibody_graft', idealize and relax executable expected to be found. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (plasce symlink there) and if not found corresponding steps will be skipped.",
+      help="Specify path to 'rosetta/source/bin' directory, expected to harbor 'antibody_graft', 'idealize' and 'relax' executables. Default is '$ROSETTA/main/source/bin, then <script location>/bin' (place symlink there). If a particular executable is not found and that is non-critical, corresponding steps will be skipped.",
     )
 
     parser.add_option('--rosetta-platform',
       action="store", default=None,
-      help="Specify full extra+compier+build type for rosetta biniaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default is dynamic release build of current OS",
+      help="Specify full extra+compiler+build type for rosetta binaries found in --rosetta-bin. For example use static.linuxgccrelease for static build on Linux. Default are dynamic release builds of the OS executing the script.",
     )
 
     parser.add_option("--idealize",
@@ -153,6 +158,31 @@ def main(args):
       action="store_false", dest='kink_constraints', default=True,
       help="Skip generation of kink constraints file (require PyRosetta). Default is False.",
     )
+	
+    parser.add_option("--multi-template-grafting",
+      action="store_true", default=False, dest="multi_template",
+      help="Graft multiple templates and output multiple decoys. Default is False.",
+    )
+
+    parser.add_option("--number-of-templates",
+      default=-1, type="int",
+      help="Specify the number of grafted decoys to generate.",
+	)
+
+    parser.add_option("--split-ratio",
+      action="store", default='1',
+      help="Specify decoy split between input grafted models for H3 modeling; default is an even split. Use comma-delimited ratio."
+    )
+
+    parser.add_option("--nstruct-total",
+      action="store", default='2000',
+      help="Specify total number of decoys to generate in antibody modeling."
+    )
+
+    parser.add_option("--orientational-distance-cutoff",
+      action="store", default=2.0,
+      help="Specify minimum orientational distance between all light_heavy orientational templates"
+    )
 
     parser.add_option("--timeout",
       default=900, type="int",
@@ -172,8 +202,18 @@ def main(args):
     for name in _framework_names_:
         parser.add_option('--' + name,
           action="store", default='',
-          help="Specify path or PDB code for %s template. If specified this will overwrite blast selection." % name,
+          help="Specify path(s) or PDB code(s) for %s template. If specified this will overwrite blast selection. Use comma delimitation for multiple templates." % name,
         )
+		
+        parser.add_option('--' + name + '-multi-graft',
+          action="store_true", default=False,
+          help="Turn on multi-template grafting of %s region." % name,
+        )
+
+    parser.add_option("--multi-graft-all-on",
+	  action="store_true", default=False,
+      help="Turn on multi-template grafting of all regions.",
+    )
 
     parser.add_option('--self-test',
       action="store_true",
@@ -192,7 +232,7 @@ def main(args):
 
     # Filter list of 'filter-function:default state' pairs here, and  extend it to add more filters
     global Filters;  Filters = { filter_by_sequence_length:True, filter_by_alignment_length:False, filter_by_template_resolution:True,
-                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True }
+                                 filter_by_outlier:True, filter_by_template_bfactor:True, filter_by_sequence_homolog:True, filter_by_orientational_distance:False }
 
     for f in Filters: parser.add_option('--' + f.func_name.replace('_', '-'), type="int", default=int(Filters[f]),
                                         help="Boolean option [0/1] that control filetering results with %s function." % f.func_name)
@@ -251,15 +291,27 @@ def main(args):
 
     if Options.self_test: self_test();  return
 
-    if not(options.light_chain and options.heavy_chain):
+    if not((options.light_chain and options.heavy_chain) or options.both_chains):
         print 'Script for preparing detecting antibodys and preparing info for Rosetta protocol.'
-        print 'At miminum you need to specify options --light-chain and --heavy-chain.'
-        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specifiede... exiting...'
+        print 'At miminum you need to specify options --light-chain and --heavy-chain, or --both-chains, alternatively.'
+        print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specified... exiting...'
         sys.exit(1)
 
     #read fasta files
-    light_chain = read_fasta_file(options.light_chain)
-    heavy_chain = read_fasta_file(options.heavy_chain)
+    if options.both_chains:
+        both = read_fasta_file(options.both_chains)
+        if (len(both)!=2):
+            print 'Error: Expected 2 FASTA entries, read %d in %s.' % (len(both),options.both_chains)
+            sys.exit(1)
+        if len(both[0])<len(both[1]):
+            light_chain=both[0]
+            heavy_chain=both[1]
+        else:
+            light_chain=both[1]
+            heavy_chain=both[0]
+    else:
+	light_chain = read_fasta_file(options.light_chain)[0]
+	heavy_chain = read_fasta_file(options.heavy_chain)[0]
 
     print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
 
@@ -320,7 +372,7 @@ def main(args):
     print 'Relax:', bool(Options.relax)
 
     for name in _framework_names_:
-        if getattr(Options, name): print 'Custom %s template:' % name, getattr(Options, name)
+        if getattr(Options, name): print 'Custom %s template(s):' % name, getattr(Options, name)
     print
     print "Light chain: %s" % light_chain
     print "Heavy chain: %s" % heavy_chain
@@ -336,29 +388,35 @@ def main(args):
         c = dict(CDRs);  c.pop('numbering_L');  c.pop('numbering_H')
         #print 'CDR:', json.dumps(c, sort_keys=True, indent=2)
 
+    if Options.multi_template: # default number of templates if option is set
+        if Options.number_of_templates     == -1: Options.number_of_templates     = 3
+    else: # only 1 template if multi-grafting is not turned on
+        Options.number_of_templates = 1
+
     #run Blast
     alignment, legend = run_blast(CDRs, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database, verbose=Options.verbose)
 
-    #create and thread template
-    create_virtual_template_pdbs(prefix=prefix_details)
-    thread_template_pdbs(CDRs, prefix=prefix_details)
+    for decoy in range(0, Options.number_of_templates):
+        #create and thread template
+        create_virtual_template_pdbs(prefix=prefix_details, decoy=decoy)
+        thread_template_pdbs(CDRs, prefix=prefix_details, decoy=decoy)
 
-    #superimpose template PDBs
-    if Options.superimpose_PyRosetta:
-      print "\nRunning superimpose_PyRosetta..."
-      command = script_dir + "/superimpose_interface.py --prefix " + prefix_details
-      res, output = commands.getstatusoutput(command)
-      if Options.verbose and not res: print command+'\n', output
-      if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
-    else:
-      print "\nRunning ProFit..."
-      superimpose_templates(CDRs, prefix=prefix_details)
+        #superimpose template PDBs
+        if Options.superimpose_PyRosetta:
+          print "\nRunning superimpose_PyRosetta..."
+          command = script_dir + "/superimpose_interface.py --prefix " + prefix_details + " --decoy " + str(decoy)
+          res, output = commands.getstatusoutput(command)
+          if Options.verbose and not res: print command+'\n', output
+          if res: print command+'\n','ERROR: superimpose_PyRosetta failed.  Code %s\nOutput:\n%s' % (res, output); sys.exit(1)
+        else:
+          print "\nRunning ProFit..."
+          superimpose_templates(CDRs, prefix=prefix_details, decoy=str(decoy))
 
-    #run Rosetta assemble CDRs
-    if Options.rosetta_database:
-        run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database)
-    else:
-        print 'Rosetta database was not found... skipping rosetta run...'
+        #run Rosetta assemble CDRs
+        if Options.rosetta_database:
+            run_rosetta(CDRs, prefix=Options.prefix, rosetta_bin=Options.rosetta_bin, rosetta_platform=Options.rosetta_platform, rosetta_database=Options.rosetta_database, decoy=str(decoy))
+        else:
+            print 'Rosetta database was not found... skipping rosetta run...'
 
     results = { 'cdr':{}, 'numbering':{}, 'alignment':alignment, 'alignment.legend':legend }
     for k in [i for i in CDRs if not i.startswith('numbering_')]: results['cdr'][k] = CDRs[k]
@@ -373,7 +431,19 @@ def main(args):
 
 ########################################################
 def read_fasta_file(file_name):
-    return ''.join( [l.rstrip() for l in file(file_name) if not l.startswith('>') ] ) . replace(' ', '') . upper()
+    seqArray=[]
+    seqArrayNames=[]
+    seq=""
+    for l in file(file_name):
+        if l.startswith('>'):
+            if not "" == seq:
+	        seqArray.append(seq) 
+		seq=""
+            seqArrayNames.append(l.rstrip())
+        else:
+            seq=seq+l.rstrip()
+    seqArray.append(seq)
+    return seqArray
 
 
 def write_fasta_file(file_name, data, prefix):
@@ -388,31 +458,51 @@ def write_results(CDRs, prefix):
             f.write('\n'.join( [ '%s %s' % (CDRs[n][k], k) for k in sorted(CDRs[n].keys(), key=lambda x: (int_(x), x) ) ]) + '\n')
 
 
-def safelen(seq):
-    return 0 if not seq else len(seq)
-
 def IdentifyCDRs(light_chain, heavy_chain):
+
+    L1_pattern=r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+    L3_pattern=r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
+    H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)' # Jeff's mod for ATHM set
+   #H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
+    H3_pattern=r'C[A-Z]{1,33}(W)(G|A|C)[A-Z]{1,2}(Q|S|G|R)'
+    
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
-    light_first, light_second = (light_chain[:65], light_chain[50:50+75]) if len(light_chain) > 120 else (light_chain[:60], light_chain[50:])
-    heavy_first, heavy_second = (heavy_chain[:65], heavy_chain[50:50+95]) if len(heavy_chain) > 140 else (heavy_chain[:60], heavy_chain[50:])
+    light_first = light_chain[:65] if len(light_chain) > 130 else light_chain[:60]
+    heavy_first = heavy_chain[:70] if len(heavy_chain) > 140 else heavy_chain[:60]
 
-    # L1
-    res = re.search( r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)', light_first)
-    L1 = res.group()[1:-3] if res else False
-    print "L1 detected: ", L1, " (",safelen(L1),"residues )"
+    # LL II GG HH TT
 
-    L1_start = light_chain.index(L1)
-    L1_end = L1_start + len(L1) - 1
-    FR_L1 = light_chain[:L1_start]
-    if len(FR_L1) >  24:
-        len_FR_L1 = len(FR_L1) - 24
-        FR_L1 = light_chain[len_FR_L1:L1_start]
+    ## L1
 
-    # L3
-    res = re.search( r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)', light_second)
-    L3 = res.group()[1:-4] if res else False
-    print "L3 detected: ", L3, " (",safelen(L3),"residues )"
+    len_FR_L1=0
+    res = re.search(L1_pattern,light_first)
+    FR_L1 = L1 = False
+    if res:
+        L1 = res.group()[1:-3]
+        L1_start = light_chain.index(L1)
+        L1_end = L1_start + len(L1) - 1
+        print "L1 detected: %s (%d residues at positions %d to %d)" % (L1, len(L1), L1_start, L1_end)
+        FR_L1 = light_chain[:L1_start]
+        if len(FR_L1) >  24:
+            len_FR_L1 = len(FR_L1) - 24
+            FR_L1 = light_chain[len_FR_L1:L1_start]
+    else:
+        print "L1 detected: False"
+
+    light_second = light_chain[L1_end+16+7:L1_end+16+7+80] if len(light_chain) > 130 else light_chain[L1_end+16+7:]
+
+    ## L3
+
+    L3 = False
+    res = re.search(L3_pattern,light_second)
+    if res:
+        L3 = res.group()[1:-4]
+        L3_start = light_chain.index(L3)
+        L3_end = L3_start + len(L3) - 1
+        print "L3 detected: %s ( %d residues at positions %d to %d)" % (L3, len(L3), L3_start, L3_end)
+    else:
+        print "L3 detected: False"
 
     if L1 and L3:
         #L1_start = light_chain.index(L1)
@@ -421,16 +511,13 @@ def IdentifyCDRs(light_chain, heavy_chain):
         L2_start = L1_end + 16
         L2_end = L2_start + 7 - 1
 
-        L3_start = light_chain.index(L3)
-        L3_end = L3_start + len(L3) - 1
-
         L2 = light_chain[L2_start:L2_start+7]  # L2 is identified here. Current implementation can deal with only 7-resiue L2
-        print "L2 detected: ", L2, " (",safelen(L2),"residues )"
+        print "L2 detected: %s (%d residues at positions %d to %d)" % (L2, len(L2), L2_start, L2_end)
 
         #FR_L1 = light_chain[:L1_start]
-        FR_L2 = light_chain[L1_end + 1 : L1_end + 1+ 15]
-        FR_L3 = light_chain[L2_end+1 : L2_end+1 +L3_start - L2_end - 1 ]
-        FR_L4 = light_chain[L3_end + 1 : L3_end + 1 + 12]
+        FR_L2 = light_chain[ L1_end + 1  :  L1_end + 1 + 15                    ]
+        FR_L3 = light_chain[ L2_end + 1  :  L2_end + 1 + L3_start - L2_end - 1 ]
+        FR_L4 = light_chain[ L3_end + 1  :  L3_end + 1 + 12                    ]
 
         print "FR_L1: ", FR_L1
         print "FR_L2: ", FR_L2
@@ -443,36 +530,47 @@ def IdentifyCDRs(light_chain, heavy_chain):
         # FR classification by AHo. This might be useful in the future. But currently this is not used.
         # ... skipped, see Google doc for details
 
-    # H1
-    res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)', heavy_first) # jeff's mod for ATHM set
-    #res = re.search( r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)', heavy_first)
-    H1 = res.group()[4:-4] if res else False
-    print "H1 detected: ", H1, " (",safelen(H1),"residues )"
 
-    H1_start = heavy_chain.index(H1)
-    H1_end = H1_start + len(H1) - 1
-    FR_H1 = heavy_chain[:H1_start]
-    if len(FR_H1) >  25:
-        len_FR_H1 = len(FR_H1) - 25
-        FR_H1 = heavy_chain[len_FR_H1:H1_start]
+    # HH EE AA VV YY
 
-    # H3
-    res = re.search( r'C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)', heavy_second)
-    H3 = res.group()[3:-4] if res else False  #H3_and_stem = res.group()[0:-4] if res else False
-    print "H3 detected: ", H3, " (",safelen(H3),"residues )"
+    ## H1
+    res = re.search(H1_pattern, heavy_first)
+    H1 = False
+    len_FR_H1 = 0
+    if res:
+        H1 = res.group()[4:-4]
+        H1_start = heavy_chain.index(H1)
+        H1_end = H1_start + len(H1) - 1
+        print "H1 detected: %s (%d residues at positions %d to %d)" % (H1, len(H1), H1_start, H1_end)
+        FR_H1 = heavy_chain[:H1_start]
+        if len(FR_H1) >  25:
+            len_FR_H1 = len(FR_H1) - 25
+            FR_H1 = heavy_chain[len_FR_H1:H1_start]
+    else:
+        print "H1 detected: False"
+
+
+    heavy_second = heavy_chain[H1_end+33+15:H1_end+33+15+95+len_FR_H1] if len(heavy_chain) > 140 else heavy_chain[H1_end+33+15:]
+
+    ## H3
+    H3 = False #H3_and_stem=False
+    res = re.search(H3_pattern,heavy_second)
+    if res:
+        H3 = res.group()[3:-4] #H3_and_stem = res.group()[0:-4]
+        H3_start = heavy_chain.index(H3)
+        H3_end = H3_start + len(H3) - 1
+        print "H3 detected: %s (%d residues at positions %d to %d)" % (H3, len(H3), H3_start, H3_end)
+    else:
+        print "H3 detected: False"
+        
 
     if H1 and H3:
         #H1_start = heavy_chain.index(H1)
         #H1_end = H1_start + len(H1) - 1
-
-        H3_start = heavy_chain.index(H3)
-        H3_end = H3_start + len(H3) - 1
-
         H2_start = H1_end + 15
         H2_end = H3_start - 33
-
         H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1]
-        print "H2 detected: ", H2, " (",len(H2),"residues )"
+        print "H2 detected: %s (%d residues at positions %d to %d)" % (H2, len(H2), H2_start, H2_end)
 
         #FR_H1 = heavy_chain[:H1_start]
 
@@ -490,10 +588,10 @@ def IdentifyCDRs(light_chain, heavy_chain):
         print "H segments: ",FR_H1,H1,FR_H2,H2,FR_H3,H3,FR_H4
 
     if not (L1 and L3 and H1 and H3):
-        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
-        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)'
-        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
-        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: C[A-Z]{1,33}(L|W)(G|A|C)[A-Z](S|G|R)'
+        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: %s' % L1_pattern # C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: %s' % L3_pattern # C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)
+        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: %s' % H1_pattern # C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)
+        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: %s' % H3_pattern # C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)
         sys.exit(1)
 
     res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)
@@ -814,14 +912,25 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
         res, output = commands.getstatusoutput(commandline)
         if verbose and not res: print commandline+'\n', output
-        if res: print commandline+'\n', 'ERROR: Blast execution faild with code %s and message: %s' % (res, output);  sys.exit(1)
+        if res: print commandline+'\n', 'ERROR: Blast execution failed with code %s and message: %s' % (res, output);  sys.exit(1)
 
         #print 'Filtering results...'
         table, legend = [], ''
-        for l in file(prefix +k + '.align'):
-            if l.startswith('# Fields: '): legend = [ i.strip().replace('. ', '.').replace(' ', '-') for i in l[10:-1].split(',')]
-            elif l.startswith('Query_1') or l.startswith(k): table.append( dict( zip(legend, l.split() ) ) )  # Sergey: Blast+ 2.2.27 have lines starts with Query_1 and 2.2.28 with name of the file (framework-name)
+        table_rows=0
+        blast_result_file = prefix+k+'.align'
+        if not os.path.isfile(blast_result_file):
+            print "Error: blast did not create output file, but had not returned an error, either. The command line was:\n"+commandline
+            sys.exit(1)
 
+        queryname="unset"
+        for l in file(blast_result_file):
+            if l.startswith('# Fields: '): legend = [ i.strip().replace('. ', '.').replace(' ', '-') for i in l[10:-1].split(',')]
+            elif l.startswith('# Query: '): queryname = l.strip().split(" ")[2]; print "I: Queryname="+queryname
+            elif l.startswith('Query_1') or l.startswith(queryname):
+                table.append( dict( zip(legend, l.split() ) ) )
+                table_rows += 1
+
+        print "I: Found %d blast results (limit 600)" % table_rows
         table_original = table[:]
 
         def sort_and_write_results(table, file_name):
@@ -854,34 +963,53 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         alignment[k] = table;
         if table: alignment['summary'].append(dict(table[0]));  alignment['summary'][-1]['subject-id']=k
 
-        custom_template = getattr(Options, k)
+        custom_template_string = getattr(Options, k)
+        print custom_template_string
+        custom_template_list = custom_template_string.split(',')
+        while len(custom_template_list) < Options.number_of_templates:
+            custom_template_list.append('void')
 
-        if custom_template and not os.path.isfile(custom_template): custom_template = '/pdb%s_chothia.pdb' % custom_template
-        if not custom_template:
-            if table:
-                custom_template = table[0]['subject-id']
-            else:  # if there is no template... table is a list, which has a blast result
-                for v in cdr_info.items():
-                    check_length = '%s_length' % k
-                    if len_cdr == int(v[1][check_length]):
-                        pdb_random = v[0]
-                        break
-                print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
-                custom_template = pdb_random
-                #sys.exit(1)
-            print "%s template: %s" % (k, custom_template)
-        else: print 'Custom %s template: %s...' % (k, custom_template)
-        shutil.copy(Options.antibody_database+'/'+custom_template, prefix+'/template.'+k+'.pdb')
+        multi_graft_all_on = getattr(Options, 'multi_graft_all_on')
+        if multi_graft_all_on:
+            multi_template_on = getattr(Options, 'multi_graft_all_on')
+        else:
+            multi_template_on = getattr(Options, k+'_multi_graft')
+
+        for decoy in range(0, Options.number_of_templates):
+            dummy_decoy = str(decoy)
+            if not multi_template_on: decoy = 0
+            if custom_template_list[decoy] and not os.path.isfile(Options.antibody_database+'/'+custom_template_list[decoy]) and not (custom_template_list[decoy] == 'void'):
+                custom_template_list[decoy] = '/pdb%s_chothia.pdb' % custom_template_list[decoy]
+            if (not custom_template_list[decoy]) or (custom_template_list[decoy] == 'void'):
+                if table:
+                    if not decoy > (len(table)-1):
+                        selected_template = table[decoy]['subject-id']
+                    else:
+                        selected_template = table[0]['subject-id']
+                else:  # if there is no template... table is a list, which has a blast result
+                    for v in cdr_info.items():
+                        check_length = '%s_length' % k
+                        if len_cdr == int(v[1][check_length]):
+                            pdb_random = v[0]
+                            break
+                    print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
+                    selected_template = pdb_random
+                    #sys.exit(1)
+                print "%s template: %s" % (k, selected_template)
+            else:
+                print 'Custom %s template: %s...' % (k, custom_template_list[decoy])
+                selected_template = custom_template_list[decoy]
+            shutil.copy(Options.antibody_database+'/'+selected_template, prefix+'/template.'+k+'.'+dummy_decoy+'.pdb')
 
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
-def create_virtual_template_pdbs(prefix):
+def create_virtual_template_pdbs(prefix, decoy):
     # Make a template PDB file, which has psuedo atoms, so that the query and a template can have the same length sequence.
     for chain in [ 'L', 'H' ]:
-        with file(prefix+'/template.tmp.FR'+chain+'.pdb', 'w') as o:
+        with file(prefix+'/template.tmp.FR'+chain+'.'+str(decoy)+'.pdb', 'w') as o:
             # Count the number of lines of a template PDB file
             cnt1=0
-            for line2 in file(prefix+'/template.FR'+chain+'.pdb'):
+            for line2 in file(prefix+'/template.FR'+chain+'.'+str(decoy)+'.pdb'):
                 if line2[0:4] == 'ATOM':
                     chain_temp = line2[21:22]
                     if chain_temp == chain: cnt1+=1
@@ -893,7 +1021,7 @@ def create_virtual_template_pdbs(prefix):
                 res_num_q = line[2:].rstrip('\n')
                 #res_aa    = line[:1]
                 cnt2=0
-                for line2 in file(prefix+'/template.FR'+chain+'.pdb'):
+                for line2 in file(prefix+'/template.FR'+chain+'.'+str(decoy)+'.pdb'):
                     if line2[0:4] == 'ATOM':
                         chain_temp = line2[21:22]
                         res_aa  = line2[17:20]
@@ -971,11 +1099,11 @@ def create_virtual_template_pdbs(prefix):
                     o.write( records_to_pdb_string(r_c)  + '\n' );
                     o.write( records_to_pdb_string(r_o)  + '\n' );
 
-def thread_template_pdbs(CDRs, prefix):
+def thread_template_pdbs(CDRs, prefix, decoy):
     L_regions=dict(L1=(24,34), L2=(50,56), L3=(89,97));  H_regions=dict(H1=(26,35), H2=(50,65), H3=(95, 102) )
     for chain, k, numbering, regions in [ ( 'L', 'FRL', 'numbering_L', L_regions ), ( 'H', 'FRH', 'numbering_H', H_regions ) ]:
-        with file(prefix+'/template.threaded.'+k+'.pdb', 'w') as o:
-            for line in file(prefix+'/template.tmp.'+k+'.pdb'): # This is a template PDB in our database
+        with file(prefix+'/template.threaded.'+k+'.'+str(decoy)+'.pdb', 'w') as o:
+            for line in file(prefix+'/template.tmp.'+k+'.'+str(decoy)+'.pdb'): # This is a template PDB in our database
             #for line in file(prefix+'/template.'+k+'.pdb'): # This is a template PDB in our database
                 r = map_pdb_string_to_records(line)         # 'r' is a info of a template
                 if r['type'] == "ATOM  ":
@@ -998,7 +1126,7 @@ def thread_template_pdbs(CDRs, prefix):
     for chain, numbering, regions in [ ( 'L', 'numbering_L', L_regions ), ( 'H', 'numbering_H', H_regions ) ]:
         for R in regions:
             with file(prefix+R+'.pdb', 'w') as o:
-                for line in file(prefix+'/template.'+R+'.pdb'):
+                for line in file(prefix+'/template.'+R+'.'+str(decoy)+'.pdb'):
                     r = map_pdb_string_to_records(line)
                     if r['type'] == "ATOM  ":
                         res_num = int(r['resSeq']);  res_num_icode = ( '%s%s' % (res_num, r['iCode']) ).strip()
@@ -1010,8 +1138,8 @@ def thread_template_pdbs(CDRs, prefix):
 
 
 
-profit_templates = { 'L': '''reference "%(prefix)s/template.light_heavy.pdb"
-mobile "%(prefix)s/template.threaded.FRL.pdb"
+profit_templates = { 'L': '''reference "%(prefix)s/template.light_heavy.%(decoy)s.pdb"
+mobile "%(prefix)s/template.threaded.FRL.%(decoy)s.pdb"
 atoms ca
 zone L10-L23
 zone L35-L49
@@ -1021,8 +1149,8 @@ zone L98-L100
 fit
 write "%(prefix)s/fitted.L.pdb"
 quit''',
-'H': '''reference "%(prefix)s/template.light_heavy.pdb"
-mobile "%(prefix)s/template.threaded.FRH.pdb"
+'H': '''reference "%(prefix)s/template.light_heavy.%(decoy)s.pdb"
+mobile "%(prefix)s/template.threaded.FRH.%(decoy)s.pdb"
 atoms ca
 zone H10-H25
 zone H36-H49
@@ -1034,7 +1162,7 @@ fit
 write "%(prefix)s/fitted.H.pdb"
 quit''' }
 
-def superimpose_templates(CDRs, prefix):
+def superimpose_templates(CDRs, prefix, decoy):
     for chain in profit_templates:
         f_name = prefix + 'profit-%s' % chain
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
@@ -1046,18 +1174,18 @@ def superimpose_templates(CDRs, prefix):
 
     pathPrefix = '\ '.join(vars()['prefix'].split())
     pathPrefix = pathPrefix[:-1] if pathPrefix.endswith('/') else pathPrefix
-    res, output = commands.getstatusoutput('cat {0}/fitted.L.pdb {0}/fitted.H.pdb > {0}/FR.pdb'.format(pathPrefix))
+    res, output = commands.getstatusoutput('cat {0}/fitted.L.pdb {0}/fitted.H.pdb > {0}/FR{1}.pdb'.format(pathPrefix, decoy))
 
     #res, output = commands.getstatusoutput('cat %(prefix)s/fitted.L.pdb %(prefix)s/fitted.H.pdb > %(prefix)s/FR.pdb' % vars())
     if res: print output;  sys.exit(1)
 
 
-def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
+def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, decoy):
     antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
     if os.path.isfile( antibody_graft ):
         print '\nRunning antibody_graft'
         # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database) + \
+        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR%s.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database, decoy) + \
                       ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
 
         if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
@@ -1065,7 +1193,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
         res, output = commands.getstatusoutput(commandline)
         if Options.verbose or res: print commandline, output
         if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
-        model_file_prefix = 'grafted';  shutil.move(prefix+'details/FR_0001.pdb', prefix+model_file_prefix+'.pdb')
+        model_file_prefix = 'grafted.' + decoy;  shutil.move(prefix+'details/FR'+decoy+'_0001.pdb', prefix+model_file_prefix+'.pdb')
     else:
         print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
         return
@@ -1099,9 +1227,9 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database):
             print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
             return
 
-    shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.pdb')
+    shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.'+decoy+'.pdb')
     cter = kink_or_extend(CDRs)
-    output_cter_constraint(cter, prefix)
+    output_cter_constraint(cter, prefix, decoy)
 
 
 def kink_or_extend(CDRs):
@@ -1138,11 +1266,11 @@ def kink_or_extend(CDRs):
 
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
-def output_cter_constraint(base,prefix):
+def output_cter_constraint(base,prefix,decoy):
     # Jianqing's original
     cnt=0
     f=open(prefix+'cter_constraint', 'w')
-    for line in file(prefix+'/model.pdb'):
+    for line in file(prefix+'/model.'+decoy+'.pdb'):
         if line[0:4] == 'ATOM':
             chain = line[21:22]
             atom  = line[13:15]
@@ -1220,7 +1348,7 @@ def filter_by_sequence_length(k, results, cdr_query, cdr_info):
         elif k in ['L1','L2','L3','H1','H2','H3'] and  len(cdr_query[k]) != len( cdr_info[pdb][k] ):
             results.remove(r)
             if Options.verbose and r not in results: print 'Filter sequence_length, removing:%s %s_query:%s %s_info:%s' % (pdb, k, len(cdr_query[k]), k, len( cdr_info[pdb][k] ))
-        elif k == 'light' and 'light_lenght' in cdr_info[pdb]  and  len(cdr_query[k]) != int( cdr_info[pdb]['light_lenght'] ): results.remove(r)
+        elif k == 'light' and 'light_length' in cdr_info[pdb]  and  len(cdr_query[k]) != int( cdr_info[pdb]['light_length'] ): results.remove(r)
         elif k == 'FRH':
             template_length = 61 if pdb == 'pdb2x7l_chothia.pdb' else 63
             if not len(cdr_query[k]) == template_length: results.remove(r)
@@ -1272,6 +1400,30 @@ def filter_by_outlier(k, results, cdr_query, cdr_info):
         if outlier.get( (pdb, k), False ): results.remove(r)
         if Options.verbose and r not in results: print 'Filter outlier, removing:%s' % pdb
 
+# Trajectory dependent; should be kept as last filter implemented
+def filter_by_orientational_distance(k, results, cdr_query, cdr_info):
+    if Options.verbose: print 'filtering by orientational distance...'
+    if k in ['light_heavy']:
+        for i in range(0, Options.number_of_templates):
+            if (i+1) == len(results):
+                print "Warning: may not be enough distinct light_heavy orientations; some may be used repeatedly"
+                break
+            top_pdb = results[i]['subject-id']
+            (grep_status, grep_output) = commands.getstatusoutput("grep " + top_pdb + " " + script_dir + "/comparisons.txt")
+            orientational_dictionary = {}
+            (keystring, valstring) = grep_output.split("\n")
+            orient_keys = keystring.split(" ")
+            orient_vals = valstring.split(" ")
+            for j in range(1, len(orient_keys)):
+                orientational_dictionary[orient_keys[j]] = orient_vals[j]
+            for r in results[(i+1):]:
+                pdb = r['subject-id']
+                if float(orientational_dictionary[pdb]) < float(Options.orientational_distance_cutoff):
+                    results.remove(r)
+            if (i+1) == len(results):
+                print "Warning: may not be enough distinct light_heavy orientations; some may be used repeatedly"
+                break
+        else: return
 
 AA_Code = dict(A='ALA', V='VAL', L='LEU', I='ILE', P='PRO', W='TRP', F='PHE', M='MET', G='GLY', S='SER', T='THR', Y='TYR',
                C='CYS', N='ASN', Q='GLN', K='LYS', R='ARG', H='HIS', D='ASP', E='GLU')
@@ -1324,15 +1476,15 @@ def self_test():
     for t in tests:
         test_dir = Options.self_test_dir+t+'/';  os.makedirs(test_dir)
         if Options.verbose: print 'Testing target: %s...' % t
-        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)
-        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)
+        light_chain = read_fasta_file('test/%s/query_l.fasta' % t)[0]
+        heavy_chain = read_fasta_file('test/%s/query_h.fasta' % t)[0]
         answers = json.load( file('test/%s/%s.json' % (t, t) ) )
         answers['numbering_L'] = file('test/%s/numbering_L.txt' % t).read()
         answers['numbering_H'] = file('test/%s/numbering_H.txt' % t).read()
 
         if Options.verbose:
-            print 'light_chain:', light_chain
-            print 'heavy_chain:', heavy_chain
+            print 'light_chain: %s (%d residues)' % (light_chain, len(light_chain))
+            print 'heavy_chain: %s (%d residues)' % (heavy_chain, len(heavy_chain))
 
         CDRs = IdentifyCDRs(light_chain, heavy_chain)
         if Options.verbose: print 'CDR:', json.dumps(CDRs, sort_keys=True, indent=2)

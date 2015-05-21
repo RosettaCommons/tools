@@ -103,6 +103,26 @@ AST_MATCHER(Expr, isUtilityAccessPointer) {
 	return false;
 }
 
+AST_MATCHER(Expr, isUtilityOwningPointer) {
+
+	// Sugared type
+	QualType T = Node.getType();
+	SplitQualType T_split = T.split();
+	if(checkIsUtilityOwningPointer(QualType::getAsString(T_split)))
+		return true;
+
+	if(!T.isNull()) {
+		// Desugared type
+		SplitQualType D_split = T.getSplitDesugaredType();
+		if (T_split != D_split) {
+			if(checkIsUtilityOwningPointer(QualType::getAsString(D_split)))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 AST_MATCHER(Expr, containsUtilityPointer) {
 
 	// Sugared type
@@ -128,6 +148,10 @@ AST_MATCHER(Type, sugaredNullptrType) {
 	if (const BuiltinType *BT = dyn_cast<BuiltinType>(DesugaredType))
 		return BT->getKind() == BuiltinType::NullPtr;
 	return false;
+}
+
+AST_MATCHER(QualType, isReal) {
+	return Node->isRealFloatingType();
 }
 
 } // end namespace ast_matchers

@@ -12,7 +12,7 @@ import copy
 from os import popen ##don't COPY THIS!
 ######################################################################
 
-from SWA_dagman_python.SWA_cat_outfiles import concatenate_outfiles
+from SWA_dagman_python.misc.SWA_cat_outfiles import concatenate_outfiles
 
 from SWA_dagman_python.utility.extract_MC_annotate_data_functions import extract_MC_annotate_data_func
 from SWA_dagman_python.utility.extract_FR3D_data_functions import extract_FR3D_data_func

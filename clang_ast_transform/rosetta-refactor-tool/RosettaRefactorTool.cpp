@@ -92,8 +92,8 @@ public:
 	int runMatchers();
 	int saveOutput();
 
-private:
 	clang::tooling::RefactoringTool * Tool;
+	std::string prefix_, suffix_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,53 +152,82 @@ int RosettaRefactorTool::runMatchers() {
 		/////////////////////////////////
 
 		// Finders
-		if(matcher == "find" || matcher == "find_calls") {
-			#include "matchers/find_calls.hh"
+		if(matcher == "find_calls") {
+			#include "matchers/find/calls.hh"
 		}
-		if(matcher == "find" || matcher == "find_naked_ptr_op_casts") {
-			#include "matchers/find_naked_ptr_op_casts.hh"
+		if(matcher == "find_self_ptr_in_ctor") {
+			#include "matchers/find/self_ptr_in_ctor.hh"
+		}
+		if(matcher == "find_record_decl") {
+			#include "matchers/find/record_decl.hh"
+		}
+		if(matcher == "find_field_decl") {
+			#include "matchers/find/field_decl.hh"
+		}
+		if(matcher == "find_constructor_decl") {
+			#include "matchers/find/constructor_decl.hh"
 		}
 
 		// Code quality checkers
-		if(matcher == "quality_check" || matcher == "find_bad_pointer_casts") {
-			#include "matchers/find_bad_pointer_casts.hh"
+		if(matcher == "code_quality_check" || matcher == "naked_ptr_op_casts") {
+			#include "matchers/code_quality/naked_ptr_op_casts.hh"
+		}
+		if(matcher == "code_quality_check" || matcher == "bad_pointer_casts") {
+			#include "matchers/code_quality/bad_pointer_casts.hh"
+		}
+		if(matcher == "code_quality_check" || matcher == "obj_ob_stack") {
+			#include "matchers/code_quality/obj_on_stack.hh"
 		}
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
-			#include "matchers/typedef.hh"
+			#include "matchers/rewrite/typedef.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
-			#include "matchers/pointer_name.hh"
+			#include "matchers/rewrite/pointer_name.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
+			#include "matchers/rewrite/cast_from_new_vardecl.hh"
+		}
+		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_expr") {
+			#include "matchers/rewrite/cast_from_new_expr.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
-			#include "matchers/cast_from_new.hh"
+			#include "matchers/rewrite/cast_from_new.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
-			#include "matchers/cast_in_assignment.hh"
+			#include "matchers/rewrite/cast_in_assignment.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
-			#include "matchers/ctor_initializer.hh"
+			#include "matchers/rewrite/ctor_initializer.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
-			#include "matchers/dynamic_cast.hh"
+			#include "matchers/rewrite/dynamic_cast.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_datamap_get") {
-			#include "matchers/datamap_get.hh"
+			#include "matchers/rewrite/datamap_get.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
-			#include "matchers/pose_dynamic_cast.hh"
+			#include "matchers/rewrite/pose_dynamic_cast.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
-			#include "matchers/call_operator.hh"
+			#include "matchers/rewrite/call_operator.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
-			#include "matchers/member_calls.hh"
+			#include "matchers/rewrite/member_calls.hh"
 		}
-	
+		if(matcher == "rewrite" || matcher == "rewrite_real_comparison") {
+			#include "matchers/rewrite/real_comparison.hh"
+		}
+
+		// Adders
+		if(matcher == "add_serialization_code") {
+			#include "matchers/rewrite/add_serialization_code.hh"
+		}
+
 		if(matcher == "rewrite_not_operator") {
 			// Not needed; see comment in file
-			#include "matchers/not_operator.hh"
+			#include "matchers/rewrite/not_operator.hh"
 		}
 	}
 
@@ -293,8 +322,12 @@ int RosettaRefactorTool::saveOutput() {
 
 				if(!llvm::sys::fs::createUniqueFile(TempFilename.str(), FD, TempFilename))
 					FileStream.reset(new llvm::raw_fd_ostream(FD, /*shouldClose=*/true));
+
 				if(FileStream) {
+					*FileStream << prefix_;
 					I->second.write(*FileStream); // no error checking on raw_ostream
+					*FileStream << suffix_;
+
 					ok = !llvm::sys::fs::rename(TempFilename.str(), outputFileName);
 					llvm::sys::fs::remove(TempFilename.str()); // if rename fails
 				}

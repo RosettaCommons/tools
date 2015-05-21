@@ -53,6 +53,8 @@ class vector3d :
         return ( self.x_ - other.x_ ) * (self.x_ - other.x_ ) + \
                ( self.y_ - other.y_ ) * (self.y_ - other.y_ ) + \
                ( self.z_ - other.z_ ) * (self.z_ - other.z_ )
+    def distance( self, other ) :
+        return math.sqrt( self.distance_squared(other) )
     def normalize( self ) :
         len = self.length()
         if len == 0.0 :

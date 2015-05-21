@@ -121,19 +121,29 @@ bool checkIsUtilityPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
 	return
 		type == "utility::pointer::owning_ptr" ||
-		type == "utility::pointer::access_ptr";
+		type == "utility::pointer::access_ptr" ||
+		type == "utility::pointer::shared_ptr" ||
+		type == "utility::pointer::weak_ptr" ||
+		type == "std::shared_ptr" ||
+		type == "std::weak_ptr";
 }
 
 // Is it our utility access pointer that we care about?
 bool checkIsUtilityAccessPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
-	return type == "utility::pointer::access_ptr";
+	return
+		type == "utility::pointer::access_ptr" ||
+		type == "utility::pointer::weak_ptr" ||
+		type == "std::weak_ptr";
 }
 
 // Is it our utility owning pointer that we care about?
 bool checkIsUtilityOwningPointer(const std::string& fulltype) {
 	std::string type = extractContainerType(fulltype);
-	return type == "utility::pointer::owning_ptr";
+	return
+		type == "utility::pointer::owning_ptr" ||
+		type == "utility::pointer::shared_ptr" ||
+		type == "std::shared_ptr";
 }
 
 // Does it contain a pointer that we care about?
@@ -175,14 +185,14 @@ static std::string getText(
 	const SourceLocation &EndSpellingLocation
 ) {
   if (!StartSpellingLocation.isValid() || !EndSpellingLocation.isValid()) {
-		llvm::errs() << "getText: invalid locations\n";
+    //llvm::errs() << "getText: invalid locations\n";
     return std::string();
   }
   bool Invalid = true;
   const char *Text =
       SourceManager.getCharacterData(StartSpellingLocation, &Invalid);
   if (Invalid) {
-		llvm::errs() << "getText: can't get character data\n";
+    //lvm::errs() << "getText: can't get character data\n";
     return std::string();
   }
   std::pair<FileID, unsigned> Start =
@@ -192,12 +202,12 @@ static std::string getText(
           EndSpellingLocation, 0, SourceManager, LangOptions()));
   if (Start.first != End.first) {
     // Start and end are in different files.
-		llvm::errs() << "getText: Start/end in different files\n";
+    //llvm::errs() << "getText: Start/end in different files\n";
     return std::string();
   }
   if (End.second < Start.second) {
     // Shuffling text with macros may cause this.
-		llvm::errs() << "getText: end before start\n";
+    //llvm::errs() << "getText: end before start\n";
     return std::string();
   }
   return std::string(Text, End.second - Start.second);
@@ -222,12 +232,10 @@ static std::string getTextToDelim(const SourceManager &SourceManager, const T *N
 }
 
 template <typename T>
-bool checkAndDumpRewrite(
-	const std::string & tag,
-	SourceManager & sm, T * node,
-	const std::string & newCodeStr
+bool checkAndMarkSourceLocation(
+	T * node,
+	SourceManager & sm
 ) {
-
 	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
 	std::string locStrPartial( locStr );
 	size_t p = locStrPartial.find_last_of(':');
@@ -237,10 +245,21 @@ bool checkAndDumpRewrite(
 	bool notYetSeen = (RewrittenLocations_.find(locStrPartial) == RewrittenLocations_.end());
 	if(notYetSeen)
 		RewrittenLocations_.insert(locStrPartial);
+	return notYetSeen;
+}
 	
+template <typename T>
+bool checkAndDumpRewrite(
+	const std::string & tag,
+	SourceManager & sm, T * node,
+	const std::string & newCodeStr
+) {
+
+	bool notYetSeen = checkAndMarkSourceLocation(node, sm);
 	if(!Verbose)
 		return notYetSeen;
 
+	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
 	const std::string origCodeStr = getText(sm, node);
 		
 	llvm::errs() << "@ " << locStr << color("cyan") << " (" << tag << ")" << color("");

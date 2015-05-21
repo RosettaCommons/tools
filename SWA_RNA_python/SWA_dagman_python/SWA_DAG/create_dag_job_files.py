@@ -53,7 +53,7 @@ fasta_file=parse_options( argv, "fasta", "" )
 if(is_release_mode() and single_stranded_loop_mode):
 
 	rna_torsion_potential_folder=parse_options(argv, "rna_torsion_potential_folder", "ps_03242010/" )
-	force_field_file=parse_options(argv, "force_field_file", 'rna/rna_loop_hires_04092010.wts') #Context Independent Geometric Solvation but no intra_base_phosphate terms.
+	force_field_file=parse_options(argv, "force_field_file", 'stepwise/rna/rna_loop_hires_04092010.wts') #Context Independent Geometric Solvation but no intra_base_phosphate terms.
 	sample_virt_ribose_in_sep_DAG=parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True" )
 	apply_VDW_rep_delete_matching_res=parse_options(argv, "apply_VDW_rep_delete_matching_res", "True")
 	clusterer_optimize_memory_usage=parse_options(argv, "clusterer_optimize_memory_usage", "true" )
@@ -63,7 +63,7 @@ if(is_release_mode() and single_stranded_loop_mode):
 else:
 
 	rna_torsion_potential_folder=parse_options(argv, "rna_torsion_potential_folder", "" )
-	force_field_file=parse_options(argv, "force_field_file", 'rna/rna_hires_07232011_with_intra_base_phosphate.wts')
+	force_field_file=parse_options(argv, "force_field_file", 'stepwise/rna/rna_hires_07232011_with_intra_base_phosphate.wts')
 	sample_virt_ribose_in_sep_DAG=parse_options(argv, "sample_virt_ribose_in_sep_DAG", "True" )
 	apply_VDW_rep_delete_matching_res=parse_options(argv, "apply_VDW_rep_delete_matching_res", "False")
 	clusterer_optimize_memory_usage=parse_options(argv, "clusterer_optimize_memory_usage", "false" )
@@ -75,6 +75,7 @@ native_pdb= parse_options( argv, "native_pdb", "" )
 cutpoint_open=parse_options( argv, "cutpoint_open", 0)
 num_slave_nodes=parse_options( argv, "num_slave_nodes", 500)
 native_rmsd_screen=parse_options( argv, "native_rmsd_screen", "False")
+rmsd_screen=parse_options( argv, "rmsd_screen", 0.0 )
 clusterer_num_pose_kept=parse_options(argv, "nstruct", 1000)
 native_virtual_res=parse_options(argv, "native_virtual_res", [-1])
 force_bulge_res=parse_options(argv, "force_bulge_res", [-1])
@@ -327,7 +328,7 @@ README_SETUP.write( '#!/usr/bin/python\n' )
 README_SETUP.write( 'from os import system\n' )
 README_SETUP.write( 'import string\n\n' )
 
-README_SETUP.write( "command= '%s '\n\n" %(get_PYEXE("SWA_DAG/SWA_rna_build_dagman.py")) )
+README_SETUP.write( "command= '%s '\n\n" %(get_PYEXE("~/src/rosetta/tools/SWA_RNA_python/SWA_dagman_python/SWA_DAG/SWA_rna_build_dagman.py")) )
 README_SETUP.write( "command+= '-s %s -fasta %s '\n\n" %(list_to_string(start_elements), fasta_file) )
 
 if(native_pdb!=""): README_SETUP.write( "command+= '-native %s '\n\n" %(native_pdb) )
@@ -359,8 +360,10 @@ README_SETUP.write( "command+= '-dinucleotide_at_single_element_cc %s '\n\n" %(d
 if(len(native_virtual_res) > 0):
 	README_SETUP.write( "command+= '-native_virtual_res %s '\n\n" %(list_to_string(native_virtual_res))  )
 
-if(native_rmsd_screen):
-	README_SETUP.write( "command+= '-native_rmsd_screen true '\n\n" )
+if( ( native_rmsd_screen ) or ( rmsd_screen > 0.0 )):
+	if( native_rmsd_screen ): README_SETUP.write( "command+= '-native_rmsd_screen true '\n\n" )
+	if( rmsd_screen > 0.0  ): README_SETUP.write( "command+= '-rmsd_screen %d '\n\n" % (rmsd_screen) )
+
 	README_SETUP.write( "command+= '-sampler_num_pose_kept 40 '\n\n" )
 
 	if(len(native_virtual_res) > 0):
@@ -403,6 +406,8 @@ if(len(VDW_rep_screen_info_list) > 0):
 if(single_stranded_loop_mode):
 	README_SETUP.write( "command+= '-optimize_long_loop_mode True '\n\n" )
 	README_SETUP.write( "command+= '-OLLM_chain_closure_only True '\n\n" )
+else:
+	README_SETUP.write( "command+= '-analytic_etable_evaluation False '\n\n" ) 
 
 
 if(len(force_syn_chi_res_list)>0): README_SETUP.write( "command+= '-force_syn_chi_res_list %s '\n\n" %(list_to_string(force_syn_chi_res_list) ) )
@@ -443,5 +448,3 @@ create_generic_README_SUB(num_slave_nodes)
 print "----------------------------------------------------------------------------------------------------------------------------"
 print "Successfully RAN %s" %( list_to_string(start_argv) )
 print "----------------------------------------------------------------------------------------------------------------------------"
-
-

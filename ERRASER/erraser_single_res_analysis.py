@@ -77,7 +77,6 @@ def syn_anti_check( chi ) :
         return "anti"
 ####################################
 def extract_info( pdb, res, name ) :
-    subprocess_call( 'phenix.rna_validate outliers_only=False %s > rna_validate.temp' % pdb )
     subprocess_call( 'phenix.clashscore %s > clash.temp' % pdb )
     clash = 0
     suite_i = '__'
@@ -89,33 +88,22 @@ def extract_info( pdb, res, name ) :
             clash_out = '%.2f' % clash
             break
 
-    current_entry = ''
-    is_break_next = False
-    for line in open('rna_validate.temp') :
-        if "Pucker" in line :
-            current_entry = 'pucker'
-        elif "Bond" in line :
-            current_entry = 'bond'
-        elif "Angle" in line :
-            current_entry = 'angle'
-        elif "Suite" in line :
-            current_entry = 'suite'
+    rna_validate_data = phenix_rna_validate( pdb )
+    pucker_data = rna_validate_data['pucker']
+    suite_data  = rna_validate_data['suite']
+   
+    for data in pucker_data:
+        if res in ''.join(data[1:3]):
+            pucker = float(data[3])
+            pucker_out = '%4.0f/!!' % pucker
+            break
 
-        if line[0] != '#' and ' :' in line :
-            curr_res = line[5:11].replace(' ', '')
-            if current_entry == 'pucker' :
-                if curr_res == res :
-                    pucker = float(line.split(':')[1])
-                    pucker_out = '%4.0f/!!' % pucker
-            elif current_entry == 'suite' :
-                curr_suite = line[12:14]
-                if curr_res == res :
-                    suite_i = curr_suite
-                    is_break_next = True
-                    continue
-                if is_break_next :
-                    suite_i_plus1 = curr_suite
-                    break
+    for i, data in enumerate(suite_data):
+        if res in ''.join(data[1:3]):
+            suite_i = data[3]
+            suite_i_plus1 = suite_data[i+1][3]
+            break
+    
     chi = find_chi_angle_std_pdb( pdb, res )
     if chi == 'NA' :
         chi_out = chi

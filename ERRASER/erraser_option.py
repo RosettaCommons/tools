@@ -66,6 +66,7 @@ class erraser_option :
         self.rebuild_res_list = []
         self.search_syn_pyrimidine_only_when_native_syn =True
         self.constrain_chi = True
+        self.enlarge_H_lj = True
 
     def read_cmdline_full( self, argv ) :
         #General options
@@ -118,6 +119,7 @@ class erraser_option :
         self.cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.1 )
         self.is_append = parse_options( argv, "is_append", "True" )
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
@@ -146,6 +148,7 @@ class erraser_option :
         #SWA rebuilding
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
@@ -173,6 +176,7 @@ class erraser_option :
         #SWA rebuilding
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )

@@ -271,8 +271,8 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if chainids[i] == '_':
             chainids[i] = ' '
 
-    goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG', 'ZMP']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP', '  Z':'ZMP', 'AMZ':'ZMP' }
+    goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
+    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP' }
 
 
     if removeions:  goodnames.remove(' MG')
@@ -339,10 +339,6 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                         longname =   '  G'
                     elif longname == '  I':
                         longname =   '  G'
-                    elif longname == 'Z  ':
-                        longname =   'ZMP'
-                    elif longname == 'AMZ':
-                        longname =   'ZMP'
                     else:
                         if longname not in goodnames:    continue
 

@@ -15,8 +15,9 @@ import argparse
 ###############################################################################
 ### helper functions
 ###############################################################################
-def safe_submit(command):
-    print command if isinstance(command, str) else ' '.join(command)
+def safe_submit(command, verbose = False):
+    if verbose:
+    	print command if isinstance(command, str) else ' '.join(command)
     out, err = sp.Popen(
         command,
         shell=isinstance(command, str),
@@ -45,9 +46,13 @@ def rna_thread(options):
         rna_thread.append('-seq_offset %s' % options.seq_offset)
     if options.residue_type_set:
         rna_thread.append('-in:file:residue_type_set %s' % options.residue_type_set)
+    if options.extra_res:
+        rna_thread.append('-in:file:extra_res %s' % options.extra_res)
+    if options.extra_res_fa:
+        rna_thread.append('-in:file:extra_res_fa %s' % options.extra_res_fa)    
     if options.options:
         rna_thread += ['-' + o for o in options.options.split('-') if len(o)]
-    out = safe_submit(rna_thread)
+    out = safe_submit(rna_thread, options.verbose)
     if options.verbose:
         print out
     if not os.path.exists(options.out_file_o):
@@ -76,10 +81,8 @@ def init_options_parser():
         add_help=False
     )
     parser.add_argument(
-        "-s","-in:file:s",
-        dest="in_file_s",
+        "in_file_s",
         help="Template pose '-s'",
-        default=None
     )
     parser.add_argument(
         "-o","-out:file:o",
@@ -109,9 +112,21 @@ def init_options_parser():
         default=None
     )
     parser.add_argument(
-        "-residue_type_set", '-in:file:residue_type_set',
+        "--residue_type_set", '-in:file:residue_type_set',
         dest="residue_type_set",
         help="residue type set, used in rosetta",
+        default=None
+    )
+    parser.add_argument(
+        "--extra_res", '-in:file:extra_res',
+        dest="extra_res",
+        help="location of .params file for a residue type, used in rosetta",
+        default=None
+    )
+    parser.add_argument(
+        "--extra_res_fa", '-in:file:extra_res_fa',
+        dest="extra_res_fa",
+        help="location of .params file for a (full-atom) residue type, used in rosetta",
         default=None
     )
     parser.add_argument(

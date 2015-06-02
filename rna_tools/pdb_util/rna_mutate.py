@@ -39,8 +39,6 @@ def rna_mutate(options):
     residue = tuple([x[0] for x in parse_tag.parse_tag(options.residue)])
     mutation = options.mutation.lower()
     options.seq = mutate_sequence(residue, mutation, options.in_file_s)
-    if "z" in options.seq:
-        options.residue_type_set = "rna_ligands"
     rna_thread.rna_thread(options)
     return options.out_file_o 
 
@@ -58,11 +56,11 @@ def init_options_parser():
         parents=[rna_thread.init_options_parser()]
     )
     parser.add_argument(
-        "residue",
+        "-r","--residue",
         help="Residue to mutate.",
     )
     parser.add_argument(
-        "mutation",
+        "-m","--mutation",
         help="New residue type.",
     )
     return parser

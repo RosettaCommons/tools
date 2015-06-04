@@ -62,6 +62,9 @@ nhours = 16
 if len( argv ) > 4:
     nhours = int( argv[4] )
     if ( nhours > 168 ):  Help()
+    if hostname in ['sherlock', 'comet']:
+        nhours = min(nhours, 48)  
+
 
 if not exists( infile ):
     print 'Could not find: ', infile
@@ -108,7 +111,7 @@ SBATCH_SUBMIT_CMD = 'sbatch'
 qsub_file_dir = 'qsub_files/'
 if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
-if hostname == 'sherlock':
+if hostname in ['sherlock','comet']:
     sbatch_file_dir = 'sbatch_files/'
     if not exists( sbatch_file_dir ): system( 'mkdir '+sbatch_file_dir )
 
@@ -216,13 +219,14 @@ for line in lines:
 
         fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
 
-        if hostname == 'sherlock':
+        if hostname in ['sherlock', 'comet']:
 
             # sbatch (no mpi)
             queue = 'normal'
+            if hostname in ['comet']:
+                queue = 'compute'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
-            if nhours > 48: nhours = 48 # time limit
-
+            
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
             fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
@@ -298,7 +302,10 @@ if DO_MPI:
             fid_qsub_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_qsub_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             queue = 'normal'
-            if development: queue = 'development'
+            if hostname in ['comet']:
+                queue = 'compute'
+            if development:
+                queue = 'development'
             fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
             if development:
                 fid_qsub_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
@@ -348,7 +355,10 @@ if DO_MPI:
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -o %s.o%%j\n' % job_name )
         queue = 'normal'
-        if development: queue = 'development'
+        if hostname in ['comet']:
+            queue = 'compute'
+        if development:
+            queue = 'development'
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)
         if development:
             fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )
@@ -411,7 +421,7 @@ if len( hostname ) == 0:
     print '>source ',qsub_file
     print
 
-if len( hostname ) > 0 and hostname == 'sherlock':
+if len( hostname ) > 0 and hostname in ['sherlock', 'comet']:
     print 'Created qsub submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',sbatch_file
     print

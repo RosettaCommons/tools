@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # Really simple function to create blank .cc, .hh, and .fwd.hh files
-# -- rhiju, june 2013
+#   for movers. Adapted from create_rosetta_class.py. Probably
+#   should not be copying code, but oh well.
+# -- rhiju, june 2015
 
 from sys import argv
 import string
@@ -90,6 +92,8 @@ else:
     fid.write( '\n')
     fid.write( 'static basic::Tracer TR( "%s" );\n' % tracer_name )
     fid.write( '\n')
+    fid.write( 'using namespace core;\n')
+    fid.write( '\n')
     for col in namespace_cols: fid.write( 'namespace %s {\n' % col )
     fid.write( '\n')
     fid.write( '\t//Constructor\n' )
@@ -99,6 +103,11 @@ else:
     fid.write( '\t//Destructor\n' )
     fid.write( '\t%s::~%s()\n' % (class_name, class_name) )
     fid.write( '\t{}\n')
+    fid.write( '\n')
+    fid.write( '\tvoid\n')
+    fid.write( '\t%s::apply( core::pose::Pose & pose )\n' % (class_name) )
+    fid.write( '\t{\n')
+    fid.write( '\t}\n')
     fid.write('\n')
     for col in namespace_cols[::-1]: fid.write( '} //%s \n' % col )
 
@@ -115,12 +124,12 @@ else:
     fid.write( '#ifndef %s\n' % included_tag )
     fid.write( '#define %s\n' % included_tag )
     fid.write('\n')
-    fid.write('#include <utility/pointer/ReferenceCount.hh>\n')
+    fid.write('#include <protocols/moves/Mover.hh>\n')
     fid.write('#include <%s>\n' % fwd_hh_file )
     fid.write('\n')
     for col in namespace_cols: fid.write( 'namespace %s {\n' % col )
     fid.write('\n')
-    fid.write('\tclass %s: public utility::pointer::ReferenceCount {\n' % class_name)
+    fid.write('\tclass %s: public protocols::moves::Mover {\n' % class_name)
     fid.write('\t\n')
     fid.write('\tpublic:\n')
     fid.write('\t\n')
@@ -131,6 +140,11 @@ else:
     fid.write('\t\t~%s();\n' % class_name)
     fid.write('\t\n')
     fid.write('\tpublic:\n')
+    fid.write('\t\n')
+    fid.write('\t\n')
+    fid.write('\tvirtual void apply( core::pose::Pose & pose );\n')
+    fid.write('\t\n')
+    fid.write('\tvirtual std::string get_name() const{ return "%s"; }\n' % class_name)
     fid.write('\t\n')
     fid.write('\tprivate:\n')
     fid.write('\t\n')

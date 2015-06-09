@@ -37,7 +37,7 @@ def parse_stampede_nodefile(inp):
 
 
 def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
-    if cluster_name in ['stampede', 'comet']:
+    if cluster_name in ['stampede']:
         submit_command = 'ibrun'
     else:
         submit_command = 'srun'

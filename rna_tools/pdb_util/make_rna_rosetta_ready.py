@@ -49,8 +49,7 @@ if argv.count('-reassign_chainids'):
     new_chainids = argv[pos]
     del( argv[pos] )
     reassign_chainids = 1
-
-print new_chainids
+    print new_chainids
 
 chainids = []
 if len( argv ) > 2:

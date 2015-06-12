@@ -2,6 +2,7 @@
 
 import string
 from os.path import exists,basename
+from parse_tag import parse_tag
 
 longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
@@ -80,12 +81,28 @@ def get_sequences( pdbname, removechain = 0 ):
     return ( sequences, all_chains, all_resnums )
 
 def get_sequence( pdbname, removechain = 0 ):
-    ( sequences, chains, resnums ) = get_sequences( pdbname, removechain )
     return sequences[0]
 
+def get_sequences_for_res( pdbname, input_res, removechain = 0 ):
+    sequences, chains, resnums = get_sequences( pdbname, removechain )
+    input_resnums, input_chains = parse_tag(input_res)
+    if all ( (c is None or not c.isalpha()) for c in input_chains ):
+        input_chains = [c for chain in chains for c in chain]
+    subsequences = []
+    for sequence, subchains, subresnums in zip(sequences, chains, resnums):
+        subsequence = ''
+        for residue in zip(sequence, subchains, subresnums):
+            if residue[2] not in input_resnums:
+                continue
+            if residue[1] not in input_chains:
+                continue
+            subsequence += residue[0]
+        if len(subsequence):
+            subsequences.append(subsequence)
+    return subsequences
 
 if __name__=='__main__':
-
+    
     import argparse
 
     parser = argparse.ArgumentParser(description='Get sequence from pdb.')

@@ -8,11 +8,13 @@ biox3_user_name = expandvars( '$BIOX3_USER_NAME' )
 if biox3_user_name == '$BIOX3_USER_NAME': biox3_user_name = user_name
 sherlock_user_name = expandvars( '$SHERLOCK_USER_NAME' )
 if not len(sherlock_user_name): sherlock_user_name = user_name
+comet_user_name = expandvars( '$COMET_USER_NAME' )
+if not len(comet_user_name): comet_user_name = user_name
 xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
 def cluster_check( cluster_in ):
-    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock' ];
+    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet' ];
 
     cluster = cluster_in
     if cluster not in clusterlist:
@@ -92,6 +94,10 @@ def cluster_check( cluster_in ):
     if cluster == 'sherlock':
         cluster = '%s@sherlock.stanford.edu' % sherlock_user_name
         cluster_dir = '/home/%s/' % sherlock_user_name
+
+    if cluster == 'comet':
+        cluster = '%s@comet.sdsc.xsede.org' % comet_user_name
+        cluster_dir = '/home/%s/' % comet_user_name
 
     return (cluster,cluster_dir)
 

@@ -36,7 +36,12 @@ def parse_stampede_nodefile(inp):
     return node_list
 
 
-def stampede_init( nodelist = '', job_cpus_per_node='' ):
+def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
+    if cluster_name in ['stampede', 'comet']:
+        submit_command = 'ibrun'
+    else:
+        submit_command = 'srun'
+    port = 32568
     socket_timeout = 3600 * 24
     port = 32568
     key_phrase = '%x' % random.randrange(256**5)

@@ -274,9 +274,12 @@ if DO_MPI:
             if ( count <= tot_jobs ):
                 command_line_explicit = command_lines_explicit[ count-1 ]
                 if hostname == "stampede" or hostname == "sherlock":
-                    fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
+                    outfile = '%d.out' % (count - 1)
+                    errfile = '%d.err' % (count - 1)
+                    fid_job_submit_file_MPI.write(  '%s\t%s > %s 2> %s \n' % (CWD,command_line_explicit,outfile,errfile) )                
                 else:
                     fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
+
         fid_job_submit_file_MPI.close()
 
         if hostname == "stampede" or hostname == "sherlock":

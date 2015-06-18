@@ -66,7 +66,11 @@ class erraser_option :
         self.rebuild_res_list = []
         self.search_syn_pyrimidine_only_when_native_syn =True
         self.constrain_chi = True
-        self.enlarge_H_lj = True
+        
+        #2015 fixes
+        self.enlarge_H_lj = False
+        self.restore_pre_talaris_2013_behavior = False
+        self.smooth_fa_elec = True
 
     def read_cmdline_full( self, argv ) :
         #General options
@@ -119,11 +123,16 @@ class erraser_option :
         self.cluster_RMSD = parse_options( argv, "cluster_RMSD", 0.1 )
         self.is_append = parse_options( argv, "is_append", "True" )
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
-        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         self.rebuild_res_list = parse_option_int_list ( argv, 'rebuild_res_list' )
+
+        #2015 fixes
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
+        self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
+
         self.finalize()
 
     def read_cmdline_erraser( self, argv ) :
@@ -148,12 +157,17 @@ class erraser_option :
         #SWA rebuilding
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
-        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
+        
+        #2015 fixes
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
+        self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
+
         self.finalize()
 
     def read_cmdline_erraser_single_res( self, argv ) :
@@ -176,12 +190,18 @@ class erraser_option :
         #SWA rebuilding
         self.use_native_edensity_cutoff = parse_options(argv, "use_native_edensity_cutoff", "False")
         self.constrain_chi = parse_options( argv, "constrain_chi", "True" )
-        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
         self.native_screen_RMSD = parse_options( argv, "native_screen_RMSD", 3.0 )
         self.search_syn_pyrimidine_only_when_native_syn = (
                 parse_options( argv, "search_syn_pyrimidine_only_when_native_syn", "True" ) )
         self.num_pose_kept =  parse_options( argv, "num_pose_kept", 100 )
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
+        
+        #2015 fixes
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
+        self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
+
+
         self.finalize()
 
     def finalize( self ) :

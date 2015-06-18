@@ -437,7 +437,6 @@ def erraser_minimize( option ) :
     command += " -native %s " % temp_rs
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
-    command += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
 
     if option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
@@ -452,6 +451,14 @@ def erraser_minimize( option ) :
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
     command += " -scale_theta 10 "
+
+    #Rescue 2012 defaults
+    if option.enlarge_H_lj is True:
+        command += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    if option.restore_pre_talaris_2013_behavior is True:
+        command += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
+        command += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
+
 
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
@@ -813,8 +820,13 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
-    common_cmd += " -enlarge_H_lj %s " %  str(option.enlarge_H_lj).lower()
-
+    
+    #Rescue 2012 defaults 
+    if option.enlarge_H_lj is True:
+        command += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    if option.restore_pre_talaris_2013_behavior is True:
+        command += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
+        command += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
 
     if option.map_file != "" :
         common_cmd += " -edensity:mapfile %s " % option.map_file

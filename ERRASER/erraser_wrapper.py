@@ -459,7 +459,6 @@ def erraser_minimize( option ) :
         command += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
         command += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
 
-
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
         for i in option.fixed_res_rs :
@@ -823,10 +822,10 @@ def SWA_rebuild_erraser( option ) :
     
     #Rescue 2012 defaults 
     if option.enlarge_H_lj is True:
-        command += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+        common_cmd += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     if option.restore_pre_talaris_2013_behavior is True:
-        command += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
-        command += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
+        common_cmd += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
+        common_cmd += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
 
     if option.map_file != "" :
         common_cmd += " -edensity:mapfile %s " % option.map_file

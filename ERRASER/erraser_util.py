@@ -400,7 +400,7 @@ def phenix_release_tag():
     return None    
 
 #####################################################
-def phenix_rna_validate(input_pdb, outliers_only = False):
+def phenix_rna_validate(input_pdb, outliers_only = True):
     """
     Parse output of phenix.rna_validate.
     """

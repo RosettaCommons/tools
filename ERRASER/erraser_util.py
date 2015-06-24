@@ -395,7 +395,9 @@ def find_error_res(input_pdb) :
     """
     check_path_exist(input_pdb)
     output = ""
-    output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
+    #output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
+    output = subprocess_out("phenix.rna_validate suite_outliers_only=True  %s" % input_pdb)
+    
 
     error_types = ["Pucker", "Bond", "Angle", "Suite"]
     current_error = 0

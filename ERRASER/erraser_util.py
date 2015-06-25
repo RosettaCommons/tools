@@ -405,7 +405,6 @@ def find_error_res(input_pdb) :
     error_res = [ [], [], [], [] ] #Pucker, Bond, Angle, Suite error_res
 
     while current_error != 4 or line < len(output) - 1 :
-        print output[line]
         if len( output[line] ) < 7 :
             continue
         if error_types[current_error] in output[line] :

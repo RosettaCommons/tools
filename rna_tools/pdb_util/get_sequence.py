@@ -81,6 +81,7 @@ def get_sequences( pdbname, removechain = 0 ):
     return ( sequences, all_chains, all_resnums )
 
 def get_sequence( pdbname, removechain = 0 ):
+    sequences, chains, resnums = get_sequences( pdbname, removechain )
     return sequences[0]
 
 def get_sequences_for_res( pdbname, input_res, removechain = 0 ):

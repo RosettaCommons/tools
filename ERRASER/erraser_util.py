@@ -398,18 +398,19 @@ def find_error_res(input_pdb) :
     #output = subprocess_out("phenix.rna_validate suite_outliers_only=False  %s" % input_pdb)
     output = subprocess_out("phenix.rna_validate suite_outliers_only=True  %s" % input_pdb)
     
-
+    
     error_types = ["Pucker", "Bond", "Angle", "Suite"]
     current_error = 0
     line = 0
     error_res = [ [], [], [], [] ] #Pucker, Bond, Angle, Suite error_res
 
     while current_error != 4 or line < len(output) - 1 :
+        print output[line]
         if len( output[line] ) < 7 :
             continue
         if error_types[current_error] in output[line] :
             line += 2
-            while line < len(output) - 1 and len( output[line] ) > 7 :
+            while line < len(output) and len( output[line] ) > 7 :
                 res_string = output[line].split(':') [0]
                 res_string = res_string.replace(' ', '')
                 res = int( res_string[2:] )

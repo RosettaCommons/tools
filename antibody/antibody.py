@@ -489,6 +489,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
             FR_L1 = light_chain[len_FR_L1:L1_start]
     else:
         print "L1 detected: False"
+        L1_end = -16
 
     light_second = light_chain[L1_end+16+7:L1_end+16+7+80] if len(light_chain) > 130 else light_chain[L1_end+16+7:]
 

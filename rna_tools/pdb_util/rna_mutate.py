@@ -18,17 +18,18 @@ import parse_tag
 ###############################################################################
 ### helper functions
 ###############################################################################
-def mutate_sequence(residue, mutation, pdb):
+def mutate_sequence(residues, mutations, pdb):
     sequences, chains, resnums = get_sequence.get_sequences(pdb) 
-    for seqidx, sequence in enumerate(sequences):
-        sequence = bytearray(sequence)
-        for residx, res in enumerate(sequence):
-            if residue[0] != resnums[seqidx][residx]:
-                continue
-            if residue[1] != '' and residue[1] != chains[seqidx][residx]:
-                continue
-            sequence[residx] = mutation
-        sequences[seqidx] = str(sequence)
+    for residue, mutation in zip(residues,mutations):    
+        for seqidx, sequence in enumerate(sequences):
+            sequence = bytearray(sequence)
+            for residx, res in enumerate(sequence):
+                if residue[0] != resnums[seqidx][residx]:
+                    continue
+                if residue[1] != '' and residue[1] != chains[seqidx][residx]:
+                    continue
+                sequence[residx] = mutation
+            sequences[seqidx] = str(sequence)
     return ''.join(sequences)
 
 ###############################################################################
@@ -36,9 +37,9 @@ def mutate_sequence(residue, mutation, pdb):
 ###############################################################################
 def rna_mutate(options):
     options = init_options(options)
-    residue = tuple([x[0] for x in parse_tag.parse_tag(options.residue)])
-    mutation = options.mutation.lower()
-    options.seq = mutate_sequence(residue, mutation, options.in_file_s)
+    residues = zip(parse_tag.parse_tag(options.residues))
+    mutations = options.mutations.lower().split()
+    options.seq = mutate_sequence(residues, mutations, options.in_file_s)
     rna_thread.rna_thread(options)
     return options.out_file_o 
 
@@ -56,12 +57,12 @@ def init_options_parser():
         parents=[rna_thread.init_options_parser()]
     )
     parser.add_argument(
-        "-r","--residue",
-        help="Residue to mutate.",
+        "-r","--residues",
+        help="Residues to mutate.",
     )
     parser.add_argument(
-        "-m","--mutation",
-        help="New residue type.",
+        "-m","--mutations",
+        help="New residue types.",
     )
     return parser
 ###############################################################################

@@ -37,8 +37,8 @@ def mutate_sequence(residues, mutations, pdb):
 ###############################################################################
 def rna_mutate(options):
     options = init_options(options)
-    residues = zip(parse_tag.parse_tag(options.residues))
-    mutations = options.mutations.lower().split()
+    residues = zip(*parse_tag.parse_tag(options.residues))
+    mutations = list(options.mutations.lower())
     options.seq = mutate_sequence(residues, mutations, options.in_file_s)
     rna_thread.rna_thread(options)
     return options.out_file_o 

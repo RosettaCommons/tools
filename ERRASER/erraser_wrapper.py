@@ -830,7 +830,7 @@ def SWA_rebuild_erraser( option ) :
     #Rescue 2012 defaults 
     if option.enlarge_H_lj is True:
         common_cmd += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
-   if option.enlarge_lj_hbond_dis is True:
+    if option.enlarge_lj_hbond_dis is True:
         common_cmd += " -lj_hbond_hdis 1.95 "
         common_cmd += " -lj_hbond_OH_donor_dis 3.0 "
     if option.restore_pre_talaris_2013_behavior is True:

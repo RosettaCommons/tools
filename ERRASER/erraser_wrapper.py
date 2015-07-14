@@ -438,7 +438,9 @@ def erraser_minimize( option ) :
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
 
-    if option.new_torsional_potential :
+    if option.fcc2012_new_torsional_potential :
+        command += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
@@ -458,6 +460,8 @@ def erraser_minimize( option ) :
     if option.restore_pre_talaris_2013_behavior is True:
         command += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
         command += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
+    if option.use_2prime_OH_potential is False:
+        command += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
@@ -826,6 +830,8 @@ def SWA_rebuild_erraser( option ) :
     if option.restore_pre_talaris_2013_behavior is True:
         common_cmd += " -restore_pre_talaris_2013_behavior %s " % str(option.restore_pre_talaris_2013_behavior).lower()
         common_cmd += " -score::smooth_fa_elec %s " % str(option.smooth_fa_elec).lower()
+    if option.use_2prime_OH_potential is False:
+        common_cmd += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if option.map_file != "" :
         common_cmd += " -edensity:mapfile %s " % option.map_file
@@ -837,8 +843,11 @@ def SWA_rebuild_erraser( option ) :
         for cutpoint in cutpoint_final :
             common_cmd += '%d ' % cutpoint
 
-    if option.new_torsional_potential :
+    if option.fcc2012_new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
+
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     ################Sampler Options##################################

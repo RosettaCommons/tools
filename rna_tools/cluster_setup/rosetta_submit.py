@@ -224,7 +224,7 @@ for line in lines:
             # sbatch (no mpi)
             queue = 'normal'
             if hostname in ['comet']:
-                queue = 'compute'
+                queue = 'shared'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
             
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )

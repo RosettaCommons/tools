@@ -170,6 +170,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
         self.enlarge_lj_hbond_dis = parse_options( argv, "enlarge_lj_hbond_dis", "False" )
         self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
@@ -206,6 +207,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
         self.enlarge_lj_hbond_dis = parse_options( argv, "enlarge_lj_hbond_dis", "False" )
         self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )

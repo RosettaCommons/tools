@@ -162,6 +162,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 
@@ -194,6 +195,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 

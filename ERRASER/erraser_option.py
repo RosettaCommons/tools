@@ -69,6 +69,7 @@ class erraser_option :
         
         #2015 fixes
         self.enlarge_H_lj = False
+        self.enlarge_lj_hbond_dis = False
         self.restore_pre_talaris_2013_behavior = False
         self.smooth_fa_elec = True
         self.use_2prime_OH_potential = True
@@ -132,6 +133,7 @@ class erraser_option :
 
         #2015 fixes
         self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.enlarge_lj_hbond_dis = parse_options( argv, "enlarge_lj_hbond_dis", "False" )
         self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
         self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
@@ -169,6 +171,7 @@ class erraser_option :
         
         #2015 fixes
         self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.enlarge_lj_hbond_dis = parse_options( argv, "enlarge_lj_hbond_dis", "False" )
         self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
         self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
@@ -204,6 +207,7 @@ class erraser_option :
         
         #2015 fixes
         self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "False" )
+        self.enlarge_lj_hbond_dis = parse_options( argv, "enlarge_lj_hbond_dis", "False" )
         self.restore_pre_talaris_2013_behavior = parse_options( argv, "restore_pre_talaris_2013_behavior", "False" )
         self.smooth_fa_elec = parse_options( argv, "smooth_fa_elec", "True" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )

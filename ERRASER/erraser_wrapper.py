@@ -438,7 +438,9 @@ def erraser_minimize( option ) :
     command += " -out_pdb %s " % temp_rs_min
     command += " -score:weights %s " % option.scoring_file
 
-    if option.new_torsional_potential :
+    if option.fcc2012_new_torsional_potential :
+        command += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
         command += " -score:rna_torsion_potential RNA11_based_new "
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
@@ -451,6 +453,10 @@ def erraser_minimize( option ) :
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
     command += " -scale_theta 10 "
+
+    #Rescue 2012 defaults
+    if option.use_2prime_OH_potential is False:
+        command += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if len(option.fixed_res_rs) != 0 :
         command += ' -fixed_res '
@@ -812,7 +818,10 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
-
+    
+    #Rescue 2012 defaults 
+    if option.use_2prime_OH_potential is False:
+        common_cmd += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if option.map_file != "" :
         common_cmd += " -edensity:mapfile %s " % option.map_file
@@ -824,8 +833,11 @@ def SWA_rebuild_erraser( option ) :
         for cutpoint in cutpoint_final :
             common_cmd += '%d ' % cutpoint
 
-    if option.new_torsional_potential :
+    if option.fcc2012_new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential RNA11_based_new "
+
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     ################Sampler Options##################################

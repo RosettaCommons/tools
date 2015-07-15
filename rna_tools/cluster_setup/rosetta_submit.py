@@ -26,6 +26,7 @@ hostname_tag = popen( 'hostname' ).readlines()[0]
 if hostname_tag.find( 'ls4' ) > -1: hostname = 'lonestar'
 if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostname = 'ade'
 if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
+if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
 
 if hostname == 'lonestar':
@@ -35,6 +36,12 @@ if hostname == 'stampede':
     DO_MPI = True
     tasks_per_node_MPI = 16
     account = 'TG-MCB120152'
+if hostname == 'comet':
+    DO_MPI = True
+    tasks_per_node_MPI = 24
+    account = expandvars("$COMET_ACCOUNT")
+    if not len(account):
+        account = 'TG-MCB120152' 
 if hostname == 'sherlock':
     DO_MPI = True
     tasks_per_node_MPI = n_jobs if n_jobs < 16 else 16
@@ -55,6 +62,9 @@ nhours = 16
 if len( argv ) > 4:
     nhours = int( argv[4] )
     if ( nhours > 168 ):  Help()
+    if hostname in ['sherlock', 'comet']:
+        nhours = min(nhours, 48)  
+
 
 if not exists( infile ):
     print 'Could not find: ', infile
@@ -70,7 +80,8 @@ qsub_file_MPI = 'qsubMPI'
 qsub_file_MPI_ONEBATCH = 'qsubMPI_ONEBATCH'
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
 all_commands_file = 'all_commands.sh'
-if hostname == "stampede" or hostname == "sherlock": qsub_file_MPI_ONEBATCH = "job.batch"
+if hostname in ["stampede", "sherlock", "comet"]:
+    qsub_file_MPI_ONEBATCH = "job.batch"
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
@@ -100,7 +111,7 @@ SBATCH_SUBMIT_CMD = 'sbatch'
 qsub_file_dir = 'qsub_files/'
 if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
-if hostname == 'sherlock':
+if hostname in ['sherlock','comet']:
     sbatch_file_dir = 'sbatch_files/'
     if not exists( sbatch_file_dir ): system( 'mkdir '+sbatch_file_dir )
 
@@ -208,13 +219,14 @@ for line in lines:
 
         fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
 
-        if hostname == 'sherlock':
+        if hostname in ['sherlock', 'comet']:
 
             # sbatch (no mpi)
             queue = 'normal'
+            if hostname in ['comet']:
+                queue = 'shared'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
-            if nhours > 48: nhours = 48 # time limit
-
+            
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
             fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
@@ -234,7 +246,7 @@ for line in lines:
 
         # MPI job file
         if DO_MPI:
-            if hostname == "stampede" or hostname == "sherlock":
+            if hostname in ["stampede", "sherlock", "comet"]:
                 fid_job_MPI_ONEBATCH.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
             else:
                 fid_job_MPI_ONEBATCH.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
@@ -273,13 +285,13 @@ if DO_MPI:
             count = count + 1
             if ( count <= tot_jobs ):
                 command_line_explicit = command_lines_explicit[ count-1 ]
-                if hostname == "stampede" or hostname == "sherlock":
+                if hostname in ["stampede", "sherlock", "comet"]:
                     fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
                 else:
                     fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
         fid_job_submit_file_MPI.close()
 
-        if hostname == "stampede" or hostname == "sherlock":
+        if hostname in ["stampede", "sherlock", "comet"]:
             # qsub MPI
             jobname= (CWD + '/' + outdir).replace( '/', '_' )
             jobname = jobname[-30:]
@@ -290,7 +302,10 @@ if DO_MPI:
             fid_qsub_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_qsub_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             queue = 'normal'
-            if development: queue = 'development'
+            if hostname in ['comet']:
+                queue = 'compute'
+            if development:
+                queue = 'development'
             fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
             if development:
                 fid_qsub_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
@@ -334,13 +349,16 @@ if DO_MPI:
             fid_qsub_MPI.write( 'qsub %s\n' % qsub_submit_file_MPI )
 
     # single batch. does not appear to work...
-    if hostname == "stampede" or hostname == "sherlock":
+    if hostname in ["stampede", "sherlock", "comet"]:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash\n' )
         job_name = (basename(CWD)).replace( '/', '_' )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -o %s.o%%j\n' % job_name )
         queue = 'normal'
-        if development: queue = 'development'
+        if hostname in ['comet']:
+            queue = 'compute'
+        if development:
+            queue = 'development'
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)
         if development:
             fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )
@@ -404,7 +422,7 @@ if len( hostname ) == 0:
     print '>source ',qsub_file
     print
 
-if len( hostname ) > 0 and hostname == 'sherlock':
+if len( hostname ) > 0 and hostname in ['sherlock', 'comet']:
     print 'Created qsub submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',sbatch_file
     print
@@ -416,6 +434,6 @@ if DO_MPI:
         print '>qsub ',qsub_file_MPI_ONEBATCH
         print
 
-    if len( hostname ) == 0 or hostname == 'lonestar' or hostname == "stampede" or hostname == "sherlock":
+    if len( hostname ) == 0 or hostname == 'lonestar' or hostname in ["stampede", "sherlock", "comet"]:
         print 'Created MPI submission files ',qsub_file_MPI,' with ',tot_jobs, ' jobs queued. To run, type: '
         print '>source ',qsub_file_MPI

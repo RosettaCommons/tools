@@ -40,7 +40,7 @@ def parse_nodefile(inp):
 
 
 def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
-    if cluster_name == 'stampede':
+    if cluster_name in ['stampede']:
         submit_command = 'ibrun'
     else:
         submit_command = 'srun'

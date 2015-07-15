@@ -10,7 +10,7 @@ from os.path import *
 
 def Help():
     print argv[0], " <full_class_name>"
-    print "Example of a full_class_name could be protocols/sample_stream/SampleStream.cc"
+    print "Example of a full_class_name could be protocols/sample_stream/SampleStream"
     print "Must run this from a directory within rosetta/main..."
     exit( 0 )
 
@@ -18,7 +18,7 @@ args = argv
 FORCE = 0
 
 for i in range(len(argv)):
-    if argv[i] == '-f':
+    if argv[i] == '-f' or argv[i]=='-force' or argv[i]=='--force':
         FORCE = 1
         del( argv[i] )
 

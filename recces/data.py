@@ -204,11 +204,10 @@ class SingleSimulation(BaseMinFunc):
         return binidx.astype(np.uint32)
 
 
-class SingleHistSimulation(object):
+class SingleHistSimulation(BaseMinFunc):
     """Histogram based simulation data. For computing free energies.
     Cannot be minimized.
     """
-
     def __init__(self, data_folder):
         """Create a SingleHistSimulation object.
 
@@ -259,26 +258,41 @@ class SingleHistSimulation(object):
     def value(self):
         return self.get_free_energy()
 
+    @property
+    def deriv(self):
+        return np.zeros(N_SCORE_TERMS)
+
+    def reweight(self, new_weight):
+        pass
+
 
 class SimulationCombination(BaseMinFunc):
-    """Combine multiple simulations by adding and/or substracting them from
-     each other.
+    """Linear combination of multiple simulations.
     """
-    def __init__(self, positive_simualtions, negative_simulations,
+    def __init__(self, simualtions, sim_weights='mean',
                  start_weight=None):
         """Create a SimulationCombination object.
 
         Parameters
         ----------
-        positive_simulations : Simulations that contribute positively to the
-                               combination.
-        negative_simulations : Simulations that contribute negatively.
+        simulations : List of simulations to be combined.
+        sim_weights : Weights for each simulation in the linear combination.
+                      It should be a list of float of the same size as the
+                      simulations. Two special cases are 'mean' and 'sum'.
         start_weight : Initial weight of the simulation. If None it will use
                        the weight of the first one in positive_simulation.
         """
-        self.positive_simulations = positive_simualtions
-        self.negative_simulations = negative_simulations
-        start_weight = (positive_simualtions[0].curr_weight
+        self.simulations = simualtions
+        if sim_weights == 'mean':
+            sim_weights = [1. / len(simualtions)] * len(simualtions)
+        elif sim_weights == 'sum':
+            sim_weights = [1.] * len(simualtions)
+        if len(simualtions) != len(sim_weights):
+            raise ValueError("Length of simulations and "
+                             " sim_weights are unequal")
+        self.sim_weights = sim_weights
+
+        start_weight = (simualtions[0].curr_weight
                         if start_weight is None else start_weight)
         self.curr_weight = start_weight
         self._value = self._deriv = None
@@ -288,49 +302,10 @@ class SimulationCombination(BaseMinFunc):
         self.curr_weight = new_weight
         self._value = 0
         self._deriv = np.zeros(N_SCORE_TERMS)
-        for simulation in self.positive_simulations:
-            simulation.reweight(new_weight)
-            self._value += simulation.value
-            self._deriv += simulation.deriv
-
-        for simulation in self.negative_simulations:
-            simulation.reweight(new_weight)
-            self._value -= simulation.value
-            self._deriv -= simulation.deriv
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def deriv(self):
-        return self._deriv
-
-
-class MeanSimulation(BaseMinFunc):
-    """Combine multiple simulations by taking the mean of them.
-    """
-    def __init__(self, simulations, start_weight=None):
-        """Create a MeanSimulation object.
-
-        Parameters
-        ----------
-        simulations : Simulations to be averaged.
-        start_weight : Initial weight of the simulation. If None it will use
-                       the weight of the first one in simulations.
-        """
-        self._simulations = simulations
-        start_weight = (simulations[0].curr_weight if start_weight is None
-                        else start_weight)
-        self.curr_weight = start_weight
-        self._value = self._deriv = None
-        self.reweight(start_weight)
-
-    def reweight(self, new_weight):
-        for s in self._simulations:
+        for s, w in zip(self.simulations, self.sim_weights):
             s.reweight(new_weight)
-        self._value = np.mean([s.value for s in self._simulations])
-        self._deriv = np.mean([s.deriv for s in self._simulations], axis=0)
+            self._value += s.value * w
+            self._deriv += s.deriv * w
 
     @property
     def value(self):
@@ -372,10 +347,14 @@ class TurnerRuleMinimizeFunc(BaseMinFunc):
             else:
                 self._target_values[seq] = util.DG_ALL[(seq[1], seq[0])]
             if is_duplex:
-                if seq[0][0] in 'au' and seq[0][1] in 'gc':
-                    self._target_values[seq] -= util.DG_TERMINAL[('a', 'u')]
-                if seq[0][1] in 'au' and seq[0][0] in 'gc':
-                    self._target_values[seq] += util.DG_TERMINAL[('a', 'u')]
+                s1 = util.seq_parse(seq[0])
+                s2 = util.seq_parse(seq[1])
+                terminal1 = tuple(sorted((s1[0], s2[1])))
+                terminal2 = tuple(sorted((s1[1], s2[0])))
+                if terminal1 == ('c', 'g') and terminal2 in util.DG_TERMINAL:
+                    self._target_values[seq] += util.DG_TERMINAL[terminal2]
+                elif terminal2 == ('c', 'g') and terminal1 in util.DG_TERMINAL:
+                    self._target_values[seq] -= util.DG_TERMINAL[terminal1]
             self._target_values[seq] /= KT_IN_KCAL
 
         for seq in util.DG_CANONICAL:
@@ -444,25 +423,28 @@ def get_simulation_from_seq(seq, raw_simulations, symmetrize=True):
     -------
     sim : composite simulation for the imput seq
     '''
+    def combine_sim(positive, negative):
+        sim_weight = [1] * len(positive) + [-1] * len(negative)
+        return SimulationCombination(positive + negative, sim_weight)
+
     def _get_duplex(seq1, seq2):
         positive, negative = _get_duplex_seqs(seq1, seq2)
-        print seq1, seq2, positive, negative
         postive_simu = [raw_simulations[name] for name in positive]
         negative_simu = [raw_simulations[name] for name in negative]
-        return SimulationCombination(postive_simu, negative_simu)
+        return combine_sim(postive_simu, negative_simu)
 
     def _get_dangling(seq1, seq2):
         positive, negative = _get_dangling_seqs(seq1, seq2)
         postive_simu = [raw_simulations[name] for name in positive]
         negative_simu = [raw_simulations[name] for name in negative]
-        return SimulationCombination(postive_simu, negative_simu)
+        return combine_sim(postive_simu, negative_simu)
 
     seq1, seq2 = util.seq_parse(seq[0]), util.seq_parse(seq[1])
     if len(seq1) == len(seq2):
         sim = _get_duplex(seq1, seq2)
         if symmetrize and seq1 != seq2:
             sim_sym = _get_duplex(seq2, seq1)
-            sim = MeanSimulation([sim, sim_sym])
+            sim = SimulationCombination([sim, sim_sym], sim_weights='mean')
         return sim
     else:
         sim = _get_dangling(seq1, seq2)

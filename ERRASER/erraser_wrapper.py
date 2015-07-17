@@ -455,6 +455,8 @@ def erraser_minimize( option ) :
     command += " -scale_theta 10 "
 
     #Rescue 2012 defaults
+    if option.o2prime_legacy_mode is True:
+        command += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
     if option.use_2prime_OH_potential is False:
         command += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
@@ -820,6 +822,8 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -score:weights %s " % option.scoring_file
     
     #Rescue 2012 defaults 
+    if option.o2prime_legacy_mode is True:
+        common_cmd += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
     if option.use_2prime_OH_potential is False:
         common_cmd += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 

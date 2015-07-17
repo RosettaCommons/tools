@@ -68,6 +68,7 @@ class erraser_option :
         self.constrain_chi = True
         
         #2015 fixes
+        self.o2prime_legacy_mode = False
         self.use_2prime_OH_potential = True
         self.fcc2012_new_torsional_potential = False
 
@@ -128,6 +129,7 @@ class erraser_option :
         self.rebuild_res_list = parse_option_int_list ( argv, 'rebuild_res_list' )
 
         #2015 fixes
+        self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "False" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 
@@ -162,6 +164,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "False" )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
@@ -195,6 +198,7 @@ class erraser_option :
         self.num_pose_kept_cluster =  parse_options( argv, "num_pose_kept_cluster", 10 )
         
         #2015 fixes
+        self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "False" )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )

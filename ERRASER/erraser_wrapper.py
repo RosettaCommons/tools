@@ -455,6 +455,8 @@ def erraser_minimize( option ) :
     command += " -scale_theta 10 "
 
     #Rescue 2012 defaults
+    if option.o2prime_legacy_mode is True:
+        command += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
     if option.enlarge_H_lj is True:
         command += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     if option.enlarge_lj_hbond_dis is True:
@@ -828,6 +830,8 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -score:weights %s " % option.scoring_file
     
     #Rescue 2012 defaults 
+    if option.o2prime_legacy_mode is True:
+        common_cmd += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
     if option.enlarge_H_lj is True:
         common_cmd += " -enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     if option.enlarge_lj_hbond_dis is True:

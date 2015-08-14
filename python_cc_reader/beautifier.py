@@ -2980,8 +2980,8 @@ def beautify_file( filename, overwrite, opts = None ) :
                 print "MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename
                 
         if all_good :
-            # TEMP ! REENABLE THIS! open( filename, "w" ).writelines( beaut.new_lines )
-            pass
+            open( filename, "w" ).writelines( beaut.new_lines )
+            #pass
         else :
             print "Did not beautify", filename, "because tree differed in the presence of some macros"
     else :

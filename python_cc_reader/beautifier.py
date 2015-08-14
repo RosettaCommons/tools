@@ -2,10 +2,10 @@ import sys
 import blargs
 
 debug = False
-#debug = True
+# debug = True
 
 debug_equiv = False
-#debug_equiv = True
+# debug_equiv = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -86,7 +86,9 @@ class Token :
         self.parent = parent
         parent.children.append( self )
     def equivalent( self, other ) :
-        if self.spelling != other.spelling : return False
+        if self.spelling != other.spelling : 
+            if not ( self.spelling == "\t" or self.spelling == "\\t" and other.spelling == "\t" or self.spelling == "\\t" ) :
+                return False
         elif self.type != other.type : return False
         elif self.invisible_by_macro != other.invisible_by_macro : return False
         elif self.is_visible != other.is_visible : return False
@@ -179,9 +181,14 @@ class Beautifier :
             if self.line[ i ] in self.dividers :
                 if start >= 0 :
                     self.take_token_for_range( start, i )
-                self.take_token_for_range( i, i+1 )
-                start = -1
-                i+=1
+                if i+1 < len(self.line) and self.line[i] == "\\" and self.line[i+1] == "t" :
+                    self.take_token_for_range( i, i+2 )
+                    start = -1
+                    i+=2
+                else :
+                    self.take_token_for_range( i, i+1 )
+                    start = -1
+                    i+=1
                 continue
             # make to-end-of-line comments and block-comment starting symbols their own tokens
             if self.line[ i ] == "/" :
@@ -1757,6 +1764,7 @@ class Beautifier :
         while i < len( line ) :
             if line[i].is_visible :
                 return line[i]
+            i+=1
         return -1
 
     def token_is_scope_ender( self, tok ) :
@@ -2684,7 +2692,9 @@ class Beautifier :
                 else :
                     if debug_equiv: print "returning false"
                     return False, i_this, i_other
-            if not tok_this2.equivalent( tok_other2 ) : return False, i_this, i_other
+            if not tok_this2.equivalent( tok_other2 ) :
+                if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
+                return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
         #print "simple_statement_equiv should not have reached here", i_this, i_other
         return True, i_this, i_other
@@ -2853,7 +2863,9 @@ class Beautifier :
             # make sure there are no visible tokens remaining for self
             i_this = self.find_next_visible_token( i_this )
             if i_this < len( self.all_tokens ) :
-                print "unprocessed tokens in self"
+                print "unprocessed tokens in self for", self.filename, ":", i_this+1, "of", len(self.all_tokens),"processed"
+                print "(other;", i_other, "of", len(other.all_tokens), "processed)"
+                #print ", ".join( [ x.spelling for x in self.all_tokens[ i_this: ] ])
                 return False, i_this, i_other
         elif i_other < len( other.all_tokens ) :
             # make sure there are no visible tokens remaining for other
@@ -2928,9 +2940,10 @@ def beautify_file( filename, overwrite, opts = None ) :
         if not orig_beaut : orig_beaut = beaut
         last_beaut = beaut
 
-        # print "\n\nFINISHED macro set = [", ", ".join( macro_set ), "]"
-        # for line in beaut.new_lines :
-        #     print line,
+        if debug :
+            print "\n\nFINISHED macro set = [", ", ".join( macro_set ), "]"
+            for line in beaut.new_lines :
+                print line,
 
     if overwrite :
         # make sure that the beautified code is identical to the original code
@@ -2952,18 +2965,23 @@ def beautify_file( filename, overwrite, opts = None ) :
                 b1.pound_if_setting = opts.pound_if_setting
                 b2.pound_if_setting = opts.pound_if_setting
 
-            b1.defined_macros = macro_set
+            for macro in macro_set :
+                b1.defined_macros.append( macro )
+                b2.defined_macros.append( macro )
             for line in orig_lines :
                 b1.tokenize_line( line )
             for line in beaut.new_lines :
                 b2.tokenize_line( line )
             b1.minimally_parse_file()
             b2.minimally_parse_file()
-            if not b1.equivalent( b2 ) :
+            equiv, t1, t2 = b1.equivalent( b2 ) 
+            if not equiv : 
                 all_good = False
-                print "MACRO set: " + ", ".join( macro_set ) + "did not produce the same tree in the original and beautified code for", filename
+                print "MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename
+                
         if all_good :
-            open( filename, "w" ).writelines( beaut.new_lines )
+            # TEMP ! REENABLE THIS! open( filename, "w" ).writelines( beaut.new_lines )
+            pass
         else :
             print "Did not beautify", filename, "because tree differed in the presence of some macros"
     else :

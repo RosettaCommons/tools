@@ -63,7 +63,7 @@ if __name__ == "__main__" :
     for fname in all_files :
         pid = fm.mfork()
         if pid == 0 :
-            print "beautifying", fname
+            # print "beautifying", fname
             beautifier.beautify_file( fname, overwrite, opts )
             sys.exit(0)
         else :

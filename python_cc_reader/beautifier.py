@@ -392,7 +392,7 @@ class Beautifier :
                     self.nested_ifdefs.append( (name, "ifndef", False ))
         elif tok0.spelling == "#if" :
             name = " ".join( [ x.spelling for x in self.this_line_tokens[1:] if not x.is_commented ] )
-            # print "hit #if", self.pound_if_setting
+            #print "hit #if", self.pound_if_setting, self.line_number
             if self.pound_if_setting == "take_if" :
                 #print "Take if, arived at #if:", self.all_lines[-1].strip()
                 self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ) )
@@ -404,10 +404,11 @@ class Beautifier :
                 # just say "yeah, it's probably true" and if you hit an else later, then
                 # instead of negating it, say the else is also true.
                 # this could cause problems
+                #print "take both"
                 self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ))
         elif tok0.spelling == "#else" :
             name, iftype, truthval = self.nested_ifdefs.pop()
-            # print "pop!", name, iftype, truthval
+            #print "pop!", name, iftype, truthval
             if iftype == "else" :
                 # we have hit a problem
                 print "ERROR: Encountered '#else' inappropriately.  Ifdef stack: "
@@ -426,7 +427,7 @@ class Beautifier :
                         #print "Take else, arived at #else:", self.all_lines[-1].strip()
                         self.nested_ifdefs.append( (name, "else", True ) )
                     else :
-                        # conservative -- take both
+                        #print "conservative -- take both"
                         self.nested_ifdefs.append( (name, "else", True) )
             else :
                 self.nested_ifdefs.append( (name, "else", False ))
@@ -434,7 +435,8 @@ class Beautifier :
             assert( self.nested_ifdefs[-1][1] in set( ["if", "ifdef", "ifndef", "else" ]) )
             self.nested_ifdefs.pop()
         else :
-            print "WARNING: Unhandled preprocessor directive:", tok0.spelling
+            pass
+            #print "WARNING: Unhandled preprocessor directive:", tok0.spelling, "on", self.line_number+1, "of", self.filename, ":", self.line,
         #print "processing macros", self.line_number+1, ", ".join( [ "%s %s" % ( x[1], "true" if x[2] else "false" ) for x in self.nested_ifdefs ] )
 
 
@@ -565,7 +567,7 @@ class Beautifier :
         # the starting "(" should have already been read
         paren_depth = 1
         while i < len( self.all_tokens ) :
-            if debug : print (" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1
+            if debug : print (" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible
             self.set_parent(i,stack)
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 pass
@@ -1999,17 +2001,18 @@ class Beautifier :
                     # print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_es_desc ) :
-                    print "Possible bug identified on line", last_es_desc.orig_line_number, "of file", self.filename
+                    print "Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "1"
                     self.move_tokens_after_to_their_own_next_line( last_es_desc )
                 self.add_right_curly_brace_on_own_line_after( last_es_desc, lcb_tok )
             else :
                 # make sure that there are no other tokens on this line except a scope-ending "}"
+                #if else_body.type != "if" and
                 if self.line_tokens[ last_es_desc.line_number ][ -1 ] is not last_es_desc :
                     if self.visible_tokens_on_line_after( last_es_desc ) :
                         next_visible = self.next_visible_token_on_line_after( last_es_desc )
                         if not self.token_is_scope_ender( next_visible ) :
                             # print 'move these tokens onto their own line'
-                            print "Possible bug identified on line", last_es_desc.orig_line_number, "of file", self.filename
+                            print "Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "2"
                             self.move_tokens_after_to_their_own_next_line( last_es_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
@@ -2084,7 +2087,7 @@ class Beautifier :
                     #print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_is_desc ) :
-                    print "Possible bug identified on line", last_is_desc.orig_line_number, "of file", self.filename
+                    print "Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "3"
                     self.move_tokens_after_to_their_own_next_line( last_is_desc )
                 self.add_right_curly_brace_on_own_line_after( last_is_desc, lcb_tok )
             else :
@@ -2094,7 +2097,7 @@ class Beautifier :
                         # print 'move these tokens onto their own line'
                         next_visible = self.next_visible_token_on_line_after( last_is_desc )
                         if not self.token_is_scope_ender( next_visible ) and next_visible.type != "else" :
-                            print "Possible bug identified on line", last_is_desc.orig_line_number, "of file", self.filename
+                            print "Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "4"
                             self.move_tokens_after_to_their_own_next_line( last_is_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
@@ -2161,7 +2164,7 @@ class Beautifier :
                     # print 'move these tokens down to their own line'
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_fs_desc ) :
-                    print "Possible bug identified on line", last_fs_desc.orig_line_number, "of file", self.filename
+                    print "Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "5"
                     self.move_tokens_after_to_their_own_next_line( last_fs_desc )
                 self.add_right_curly_brace_on_own_line_after( last_fs_desc, lcb_tok )
             else :
@@ -2169,7 +2172,7 @@ class Beautifier :
                 if self.line_tokens[ last_fs_desc.line_number ][ -1 ] is not last_fs_desc :
                     if self.visible_tokens_on_line_after( last_fs_desc ) :
                         # print 'move these tokens onto their own line'
-                        print "Possible bug identified on line", last_fs_desc.orig_line_number, "of file", self.filename
+                        print "Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "6"
                         self.move_tokens_after_to_their_own_next_line( last_fs_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
@@ -2902,9 +2905,10 @@ def beautify_file( filename, overwrite, opts = None ) :
             if not found_any : continue
 
         beaut = Beautifier()
+        beaut.filename = filename
         if opts :
             if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
-                # print "Setting beautifier pound_if_setting:", opts.pound_if_setting
+                #print "Setting beautifier pound_if_setting:", opts.pound_if_setting
                 beaut.pound_if_setting = opts.pound_if_setting
 
         #print "beautifying", filename, "with macros:" + ", ".join( [ x for x in macro_set ] )
@@ -2924,6 +2928,10 @@ def beautify_file( filename, overwrite, opts = None ) :
         if not orig_beaut : orig_beaut = beaut
         last_beaut = beaut
 
+        # print "\n\nFINISHED macro set = [", ", ".join( macro_set ), "]"
+        # for line in beaut.new_lines :
+        #     print line,
+
     if overwrite :
         # make sure that the beautified code is identical to the original code
         all_good = True
@@ -2938,8 +2946,12 @@ def beautify_file( filename, overwrite, opts = None ) :
                         break
                 if not found_any : continue
 
-            b1 = Beautifier()
-            b2 = Beautifier()
+            b1 = Beautifier(); b1.filename = filename
+            b2 = Beautifier(); b2.filename = filename
+            if opts and ( opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" ) :
+                b1.pound_if_setting = opts.pound_if_setting
+                b2.pound_if_setting = opts.pound_if_setting
+
             b1.defined_macros = macro_set
             for line in orig_lines :
                 b1.tokenize_line( line )
@@ -2987,5 +2999,6 @@ if __name__ == "__main__" :
     opts = BeautifierOpts()
     if pound_if_setting : opts.pound_if_setting = pound_if_setting
     if macros : opts.macro_sets = [ macros ]
-        
+
+    # print "pound if setting:", opts.pound_if_setting
     beautify_file( filename, overwrite, opts )

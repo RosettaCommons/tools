@@ -45,6 +45,10 @@ if __name__ == "__main__" :
 
     includes = scan_compilable_files()
     all_files = includes.keys()
+
+    all_files = filter( lambda x : x.partition("/")[0] != "ObjexxFCL", all_files )
+    all_files.remove( "protocols/noesy_assign/PeakAssignmentOptionKeys.hh" ) # this one doesn't beautify
+
     print "Preparing to run beautifier on", len(all_files), "files"
 
     fbm = FileBeautifierManager()

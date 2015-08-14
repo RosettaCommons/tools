@@ -1412,11 +1412,8 @@ class Beautifier :
                     spellings.append( "\\t" ) # output tabs inside strings as escaped tab sequences
                 else :
                     spellings.append( tok.spelling )
-                    if i+1 != len( toks ) :
-                        if i-1 > 0 and toks[i-1].spelling == "\t" :
-                            pass
-                        else :
-                            spellings.append( " " * ( toks[i+1].start - tok.one_past_end ) ) #preserve spaces
+                if i+1 != len( toks ) :
+                    spellings.append( " " * ( toks[i+1].start - tok.one_past_end ) ) #preserve spaces
             spellings.append("\n")
             return "".join( spellings )
         else :
@@ -1973,9 +1970,10 @@ class Beautifier :
 
             if len( else_lcb.children ) != 1 :
                 # make sure the rcb is not on the same line as the last token
-                # of the second-to-last child of the else_lcb
+                # of the second-to-last child of the else_lcb unless it's also on
+                # the same line as the lcb
                 last_before_rcb = self.last_descendent( else_lcb.children[-2] )
-                if last_before_rcb.line_number == else_rcb.line_number :
+                if last_before_rcb.line_number == else_rcb.line_number and else_rcb.line_number != else_body.line_number :
                     # print 'ok -- move rcb to its own line'
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( else_rcb )
             else :
@@ -2065,7 +2063,7 @@ class Beautifier :
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
             elif len( if_body.children ) == 1 :
                 # make sure the {}s are on the same line together
-                if right_curly_brace.line_number != if_body.line_number :
+                if right_curly_brace.line_number != if_body.line_number and not self.intervening_macro_tokens( if_body, right_curly_brace ) :
                     self.put_empty_curly_braces_on_line_together( if_body, right_curly_brace )
         else :
             # ok -- just a single unscoped statement
@@ -2132,16 +2130,17 @@ class Beautifier :
             right_curly_brace = for_body.children[-1]
             assert( right_curly_brace.spelling == "}" )
             # the right curly brace should be on its own line unless its the sole child
+            # or if it's on the same line as the left curly brace
             if len(for_body.children) != 1 :
                 last_before_rcb = self.last_descendent( for_body.children[-2] )
-                if last_before_rcb.line_number == right_curly_brace.line_number :
+                if last_before_rcb.line_number == right_curly_brace.line_number and right_curly_brace.line_number != for_body.line_number :
                     # print 'ok! move rcb to its own line'
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
             else :
                 # make sure the {} are on the same line together
                 rcb = for_body.children[0]
                 assert( rcb.spelling == "}" )
-                if rcb.line_number != for_body.line_number :
+                if rcb.line_number != for_body.line_number and not self.intervening_macro_tokens( for_body, rcb ) :
                     self.put_empty_curly_braces_on_line_together( for_body, rcb )
         else :
             # no curly braces

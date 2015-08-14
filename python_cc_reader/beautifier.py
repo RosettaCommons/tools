@@ -116,6 +116,7 @@ class Beautifier :
         self.context_stack = []
         self.nested_ifdefs  = [ ( "None", "None", True ) ]
         self.defined_macros = []
+        self.macros_inquired_about = []
         self.reserve_words = set( [ "using", "namespace", "class", "for", "while", "do", \
             "repeat", "public", "private", "protected", "template", "typedef", "typename", \
             "operator", "inline", "explicit", "static", "mutable", "virtual", "friend", \
@@ -357,6 +358,11 @@ class Beautifier :
         tok0 = self.this_line_tokens[ 0 ]
         if tok0.spelling == "#include" or tok0.spelling == "#pragma" :
             return
+
+        for tok in self.this_line_tokens :
+            if tok.spelling not in self.macros_inquired_about :
+                self.macros_inquired_about.append( tok.spelling )
+
         if tok0.spelling in self.macros_at_zero_indentation :
             # treat certain macros that may be invisible as if they are visible for
             # the sake of indenting them to level 0.
@@ -1984,7 +1990,7 @@ class Beautifier :
         else :
             # check to see if we ought to have curly braces
             last_es_desc = self.last_descendent( else_body )
-            if last_es_desc.line_number != tok.line_number :
+            if last_es_desc.line_number != tok.line_number and not self.intervening_macro_tokens(tok,else_body) :
                 # print 'we need to add a pair of curly braces'
                 lcb_tok = self.add_left_curly_brace_after( tok )
                 lcb_tok.type = "else-scope"
@@ -2069,7 +2075,7 @@ class Beautifier :
             # ok -- just a single unscoped statement
             last_is_desc = self.last_descendent( if_body )
             last_ic_desc = self.last_descendent( if_cond )
-            if last_is_desc.line_number != last_ic_desc.line_number :
+            if last_is_desc.line_number != last_ic_desc.line_number and not self.intervening_macro_tokens(tok,if_body) :
                 #print 'we need to add a pair of curly braces'
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "if-scope"
@@ -2146,7 +2152,7 @@ class Beautifier :
             # no curly braces
             last_fs_desc = self.last_descendent( for_body )
             last_fd_desc = self.last_descendent( for_dec_tok )
-            if last_fs_desc.line_number != last_fd_desc.line_number :
+            if last_fs_desc.line_number != last_fd_desc.line_number and not self.intervening_macro_tokens(tok,for_body) :
                 # print 'we need to add a pair of curly braces'
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "for-scope"
@@ -2857,22 +2863,97 @@ class Beautifier :
     #def equivalent( self, other ) :
         # recurse through the tree
         
+def canonical_set_of_macros_to_test() :
+    return [ [],
+             [ "USE_MPI" ],
+             [ "CXX11" ],
+             [ "CXX11", "MULTI_THREADED" ],
+             [ "USE_OPENMP" ],
+             [ "BOINC_GRAPHICS" ],
+             [ "WINDOWS" ],
+             [ "WIN32" ],
+             [ "_WIN32" ],
+             [ "MAC" ],
+             [ "WIN_PYROSETTA" ] ]
+             
+             
 
 def beautify_file( filename, overwrite, opts = None ) :
-    beaut = Beautifier()
-    if opts :
-        if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
-            # print "Setting beautifier pound_if_setting:", opts.pound_if_setting
-            beaut.pound_if_setting = opts.pound_if_setting
 
-    lines = open( filename ).readlines()
-    for line in lines :
-        beaut.tokenize_line( line )
-    beaut.minimally_parse_file()
-    beaut.beautify_code()
+    if opts and opts.macro_sets :
+        macro_sets = opts.macro_sets
+    else :
+        macro_sets = canonical_set_of_macros_to_test()
+
+
+    last_beaut=None
+    orig_beaut=None
+
+    orig_lines = open( filename ).readlines()
+    for macro_set in macro_sets :
+
+        if orig_beaut :
+            # print "Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about )
+            found_any = False
+            for macro in macro_set :
+                if macro in orig_beaut.macros_inquired_about :
+                    found_any = True
+                    break
+            if not found_any : continue
+
+        beaut = Beautifier()
+        if opts :
+            if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
+                # print "Setting beautifier pound_if_setting:", opts.pound_if_setting
+                beaut.pound_if_setting = opts.pound_if_setting
+
+        #print "beautifying", filename, "with macros:" + ", ".join( [ x for x in macro_set ] )
+        for macro in macro_set :
+            beaut.defined_macros.append( macro )
+
+        if not last_beaut :
+            lines = orig_lines
+        else :
+            lines = last_beaut.new_lines
+        for line in lines :
+            beaut.tokenize_line( line )
+
+        beaut.minimally_parse_file()
+        beaut.beautify_code()
+
+        if not orig_beaut : orig_beaut = beaut
+        last_beaut = beaut
 
     if overwrite :
-        open( filename, "w" ).writelines( beaut.new_lines )
+        # make sure that the beautified code is identical to the original code
+        all_good = True
+        for macro_set in macro_sets :
+
+            if macro_set :
+                # print "Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about )
+                found_any = False
+                for macro in macro_set :
+                    if macro in orig_beaut.macros_inquired_about :
+                        found_any = True
+                        break
+                if not found_any : continue
+
+            b1 = Beautifier()
+            b2 = Beautifier()
+            b1.defined_macros = macro_set
+            for line in orig_lines :
+                b1.tokenize_line( line )
+            for line in beaut.new_lines :
+                b2.tokenize_line( line )
+            b1.minimally_parse_file()
+            b2.minimally_parse_file()
+            if not b1.equivalent( b2 ) :
+                all_good = False
+                print "MACRO set: " + ", ".join( macro_set ) + "did not produce the same tree in the original and beautified code for", filename
+        if all_good :
+            open( filename, "w" ).writelines( beaut.new_lines )
+        else :
+            print "Did not beautify", filename, "because tree differed in the presence of some macros"
     else :
         open( filename +".beaut", "w" ).writelines( beaut.new_lines )
 
@@ -2894,12 +2975,17 @@ class SmartStack :
 class BeautifierOpts :
     def __init__( self ) :
         self.pound_if_setting = ""
+        self.macro_sets = None
 
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str("filename").required()
         p.flag("overwrite")
         p.str("pound_if_setting").default("take_if") # can be take_if or take_else
+        p.multiword( "macros" ).cast( lambda x : x.split() )
+
     opts = BeautifierOpts()
     if pound_if_setting : opts.pound_if_setting = pound_if_setting
+    if macros : opts.macro_sets = [ macros ]
+        
     beautify_file( filename, overwrite, opts )

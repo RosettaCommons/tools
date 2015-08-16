@@ -46,8 +46,11 @@ def get_three_letter(pdb, chain_id):
 def get_one_letter(list_of_three):
     fasta_one=[]
     for x in list_of_three:
-       x=three_to_one(x)
-       fasta_one.append(x)
+	if x == "S56" or x == "TES":
+		x="N"
+	else:
+		x=three_to_one(x)
+	fasta_one.append(x)
     return fasta_one
 
 

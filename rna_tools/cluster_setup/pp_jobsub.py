@@ -18,7 +18,7 @@ parser.add_argument(
     metavar='str', default='')
 args = parser.parse_args()
 work_dir_list, cmdline_list = pp_util.load_jobfile(args.job_script)
-if args.cluster_name in ['stampede', 'sherlock']:
+if args.cluster_name in ['stampede', 'sherlock', 'comet']:
     jobserver, ncpus = pp_util.jobserver_init( args.cluster_name, args.nodelist, args.job_cpus_per_node )
 else:
     raise argparse.ArgumentError("Invalid cluster_name!")

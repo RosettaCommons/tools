@@ -23,6 +23,13 @@ from time import time
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
 _framework_names_ = ['FRL', 'FRH', 'light', 'heavy', 'L1', 'L2', 'L3', 'H1', 'H2', 'H3', 'light_heavy']
+heavy_framework_names = ['FRH', 'heavy', 'H1', 'H2', 'H3']
+
+H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)' # Jeff's mod for ATHM set
+#H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
+H3_pattern=r'C[A-Z]{1,33}(W)(G|A|C)[A-Z]{1,2}(Q|S|G|R)'
+L1_pattern=r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+L3_pattern=r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
 
 
 '''
@@ -62,6 +69,11 @@ def main(args):
     parser.add_option('-B','--both-chains',
       action="store",
       help="Specify single FASTA-formatted file with both the light and the heavy chain. If the heavy chain is not longer than the light chain, then use the direct assignment with -H and -L.",
+    )
+
+    parser.add_option('--heavy-chain-alone',
+       action="store_true", default=False,
+       help="Set if no light chain is offered. The template for the heavy chain will then also be used for the light.",
     )
  
     parser.add_option('--prefix',
@@ -291,9 +303,10 @@ def main(args):
 
     if Options.self_test: self_test();  return
 
-    if not((options.light_chain and options.heavy_chain) or options.both_chains):
+    if not((options.light_chain and options.heavy_chain) or options.both_chains or (options.heavy_chain and options.heavy_chain_alone)):
         print 'Script for preparing detecting antibodys and preparing info for Rosetta protocol.'
         print 'At miminum you need to specify options --light-chain and --heavy-chain, or --both-chains, alternatively.'
+        print 'If only providing the heavy chain, then also set the --heavy-chain-alone option.'
         print 'For full list of options run "antibody.py --help"\nERROR: No input chains was specified... exiting...'
         sys.exit(1)
 
@@ -310,8 +323,11 @@ def main(args):
             light_chain=both[1]
             heavy_chain=both[0]
     else:
-	light_chain = read_fasta_file(options.light_chain)[0]
 	heavy_chain = read_fasta_file(options.heavy_chain)[0]
+	if options.heavy_chain_alone:
+            light_chain = ""
+        else:
+	    light_chain = read_fasta_file(options.light_chain)[0]
 
     print 'Rosetta Antibody script [Python, version 2.0]. Starting...'
 
@@ -374,8 +390,25 @@ def main(args):
     for name in _framework_names_:
         if getattr(Options, name): print 'Custom %s template(s):' % name, getattr(Options, name)
     print
-    print "Light chain: %s" % light_chain
+    if options.heavy_chain_alone:
+        print "Light chain: to match template for heavy chain" 
+    else:
+        print "Light chain: %s" % light_chain
     print "Heavy chain: %s" % heavy_chain
+
+    if options.heavy_chain_alone:
+        CDRsHeavy = IdentifyCDRsHeavy(heavy_chain)
+        CDRsHeavy.update( Extract_FR_CDR_Sequences_Heavy(**CDRsHeavy) )
+        #CDRs['light_heavy'] = CDRs['heavy']
+        write_results(CDRsHeavy, prefix_details)
+        alignmentHeavy, legendHeavy = run_blast(CDRsHeavy, prefix=prefix_details, blast=Options.blast, blast_database=Options.blast_database,
+                                                verbose=Options.verbose, heavy_chain_alone=True)
+	PDBwithMostSimilarHeavyChain=alignmentHeavy['heavy'][0]['subject-id']
+	#print "I: Assigning light chain of PDB entry '%s'" % PDBwithMostSimilarHeavyChain
+	sequences = pdbfile_to_sequences(Options.antibody_database+'/'+PDBwithMostSimilarHeavyChain)
+	#print sequences
+	light_chain = sequences['L']
+        print "Light chain (from %s) : %s" % (PDBwithMostSimilarHeavyChain,light_chain)
 
     #returns dictionary with CDRs as values
     CDRs = IdentifyCDRs(light_chain, heavy_chain)
@@ -458,18 +491,73 @@ def write_results(CDRs, prefix):
             f.write('\n'.join( [ '%s %s' % (CDRs[n][k], k) for k in sorted(CDRs[n].keys(), key=lambda x: (int_(x), x) ) ]) + '\n')
 
 
-def IdentifyCDRs(light_chain, heavy_chain):
+def IdentifyCDRsHeavy(heavy_chain):
 
-    L1_pattern=r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
-    L3_pattern=r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
-    H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)' # Jeff's mod for ATHM set
-   #H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
-    H3_pattern=r'C[A-Z]{1,33}(W)(G|A|C)[A-Z]{1,2}(Q|S|G|R)'
-    
-    ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
-    '''
-    light_first = light_chain[:65] if len(light_chain) > 130 else light_chain[:60]
     heavy_first = heavy_chain[:70] if len(heavy_chain) > 140 else heavy_chain[:60]
+
+    # HH EE AA VV YY
+
+    ## H1
+    res = re.search(H1_pattern, heavy_first)
+    H1 = False
+    len_FR_H1 = 0
+    if res:
+        H1 = res.group()[4:-4]
+        H1_start = heavy_chain.index(H1)
+        H1_end = H1_start + len(H1) - 1
+        print "H1 detected: %s (%d residues at positions %d to %d)" % (H1, len(H1), H1_start, H1_end)
+        FR_H1 = heavy_chain[:H1_start]
+        if len(FR_H1) >  25:
+            len_FR_H1 = len(FR_H1) - 25
+            FR_H1 = heavy_chain[len_FR_H1:H1_start]
+    else:
+        print "H1 detected: False"
+
+
+    heavy_second = heavy_chain[H1_end+33+15:H1_end+33+15+95+len_FR_H1] if len(heavy_chain) > 140 else heavy_chain[H1_end+33+15:]
+
+    ## H3
+    H3 = False #H3_and_stem=False
+    res = re.search(H3_pattern,heavy_second)
+    if res:
+        H3 = res.group()[3:-4] #H3_and_stem = res.group()[0:-4]
+        H3_start = heavy_chain.index(H3)
+        H3_end = H3_start + len(H3) - 1
+        print "H3 detected: %s (%d residues at positions %d to %d)" % (H3, len(H3), H3_start, H3_end)
+    else:
+        print "H3 detected: False"
+        
+
+    if H1 and H3:
+        #H1_start = heavy_chain.index(H1)
+        #H1_end = H1_start + len(H1) - 1
+        H2_start = H1_end + 15
+        H2_end = H3_start - 33
+        H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1]
+        print "H2 detected: %s (%d residues at positions %d to %d)" % (H2, len(H2), H2_start, H2_end)
+
+        #FR_H1 = heavy_chain[:H1_start]
+
+        #if len(FR_H1) >  26:
+        #    FR_H1 = light_chain[20:H1_start]
+
+        FR_H2 = heavy_chain[H1_end + 1: H1_end + 1 + H2_start - H1_end - 1]
+        FR_H3 = heavy_chain[H2_end + 1: H2_end + 1 + H3_start - H2_end - 1]
+        FR_H4 = heavy_chain[H3_end + 1: H3_end + 1 + 12]
+
+        print "FR_H1: ", FR_H1
+        print "FR_H2: ", FR_H2
+        print "FR_H3: ", FR_H3
+        print "FR_H4: ", FR_H4
+        print "H segments: ",FR_H1,H1,FR_H2,H2,FR_H3,H3,FR_H4
+
+    res = dict(H1=H1, H2=H2, H3=H3, FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)
+    return res
+
+
+def IdentifyCDRsLight(light_chain):
+
+    light_first = light_chain[:65] if len(light_chain) > 130 else light_chain[:60]
 
     # LL II GG HH TT
 
@@ -530,72 +618,29 @@ def IdentifyCDRs(light_chain, heavy_chain):
         # FR classification by AHo. This might be useful in the future. But currently this is not used.
         # ... skipped, see Google doc for details
 
+    res = dict(L1=L1, L2=L2, L3=L3, FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4)
 
-    # HH EE AA VV YY
-
-    ## H1
-    res = re.search(H1_pattern, heavy_first)
-    H1 = False
-    len_FR_H1 = 0
-    if res:
-        H1 = res.group()[4:-4]
-        H1_start = heavy_chain.index(H1)
-        H1_end = H1_start + len(H1) - 1
-        print "H1 detected: %s (%d residues at positions %d to %d)" % (H1, len(H1), H1_start, H1_end)
-        FR_H1 = heavy_chain[:H1_start]
-        if len(FR_H1) >  25:
-            len_FR_H1 = len(FR_H1) - 25
-            FR_H1 = heavy_chain[len_FR_H1:H1_start]
-    else:
-        print "H1 detected: False"
+    return res
 
 
-    heavy_second = heavy_chain[H1_end+33+15:H1_end+33+15+95+len_FR_H1] if len(heavy_chain) > 140 else heavy_chain[H1_end+33+15:]
 
-    ## H3
-    H3 = False #H3_and_stem=False
-    res = re.search(H3_pattern,heavy_second)
-    if res:
-        H3 = res.group()[3:-4] #H3_and_stem = res.group()[0:-4]
-        H3_start = heavy_chain.index(H3)
-        H3_end = H3_start + len(H3) - 1
-        print "H3 detected: %s (%d residues at positions %d to %d)" % (H3, len(H3), H3_start, H3_end)
-    else:
-        print "H3 detected: False"
-        
+def IdentifyCDRs(light_chain, heavy_chain):
+    ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
+    '''
+    resL=IdentifyCDRsLight(light_chain)
+    resH=IdentifyCDRsHeavy(heavy_chain)
 
-    if H1 and H3:
-        #H1_start = heavy_chain.index(H1)
-        #H1_end = H1_start + len(H1) - 1
-        H2_start = H1_end + 15
-        H2_end = H3_start - 33
-        H2 = heavy_chain[H2_start:H2_start + H2_end-H2_start+1]
-        print "H2 detected: %s (%d residues at positions %d to %d)" % (H2, len(H2), H2_start, H2_end)
+    res=resH.copy()
+    res.update(resL)
 
-        #FR_H1 = heavy_chain[:H1_start]
-
-        #if len(FR_H1) >  26:
-        #    FR_H1 = light_chain[20:H1_start]
-
-        FR_H2 = heavy_chain[H1_end + 1: H1_end + 1 + H2_start - H1_end - 1]
-        FR_H3 = heavy_chain[H2_end + 1: H2_end + 1 + H3_start - H2_end - 1]
-        FR_H4 = heavy_chain[H3_end + 1: H3_end + 1 + 12]
-
-        print "FR_H1: ", FR_H1
-        print "FR_H2: ", FR_H2
-        print "FR_H3: ", FR_H3
-        print "FR_H4: ", FR_H4
-        print "H segments: ",FR_H1,H1,FR_H2,H2,FR_H3,H3,FR_H4
-
-    if not (L1 and L3 and H1 and H3):
-        if not L1: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: %s' % L1_pattern # C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
-        if not L3: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: %s' % L3_pattern # C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)
-        if not H1: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: %s' % H1_pattern # C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)
-        if not H3: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: %s' % H3_pattern # C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)
-        sys.exit(1)
-
-    res = dict(L1=L1, L2=L2, L3=L3, H1=H1, H2=H2, H3=H3,  FR_L1=FR_L1, FR_L2=FR_L2, FR_L3=FR_L3, FR_L4=FR_L4,  FR_H1=FR_H1, FR_H2=FR_H2, FR_H3=FR_H3, FR_H4=FR_H4)
     #if Options.verbose: print 'L1: %(L1)s\nL2: %(L2)s\nL3: %(L3)s\nH1: %(H1)s\nH2: %(H2)s\nH3: %(H3)s' % res
+
+    if not (res['L1'] and res['L3'] and res['H1'] and res['H3']):
+        if not res['L1']: print 'ERROR: CDR L1 cannot be recognized !!!  L1 pattern: %s' % L1_pattern # C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
+        if not res['L3']: print 'ERROR: CDR L3 cannot be recognized !!!  L3 pattern: %s' % L3_pattern # C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)
+        if not res['H1']: print 'ERROR: CDR H1 cannot be recognized !!!  H1 pattern: %s' % H1_pattern # C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)
+        if not res['H3']: print 'ERROR: CDR H3 cannot be recognized !!!  H3 pattern: %s' % H3_pattern # C[A-Z]{1,33}(W)(G|A|C)[A-Z](Q|S|G|R)
+        sys.exit(1)
 
     return res
 
@@ -603,83 +648,13 @@ def IdentifyCDRs(light_chain, heavy_chain):
 def int_(s): return int( re.sub('[A-Z]', '', s) )  #v = int( re.sub('[A-Z]', '', new_number_FR_L1) )  # $new_number_FR_L1[$i] =~ s/[A-Z]//     #new_number_FR_L1[i] = string.translate(new_number_FR_L1[i], None, string.ascii_letters)
 
 def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
-    # LIGHT CHAIN
-    # FR_L1	How can we handle missing residue in C/N-terminals?
-    if re.search( r'[A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1): # Change G to [A-Z] (3G04)
-        if   len(FR_L1) == 19: new_number_FR_L1="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 20: new_number_FR_L1="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 21: new_number_FR_L1="3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 22: new_number_FR_L1="2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 23: new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 24:
-            #new_number_FR_L1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-            FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
-            new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
+    resH=Extract_FR_CDR_Sequences_Heavy(L1, L2, L3, H1, H2, H3, FR_L1, FR_L2, FR_L3, FR_L4, FR_H1, FR_H2, FR_H3, FR_H4)
+    resL=Extract_FR_CDR_Sequences_Light(L1, L2, L3, H1, H2, H3, FR_L1, FR_L2, FR_L3, FR_L4, FR_H1, FR_H2, FR_H3, FR_H4)
+    res=resH.copy()
+    res.update(resL)
+    return res
 
-    elif re.search( r'[A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1):  # Change G to [A-Z] (3G04)
-        if   len(FR_L1) == 19: new_number_FR_L1="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 20: new_number_FR_L1="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 21: new_number_FR_L1="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 22: new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 23:
-            FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
-            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        elif len(FR_L1) == 24:
-            FR_L1 = FR_L1[2:]  # Remove -1st and 0th residue 10/24/2012
-            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
-        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
-    else:
-        print 'ERROR: Current code could not assign Chothia numbering of FR_L1 in the query sequence!!! Exiting...'
-
-    # L1
-    if   len(L1) ==  8: new_number_L1="24,25,26,27,28,29,30,34"
-    elif len(L1) ==  9: new_number_L1="24,25,26,27,28,29,30,33,34"
-    elif len(L1) == 10: new_number_L1="24,25,26,27,28,29,30,32,33,34"
-    elif len(L1) == 11: new_number_L1="24,25,26,27,28,29,30,31,32,33,34"
-    elif len(L1) == 12: new_number_L1="24,25,26,27,28,29,30,30A,31,32,33,34"
-    elif len(L1) == 13: new_number_L1="24,25,26,27,28,29,30,30A,30B,31,32,33,34"
-    elif len(L1) == 14: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,31,32,33,34"
-    elif len(L1) == 15: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,31,32,33,34"
-    elif len(L1) == 16: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,31,32,33,34"
-    elif len(L1) == 17: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,30F,31,32,33,34"
-    else: print "ERROR: L1 length",len(L1),"is not between 8 and 17"
-
-    # FR_L2
-    if len(FR_L2) == 15: new_number_FR_L2="35,36,37,38,39,40,41,42,43,44,45,46,47,48,49"
-    else: print "ERROR: FR_L2 length",len(FR_L2),"is not 15"
-
-    # L2
-    if   len(L2) ==  7: new_number_L2="50,51,52,53,54,55,56"
-    elif len(L2) ==  8: new_number_L2="50,51,52,53,54,54A,55,56"
-    elif len(L2) ==  9: new_number_L2="50,51,52,53,54,54A,54B,55,56"
-    elif len(L2) == 10: new_number_L2="50,51,52,53,54,54A,54B,54C,55,56"
-    elif len(L2) == 11: new_number_L2="50,51,52,53,54,54A,54B,54C,54D,55,56"
-    else: print "ERROR: L2 length",len(L2),"is not between 7 and 11"
-
-    # FR_L3
-    if   len(FR_L3) == 32: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
-    elif len(FR_L3) == 33: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
-    elif len(FR_L3) == 34: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,66B,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
-    else: print "ERROR: FR_L3 length",len(FR_L3),"is not between 32 and 34"
-
-    # L3
-    if   len(L3) ==  5: new_number_L3="89,90,91,92,97"
-    elif len(L3) ==  6: new_number_L3="89,90,91,92,93,97"
-    elif len(L3) ==  7: new_number_L3="89,90,91,92,93,94,97"
-    elif len(L3) ==  8: new_number_L3="89,90,91,92,93,94,95,97"
-    elif len(L3) ==  9: new_number_L3="89,90,91,92,93,94,95,96,97"
-    elif len(L3) == 10: new_number_L3="89,90,91,92,93,94,95,95A,96,97"
-    elif len(L3) == 11: new_number_L3="89,90,91,92,93,94,95,95A,95B,96,97"
-    elif len(L3) == 12: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,96,97"
-    elif len(L3) == 13: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,96,97"
-    elif len(L3) == 14: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,96,97"
-    elif len(L3) == 15: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,95F,96,97"
-    else: print "ERROR: L3 length",len(L3),"is not between 5 and 15"
-
-    # FR_L4
-    new_number_FR_L4="98,99,100,101,102,103,104,105,106,107,108,109"
-
+def Extract_FR_CDR_Sequences_Heavy(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
     # HEAVY CHAIN
     # FR_H1	How can we handle missing residue in C/N-terminals?
     if   len(FR_H1) == 16: new_number_FR_H1="10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25"
@@ -772,22 +747,147 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
     new_number_FR_H4="103,104,105,106,107,108,109,110,111,112,113,114"
 
     try:
-        (new_number_L1 and new_number_L2 and new_number_L3 and new_number_H1 and new_number_H2 and new_number_H3
-         and new_number_FR_H1 and new_number_FR_H2 and new_number_FR_H3 and new_number_FR_H4
-         and new_number_FR_L1 and new_number_FR_L2 and new_number_FR_L3 and new_number_FR_L4 )
+        (new_number_H1 and new_number_H2 and new_number_H3 and new_number_FR_H1 and new_number_FR_H2 and new_number_FR_H3 and new_number_FR_H4)
     except:
-        print "Numbering failed.  Exiting."
+        print "Numbering of heavy chain failed.  Exiting."
+        sys.exit(1)
+
+    new_number_H1=new_number_H1.split(',');  new_number_H2=new_number_H2.split(',');  new_number_H3=new_number_H3.split(',');
+    new_number_FR_H1=new_number_FR_H1.split(',');  new_number_FR_H2=new_number_FR_H2.split(',');  new_number_FR_H3=new_number_FR_H3.split(',');  new_number_FR_H4=new_number_FR_H4.split(',');
+    print_seq_FR_H1, print_seq_FR_H2, print_seq_FR_H3, print_seq_FR_H4, print_seq_FR_H4_extra = '', '', '', '', ''
+    numbering_H = {}
+
+    # OUTPUT FOR HEAVY CHAIN. This should be saved in the file 'numbering_H.txt'.
+    for i, s in enumerate(FR_H1):  #FR_H1
+        numbering_H[ new_number_FR_H1[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H1[i])
+        v = int_(new_number_FR_H1[i])
+        if v >= 10 and v <= 25: print_seq_FR_H1 += s
+
+    for i, s in enumerate(H1): numbering_H[ new_number_H1[i] ] = s  #+='%s %s\n' % (s, new_number_H1[i])  # H1
+
+    for i, s in enumerate(FR_H2):  #FR_H2
+        numbering_H[ new_number_FR_H2[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H2[i])
+        v = int_(new_number_FR_H2[i])
+        if (v >= 36 and v <= 39) or (v >= 46 and v <= 49): print_seq_FR_H2 += s
+
+    for i, s in enumerate(H2): numbering_H[ new_number_H2[i] ] = s  #+='%s %s\n' % (s, new_number_H2[i])  # H2
+
+    for i, s in enumerate(FR_H3):  #FR_H3
+        numbering_H[ new_number_FR_H3[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H3[i])
+        v = int_(new_number_FR_H3[i])
+        if v >= 66 and v <= 94: print_seq_FR_H3 += s
+
+    for i, s in enumerate(H3): numbering_H[ new_number_H3[i] ] = s  #+='%s %s\n' % (s, new_number_H3[i])  # H3
+
+    for i, s in enumerate(FR_H4):  #FR_H4
+        numbering_H[ new_number_FR_H4[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H4[i])
+        v = int_(new_number_FR_H4[i])
+        if v >= 103 and v <= 109: print_seq_FR_H4 += s
+        if v >= 103 and v <= 106: print_seq_FR_H4_extra += s
+
+    FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4
+    if len(FRH) != 63 and len(FRH) != 65:
+        print "ERORR: Current DB does not cover the length of FRL of your query."
+        print "ERORR: FRH length of your query:", len(FRH)
+        print "ERORR: DB: 63 or 65"
+        sys.exit(1)
+
+
+    return dict(FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4,
+                heavy = FR_H1 + H1 + FR_H2 + H2 + FR_H3 + H3 + print_seq_FR_H4_extra,
+                numbering_H=numbering_H)
+
+
+
+def Extract_FR_CDR_Sequences_Light(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
+    # LIGHT CHAIN
+    # FR_L1	How can we handle missing residue in C/N-terminals?
+    if re.search( r'[A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1): # Change G to [A-Z] (3G04)
+        if   len(FR_L1) == 19: new_number_FR_L1="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 20: new_number_FR_L1="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 21: new_number_FR_L1="3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 22: new_number_FR_L1="2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 23: new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 24:
+            #new_number_FR_L1="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+            FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
+            new_number_FR_L1="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
+
+    elif re.search( r'[A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1):  # Change G to [A-Z] (3G04)
+        if   len(FR_L1) == 19: new_number_FR_L1="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 20: new_number_FR_L1="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 21: new_number_FR_L1="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 22: new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 23:
+            FR_L1 = FR_L1[1:]  # Remove 0th residue 10/24/2012
+            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        elif len(FR_L1) == 24:
+            FR_L1 = FR_L1[2:]  # Remove -1st and 0th residue 10/24/2012
+            new_number_FR_L1="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+        else: print "ERROR: FR_L1 matches [A-Z][QE][A-Z]{8}[A-Z][A-Z]{4}[LVIMF][A-Z]C but length",len(FR_L1),"is not between 19 and 24"
+    else:
+        print 'ERROR: Current code could not assign Chothia numbering of FR_L1 in the query sequence!!! Exiting...'
+
+    # L1
+    if   len(L1) ==  8: new_number_L1="24,25,26,27,28,29,30,34"
+    elif len(L1) ==  9: new_number_L1="24,25,26,27,28,29,30,33,34"
+    elif len(L1) == 10: new_number_L1="24,25,26,27,28,29,30,32,33,34"
+    elif len(L1) == 11: new_number_L1="24,25,26,27,28,29,30,31,32,33,34"
+    elif len(L1) == 12: new_number_L1="24,25,26,27,28,29,30,30A,31,32,33,34"
+    elif len(L1) == 13: new_number_L1="24,25,26,27,28,29,30,30A,30B,31,32,33,34"
+    elif len(L1) == 14: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,31,32,33,34"
+    elif len(L1) == 15: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,31,32,33,34"
+    elif len(L1) == 16: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,31,32,33,34"
+    elif len(L1) == 17: new_number_L1="24,25,26,27,28,29,30,30A,30B,30C,30D,30E,30F,31,32,33,34"
+    else: print "ERROR: L1 length",len(L1),"is not between 8 and 17"
+
+    # FR_L2
+    if len(FR_L2) == 15: new_number_FR_L2="35,36,37,38,39,40,41,42,43,44,45,46,47,48,49"
+    else: print "ERROR: FR_L2 length",len(FR_L2),"is not 15"
+
+    # L2
+    if   len(L2) ==  7: new_number_L2="50,51,52,53,54,55,56"
+    elif len(L2) ==  8: new_number_L2="50,51,52,53,54,54A,55,56"
+    elif len(L2) ==  9: new_number_L2="50,51,52,53,54,54A,54B,55,56"
+    elif len(L2) == 10: new_number_L2="50,51,52,53,54,54A,54B,54C,55,56"
+    elif len(L2) == 11: new_number_L2="50,51,52,53,54,54A,54B,54C,54D,55,56"
+    else: print "ERROR: L2 length",len(L2),"is not between 7 and 11"
+
+    # FR_L3
+    if   len(FR_L3) == 32: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
+    elif len(FR_L3) == 33: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
+    elif len(FR_L3) == 34: new_number_FR_L3="57,58,59,60,61,62,63,64,65,66,66A,66B,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88"
+    else: print "ERROR: FR_L3 length",len(FR_L3),"is not between 32 and 34"
+
+    # L3
+    if   len(L3) ==  5: new_number_L3="89,90,91,92,97"
+    elif len(L3) ==  6: new_number_L3="89,90,91,92,93,97"
+    elif len(L3) ==  7: new_number_L3="89,90,91,92,93,94,97"
+    elif len(L3) ==  8: new_number_L3="89,90,91,92,93,94,95,97"
+    elif len(L3) ==  9: new_number_L3="89,90,91,92,93,94,95,96,97"
+    elif len(L3) == 10: new_number_L3="89,90,91,92,93,94,95,95A,96,97"
+    elif len(L3) == 11: new_number_L3="89,90,91,92,93,94,95,95A,95B,96,97"
+    elif len(L3) == 12: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,96,97"
+    elif len(L3) == 13: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,96,97"
+    elif len(L3) == 14: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,96,97"
+    elif len(L3) == 15: new_number_L3="89,90,91,92,93,94,95,95A,95B,95C,95D,95E,95F,96,97"
+    else: print "ERROR: L3 length",len(L3),"is not between 5 and 15"
+
+    # FR_L4
+    new_number_FR_L4="98,99,100,101,102,103,104,105,106,107,108,109"
+
+    try:
+        (new_number_L1 and new_number_L2 and new_number_L3 and new_number_FR_L1 and new_number_FR_L2 and new_number_FR_L3 and new_number_FR_L4)
+    except:
+        print "Numbering of light chain failed.  Exiting."
         sys.exit(1)
 
     # Converting all new_number_* vars in to a lists
     new_number_L1=new_number_L1.split(',');  new_number_L2=new_number_L2.split(',');  new_number_L3=new_number_L3.split(',');
-    new_number_H1=new_number_H1.split(',');  new_number_H2=new_number_H2.split(',');  new_number_H3=new_number_H3.split(',');
     new_number_FR_L1=new_number_FR_L1.split(',');  new_number_FR_L2=new_number_FR_L2.split(',');  new_number_FR_L3=new_number_FR_L3.split(',');  new_number_FR_L4=new_number_FR_L4.split(',');
-    new_number_FR_H1=new_number_FR_H1.split(',');  new_number_FR_H2=new_number_FR_H2.split(',');  new_number_FR_H3=new_number_FR_H3.split(',');  new_number_FR_H4=new_number_FR_H4.split(',');
-
     print_seq_FR_L1, print_seq_FR_L2, print_seq_FR_L3, print_seq_FR_L4, print_seq_FR_L4_extra = '', '', '', '', ''
-    print_seq_FR_H1, print_seq_FR_H2, print_seq_FR_H3, print_seq_FR_H4, print_seq_FR_H4_extra = '', '', '', '', ''
-    numbering_L, numbering_H = {}, {}
+    numbering_L = {}
 
     # OUTPUT FOR LIGHT CHAIN. This should be save in the file 'numbering_L.txt'.
     for i, s in enumerate(FR_L1): #FR_L1
@@ -817,40 +917,10 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
         if v >= 98 and v <= 104: print_seq_FR_L4 += s
         if v >= 98 and v <= 101: print_seq_FR_L4_extra += s
 
-
-    # OUTPUT FOR HEAVY CHAIN. This should be save in the file 'numbering_H.txt'.
-    for i, s in enumerate(FR_H1):  #FR_H1
-        numbering_H[ new_number_FR_H1[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H1[i])
-        v = int_(new_number_FR_H1[i])
-        if v >= 10 and v <= 25: print_seq_FR_H1 += s
-
-    for i, s in enumerate(H1): numbering_H[ new_number_H1[i] ] = s  #+='%s %s\n' % (s, new_number_H1[i])  # H1
-
-    for i, s in enumerate(FR_H2):  #FR_H2
-        numbering_H[ new_number_FR_H2[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H2[i])
-        v = int_(new_number_FR_H2[i])
-        if (v >= 36 and v <= 39) or (v >= 46 and v <= 49): print_seq_FR_H2 += s
-
-    for i, s in enumerate(H2): numbering_H[ new_number_H2[i] ] = s  #+='%s %s\n' % (s, new_number_H2[i])  # H2
-
-    for i, s in enumerate(FR_H3):  #FR_H3
-        numbering_H[ new_number_FR_H3[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H3[i])
-        v = int_(new_number_FR_H3[i])
-        if v >= 66 and v <= 94: print_seq_FR_H3 += s
-
-    for i, s in enumerate(H3): numbering_H[ new_number_H3[i] ] = s  #+='%s %s\n' % (s, new_number_H3[i])  # H3
-
-    for i, s in enumerate(FR_H4):  #FR_H4
-        numbering_H[ new_number_FR_H4[i] ] = s  #+='%s %s\n' % (s, new_number_FR_H4[i])
-        v = int_(new_number_FR_H4[i])
-        if v >= 103 and v <= 109: print_seq_FR_H4 += s
-        if v >= 103 and v <= 106: print_seq_FR_H4_extra += s
-
     #if Options.verbose: print 'numbering_L:\n', numbering_L
     #if Options.verbose: print 'numbering_H:\n', numbering_H
 
     FRL = print_seq_FR_L1 + print_seq_FR_L2 + print_seq_FR_L3 + print_seq_FR_L4
-    FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4
 
     if len(FRL) != 58 and len(FRL) != 60:
         print "ERROR: Current DB does not cover the length of FRL of your query."
@@ -858,20 +928,31 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
         print "ERROR: DB: 58 or 60"
         sys.exit(1)
 
-    if len(FRH) != 63 and len(FRH) != 65:
-        print "ERORR: Current DB does not cover the length of FRL of your query."
-        print "ERORR: FRH length of your query:", len(FRH)
-        print "ERORR: DB: 63 or 65"
-        sys.exit(1)
-
     return dict(FRL = print_seq_FR_L1 + print_seq_FR_L2 + print_seq_FR_L3 + print_seq_FR_L4,
-                FRH = print_seq_FR_H1 + print_seq_FR_H2 + print_seq_FR_H3 + print_seq_FR_H4,
                 light = FR_L1 + L1 + FR_L2 + L2 + FR_L3 + L3 + print_seq_FR_L4_extra,
-                heavy = FR_H1 + H1 + FR_H2 + H2 + FR_H3 + H3 + print_seq_FR_H4_extra,
-                numbering_L=numbering_L, numbering_H=numbering_H)
+                numbering_L=numbering_L)
+
+def pdbfile_to_sequences(f):
+    prevchain=''
+    protein=dict()
+    for line in file(f):
+       r = map_pdb_string_to_records(line)         # 'r' is a info of a template
+       if r['type'] == "ATOM  ":
+           if r['name'] != ' CA ':
+               continue
+           chain = r['chainID']
+	   resName=r['resName']
+	   #print chain,resName
+           if prevchain != chain:
+               protein[chain]  = edoC_AA[resName]
+               prevchain=chain
+           else:
+               protein[chain] += edoC_AA[resName]
+    return protein
 
 
-def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
+
+def run_blast(cdr_query, prefix, blast, blast_database, verbose=False, heavy_chain_alone=False):
     print '\nRunning %s' % (blast)
     cdr_info, legend = {}, ''  # first reading cdr_info table
     for l in file( _script_path_ + '/info/cdr_info' ):
@@ -881,16 +962,25 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
 
     for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
 
+    loops = ['L1' , 'L2' , 'L3' , 'H1' , 'H2' , 'H3']
+    if heavy_chain_alone:
+        loops = ['H1' , 'H2' , 'H3']
+
     # cdr_info consistency check
     for name, i in cdr_info.items():
-        if sum( [ i[k]!='none' and int(i[k+'_length'])!= len(i[k]) for k in ['L1', 'L2', 'L3', 'H1', 'H2', 'H3'] ]):
+        if sum( [ i[k]!='none' and int(i[k+'_length'])!= len(i[k]) for k in loops ]):
             print 'ERROR: cdr_info length info is inconsistent for line: %s' % name;
-            for k in ['L1' , 'L2' , 'L3' , 'H1' , 'H2' , 'H3']:
+            for k in loops:
                 print k, i[k], i[k+'_length'], len(i[k])
             sys.exit(1)
 
     alignment = {'summary':[]}
-    for k in _framework_names_:
+
+    active_framework_names = _framework_names_
+    if heavy_chain_alone:
+        active_framework_names = heavy_framework_names
+
+    for k in active_framework_names:
         input_query = k + '.fasta'
         output = k + '.align'  # Options.prefix +
 
@@ -1427,6 +1517,9 @@ def filter_by_orientational_distance(k, results, cdr_query, cdr_info):
 
 AA_Code = dict(A='ALA', V='VAL', L='LEU', I='ILE', P='PRO', W='TRP', F='PHE', M='MET', G='GLY', S='SER', T='THR', Y='TYR',
                C='CYS', N='ASN', Q='GLN', K='LYS', R='ARG', H='HIS', D='ASP', E='GLU')
+
+edoC_AA = dict(ALA='A', VAL='V', LEU='L', ILE='I', PRO='P', TRP='W', PHE='F', MET='M', GLY='G', SER='S', THR='T', TYR='Y',
+               CYS='C', ASN='N', GLN='Q', LYS='K', ARG='R', HIS='H', ASP='D', GLU='E')
 
 # PDB Reader code
 # PDB record maps, only ATOMS here for now

@@ -1,6 +1,19 @@
 import sys
 import blargs
 
+# This file defines the Beautifier class which parses Rosetta into an AST
+# and then determines the indentation for each line based on the AST.
+#
+# This file also can be also be run as a stand-alone script to beautify
+# a single source file.  The following two options are useful:
+# --filename <fname> : which file should be beautified
+# --overwrite : overwrite the input file with the beautified version of the file.
+#               This triggers additional safety checks to ensure the logical
+#               structure of the beautified file is identical to that of the original.
+#               In the absence of this flag, the beautified output of X.cc is written
+#               to X.cc.beaut
+
+
 debug = False
 # debug = True
 

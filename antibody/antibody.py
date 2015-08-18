@@ -1180,52 +1180,66 @@ def superimpose_templates(CDRs, prefix, decoy):
     if res: print output;  sys.exit(1)
 
 
-def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, decoy):
-    antibody_graft = rosetta_bin + '/antibody_graft.' + rosetta_platform
-    if os.path.isfile( antibody_graft ):
-        print '\nRunning antibody_graft'
-        # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
-        commandline = 'cd "%s/details" && "%s" -database %s -overwrite -s FR%s.pdb' % (os.path.dirname(prefix), antibody_graft, rosetta_database, decoy) + \
-                      ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
-
-        if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
-        if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
+def run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+                       directory, timelimit, toolname, arguments, direct_output_filename, preferred_output_filename):
+    executable_path = rosetta_bin + '/' + toolname + '.' + rosetta_platform
+    # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
+    commandline = "cd '%s' && %s %s -database %s -overwrite %s" % (directory,
+                              ("ulimit -t %d &&" % timelimit) if timelimit else '',
+                                  executable_path, rosetta_database, arguments)
+    if os.path.isfile( executable_path ):
+        print '\nRunning %s as %s' % (toolname,executable_path)
+        if Options.verbose:
+            print commandline, output
         res, output = commands.getstatusoutput(commandline)
-        if Options.verbose or res: print commandline, output
-        if res: print 'Rosetta run terminated with Error!'; sys.exit(1)
-        model_file_prefix = 'grafted.' + decoy;  shutil.move(prefix+'details/FR'+decoy+'_0001.pdb', prefix+model_file_prefix+'.pdb')
+        if res:
+            print 'Rosetta run terminated with Error %d ! The command executed was:\n%s' % (res,commandline)
+            return(res)
+        shutil.move(direct_output_filename, preferred_output_filename)
+        return res
     else:
-        print 'Rosetta executable %s was not found, skipping Rosetta run...' % antibody_graft
+        print "Rosetta tool '%s' has no executable at '%s'." % (toolname,executable_path)
+        return -1
+
+def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, decoy):
+    model_file_prefix = 'grafted.' + decoy;
+    direct_output_filename = prefix+'details/FR'+decoy+'_0001.pdb'
+    preferred_output_filename = prefix+model_file_prefix+'.pdb'
+
+    print '\nRunning antibody_graft'
+    # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
+    commandline = ' -s FR'+decoy+'.pdb '
+    commandline += ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
+    if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
+    if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
+    if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+			prefix+'details', 0, "antibody_graft", commandline,
+			direct_output_filename, preferred_output_filename):	# output is not in details folder
+        print "Error: Could not run essential antibody_graft application. Cannot continue.\n"
         return
 
     if Options.idealize:
-        idealize_jd2 = rosetta_bin + '/idealize_jd2.' + rosetta_platform
-        if os.path.isfile( idealize_jd2 ):
-            print 'Running idealize_jd2'
-            commandline = 'cd "%s" && "%s" -database %s -overwrite' % (os.path.dirname(prefix), idealize_jd2, rosetta_database) + \
-                          ' -fast -s %s.pdb -ignore_unrecognized_res -scorefile score-idealize.sf' % model_file_prefix
-            res, output = commands.getstatusoutput(commandline)
-            if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
-            shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.idealized.pdb');  model_file_prefix += '.idealized'
-        else:
-            print 'Rosetta executable %s was not found, skipping Rosetta run...' % idealize_jd2
+        commandline = ' -fast -s %s.pdb -ignore_unrecognized_res -scorefile score-idealize.sf' % model_file_prefix
+        direct_output_filename = prefix + model_file_prefix + '_0001.pdb'
+        preferred_output_filename = prefix + model_file_prefix + '.idealized.pdb'
+        if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+			prefix, 0, "idealize_jd2", commandline,			# input is not in details folder
+			direct_output_filename, preferred_output_filename):	# output is not in details folder
+            print 'Rosetta run terminated with Error!  Commandline: %s' % commandline
             return
+        model_file_prefix += '.idealized'
 
     if Options.relax:
-        relax = rosetta_bin + '/relax.' + rosetta_platform
-        if os.path.isfile( relax ):
-            print 'Running relax with all-atom constraint'
-            commandline = 'cd "%s" && %s "%s" -database %s -overwrite' % (os.path.dirname(prefix), 'ulimit -t %s &&' % Options.timeout if Options.timeout else '', relax, rosetta_database) + \
-                          ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
+        commandline = ' -s %s.pdb -ignore_unrecognized_res -relax:fast -relax:constrain_relax_to_start_coords' % model_file_prefix + \
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc -scorefile score-relax.sf'
-            res, output = commands.getstatusoutput(commandline)
-            if Options.verbose or res: print commandline, output
-            if res: print 'Rosetta run terminated with Error!  Commandline: %s' % commandline; sys.exit(1)
-            shutil.move(prefix + model_file_prefix + '_0001.pdb', prefix + model_file_prefix + '.relaxed.pdb');  model_file_prefix += '.relaxed'
-        else:
-            print 'Rosetta executable %s was not found, skipping Rosetta run...' % relax
+        direct_output_filename = prefix + model_file_prefix + '_0001.pdb'
+        preferred_output_filename = prefix + model_file_prefix + '.relaxed.pdb'
+        if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+			prefix, Options.timeout, "relax", commandline,  # input and output are not in details folder
+			direct_output_filename, preferred_output_filename):
+            print 'Rosetta run terminated with Error!  Commandline: %s' % commandline
             return
+        model_file_prefix += '.relaxed'
 
     shutil.copy(prefix + model_file_prefix + '.pdb', prefix+'model.'+decoy+'.pdb')
     cter = kink_or_extend(CDRs)

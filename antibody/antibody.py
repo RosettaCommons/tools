@@ -431,6 +431,10 @@ def main(args):
 
 ########################################################
 def read_fasta_file(file_name):
+    """ return array of sequences from FASTA formatted file
+    
+    file_name -- relative or absolute path to FASTA file
+    """
     seqArray=[]
     seqArrayNames=[]
     seq=""
@@ -447,10 +451,21 @@ def read_fasta_file(file_name):
 
 
 def write_fasta_file(file_name, data, prefix):
+    """ writes fasta file
+
+    file_name -- name of file, will also be header / sequence name
+    data -- the single sequence to be written
+    prefix -- path prepended to the filename, explicitly have a directory separator if needed
+    """
     with file(prefix+file_name+'.fasta', 'w') as f: f.write('> %s\n' % file_name);  f.write(data); f.write('\n')
 
 
 def write_results(CDRs, prefix):
+    """ writes all CDRs into separate FASTA formatted files
+
+    CDRs -- created by function IdentifyCDRs
+    prefix -- path prepended to the filename, explicitly have a directory separator if needed
+    """
     #with file(prefix+'cdr.json', 'w') as f: json.dump(CDRs, f, sort_keys=True, indent=2)
     for k in [i for i in CDRs if not i.startswith('numbering_')]: write_fasta_file(k, CDRs[k], prefix)
     for n in [i for i in CDRs if i.startswith('numbering_')]:
@@ -459,6 +474,11 @@ def write_results(CDRs, prefix):
 
 
 def IdentifyCDRs(light_chain, heavy_chain):
+    """ Determination of loops in both light and heavy chains
+
+    light_chain -- string representation of light chain
+    heavy_chain -- string representation of heavy chain
+    """
 
     L1_pattern=r'C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)'
     L3_pattern=r'C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)'
@@ -600,9 +620,15 @@ def IdentifyCDRs(light_chain, heavy_chain):
     return res
 
 
-def int_(s): return int( re.sub('[A-Z]', '', s) )  #v = int( re.sub('[A-Z]', '', new_number_FR_L1) )  # $new_number_FR_L1[$i] =~ s/[A-Z]//     #new_number_FR_L1[i] = string.translate(new_number_FR_L1[i], None, string.ascii_letters)
+def int_(s):
+    """ Removes all capital letters from its argument, returns int value of remainder
+    """
+    return int( re.sub('[A-Z]', '', s) )  #v = int( re.sub('[A-Z]', '', new_number_FR_L1) )  # $new_number_FR_L1[$i] =~ s/[A-Z]//     #new_number_FR_L1[i] = string.translate(new_number_FR_L1[i], None, string.ascii_letters)
 
 def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='', FR_L2='', FR_L3='', FR_L4='', FR_H1='', FR_H2='', FR_H3='', FR_H4=''):
+    """ Find Cothia numbering for loops and conserved regions
+    """
+
     # LIGHT CHAIN
     # FR_L1	How can we handle missing residue in C/N-terminals?
     if re.search( r'[A-Z][QE][A-Z]{9}[A-Z][A-Z]{4}[LVIMF][A-Z]C', FR_L1): # Change G to [A-Z] (3G04)
@@ -872,6 +898,9 @@ def Extract_FR_CDR_Sequences(L1='', L2='', L3='', H1='', H2='', H3='', FR_L1='',
 
 
 def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
+    """ run CDRs against local database of known Ab structures
+    """
+
     print '\nRunning %s' % (blast)
     cdr_info, legend = {}, ''  # first reading cdr_info table
     for l in file( _script_path_ + '/info/cdr_info' ):
@@ -1004,7 +1033,10 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
     legend.remove('query-id'); legend.insert(1, 'resolution');  return alignment, legend
 
 def create_virtual_template_pdbs(prefix, decoy):
-    # Make a template PDB file, which has psuedo atoms, so that the query and a template can have the same length sequence.
+    """
+    Make a template PDB file, which has pseudo atoms, so that the query and a template can have the same length sequence.
+    """
+
     for chain in [ 'L', 'H' ]:
         with file(prefix+'/template.tmp.FR'+chain+'.'+str(decoy)+'.pdb', 'w') as o:
             # Count the number of lines of a template PDB file
@@ -1163,6 +1195,9 @@ write "%(prefix)s/fitted.H.pdb"
 quit''' }
 
 def superimpose_templates(CDRs, prefix, decoy):
+    """ Use PROFIT to align CDRs with templates
+    """
+
     for chain in profit_templates:
         f_name = prefix + 'profit-%s' % chain
         with file(f_name+'.in', 'w') as f: f.write(profit_templates[chain] % vars() )
@@ -1180,8 +1215,22 @@ def superimpose_templates(CDRs, prefix, decoy):
     if res: print output;  sys.exit(1)
 
 
-def run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+def run_rosetta_single(CDRs, rosetta_bin, rosetta_platform, rosetta_database,
                        directory, timelimit, toolname, arguments, direct_output_filename, preferred_output_filename):
+    """ Wrapper for the execution of a Rosetta binary
+
+    CDRs -- dict describing complementarity determining regions
+    rosetta_bin -- directory in which to expect the Rosetta binary
+    rosetta_platform -- platform string indicating the binary's architecture and the compiler
+    rosetta_database -- location of the Rosetta database, full path
+    directory -- path to directory in which to perform the execution
+    timelimit -- maximal allowed limination of the execution of the tool, passed as a parameter to ulimit, so the execution will be halted at that time, if set
+    toolname -- the platform-independent name of the tool
+    arguments -- string of extra command line arguments to be passed to the tool
+    direct_output_filename -- where the output is put
+    preferred_output_filename -- to where the output is moved after the execution
+    """
+
     executable_path = rosetta_bin + '/' + toolname + '.' + rosetta_platform
     # Sergey: Removing ' -restore_pre_talaris_2013_behavior' + \  because it lead to segfault on mpi-intel build
     commandline = "cd '%s' && %s %s -database %s -overwrite %s" % (directory,
@@ -1212,7 +1261,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, d
     commandline += ' -antibody::h3_no_stem_graft -scorefile score-graft.sf -check_cdr_chainbreaks false'
     if Options.constant_seed: commandline = commandline + ' -run:constant_seed'
     if Options.quick: commandline = commandline + ' -run:benchmark -antibody:stem_optimize false'
-    if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+    if run_rosetta_single(CDRs, rosetta_bin, rosetta_platform, rosetta_database,
 			prefix+'details', 0, "antibody_graft", commandline,
 			direct_output_filename, preferred_output_filename):	# output is not in details folder
         print "Error: Could not run essential antibody_graft application. Cannot continue.\n"
@@ -1222,7 +1271,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, d
         commandline = ' -fast -s %s.pdb -ignore_unrecognized_res -scorefile score-idealize.sf' % model_file_prefix
         direct_output_filename = prefix + model_file_prefix + '_0001.pdb'
         preferred_output_filename = prefix + model_file_prefix + '.idealized.pdb'
-        if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+        if run_rosetta_single(CDRs, rosetta_bin, rosetta_platform, rosetta_database,
 			prefix, 0, "idealize_jd2", commandline,			# input is not in details folder
 			direct_output_filename, preferred_output_filename):	# output is not in details folder
             print 'Rosetta run terminated with Error!  Commandline: %s' % commandline
@@ -1234,7 +1283,7 @@ def run_rosetta(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database, d
                           ' -relax:coord_constrain_sidechains -relax:ramp_constraints false -ex1 -ex2 -use_input_sc -scorefile score-relax.sf'
         direct_output_filename = prefix + model_file_prefix + '_0001.pdb'
         preferred_output_filename = prefix + model_file_prefix + '.relaxed.pdb'
-        if run_rosetta_single(CDRs, prefix, rosetta_bin, rosetta_platform, rosetta_database,
+        if run_rosetta_single(CDRs, rosetta_bin, rosetta_platform, rosetta_database,
 			prefix, Options.timeout, "relax", commandline,  # input and output are not in details folder
 			direct_output_filename, preferred_output_filename):
             print 'Rosetta run terminated with Error!  Commandline: %s' % commandline
@@ -1281,6 +1330,14 @@ def kink_or_extend(CDRs):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 0.523 0.698 200; KINK
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def output_cter_constraint(base,prefix,decoy):
+    """Output kink constraint files for a set of antibodies.
+    
+    FIXME: A better description is needed - why for instance is the decoy not consituting to f ?
+
+    base -- 'KINK' or 'EXTEND'
+    prefix -- string preprended to the output filenames, this time connected with a '/'
+    decoy -- a number representing a particular structural variant
+    """
     # Jianqing's original
     cnt=0
     f=open(prefix+'cter_constraint', 'w')
@@ -1312,6 +1369,9 @@ def output_cter_constraint(base,prefix,decoy):
 
 # Various filter function
 def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):
+    """ Template filter for sequence identity
+    """
+
     if Options.verbose: print 'filtering by sequence identity...'
     #print results
 
@@ -1335,6 +1395,13 @@ def filter_by_sequence_homolog(k, results, cdr_query, cdr_info):
 
 
 def sid_checker(seq_q, seq_t):
+    """ Returns fraction of residues that are identical
+
+    Sequences are expected to be of equal length. Otherwise 0 is returned.
+
+    seq_q -- first character array
+    seq_t -- second character array
+    """
     seq_lenq  = len(seq_q)
     seq_lent = len(seq_t)
 
@@ -1354,6 +1421,8 @@ def sid_checker(seq_q, seq_t):
 
 
 def filter_by_sequence_length(k, results, cdr_query, cdr_info):
+    """ Template filter by sequence length
+    """
     if Options.verbose: print 'filtering by sequence length...'
 
     for r in results[:]:
@@ -1376,6 +1445,8 @@ def filter_by_sequence_length(k, results, cdr_query, cdr_info):
 
 
 def filter_by_alignment_length(k, results, cdr_query, cdr_info):
+    """ Template filter by alignment length
+    """
     for r in results[:]:
         pdb = r['subject-id']
         if k == 'H3' and int(r['alignment-length']) < 0.10 * len( cdr_info[pdb]['H3'] ): results.remove(r)
@@ -1385,6 +1456,8 @@ def filter_by_alignment_length(k, results, cdr_query, cdr_info):
 
 
 def filter_by_template_resolution(k, results, cdr_query, cdr_info):
+    """ Template filter by resolution
+    """
     for r in results[:]:
         pdb = r['subject-id']
         if float(cdr_info[pdb]['resolution']) > 2.8: results.remove(r)
@@ -1392,6 +1465,8 @@ def filter_by_template_resolution(k, results, cdr_query, cdr_info):
 
 
 def filter_by_template_bfactor(k, results, cdr_query, cdr_info):
+    """ Template filter by bfactor
+    """
     bfactor = {}
 
     if k in ['L1', 'L2', 'L3', 'H1', 'H2', 'H3']:
@@ -1406,6 +1481,11 @@ def filter_by_template_bfactor(k, results, cdr_query, cdr_info):
 
 
 def filter_by_outlier(k, results, cdr_query, cdr_info):
+    """ Template filter by outlier
+    
+    FIXME: Some better description may help
+    """
+
     outlier = {}
     for line in file( _script_path_ + '/info/outlier_list' ): outlier[tuple(line.split()[:2])] = line.split()[2] == 'true'
     for r in results[:]:
@@ -1414,8 +1494,13 @@ def filter_by_outlier(k, results, cdr_query, cdr_info):
         if outlier.get( (pdb, k), False ): results.remove(r)
         if Options.verbose and r not in results: print 'Filter outlier, removing:%s' % pdb
 
-# Trajectory dependent; should be kept as last filter implemented
 def filter_by_orientational_distance(k, results, cdr_query, cdr_info):
+    """ Template filter by operational distance
+
+    This filter is trajectory dependent; should be kept as last filter implemented
+
+    """
+
     if Options.verbose: print 'filtering by orientational distance...'
     if k in ['light_heavy']:
         for i in range(0, Options.number_of_templates):
@@ -1470,6 +1555,12 @@ PDB_Records = {
 }
 
 def map_pdb_string_to_records(s):
+    """ Abstraction of single line of PDB entry into a Python structure
+
+    Neat transformation of position specific information from the line of a PDB entry into an array of Python dictionary.
+
+    s -- line of ASCII-represnted PDB entry
+    """
     rtype = s[:6]
     F = PDB_Records.get(rtype, PDB_Records["UNKNOW"])
     R = {}
@@ -1477,11 +1568,16 @@ def map_pdb_string_to_records(s):
     return R
 
 def records_to_pdb_string(records):
+    """ Transformation of Python dictionary into PDB line
+    """
     res = [' ']*80
     for f in records: res[ PDB_Records['ATOM  '][f][0]-1: PDB_Records['ATOM  '][f][1] ] = records[f]
     return ''.join(res)
 
 def self_test():
+    """ Test assignment of Cothia numbers
+    """
+
     if os.path.isdir(Options.self_test_dir): print 'Removing old self-test-dir %s...' % Options.self_test_dir;  shutil.rmtree(Options.self_test_dir)
     os.makedirs(Options.self_test_dir)  # if not os.path.isdir( Options.self_test_dir ):
 

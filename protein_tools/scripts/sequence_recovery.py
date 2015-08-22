@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 
 import Bio.PDB
 from optparse import OptionParser
@@ -53,7 +53,7 @@ for native_res, designed_res in zip(native_residues,designed_residues):
         designed_sequence += (designed_name)
     except KeyError:
         continue
-        
+
     native_score = native_scores.get_score(native_res.get_id()[1],"total")
     designed_score = designed_scores.get_score(designed_res.get_id()[1],"total")
     delta_score = designed_score-native_score

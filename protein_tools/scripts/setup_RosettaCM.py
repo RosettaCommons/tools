@@ -19,7 +19,7 @@ def is_clustalw_line(line):
 class SingleAlingmnet:
     def __init__(self):
         self.query_sequence = ""
-        
+
         self.query_tag = ""
         self.target_tag = ""
         self.target_pdb_code = ""
@@ -27,10 +27,10 @@ class SingleAlingmnet:
 
         self.query_start = -1
         self.query_aln_seq = ""
-        
+
         self.target_start = -1
         self.target_aln_seq = ""
-        
+
         self.score_line = ""
 
     def read_grishin(self, lines):
@@ -51,7 +51,7 @@ class SingleAlingmnet:
                     return self
                 else:
                     continue
-                
+
             if line.strip() == "#": continue
             if line.find("scores_from_program") == 0:
                 self.score_line = line.strip()
@@ -66,11 +66,11 @@ class SingleAlingmnet:
                     target_start_local,self.target_aln_seq = line.strip().split()
                     self.target_start = int(target_start_local) + 1
         return self
-    
+
     def read_fasta(self, lines):
         aln_line_numbers = [iline for iline in range(len(lines)) if lines[iline][0] == '>']
         assert (len(aln_line_numbers) == 2), "Wrong format for FASTA alignment file"
-            
+
         tag = lines[aln_line_numbers[0]][1:].strip()
         self.target_pdb_code = tag[:4]
         self.target_pdb_chain = tag[4]
@@ -83,7 +83,7 @@ class SingleAlingmnet:
         self.query_start = 1
         for line in lines[aln_line_numbers[1]+1:]:
             self.query_aln_seq += line.strip()
-                
+
     def read_hhsearch(self, lines):
         aln_block = False
         for line in lines:
@@ -95,7 +95,7 @@ class SingleAlingmnet:
                 else:
                     aln_block = False
                     return self
-                    
+
             if aln_block:
                 if line.strip() == "": continue
                 if line[0] == ">":
@@ -157,7 +157,7 @@ class SingleAlingmnet:
             self.query_aln_seq += buff[1]
             block = []
         return self
-        
+
     def grishin_lines(self):
         outlines = []
         outlines.append("## %s %s\n"%(self.query_tag, self.target_tag))
@@ -176,7 +176,7 @@ class SingleAlingmnet:
         assert(len(self.query_aln_seq) == len(self.target_aln_seq))
         seq_id = 0
         query_lenth = 0
-        
+
         for i in range(len(self.query_aln_seq)):
             if self.query_aln_seq[i] != '-':
                 query_lenth += 1
@@ -187,7 +187,7 @@ class SingleAlingmnet:
 class Alignment:
     def __init__(self):
         self.alignments = []
-        
+
     def read_grishin(self, lines):
         aln_block = False
         for line in lines:
@@ -196,7 +196,7 @@ class Alignment:
                 aln_block = True
                 single_aln_lines.append(line)
                 continue
-                
+
             if line[:2] == "--":
                 single_aln_lines.append(line)
                 aln = SingleAlingmnet()
@@ -216,15 +216,15 @@ class Alignment:
                     aln = SingleAlingmnet()
                     aln.read_hhsearch(single_aln_lines)
                     self.alignments.append(aln)
-                    
+
                 single_aln_lines = []
                 single_aln_lines.append(line)
                 aln_block = True
                 continue
-                
+
             if aln_block:
                 single_aln_lines.append(line)
-            
+
         aln = SingleAlingmnet()
         aln.read_hhsearch(single_aln_lines)
         self.alignments.append(aln)
@@ -241,7 +241,7 @@ class Alignment:
                 if len(block) != 0:
                     break
         n_alignments = len(block)-1
-        
+
         for i_aln in range(n_alignments):
             single_aln_lines = []
             block_line_count = 0
@@ -281,7 +281,7 @@ class Alignment:
     def read_vienna(self, lines):
         aln_block = False
         is_query = True
-        
+
         for line in lines:
             if line[0] == ">":
                 aln_block = True
@@ -301,36 +301,36 @@ class Alignment:
                     query_line = alignment_line
                 else:
                     single_aln = SingleAlingmnet()
-                    
+
                     single_aln.query_tag = query_tag
 
                     single_aln.target_tag = target_tag
                     single_aln.target_aln_seq = alignment_line
                     single_aln.target_start = 1
-                    
+
                     pdbtag = target_tag
                     single_aln.target_pdb_code = pdbtag[:4]
                     single_aln.target_pdb_chain = pdbtag[4]
 
                     single_aln.query_aln_seq = query_line
                     single_aln.query_start = 1
-                    
+
                     self.add_alignment(single_aln)
                 is_query=False
         return
-        
+
     def read_modeller(self, lines):
         aln_block = False
         aln_info_defined = False
         is_query = True
-        
+
         for line in lines:
             # parse first line
             if line[:4] == ">P1;":
                 aln_block = True
                 tag = line[4:].strip()
                 continue
-                
+
             # parse second line
             if aln_block and not aln_info_defined:
                 buff = line.strip().split(':')
@@ -342,11 +342,11 @@ class Alignment:
                     tgt_pdb_code = buff[1]
                     tgt_chain = buff[3]
                     tgt_start_seq = int(buff[2])
-                    
+
                 alignment_line = ""
                 aln_info_defined= True
                 continue
-                
+
             # parse aligned sequence
             if aln_block and aln_info_defined:
                 s = line.strip()
@@ -359,7 +359,7 @@ class Alignment:
                         self.target_aln_seq.append(alignment_line)
                         self.target_start.append(tgt_start_seq)
                         self.target_tags.append(tag)
-                        
+
                     # end of alignment process
                     aln_block = False
                     aln_info_defined = False
@@ -367,12 +367,12 @@ class Alignment:
                 else:
                     alignment_line += s
                     continue
-                    
+
         for i_aln in range(len(self.target_aln_seq)):
             self.query_aln_seq.append(query_line)
             self.query_start.append(1)
         return
-            
+
     def write_grishin(self, out_fn):
         assert(len(self.alignments) > 0), "Input alignment empty!!"
         outfile = open(out_fn,'w')
@@ -385,10 +385,10 @@ class Alignment:
         for i in range(len(self.alignments)-1, -1, -1):
             if self.alignments[i].seqence_identity() >= thr:
                 self.alignments.pop(i)
-        
+
     def convert(self, aln_in, aln_in_fmt, aln_out, aln_out_fmt):
         lines_in = open(aln_in).readlines()
-        
+
         if aln_in_fmt == "modeller":
             self.read_modeller(lines_in)
         elif aln_in_fmt == "vie":
@@ -409,7 +409,7 @@ class Alignment:
             print "Do not understand output alignment format: %s"%aln_out_fmt
             sys.exit(-1)
         return
-        
+
 
 def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
     flag_file=open(flag_fn,'w')
@@ -419,7 +419,7 @@ def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
     #flag_file.write("-out:file:silent %s\n"%silent_fn)
     flag_file.write("-parser:protocol %s\n"%xml_fn)
     flag_file.write("-out:file:silent_struct_type binary\n\n")
-    
+
     flag_file.write("# relax options\n")
     flag_file.write("-relax:minimize_bond_angles\n")
     flag_file.write("-relax:minimize_bond_lengths\n")
@@ -431,7 +431,7 @@ def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
     flag_file.write("-use_bicubic_interpolation\n")
     flag_file.write("-hybridize:stage1_probability 1.0\n")
     flag_file.write("-sog_upper_bound 15\n\n")
-    
+
     flag_file.write("# reduce memory footprint\n")
     if args.use_dna:
         flag_file.write("-chemical:exclude_patches Cterm_amidation SpecialRotamer VirtualBB ShoveBB VirtualDNAPhosphate VirtualNTerm CTermConnect sc_orbitals pro_hydroxylated_case1 pro_hydroxylated_case2 ser_phosphorylated thr_phosphorylated  tyr_phosphorylated tyr_sulfated lys_dimethylated lys_monomethylated  lys_trimethylated lys_acetylated glu_carboxylated cys_acetylated tyr_diiodinated N_acetylated C_methylamidated MethylatedProteinCterm\n")
@@ -547,7 +547,7 @@ def download_pdb(pdb_id, dest_dir):
     if args.verbose: print "Running %s"%wget_cmd
     log_lines = os.popen( wget_cmd ).readlines()
     os.system("gunzip -f %s"%dest)
-    
+
     if ( os.path.exists(dest[:-3]) ):
         return dest[:-3]
     else:
@@ -564,7 +564,7 @@ def keep_chain(pdblines, chainID):
         if line[21] in chainID:
             outlines.append(line)
     return outlines
-            
+
 def save_pdb(lines, out_fn):
     out = open(out_fn, 'w')
     for line in lines:
@@ -582,9 +582,9 @@ def download_templates(aln_file):
             tmpl_ids.append(buff[2][:5])
             tmpl_fullnames.append("%s.pdb"%buff[2])
     uniq_tmpl_ids = []
-    for x in tmpl_ids: 
+    for x in tmpl_ids:
         if x not in uniq_tmpl_ids: uniq_tmpl_ids.append(x)
-            
+
     saved_tmpl_fn=[]
     for tmpl in uniq_tmpl_ids:
         pdbcode=tmpl[:4]
@@ -598,7 +598,7 @@ def download_templates(aln_file):
         assert (os.path.exists(saved_pdb)), "File %s doesn't exist"%saved_pdb
         saved_tmpl_fn.append(saved_pdb)
     return saved_tmpl_fn, tmpl_fullnames
-    
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Set up and run RosettaCM')
     parser.add_argument('--fasta', action="store", help='input fasta file',required=True)
@@ -625,20 +625,20 @@ if __name__=="__main__":
         if args.build != 'mpi':
             print "Add \"--build mpi\" for multiple processors"
             sys.exit(-1)
-            
+
     rosetta_exe_ext = "%s.%s%s%s"%(args.build, args.platform, args.compiler, args.compiling_mode)
 
     run_dir = os.path.abspath(args.run_dir)
-    
+
     if args.verbose: print "Using rosetta from",rosetta_bin
     assert(os.path.exists(rosetta_bin)), "%s doesn't exist"%rosetta_bin
     assert(os.path.exists(rosetta_db)), "%s doesn't exist"%rosetta_db
-    
+
     fasta_fn = os.path.abspath(args.fasta)
     if args.alignment != "":
         alignment_fn = os.path.abspath(args.alignment)
         assert(os.path.exists(alignment_fn)), "%s doesn't exist"%alignment_fn
-        
+
     if len(args.templates) != 0:
         input_templates = [os.path.abspath(x) for x in args.templates]
         for x in input_templates:
@@ -657,7 +657,7 @@ if __name__=="__main__":
         if args.alignment_format not in ["grishin", "modeller", "vie", "hhsearch", "clustalw", "fasta"]:
             print "Do not understand input alignment format: %s"%args.alignment_format
             sys.exit(-1)
-        
+
         if args.alignment_format == "grishin":
             os.system("cp %s %s"%(alignment_fn, converted_aln))
         elif args.alignment_format in ["modeller", "hhsearch", "clustalw", "fasta"]:
@@ -672,9 +672,9 @@ if __name__=="__main__":
         command = "/work/yfsong/SVN/fresh/ci_co/rosetta/workspace/workspaces/yfsong/devel/scripts/run_local_align.py --fasta %s --templates %s --out %s"%(fasta_fn, template_filenames, converted_aln)
         if args.verbose: print "Running %s"%command
         os.system(command)
-        
+
     assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
-    
+
     if (not os.path.exists(run_dir)): os.makedirs(run_dir)
     os.chdir(run_dir)
 
@@ -682,7 +682,7 @@ if __name__=="__main__":
     if len(args.setup_script.strip()) > 0:
         # get template files
         templates, template_fullnames = download_templates(converted_aln)
-        
+
         if os.path.exists(args.setup_script):
             command = "%s %s %s hybrid --autofrags"%(args.setup_script, args.fasta, converted_aln)
             os.system(command)
@@ -694,7 +694,7 @@ if __name__=="__main__":
                 if not args.run:
                     print "Run command in the \"hybrid\" directory: %s"%command
                     sys.exit(-1)
-    
+
     # set up RosettaCM
     if (not os.path.exists("hybrid/hybridize0_C1.xml")):
         # get template files
@@ -706,14 +706,14 @@ if __name__=="__main__":
             template_fullnames = ["%s/%s.pdb"%(run_dir, os.path.basename(x)) for x in input_templates]
 
         thread_fullnames = ["%s/%s.pdb"%(run_dir, x.target_tag) for x in alignment.alignments ];
-            
+
         # get partial thread
         exe_name="%s/partial_thread.default.%s%s%s"%(args.rosetta_bin, args.platform, args.compiler, args.compiling_mode)
         command = "%s -database %s -mute all -in:file:fasta %s -in:file:alignment %s -in:file:template_pdb %s -ignore_unrecognized_res"%(exe_name, rosetta_db, fasta_fn, converted_aln, template_filenames)
         if args.verbose: print "Running %s"%command
         loglines = os.popen( command ).readlines()
         for name in thread_fullnames: assert (os.path.exists(name)), "File %s doesn't exist"%(name)
-        
+
         flag_fn = "flags"
         xml_fn = "rosetta_cm.xml"
         silent_out = "rosetta_cm.silent"
@@ -722,7 +722,7 @@ if __name__=="__main__":
         write_stage1_wts("stage1.wts")
         write_stage2_wts("stage2.wts")
         write_stage3_wts("stage3_rlx.wts")
-    
+
         # run hybridization
         exe_name="%s/rosetta_scripts.%s"%(args.rosetta_bin, rosetta_exe_ext)
         if args.j == 1:
@@ -735,10 +735,10 @@ if __name__=="__main__":
             sys.exit(-1)
         else:
             assert (os.path.exists(exe_name)), "Executable %s doesn't exist"%exe_name
-    
+
             if args.verbose: print "Running %s"%command
             loglines = os.popen( command ).readlines()
-        
+
             # selection
             #score_lines= os.popen('grep SCORE: %s'%silent_fn)
             #score_columns =[]
@@ -746,9 +746,9 @@ if __name__=="__main__":
             #    if line.find(" score ") != -1:
             #        score_columns=line.strip().split()
             #        break
-            
+
     os.chdir(curr_dir)
     if not args.keep_files:
         if args.verbose: print "Removing %s"%tempdir
         shutil.rmtree(tempdir)
-        
+

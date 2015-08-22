@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 from optparse import OptionParser
 import subprocess
@@ -88,7 +88,7 @@ for index, line in enumerate(cluster_output):
     if line[2] == "Summary":
         last_summary_index = index
     elif line[1] == "hist":
-        histogram.append( (line[2],line[3]) )        
+        histogram.append( (line[2],line[3]) )
 
 #second pass, start from the last summary, scroll through it to find the cluster tag lines.
 #these come after a block like:

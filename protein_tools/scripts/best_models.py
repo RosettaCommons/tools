@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 
 from optparse import OptionParser
 from rosettautil.rosetta import rosettaScore
@@ -32,9 +32,9 @@ for silent_file in args:
             #print best_models
         #print silent_file
         #print file,score , current_best_score
-    
+
 
 print "file","tag",options.term
 for tag in best_models:
     print best_models[tag][0],best_models[tag][1],best_models[tag][2]
-    
+

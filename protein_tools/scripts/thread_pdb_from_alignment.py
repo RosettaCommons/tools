@@ -1,4 +1,5 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
+
 from Bio import AlignIO
 import Bio.PDB
 from optparse import OptionParser
@@ -33,14 +34,14 @@ alignment_file.close()
 template_struct = util.load_pdb(args[1])
 
 #if len(alignment_data)  != 2:
-#    sys.exit("alignment file must have exactly 2 sequences!") 
+#    sys.exit("alignment file must have exactly 2 sequences!")
 
 #find all the gaps, get numeric IDs from the string tags in the alignment file
 try:
     template_gaps = alignment.find_gaps(alignment_data,options.template)
 except LookupError:
     sys.exit("could not find "+options.template+" in alignment file")
-try:    
+try:
     target_gaps = alignment.find_gaps(alignment_data,options.target)
 except LookupError:
     sys.exit("could not find "+options.target+" in alignment file")
@@ -61,13 +62,13 @@ gapped_template = pdbStat.find_gaps(template_struct,template_sequence,options.ch
 #if you have an alignment gap thats larger than 1 aa, this script won't work
 for gap in target_gaps:
     if abs(gap[1]-gap[0]) > 1:
-		print "WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. " 
+		print "WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. "
 		print "We cannot completely thread this protein in an automatic way, "
 		print "manual inspection and adjustment of loop files will be required."
 
 #we need to make a new structure, then a new model, then a new chain, then we fill the chain with residues, and atoms
 output_structure_builder = Bio.PDB.StructureBuilder.StructureBuilder()
-output_structure_builder.init_structure(args[2]) 
+output_structure_builder.init_structure(args[2])
 output_structure_builder.init_model(1) #there is only one model
 output_structure_builder.init_chain(options.chain) #there is only one chain, same ID as the template
 output_structure_builder.init_seg("")
@@ -114,7 +115,7 @@ for align_resn, temp_resn,gap_temp_resn in zip(alignment_data[target_id],alignme
         #align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
         temp_name3 = amino_acids.one_letter_names[temp_resn]
         #temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
-        current_res = template_residues.next() #pull the next residue out of the pdb file 
+        current_res = template_residues.next() #pull the next residue out of the pdb file
         if(current_res.get_resname() != temp_name3):  #if the current residue from the pdb isnt the same type as the current from the template, something's broken
             print current_res.get_resname(),temp_name3
             sys.exit("Residue mismatch between alignment and PDB, check that PDB sequence and alignment sequence are identical")

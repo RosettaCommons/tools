@@ -38,7 +38,7 @@ if( os.path.exists(scriptdir+"/IWYU_provided_by.txt") ):
 
 
 #These are the clang commandline flags for debug mode, stripped of warning issues
-commandline_flags = '''-c -std=c++98 -isystem external/boost_1_55_0/ -isystem external/include/ -isystem external/dbio/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -fPIC -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DPTR_BOOST -Isrc -Iexternal/include -Isrc/platform/linux/32/clang/3.4 -Isrc/platform/linux/32/clang -Isrc/platform/linux/32 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/dbio '''.split()
+commandline_flags = '''-c -std=c++98 -isystem external/boost_1_55_0/ -isystem external/include/ -isystem external/dbio/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -fPIC -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DPTR_BOOST -Isrc -Iexternal/include -Isrc/platform/linux/32/clang/3.4 -Isrc/platform/linux/32/clang -Isrc/platform/linux/32 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/dbio -ferror-limit=1'''.split()
 
 ## -I/usr/include -I/usr/local/include
 
@@ -121,6 +121,8 @@ class IWYUChanges:
         for name, line in self.deletions:
             if (line.find("DO NOT AUTO-REMOVE") != -1 or
                     line.find("DO NOT AUTOREMOVE") != -1):
+                # Note that this isn't going to trigger as
+                # IWYU strips out the comments from the line
                 self.allheaders.add(name)
                 self.alldeletions.remove(name)
             elif name in self.forwards:
@@ -181,14 +183,17 @@ class IWYUChanges:
                         #Something went wrong - punt
                         newadd.append( (name,line) )
                 elif len(PROVIDED_BY[name]) == 1:
-                    #If it's provided by a single header, then replace it
-                    if '//' in line:
-                        comment = " " + line[line.index('//'):]
-                    else:
-                        comment = ''
-                    newadd.append( (PROVIDED_BY[name][0], "#include <"+PROVIDED_BY[name][0]+">"+comment))
-                    self.allheaders.add(PROVIDED_BY[name][0])
+                    #If it's provided by a single header, then replace it - but only if we don't already have it
                     self.allheaders.remove(name)
+                    replacement_name = PROVIDED_BY[name][0]
+                    if replacement_name not in self.allheaders:
+                        #print "REPLACING", name, "with", replacement_name
+                        if '//' in line:
+                            comment = " " + line[line.index('//'):]
+                        else:
+                            comment = ''
+                        newadd.append( (replacement_name, "#include <"+replacement_name+">"+comment))
+                        self.allheaders.add(replacement_name)
                 else:
                     #Spoilt for choice, stick to the current one
                     newadd.append( (name,line) )
@@ -284,15 +289,17 @@ class IWYUChanges:
             line = line.strip()
             if len(line) == 0 or line.startswith("//"):
                 continue
-            if (line.startswith("#include") or
-                    line.startswith("#ifndef") or line.startswith("#define") or
-                    line.startswith("#ifdef") or line.startswith("#endif") ):
+            if line.startswith("#"):
                 insertion_pos = ii+1
             else:
                 break
 
         print "~~~~~ Deleting"
         for lineno in deletion_lines:
+            if ("DO NOT AUTO-REMOVE" in lines[ lineno - 1 ] or
+                    "DO NOT AUTOREMOVE" in lines[ lineno - 1 ]):
+                # We have to do this here, as earlier IWYU striped out the comments
+                continue
             newline = "// AUTO-REMOVED " + lines[ lineno - 1 ]
             sys.stdout.write(newline)
             lines[ lineno - 1 ] = newline
@@ -332,7 +339,7 @@ class IWYUChanges:
         name = name[:-1] + ".fwd.hh"
         if name in NONSTANDARD_FORWARDS:
             name = NONSTANDARD_FORWARDS[ name ]
-        if not os.path.exists( 'src/' + name ):
+        if not os.path.exists( 'src/' + name ) and not os.path.exists( 'external/include/' + name ):
             raise ValueError("Forward header '"+name+"' not found - either create or list in NONSTANDARD_FORWARDS")
         return name
 
@@ -355,16 +362,19 @@ def check_file(filename, options):
     block = []
     for line in lines:
         if line.startswith('---'):
-            mods.append( IWYUChanges(block) )
+            # Really hacky error detecting code, but ...
+            if not block[1].endswith("should add these lines:") and "has correct" not in ''.join(block):
+                print "###################################################"
+                print ">>>> ERROR with", filename, "<<<<"
+                sys.stdout.write('\n'.join(lines)  )
+                print ">>>> Skipping processing for", filename, "<<<<"
+                print "###################################################"
+                return [] # Abort the whole processing endeavor
+            else:
+                mods.append( IWYUChanges(block) )
             block = []
         else:
             block.append(line)
-
-    if len(mods) == 0 and "has correct" not in ''.join(lines):
-        print "###################################################"
-        print "ERROR with ", filename
-        print '\n'.join(lines)
-        print "###################################################"
 
     return mods
 

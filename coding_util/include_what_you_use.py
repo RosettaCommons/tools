@@ -353,6 +353,7 @@ def check_file(filename, options):
     stdout, stderr = run.communicate()
 
     if options.f:
+        sys.stdout.write( command + "\n")
         sys.stdout.write( stderr )
         sys.stdout.write( "%%%\n" )
 

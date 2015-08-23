@@ -4,7 +4,13 @@
 #The format is the "naive" forward header location, 
 #followed by the actual location, space separated.
 # For example:
-# core/foo/Bar.fwd.hh core/foo/BazAndBar.hh
+# core/foo/Bar.fwd.hh core/foo/BazAndBar.fwd.hh
+
+#external
+fem/common.fwd.hh fem/common.hh
+
+numeric/expression_parser/ASTVisitor.fwd.hh numeric/expression_parser/Arithmetic.fwd.hh 
+numeric/random/RandomGenerator.fwd.hh numeric/random/random.fwd.hh
 
 basic/MetricValueBase.fwd.hh basic/MetricValue.fwd.hh
 

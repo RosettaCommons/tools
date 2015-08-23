@@ -37,6 +37,10 @@ assert.h utility/backtrace.hh utility/assert.hh utility/exit.hh
 exception utility/excn/Exceptions.hh #NOSUB
 utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh #NOSUB
 
+#exit
+stdlib.h utility/exit.hh #NOSUB
+cstdlib utility/exit.hh #NOSUB
+
 utility/thread/backwards_thread_local.hh basic/Tracer.hh #NOSUB
 
 basic/options/keys/OptionKeys.hh basic/options/option.hh #NOSUB

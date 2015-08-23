@@ -1,0 +1,111 @@
+#This is a helper file for the include_what_you_use.py script
+#
+# This file lists alternative locations from which one can consider to get
+# a particular header. That is if you have any of the headers B, C, D, or E, 
+# you shouldn't need to include the file A.
+#
+# In general, only add a header as a primary entry here if people shouldn't
+# be including the header directly. (It's better to be explicit.)
+#
+# Note that for a two entry line, the entry will be substituted even if it's
+# not present, unless a #NOSUB entry is also on the line
+
+# size_t
+cstddef platform/types.hh numeric/types.hh core/types.hh
+stddef.h platform/types.hh numeric/types.hh core/types.hh
+platform/types.hh numeric/types.hh core/types.hh
+numeric/types.hh core/types.hh #NOSUB
+
+vector utility/vector1.hh utility/vector0.hh utility/vectorL.hh
+utility/vectorL.hh utility/vector1.hh utility/vector0.hh
+utility/vector1_bool.hh utility/vector1.hh
+utility/vector0_bool.hh utility/vector0.hh
+utility/vectorL_bool.hh utility/vector1_bool.hh utility/vector1.hh utility/vector0_bool.hh utility/vector0.hh utility/vectorL.hh
+
+boost/smart_ptr/enable_shared_from_this.hpp utility/pointer/owning_ptr.hh
+boost/smart_ptr/shared_ptr.hpp utility/pointer/owning_ptr.hh
+boost/smart_ptr/detail/operator_bool.hpp utility/pointer/owning_ptr.hh
+boost/enable_shared_from_this.hpp utility/pointer/owning_ptr.hh
+utility/pointer/boost/owning_ptr.hh utility/pointer/owning_ptr.hh
+utility/pointer/boost/ReferenceCount.hh utility/pointer/ReferenceCount.hh 
+boost/smart_ptr/weak_ptr.hpp utility/pointer/access_ptr.hh 
+
+boost/smart_ptr/scoped_ptr.hpp boost/scoped_ptr.hpp
+
+utility/backtrace.hh utility/assert.hh utility/exit.hh
+assert.h utility/backtrace.hh utility/assert.hh utility/exit.hh
+exception utility/excn/Exceptions.hh #NOSUB
+utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh #NOSUB
+
+utility/thread/backwards_thread_local.hh basic/Tracer.hh #NOSUB
+
+basic/options/keys/OptionKeys.hh basic/options/option.hh #NOSUB
+utility/options/BooleanOption.hh basic/options/option.hh #NOSUB
+utility/options/BooleanVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/FileOption.hh basic/options/option.hh #NOSUB
+utility/options/FileVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/IntegerOption.hh basic/options/option.hh #NOSUB
+utility/options/IntegerVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/PathOption.hh basic/options/option.hh #NOSUB
+utility/options/PathVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/RealOption.hh basic/options/option.hh #NOSUB
+utility/options/RealVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/ResidueChainOption.hh basic/options/option.hh #NOSUB
+utility/options/ResidueChainVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/ScalarOption_T_.hh basic/options/option.hh #NOSUB
+utility/options/StringOption.hh basic/options/option.hh #NOSUB
+utility/options/StringVectorOption.hh basic/options/option.hh #NOSUB
+utility/options/VectorOption_T_.hh basic/options/option.hh #NOSUB
+
+ObjexxFCL/string.functions.hh utility/string_util.hh #NOSUB
+
+ObjexxFCL/FArray1.hh ObjexxFCL/FArray1D.hh #NOSUB
+ObjexxFCL/FArray2.hh ObjexxFCL/FArray2D.hh #NOSUB
+ObjexxFCL/FArray3.hh ObjexxFCL/FArray3D.hh #NOSUB
+
+# std::pair is defined in <utility>, but we normally get it from <map>
+utility map #NOSUB
+
+# asserts
+assert.h utility/assert.hh
+cassert utility/assert.hh
+
+# Regular C names to C++ names
+math.h cmath
+stddef.h csddef
+stdio.h cstdio
+stdlib.h cstdlib
+string.h cstring
+time.h ctime
+
+
+# Boost is killer with nested includes:
+boost/spirit/home/classic/attribute/closure.hpp boost/spirit/include/classic_closure.hpp #NOSUB
+boost/spirit/home/classic/core/composite/actions.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/alternative.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/impl/alternative.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/impl/kleene_star.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/impl/optional.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/impl/positive.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/impl/sequence.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/kleene_star.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/composite/sequence.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/impl/match.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/impl/parser.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/nil.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/non_terminal/grammar.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/non_terminal/impl/rule.ipp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/non_terminal/rule.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/parser.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/primitives/primitives.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/scanner/scanner.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/iterator/position_iterator.hpp boost/spirit/include/classic_position_iterator.hpp
+boost/spirit/home/classic/iterator/position_iterator_fwd.hpp boost/spirit/include/classic_position_iterator.hpp
+boost/spirit/home/classic/phoenix/actor.hpp boost/spirit/include/phoenix1_actor.hpp boost/spirit/include/phoenix1_functions.hpp
+boost/spirit/home/classic/phoenix/binders.hpp boost/spirit/include/phoenix1_binders.hpp
+boost/spirit/home/classic/phoenix/casts.hpp boost/spirit/include/phoenix1_casts.hpp
+boost/spirit/home/classic/phoenix/closures.hpp boost/spirit/include/phoenix1_closures.hpp boost/spirit/include/classic_attribute.hpp
+boost/spirit/home/classic/phoenix/operators.hpp boost/spirit/include/phoenix1_operators.hpp
+boost/spirit/home/classic/phoenix/primitives.hpp boost/spirit/include/phoenix1_primitives.hpp
+boost/spirit/home/classic/utility/functor_parser.hpp boost/spirit/include/classic_functor_parser.hpp
+boost/iterator/iterator_facade.hpp boost/spirit/include/phoenix1_closures.hpp boost/spirit/include/classic_attribute.hpp

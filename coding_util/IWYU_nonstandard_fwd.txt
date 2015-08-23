@@ -1,0 +1,14 @@
+#This is a helper file for the include_what_you_use.py script
+#
+#This file lists non-standard locations for forward declaration
+#The format is the "naive" forward header location, 
+#followed by the actual location, space separated.
+# For example:
+# core/foo/Bar.fwd.hh core/foo/BazAndBar.hh
+
+basic/MetricValueBase.fwd.hh basic/MetricValue.fwd.hh
+
+core/chemical/RingConformer.fwd.hh core/chemical/RingConformerSet.fwd.hh
+
+protocols/evaluation/MetaPoseEvaluator.fwd.hh protocols/evaluation/PoseEvaluator.fwd.hh
+

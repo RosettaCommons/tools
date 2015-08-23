@@ -72,7 +72,7 @@ cassert utility/assert.hh
 
 # Regular C names to C++ names
 math.h cmath
-stddef.h csddef
+stddef.h cstddef
 stdio.h cstdio
 stdlib.h cstdlib
 string.h cstring

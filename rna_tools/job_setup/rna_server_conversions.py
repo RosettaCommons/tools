@@ -139,7 +139,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             all_pairs.append( [res1,res2] )
             if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
                 #raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
-                print "[WARNING] Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
+                print "[WARNING] Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2)
                 continue
 
     if ( len (left_brackets) > 0 ):

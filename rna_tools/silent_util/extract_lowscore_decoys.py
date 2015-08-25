@@ -299,6 +299,7 @@ for infile in infiles:
         else:
             command += " -out:file:residue_type_set rna "
             # will default to fa_standard, which holds rna residue types now.
+            command += " -chemical:patch_selectors VIRTUAL_RNA_RESIDUE VIRTUAL_PHOSPHATE VIRTUAL_RIBOSE "
             pass
 
         if output_virtual: command += " -output_virtual "

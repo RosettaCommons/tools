@@ -44,22 +44,8 @@ cstdlib utility/exit.hh #NOSUB
 utility/thread/backwards_thread_local.hh basic/Tracer.hh #NOSUB
 
 basic/options/keys/OptionKeys.hh basic/options/option.hh #NOSUB
-utility/options/BooleanOption.hh basic/options/option.hh #NOSUB
-utility/options/BooleanVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/FileOption.hh basic/options/option.hh #NOSUB
-utility/options/FileVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/IntegerOption.hh basic/options/option.hh #NOSUB
-utility/options/IntegerVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/PathOption.hh basic/options/option.hh #NOSUB
-utility/options/PathVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/RealOption.hh basic/options/option.hh #NOSUB
-utility/options/RealVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/ResidueChainOption.hh basic/options/option.hh #NOSUB
-utility/options/ResidueChainVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/ScalarOption_T_.hh basic/options/option.hh #NOSUB
-utility/options/StringOption.hh basic/options/option.hh #NOSUB
-utility/options/StringVectorOption.hh basic/options/option.hh #NOSUB
-utility/options/VectorOption_T_.hh basic/options/option.hh #NOSUB
+utility/options/*Option.hh basic/options/option.hh #NOSUB
+utility/options/*Option_T_.hh basic/options/option.hh #NOSUB
 
 ObjexxFCL/string.functions.hh utility/string_util.hh #NOSUB
 
@@ -82,27 +68,12 @@ stdlib.h cstdlib
 string.h cstring
 time.h ctime
 
+# Not strictly true, but needed for correct CLOCKS_PER_SEC on my machine
+sys/time.h time.h ctime 
 
 # Boost is killer with nested includes:
 boost/spirit/home/classic/attribute/closure.hpp boost/spirit/include/classic_closure.hpp #NOSUB
-boost/spirit/home/classic/core/composite/actions.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/alternative.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/impl/alternative.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/impl/kleene_star.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/impl/optional.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/impl/positive.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/impl/sequence.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/kleene_star.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/composite/sequence.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/impl/match.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/impl/parser.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/nil.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/non_terminal/grammar.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/non_terminal/impl/rule.ipp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/non_terminal/rule.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/parser.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/primitives/primitives.hpp boost/spirit/include/classic_core.hpp #NOSUB
-boost/spirit/home/classic/core/scanner/scanner.hpp boost/spirit/include/classic_core.hpp #NOSUB
+boost/spirit/home/classic/core/* boost/spirit/include/classic_core.hpp #NOSUB
 boost/spirit/home/classic/iterator/position_iterator.hpp boost/spirit/include/classic_position_iterator.hpp
 boost/spirit/home/classic/iterator/position_iterator_fwd.hpp boost/spirit/include/classic_position_iterator.hpp
 boost/spirit/home/classic/phoenix/actor.hpp boost/spirit/include/phoenix1_actor.hpp boost/spirit/include/phoenix1_functions.hpp
@@ -113,3 +84,6 @@ boost/spirit/home/classic/phoenix/operators.hpp boost/spirit/include/phoenix1_op
 boost/spirit/home/classic/phoenix/primitives.hpp boost/spirit/include/phoenix1_primitives.hpp
 boost/spirit/home/classic/utility/functor_parser.hpp boost/spirit/include/classic_functor_parser.hpp
 boost/iterator/iterator_facade.hpp boost/spirit/include/phoenix1_closures.hpp boost/spirit/include/classic_attribute.hpp
+boost/unordered/detail/* boost/unordered/unordered_map.hpp boost/unordered/unordered_set.hpp
+boost/token_* boost/tokenizer.hpp
+boost/algorithm/string/* boost/algorithm/string.hpp

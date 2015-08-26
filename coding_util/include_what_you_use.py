@@ -14,6 +14,7 @@ files in the same directory as the script.
 
 import sys, os
 import subprocess
+from fnmatch import fnmatch
 
 from optparse import OptionParser
 
@@ -28,13 +29,39 @@ if( os.path.exists(scriptdir+"/IWYU_nonstandard_fwd.txt") ):
             NONSTANDARD_FORWARDS[ line[0] ] = line[1]
 
 # Because the IWYU pragmas aren't working for me, and we don't want to clutter, anyway
-PROVIDED_BY = {}
-if( os.path.exists(scriptdir+"/IWYU_provided_by.txt") ):
-  with open(scriptdir+"/IWYU_provided_by.txt") as f:
-    for line in f:
-        line = line.split()
-        if len(line) >= 2 and line[0] != "#":
-            PROVIDED_BY[ line[0] ] = line[1:]
+class PROVIDERS_t:
+    def __init__(self):
+        self.files = {}
+        self.globs = []
+        if( os.path.exists(scriptdir+"/IWYU_provided_by.txt") ):
+            with open(scriptdir+"/IWYU_provided_by.txt") as f:
+                 for line in f:
+                    line = line.split()
+                    if len(line) < 2 or line[0][0] == "#":
+                        continue
+                    if "*" in line[0] or "?" in line[0]:
+                        self.globs.append( line )
+                    else:
+                        self.files[ line[0] ] = line[1:]
+
+    def __call__(self, name):
+        providers = []
+        if name in self.files:
+            providers.extend( self.files[name] )
+        for entry in self.globs:
+            if fnmatch(name, entry[0]):
+                providers.extend( entry[1:] )
+        return providers
+
+    def has(self, name):
+        if name in self.files:
+            return True
+        for entry in self.globs:
+            if fnmatch(name, entry[0]):
+                return True
+        return False
+
+PROVIDERS = PROVIDERS_t()
 
 
 #These are the clang commandline flags for debug mode, stripped of warning issues
@@ -136,6 +163,14 @@ class IWYUChanges:
                 self.allheaders.add(name)
                 self.alldeletions.remove(name)
                 #self.fulllist.append( (name, "#include <"+name+"> //FWD") )
+            elif name.endswith("OptionKeys.gen.hh") and "basic/options/option_macros.hh" in self.allheaders:
+                # The option macros don't see the option keys appropriately - ignore if present
+                self.allheaders.add(name)
+                self.alldeletions.remove(name)
+            elif name in ("fstream",):
+                # Problematic headers when deleting - just skip
+                self.allheaders.add(name)
+                self.alldeletions.remove(name)
             else:
                 newdel.append( (name,line) )
         self.deletions = newdel
@@ -160,17 +195,18 @@ class IWYUChanges:
                         found = ii
                 if found is not None:
                     del self.deletions[found]
-            elif name in PROVIDED_BY:
-                if any( n in self.allheaders for n in PROVIDED_BY[name] ):
+            elif PROVIDERS.has(name):
+                providers = PROVIDERS(name)
+                if any( n in self.allheaders for n in providers ):
                     #Don't add a header if we have any alternates which provide it.
                     self.allheaders.remove(name)
-                elif any( n in self.alldeletions for n in PROVIDED_BY[name] ):
+                elif any( n in self.alldeletions for n in providers ):
                     #Don't delete a header that provides another, if we just want to add it back
                     found = None
                     found_dname = None
                     for ii, (dname, dline) in enumerate(self.deletions):
                         #First-come, first-serve is probably not ideal.
-                        if dname in PROVIDED_BY[name]:
+                        if dname in providers:
                             found = ii
                             found_dname = dname
                             break
@@ -182,10 +218,10 @@ class IWYUChanges:
                     else:
                         #Something went wrong - punt
                         newadd.append( (name,line) )
-                elif len(PROVIDED_BY[name]) == 1:
+                elif len(providers) == 1:
                     #If it's provided by a single header, then replace it - but only if we don't already have it
                     self.allheaders.remove(name)
-                    replacement_name = PROVIDED_BY[name][0]
+                    replacement_name = providers[0]
                     if replacement_name not in self.allheaders:
                         #print "REPLACING", name, "with", replacement_name
                         if '//' in line:
@@ -222,9 +258,9 @@ class IWYUChanges:
         for name, line in self.additions:
             if name in other.allheaders:
                 self.allheaders.remove(name)
-            elif name in PROVIDED_BY:
+            elif PROVIDERS.has(name):
                 #Don't add if we have a provided by in the other
-                for n in PROVIDED_BY[name]:
+                for n in PROVIDERS(name):
                     if n in other.allheaders:
                         break
                 else:
@@ -353,7 +389,7 @@ def check_file(filename, options):
     stdout, stderr = run.communicate()
 
     if options.f:
-        sys.stdout.write( command + "\n")
+        sys.stdout.write( ''.join(command) + "\n")
         sys.stdout.write( stderr )
         sys.stdout.write( "%%%\n" )
 

@@ -79,3 +79,25 @@
 ; upon saving.
 ; Uncomment to use.
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+; This function, and the below key redefinition, enable beautification of the current
+; buffer by pressing the "F7" key
+(defun rosetta-beautify (buffer-to-beautify)
+  "Run the Rosetta beautification python script on the current file"
+  (interactive)
+  (if (eq (buffer-local-value 'major-mode buffer-to-beautify) 'c++-mode)
+      ;Check to see if current buffer needs to be saved
+      (progn
+	(save-some-buffers nil (lambda () (eq (get-buffer (buffer-name)) buffer-to-beautify)))
+	(if (not (buffer-modified-p buffer-to-beautify))
+	    (progn
+	      (with-current-buffer buffer-to-beautify (message (shell-command-to-string (concat "python /home/kyleb/rosetta/tools/python_cc_reader/beautifier.py --overwrite --filename " buffer-file-name))))
+	      (with-current-buffer buffer-to-beautify (revert-buffer t t t))
+	    )
+	    (message "%s" (propertize "Not beautifying: buffer not saved" 'face '(:foreground "blue")))
+	)
+      )
+      (message "%s" (propertize "Not beautifying: not currently in a c++-mode buffer" 'face '(:foreground "blue")))
+      )
+)
+(global-set-key [(f7)] (lambda () (interactive) (rosetta-beautify (current-buffer))))

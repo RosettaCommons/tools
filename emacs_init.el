@@ -91,7 +91,7 @@
 	(save-some-buffers nil (lambda () (eq (get-buffer (buffer-name)) buffer-to-beautify)))
 	(if (not (buffer-modified-p buffer-to-beautify))
 	    (progn
-	      (with-current-buffer buffer-to-beautify (message (shell-command-to-string (concat "python /home/kyleb/rosetta/tools/python_cc_reader/beautifier.py --overwrite --filename " buffer-file-name))))
+	      (with-current-buffer buffer-to-beautify (message (shell-command-to-string (concat "python ~/Rosetta/tools/python_cc_reader/beautifier.py --overwrite --filename " buffer-file-name))))
 	      (with-current-buffer buffer-to-beautify (revert-buffer t t t))
 	    )
 	    (message "%s" (propertize "Not beautifying: buffer not saved" 'face '(:foreground "blue")))

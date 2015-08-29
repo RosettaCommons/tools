@@ -67,7 +67,7 @@ NSTRUCT_defined = 0
 try:
     NSTRUCT = int(argv[-1])
     del(argv[-1])
-    NSTRUCT_defined = 1 
+    NSTRUCT_defined = 1
 except:
     NSTRUCT = 2
 
@@ -103,7 +103,7 @@ if not scorecol_defined:
         scorecol_name = scorecol_name_split[0]
         try:
             match_score = float(scorecol_name_split[-1])
-            match_score_defined = 1 
+            match_score_defined = 1
             if not REVERSE:
                 REVERSE = ''
             if not NSTRUCT_defined:
@@ -113,7 +113,7 @@ if not scorecol_defined:
     if scorecol_name_defined:
         del( argv[-1] )
 
-       
+
 
 
 infiles = argv[1:]
@@ -195,7 +195,7 @@ for infile in infiles:
     if match_score_defined:
         score_plus_lines = filter( lambda x: float(x[0]) == match_score, score_plus_lines)
     lines = map( lambda x:x[-1], score_plus_lines[:NSTRUCT] )
-    
+
     templist_name = 'temp.%s.list'% basename(infile)
 
     fid = open(templist_name,'w')
@@ -329,6 +329,7 @@ for infile in infiles:
 
     if replace_names:
         for tag in tags:
+            tag = tag.replace('.pdb','')
             if scorecol_defined or scorecol_name_defined:
                 command = 'mv %s.pdb %s.%s.%d.pdb' % (tag,basename(infile),scoretag,count)
             else:

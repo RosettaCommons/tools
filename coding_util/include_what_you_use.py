@@ -65,7 +65,7 @@ PROVIDERS = PROVIDERS_t()
 
 
 #These are the clang commandline flags for debug mode, stripped of warning issues
-commandline_flags = '''-c -std=c++98 -isystem external/boost_1_55_0/ -isystem external/include/ -isystem external/dbio/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -fPIC -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DPTR_BOOST -Isrc -Iexternal/include -Isrc/platform/linux/32/clang/3.4 -Isrc/platform/linux/32/clang -Isrc/platform/linux/32 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/dbio -ferror-limit=1'''.split()
+commandline_flags = '''-c -std=c++98 -isystem external/boost_1_55_0/ -isystem external/include/ -isystem external/dbio/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -fPIC -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DPTR_BOOST -Isrc -Iexternal/include -Isrc/platform/linux/32/clang/3.4 -Isrc/platform/linux/32/clang -Isrc/platform/linux/32 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/dbio -Iexternal/cxxtest/ -I./ -Itest/ -ferror-limit=1'''.split()
 
 ## -I/usr/include -I/usr/local/include
 
@@ -167,7 +167,7 @@ class IWYUChanges:
                 # The option macros don't see the option keys appropriately - ignore if present
                 self.allheaders.add(name)
                 self.alldeletions.remove(name)
-            elif name in ("fstream",):
+            elif name in ("fstream","basic/datacache/BasicDataCache.hh"):
                 # Problematic headers when deleting - just skip
                 self.allheaders.add(name)
                 self.alldeletions.remove(name)
@@ -375,7 +375,7 @@ class IWYUChanges:
         name = name[:-1] + ".fwd.hh"
         if name in NONSTANDARD_FORWARDS:
             name = NONSTANDARD_FORWARDS[ name ]
-        if not os.path.exists( 'src/' + name ) and not os.path.exists( 'external/include/' + name ):
+        if not os.path.exists( 'src/' + name ) and not os.path.exists( 'external/include/' + name ) and not os.path.exists( 'external/dbio/'+name ):
             raise ValueError("Forward header '"+name+"' not found - either create or list in NONSTANDARD_FORWARDS")
         return name
 

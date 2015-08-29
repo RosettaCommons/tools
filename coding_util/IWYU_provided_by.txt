@@ -28,6 +28,7 @@ boost/smart_ptr/detail/operator_bool.hpp utility/pointer/owning_ptr.hh
 boost/enable_shared_from_this.hpp utility/pointer/owning_ptr.hh
 utility/pointer/boost/owning_ptr.hh utility/pointer/owning_ptr.hh
 utility/pointer/boost/ReferenceCount.hh utility/pointer/ReferenceCount.hh 
+utility/pointer/boost/ReferenceCount.fwd.hh utility/pointer/ReferenceCount.fwd.hh 
 boost/smart_ptr/weak_ptr.hpp utility/pointer/access_ptr.hh 
 
 boost/smart_ptr/scoped_ptr.hpp boost/scoped_ptr.hpp
@@ -35,7 +36,9 @@ boost/smart_ptr/scoped_ptr.hpp boost/scoped_ptr.hpp
 utility/backtrace.hh utility/assert.hh utility/exit.hh
 assert.h utility/backtrace.hh utility/assert.hh utility/exit.hh
 exception utility/excn/Exceptions.hh #NOSUB
-utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh #NOSUB
+utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh
+
+utility/CSI_Sequence.hh src/utility/backtrace.hh src/basic/Tracer.hh
 
 #exit
 stdlib.h utility/exit.hh #NOSUB
@@ -69,7 +72,13 @@ string.h cstring
 time.h ctime
 
 # Not strictly true, but needed for correct CLOCKS_PER_SEC on my machine
-sys/time.h time.h ctime 
+sys/time.h time.h ctime
+
+Eigen/src/Core/* Eigen/Dense #NOSUB
+
+boost/lexical_cast.hpp boost/foreach.hpp #NOSUB
+boost/mpl/bool.hpp boost/foreach.hpp #NOSUB
+boost/mpl/bool_fwd.hpp boost/foreach.hpp #NOSUB
 
 # Boost is killer with nested includes:
 boost/spirit/home/classic/attribute/closure.hpp boost/spirit/include/classic_closure.hpp #NOSUB
@@ -87,3 +96,5 @@ boost/iterator/iterator_facade.hpp boost/spirit/include/phoenix1_closures.hpp bo
 boost/unordered/detail/* boost/unordered/unordered_map.hpp boost/unordered/unordered_set.hpp
 boost/token_* boost/tokenizer.hpp
 boost/algorithm/string/* boost/algorithm/string.hpp
+boost/graph/detail/* boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh
+

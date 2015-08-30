@@ -5,8 +5,11 @@ the Rosetta codebase, and adjust the output for the vagarities of the Rosetta co
 
 Run from the Rosetta/main/source directory and provide the script with files or directories,
 and the .cc .hh and .fwd.hh files therein will be processed.
-By default, only a diagnosis message about what will be done will be
-printed. Include the '-m' option to actually modify the files.
+
+Because of order dependancy in removing headers, the default behavior is to create an *.iwyu
+file in the same location, listing what should be done to the file.
+Using the -m option will cause this script to read the *.iwyu file,
+and actually modify the files.
 
 Behavior of the script can be modified by the IWYU_nonstandard_fwd.txt and IWYU_provided_by.txt
 files in the same directory as the script.
@@ -72,7 +75,7 @@ commandline_flags = '''-c -std=c++98 -isystem external/boost_1_55_0/ -isystem ex
 executable = 'include-what-you-use'
 
 class IWYUChanges:
-    def __init__(self, lines):
+    def __init__(self, lines=None):
         self.additions = []
         self.deletions = []
         #self.fulllist = []
@@ -81,24 +84,21 @@ class IWYUChanges:
         self.alldeletions = set()
         self.filename = ''
 
-        self.parse(lines)
-        self.cleanup()
+        if lines is not None:
+            self.parse(lines)
+            self.cleanup()
 
     def prnt(self):
-        print "%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename
-        print "~~~~ TO ADD:"
-        print '\n'.join( k + "\t\t" + v for k, v in self.additions)
-        print "~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        print "~~~~ TO DELETE:"
-        print '\n'.join( k + "\t\t" + v for k, v in self.deletions)
-        print "~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        print "~~~~ FINAL HEADER LIST:"
-        print '\n'.join( k for k in sorted(self.allheaders) )
-        if self.forwards:
-            print "~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            print "~~~~ FORWARDS:"
-            print '\n'.join( k for k in sorted(self.forwards) )
-        print "%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename
+        if len(self.deletions) == 0 and len(self.additions) == 0:
+            print "%%%%%%%%%% NO MOD NEEDED:", self.filename
+        else:
+            print "%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename
+            print "~~~~~ Deleting"
+            print '\n'.join( v for k, v in self.deletions)
+            print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            print "~~~~~ Adding"
+            print '\n'.join( v for k, v in self.additions)
+            print "%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename
 
     def parse(self, lines):
         stage = ''
@@ -271,6 +271,15 @@ class IWYUChanges:
                 newadd.append( (name,line) )
         self.additions = newadd
 
+    def write_cache(self):
+        '''Write out information needed for changing the file'''
+        with open(self.filename + ".iwyu", 'w') as f:
+            for name, line in self.deletions:
+                f.write( name + "|" + line + "\n" )
+            f.write(80*'~' +'\n')
+            for name, line in self.additions:
+                f.write( name + "|" + line + "\n" )
+
     def change(self):
         '''Actually change the file on disk for the modifications'''
         if len(self.additions) == 0 and len(self.deletions) == 0:
@@ -380,6 +389,26 @@ class IWYUChanges:
         return name
 
 
+def read_mod_file(fn):
+    '''Read in information needed for changing the file'''
+    print "Reading file ", fn
+    mod = IWYUChanges()
+    mod.filename = fn
+    with open(fn + ".iwyu") as f:
+        read_add = False
+        for line in f:
+            line = line.strip()
+            if line.startswith(80*'~'):
+                read_add = True
+                continue
+            if read_add == True:
+                name, l = line.split('|',1)
+                mod.additions.append( (name, l) )
+            else:
+                name, l = line.split('|',1)
+                mod.deletions.append( (name, l) )
+    return mod
+
 def check_file(filename, options):
     print "%%% Processing ", filename
     command = [executable] + commandline_flags + [ filename ]
@@ -417,26 +446,39 @@ def check_file(filename, options):
 
 def process_file(filename, options):
 
-    mods = []
-    if os.path.exists( filename[:-3] + ".fwd.hh" ):
-        mods.extend( check_file(filename[:-3] + ".fwd.hh", options) )
+    if not os.path.exists( filename + ".iwyu" ):
+        mods = []
+        if os.path.exists( filename[:-3] + ".fwd.hh" ):
+            mods.extend( check_file(filename[:-3] + ".fwd.hh", options) )
 
-    #Headers are automatically checked for hh files.
-    mods.extend( check_file(filename, options) )
+        #Headers are automatically checked for hh files.
+        mods.extend( check_file(filename, options) )
 
-    # Remove added includes if nested headers have them
-    # Should be in nested include order
-    for ii in range( len(mods) ):
-        for jj in range( ii+1, len(mods) ):
-            if not mods[ii].filename.startswith( mods[jj].filename[:-3] ):
-                raise ValueError("File "+mods[ii].filename+" is not in series with "+mods[jj].filename)
-            mods[jj].nested_prune( mods[ii] )
+        # Remove added includes if nested headers have them
+        # Should be in nested include order
+        for ii in range( len(mods) ):
+            for jj in range( ii+1, len(mods) ):
+                if not mods[ii].filename.startswith( mods[jj].filename[:-3] ):
+                    raise ValueError("File "+mods[ii].filename+" is not in series with "+mods[jj].filename)
+                mods[jj].nested_prune( mods[ii] )
 
-    for mod in mods:
-        if options.m:
-            mod.change()
-        else:
+        for mod in mods:
+            mod.write_cache()
             mod.prnt()
+
+    if options.m:
+        files = [filename]
+        if not filename.endswith(".fwd.hh") and os.path.exists( filename[:-3] + ".fwd.hh" ):
+            files.append( filename[:-3] + ".fwd.hh" )
+        if filename.endswith(".cc") and os.path.exists( filename[:-3] + ".hh" ):
+            files.append( filename[:-3] + ".hh" )
+        for fn in files:
+            if os.path.exists( fn ):
+                mod = read_mod_file(fn)
+                mod.change()
+                os.remove(fn +".iwyu" )
+            else:
+                print "%%% Ignoring", fn, "- no change file found."
 
 def process_dir(dirname, options):
     for item in os.listdir(dirname):
@@ -448,8 +490,8 @@ def process_dir(dirname, options):
                 #print ">>> CC: ", name
                 process_file(name, options)
             elif name.endswith(".fwd.hh"):
-                if not os.path.exists( name[:-7] + ".hh" ):
-                    #print ">>> FWD: ", name, name[:-7] + ".hh"
+                if not os.path.exists( name[:-7] + ".cc" ):
+                    #print ">>> FWD: ", name, name[:-7] + ".cc"
                     process_file(name, options)
             elif name.endswith(".hh"):
                 if not os.path.exists( name[:-3]+".cc" ):

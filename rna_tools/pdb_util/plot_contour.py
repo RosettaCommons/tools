@@ -128,6 +128,7 @@ for table_file in table_files:
     #plt.clabel(CS, inline=1, fontsize=10)
     plt.axis([-10,10,-10,10])
     plt.colorbar()
+    plt.title( table_file )
 
     png_file = ''
     if len(sys.argv) == 3 and sys.argv[2][-4:] == '.png':

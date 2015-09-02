@@ -82,7 +82,7 @@ def get_pdb_line( lines_out, pdb_lines, resnum_desired, chain_desired ):
 
 
 for pdbfile in pdbfiles:
-    [ coords, pdb_lines, sequence ] = read_pdb( pdbfile )
+    [ coords, pdb_lines, sequence, chains, residues ] = read_pdb( pdbfile )
 
     lines_out = []
     for i in range( len( resnums ) ):

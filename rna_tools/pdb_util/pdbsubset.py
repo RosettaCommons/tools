@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from os import popen,system
-from os.path import basename,exists
+from os.path import dirname,basename,exists
 from sys import argv,stderr
 import string
 from read_pdb import read_pdb
@@ -88,7 +88,10 @@ for pdbfile in pdbfiles:
     for i in range( len( resnums ) ):
         get_pdb_line( lines_out, pdb_lines, resnums[ i ], chains[ i ] )
 
-    pdbfile_out = prefix + pdbfile
+    pdbfile_out = '/'.join(filter(None, [
+        dirname(pdbfile),
+        prefix + basename(pdbfile)
+    ]))
     print 'Outputting: ', pdbfile_out
     fid = open( pdbfile_out, 'w' )
     for line in lines_out: fid.write( line+'\n' )

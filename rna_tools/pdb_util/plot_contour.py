@@ -97,6 +97,10 @@ for table_file in table_files:
     ns = len(scores)
     scores = np.array(scores)
 
+    if ( ns == 0 ):
+        print "Skipping ", table_file, " ==> No data!"
+        continue
+
     sum_bound = 0
     n_data = 0
     for i in xrange(ns):

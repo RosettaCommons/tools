@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 import matplotlib
 import numpy as np
@@ -7,6 +7,7 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import sys
 import math
+import subprocess
 from os.path import dirname,abspath
 
 if len( sys.argv ) < 2:
@@ -144,6 +145,11 @@ for table_file in table_files:
         plt.savefig( png_file, dpi=200 )
         print "Created: ", png_file
         print
+        out, err = subprocess.Popen(['uname'], stdout=subprocess.PIPE).communicate()
+        if 'Darwin' in out:
+            subprocess.call(['open',png_file])
+        if 'Linux' in out:
+            subprocess.call(['xdg-open',png_file])
     else :
         plt.show()
 

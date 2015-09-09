@@ -69,7 +69,7 @@ class erraser_option :
         
         #2015 fixes
         self.o2prime_legacy_mode = True
-        self.use_2prime_OH_potential = True
+        self.use_2prime_OH_potential = False
         self.fcc2012_new_torsional_potential = False
 
     def read_cmdline_full( self, argv ) :
@@ -130,7 +130,7 @@ class erraser_option :
 
         #2015 fixes
         self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "True" )
-        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
+        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 
         self.finalize()
@@ -166,7 +166,7 @@ class erraser_option :
         #2015 fixes
         self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "True" )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
-        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
+        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 
         self.finalize()
@@ -200,7 +200,7 @@ class erraser_option :
         #2015 fixes
         self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "True" )
         self.scoring_file = parse_options( argv, "scoring_file", "" )
-        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "True" )
+        self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "False" )
 
         self.finalize()

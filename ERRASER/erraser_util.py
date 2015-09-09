@@ -1251,11 +1251,6 @@ def pdb_slice_with_patching( input_pdb, out_name, slice_res_list ) :
 def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
     """
     Merge processed sliced segment back to original pdb (Rosetta format).
-
-    ISSUE:     Merging Rosetta pdb back into original pdb results in
-               loss of chain information in Rosetta pdb res ...
-    SOLUTIONS: Could fix this in Rosetta ... chain information should not be lost
-
     """
     check_path_exist( orig_pdb )
     check_path_exist( new_pdb )

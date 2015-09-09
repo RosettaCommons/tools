@@ -71,6 +71,7 @@ class erraser_option :
         self.o2prime_legacy_mode = True
         self.use_2prime_OH_potential = False
         self.fcc2012_new_torsional_potential = True
+        self.fcc2012_scoring_file = False
 
     def read_cmdline_full( self, argv ) :
         #General options
@@ -132,6 +133,7 @@ class erraser_option :
         self.o2prime_legacy_mode = parse_options( argv, "o2prime_legacy_mode", "True" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
+        self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "False" )
 
         self.finalize()
 
@@ -168,6 +170,7 @@ class erraser_option :
         self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
+        self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "False" )
 
         self.finalize()
 
@@ -202,6 +205,7 @@ class erraser_option :
         self.scoring_file = parse_options( argv, "scoring_file", "" )
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
+        self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "False" )
 
         self.finalize()
 
@@ -237,6 +241,8 @@ class erraser_option :
         if self.scoring_file == "" :
             if self.map_file == "" :
                 self.scoring_file = "stepwise/rna/rna_loop_hires_04092010 "
+            elif self.fcc2012_scoring_file is True:
+                self.scoring_file = "stepwise/rna/rna_hires_elec_dens_FCC2012 "
             else :
                 self.scoring_file = "stepwise/rna/rna_hires_elec_dens "
 

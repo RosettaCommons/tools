@@ -183,7 +183,7 @@ def main(args):
     print '\nSetting PyRosetta Build environment is Done!'
 
     print 'Creating PyRosetta build script at %s...' % i_BuildPyrosetta
-    file(i_BuildPyrosetta, 'w').write(BashFileTemplate % dict(prefix=prefix, python_prefix=sys.prefix, i_python_lib=i_python_lib, compiler=Options.compiler) )
+    file(i_BuildPyrosetta, 'w').write(BashFileTemplate % dict(prefix=prefix, python_prefix=sys.prefix, i_python_lib=i_python_lib, compiler=Options.compiler, jobs=Options.jobs) )
     os.chmod(i_BuildPyrosetta, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
     print 'PyRosetta build script created as %s. Copy this it inside your rosetta_source dir and it run to build PyRosetta!' % i_BuildPyrosetta
 
@@ -227,6 +227,7 @@ cd src/python/bindings
     --boost-lib=boost_python \\
      -L . -L ./../../../../ -L$prefix/lib \\
      --compiler=%(compiler)s \\
+     -j %(jobs) \\
      $*
 '''
 

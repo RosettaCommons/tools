@@ -173,6 +173,7 @@ def main(args):
     execute('Installing Boost...', cd_work_env + 'cd %s && ./bootstrap.sh --prefix=%s --with-libraries=python && ./bjam install --prefix=%s' % (i_boost, prefix, prefix) )
 
     print 'Copying Boost system library source files...',
+    if os.path.exists(prefix + '/include/libs/system/src'): shutil.rmtree(prefix + '/include/libs/system/src', ignore_errors=True)
     shutil.copytree(working_dir + '/' + i_boost + '/libs/system/src', prefix + '/include/libs/system/src')
     print 'Done!'
 

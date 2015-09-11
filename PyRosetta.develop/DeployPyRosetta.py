@@ -93,6 +93,10 @@ def main(args):
       default=False,
       )
 
+    parser.add_option("--local_bindings",
+      action="store_true",
+      help="Move actual PyRosetta binaries to this directory instead of tools/build.  Useful if not on testing server.",
+      default = False)
 
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
@@ -131,6 +135,7 @@ def main(args):
     print 'Omit CMake install:', Options.omit_cmake
     print 'Compiler to use when buiilding PyRosetta:', Options.compiler
     print 'Debug:', Options.debug
+
 
     if not Options.debug : time.sleep(30)
 
@@ -182,8 +187,10 @@ def main(args):
 
     print '\nSetting PyRosetta Build environment is Done!'
 
+
     print 'Creating PyRosetta build script at %s...' % i_BuildPyrosetta
-    file(i_BuildPyrosetta, 'w').write(BashFileTemplate % dict(prefix=prefix, python_prefix=sys.prefix, i_python_lib=i_python_lib, compiler=Options.compiler, jobs=Options.jobs) )
+    file(i_BuildPyrosetta, 'w').write(BashFileTemplate % dict(prefix=prefix, python_prefix=sys.prefix, i_python_lib=i_python_lib,
+                                                              compiler=Options.compiler, jobs=str(Options.jobs), local_bindings=str(Options.local_bindings) ) )
     os.chmod(i_BuildPyrosetta, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
     print 'PyRosetta build script created as %s. Copy this it inside your rosetta_source dir and it run to build PyRosetta!' % i_BuildPyrosetta
 
@@ -225,10 +232,11 @@ cd src/python/bindings
     -I%(python_prefix)s/include/%(i_python_lib)s \\
     --python-lib %(i_python_lib)s \\
     --boost-lib=boost_python \\
-     -L . -L ./../../../../ -L$prefix/lib \\
-     --compiler=%(compiler)s \\
-     -j %(jobs) \\
-     $*
+    -L . -L ./../../../../ -L$prefix/lib \\
+    --compiler=%(compiler)s \\
+    --local_bindings %(local_bindings)s \\
+    -j %(jobs)s \\
+    $*
 '''
 
 

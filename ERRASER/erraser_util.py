@@ -400,7 +400,7 @@ def phenix_release_tag():
     return None    
 
 #####################################################
-def phenix_rna_validate(input_pdb, outliers_only = False):
+def phenix_rna_validate(input_pdb, outliers_only = True):
     """
     Parse output of phenix.rna_validate.
     """
@@ -1267,6 +1267,7 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
             out.write(line)
             continue
         if line[0:4] == 'ATOM' :
+            chain = line[21]
             res_num = int(line[22:26])
             if res_num != res_orig_pre :
                 res_orig_pre = res_num
@@ -1278,6 +1279,8 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 out.write('%s%7d%s' %(line[0:4], atom_num, line[11:]) )
             else :
                 if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
+                    if new_pdb_line[21].isspace():
+                        new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
                     atom_num += 1
                     out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
                     res_new_pre = int( new_pdb_line[22:26] )
@@ -1289,6 +1292,8 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                     if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                         res_new = int( new_pdb_line[22:26] )
                         if res_new == res_new_pre :
+                            if new_pdb_line[21].isspace():
+                                new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
                             atom_num += 1
                             out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
                             res_new_pre = int( new_pdb_line[22:26] )

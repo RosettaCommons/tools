@@ -1,4 +1,4 @@
-from library_levels import protocols_levels
+from .library_levels import protocols_levels
 from optparse import OptionParser
 import pprint
 import shutil
@@ -133,17 +133,17 @@ if __name__ == "__main__":
 		if len(name) == 2:
 			x,y = name
 			#print name[0]
-			print major_library_level
+			print(major_library_level)
 			minor_library_level = major_library_level[get_letter_index(y)-1]
 			name_string = "_"+y+"."+str(x)
 		else:
-			print name
+			print(name)
 			minor_library_level = major_library_level[0]
-			print minor_library_level
+			print(minor_library_level)
 			name_string = "."+str(name[0])
 	
 		protocols_src_settings_map = {}
-		execfile("protocols.src.settings", protocols_src_settings_map)
+		exec(compile(open("protocols.src.settings").read(), "protocols.src.settings", 'exec'), protocols_src_settings_map)
 	
 	
 		source_file_subset = setup_map_subset(protocols_src_settings_map["sources"],minor_library_level)

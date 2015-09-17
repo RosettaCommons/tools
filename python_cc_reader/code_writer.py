@@ -54,15 +54,15 @@ class CodeWriter :
     def print_dstor_for_class( self, cdec ) :
         cctor_lines = self.dstor_for_class( cdec )
         for line in cctor_lines :
-            print line,
+            print(line, end=' ')
     def print_copy_ctor_for_class( self, cdec ) :
         cctor_lines = self.copy_ctor_for_class( cdec )
         for line in cctor_lines :
-            print line,
+            print(line, end=' ')
     def print_assignment_operator_for_class( self, cdec ) :
         assignment_op_lines = self.assignment_operator_for_class( cdec )
         for line in assignment_op_lines :
-            print line,
+            print(line, end=' ')
 
     def creator_class_declaration( self, classname, classtype, baseclass ) :
         lc_classtype = classtype.lowercase()

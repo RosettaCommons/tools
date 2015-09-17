@@ -1,10 +1,10 @@
-from inclusion_graph import *
-from code_utilities import *
-from code_reader import *
-from test_compile import *
-from reinterpret_objdump import *
-from add_headers import *
-from add_namespaces import *
+from .inclusion_graph import *
+from .code_utilities import *
+from .code_reader import *
+from .test_compile import *
+from .reinterpret_objdump import *
+from .add_headers import *
+from .add_namespaces import *
 import sys
 import os
 import subprocess
@@ -22,8 +22,8 @@ if len(sys.argv) > 1 :
    try :
       ncpu = int(sys.argv[1])
    except :
-      print "Could not convert first parameter,", sys.argv[1],"to an integer"
-      print "Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>"
+      print("Could not convert first parameter,", sys.argv[1],"to an integer")
+      print("Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>")
       sys.exit(1)
 if len(sys.argv) > 2 :
    secret_phrase = sys.argv[2]
@@ -36,7 +36,7 @@ else :
 good = True
 for fname in fnames :
     if not os.path.isfile( fname ) :
-        print "Error, file", fname, "does not exist"
+        print("Error, file", fname, "does not exist")
         good = False
 if not good :
     sys.exit(1)
@@ -92,5 +92,5 @@ else:
         jobs.append( job_server.submit( trim_inclusions_from_cxxtest_files, ( fnames_subset, count_jobid ), funcs, modules ) )
     job_server.wait()
     for job in jobs :
-        print job()
+        print(job())
 

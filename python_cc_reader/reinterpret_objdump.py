@@ -57,7 +57,7 @@ def relabel_sections( alllines ) :
             goodsections[ currsect ] = []
             goodsections[ currsect ].append( splitter.findall( line )[ 1 ] + "\n")
 
-   sorted_sections = goodsections.keys()
+   sorted_sections = list(goodsections.keys())
    sorted_sections.sort()
    for section in sorted_sections :
       for line in goodsections[ section ] :
@@ -147,7 +147,7 @@ def compare_objdump_lines( lines1, lines2 ) :
       offset_found = True
       offsets.add( iad1 - iad2 )
    if not good :
-      print "objdump comparison failed: n_offsets", count_mismatches
+      print("objdump comparison failed: n_offsets", count_mismatches)
    return good
 
 if __name__ == "__main__" :
@@ -162,26 +162,26 @@ if __name__ == "__main__" :
 
    if compare_objdump_lines( newlines, newlines2 ) :
       #if newlines == newlines2 :
-      print "They match"
+      print("They match")
 
    else:
-     print "They don't match"
+     print("They don't match")
      if not verbose :
        sys.exit(1)
      if len( newlines ) != len( newlines2 ) :
-        print "unequal length", len( newlines ), len( newlines2 )
+        print("unequal length", len( newlines ), len( newlines2 ))
         smaller = len( newlines )
         if len( newlines2 ) < len( newlines ) :
            smaller = len( newlines2 )
         for i in range( smaller ) :
-           print "Compare"
-           print newlines[i],
-           print newlines2[i]
+           print("Compare")
+           print(newlines[i], end=' ')
+           print(newlines2[i])
      else :
         for i in range(len(newlines) ) :
            if newlines[ i ] != newlines2[ i ] :
-              print newlines[ i ],
-              print "does not match"
-              print newlines2[ i ]
+              print(newlines[ i ], end=' ')
+              print("does not match")
+              print(newlines2[ i ])
 
 

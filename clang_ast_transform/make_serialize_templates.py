@@ -31,9 +31,11 @@ Run: python3 src/core/io/serialization/make_serialize_templates.py src/core/io/s
 
 ### TODO: load_and_construct arguments?
 
-import sys, re
+import os, sys, re
+import blargs
 
-sys.path.insert( 0, "../python_cc_reader" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../" )
+#print( sys.path )
 import python_cc_reader.code_reader
 
 
@@ -79,15 +81,24 @@ class BufferedFile:
     def getTruePosition(self, position):
         return self.getOffset(position) + position
 
-    def insertStub(self, position, contents, origFilePosition):
+    def insertStub(self, position, contents, isOrigFilePosition):
         orig_position = position
-        if origFilePosition:
+        if isOrigFilePosition:
             position = self.getTruePosition(position)
 
         self.contents = self.contents[0:position] + contents + self.contents[position:]
+        #print ( "new contents!", self.filename, self.contents )
         self.dirty = True
 
         self.offsets.append( [ orig_position, len(contents) ] )
+
+    def deleteRange( self, pos1, pos2, isOrigFilePosition ) :
+        if isOrigFilePosition :
+            pos1 = self.getTruePosition(pos1)
+            pos2 = self.getTruePosition(pos2)
+        self.contents = self.contents[0:pos1] + self.contents[pos2:]
+        self.dirty = True
+        self.offsets.append( [ pos1, pos1-pos2 ] ) #APL -- I'm not certain this is correct
 
 ########################################################################
 # Declaration node types
@@ -180,6 +191,7 @@ class Unit:
         #self.need_cereal = False
         self.need_srlz_hh = False
         self.needs_access_fwd = False
+        self.contains_polymorphic_class = False
         self.default_ctor = []
         self.cc_needs_cereal_base_class_hpp = False
         self.stl_containers = set([])
@@ -197,25 +209,36 @@ class Unit:
         """
         Examine all the classes/structs in a single entire translation unit (i.e. a .hh file with one or more classes)
         """
-        classdecs = python_cc_reader.read_classes_from_header( self.filename, open( self.filename ).readlines() )
+        hcropts = python_cc_reader.code_reader.HCROptions()
+        hcropts.defined_preprocessor_variables.append( "SERIALIZATION" )
+        classdecs = python_cc_reader.code_reader.read_classes_from_header( self.filename, open( self.filename ).readlines() )
+        #print ( "read", len(classdecs), "class in file", self.filename )
+        ns = self.filename.rpartition("/")[ 0 ].partition("/source/src/")[2].replace("/","::")+"::"
         for cdec in classdecs :
-            assert( cdec in self.classes )
-            self.class_decs_from_cr[ cdec.name ] = cdec
+            #print( ns + cdec.name )
+            if (ns + cdec.name) not in self.classes :
+                print( "Warning: Missing class:", ns + cdec.name, "from", self.filename, "when read with the HeavyCodReader" )
+                continue
+            self.class_decs_from_cr[ ns + cdec.name ] = cdec
 
         for name in self.classes:
             #if name.find("Factory") > 0 or name.find("Creator") > 0 or name.find("Singleton") > 0:
             #    print ("Skipping class %s" % name )
             #    continue
-            self.preprocessObject(self.classes[name], self.class_decs_from_cr[name] )
+            # print( "For class", name, "we did not find any match to a class in the .hh file; perhaps these?" )
+            # if name not in self.class_decs_from_cr :
+            #      print( self.class_decs_from_cr.keys() )
+            pycc_classdec = self.class_decs_from_cr[name] if name in self.class_decs_from_cr else None            
+            self.preprocessObject(self.classes[name], pycc_classdec )
                         
     def addSerializationRoutines( self ) :
         for name in self.classes :
             self.addSerializationRoutinesForClass( self.classes[name] )
-
         self.save()
 
     def findSTLTypesInVartype( self, vartype ) :
-        container = vartype[ vartype.find( "std::" ): vartype.find("<") ]
+        container = vartype[ vartype.find( "std::" )+5: vartype.find("<", vartype.find( "std::" )+5) ]
+        if container == "" : return
         if container == "shared_ptr" or container == "weak_ptr" :
             self.stl_containers.add( "polymorphic" )
         elif container == "pair" :
@@ -226,30 +249,36 @@ class Unit:
             pass
         else :
             self.stl_containers.add( container )
-            print self.filename, "uses stl", container
+            #print( self.filename, "uses stl", container )
 
-        self.findSTLTypesInVartype( vartype[ vartype.find("<") : vartype.rfind( ">" ) ])
+        remnant = vartype[ vartype.find("<")+1 : vartype.rfind( ">" ) ]
+        #print( "remnant:", remnant )
+        cols = remnant.split( "," )
+        for col in cols :
+            self.findSTLTypesInVartype( col )
                 
                 
-    def processObject(self, decl, pycc_decl ):
+    def preprocessObject(self, decl, pycc_decl ):
         """
         Process single object (class, struct, ...) in this unit
         """
-
+        print("preprocessObject:", decl.name)
         # Check if this class already has save or load method
-        for m in pycc_decl.functions :
-            if m.name == "save" :
-                decl.has_save = True
-            elif m.name == "load" :
-                decl.has_load = True
-            elif m.name == "load_and_construct" :
-                decl.has_load_and_construct = True
-            if decl.has_save and ( decl.has_load or decl.has_load_and_construct ) :
-                decl.has_serialization_methods = True
-
-            if decl.has_serialization_methods :
-                # we don't need to add any serialization methods to this class/struct
-                return
+        if pycc_decl :
+            for m in pycc_decl.functions :
+                if m.name == "save" :
+                    decl.has_save = True
+                elif m.name == "load" :
+                    decl.has_load = True
+                elif m.name == "load_and_construct" :
+                    decl.has_load_and_construct = True
+                if decl.has_save and ( decl.has_load or decl.has_load_and_construct ) :
+                    decl.has_serialization_methods = True
+    
+        if decl.has_serialization_methods :
+            # we don't need to add any serialization methods to this class/struct
+            print( " decl.has_serialization_methods")
+            return
 
         # Check if this class has reference variables or raw pointers; if so, skip it
         # Check if it has constant variables -- these have to be initialized
@@ -258,7 +287,7 @@ class Unit:
         for v in decl.fields:
             if v.fullvartype.find("&") >= 0:
                 decl.nReferenceVars += 1
-            if self.isConst(v.fullvartype):
+            if self.isConstNonPointer(v.fullvartype):
                 if v.fullvartype[6:] in [ "double", "int", "float", "bool", "_Bool", "Size" ]:
                     # These can be trivially const_cast'ed
                     continue
@@ -297,13 +326,13 @@ class Unit:
                 self.uses_vector0 = True
             decl.membvars.append( vd )
 
-        if not decl.membvars:
-            return
 
         #decl.simplest_ctor = sorted(decl.constructors, key = lambda x: x.n_min_arguments)[0] if decl.constructors else None # fewest num of arguments
         decl.default_ctor = [ x for x in decl.constructors if x.is_default_ctor ]
         if decl.default_ctor :
-            decl.defautlt_ctor = decl.default_ctor[0]
+            decl.default_ctor = decl.default_ctor[0]
+        else :
+            decl.default_ctor = None # necessary?
 
         decl.inline = decl.is_templated #or decl.decl == "struct" # apl modification -- put struct serialization methods into .cc, too
         decl.has_vars = [1 for x in decl.membvars if x['enable'] ] != []
@@ -311,6 +340,7 @@ class Unit:
 
         # If this class is polymorphic, get base class names
         if decl.is_polymorphic:
+            self.contains_polymorphic_class = True
             #decl.base_class_names = []
             #body = self.hh.contents[ self.hh.getTruePosition(decl.filerange[0]) : self.hh.getTruePosition(decl.filerange[1]) ]
             #body = body[ : body.find("{") -1 ]
@@ -323,20 +353,26 @@ class Unit:
             #    if n.split("::")[-1] == "ReferenceCount": # let's not count ReferenceCount as polymorphic
             #        continue
             #    decl.base_class_names.append( n )
-            if pycc_decl.base is not None :
+            if pycc_decl and pycc_decl.base is not None :
                 self.needs_cereal_base_class_hpp = True
                 decl.base_class_names = pycc_decl.base.split(",") if pycc_decl.base.find(",") > 0 else [ pycc_decl.base ]
                 #DEBUG
-                for b in decl.base_class_names :
-                    print " base class for decl.name:", b
+                #for b in decl.base_class_names :
+                #    print( " base class for decl.name:", b )
 
         # Include cereal headers in .hh file if we're inlining things
         if decl.inline:
             self.need_srlz_hh = True
                         
     def addSerializationRoutinesForClass( self, decl ) :
-        if delc.inline :
-            print "Oops! Cannot create serialization functions (now) for class", decl.name
+        print("addSerializationRoutinesForClass:", decl.name)
+
+        if decl.has_serialization_methods :
+            # we don't need to add any serialization methods to this class/struct
+            return
+
+        if decl.inline :
+            print(  "Oops! Cannot create serialization functions (now) for class", decl.name )
             return
 
         # Insert the serialization function declarations into the .hh file
@@ -369,7 +405,7 @@ class Unit:
     def getContainerType( self, s ):
         if s.find( '<' ) < 0 :
             return ""
-        return s[ 0 : find( '<' ) ]
+        return s[ 0 : s.find( '<' ) ]
         
 
     def isConstNonPointer(self, s):
@@ -424,11 +460,11 @@ class Unit:
             for base in decl.base_class_names :
                 if base == "utility::pointer::ReferenceCount" : continue
                 # assume no virtual inheritance
-                stub.append( "\t" + "arc( cereal::base_class< %s >( this ) );\n" % base )
+                stub.append( "arc( cereal::base_class< %s >( this ) );\n" % base )
 
         if style == "load_and_construct" :
-            stub.append( "\tNOTE: The automatically generated load_and_construct stub here requires manual intervention\n" );
-            stub.append( "\t" + "construct( /* please choose the proper constructor arguments /* );\n" );
+            stub.append( "NOTE: The automatically generated load_and_construct stub here requires manual intervention\n" );
+            stub.append( "construct( /* please choose the proper constructor arguments /* );\n" );
 
         for i, v in enumerate(membvars):
             nextline = []
@@ -441,9 +477,8 @@ class Unit:
 
             if style == "load" and v[ 'constptr' ] :
                 deserialize_varname = "local_%s" % self.remove_trailing_underscore( v.name )
-                stub.append( "\t" + "%s %s;\n" % ( self.nonconstptr_type( v.fullvartype ), deserialize_varname ));
+                stub.append( "%s %s;\n" % ( self.nonconstptr_type( v.fullvartype ), deserialize_varname ));
 
-            nextline.append( "\t" )
             if not v['enable']:
                 nextline.append( "// " )
             nextline.append( "arc( " )
@@ -460,16 +495,16 @@ class Unit:
             # Add comma at end of line
             #if [ 1 for x in vars[i+1:] if x['enable'] ]:
             #    nextline.append( "" )
-            nextline.append( ");" )
+            nextline.append( " );" )
 
             # Add comment
-            newline.append( " // " + v['vartype'] )
+            nextline.append( " // " + v['vartype'] )
             if v.get('comment'):
-                newline.append(  "; " + v['comment'] )
-            newline.append( "\n" )
-            stub.append( "".join( newline ))
+                nextline.append(  "; " + v['comment'] )
+            nextline.append( "\n" )
+            stub.append( "".join( nextline ))
             if v['constptr'] :
-                stub.append( "\t" + "%s = %s; \\ copy the non-const pointer(s) into the const pointer(s)\n" % ( var_name, deserialize_varname ))
+                stub.append( "%s = %s; \\ copy the non-const pointer(s) into the const pointer(s)\n" % ( var_name, deserialize_varname ))
 
         return "".join( stub )
 
@@ -533,7 +568,8 @@ class Unit:
         """
         stub = []
 
-        if decl.has_vars or not decl.is_polymorphic:
+        if True :
+        #if decl.has_vars or not decl.is_polymorphic:
             stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'save'), 2) if decl.inline else ""
             stub.append( "\ttemplate< class Archive > void save( Archive & arc ) const" )
             if decl.inline:
@@ -542,7 +578,7 @@ class Unit:
                 stub.append( ";\n" )
             if decl.need_load_construct:
 
-                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars 'load_and_construct'), 2) if decl.inline else ""
+                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'load_and_construct'), 2) if decl.inline else ""
                 stub.append( "\ttemplate< class Archive > static void load_and_construct( Archive & arc, cereal::construct< %s > & construct )" \
                     % decl.name.split("::")[-1] )
                 if decl.inline:
@@ -550,7 +586,7 @@ class Unit:
                 else:
                     stub.append( ";\n" )
             else:
-                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars 'load'), 2) if decl.inline else ""
+                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'load'), 2) if decl.inline else ""
                 stub.append( "\ttemplate< class Archive > void load( Archive & arc )" )
                 if decl.inline:
                     stub.append( " {\n" + stub_body + "\t}\n" if stub_body else " {}\n" )
@@ -560,31 +596,32 @@ class Unit:
         if not stub:
             return "";
 
-        full_stub = "\n#ifdef    SERIALIZATION\n"
+        full_stub= [ "\n#ifdef    SERIALIZATION\n" ]
         if decl.decl == "class":
             if not decl.default_ctor and decl.constructors: # Add default c'tor prototype
                 self.requires_protected_default_ctor = True
                 self.needs_access_fwd = True
-                full_stub += "protected:\n\tfriend class cereal::access;\n\t%s();\n\n" % ( decl.name.split("::")[-1] )
-                self.default_ctors.append( decl.name )
+                full_stub.append( "protected:\n\tfriend class cereal::access;\n\t%s();\n\n" % ( decl.name.split("::")[-1] ) )
+                self.default_ctor.append( decl.name )
             elif decl.default_ctor and not decl.default_ctor.is_public:
                 self.needs_access_fwd = True
-                full_stub += "\tfriend class cereal::access;\n"
-            full_stub += "public:\n"
-        full_stub += stub
-        full_stub += "#endif // SERIALIZATION\n"
+                full_stub.append( "\tfriend class cereal::access;\n" )
+            full_stub.append( "public:\n" )
+        full_stub +=  stub
+        full_stub.append( "#endif // SERIALIZATION\n" )
 
-        self.hh.insertStub( decl.filerange[1] -1, full_stub, True ) # end of class/struct
+        self.hh.insertStub( decl.filerange[1] -1, "".join(full_stub), True ) # end of class/struct
 
     def insertCCStub(self, decl ):
         """
         Write the contents that go into the .cc file for a single class
         """
-        if not decl.has_vars and decl.is_polymorphic and decl.base_class_names:
+        if not decl.has_vars and not decl.is_polymorphic and not decl.base_class_names:
+            print ("insertCCStub early exit")
             return
 
         stub = []
-        stub.append("#ifdef    SERIALIZATION\n")
+        stub.append("\n#ifdef    SERIALIZATION\n\n")
         if decl.requires_protected_default_ctor :
             stub.append( "/// @brief Default constructor required by cereal to deserialize this class\n" )
             stub.append( "%s::%s() {}\n\n" % ( decl.name, decl.name.split("::")[-1] ) )
@@ -593,7 +630,7 @@ class Unit:
         stub.append("template< class Archive >\n")
         stub.append("void\n")
         stub.append("%s::save( Archive &%s ) const {\n" % ( decl.name, " arc" if decl.has_vars else "" ) )
-        stub.append(self.indent( self.makeFullStub( decl, "save" ), 1 ))
+        stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "save" ), 1 ))
         stub.append("}\n\n")
 
         if decl.need_load_construct:
@@ -602,25 +639,28 @@ class Unit:
             stub.append("void\n")
             stub.append("%s::load_and_construct( Archive &%s, cereal::construct< %s > & construct ) {\n" % \
                         ( decl.name, " arc" if decl.has_vars else "", decl.name ))
-            stub.append(self.indent( self.makeFullStub( decl, "load_and_construct" ), 1 ))
+            stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load_and_construct" ), 1 ))
             stub.append("}\n")
         else:
             stub.append("/// @brief Automatically generated deserialization method\n" )
             stub.append("template< class Archive >\n")
             stub.append("void\n")
             stub.append("%s::load( Archive &%s ) {\n" % ( decl.name, " arc" if decl.has_vars else "" ))
-            stub.append(self.indent( self.makeFullStub( decl, "load" ), 1 ))
-            stub.append("}\n")
+            stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load" ), 1 ))
+            stub.append("}\n\n")
 
         if decl.need_load_construct:
-            stub.append( "SAVE_AND_LOAD_AND_CONSTRUCT_SERIALIZABLE( %s )\n" % decl.name )
+            stub.append( "SAVE_AND_LOAD_AND_CONSTRUCT_SERIALIZABLE( %s );\n" % decl.name )
         else :
             stub.append( "SAVE_AND_LOAD_SERIALIZABLE( %s )\n" % decl.name );
-        stub.append( "CEREAL_REGISTER_TYPE( %s )\n" % decl.name );
+
+        if decl.is_polymorphic :
+            stub.append( "CEREAL_REGISTER_TYPE( %s )\n\n" % decl.name );
         stub.append( "#endif // SERIALIZATION\n" )
         stub = "".join(stub)
 
-        self.cc.insertStub( len(self.cc.conents), stub, False )
+        #print("stub for", decl.name,"\n",stub,"inserted at",len(self.cc.contents))
+        self.cc.insertStub( len(self.cc.contents), stub, False )
 
     def save(self):
         self.saveHH()
@@ -632,22 +672,29 @@ class Unit:
 
         # the #includes that are needed for the header
         stub = []
-        if self.needs_access_fwd :
+        if self.needs_access_fwd or self.contains_polymorphic_class :
             stub.append( "#ifdef    SERIALIZATION\n" )
             stub.append( "// Cereal headers\n" )
-            stub.append( "#include <cereal/access.fwd.hpp>\n" )
-            stub.append( "#endif // SERIALIZATION\n" )
-        if stub :
+            if self.needs_access_fwd :
+                stub.append( "#include <cereal/access.fwd.hpp>\n" )
+            if self.contains_polymorphic_class :
+                # need to #include polymorphic.fwd.hpp for the CEREAL_FORCE_DYNAMIC_INIT macro
+                stub.append( "#include <cereal/types/polymorphic.fwd.hpp>\n" )
+            stub.append( "#endif // SERIALIZATION\n\n" )
+
+            # insert this #include before the first "namespace ... {"
             p = self.hh.contents.find("\nnamespace")
             self.hh.insertStub( p, "".join( stub ), False )
 
         # for dealing with dynamically linked libraries
-        # TEMP -- work this in the right place
-        stub = []
-        stub.append( "#ifdef    SERIALIZATION\n" )
-        stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n", self.hh.filename.replace( "/", "_" )[:-3] ) ] )
-        stub.append( "#endif // SERIALIZATION\n" )
-        self.hh.insertStub( len(self.hh.contents), stub, False )
+        if self.contains_polymorphic_class :
+            stub = ["\n"]
+            stub.append( "#ifdef    SERIALIZATION\n" )
+            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "#endif // SERIALIZATION\n\n" )
+            self.hh.insertStub( self.hh.contents.rfind("\n#endif"), "".join(stub), False )
+
+        self.merge_serialization_blocks( self.hh )
 
         self.hh.save()
 
@@ -655,11 +702,9 @@ class Unit:
         """
         Make final modifications to the .cc file before outputting it
         """
-        if not self.class_names:
-            return
-
         if not self.cc.contents:
             # Skip this file... should go to general .cc file
+            print( "save CC early return, no contents" )
             return
 
         stub = [ "\n#ifdef SERIALIZATION\n" ]
@@ -676,13 +721,19 @@ class Unit:
             stub.append( "\n" )
         if self.cc_needs_cereal_base_class_hpp or self.stl_containers or self.needs_access_fwd:
             stub.append( "// Cereal headers\n" )
+        includes = []
+        if self.contains_polymorphic_class :
+            includes.append( "cereal/types/polymorphic.hpp" )        
         if self.needs_access_fwd :
-            stub.append( "#include <cereal/access.hpp>\n" )
+            includes.append( "cereal/access.hpp" )
         if self.cc_needs_cereal_base_class_hpp :
-            stub.append( "#include <cereal/types/base_class.hpp>\n" )
+            includes.append( "cereal/types/base_class.hpp" )
         for stltype in self.stl_containers :
-            stub.append( "#inlude <cereal/types/%s.hpp>\n" % stltype )
-        stub.append( "#endif // SERIALIZATION\n" )
+            includes.append( "cereal/types/%s.hpp" % stltype )
+        includes = sorted( includes )
+        for include in includes :
+            stub.append( "#include <%s>\n" % include )
+        stub.append( "#endif // SERIALIZATION\n\n" )
 
         p = self.cc.contents.find("\nnamespace")
         self.cc.insertStub( p, "".join(stub), False ) # before first namespace
@@ -690,10 +741,12 @@ class Unit:
         # for dealing with dynamically linked libraries
         # TEMP -- work this in the right place
         stub = []
-        stub.append( "#ifdef    SERIALIZATION\n" )
-        stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n", self.hh.filename.replace( "/", "_" )[:-3] ) ] )
+        stub.append( "\n#ifdef    SERIALIZATION\n" )
+        stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
         stub.append( "#endif // SERIALIZATION\n" )
         self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
+
+        self.merge_serialization_blocks( self.hh )
 
         self.cc.save()
 
@@ -744,19 +797,47 @@ class Unit:
         self.tmpl.dirty = True # hack
         self.tmpl.save()
 
+    def merge_serialization_blocks( self, buff ) :
+        counter = 0
+        while buff.contents.find( "#endif // SERIALIZATION", counter ) >= 0 :
+            start = buff.contents.find( "\n#endif // SERIALIZATION", counter )
+            end   = buff.contents.find( "\n#ifdef    SERIALIZATION", start )
+            if end == -1 : break
 
-def processDef(filename):
+            # now lets check that there's nothing between start and end
+            middle = buff.contents[ (start+len("#endif // SERIALIZATION")+1):end ]
+            not_empty = False
+            for i in range(len(middle)) :
+                if middle[i] == " " : continue
+                if middle[i] == "\t" : continue
+                if middle[i] == "\n" : continue
+                not_empty = True
+                break
+            if not_empty :
+                print( "not empty:", middle )
+                counter = end
+                continue
+            print( "EMPTY!", middle )
+
+            # we're clear to delete the #endif..#ifdef block
+            buff.deleteRange( start, end + len("\n#ifdef    SERIALIZATION"), False )
+            counter = start
+
+        if counter != 0 :
+            print( "after merging serialization blocks:", buff.contents )
+
+def processDef(def_filename, hhs):
     """
     Process and insert all stubs for the entire definition (many classes)
     """
     units = {}
 
     # Load definition data
-    for line in open(filename).readlines():
+    for line in open(def_filename).readlines():
         line = line.strip().split("\t")
         decl = line[0]
 
-        if decl in ["class", "struct"]:
+        if decl in ["class", "struct", "union"]:
             d = RecordDecl( line )
             if d.filename not in units:
                 units[d.filename] = Unit( d.filename )
@@ -772,11 +853,28 @@ def processDef(filename):
                 units[ d.filename ].classes[ d.classname ].fields.append(d)
 
     # Process all units
-    for unit_name in units:
+    for unit_name in hhs: #sorted(units.keys()) :
+        if unit_name[0] != "/" :
+            unit_name = os.getcwd()+ "/" + unit_name
+        if unit_name not in units :
+            print( "No classes in file", unit_name, "listed in the definition file; skipping")
+            continue
+        #print( "preprocessing", unit_name )
+        units[ unit_name ].preprocess()
+
+    # rewrite a portion of them
+    for unit_name in hhs:
+        if unit_name[0] != "/" :
+            unit_name = os.getcwd()+ "/" + unit_name
+        if unit_name not in units :
+            print( "No classes in file", unit_name, "listed in the definition file; skipping")
+            continue
         print ("Processing unit %s" % unit_name)
         unit = units[unit_name]
-        unit.process()
-        unit.save()
+        unit.addSerializationRoutines()
 
 if __name__ == '__main__':
-    processDef(sys.argv[1])
+    with blargs.Parser(locals()) as p :
+        p.str( "definitions" ).shorthand( "d" ).required().described_as( "The file with the concatenated output of the class names and fields" )
+        p.multiword( "hhs" ).required().cast( lambda x : x.split() ).described_as( "The list of header files to proccess" )
+    processDef(definitions, hhs)

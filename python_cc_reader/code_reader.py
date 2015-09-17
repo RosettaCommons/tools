@@ -88,7 +88,7 @@ class CodeReader :
       else:
          newline = line[0]
       last_char = line[0]
-      for i in xrange( 1, len(line)) :
+      for i in range( 1, len(line)) :
          if self.long_comment :
             if line[ i ] == "/" and last_char == "*" :
                self.long_comment = False
@@ -148,26 +148,26 @@ class CodeReader :
                # Logical AND: was the parent visible?
                self.nested_ifdefs.append( (last_ifdef[ 0 ], self.nested_ifdefs[ -1 ][ 1 ] ) )
          else :
-            print "Error: in", self.file_name_stack[ -1 ], " on line "
-            print self.line_num_stack[ -1 ], ":", self.full_line
-            print self.line_num_stack[ -1 ], ":", self.commentless_line
-            print "Encountered a #else directive when the size of the nested-ifdef stack is less than 2"
+            print("Error: in", self.file_name_stack[ -1 ], " on line ")
+            print(self.line_num_stack[ -1 ], ":", self.full_line)
+            print(self.line_num_stack[ -1 ], ":", self.commentless_line)
+            print("Encountered a #else directive when the size of the nested-ifdef stack is less than 2")
             sys.exit(1)
       elif self.re_pound_endif.match( self.commentless_line ) :
          if len( self.nested_ifdefs ) < 2 :
-            print "Error: in", self.file_name_stack[ -1 ], " on line "
-            print self.line_num_stack[ -1 ], ":", self.full_line
-            print self.line_num_stack[ -1 ], ":", self.commentless_line
-            print "Encountered a #endif directive when the size of the nested-ifdef stack is less than 2"
+            print("Error: in", self.file_name_stack[ -1 ], " on line ")
+            print(self.line_num_stack[ -1 ], ":", self.full_line)
+            print(self.line_num_stack[ -1 ], ":", self.commentless_line)
+            print("Encountered a #endif directive when the size of the nested-ifdef stack is less than 2")
             sys.exit(1)
          self.nested_ifdefs.pop()
       elif self.re_pound_define.match( self.commentless_line ) :
          toks = self.re_splitter.findall( self.commentless_line )
          if len( toks ) < 2 :
-            print "Error: in", self.file_name_stack[ -1 ], " on line "
-            print self.line_num_stack[ -1 ], ":", self.full_line
-            print self.line_num_stack[ -1 ], ":", self.commentless_line
-            print "#define directive should be followed by a macro variable name"
+            print("Error: in", self.file_name_stack[ -1 ], " on line ")
+            print(self.line_num_stack[ -1 ], ":", self.full_line)
+            print(self.line_num_stack[ -1 ], ":", self.commentless_line)
+            print("#define directive should be followed by a macro variable name")
             sys.exit(1)
          self.defined_macros.append( toks[ 1 ] )
 
@@ -177,7 +177,7 @@ class CodeReader :
       escape = False
       in_single = False
       in_double = False
-      for i in xrange( len( self.commentless_line )) :
+      for i in range( len( self.commentless_line )) :
          curr = self.commentless_line[i]
          if in_single or in_double :
             if curr == "\\" :
@@ -210,10 +210,10 @@ class CodeReader :
       stringless = self.stringless_line()
       self.scope_level += stringless.count("{") - stringless.count("}")
       if self.scope_level < 0 :
-         print "Error: in", self.file_name_stack[ -1 ], " on line "
-         print self.line_num_stack[ -1 ], ":", self.full_line
-         print self.line_num_stack[ -1 ], ":", self.commentless_line
-         print "Scoping level goes negative"
+         print("Error: in", self.file_name_stack[ -1 ], " on line ")
+         print(self.line_num_stack[ -1 ], ":", self.full_line)
+         print(self.line_num_stack[ -1 ], ":", self.commentless_line)
+         print("Scoping level goes negative")
          sys.exit(1)
 
    # read the contents of the line, removing any comments
@@ -249,7 +249,10 @@ class HeavyCodeReader( CodeReader ) :
       self.paren_depth = 0
       self.processing_function_declaration = False
       self.processing_class_declaration = False
-      self.re_class_dec = re.compile( "\s*class\s+")
+      self.re_class_dec = re.compile( r"\s*\bclass\b|\bstruct\b|\bunion\b\s+")
+      self.re_is_class = re.compile( "\s*class\s+" )
+      self.re_is_struct = re.compile( "\s*struct\s+" )
+      self.re_is_union = re.compile( "\s*union\s+" )
       self.re_class_fwd_dec = re.compile( "\s*class\s+\w+;" )
       self.re_class_dataop_dec = re.compile( "\s*[\w:]+OP\s+\w+;" )
       self.re_optype = re.compile( "[\w:]+OP$" )
@@ -419,11 +422,21 @@ class HeavyCodeReader( CodeReader ) :
       if self.re_class_dec.match( self.commentless_line ) :
          if self.class_hasnt_begun() :
             #print "CLASS HASNT BEGUN"
-            print "Discarding empty class", self.class_stack[ -1 ][0]
+            print("Discarding empty class", self.class_stack[ -1 ][0])
             self.class_stack.pop()
             self.privacy_stack.pop()
             self.parent_class_name = None
-         classname = self.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].strip()
+         if self.re_is_class.match( self.commentless_line ) :
+            classname = self.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].split("<")[0].strip()
+         elif self.re_is_union.match( self.commentless_line ) :
+            classname = self.commentless_line.split("union")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].split("<")[0].strip()
+         elif self.re_is_struct.match( self.commentless_line ) :
+            classname = self.commentless_line.split("struct")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].split("<")[0].strip()
+         else :
+            print ("did not find class struct or union on line:", commentless_line )
+            assert( False )
+         
+         
          if self.re_class_fwd_dec.match( self.commentless_line ) :
             self.fwd_dec_class = classname
          else :
@@ -491,8 +504,8 @@ class HeavyCodeReader( CodeReader ) :
                self.privacy_stack[-1] = re_priv[0]
                if self.statement_string != "" :
                   if self.statement_string.find( "template" ) == -1 :
-                     print "ERROR: statement_string is not empty!", len( self.statement_string )
-                     print self.statement_string
+                     print("ERROR: statement_string is not empty!", len( self.statement_string ))
+                     print(self.statement_string)
                      assert( self.statement_string == "" )
                   else :
                      self.statement_string = ""
@@ -619,13 +632,13 @@ class HeavyCodeReader( CodeReader ) :
                            #print "Found lparen: ", ind_of_lparen
                            break
                if ind_of_lparen == -1 :
-                  print "Error: failed to find left paren while parsing function in class"
-                  print self.class_stack[ -1 ][ 0 ]
+                  print("Error: failed to find left paren while parsing function in class")
+                  print(self.class_stack[ -1 ][ 0 ])
                   self.statement_string = ""
                   return
                if ind_of_lparen == 0 :
-                  print "Error: failed to find function name before left parenthesis while parsing function in class"
-                  print self.class_stack[ -1 ][ 0 ]
+                  print("Error: failed to find function name before left parenthesis while parsing function in class")
+                  print(self.class_stack[ -1 ][ 0 ])
                   self.statement_string = ""
                   return
                #print "FUNC TOKS:"
@@ -660,12 +673,19 @@ class HeavyCodeReader( CodeReader ) :
                   self.function_return_type, dummy = self.interpret_toks_as_funcparam( return_type_toks )
                   #print self.function_return_type, dummy
                   if dummy != "" :
-                     print "ERROR: dummy return type is not empty!"
-                     print "FUNCTION NAME: ", self.function_name
-                     print "RETURN TYPE: ", self.function_return_type
-                     print "DUMMY:", dummy
-                     print "LINE:", self.curr_line()
-                     assert( dummy == "" )
+                     #print("ERROR: dummy return type is not empty!")
+                     #print("FUNCTION NAME: ", self.function_name)
+                     #print("RETURN TYPE: ", self.function_return_type)
+                     #print("DUMMY:", dummy)
+                     #print("LINE:", self.curr_line())
+                     #assert( dummy == "" )
+
+                     # ok -- new strategy -- don't count this as a function! we're probably looking at
+                     # a static constant (integer) variable with a definition in the .hh, such as is seen
+                     # in ObjexxFCL/Cstring.hh at line 889
+                     self.statement_string = ""
+                     self.function_name = ""
+                     self.function_return_type = ""
                else :
                   self.function_return_type = ""
                count = ind_of_lparen
@@ -687,7 +707,7 @@ class HeavyCodeReader( CodeReader ) :
                self.statement_string = ""
             elif self.enum_pattern.match( self.statement_string ) :
                # don't read enums listed in classes -- clear out the statement string.  I don't know if this will work for multi-line enums
-               print "enum encountered; skipping", self.statement_string
+               print("enum encountered; skipping", self.statement_string)
                self.statement_string = ""
                pass
             else : # variable declaration
@@ -737,15 +757,15 @@ class HeavyCodeReader( CodeReader ) :
                break
          if goon :
             continue
-         print "ERROR: while loop failed to terminate while processing string"
-         print "instring:", instring
-         print "strcopy:", strcopy
+         print("ERROR: while loop failed to terminate while processing string")
+         print("instring:", instring)
+         print("strcopy:", strcopy)
          break
                   
       return retlist
 
    def interpret_toks_as_funcparam( self, toks ) :
-      #print toks
+      #print( "interpret_toks_as_funcparam", toks )
       paramtype = ""
       paramname = ""
       if len( toks ) == 0 :
@@ -790,10 +810,10 @@ class HeavyCodeReader( CodeReader ) :
    def interpret_toks_as_vardec( self, toks ) :
       vartype, varname = self.interpret_toks_as_funcparam( toks )
       if varname == "" :
-         print "ERROR: interpret_toks_as_vardec failed to find a variable name."
+         print("ERROR: interpret_toks_as_vardec failed to find a variable name.")
          for tok in toks :
-            print tok,
-         print
+            print(tok, end=' ')
+         print()
          varname = "DUMMY"
       return vartype, varname
 
@@ -828,9 +848,15 @@ class ClassDeclaration :
       self.data_members = [] # a list of ordered pairs, where [0] is the type, and [1] is the name of the variable
       self.file_declared_within = ""      
 
-def read_classes_from_header( fname, flines ) :
+class HCROptions :
+   def __init__( self ) :
+      self.defined_preprocessor_variables = []
+
+def read_classes_from_header( fname, flines, options = None ) :
    classes = []
    cr = HeavyCodeReader()
+   if options :
+      cr.defined_macros = list( options.defined_preprocessor_variables )
    cr.push_new_file( fname )
    curr_class = None
    func = None
@@ -924,7 +950,7 @@ def find_data_members_assigned_in_assignment_operator( fname, flines, class_data
    if not asgnop_begun :
       for func in class_data.functions :
          if func.name == "operator=" and not func.privacy_level == "private" :
-            print "Did not find assgnment operator for", class_data.name," in ", fname
+            print("Did not find assgnment operator for", class_data.name," in ", fname)
       return None
    return data_members_assigned
 

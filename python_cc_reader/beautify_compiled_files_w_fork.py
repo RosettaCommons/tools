@@ -1,10 +1,10 @@
-import fork_manager
-import blargs
-import beautifier
+from . import fork_manager
+from . import blargs
+from . import beautifier
 import re
 import sys, os
 
-from code_utilities import *
+from .code_utilities import *
 
 # This script is meant to be run from either the Rosetta/main/source/src/ or 
 # the Rosetta/main/source/test/ directories. It reads the scons .settings
@@ -42,17 +42,17 @@ class FileBeautifierManager :
         self.files_that_failed = []
     def handle_successful_file_beautification( self, fm, pid ) :
         if pid not in self.file_for_job :
-            print "Critical error.  Could not find file assigned to process ", pid
+            print("Critical error.  Could not find file assigned to process ", pid)
             for pid in self.file_for_job :
-               print "Process ", pid, "responsible for", self.file_for_job[ pid ]
+               print("Process ", pid, "responsible for", self.file_for_job[ pid ])
             sys.exit(1)
         else :
            del self.file_for_job[pid]
     def handle_failed_file_beautification( self, fm, pid ) :
        if pid not in self.file_for_job :
-          print "Critical error.  Could not find file assigned to process ", pid
+          print("Critical error.  Could not find file assigned to process ", pid)
           for pid in self.file_for_job :
-             print "Process ", pid, "responsible for", self.file_for_job[ pid ]
+             print("Process ", pid, "responsible for", self.file_for_job[ pid ])
           sys.exit(1)
        else :
           self.files_that_failed.append( self.file_for_job[ pid ] )
@@ -76,9 +76,9 @@ def files_to_beautify() :
 
 def files_in_src_to_beautify() :
     includes = scan_compilable_files()
-    all_files = includes.keys()
+    all_files = list(includes.keys())
 
-    all_files = filter( lambda x : x.partition("/")[0] != "ObjexxFCL", all_files )
+    all_files = [x for x in all_files if x.partition("/")[0] != "ObjexxFCL"]
     all_files.remove( "protocols/noesy_assign/PeakAssignmentOptionKeys.hh" ) # this one doesn't beautify
     return all_files
 
@@ -90,7 +90,7 @@ def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if" 
 
     all_files = files_to_beautify()
 
-    print "Preparing to run beautifier on", len(all_files), "files"
+    print("Preparing to run beautifier on", len(all_files), "files")
 
     fbm = FileBeautifierManager()
     fm = fork_manager.ForkManager( num_cpu )
@@ -118,7 +118,7 @@ def exit_following_beautification( fbm ) :
         sys.exit(0)
     else :
        for fname in fbm.files_that_failed :
-           print "File", fname, "could not be beautified"
+           print("File", fname, "could not be beautified")
        sys.exit(1)
 
 if __name__ == "__main__" :

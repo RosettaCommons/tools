@@ -237,6 +237,8 @@ class Unit:
         self.save()
 
     def findSTLTypesInVartype( self, vartype ) :
+        if vartype.find( "std::" ) == -1 : return
+
         container = vartype[ vartype.find( "std::" )+5: vartype.find("<", vartype.find( "std::" )+5) ]
         if container == "" : return
         if container == "shared_ptr" or container == "weak_ptr" :
@@ -245,7 +247,7 @@ class Unit:
             self.stl_containers.add( "utility" )
         elif container == "basic_string" :
             self.stl_containers.add( "string" )
-        elif container == "allocator" :
+        elif container == "allocator" or container == "less" :
             pass
         else :
             self.stl_containers.add( container )
@@ -354,7 +356,7 @@ class Unit:
             #        continue
             #    decl.base_class_names.append( n )
             if pycc_decl and pycc_decl.base is not None :
-                self.needs_cereal_base_class_hpp = True
+                self.cc_needs_cereal_base_class_hpp = True
                 decl.base_class_names = pycc_decl.base.split(",") if pycc_decl.base.find(",") > 0 else [ pycc_decl.base ]
                 #DEBUG
                 #for b in decl.base_class_names :
@@ -410,23 +412,17 @@ class Unit:
 
     def isConstNonPointer(self, s):
         # Guess if this is a const variable
-        if s[0:6] == 'const ':
-            return True
-        container = self.getContainerType(s)
-        if container == "" : return False
-        if container == "std::shared_ptr" or container == "std::access_ptr" :
-            return False
-        contained = self.getContainedType(s)
-        if contained.find('const ') < 0:
-            return False
-        return True
+        return s[0:6] == 'const '
 
     def isConstPointer( self, s ) :
         container = self.getContainerType(s)
+        #print( "isConstPointer container:", container )
         if container == "" :
+            #print( "isConstPointer container:", False )
             return False
-        if container == "std::shared_ptr" or container == "std::access_ptr" :
+        if container == "class std::shared_ptr" or container == "class std::access_ptr" :
             contained = self.getContainedType(s)
+            #print( "isConstPointer contained:", contained, contained.find('const ') >= 0 )
             return contained.find('const ') >= 0
         else :
             return self.isConstPointer( self.getContainedType(s) )
@@ -447,6 +443,44 @@ class Unit:
         #if c != full:
         #    return "const_cast< %s & >( @@ )" % ( c )
         return ""
+    def remove_trailing_underscore( self, varname ) :
+        if varname[-1] == "_" :
+            return varname[:-1]
+        return varname
+
+    def excise_templated_type( self, fulltype, templated_type ) :
+        i = 0
+        while i < len(fulltype) :
+            i = fulltype.find( ", " + templated_type )
+            if i == -1 : break
+            bracket_count = 1
+            j = i + len( ", " + templated_type + "<" )
+            #print( "excising allocators:", fulltype, i, j )
+            while j < len(fulltype) :
+                #print ( " while", j, "fulltype[j]", fulltype[j] )
+                if fulltype[j] == ">" :
+                    bracket_count -= 1
+                    if bracket_count == 0 :
+                        j+=1
+                        break
+                elif fulltype[j] == "<" :
+                    bracket_count += 1
+                j+=1
+            
+            fulltype = fulltype[:i] + fulltype[j:]
+            #print( "excised allocator:", fulltype, i )
+        return fulltype
+
+    def nonconstptr_type( self, fulltype ) :
+        fulltype = fulltype.replace( "const ", "" )
+        fulltype = fulltype.replace( "class ", "" )
+        fulltype = fulltype.replace( "<", "< " )
+        fulltype = self.excise_templated_type( fulltype, "std::allocator" )
+        fulltype = self.excise_templated_type( fulltype, "std::less" )
+        fulltype = fulltype.replace( ">", " >" )
+        fulltype = fulltype.replace( "  >", " >" )
+        print ("final type", fulltype )
+        return fulltype
 
     def makeVarsArStub( self, decl, membvars, style, include_base = True ):
         """
@@ -464,7 +498,7 @@ class Unit:
 
         if style == "load_and_construct" :
             stub.append( "NOTE: The automatically generated load_and_construct stub here requires manual intervention\n" );
-            stub.append( "construct( /* please choose the proper constructor arguments /* );\n" );
+            stub.append( "construct( /* please choose the proper constructor arguments */ );\n" );
 
         for i, v in enumerate(membvars):
             nextline = []
@@ -476,8 +510,9 @@ class Unit:
             # cast_str = v['cast'].replace("@@", var_name) if v.get('cast') else ""
 
             if style == "load" and v[ 'constptr' ] :
-                deserialize_varname = "local_%s" % self.remove_trailing_underscore( v.name )
-                stub.append( "%s %s;\n" % ( self.nonconstptr_type( v.fullvartype ), deserialize_varname ));
+                #print( "CONSTPTR:", var_name)
+                deserialize_varname = "local_%s" % self.remove_trailing_underscore( v[ 'name' ] )
+                stub.append( "%s %s;\n" % ( self.nonconstptr_type( v[ 'fullvartype' ] ), deserialize_varname ));
 
             if not v['enable']:
                 nextline.append( "// " )
@@ -503,8 +538,8 @@ class Unit:
                 nextline.append(  "; " + v['comment'] )
             nextline.append( "\n" )
             stub.append( "".join( nextline ))
-            if v['constptr'] :
-                stub.append( "%s = %s; \\ copy the non-const pointer(s) into the const pointer(s)\n" % ( var_name, deserialize_varname ))
+            if v['constptr'] and ( style == "load" or style == "load_and_construct" ) :
+                stub.append( "%s = %s; // copy the non-const pointer(s) into the const pointer(s)\n" % ( var_name, deserialize_varname ))
 
         return "".join( stub )
 
@@ -629,7 +664,7 @@ class Unit:
         stub.append("/// @brief Automatically generated serialization method\n" )
         stub.append("template< class Archive >\n")
         stub.append("void\n")
-        stub.append("%s::save( Archive &%s ) const {\n" % ( decl.name, " arc" if decl.has_vars else "" ) )
+        stub.append("%s::save( Archive &%s ) const {\n" % ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "" ) )
         stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "save" ), 1 ))
         stub.append("}\n\n")
 
@@ -638,21 +673,21 @@ class Unit:
             stub.append("template< class Archive >\n")
             stub.append("void\n")
             stub.append("%s::load_and_construct( Archive &%s, cereal::construct< %s > & construct ) {\n" % \
-                        ( decl.name, " arc" if decl.has_vars else "", decl.name ))
+                        ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "", decl.name ))
             stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load_and_construct" ), 1 ))
             stub.append("}\n")
         else:
             stub.append("/// @brief Automatically generated deserialization method\n" )
             stub.append("template< class Archive >\n")
             stub.append("void\n")
-            stub.append("%s::load( Archive &%s ) {\n" % ( decl.name, " arc" if decl.has_vars else "" ))
+            stub.append("%s::load( Archive &%s ) {\n" % ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "" ))
             stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load" ), 1 ))
             stub.append("}\n\n")
 
         if decl.need_load_construct:
             stub.append( "SAVE_AND_LOAD_AND_CONSTRUCT_SERIALIZABLE( %s );\n" % decl.name )
         else :
-            stub.append( "SAVE_AND_LOAD_SERIALIZABLE( %s )\n" % decl.name );
+            stub.append( "SAVE_AND_LOAD_SERIALIZABLE( %s );\n" % decl.name );
 
         if decl.is_polymorphic :
             stub.append( "CEREAL_REGISTER_TYPE( %s )\n\n" % decl.name );
@@ -673,7 +708,7 @@ class Unit:
         # the #includes that are needed for the header
         stub = []
         if self.needs_access_fwd or self.contains_polymorphic_class :
-            stub.append( "#ifdef    SERIALIZATION\n" )
+            stub.append( "\n#ifdef    SERIALIZATION\n" )
             stub.append( "// Cereal headers\n" )
             if self.needs_access_fwd :
                 stub.append( "#include <cereal/access.fwd.hpp>\n" )
@@ -722,7 +757,7 @@ class Unit:
         if self.cc_needs_cereal_base_class_hpp or self.stl_containers or self.needs_access_fwd:
             stub.append( "// Cereal headers\n" )
         includes = []
-        if self.contains_polymorphic_class :
+        if self.contains_polymorphic_class and "polymorphic" not in self.stl_containers :
             includes.append( "cereal/types/polymorphic.hpp" )        
         if self.needs_access_fwd :
             includes.append( "cereal/access.hpp" )
@@ -739,14 +774,14 @@ class Unit:
         self.cc.insertStub( p, "".join(stub), False ) # before first namespace
 
         # for dealing with dynamically linked libraries
-        # TEMP -- work this in the right place
-        stub = []
-        stub.append( "\n#ifdef    SERIALIZATION\n" )
-        stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
-        stub.append( "#endif // SERIALIZATION\n" )
-        self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
-
-        self.merge_serialization_blocks( self.hh )
+        if self.contains_polymorphic_class :
+            stub = []
+            stub.append( "\n#ifdef    SERIALIZATION\n" )
+            stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "#endif // SERIALIZATION\n" )
+            self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
+    
+        self.merge_serialization_blocks( self.cc )
 
         self.cc.save()
 
@@ -803,6 +838,7 @@ class Unit:
             start = buff.contents.find( "\n#endif // SERIALIZATION", counter )
             end   = buff.contents.find( "\n#ifdef    SERIALIZATION", start )
             if end == -1 : break
+            #print( "merge_serialization_blocks: Found start end pair:", start, end )
 
             # now lets check that there's nothing between start and end
             middle = buff.contents[ (start+len("#endif // SERIALIZATION")+1):end ]
@@ -814,17 +850,14 @@ class Unit:
                 not_empty = True
                 break
             if not_empty :
-                print( "not empty:", middle )
+                #print( "not empty:", middle )
                 counter = end
                 continue
-            print( "EMPTY!", middle )
+            #print( "EMPTY!", middle )
 
             # we're clear to delete the #endif..#ifdef block
             buff.deleteRange( start, end + len("\n#ifdef    SERIALIZATION"), False )
             counter = start
-
-        if counter != 0 :
-            print( "after merging serialization blocks:", buff.contents )
 
 def processDef(def_filename, hhs):
     """

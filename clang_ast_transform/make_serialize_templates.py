@@ -634,7 +634,7 @@ class Unit:
         full_stub= [ "\n#ifdef    SERIALIZATION\n" ]
         if decl.decl == "class":
             if not decl.default_ctor and decl.constructors: # Add default c'tor prototype
-                self.requires_protected_default_ctor = True
+                decl.requires_protected_default_ctor = True
                 self.needs_access_fwd = True
                 full_stub.append( "protected:\n\tfriend class cereal::access;\n\t%s();\n\n" % ( decl.name.split("::")[-1] ) )
                 self.default_ctor.append( decl.name )

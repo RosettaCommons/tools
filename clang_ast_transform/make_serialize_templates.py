@@ -197,6 +197,9 @@ class Unit:
         self.stl_containers = set([])
         self.uses_vector0 = False
         self.uses_vector1 = False
+        self.uses_FArray1D = False
+        self.uses_FArray2D = False
+        self.uses_DynIndRange = False
         self.uses_xyzVector = False
         self.parsed_cc_file = None
 
@@ -303,7 +306,7 @@ class Unit:
                 vd['enable'] = False
                 vd['comment'] = "%s: %s" % ("reference" if v.vartype.find('&') >= 0 else "raw pointer", v.vartype)
                 decl.need_load_construct = True
-            elif v.fullvartype.find("ObjexxFCL") >= 0:
+            elif v.fullvartype.find("ObjexxFCL") >= 0 and v.fullvartype.find("FArray1D") == -1 and v.fullvartype.find("FArray2D") == -1 and v.fullvartype.find("DynamicIndexRange") == -1 :
                 vd['enable'] = False
                 vd['comment'] = "ObjexxFCL: %s" % ( v.vartype )
             elif self.isConstNonPointer(v.fullvartype):
@@ -326,6 +329,12 @@ class Unit:
                 self.uses_vector1 = True
             if v.fullvartype.find( "utility::vector0" ) >= 0 :
                 self.uses_vector0 = True
+            if v.fullvartype.find( "ObjexxFCL::FArray1D" ) >= 0 :
+                self.uses_FArray1D = True
+            if v.fullvartype.find( "ObjexxFCL::FArray2D" ) >= 0 :
+                self.uses_FArray2D = True
+            if v.fullvartype.find( "ObjexxFCL::DynamcIndexRange" ) >= 0 :
+                self.uses_DynIndRange = True
             decl.membvars.append( vd )
 
 
@@ -744,11 +753,17 @@ class Unit:
 
         stub = [ "\n#ifdef SERIALIZATION\n" ]
         stub.append( "// Utility serialization headers\n" ) 
-        stub.append( "#include <utility/serialization/serialization.hh>\n" )
         if self.uses_vector0 :
             stub.append( "#include <utility/vector0.srlz.hh>\n" )
         if self.uses_vector1 :
             stub.append( "#include <utility/vector1.srlz.hh>\n" )
+        stub.append( "#include <utility/serialization/serialization.hh>\n" )
+        if self.uses_FArray1D :
+            stub.append( "#include <utility/serialization/ObjexxFCL/FArray1D.srlz.hh>\n")
+        if self.uses_FArray2D :
+            stub.append( "#include <utility/serialization/ObjexxFCL/FArray2D.srlz.hh>\n")
+        if self.uses_DynIndRange :
+            stub.append( "#include <utility/serialization/ObjexxFCL/DynamicIndexRange.srlz.hh>\n")
         stub.append( "\n" )
         if self.uses_xyzVector :
             stub.append( "// Numeric serialization headers\n" )

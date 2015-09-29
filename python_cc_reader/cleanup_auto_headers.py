@@ -1,5 +1,5 @@
-from .code_utilities import load_source_tree, directories_with_ccfiles_to_examine
-from .add_headers import write_file
+from code_utilities import load_source_tree, directories_with_ccfiles_to_examine
+from add_headers import write_file
 import sys
 
 # $1..$n the specific files to apply the cleanup to; if none given, then all files are cleaned.
@@ -41,20 +41,20 @@ def cleanup_autoheaders_for_lines( flines ) :
 
 if __name__ == "__main__" :
     if len(sys.argv) < 2 :
-        print("cleaning autoheaders for all files...")
+        print "cleaning autoheaders for all files..."
         compilable_files, all_includes, file_contents = load_source_tree()
         for fname in file_contents :
             toks = fname.split("/")
             if len(toks) < 0 or toks[0] not in directories_with_ccfiles_to_examine() :
                 continue
-            print("processing", fname)
+            print "processing", fname
             flines = file_contents[ fname ]
             newlines = cleanup_autoheaders_for_lines( flines )
             write_file( fname, newlines )
     else:
         files = sys.argv[1:]
         for fname in files :
-            print("cleaning autoheaders from file:", fname)
+            print "cleaning autoheaders from file:", fname
             flines = open(fname).readlines()
             newlines = cleanup_autoheaders_for_lines( flines )
             write_file( fname, newlines )

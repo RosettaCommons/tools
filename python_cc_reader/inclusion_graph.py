@@ -4,14 +4,14 @@
 
 import re, pygraph, sys
 #from pygraph.algorithms.sorting import topological_sorting
-from .add_headers import add_autoheaders_to_file, add_autoheaders_to_filelines,  write_file
-from .remove_header import remove_header_from_filelines
-from .remove_duplicate_headers import remove_duplicate_headers_from_filelines
-from .add_namespaces import remove_using_namespace_from_lines, add_using_namespaces_to_lines, cleanup_auto_namespace_block_lines
-from .test_compile import test_compile_from_lines, test_compile_from_stdin, generate_objdump, test_compile_extreme, cxxtest_test_compile
-from .code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file, find_includes_at_global_scope, load_source_tree
-from .inclusion_equivalence_sets import inclusion_equivalence_sets
-from . import dont_remove_include
+from add_headers import add_autoheaders_to_file, add_autoheaders_to_filelines,  write_file
+from remove_header import remove_header_from_filelines
+from remove_duplicate_headers import remove_duplicate_headers_from_filelines
+from add_namespaces import remove_using_namespace_from_lines, add_using_namespaces_to_lines, cleanup_auto_namespace_block_lines
+from test_compile import test_compile_from_lines, test_compile_from_stdin, generate_objdump, test_compile_extreme, cxxtest_test_compile
+from code_utilities import known_circular_dependencies, scan_compilable_files, expand_includes_for_file, find_includes_at_global_scope, load_source_tree
+from inclusion_equivalence_sets import inclusion_equivalence_sets
+import dont_remove_include
 
 # this is an optional way to get an inclusion graph into memory.
 # the alternative is to get all the #includes from all
@@ -35,20 +35,20 @@ def read_inclusion_graph( filename ) :
          continue
       if done_with_nodes :
          if len( toks ) != 2 :
-            print("Error: While reading graph file", filename, ", encountered edge line")
-            print("Error:", line)
-            print("Error: with", len( toks ), "tokens (expected exactly 2 tokens)")
+            print "Error: While reading graph file", filename, ", encountered edge line"
+            print "Error:", line
+            print "Error: with", len( toks ), "tokens (expected exactly 2 tokens)"
             sys.exit(1)
          else :
             if toks[ 0 ] not in gr.nodes() :
-               print("Error: While reading graph file", filename, ", encountered edge line")
-               print("Error:", line)
-               print("Error: where the first node is not present in the graph")
+               print "Error: While reading graph file", filename, ", encountered edge line"
+               print "Error:", line
+               print "Error: where the first node is not present in the graph"
                sys.exit(1)
             if toks[ 1 ] not in gr.nodes() :
-               print("Error: While reading graph file", filename, ", encountered edge line")
-               print("Error:", line)
-               print("Error: where the second node is not present in the graph")
+               print "Error: While reading graph file", filename, ", encountered edge line"
+               print "Error:", line
+               print "Error: where the second node is not present in the graph"
                sys.exit(1)
             if toks[ 1 ] in ignore :
                continue
@@ -59,20 +59,20 @@ def read_inclusion_graph( filename ) :
             gr.add_edge( toks[ 0 ], toks[ 1 ] )
          elif len( toks ) == 1 :
             if toks[ 0 ] in gr.nodes() :
-               print("Error: found duplicate node", toks[ 0 ])
+               print "Error: found duplicate node", toks[ 0 ]
                sys.exit(1)
             gr.add_node( toks[ 0 ] )
          else :
-            print("Error: While reading graph file", filename, ", encountered edge line")
-            print("Error:", line, end=' ')
-            print("Error: with", len( toks ), "tokens (expected either 1 token or 2 tokens)")
+            print "Error: While reading graph file", filename, ", encountered edge line"
+            print "Error:", line,
+            print "Error: with", len( toks ), "tokens (expected either 1 token or 2 tokens)"
             sys.exit(1)
    file.close()
 
    for node in gr.nodes() :
       for neighb in gr.node_neighbors[ node ] :
          if node == neighb :
-            print("Node connects to itself?!:", node)
+            print "Node connects to itself?!:", node
             sys.exit(1)
 
    return gr
@@ -193,7 +193,7 @@ def prohibit_removal( C_cc, X_hh, DRI=None ) :
          return True
    else :
       # whoa -- what are we looking at?!
-      print("Encountered weird file: ", C_cc)
+      print "Encountered weird file: ", C_cc
       return True
 
    if DRI and DRI.leave_include_in_file( X_hh, C_cc ) :
@@ -243,12 +243,12 @@ def add_indirect_headers_to_file_outside_tg( tg, fname ) :
 # C_cc, file_contents, and compile_args. It should return true if the
 # compilation succeeds and false if the compilation fails
 def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, compile_command, compile_args, super_cautious=False ) :
-   print("Examining includes within", C_cc)
+   print "Examining includes within", C_cc
 
    DRI = dont_remove_include.DontRemoveInclude() 
 
    if not compile_command( C_cc, file_contents, compile_args ) :
-      print("Skipping ", C_cc, " since it does not compile as is")
+      print "Skipping ", C_cc, " since it does not compile as is"
       return
 
    backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
@@ -272,7 +272,7 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       # file_contents map, even though it doesn't have to be part of the tg
       assert( C_cc in file_contents )
       C_cc_headers = find_includes_at_global_scope( C_cc, file_contents[ C_cc ] )
-      if len(C_cc_headers) == 0 : print("FOUND NO HEADERS AT GLOBAL SCOPE!")
+      if len(C_cc_headers) == 0 : print "FOUND NO HEADERS AT GLOBAL SCOPE!"
       C_cc_headers_set = set( C_cc_headers )
       indirect_set = set()
       for header in C_cc_headers :
@@ -283,15 +283,15 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       indirect_headers = list( indirect_set )
 
    for h in C_cc_headers : #temp debug
-      print("File,", C_cc, " has header:", h) #temp debug
+      print "File,", C_cc, " has header:", h #temp debug
    for ih in indirect_headers : #temp debug
-      print("About to add indirect header:", ih) #temp debug
+      print "About to add indirect header:", ih #temp debug
 
    file_contents[ C_cc ] = add_autoheaders_to_filelines( C_cc, file_contents[ C_cc ], indirect_headers )
    if compile_command( C_cc, file_contents, compile_args ) :
-      print("autoheader addition succeeded")
+      print "autoheader addition succeeded"
    else :
-      print("Warning: could not resolve compilation issues with ", C_cc)
+      print "Warning: could not resolve compilation issues with ", C_cc
       file_contents[ C_cc ] = backup_C_cc
       return
 
@@ -301,11 +301,11 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
    namespaces, file_contents[ C_cc ] = add_using_namespaces_to_lines( C_cc, file_contents[ C_cc ] )
 
    if not compile_command( C_cc, file_contents, compile_args ) :
-      print("Warning: failed to compile", C_cc, "after adding using namespace declarations")
+      print "Warning: failed to compile", C_cc, "after adding using namespace declarations"
       file_contents[ C_cc ] = backup_C_cc
       newnamespaces = []
       for ns in namespaces :
-         print("Testing the addition of namespace", ns)
+         print "Testing the addition of namespace", ns
          backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
          test_namespaces = list( newnamespaces )
          test_namespaces.append( ns )
@@ -318,10 +318,10 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       namespaces = newnamespaces
 
    for namespace in namespaces :
-      print(namespace, " added in auto-namespace block")
+      print namespace, " added in auto-namespace block"
 
    if not compile_command( C_cc, file_contents, compile_args ) :
-      print("ERROR: failed to compile after namespace addition twice")
+      print "ERROR: failed to compile after namespace addition twice"
       file_contents[ C_cc ] = last_compiling_version
       return
 
@@ -330,16 +330,16 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       if X_hh in tg :
          C_cc_headers_in_tg.append( X_hh )
       else :
-         print("Header",X_hh,"not in tg. Skipping.")
+         print "Header",X_hh,"not in tg. Skipping."
 
    headers = topologically_sorted( total_order, C_cc_headers_in_tg )
    necessary = [] # tg.node_incidence[ C_cc ]
    for X_hh in headers :
 
-      print("...Testing: is ",X_hh, "necessary for", C_cc, end=' ')
+      print "...Testing: is ",X_hh, "necessary for", C_cc,
 
       if prohibit_removal( C_cc, X_hh, DRI ) :
-         print("yes.  Prohibited from removing", X_hh)
+         print "yes.  Prohibited from removing", X_hh
          necessary.append( X_hh )
          continue
 
@@ -348,9 +348,9 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
          if X_hh in tg.node_neighbors[ nec ] :
             X_hh_necessary = True
             if X_hh in tg :
-               print("yes.  Dependent of", X_hh,  "(", len(tg.node_neighbors[X_hh]), ") is necessary.")
+               print "yes.  Dependent of", X_hh,  "(", len(tg.node_neighbors[X_hh]), ") is necessary."
             else :
-               print("yes.  Dependent of", X_hh, "is necessary.")
+               print "yes.  Dependent of", X_hh, "is necessary."
             break
 
       if X_hh_necessary :
@@ -366,10 +366,10 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
                backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
                file_contents[ C_cc ] = contents_after_removal
                if not compile_command( C_cc, file_contents, compile_args ) :
-                  print("Whoa!  Removing header ", X_hh, " which is transitively included breaks the build! WTF?!")
+                  print "Whoa!  Removing header ", X_hh, " which is transitively included breaks the build! WTF?!"
                   file_contents[ C_cc ] = backup_C_cc
                else:
-                  print("Safely removed ", X_hh, "which is transitively included and an auto-header")
+                  print "Safely removed ", X_hh, "which is transitively included and an auto-header"
          else :
             file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ], X_hh, True )
 
@@ -379,35 +379,35 @@ def trim_unnecessary_headers_from_file( C_cc, tg, total_order, file_contents, co
       file_contents[ C_cc ] = remove_header_from_filelines( C_cc, file_contents[ C_cc ],  X_hh )
       if not compile_command( C_cc, file_contents, compile_args ) :
          if X_hh in tg :
-            print("yes.  Removing", X_hh, "(", len(tg.node_neighbors[X_hh]), ") breaks the build.")
+            print "yes.  Removing", X_hh, "(", len(tg.node_neighbors[X_hh]), ") breaks the build."
          else:
-            print("yes.  Removing", X_hh, "breaks the build.")
+            print "yes.  Removing", X_hh, "breaks the build."
          file_contents[ C_cc ] = backup_C_cc
          necessary.append( X_hh )
       else :
          last_compiling_version = file_contents[ C_cc ][ : ]
          if X_hh in tg :
-            print("no.", X_hh, "(", len(tg.node_neighbors[X_hh]), ") may be safely removed.")
+            print "no.", X_hh, "(", len(tg.node_neighbors[X_hh]), ") may be safely removed."
          else:
-            print("no.", X_hh, "may be safely removed.")
+            print "no.", X_hh, "may be safely removed."
 
    for ns in namespaces :
       backup_C_cc = file_contents[ C_cc ][ : ] # deep copy
       file_contents[ C_cc ] = remove_using_namespace_from_lines( C_cc, file_contents[ C_cc ], ns )
-      print("...Testing: is namespace", ns, "necessary?", end=' ')
+      print "...Testing: is namespace", ns, "necessary?",
       if not compile_command( C_cc, file_contents, compile_args ) :
       #if not test_compile_from_lines( expand_includes_for_file( C_cc, file_contents ) ) :
-         print("yes. using namespace", ns, "must remain")
+         print "yes. using namespace", ns, "must remain"
          file_contents[ C_cc ] = backup_C_cc
       else :
          last_compiling_version = file_contents[ C_cc ][ : ]
-         print("no.  Namespace", ns, " does not need a using declaration")
+         print "no.  Namespace", ns, " does not need a using declaration"
 
    # remove the auto-namespace block if it's empty
    file_contents[ C_cc ] = cleanup_auto_namespace_block_lines( file_contents[ C_cc ] )
 
    if not compile_command( C_cc, file_contents, compile_args ) :
-      print("Warning: Could not compile", C_cc, "at conclusion of trim_unnecessary_headers_from_file")
+      print "Warning: Could not compile", C_cc, "at conclusion of trim_unnecessary_headers_from_file"
       open( "blah", "w" ).writelines( file_contents[ C_cc ] )
       file_contents[ C_cc ] = last_compiling_version
       if not super_cautious :
@@ -445,7 +445,7 @@ def trim_inclusions_from_files_extreme( filelist, id, super_cautious=False ) :
    for fname in filelist :
       builds, gold_objdump = generate_objdump( expand_includes_for_file( fname, file_contents ), id )
       if not builds :
-         print("ERROR: could not compile", fname)
+         print "ERROR: could not compile", fname
       else :
          arg_tuple = ( gold_objdump, id ) 
          trim_unnecessary_headers_from_file( fname, tg, total_order, file_contents, wrap_compile_extreme, arg_tuple, super_cautious )
@@ -489,7 +489,7 @@ def restore_backup( filename, extension ) :
 
 def create_graph_from_includes( all_includes ) :
    g = pygraph.digraph()
-   for fname in list(all_includes.keys()) :
+   for fname in all_includes.keys() :
       if fname not in g.nodes() :
          g.add_node( fname )
       for include in all_includes[ fname ] :
@@ -611,16 +611,16 @@ def print_cycles_in_source_tree() :
    cycles = find_cycles( gr )
 
    if len( cycles ) == 0 :
-      print("Found no cycles in inclusion graph")
+      print "Found no cycles in inclusion graph"
    else :
 
       count = 0
       for cycle in cycles:
          count += 1
-         print("-------")
-         print("Cycle #", count)
+         print "-------"
+         print "Cycle #", count
          for node in cycle :
-           print(node)
+           print node
 
 def desired_node( node ) :
    name_list = node.split( "/" )
@@ -767,4 +767,4 @@ def topological_sorting(graph):
 if __name__ == "__main__" :
    g = scan_files_to_create_inclusion_graph()
    for node in g.nodes() :
-      print(node, len( g.node_neighbors[node] ))
+      print node, len( g.node_neighbors[node] )

@@ -1,7 +1,7 @@
 
 import re, code_reader
-from .add_headers import write_file
-from .code_utilities import load_source_tree
+from add_headers import write_file
+from code_utilities import load_source_tree
 
 def remove_duplicate_headers_from_filelines( filename, filelines ) :
    included_files = {}
@@ -22,7 +22,7 @@ def remove_duplicate_headers_from_filelines( filename, filelines ) :
          elif angle_include.match( line ) :
             include = line.split( "<" )[ 1 ].split(">")[ 0 ]
          else :
-            print(line)
+            print line
             sys.exit(1)
 
          if include not in included_files :

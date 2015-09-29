@@ -1,6 +1,6 @@
 #from test_compile import find_includes_for_file
 
-from . import code_reader
+import code_reader
 import re, sys, os
 
 def regex_subset( filelist, regex ) :
@@ -64,8 +64,8 @@ def include_for_line( cr, line ) :
       if len( toks ) > 0 :
          if toks[ 0 ].find( "<" ) != -1 :
             return toks[ 0 ].split("<")[ 1 ].split(">")[ 0 ]
-      print("Error", cr.curr_file(), cr.curr_line(), line, end=' ')
-      print("#include is missing a filename")
+      print "Error", cr.curr_file(), cr.curr_line(), line,
+      print "#include is missing a filename"
       sys.exit(1)
    if toks[ 1 ].find( "<" ) != -1 :
       include = toks[ 1 ].split("<")[ 1 ].split(">")[ 0 ]
@@ -118,7 +118,7 @@ def compiled_cc_files() :
      f = file( settings_file_name ).read()
      #print "reading files for library", libname
      exec(f)
-     for dir in list(sources.keys()) :
+     for dir in sources.keys() :
         for cc_file in sources[ dir ] :
            if len( cc_file ) > 3 and cc_file[-3:] == ".cu" :
               # skip cuda files
@@ -144,11 +144,11 @@ def compiled_cxxtest_hh_files() :
       if library == "pilot_apps" :
          libname = "apps"
       if not os.path.isfile( settings_file_name ) :
-         print("did not find", settings_file_name, ". Skipping")
+         print "did not find", settings_file_name, ". Skipping"
          continue
       f = file( settings_file_name ).read()
       exec(f)
-      for dir in list(sources.keys()) :
+      for dir in sources.keys() :
          for hh_file in sources[ dir ] :
             name = "../test/" + libname + "/" + dir + "/" + hh_file + ".cxxtest.hh"
             to_be_compiled.append( name )
@@ -167,7 +167,7 @@ def toplevel_subdirs_of_library( libname ) :
    f = file( settings_file_name ).read()
    exec( f )
    subdirs = set([])
-   for dir in list(sources.keys()) :
+   for dir in sources.keys() :
       subdir_full = dir.partition( "/" )[ 2 ]
       subdir_toplevel = subdir_full.partition( "/" )[ 0 ]
       if subdir_toplevel not in subdirs :
@@ -215,8 +215,8 @@ def load_source_tree() :
    compilable_includes = scan_compilable_files()
 
    file_contents = {}
-   compilable_files = list(compilable_includes.keys())
-   all_library_files = list(compilable_includes.keys())
+   compilable_files = compilable_includes.keys()
+   all_library_files = compilable_includes.keys()
 
    # find the subset of files that are not #included at global scope,
    # but which are in our rosetta libraries
@@ -232,8 +232,8 @@ def load_source_tree() :
 
 def find_library_files() :
    compilable_includes = scan_compilable_files()
-   all_library_files = list(compilable_includes.keys())
-   for file in list(compilable_includes.keys()) :
+   all_library_files = compilable_includes.keys()
+   for file in compilable_includes.keys() :
       for included in compilable_includes[ file ] :
          if included not in compilable_includes :
             toks = included.split( "/" )

@@ -1,6 +1,6 @@
 
 import re, code_reader
-from .add_headers import write_file
+from add_headers import write_file
 
 def auto_ns_comment() :
    return " // AUTO USING NS"
@@ -55,7 +55,7 @@ def add_using_namespaces_to_lines( filename, filelines, input_namespaces = [ "st
       # last_auto_using_line is >= to auto_using_start_line iff we're outside the auto-using block
       if cr.line_is_visible() and cr.scope_level == 0 and last_auto_using_line >= auto_using_start_line :
          if is_using_ns_dec.search( cr.commentless_line ) :
-            for ns in list(using_ns_decs.keys()) :
+            for ns in using_ns_decs.keys() :
                if using_ns_decs[ ns ].search( cr.commentless_line ) :
                   #this using namespace already exists at global scope; don't bother adding it
                   if ns in namespaces :
@@ -65,8 +65,8 @@ def add_using_namespaces_to_lines( filename, filelines, input_namespaces = [ "st
       last_include_line = 1 # just put the using declarations at the top!
 
    if auto_using_start_line != 0 and last_auto_using_line == 0 :
-      print("Error: While reading", filename)
-      print("Error: Found auto-using-namespace start line, but failed to find end line")
+      print "Error: While reading", filename
+      print "Error: Found auto-using-namespace start line, but failed to find end line"
       exit
 
    count_line = 0
@@ -127,14 +127,14 @@ def remove_using_namespace_from_lines( filename, filelines, namespace ) :
                found_sought_namespace = True
                continue
             if auto_using_block_end.match( line ) :
-               print("Error: While reading", filename,"failed to find", namespace, "in auto-namespace block")
+               print "Error: While reading", filename,"failed to find", namespace, "in auto-namespace block"
                exit
          if auto_using_block.match( line ) :
             inside_auto_using_block = True
       newlines.append( line )
 
    if not found_sought_namespace :
-      print("Error: While reading", filename,"failed to find sought namespace or auto-header block!")
+      print "Error: While reading", filename,"failed to find sought namespace or auto-header block!"
       exit
 
    return newlines

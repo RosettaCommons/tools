@@ -1,4 +1,4 @@
-from . import blargs
+import blargs
 
 def is_int( val ) :
     try :

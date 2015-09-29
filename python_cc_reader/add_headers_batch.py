@@ -16,5 +16,5 @@ for line in file:
 	file_list.append(line.rstrip())
 
 for path in file_list:
-	print(path)
+	print path
 	add_headers.add_autoheaders_to_file(path,[args[1]])

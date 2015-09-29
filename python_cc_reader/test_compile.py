@@ -3,8 +3,8 @@
 # computer:  os, nbits, and compiler.
 
 import subprocess, re, time, sys
-from .code_utilities import expand_includes_for_file, load_source_tree
-from .reinterpret_objdump import relabel_sections, compare_objdump_lines
+from code_utilities import expand_includes_for_file, load_source_tree
+from reinterpret_objdump import relabel_sections, compare_objdump_lines
 
 
 def no_empty_args( command_list ) :
@@ -95,12 +95,12 @@ def test_compile( cc_file, verbose=False, id="", devnull=False ) :
    command_list = no_empty_args( command_list )
 
    if (verbose) :
-      print(command)
+      print command
 
    return_code = subprocess.call( command_list, stderr=errfile, stdout=logfile )
 
    if (verbose) :
-      print("return code: ", return_code)
+      print "return code: ", return_code
 
    if id: errfile.close();  logfile.close()
 
@@ -108,7 +108,7 @@ def test_compile( cc_file, verbose=False, id="", devnull=False ) :
       return True
    else:
       #print file(out_log).read(), file(err_log).read()
-      print('To compile this header locally run following command: cd source/src && python ./../../../tools/python_cc_reader/test_all_headers_compile_w_fork.py --headers', cc_file, '\n\n')
+      print 'To compile this header locally run following command: cd source/src && python ./../../../tools/python_cc_reader/test_all_headers_compile_w_fork.py --headers', cc_file, '\n\n'
       return False
 
    #return return_code == 0
@@ -128,17 +128,17 @@ def test_compile_from_lines( filelines, verbose=False ) :
       return True
    else :
       if verbose :
-         print("test_compile_from_lines return code:", job.returncode)
-         print(command)
+         print "test_compile_from_lines return code:", job.returncode
+         print command
          open("blah","w").writelines(filelines)
-         print(job.stderr)
+         print job.stderr
       return False
 
 # C_cc may be either a header or a cc file; either will compile
 def test_compile_from_stdin( C_cc, file_contents ) :
 
-   if C_cc not in file_contents :
-      print(C_cc, "file not found in file_contents")
+   if not file_contents.has_key( C_cc ) :
+      print C_cc, "file not found in file_contents"
       return False
 
    return test_compile_from_lines( expand_includes_for_file( C_cc, file_contents ) )
@@ -208,20 +208,20 @@ def tar_together_files( tar_file_name, filelist ) :
 
 if __name__ == "__main__" :
    if len(sys.argv) < 2 :
-      print("Usage: python test_compile.py <filename>")
+      print "Usage: python test_compile.py <filename>"
       sys.exit(1)
-   print("First testing compilation directly from .cc file")
+   print "First testing compilation directly from .cc file"
    compiled = test_compile( sys.argv[1], True )
 
-   print("Now testing compilation using python-expanded #includes")
+   print "Now testing compilation using python-expanded #includes"
    compilable_files, all_includes, file_contents = load_source_tree()
-   print("...source tree loaded")
+   print "...source tree loaded"
    if sys.argv[1] not in file_contents :
-      print("File", sys.argv[1], "not found in source tree")
+      print "File", sys.argv[1], "not found in source tree"
       sys.exit(1)
    compiled = test_compile_from_lines( expand_includes_for_file( sys.argv[1], file_contents), verbose=True )
    if ( compiled ) :
-      print("Success")
+      print "Success"
    else :
       test_compile( sys.argv[1], True )
-      print("Failed")
+      print "Failed"

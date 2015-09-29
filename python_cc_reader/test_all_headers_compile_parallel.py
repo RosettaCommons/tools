@@ -1,16 +1,16 @@
-from .inclusion_graph import *
-from .test_compile import *
-from .code_utilities import *
-from .inclusion_equivalence_sets import *
-from .add_headers import *
-from .add_namespaces import *
-from .remove_header import *
-from .remove_duplicate_headers import *
-from .code_reader import *
-from . import code_reader
+from inclusion_graph import *
+from test_compile import *
+from code_utilities import *
+from inclusion_equivalence_sets import *
+from add_headers import *
+from add_namespaces import *
+from remove_header import *
+from remove_duplicate_headers import *
+from code_reader import *
+import code_reader
 import re
 import sys
-from . import pygraph
+import pygraph
 #from pygraph.algorithms.searching import depth_first_search
 import subprocess
 import pp
@@ -35,8 +35,8 @@ if len(sys.argv) > 1 :
    try :
       ncpu = int(sys.argv[1])
    except :
-      print("Could not convert first parameter,", sys.argv[1],"to an integer")
-      print("Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>")
+      print "Could not convert first parameter,", sys.argv[1],"to an integer"
+      print "Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>"
       sys.exit(1)
 if len(sys.argv) > 2 :
    secret_phrase = sys.argv[2]
@@ -52,7 +52,7 @@ includes = scan_compilable_files()
 re_hh_header  = re.compile("\S*\.hh$")
 re_hpp_header = re.compile( "\S*\.hpp$")
 
-all_files = list(includes.keys())
+all_files = includes.keys()
 
 hh_headers = regex_subset( all_files, re_hh_header )
 hpp_headers = regex_subset( all_files, re_hpp_header )
@@ -80,7 +80,7 @@ modules = ( "re", "subprocess", "code_reader", "pygraph", "subprocess" )
 
 nfiles_to_process = len( headers )
 nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )
-print("Starting header compilation with", nfiles_per_cpu, "jobs per cpu")
+print "Starting header compilation with", nfiles_per_cpu, "jobs per cpu"
 header_subsets = []
 start = 0
 for i in range( ncpu - 1 ) :
@@ -102,7 +102,7 @@ for job in jobs :
 
 if output :
    for outlines in output :
-      print(outlines)
+      print outlines
    sys.exit(1)
 else :
    sys.exit(0)

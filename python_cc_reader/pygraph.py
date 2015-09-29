@@ -89,7 +89,7 @@ class digraph (object):
         @rtype:  iterator
         @return: Iterator passing through all nodes in the digraph.
         """
-        for each in self.node_neighbors.keys():
+        for each in self.node_neighbors.iterkeys():
             yield each
 
 
@@ -111,7 +111,7 @@ class digraph (object):
         @rtype:  list
         @return: Node list.
         """
-        return list(self.node_neighbors.keys())
+        return self.node_neighbors.keys()
 
 
     def neighbors(self, node):
@@ -148,7 +148,7 @@ class digraph (object):
         @rtype:  list
         @return: List of all edges in the graph.
         """
-        return list(self.edge_properties.keys())
+        return self.edge_properties.keys()
 
 
     def has_node(self, node):
@@ -161,7 +161,7 @@ class digraph (object):
         @rtype:  boolean
         @return: Truth-value for node existence.
         """
-        return node in self.node_neighbors
+        return self.node_neighbors.has_key(node)
 
 
     def add_node(self, node, attrs = []):
@@ -390,7 +390,7 @@ class digraph (object):
         @rtype:  boolean
         @return: Truth-value for edge existence.
         """
-        return (u, v) in self.edge_properties
+        return self.edge_properties.has_key((u, v))
 
     
     def node_order(self, node):
@@ -484,7 +484,7 @@ class digraph (object):
         @type  st: dictionary
         @param st: Spanning tree.
         """
-        self.add_nodes(list(st.keys()))
+        self.add_nodes(st.keys())
         for each in st:
             if (st[each] is not None):
                 self.add_edge(st[each], each)

@@ -1,19 +1,19 @@
 
-from .inclusion_graph import *
-from .test_compile import *
-from .code_utilities import *
-from .inclusion_equivalence_sets import *
-from .add_headers import *
-from .add_namespaces import *
-from .remove_header import *
-from .remove_duplicate_headers import *
-from .code_reader import *
-from .reinterpret_objdump import *
-from .dont_remove_include import *
-from . import code_reader
+from inclusion_graph import *
+from test_compile import *
+from code_utilities import *
+from inclusion_equivalence_sets import *
+from add_headers import *
+from add_namespaces import *
+from remove_header import *
+from remove_duplicate_headers import *
+from code_reader import *
+from reinterpret_objdump import *
+from dont_remove_include import *
+import code_reader
 import re
 import sys
-from . import pygraph
+import pygraph
 #from pygraph.algorithms.searching import depth_first_search
 import subprocess
 import pp
@@ -31,8 +31,8 @@ if len(sys.argv) > 1 :
    try :
       ncpu = int(sys.argv[1])
    except :
-      print("Could not convert first parameter,", sys.argv[1],"to an integer")
-      print("Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>")
+      print "Could not convert first parameter,", sys.argv[1],"to an integer"
+      print "Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>"
       sys.exit(1)
 if len(sys.argv) > 2 :
    secret_phrase = sys.argv[2]
@@ -138,11 +138,11 @@ for es in equiv_sets :
    #if count_round <= 10:
    #   continue
 
-   es_filtered = list(filter( DRI.attempt_include_removal_for_file, es ))
+   es_filtered = filter( DRI.attempt_include_removal_for_file, es )
    random.shuffle( es_filtered )
    nfiles_to_process = len( es_filtered )
    nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )
-   print("Starting round", count_round, "with", nfiles_per_cpu, "jobs per cpu")
+   print "Starting round", count_round, "with", nfiles_per_cpu, "jobs per cpu"
    sys.stdout.flush()
    es_subsets = []
    start = 0
@@ -157,7 +157,7 @@ for es in equiv_sets :
       jobs.append( job_server.submit( trim_inclusions_from_files_extreme, ( es_subset, count_jobid ), funcs, modules ) )
    job_server.wait()
    for job in jobs :
-      print(job())
+      print job()
    #tar_together_files( "bu_wholeshebang_round_" + str( count_round ), compilable_files )
    tar_everything( "bu_wholeshebang_round_" + str( count_round )  )
 

@@ -10,7 +10,7 @@ def inclusion_equivalence_sets( inclusion_graph ) :
    for node in dg.nodes() :
       for neighb in dg.node_neighbors[ node ] :
          if node == neighb :
-            print("Node connects to itself?!:", node)
+            print "Node connects to itself?!:", node
             sys.exit(1)
 
    start = "Start"
@@ -40,11 +40,11 @@ def inclusion_equivalence_sets( inclusion_graph ) :
       count += 1
       len_remaining = len( remaining )
       if last_len_remaining == len_remaining :
-         print("Critical error: colored no nodes blue in the previous round!")
+         print "Critical error: colored no nodes blue in the previous round!"
          for remnant in remaining :
-            print(remnant)
+            print remnant
          break
-      print(count, len_remaining, last_len_remaining)
+      print count, len_remaining, last_len_remaining
       last_len_remaining = len_remaining
       tried_this_round = []
       newly_blued = []
@@ -78,9 +78,9 @@ def inclusion_equivalence_sets( inclusion_graph ) :
          remaining.remove( new_blue )
          active_nodes.append( new_blue )
       if len( newly_blued ) == 0 :
-         print("Error:: no new blue nodes found!")
+         print "Error:: no new blue nodes found!"
          for remnant in remaining :
-            print(remnant)
+            print remnant
          break
       node_equivalence_sets.append( newly_blued )
 

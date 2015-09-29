@@ -1,5 +1,5 @@
-from . import beautify_compiled_files_w_fork
-from . import blargs
+import beautify_compiled_files_w_fork
+import blargs
 import os, sys
 
 # This script is meant to be run from the Rosetta/main/source/ directory.
@@ -20,11 +20,11 @@ if __name__ == "__main__" :
         p.int( "num_cpu" ).shorthand("j").default(1)
         p.flag( "overwrite")
     os.chdir( "src" )
-    print("Beautifying src/")
+    print "Beautifying src/"
     fbm_src = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )
     os.chdir( ".." )
     os.chdir( "test" )
-    print("Beautifying test/")
+    print "Beautifying test/"
     fbm_test = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )
     os.chdir( ".." )
 
@@ -32,11 +32,11 @@ if __name__ == "__main__" :
         sys.exit(0)
     else :
         if not fbm_src.all_files_beautified :
-            print("Files in src/ that could not be beautified:")
+            print "Files in src/ that could not be beautified:"
             for fname in fbm_src.files_that_failed :
-                print("File", fname, "could not be beautified")
+                print "File", fname, "could not be beautified"
         if not fbm_test.all_files_beautified :
-            print("Files in test/ that could not be beautified:")
+            print "Files in test/ that could not be beautified:"
             for fname in fbm_test.files_that_failed :
-                print("File", fname, "could not be beautified")
+                print "File", fname, "could not be beautified"
     

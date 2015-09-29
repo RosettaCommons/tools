@@ -1,19 +1,19 @@
 
-from .inclusion_graph import *
-from .test_compile import *
-from .code_utilities import *
-from .inclusion_equivalence_sets import *
-from .add_headers import *
-from .add_namespaces import *
-from .remove_header import *
-from .remove_duplicate_headers import *
-from .code_reader import *
-from .reinterpret_objdump import *
-from .dont_remove_include import *
-from . import code_reader
+from inclusion_graph import *
+from test_compile import *
+from code_utilities import *
+from inclusion_equivalence_sets import *
+from add_headers import *
+from add_namespaces import *
+from remove_header import *
+from remove_duplicate_headers import *
+from code_reader import *
+from reinterpret_objdump import *
+from dont_remove_include import *
+import code_reader
 import re
 import sys
-from . import pygraph
+import pygraph
 #from pygraph.algorithms.searching import depth_first_search
 import subprocess
 import pp
@@ -30,8 +30,8 @@ if len(sys.argv) > 1 :
    try :
       ncpu = int(sys.argv[1])
    except :
-      print("Could not convert first parameter,", sys.argv[1],"to an integer")
-      print("Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>")
+      print "Could not convert first parameter,", sys.argv[1],"to an integer"
+      print "Arguments should be python whole_shebang.py <ncpu> <parallel-python-server-secret>"
       sys.exit(1)
 if len(sys.argv) > 2 :
    secret_phrase = sys.argv[2]
@@ -76,10 +76,10 @@ def try_to_compile_files( list_of_files_to_compile ) :
   any_fail_to_compile = False
   for fname in list_of_files_to_compile :
      if not test_compile_from_lines( expand_includes_for_file( fname, file_contents ) ) :
-        print("Error: ", fname, "does not compile on its own")
+        print "Error: ", fname, "does not compile on its own"
         any_fail_to_compile = True
   if any_fail_to_compile :
-     print("Error: coud not compile all files on their own")
+     print "Error: coud not compile all files on their own"
    #sys.exit(0)
 
 if __name__ == "__main__" :
@@ -113,11 +113,11 @@ if __name__ == "__main__" :
 
    DRI = dont_remove_include.DontRemoveInclude()
 
-   cf_filtered = list(filter( DRI.attempt_include_removal_for_file, compilable_files ))
+   cf_filtered = filter( DRI.attempt_include_removal_for_file, compilable_files )
 
    nfiles_to_process = len( cf_filtered )
    nfiles_per_cpu = int( math.ceil( nfiles_to_process / ncpu ) )
-   print("Testing compilability with", nfiles_per_cpu, "jobs per cpu")
+   print "Testing compilability with", nfiles_per_cpu, "jobs per cpu"
    sys.stdout.flush()
    cf_subsets = []
    start = 0
@@ -132,6 +132,6 @@ if __name__ == "__main__" :
       jobs.append( job_server.submit( try_to_compile_files, ( cf_subset, ), funcs, modules ) )
    job_server.wait()
    for job in jobs :
-      print(job())
+      print job()
 
 

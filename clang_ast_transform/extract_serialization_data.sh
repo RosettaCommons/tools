@@ -24,6 +24,8 @@ SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
 # the file to "compile" should be the one and only argument to this script.
 FILE=$1
 
+cd $SOURCE
+
 $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_decl,find_field_decl $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \

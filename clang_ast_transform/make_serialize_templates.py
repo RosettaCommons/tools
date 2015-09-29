@@ -200,6 +200,7 @@ class Unit:
         self.uses_FArray1D = False
         self.uses_FArray2D = False
         self.uses_DynIndRange = False
+        self.uses_AtomID_map = False
         self.uses_xyzVector = False
         self.parsed_cc_file = None
 
@@ -241,8 +242,15 @@ class Unit:
 
     def findSTLTypesInVartype( self, vartype ) :
         if vartype.find( "std::" ) == -1 : return
+        print( "vartype: ", vartype )
 
-        container = vartype[ vartype.find( "std::" )+5: vartype.find("<", vartype.find( "std::" )+5) ]
+        vartype= vartype[ vartype.find("std::")+5: ]
+
+        if vartype.find( "<" ) == -1 :
+            self.stl_containers.add( vartype.partition(">")[0] )
+            return
+
+        container = vartype[ : vartype.find("<") ]
         if container == "" : return
         if container == "shared_ptr" or container == "weak_ptr" :
             self.stl_containers.add( "polymorphic" )
@@ -254,7 +262,7 @@ class Unit:
             pass
         else :
             self.stl_containers.add( container )
-            #print( self.filename, "uses stl", container )
+            print( self.filename, "uses stl", container )
 
         remnant = vartype[ vartype.find("<")+1 : vartype.rfind( ">" ) ]
         #print( "remnant:", remnant )
@@ -317,6 +325,8 @@ class Unit:
                 #     #vd['enable'] = False
                 #     vd['comment'] = "const?"
                 decl.need_load_construct = True
+                self.needs_access_fwd = True #access_fwd forward declares cereal::construct
+
             elif self.isConstPointer( v.fullvartype ):
                 vd['constptr'] = True
             if v.fullvartype.find("std::") >= 0 :
@@ -335,6 +345,8 @@ class Unit:
                 self.uses_FArray2D = True
             if v.fullvartype.find( "ObjexxFCL::DynamcIndexRange" ) >= 0 :
                 self.uses_DynIndRange = True
+            if v.fullvartype.find( "AtomID_Map" ) >= 0 :
+                self.uses_AtomID_map = True
             decl.membvars.append( vd )
 
 
@@ -502,6 +514,8 @@ class Unit:
         if decl.base_class_names and style != "load_and_construct" :
             for base in decl.base_class_names :
                 if base == "utility::pointer::ReferenceCount" : continue
+                if base.find( "std::enable_shared_from_this" ) >= 0 : continue
+                if base.find( "utility::pointer::enable_shared_from_this") >= 0 : continue
                 # assume no virtual inheritance
                 stub.append( "arc( cereal::base_class< %s >( this ) );\n" % base )
 
@@ -765,6 +779,8 @@ class Unit:
         if self.uses_DynIndRange :
             stub.append( "#include <utility/serialization/ObjexxFCL/DynamicIndexRange.srlz.hh>\n")
         stub.append( "\n" )
+        if self.uses_AtomID_map :
+            stub.append( "#include <core/id/AtomID_Map.srlz.hh>\n\n" )
         if self.uses_xyzVector :
             stub.append( "// Numeric serialization headers\n" )
             stub.append( "#include <numeric/xyz.serialization.hh>\n" )

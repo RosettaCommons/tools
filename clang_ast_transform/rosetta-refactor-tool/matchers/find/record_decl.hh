@@ -40,6 +40,20 @@ public:
 			<< decl->isPolymorphic() << "\t"
 			;
 		llvm::outs() << "\n";
+		if ( decl->getNumBases() > 0 ) {
+		  for ( CXXRecordDecl::base_class_const_iterator iter = decl->bases_begin(), iter_end = decl->bases_end(); iter != iter_end; ++iter ) {
+		    llvm::outs()
+		      << "parent" << "\t"
+		      << name << "\t"
+		      << "" << "\t"
+		      << loc << "\t"
+		      << sm->getDecomposedLoc( iter->getLocStart() ).second << "-" << sm->getDecomposedLoc( iter->getLocEnd() ).second << "\t"
+		      << iter->getType().getAsString() << "\t"
+		      << iter->getAccessSpecifier() << "\t"
+		      << iter->isVirtual();
+		    llvm::outs() << "\n";
+		  }
+		}
 	}
 };
 

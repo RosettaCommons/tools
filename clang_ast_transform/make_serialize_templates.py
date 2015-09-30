@@ -31,9 +31,11 @@ Run: python3 src/core/io/serialization/make_serialize_templates.py src/core/io/s
 
 ### TODO: load_and_construct arguments?
 
-import sys, re
+import os, sys, re
+import blargs
 
-sys.path.insert( 0, "../python_cc_reader" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../" )
+#print( sys.path )
 import python_cc_reader.code_reader
 
 
@@ -49,7 +51,11 @@ class BufferedFile:
             self.contents = self.readFile(self.filename)
         except:
             self.contents = ""
-        self.relative_filename = filename[ filename.find('src/')+4 : ]
+        if filename.find("src/") >= 0 :
+            self.relative_filename = filename[ filename.find('src/')+4 : ]
+        else :
+            currdir = os.path.getcwd()
+            self.relative_filename = currdir.split("src/")[2] + filename
         self.dirty = False
         self.offsets = []
 
@@ -64,7 +70,7 @@ class BufferedFile:
 
     def writeFile(self, filename, contents):
         if dryrun:
-            print ("Would write to %s:\n%s" % ( filename, contents ))
+            print "Would write to %s:\n%s" % ( filename, contents )
             return
         with open(filename, "w") as f:
             return f.write(contents)
@@ -79,21 +85,30 @@ class BufferedFile:
     def getTruePosition(self, position):
         return self.getOffset(position) + position
 
-    def insertStub(self, position, contents, origFilePosition):
+    def insertStub(self, position, contents, isOrigFilePosition):
         orig_position = position
-        if origFilePosition:
+        if isOrigFilePosition:
             position = self.getTruePosition(position)
 
         self.contents = self.contents[0:position] + contents + self.contents[position:]
+        #print  "new contents!", self.filename, self.contents
         self.dirty = True
 
         self.offsets.append( [ orig_position, len(contents) ] )
+
+    def deleteRange( self, pos1, pos2, isOrigFilePosition ) :
+        if isOrigFilePosition :
+            pos1 = self.getTruePosition(pos1)
+            pos2 = self.getTruePosition(pos2)
+        self.contents = self.contents[0:pos1] + self.contents[pos2:]
+        self.dirty = True
+        self.offsets.append( [ pos1, pos1-pos2 ] ) #APL -- I'm not certain this is correct
 
 ########################################################################
 # Declaration node types
 
 # the base class for some kind of declaration made in a header file
-class Decl:
+class Decl(object):
     def __init__(self, data):
         self.decl, self.name, self.namespace, self.location, self.filerange = data[0:5]
         self.filerange = self.filerange.split("-")
@@ -143,6 +158,14 @@ class ConstructorDecl(Decl):
         self.classname = self.namespace
         self.name = self.name.split("::")[-1]
 
+class BaseClassDecl(Decl):
+    def __init__( self, data ) :
+        super(BaseClassDecl, self ).__init__( data[0:5] )
+        self.classname = data[5]
+        self.access = int( data[6] )
+        self.is_public = self.access == 0
+        self.is_virtual = data[7] == "1"
+
 # class MethodDecl(Decl) :
 #         def __init__( self, data) :
 #                 super(MethodDecl, self).__init__(data[0:5])
@@ -180,6 +203,7 @@ class Unit:
         #self.need_cereal = False
         self.need_srlz_hh = False
         self.needs_access_fwd = False
+        self.contains_polymorphic_class = False
         self.default_ctor = []
         self.cc_needs_cereal_base_class_hpp = False
         self.stl_containers = set([])
@@ -189,8 +213,12 @@ class Unit:
         self.uses_FArray2D = False
         self.uses_DynIndRange = False
         self.uses_AtomID_map = False
+        self.uses_PointGraph = False
         self.uses_xyzVector = False
+        self.uses_HomogeneousTransform = False
+        self.uses_MathVector = False
         self.parsed_cc_file = None
+        self.made_modifications = False
 
     def save(self):
         self.hh.save()
@@ -201,26 +229,36 @@ class Unit:
         """
         Examine all the classes/structs in a single entire translation unit (i.e. a .hh file with one or more classes)
         """
-        classdecs = python_cc_reader.read_classes_from_header( self.filename, open( self.filename ).readlines() )
+        hcropts = python_cc_reader.code_reader.HCROptions()
+        hcropts.defined_preprocessor_variables.append( "SERIALIZATION" )
+        classdecs = python_cc_reader.code_reader.read_classes_from_header( self.filename, open( self.filename ).readlines() )
+        #print "read", len(classdecs), "class in file", self.filename
+        ns = self.filename.rpartition("/")[ 0 ].partition("/source/src/")[2].replace("/","::")+"::"
         for cdec in classdecs :
-            assert( cdec in self.classes )
-            self.class_decs_from_cr[ cdec.name ] = cdec
+            #print ns + cdec.name
+            if (ns + cdec.name) not in self.classes :
+                print "Warning: Missing class:", ns + cdec.name, "from", self.filename, "when read with the HeavyCodReader"
+                continue
+            self.class_decs_from_cr[ ns + cdec.name ] = cdec
 
         for name in self.classes:
             #if name.find("Factory") > 0 or name.find("Creator") > 0 or name.find("Singleton") > 0:
-            #    print ("Skipping class %s" % name )
+            #    print "Skipping class %s" % name
             #    continue
-            self.preprocessObject(self.classes[name], self.class_decs_from_cr[name] )
+            # print "For class", name, "we did not find any match to a class in the .hh file; perhaps these?"
+            # if name not in self.class_decs_from_cr :
+            #      print self.class_decs_from_cr.keys()
+            pycc_classdec = self.class_decs_from_cr[name] if name in self.class_decs_from_cr else None            
+            self.preprocessObject(self.classes[name], pycc_classdec )
                         
     def addSerializationRoutines( self ) :
         for name in self.classes :
             self.addSerializationRoutinesForClass( self.classes[name] )
-
         self.save()
 
     def findSTLTypesInVartype( self, vartype ) :
         if vartype.find( "std::" ) == -1 : return
-        print( "vartype: ", vartype )
+        print "vartype: ", vartype
 
         vartype= vartype[ vartype.find("std::")+5: ]
 
@@ -240,30 +278,35 @@ class Unit:
             pass
         else :
             self.stl_containers.add( container )
-            print( self.filename, "uses stl", container )
 
-        self.findSTLTypesInVartype( vartype[ vartype.find("<") : vartype.rfind( ">" ) ])
+        remnant = vartype[ vartype.find("<")+1 : vartype.rfind( ">" ) ]
+        #print "remnant:", remnant
+        cols = remnant.split( "," )
+        for col in cols :
+            self.findSTLTypesInVartype( col )
                 
                 
-    def processObject(self, decl, pycc_decl ):
+    def preprocessObject(self, decl, pycc_decl ):
         """
         Process single object (class, struct, ...) in this unit
         """
-
+        print"preprocessObject:", decl.name
         # Check if this class already has save or load method
-        for m in pycc_decl.functions :
-            if m.name == "save" :
-                decl.has_save = True
-            elif m.name == "load" :
-                decl.has_load = True
-            elif m.name == "load_and_construct" :
-                decl.has_load_and_construct = True
-            if decl.has_save and ( decl.has_load or decl.has_load_and_construct ) :
-                decl.has_serialization_methods = True
-
-            if decl.has_serialization_methods :
-                # we don't need to add any serialization methods to this class/struct
-                return
+        if pycc_decl :
+            for m in pycc_decl.functions :
+                if m.name == "save" :
+                    decl.has_save = True
+                elif m.name == "load" :
+                    decl.has_load = True
+                elif m.name == "load_and_construct" :
+                    decl.has_load_and_construct = True
+                if decl.has_save and ( decl.has_load or decl.has_load_and_construct ) :
+                    decl.has_serialization_methods = True
+    
+        if decl.has_serialization_methods :
+            # we don't need to add any serialization methods to this class/struct
+            print " decl.has_serialization_methods"
+            return
 
         # Check if this class has reference variables or raw pointers; if so, skip it
         # Check if it has constant variables -- these have to be initialized
@@ -272,7 +315,7 @@ class Unit:
         for v in decl.fields:
             if v.fullvartype.find("&") >= 0:
                 decl.nReferenceVars += 1
-            if self.isConst(v.fullvartype):
+            if self.isConstNonPointer(v.fullvartype):
                 if v.fullvartype[6:] in [ "double", "int", "float", "bool", "_Bool", "Size" ]:
                     # These can be trivially const_cast'ed
                     continue
@@ -307,6 +350,10 @@ class Unit:
                 self.findSTLTypesInVartype( v.fullvartype )
             if v.fullvartype.find( "xyzVector" ) >= 0 or v.fullvartype.find( "xyzMatrix" ) >= 0 :
                 self.uses_xyzVector = True
+            if v.fullvartype.find( "HomogeneousTransform" ) >= 0 :
+                self.uses_HomogeneousTransform = True
+            if v.fullvartype.find( "MathVector" ) >= 0 :
+                self.uses_MathVector = True;
             if v.fullvartype.find( "utility::vector1" ) >= 0 :
                 self.uses_vector1 = True
             if v.fullvartype.find( "utility::vector0" ) >= 0 :
@@ -321,13 +368,13 @@ class Unit:
                 self.uses_AtomID_map = True
             decl.membvars.append( vd )
 
-        if not decl.membvars:
-            return
 
         #decl.simplest_ctor = sorted(decl.constructors, key = lambda x: x.n_min_arguments)[0] if decl.constructors else None # fewest num of arguments
         decl.default_ctor = [ x for x in decl.constructors if x.is_default_ctor ]
         if decl.default_ctor :
-            decl.defautlt_ctor = decl.default_ctor[0]
+            decl.default_ctor = decl.default_ctor[0]
+        else :
+            decl.default_ctor = None # necessary?
 
         decl.inline = decl.is_templated #or decl.decl == "struct" # apl modification -- put struct serialization methods into .cc, too
         decl.has_vars = [1 for x in decl.membvars if x['enable'] ] != []
@@ -335,6 +382,7 @@ class Unit:
 
         # If this class is polymorphic, get base class names
         if decl.is_polymorphic:
+            self.contains_polymorphic_class = True
             #decl.base_class_names = []
             #body = self.hh.contents[ self.hh.getTruePosition(decl.filerange[0]) : self.hh.getTruePosition(decl.filerange[1]) ]
             #body = body[ : body.find("{") -1 ]
@@ -347,20 +395,26 @@ class Unit:
             #    if n.split("::")[-1] == "ReferenceCount": # let's not count ReferenceCount as polymorphic
             #        continue
             #    decl.base_class_names.append( n )
-            if pycc_decl and pycc_decl.base is not None :
-                self.cc_needs_cereal_base_class_hpp = True
-                decl.base_class_names = pycc_decl.base.split(",") if pycc_decl.base.find(",") > 0 else [ pycc_decl.base ]
-                #DEBUG
-                for b in decl.base_class_names :
-                    print " base class for decl.name:", b
+            # if pycc_decl and pycc_decl.base is not None :
+            #     self.cc_needs_cereal_base_class_hpp = True
+            #     decl.base_class_names = pycc_decl.base.split(",") if pycc_decl.base.find(",") > 0 else [ pycc_decl.base ]
+            #     #DEBUG
+            #     #for b in decl.base_class_names :
+            #     #    print " base class for decl.name:", b
 
         # Include cereal headers in .hh file if we're inlining things
         if decl.inline:
             self.need_srlz_hh = True
                         
     def addSerializationRoutinesForClass( self, decl ) :
-        if delc.inline :
-            print "Oops! Cannot create serialization functions (now) for class", decl.name
+        print "addSerializationRoutinesForClass:", decl.name
+
+        if decl.has_serialization_methods :
+            # we don't need to add any serialization methods to this class/struct
+            return
+
+        if decl.inline :
+            print  "Oops! Cannot create serialization functions (now) for class", decl.name 
             return
 
         # Insert the serialization function declarations into the .hh file
@@ -369,6 +423,8 @@ class Unit:
         # Insert the serialization function implementations into the .cc file
         if not decl.inline:
             self.insertCCStub( decl )
+
+        self.made_modifications = True
 
     def isRawPtr(self, s):
         # Guess is this variable is a raw pointer / reference
@@ -393,7 +449,7 @@ class Unit:
     def getContainerType( self, s ):
         if s.find( '<' ) < 0 :
             return ""
-        return s[ 0 : find( '<' ) ]
+        return s[ 0 : s.find( '<' ) ]
         
 
     def isConstNonPointer(self, s):
@@ -402,13 +458,13 @@ class Unit:
 
     def isConstPointer( self, s ) :
         container = self.getContainerType(s)
-        #print( "isConstPointer container:", container )
+        #print "isConstPointer container:", container
         if container == "" :
-            #print( "isConstPointer container:", False )
+            #print "isConstPointer container:", False
             return False
         if container == "class std::shared_ptr" or container == "class std::access_ptr" :
             contained = self.getContainedType(s)
-            #print( "isConstPointer contained:", contained, contained.find('const ') >= 0 )
+            #print "isConstPointer contained:", contained, contained.find('const ') >= 0
             return contained.find('const ') >= 0
         else :
             return self.isConstPointer( self.getContainedType(s) )
@@ -441,9 +497,9 @@ class Unit:
             if i == -1 : break
             bracket_count = 1
             j = i + len( ", " + templated_type + "<" )
-            #print( "excising allocators:", fulltype, i, j )
+            #print "excising allocators:", fulltype, i, j
             while j < len(fulltype) :
-                #print ( " while", j, "fulltype[j]", fulltype[j] )
+                #print " while", j, "fulltype[j]", fulltype[j]
                 if fulltype[j] == ">" :
                     bracket_count -= 1
                     if bracket_count == 0 :
@@ -454,7 +510,7 @@ class Unit:
                 j+=1
             
             fulltype = fulltype[:i] + fulltype[j:]
-            #print( "excised allocator:", fulltype, i )
+            #print "excised allocator:", fulltype, i
         return fulltype
 
     def nonconstptr_type( self, fulltype ) :
@@ -465,7 +521,7 @@ class Unit:
         fulltype = self.excise_templated_type( fulltype, "std::less" )
         fulltype = fulltype.replace( ">", " >" )
         fulltype = fulltype.replace( "  >", " >" )
-        print ("final type", fulltype )
+        print "final type", fulltype
         return fulltype
 
     def makeVarsArStub( self, decl, membvars, style, include_base = True ):
@@ -482,7 +538,7 @@ class Unit:
                 if base.find( "std::enable_shared_from_this" ) >= 0 : continue
                 if base.find( "utility::pointer::enable_shared_from_this") >= 0 : continue
                 # assume no virtual inheritance
-                stub.append( "\t" + "arc( cereal::base_class< %s >( this ) );\n" % base )
+                stub.append( "arc( cereal::base_class< %s >( this ) );\n" % base )
 
         if style == "load_and_construct" :
             stub.append( "NOTE: The automatically generated load_and_construct stub here requires manual intervention\n" );
@@ -498,11 +554,10 @@ class Unit:
             # cast_str = v['cast'].replace("@@", var_name) if v.get('cast') else ""
 
             if style == "load" and v[ 'constptr' ] :
-                #print( "CONSTPTR:", var_name)
+                #print "CONSTPTR:", var_name
                 deserialize_varname = "local_%s" % self.remove_trailing_underscore( v[ 'name' ] )
                 stub.append( "%s %s;\n" % ( self.nonconstptr_type( v[ 'fullvartype' ] ), deserialize_varname ));
 
-            nextline.append( "\t" )
             if not v['enable']:
                 nextline.append( "// " )
             nextline.append( "arc( " )
@@ -519,10 +574,10 @@ class Unit:
             # Add comma at end of line
             #if [ 1 for x in vars[i+1:] if x['enable'] ]:
             #    nextline.append( "" )
-            nextline.append( ");" )
+            nextline.append( " );" )
 
             # Add comment
-            newline.append( " // " + v['vartype'] )
+            nextline.append( " // " + v['vartype'] )
             if v.get('comment'):
                 nextline.append(  "; " + v['comment'] )
             nextline.append( "\n" )
@@ -586,13 +641,101 @@ class Unit:
                     s = s[ len(t): ]
         return s.strip()
 
+    def insert_new_serialization_include_block( self, buff, includes, comment_order ) :
+        stub = []
+        for comment in comment_order :
+            stub.append( comment )
+            for include in includes[ comment ] :
+                stub.append( "#include <%s>\n" % include )
+            if comment != comment_order[-1] :
+                stub.append( "\n" )
+        # insert before first namespace
+        p = self.cc.contents.find("\nnamespace");
+        if p == -1 :
+            # ok -- we have an empty file, so we have to put in the copyright and to #include the .hh;
+            # this must be the .cc file; there's no way we're working with an empty .hh file
+            assert( buff is self.cc )
+            self.cc.insertStub( 0, self.copyright_stub() % self.cc.relative_filename, False )
+            self.cc.insertStub( len(self.cc.contents), "// Unit headers\n#include <%s>\n\n" % self.hh.relative_filename, False )
+            p = len( self.cc.contents )
+        self.cc.insertStub( p, "".join(stub), False )
+
+
+    def add_serialization_includes_to_buffer( self, buff, includes, comment_order ) :
+        # includes should be a dictionary of comments to a list of includes for beneath those
+        # comments, and "order" should be the comments in the order they should appear in the file;
+        # this will only add new includes, it will not remove old ones.
+        # each comment should include a newline
+        include_block = self.find_serialization_includes( buff )
+        if include_block[0] == -1 :
+            self.insert_new_serialization_include_block( buff, includes, comment_order )
+            return
+        existing_includes = buff.contents[ include_block[0]:include_block[1] ]
+        offset = 0
+        for comment in comment_order :
+            comment_group_begin = existing_includes.find( comment ) >= 0
+            if comment_group_begin == -1 :
+                buff.insertStub( include_block[0]+offset, comment, False )
+                comment_group_begin = 0
+            offset += comment_group_begin + len( comment )
+            for include in includes[ comment ] :
+                include_statement = "#include <" + include + ">\n"
+                if existing_includes.find( include_statement ) :
+                    continue
+                buff.insertStub( include_block[0]+offset, include_statement, False )
+                offset += len( include_statement )
+            #now advance offset to the next position where you see "\n\n"
+            next_blank_line = buff.contents.find( "\n\n", include_block[0]+offset )
+            end_of_serialization_block = buff.contents.find( "#endif \\ SERIALIZATION\n", include_block[0] )
+            if next_blank_line == -1 or next_blank_line > end_of_serialization_block :
+                offset = end_of_serialization_block+offset
+                if comment != comment_order[-1] :
+                    # insert a blank line
+                    buff.insertStub( end_of_serialization_block, "\n", False )
+                    offset += 1
+            else :
+                offset = next_blank_line - start + 2
+
+    def find_serialization_register_dynamic_init( self, buff ) :
+        return self.find_serialization_block( buff, "CEREAL_REGISTER_DYNAMIC_INIT" )
+
+    def find_serialization_force_dynamic_init( self, buff ) :
+        return self.find_serialization_block( buff, "CEREAL_FORCE_DYNAMIC_INIT" )
+
+    def find_serialization_includes( self, buff ) :
+        # look for the "#ifdef    SERIALIZATION" block at the top of the file
+        # that contains #includes
+        return self.find_serialization_block( buff, "#include" )
+
+    def find_serialization_block( self, buff, block_identifier ) :
+        ifdefser_re = re.compile( "#ifdef\s*SERIALIZATION\n" )
+        
+        match = ifdefser_re.search( buff.contents )
+        end = 0
+        while match :
+            start = end + match.start()
+            end = buff.contents.find("#endif // SERIALIZATION", start )
+            #print start, end, block_identifier, len(buff.contents)
+            #print buff.contents[start:end]
+            assert( end >= 0 )
+            end += len("#endif // SERIALIZATION") + 1
+            #print buff.contents[start:end]
+            if buff.contents[start:end].find( block_identifier ) >= 0 :
+                #print "Found", block_identifier, start, end
+                return ( start, end )
+            #print "remainder:", buff.contents[ end: ]
+            match = ifdefser_re.search( buff.contents[ end: ] )
+        #print "Did not find", block_identifier
+        return (-1,-1)
+
     def insertHeaderStub( self, decl ):
         """
         Write the prototype that goes into the .hh file
         """
         stub = []
 
-        if decl.has_vars or not decl.is_polymorphic:
+        if True :
+        #if decl.has_vars or not decl.is_polymorphic:
             stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'save'), 2) if decl.inline else ""
             stub.append( "\ttemplate< class Archive > void save( Archive & arc ) const" )
             if decl.inline:
@@ -601,7 +744,7 @@ class Unit:
                 stub.append( ";\n" )
             if decl.need_load_construct:
 
-                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars 'load_and_construct'), 2) if decl.inline else ""
+                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'load_and_construct'), 2) if decl.inline else ""
                 stub.append( "\ttemplate< class Archive > static void load_and_construct( Archive & arc, cereal::construct< %s > & construct )" \
                     % decl.name.split("::")[-1] )
                 if decl.inline:
@@ -609,7 +752,7 @@ class Unit:
                 else:
                     stub.append( ";\n" )
             else:
-                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars 'load'), 2) if decl.inline else ""
+                stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'load'), 2) if decl.inline else ""
                 stub.append( "\ttemplate< class Archive > void load( Archive & arc )" )
                 if decl.inline:
                     stub.append( " {\n" + stub_body + "\t}\n" if stub_body else " {}\n" )
@@ -619,31 +762,32 @@ class Unit:
         if not stub:
             return "";
 
-        full_stub = "\n#ifdef    SERIALIZATION\n"
+        full_stub= [ "\n#ifdef    SERIALIZATION\n" ]
         if decl.decl == "class":
             if not decl.default_ctor and decl.constructors: # Add default c'tor prototype
                 decl.requires_protected_default_ctor = True
                 self.needs_access_fwd = True
-                full_stub += "protected:\n\tfriend class cereal::access;\n\t%s();\n\n" % ( decl.name.split("::")[-1] )
-                self.default_ctors.append( decl.name )
+                full_stub.append( "protected:\n\tfriend class cereal::access;\n\t%s();\n\n" % ( decl.name.split("::")[-1] ) )
+                self.default_ctor.append( decl.name )
             elif decl.default_ctor and not decl.default_ctor.is_public:
                 self.needs_access_fwd = True
-                full_stub += "\tfriend class cereal::access;\n"
-            full_stub += "public:\n"
-        full_stub += stub
-        full_stub += "#endif // SERIALIZATION\n"
+                full_stub.append( "\tfriend class cereal::access;\n" )
+            full_stub.append( "public:\n" )
+        full_stub +=  stub
+        full_stub.append( "#endif // SERIALIZATION\n" )
 
-        self.hh.insertStub( decl.filerange[1] -1, full_stub, True ) # end of class/struct
+        self.hh.insertStub( decl.filerange[1] -1, "".join(full_stub), True ) # end of class/struct
 
     def insertCCStub(self, decl ):
         """
         Write the contents that go into the .cc file for a single class
         """
-        if not decl.has_vars and decl.is_polymorphic and decl.base_class_names:
+        if not decl.has_vars and not decl.is_polymorphic and not decl.base_class_names:
+            print "insertCCStub early exit"
             return
 
         stub = []
-        stub.append("#ifdef    SERIALIZATION\n")
+        stub.append("\n#ifdef    SERIALIZATION\n\n")
         if decl.requires_protected_default_ctor :
             stub.append( "/// @brief Default constructor required by cereal to deserialize this class\n" )
             stub.append( "%s::%s() {}\n\n" % ( decl.name, decl.name.split("::")[-1] ) )
@@ -672,7 +816,7 @@ class Unit:
             stub.append("}\n\n")
 
         if decl.need_load_construct:
-            stub.append( "SAVE_AND_LOAD_AND_CONSTRUCT_SERIALIZABLE( %s )\n" % decl.name )
+            stub.append( "SAVE_AND_LOAD_AND_CONSTRUCT_SERIALIZABLE( %s );\n" % decl.name )
         else :
             stub.append( "SAVE_AND_LOAD_SERIALIZABLE( %s );\n" % decl.name );
 
@@ -681,7 +825,12 @@ class Unit:
         stub.append( "#endif // SERIALIZATION\n" )
         stub = "".join(stub)
 
-        self.cc.insertStub( len(self.cc.conents), stub, False )
+        #print "stub for", decl.name,"\n",stub,"inserted at",len(self.cc.contents)
+        reg_dyn_block = self.find_serialization_register_dynamic_init( self.cc )
+        if reg_dyn_block[0] == -1 :
+            self.cc.insertStub( len(self.cc.contents), stub, False )
+        else :
+            self.cc.insertStub( reg_dyn_block[0], stub, False )
 
     def save(self):
         self.saveHH()
@@ -691,24 +840,29 @@ class Unit:
     def saveHH(self):
         # Make final modifications to the .hh file before outputting it
 
+        comment_order = []
+        includes = {}
+
         # the #includes that are needed for the header
-        stub = []
-        if self.needs_access_fwd or self.contains_polymorphic_class :
-            stub.append( "\n#ifdef    SERIALIZATION\n" )
-            stub.append( "// Cereal headers\n" )
-            stub.append( "#include <cereal/access.fwd.hpp>\n" )
-            stub.append( "#endif // SERIALIZATION\n" )
-        if stub :
-            p = self.hh.contents.find("\nnamespace")
-            self.hh.insertStub( p, "".join( stub ), False )
+        cereal_comment = "// Cereal headers\n"; includes[ cereal_comment ] = []
+        if self.needs_access_fwd :
+            includes[ cereal_comment ].append( "cereal/access.fwd.hpp" )
+        if self.contains_polymorphic_class :
+            # need to #include polymorphic.fwd.hpp for the CEREAL_FORCE_DYNAMIC_INIT macro
+            includes[ cereal_comment ].append( "cereal/types/polymorphic.fwd.hpp" )
+        if includes[ cereal_comment ] :
+            comment_order.append( cereal_comment )
+            self.add_serialization_includes_to_buffer( self.hh, includes, comment_order )
 
         # for dealing with dynamically linked libraries
-        # TEMP -- work this in the right place
-        stub = []
-        stub.append( "#ifdef    SERIALIZATION\n" )
-        stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n", self.hh.filename.replace( "/", "_" )[:-3] ) ] )
-        stub.append( "#endif // SERIALIZATION\n" )
-        self.hh.insertStub( len(self.hh.contents), stub, False )
+        if self.contains_polymorphic_class and self.find_serialization_force_dynamic_init( self.hh )[0] == -1 :
+            stub = ["\n"]
+            stub.append( "#ifdef    SERIALIZATION\n" )
+            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "#endif // SERIALIZATION\n\n" )
+            self.hh.insertStub( self.hh.contents.rfind("\n#endif"), "".join(stub), False )
+
+        self.merge_serialization_blocks( self.hh )
 
         self.hh.save()
 
@@ -716,51 +870,67 @@ class Unit:
         """
         Make final modifications to the .cc file before outputting it
         """
-        if not self.class_names:
-            return
-
         if not self.cc.contents:
             # Skip this file... should go to general .cc file
+            print "save CC early return, no contents"
             return
 
-        stub = [ "\n#ifdef SERIALIZATION\n" ]
-        stub.append( "// Utility serialization headers\n" ) 
-        if self.uses_vector0 :
-            stub.append( "#include <utility/vector0.srlz.hh>\n" )
-        if self.uses_vector1 :
-            stub.append( "#include <utility/vector1.srlz.hh>\n" )
-        stub.append( "#include <utility/serialization/serialization.hh>\n" )
-        if self.uses_FArray1D :
-            stub.append( "#include <utility/serialization/ObjexxFCL/FArray1D.srlz.hh>\n")
-        if self.uses_FArray2D :
-            stub.append( "#include <utility/serialization/ObjexxFCL/FArray2D.srlz.hh>\n")
-        if self.uses_DynIndRange :
-            stub.append( "#include <utility/serialization/ObjexxFCL/DynamicIndexRange.srlz.hh>\n")
-        stub.append( "\n" )
-        if self.uses_AtomID_map :
-            stub.append( "#include <core/id/AtomID_Map.srlz.hh>\n\n" )
-        if self.uses_xyzVector :
-            stub.append( "// Numeric serialization headers\n" )
-            stub.append( "#include <numeric/xyz.serialization.hh>\n" )
-            stub.append( "\n" )
-        if self.cc_needs_cereal_base_class_hpp or self.stl_containers or self.needs_access_fwd:
-            stub.append( "// Cereal headers\n" )
-        includes = []
-        if self.contains_polymorphic_class and "polymorphic" not in self.stl_containers :
-            includes.append( "cereal/types/polymorphic.hpp" )        
-        if self.needs_access_fwd :
-            stub.append( "#include <cereal/access.hpp>\n" )
-        if self.cc_needs_cereal_base_class_hpp :
-            stub.append( "#include <cereal/types/base_class.hpp>\n" )
-        for stltype in self.stl_containers :
-            stub.append( "#inlude <cereal/types/%s.hpp>\n" % stltype )
-        stub.append( "#endif // SERIALIZATION\n" )
+        comment_order = []
+        includes = {}
 
-        p = self.cc.contents.find("\nnamespace")
-        self.cc.insertStub( p, "".join(stub), False ) # before first namespace
+        project_comment = "// Project serialization headers\n"; includes[ project_comment ] = []
+        if self.uses_AtomID_map :
+            includes[ project_comment ].append( "core/id/AtomID_Map.srlz.hh" )
+        if self.uses_PointGraph :
+            includes[ project_comment ].append( "core/conformation/PointGraph.srlz.hh" )
+        if includes[ project_comment ] :
+            comment_order.append( project_comment )
+
+        utility_comment = "// Utility serialization headers\n"; includes[ utility_comment ] = []
+        if self.uses_vector0 :
+            includes[ utility_comment ].append( "utility/vector0.srlz.hh" )
+        if self.uses_vector1 :
+            includes[ utility_comment ].append( "utility/vector1.srlz.hh" )
+        includes[ utility_comment ].append( "utility/serialization/serialization.hh" )
+        comment_order.append( utility_comment )
+
+        objexxfcl_comment = "// ObjexxFCL serialization headers\n"; includes[ objexxfcl_comment ] = []
+        if self.uses_FArray1D :
+            includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/FArray1D.srlz.hh" )
+        if self.uses_FArray2D :
+            includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/FArray2D.srlz.hh" )
+        if self.uses_DynIndRange :
+            includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/DynamicIndexRange.srlz.hh")
+        if includes[ objexxfcl_comment ] :
+            comment_order.append( objexxfcl_comment )
+
+        numeric_comment = "// Numeric serialization headers\n"; includes[ numeric_comment ] = []
+        if self.uses_xyzVector :
+            includes[ numeric_comment ].append( "numeric/xyz.serialization.hh" )
+        if self.uses_HomogeneousTransform :
+            includes[ numeric_comment ].append( "numeric/HomogeneousTransform.srlz.hh" )
+        if self.uses_MathVector :
+            includes[ numeric_comment ].append( "numeric/MathVector.srlz.hh" )
+        if includes[ numeric_comment ] :
+            comment_order.append( numeric_comment )
+
+        cereal_comment = "// Cereal headers\n"; includes[ cereal_comment ] = []
+        if self.contains_polymorphic_class and "polymorphic" not in self.stl_containers :
+            includes[ cereal_comment ].append( "cereal/types/polymorphic.hpp" )
+        if self.needs_access_fwd :
+            includes[ cereal_comment ].append( "cereal/access.hpp" )
+        if self.cc_needs_cereal_base_class_hpp :
+            includes[ cereal_comment ].append( "cereal/types/base_class.hpp" )
+        for stltype in self.stl_containers :
+            includes[ cereal_comment ].append( "cereal/types/%s.hpp" % stltype )
+        includes[ cereal_comment ] = sorted( includes[ cereal_comment ] )
+        if includes[ cereal_comment ] :
+            comment_order.append( cereal_comment )
+
+        self.add_serialization_includes_to_buffer( self.cc, includes, comment_order )
 
         # for dealing with dynamically linked libraries
-        if self.contains_polymorphic_class :
+        if self.contains_polymorphic_class and self.find_serialization_register_dynamic_init( self.cc )[0] == -1 :
             stub = []
             stub.append( "\n#ifdef    SERIALIZATION\n" )
             stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
@@ -771,16 +941,8 @@ class Unit:
 
         self.cc.save()
 
-    def saveTmplHH(self):
-        """
-        Create / update the .tmpl.hh file, if needed
-        """
-        if not self.templates:
-            return
-
-        guard_name = "INCLUDED_SERIALIZATION_" + self.tmpl.relative_filename.replace("/", "_").replace(".", "_")
-
-        copyright_stub = """
+    def copyright_stub( self ) :
+        return """
 // -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-
 // vi: set ts=2 noet:
 //
@@ -791,9 +953,21 @@ class Unit:
 // (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
 
 /// @file   %s
-/// @brief  Auto-generated serialization templates
-""" \
-        % ( self.tmpl.relative_filename )
+/// @brief  Auto-generated serialization template functions
+/// @author Andrew Leaver-Fay (aleavefay@gmail.com)
+
+"""
+
+    def saveTmplHH(self):
+        """
+        Create / update the .tmpl.hh file, if needed
+        """
+        if not self.templates:
+            return
+
+        guard_name = "INCLUDED_SERIALIZATION_" + self.tmpl.relative_filename.replace("/", "_").replace(".", "_")
+
+        copyright_stub = self.copyright_stub() % ( self.tmpl.relative_filename )
 
         stub = """
 #ifdef SERIALIZATION
@@ -824,7 +998,7 @@ class Unit:
             start = buff.contents.find( "\n#endif // SERIALIZATION", counter )
             end   = buff.contents.find( "\n#ifdef    SERIALIZATION", start )
             if end == -1 : break
-            #print( "merge_serialization_blocks: Found start end pair:", start, end )
+            #print "merge_serialization_blocks: Found start end pair:", start, end
 
             # now lets check that there's nothing between start and end
             middle = buff.contents[ (start+len("#endif // SERIALIZATION")+1):end ]
@@ -836,47 +1010,142 @@ class Unit:
                 not_empty = True
                 break
             if not_empty :
-                #print( "not empty:", middle )
+                #print "not empty:", middle
                 counter = end
                 continue
-            #print( "EMPTY!", middle )
+            #print "EMPTY!", middle
 
             # we're clear to delete the #endif..#ifdef block
             buff.deleteRange( start, end + len("\n#ifdef    SERIALIZATION"), False )
             counter = start
 
-def processDef(def_filename, hhs):
+class AllDefinitions :
+    def __init__( self ) :
+        self.units = {}
+        self.classes = {}
+        
+
+def load_definitions(def_filename):
     """
     Process and insert all stubs for the entire definition (many classes)
     """
-    units = {}
+    defs = AllDefinitions()
 
     # Load definition data
-    for line in open(filename).readlines():
+    for line in open(def_filename).readlines():
         line = line.strip().split("\t")
         decl = line[0]
 
-        if decl in ["class", "struct"]:
+        if decl in ["class", "struct", "union"]:
             d = RecordDecl( line )
-            if d.filename not in units:
-                units[d.filename] = Unit( d.filename )
-            units[ d.filename ].classes[ d.name ] = d
+            if d.filename not in defs.units:
+                defs.units[d.filename] = Unit( d.filename )
+            defs.units[ d.filename ].classes[ d.name ] = d
+            defs.classes[ d.name ] = d
         elif decl in ["constructor"]:
             d = ConstructorDecl( line )
-            if d.filename in units and d.classname in units[ d.filename ].classes:
+            if d.filename in defs.units and d.classname in defs.units[ d.filename ].classes:
                 if d.filerange[1] - d.filerange[0] > 0:
-                    units[ d.filename ].classes[ d.classname ].constructors.append(d)
+                    defs.units[ d.filename ].classes[ d.classname ].constructors.append(d)
         elif decl in ["field"]:
             d = FieldDecl( line )
-            if d.filename in units:
-                units[ d.filename ].classes[ d.classname ].fields.append(d)
+            if d.filename in defs.units:
+                defs.units[ d.filename ].classes[ d.classname ].fields.append(d)
+        elif decl in ["parent"]:
+            d = BaseClassDecl( line )
+            if d.filename in defs.units :
+                c = defs.units[ d.filename ].classes[ d.name ]
+                if not c.base_class_names :
+                    c.base_class_names = []
+                    c.base_classes = []
+                c.base_class_names.append(d.classname)
+                c.base_classes.append(d)
+                #print d.name, "base", d.classname
+    return defs
 
+def processAllClassesInHeader( all_definitions, unit_name ) :
+    if unit_name[0] != "/" :
+        unit_name = os.getcwd()+ "/" + unit_name
+    if unit_name not in all_definitions.units :
+        print "No classes in file", unit_name, "listed in the definition file; skipping"
+        return
+    #print "preprocessing", unit_name
+    all_definitions.units[ unit_name ].preprocess()
+    print "Processing unit %s" % unit_name
+    unit = all_definitions.units[unit_name]
+    unit.addSerializationRoutines()
+
+def processClasses( defs, class_names ) :
+    # requires that this be executed from within the main/source directory
+    target_units = set([])
+    for class_name in class_names :
+        if class_name not in defs.classes :
+            print "Could not find requested class", class_name
+            sys.exit(1)
+    for class_name in class_names :
+        cl = defs.classes[ class_name ]
+        target_units.add( cl.filename )
+    for unit_name in target_units :
+        unit = defs.units[ unit_name ]
+        unit.preprocess()
+    for class_name in class_names :
+        cl = defs.classes[ class_name ]
+        unit = defs.units[ cl.filename ]
+        unit.addSerializationRoutinesForClass( cl )
+    for unit_name in target_units :
+        unit = defs.units[ unit_name ]
+        if unit.made_modifications :
+            unit.save()
+
+def processAllClassesInHeaders( all_definitions, hhs ) :
+    pass
+
+def processDef( all_definitions, hhs ) :
     # Process all units
-    for unit_name in units:
-        print ("Processing unit %s" % unit_name)
-        unit = units[unit_name]
-        unit.process()
-        unit.save()
+    for unit_name in hhs: #sorted(units.keys()) :
+        processAllClassesInHeader( all_definitions, unit_name )
+
+def find_all_subclasses( all_definitions, base_class ):
+    subclasses = []
+    base_class_queue = [ base_class ]
+    sorted_classes = sorted( all_definitions.classes.keys() )
+
+    tmp = all_definitions.classes[ "basic::datacache::WriteableCacheableMap" ]
+    print tmp.base_class_names
+
+    for base in base_class_queue :
+        print "processing", base
+        for clname in sorted_classes :
+            cl = all_definitions.classes[ clname ]
+            if not cl.base_class_names : continue
+            if base in cl.base_class_names :
+                subclasses.append( cl )
+                base_class_queue.append( cl.name )
+
+    for sc in subclasses :
+        print "Derived class of", base_class, ":", sc.name
+    return subclasses
 
 if __name__ == '__main__':
-    processDef(sys.argv[1])
+    with blargs.Parser(locals()) as p :
+        p.str( "definitions" ).shorthand( "d" ).required().described_as( "The file with the concatenated output of the class names and fields" )
+        p.multiword( "hhs" ).cast( lambda x : x.split() ).described_as( "The list of header files to proccess; insert serialization routines for all classes within" )
+        p.str( "base_class" ).described_as( "The base class from which all sub-classes are identified" )
+        p.flag( "add_serialization_templates_to_subclasses" )
+        p.multiword( "classes" ).cast( lambda x : x.split() ).described_as( "The namespace-scoped list of all the classes in any file to which serialization routines must be added" )
+                        
+    defs = load_definitions( definitions )
+    if base_class :
+        subclasses = find_all_subclasses( defs, base_class )
+        if add_serialization_templates_to_subclasses :
+            classes = [ x.name for x in subclasses ]
+            classes.append( base_class )
+        else :
+            for subclass in subclasses :
+                print "Subclass of", base_class, ":", subclass
+            sys.exit(0)
+
+    if classes :
+        processClasses( defs, classes )
+    else :
+        processDef( defs, hhs )

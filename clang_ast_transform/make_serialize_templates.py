@@ -175,7 +175,7 @@ class BaseClassDecl(Decl):
 #                 self.is_templated = decl_data[1] == "1"
 #                 # I don't know if I can obtain this! maybe also parse w/ HeavyCodeReader
 #                 self.body_present = decl_data[2]
-# 
+#
 #                 # all we're interested in is the name of the method
 #                 # whether it's public or not, whether it's defined in the
 #                 # header or in the cc, and its location in the file
@@ -183,7 +183,7 @@ class BaseClassDecl(Decl):
 #                 # beneath it in the header; we'll also take the last
 #                 # public function that lives in the .cc and put the
 #                 # serialization functions beneath it.
-# 
+#
 
 ########################################################################
 # Translation unit, i.e. a header file containing one or more classes
@@ -211,6 +211,8 @@ class Unit:
         self.uses_vector1 = False
         self.uses_FArray1D = False
         self.uses_FArray2D = False
+        self.uses_fixedsizearray1 = False
+        self.uses_fixedsizearray0 = False
         self.uses_DynIndRange = False
         self.uses_AtomID_map = False
         self.uses_PointGraph = False
@@ -225,13 +227,17 @@ class Unit:
         self.srlz.save()
         self.cc.save()
 
-    def preprocess(self):
+    def preprocess( self ) :
+        self.preprocessSetup()
+        self.preprocessClasses()
+
+    def preprocessSetup(self):
         """
         Examine all the classes/structs in a single entire translation unit (i.e. a .hh file with one or more classes)
         """
         hcropts = python_cc_reader.code_reader.HCROptions()
         hcropts.defined_preprocessor_variables.append( "SERIALIZATION" )
-        classdecs = python_cc_reader.code_reader.read_classes_from_header( self.filename, open( self.filename ).readlines() )
+        classdecs = python_cc_reader.code_reader.read_classes_from_header( self.filename, open( self.filename ).readlines(), hcropts )
         #print "read", len(classdecs), "class in file", self.filename
         ns = self.filename.rpartition("/")[ 0 ].partition("/source/src/")[2].replace("/","::")+"::"
         for cdec in classdecs :
@@ -241,6 +247,7 @@ class Unit:
                 continue
             self.class_decs_from_cr[ ns + cdec.name ] = cdec
 
+    def preprocessClasses( self ) :
         for name in self.classes:
             #if name.find("Factory") > 0 or name.find("Creator") > 0 or name.find("Singleton") > 0:
             #    print "Skipping class %s" % name
@@ -248,9 +255,9 @@ class Unit:
             # print "For class", name, "we did not find any match to a class in the .hh file; perhaps these?"
             # if name not in self.class_decs_from_cr :
             #      print self.class_decs_from_cr.keys()
-            pycc_classdec = self.class_decs_from_cr[name] if name in self.class_decs_from_cr else None            
+            pycc_classdec = self.class_decs_from_cr[name] if name in self.class_decs_from_cr else None
             self.preprocessObject(self.classes[name], pycc_classdec )
-                        
+
     def addSerializationRoutines( self ) :
         for name in self.classes :
             self.addSerializationRoutinesForClass( self.classes[name] )
@@ -284,8 +291,8 @@ class Unit:
         cols = remnant.split( "," )
         for col in cols :
             self.findSTLTypesInVartype( col )
-                
-                
+
+
     def preprocessObject(self, decl, pycc_decl ):
         """
         Process single object (class, struct, ...) in this unit
@@ -294,6 +301,7 @@ class Unit:
         # Check if this class already has save or load method
         if pycc_decl :
             for m in pycc_decl.functions :
+                print "function", decl.name, m.name
                 if m.name == "save" :
                     decl.has_save = True
                 elif m.name == "load" :
@@ -302,7 +310,9 @@ class Unit:
                     decl.has_load_and_construct = True
                 if decl.has_save and ( decl.has_load or decl.has_load_and_construct ) :
                     decl.has_serialization_methods = True
-    
+        else :
+            print "No python class data for", decl.name
+
         if decl.has_serialization_methods :
             # we don't need to add any serialization methods to this class/struct
             print " decl.has_serialization_methods"
@@ -346,7 +356,7 @@ class Unit:
                 vd['constptr'] = True
             if v.fullvartype.find("std::") >= 0 :
                 # for the sake of the #includes we'll need in the .cc file,
-                # look at all the stl datatypes used in this 
+                # look at all the stl datatypes used in this
                 self.findSTLTypesInVartype( v.fullvartype )
             if v.fullvartype.find( "xyzVector" ) >= 0 or v.fullvartype.find( "xyzMatrix" ) >= 0 :
                 self.uses_xyzVector = True
@@ -358,6 +368,10 @@ class Unit:
                 self.uses_vector1 = True
             if v.fullvartype.find( "utility::vector0" ) >= 0 :
                 self.uses_vector0 = True
+            if v.fullvartype.find( "utility::fixedsizearray1" ) >= 0 :
+                self.uses_fixedsizearray1 = True
+            if v.fullvartype.find( "utility::fixedsizearray0" ) >= 0 :
+                self.uses_fixedsizearray0 = True
             if v.fullvartype.find( "ObjexxFCL::FArray1D" ) >= 0 :
                 self.uses_FArray1D = True
             if v.fullvartype.find( "ObjexxFCL::FArray2D" ) >= 0 :
@@ -405,7 +419,7 @@ class Unit:
         # Include cereal headers in .hh file if we're inlining things
         if decl.inline:
             self.need_srlz_hh = True
-                        
+
     def addSerializationRoutinesForClass( self, decl ) :
         print "addSerializationRoutinesForClass:", decl.name
 
@@ -414,7 +428,7 @@ class Unit:
             return
 
         if decl.inline :
-            print  "Oops! Cannot create serialization functions (now) for class", decl.name 
+            print  "Oops! Cannot create serialization functions (now) for class", decl.name
             return
 
         # Insert the serialization function declarations into the .hh file
@@ -450,7 +464,7 @@ class Unit:
         if s.find( '<' ) < 0 :
             return ""
         return s[ 0 : s.find( '<' ) ]
-        
+
 
     def isConstNonPointer(self, s):
         # Guess if this is a const variable
@@ -508,7 +522,7 @@ class Unit:
                 elif fulltype[j] == "<" :
                     bracket_count += 1
                 j+=1
-            
+
             fulltype = fulltype[:i] + fulltype[j:]
             #print "excised allocator:", fulltype, i
         return fulltype
@@ -643,14 +657,16 @@ class Unit:
 
     def insert_new_serialization_include_block( self, buff, includes, comment_order ) :
         stub = []
+        stub.append("\n#ifdef    SERIALIZATION\n")
         for comment in comment_order :
             stub.append( comment )
             for include in includes[ comment ] :
                 stub.append( "#include <%s>\n" % include )
             if comment != comment_order[-1] :
                 stub.append( "\n" )
+        stub.append("#endif // SERIALIZATION\n")
         # insert before first namespace
-        p = self.cc.contents.find("\nnamespace");
+        p = buff.contents.find("\nnamespace");
         if p == -1 :
             # ok -- we have an empty file, so we have to put in the copyright and to #include the .hh;
             # this must be the .cc file; there's no way we're working with an empty .hh file
@@ -658,7 +674,7 @@ class Unit:
             self.cc.insertStub( 0, self.copyright_stub() % self.cc.relative_filename, False )
             self.cc.insertStub( len(self.cc.contents), "// Unit headers\n#include <%s>\n\n" % self.hh.relative_filename, False )
             p = len( self.cc.contents )
-        self.cc.insertStub( p, "".join(stub), False )
+        buff.insertStub( p, "".join(stub), False )
 
 
     def add_serialization_includes_to_buffer( self, buff, includes, comment_order ) :
@@ -709,7 +725,7 @@ class Unit:
 
     def find_serialization_block( self, buff, block_identifier ) :
         ifdefser_re = re.compile( "#ifdef\s*SERIALIZATION\n" )
-        
+
         match = ifdefser_re.search( buff.contents )
         end = 0
         while match :
@@ -891,6 +907,10 @@ class Unit:
             includes[ utility_comment ].append( "utility/vector0.srlz.hh" )
         if self.uses_vector1 :
             includes[ utility_comment ].append( "utility/vector1.srlz.hh" )
+        if self.uses_fixedsizearray0 :
+            includes[ utility_comment ].append( "utility/fixedsizearray0.srlz.hh" )
+        if self.uses_fixedsizearray1 :
+            includes[ utility_comment ].append( "utility/fixedsizearray1.srlz.hh" )
         includes[ utility_comment ].append( "utility/serialization/serialization.hh" )
         comment_order.append( utility_comment )
 
@@ -936,7 +956,7 @@ class Unit:
             stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
             stub.append( "#endif // SERIALIZATION\n" )
             self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
-    
+
         self.merge_serialization_blocks( self.cc )
 
         self.cc.save()
@@ -1023,7 +1043,7 @@ class AllDefinitions :
     def __init__( self ) :
         self.units = {}
         self.classes = {}
-        
+
 
 def load_definitions(def_filename):
     """
@@ -1087,10 +1107,12 @@ def processClasses( defs, class_names ) :
         target_units.add( cl.filename )
     for unit_name in target_units :
         unit = defs.units[ unit_name ]
-        unit.preprocess()
+        unit.preprocessSetup()
     for class_name in class_names :
         cl = defs.classes[ class_name ]
         unit = defs.units[ cl.filename ]
+        pycc_classdec = unit.class_decs_from_cr[class_name] if class_name in unit.class_decs_from_cr else None
+        unit.preprocessObject( cl, pycc_classdec )
         unit.addSerializationRoutinesForClass( cl )
     for unit_name in target_units :
         unit = defs.units[ unit_name ]
@@ -1133,7 +1155,7 @@ if __name__ == '__main__':
         p.str( "base_class" ).described_as( "The base class from which all sub-classes are identified" )
         p.flag( "add_serialization_templates_to_subclasses" )
         p.multiword( "classes" ).cast( lambda x : x.split() ).described_as( "The namespace-scoped list of all the classes in any file to which serialization routines must be added" )
-                        
+
     defs = load_definitions( definitions )
     if base_class :
         subclasses = find_all_subclasses( defs, base_class )

@@ -1075,10 +1075,13 @@ def load_definitions(def_filename):
             d = BaseClassDecl( line )
             if d.filename in defs.units :
                 c = defs.units[ d.filename ].classes[ d.name ]
+                baseclassname = d.classname
+                if baseclassname[:6] == "class " :
+                    baseclassname = baseclassname[6:]
                 if not c.base_class_names :
                     c.base_class_names = []
                     c.base_classes = []
-                c.base_class_names.append(d.classname)
+                c.base_class_names.append(baseclassname)
                 c.base_classes.append(d)
                 #print d.name, "base", d.classname
     return defs
@@ -1136,10 +1139,12 @@ def find_all_subclasses( all_definitions, base_class ):
     print tmp.base_class_names
 
     for base in base_class_queue :
-        print "processing", base
+        #print "processing", base
         for clname in sorted_classes :
             cl = all_definitions.classes[ clname ]
             if not cl.base_class_names : continue
+            # if clname.find( "numeric::interpolation::spline" ) >= 0:
+            #     print clname, "with parents:", ", ".join(cl.base_class_names)
             if base in cl.base_class_names :
                 subclasses.append( cl )
                 base_class_queue.append( cl.name )
@@ -1164,7 +1169,7 @@ if __name__ == '__main__':
             classes.append( base_class )
         else :
             for subclass in subclasses :
-                print "Subclass of", base_class, ":", subclass
+                print "Subclass of", base_class, ":", subclass.name
             sys.exit(0)
 
     if classes :

@@ -48,7 +48,9 @@ public:
 		      << "" << "\t"
 		      << loc << "\t"
 		      << sm->getDecomposedLoc( iter->getLocStart() ).second << "-" << sm->getDecomposedLoc( iter->getLocEnd() ).second << "\t"
-		      << iter->getType().getAsString() << "\t"
+		      //<< iter->getType().getAsString() << "\t"
+		      //<< iter->getType().getUnqualifiedType().getAsString() << "\t"
+		      << iter->getType().getCanonicalType().getAsString() << "\t"
 		      << iter->getAccessSpecifier() << "\t"
 		      << iter->isVirtual();
 		    llvm::outs() << "\n";

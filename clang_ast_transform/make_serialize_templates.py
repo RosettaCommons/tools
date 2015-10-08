@@ -211,6 +211,7 @@ class Unit:
         self.uses_vector1 = False
         self.uses_FArray1D = False
         self.uses_FArray2D = False
+        self.uses_ubyte = False
         self.uses_fixedsizearray1 = False
         self.uses_fixedsizearray0 = False
         self.uses_DynIndRange = False
@@ -338,10 +339,16 @@ class Unit:
             if self.isRawPtr(v.fullvartype):
                 vd['enable'] = False
                 vd['comment'] = "%s: %s" % ("reference" if v.vartype.find('&') >= 0 else "raw pointer", v.vartype)
+                print "needs load and construct!", v.fullvartype
                 decl.need_load_construct = True
+            elif self.isConstNonPointer(v.fullvartype):
+                #print v.fullvartype, "and", v.fullvartype[6:]
+                if v.fullvartype[6:] in [ "double", "int", "float", "bool", "_Bool", "Size" ]:
+                    # These can be trivially const_cast'ed
+                    continue
             elif v.fullvartype.find("ObjexxFCL") >= 0 and v.fullvartype.find("FArray1D") == -1 and v.fullvartype.find("FArray2D") == -1 and v.fullvartype.find("DynamicIndexRange") == -1 :
                 vd['enable'] = False
-                vd['comment'] = "ObjexxFCL: %s" % ( v.vartype )
+                vd['comment'] = "DANGER! DATA NOT BEING SERIALIZED! ObjexxFCL: %s" % ( v.vartype )
             elif self.isConstNonPointer(v.fullvartype):
                 # c = self.getNonConstCast(v.vartype, v.fullvartype)
                 # if c != "":
@@ -349,6 +356,7 @@ class Unit:
                 # else:
                 #     #vd['enable'] = False
                 #     vd['comment'] = "const?"
+                print "needs load and construct!", v.fullvartype
                 decl.need_load_construct = True
                 self.needs_access_fwd = True #access_fwd forward declares cereal::construct
 
@@ -378,6 +386,8 @@ class Unit:
                 self.uses_FArray2D = True
             if v.fullvartype.find( "ObjexxFCL::DynamcIndexRange" ) >= 0 :
                 self.uses_DynIndRange = True
+            if v.fullvartype.find( "ObjexxFCL::ubyte" ) >= 0 :
+                self.uses_ubyte = True
             if v.fullvartype.find( "AtomID_Map" ) >= 0 :
                 self.uses_AtomID_map = True
             decl.membvars.append( vd )
@@ -687,17 +697,31 @@ class Unit:
             self.insert_new_serialization_include_block( buff, includes, comment_order )
             return
         existing_includes = buff.contents[ include_block[0]:include_block[1] ]
+        print "existing_includes", existing_includes
         offset = 0
         for comment in comment_order :
-            comment_group_begin = existing_includes.find( comment ) >= 0
+            comment_group_begin = buff.contents.find( comment, include_block[0] )
+            print comment, "comment group begin", comment_group_begin
             if comment_group_begin == -1 :
-                buff.insertStub( include_block[0]+offset, comment, False )
+                inserted_comment = comment
+                if comment is not comment_order[0] : inserted_comment = "\n" + comment
+                buff.insertStub( include_block[0]+offset, inserted_comment, False )
                 comment_group_begin = 0
-            offset += comment_group_begin + len( comment )
+                offset += len( inserted_comment )
+            else :
+                offset = comment_group_begin - include_block[0] + len( comment )
+                print "new offset: ", offset
+
             for include in includes[ comment ] :
                 include_statement = "#include <" + include + ">\n"
-                if existing_includes.find( include_statement ) :
+                if existing_includes.find( include_statement ) >= 0 :
+                    print "skipping existing include", include, offset
+                    include_loc = buff.contents.find( include_statement, include_block[0] )
+                    offset = include_loc - include_block[0] + len( include_statement )
+                    print "new offset", offset, "include_loc", include_loc, "include_block", include_block
+                    print "buff.contents", buff.contents[include_block[0]:(include_block[0]+offset)]
                     continue
+                print "include", include_statement[:-1], "offset", offset
                 buff.insertStub( include_block[0]+offset, include_statement, False )
                 offset += len( include_statement )
             #now advance offset to the next position where you see "\n\n"
@@ -721,7 +745,12 @@ class Unit:
     def find_serialization_includes( self, buff ) :
         # look for the "#ifdef    SERIALIZATION" block at the top of the file
         # that contains #includes
-        return self.find_serialization_block( buff, "#include" )
+        tup = self.find_serialization_block( buff, "#include" )
+        print "serialization includes:", tup
+        if tup[0] == -1 : return tup
+        ifdefser_re = re.compile( "#ifdef\s*SERIALIZATION" )
+        match = ifdefser_re.search( buff.contents[ tup[0] : ] )
+        return ( tup[0]+len(match.group()), tup[1] )
 
     def find_serialization_block( self, buff, block_identifier ) :
         ifdefser_re = re.compile( "#ifdef\s*SERIALIZATION\n" )
@@ -759,7 +788,7 @@ class Unit:
             else:
                 stub.append( ";\n" )
             if decl.need_load_construct:
-
+                print "Needs load and construct; generating it"
                 stub_body = self.indent(self.makeVarsArStub(decl, decl.membvars, 'load_and_construct'), 2) if decl.inline else ""
                 stub.append( "\ttemplate< class Archive > static void load_and_construct( Archive & arc, cereal::construct< %s > & construct )" \
                     % decl.name.split("::")[-1] )
@@ -802,6 +831,20 @@ class Unit:
             print "insertCCStub early exit"
             return
 
+        # figure out whether the "save" and "load" methods are going to be empty, and if they
+        # are emtpy, then make sure that the Archive variable, arc, is not named in the
+        # save and load parameter lists
+        base_classes_to_ignore = set([])
+        base_classes_to_ignore.add( "utility::pointer::ReferenceCount" )
+        base_classes_to_ignore.add( "std::enable_shared_from_this<class %s>" % decl.name )
+        arc_gets_named = decl.has_vars
+        if decl.base_class_names :
+            for bc in decl.base_class_names :
+                if bc not in base_classes_to_ignore :
+                    arc_gets_named = True
+    
+        print "arc_gets_named", arc_gets_named, decl.has_vars, decl.base_class_names 
+
         stub = []
         stub.append("\n#ifdef    SERIALIZATION\n\n")
         if decl.requires_protected_default_ctor :
@@ -811,24 +854,33 @@ class Unit:
         stub.append("/// @brief Automatically generated serialization method\n" )
         stub.append("template< class Archive >\n")
         stub.append("void\n")
-        stub.append("%s::save( Archive &%s ) const {\n" % ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "" ) )
-        stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "save" ), 1 ))
+        stub.append("%s::save( Archive &%s ) const {" % ( decl.name, " arc" if arc_gets_named else "" ) )
+        vars_stub = self.makeVarsArStub( decl, decl.membvars, "save" )
+        if vars_stub : 
+            stub.append( "\n" )
+            stub.append(self.indent( vars_stub, 1 ))
         stub.append("}\n\n")
+
 
         if decl.need_load_construct:
             stub.append("/// @brief Automatically generated deserialization method\n" )
             stub.append("template< class Archive >\n")
             stub.append("void\n")
             stub.append("%s::load_and_construct( Archive &%s, cereal::construct< %s > & construct ) {\n" % \
-                        ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "", decl.name ))
+                        ( decl.name, " arc" if arc_gets_named else "", decl.name ))
             stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load_and_construct" ), 1 ))
             stub.append("}\n")
         else:
             stub.append("/// @brief Automatically generated deserialization method\n" )
             stub.append("template< class Archive >\n")
             stub.append("void\n")
-            stub.append("%s::load( Archive &%s ) {\n" % ( decl.name, " arc" if decl.has_vars or decl.base_class_names else "" ))
-            stub.append(self.indent( self.makeVarsArStub( decl, decl.membvars, "load" ), 1 ))
+
+            stub.append("%s::load( Archive &%s ) {" % ( decl.name, " arc" if arc_gets_named else "" ))
+            vars_stub = self.makeVarsArStub( decl, decl.membvars, "load" )
+            if vars_stub : 
+                stub.append( "\n" )
+                stub.append(self.indent( vars_stub, 1 ))
+    
             stub.append("}\n\n")
 
         if decl.need_load_construct:
@@ -921,6 +973,8 @@ class Unit:
             includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/FArray2D.srlz.hh" )
         if self.uses_DynIndRange :
             includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/DynamicIndexRange.srlz.hh")
+        if self.uses_ubyte :
+            includes[ objexxfcl_comment ].append( "utility/serialization/ObjexxFCL/ubyte.srlz.hh")
         if includes[ objexxfcl_comment ] :
             comment_order.append( objexxfcl_comment )
 
@@ -1037,12 +1091,26 @@ class Unit:
 
             # we're clear to delete the #endif..#ifdef block
             buff.deleteRange( start, end + len("\n#ifdef    SERIALIZATION"), False )
-            counter = start
+            counter = start                
+
 
 class AllDefinitions :
     def __init__( self ) :
         self.units = {}
         self.classes = {}
+
+    def reparse_headers( self, target_units ) :
+        for header in target_units :
+            path_to_clang_ast_transform = "".join(os.path.realpath(__file__).rpartition( "clang_ast_transform" )[0:2])
+            
+            command = "bash " + path_to_clang_ast_transform + "/extract_serialization_data.sh " + header
+            print command
+            os.system( command )
+            new_defs = load_definitions( header + ".def" )
+            for unit in new_defs.units :
+                self.units[ unit ] = new_defs.units[ unit ]
+            for cl in new_defs.classes :
+                self.classes[ cl ] = new_defs.classes[ cl ]
 
 
 def load_definitions(def_filename):
@@ -1098,7 +1166,7 @@ def processAllClassesInHeader( all_definitions, unit_name ) :
     unit = all_definitions.units[unit_name]
     unit.addSerializationRoutines()
 
-def processClasses( defs, class_names ) :
+def processClasses( defs, class_names, reparse_headers ) :
     # requires that this be executed from within the main/source directory
     target_units = set([])
     for class_name in class_names :
@@ -1108,6 +1176,9 @@ def processClasses( defs, class_names ) :
     for class_name in class_names :
         cl = defs.classes[ class_name ]
         target_units.add( cl.filename )
+    if reparse_headers :
+        defs.reparse_headers( target_units )
+
     for unit_name in target_units :
         unit = defs.units[ unit_name ]
         unit.preprocessSetup()
@@ -1135,9 +1206,6 @@ def find_all_subclasses( all_definitions, base_class ):
     base_class_queue = [ base_class ]
     sorted_classes = sorted( all_definitions.classes.keys() )
 
-    tmp = all_definitions.classes[ "basic::datacache::WriteableCacheableMap" ]
-    print tmp.base_class_names
-
     for base in base_class_queue :
         #print "processing", base
         for clname in sorted_classes :
@@ -1160,6 +1228,7 @@ if __name__ == '__main__':
         p.str( "base_class" ).described_as( "The base class from which all sub-classes are identified" )
         p.flag( "add_serialization_templates_to_subclasses" )
         p.multiword( "classes" ).cast( lambda x : x.split() ).described_as( "The namespace-scoped list of all the classes in any file to which serialization routines must be added" )
+        p.flag( "dont_reparse_headers" )
 
     defs = load_definitions( definitions )
     if base_class :
@@ -1173,6 +1242,6 @@ if __name__ == '__main__':
             sys.exit(0)
 
     if classes :
-        processClasses( defs, classes )
+        processClasses( defs, classes, not dont_reparse_headers )
     else :
         processDef( defs, hhs )

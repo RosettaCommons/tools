@@ -225,6 +225,8 @@ for line in lines:
             queue = 'normal'
             if hostname in ['comet']:
                 queue = 'shared'
+            if hostname in ['sherlock']:
+                queue = 'biochem'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
             
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
@@ -304,6 +306,8 @@ if DO_MPI:
             queue = 'normal'
             if hostname in ['comet']:
                 queue = 'compute'
+            if hostname in ['sherlock']:
+                queue = 'biochem'
             if development:
                 queue = 'development'
             fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
@@ -357,6 +361,8 @@ if DO_MPI:
         queue = 'normal'
         if hostname in ['comet']:
             queue = 'compute'
+        if hostname in ['sherlock']:
+            queue = 'biochem'
         if development:
             queue = 'development'
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)

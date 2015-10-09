@@ -4,12 +4,12 @@
 # a minimal fragment format which consists of a single line for each fragment
 # that contains the vall line number followed by a space followed by the fragment
 # length for each fragment. The very first line should start with a # followed
-# by a space followed by "indexed" followed by the original vall name for
-# reference. The fragment reader uses this line to determine which torsions only
-# vall to use to read in the fragment torsions. For each blank line in the indexed
-# fragment file, the position is iterated, starting at position 1 of the target
-# sequence. The torsions only vall is just the vall torsions phi,psi,omega on each
-# line.
+# by a space followed by "index" followed by the original vall starting line #,
+# ending line #, previous residue key number, and name for reference. The fragment
+# reader uses this line to determine which torsions only vall to use to read in
+# the fragment torsions. For each blank line in the indexed fragment file, the
+# position is iterated, starting at position 1 of the target sequence. The
+# torsions only vall is just the vall torsions phi,psi,omega on each line.
 
 
 my %opts = &getCommandLineOptions();
@@ -17,6 +17,7 @@ my %opts = &getCommandLineOptions();
 my $vall = $opts{vall};
 my $vallname = $vall;
 $vallname =~ s/^.*\/([^\/]+)\s*$/$1/gs;
+$vallname =~ s/(\.gz|\.Z)\s*$//gs;
 
 my $phicol;
 
@@ -25,7 +26,12 @@ my $debug = 0;
 # determine torsions columns in vall
 print "Reading $vall to get phi,psi,omega torsions\n";
 print "  Assuming columns 1, 2, and 3 are the PDB code, chain, and seqres position.\n";
-open(F, $vall) or die "ERROR! cannot open $vall: $!\n";
+
+if ($vall =~ /(\.gz|\.Z)\s*$/) {
+	open(F, "gzip -dc $vall |") or die "ERROR! cannot open $vall: $!\n";
+} else {
+	open(F, $vall) or die "ERROR! cannot open $vall: $!\n";
+}
 my %vall;
 my $vallline = 0;
 while (<F>) {
@@ -69,7 +75,11 @@ if ($opts{create_torsions_vall}) {
 	my $torsions_vall = "$vall.torsions";
 	print "Creating torsions vall: $torsions_vall\n";
 	open(NF, ">$torsions_vall") or die "ERROR! cannot open $torsions_vall: $!\n";
-	open(F, $vall) or die "ERROR! cannot open $vall: $!\n";
+	if ($vall =~ /(\.gz|\.Z)\s*$/) {
+		open(F, "gzip -dc $vall |") or die "ERROR! cannot open $vall: $!\n";
+	} else {
+		open(F, $vall) or die "ERROR! cannot open $vall: $!\n";
+	}
 	while (<F>) {
 		next if (/^#/);
 		my @cols = split(/\s+/,$_);
@@ -82,9 +92,13 @@ if ($opts{create_torsions_vall}) {
 foreach my $frag (@ARGV) {
 	my ($pos, $frags, $phi, $psi, $omega, $code, $chain, $seqrespos, $aa, $ss, @frag);
 	print "Creating indexed fragment: $frag.index\n";
-	open(F, $frag) or die "ERROR! cannot open $frag: $!\n";
+	if ($frag =~ /(\.gz|\.Z)\s*$/) {
+		open (F, "gzip -dc $frag |") or die "ERROR! cannot open $frag: $!\n";
+	} else {
+		open(F, $frag) or die "ERROR! cannot open $frag: $!\n";
+	}
 	open(NF, ">$frag.index") or die "ERROR! cannot open $frag.index: $!\n";
-	print NF "# indexed $vallname\n";
+	print NF "# index 1 $vallline 0 $vallname\n";
 	my $fragcnt = 0;
 	while (<F>) {
 		if (/^\s*position:\s+(\d+)\s+neighbors:\s+(\d+)\s*$/) {
@@ -103,26 +117,30 @@ foreach my $frag (@ARGV) {
 				my $fragsize = scalar@frag;
 				my $vallline = $vall{"$frag[0]->{code}$frag[0]->{chain} $frag[0]->{aa} $frag[0]->{ss} $frag[0]->{seqrespos}"}->{line};
 				if ($debug) { print "fragsize $fragsize vallline: $vallline\n"; }
+				my $output_torsions = 0;
 				foreach my $f (@frag) {
 					my $key = "$f->{code}$f->{chain} $f->{aa} $f->{ss} $f->{seqrespos}";
 					(defined $vall{$key} && $vall{$key}->{phi} == $f->{phi} && $vall{$key}->{psi} == $f->{psi} && $vall{$key}->{omega} == $f->{omega} ) or do {
-						close(F);
-						close(NF);
-						unlink("$frag.index");
-						die "ERROR! there was an issue reading the fragment file $frag: no vall entry, format error?\n";
+						warn "WARNING! there was an issue reading the fragment file $frag: no vall entry for $key, format error? Printing torsions.\n";
+						$output_torsions = 1;
 					};
 					if ($debug) {
 						print "#$key# fragsize: $fragsize $vall{$key}->{phi} == $f->{phi} && $vall{$key}->{psi} == $f->{psi} && $vall{$key}->{omega} == $f->{omega} vall line: $vall{$key}->{line}\n";
 					}
 				}
 				($vallline) or do {
-					close(F);
-					close(NF);
-					unlink("$frag.index");
-					die "ERROR! there was an issue reading the fragment file $frag: no vall line entry, format error?\n";
+					warn "WARNING! there was an issue reading the fragment file $frag: no vall line entry for $frag[0]->{code}$frag[0]->{chain} $frag[0]->{aa} $frag[0]->{ss} $frag[0]->{seqrespos}, format error? Printing torsions.\n";
+					$output_torsions = 1;
 				};
 				$fragcnt++;
-				print NF "$vallline $fragsize\n";
+				if ($output_torsions) {
+					print NF "0 $fragsize\n";
+					foreach my $f (@frag) {
+						printf NF "$f->{phi} %9.3f %9.3f\n", $f->{psi}, $f->{omega};
+					}
+				} else {
+					print NF "$vallline $fragsize\n";
+				}
 			}
 			@frag = ();
 		} elsif (!$code || scalar@frag) {
@@ -199,7 +217,7 @@ torsions only vall example:
 
 minimal fragment file example:
 
-# indexed ../vall.dat.2001-02-02
+# index 1 4126307 0 vall.jul19.2011
 501503 3
 216727 3
 53997 3

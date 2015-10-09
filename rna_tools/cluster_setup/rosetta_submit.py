@@ -29,6 +29,7 @@ if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
 if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
 
+    
 if hostname == 'lonestar':
     DO_MPI = True
     tasks_per_node_MPI = 12 # lonestar
@@ -58,13 +59,24 @@ if argv.count( '-development' )>0:
     pos = argv.index( '-development' )
     del( argv[pos] )
 
+# set name of queue to submit jobs to 
+queue = 'normal'
+if '-queue' in argv:
+    idx = argv.index('-queue')
+    argv.pop(idx)
+    queue = argv.pop(idx)
+elif development is True:
+    queue = 'development'
+elif hostname in ['comet']:
+    queue = 'compute'
+
+
 nhours = 16
 if len( argv ) > 4:
     nhours = int( argv[4] )
     if ( nhours > 168 ):  Help()
     if hostname in ['sherlock', 'comet']:
         nhours = min(nhours, 48)  
-
 
 if not exists( infile ):
     print 'Could not find: ', infile
@@ -222,11 +234,9 @@ for line in lines:
         if hostname in ['sherlock', 'comet']:
 
             # sbatch (no mpi)
-            queue = 'normal'
+            queue2 = queue
             if hostname in ['comet']:
-                queue = 'shared'
-            if hostname in ['sherlock']:
-                queue = 'biochem'
+                queue2 = 'shared'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
             
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
@@ -235,7 +245,7 @@ for line in lines:
             fid_sbatch_submit_file.write( '#SBATCH -J %s\n' % job_name )
             fid_sbatch_submit_file.write( '#SBATCH -o %s\n' % outfile )
             fid_sbatch_submit_file.write( '#SBATCH -e %s\n' % errfile )
-            fid_sbatch_submit_file.write( '#SBATCH -p %s\n' % queue )
+            fid_sbatch_submit_file.write( '#SBATCH -p %s\n' % queue2 )
             fid_sbatch_submit_file.write( '#SBATCH -t %d:00:00\n' % nhours )
             fid_sbatch_submit_file.write( '#SBATCH -n %d\n' % 1 )
             fid_sbatch_submit_file.write( '#SBATCH -N %d\n' % 1 )
@@ -303,13 +313,6 @@ if DO_MPI:
             job_name = (basename(CWD)).replace( '/', '_' )
             fid_qsub_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_qsub_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
-            queue = 'normal'
-            if hostname in ['comet']:
-                queue = 'compute'
-            if hostname in ['sherlock']:
-                queue = 'biochem'
-            if development:
-                queue = 'development'
             fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
             if development:
                 fid_qsub_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
@@ -358,13 +361,6 @@ if DO_MPI:
         job_name = (basename(CWD)).replace( '/', '_' )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -o %s.o%%j\n' % job_name )
-        queue = 'normal'
-        if hostname in ['comet']:
-            queue = 'compute'
-        if hostname in ['sherlock']:
-            queue = 'biochem'
-        if development:
-            queue = 'development'
         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)
         if development:
             fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )

@@ -29,6 +29,8 @@ if( os.path.exists(scriptdir+"/IWYU_nonstandard_fwd.txt") ):
     for line in f:
         line = line.split()
         if len(line) == 2 and line[0] != "#":
+            if line[0] in NONSTANDARD_FORWARDS:
+                print "DUPLICATE ENTRY IN IWYU_nonstandard_fwd.txt!!!!!!! -", line[0]
             NONSTANDARD_FORWARDS[ line[0] ] = line[1]
 
 # Because the IWYU pragmas aren't working for me, and we don't want to clutter, anyway
@@ -45,7 +47,7 @@ class PROVIDERS_t:
                     if "*" in line[0] or "?" in line[0]:
                         self.globs.append( line )
                     else:
-                        self.files[ line[0] ] = line[1:]
+                        self.files.setdefault( line[0], [] ).extend(line[1:])
 
     def __call__(self, name):
         providers = []
@@ -124,6 +126,9 @@ class IWYUChanges:
                 if self.filename and split_line[-1][:-1] != self.filename:
                     raise ValueError("Inconsistent filename in output: " + split_line[0][:-1] + " versus " + self.filename)
                 self.filename = split_line[-1][:-1]
+                continue
+            if "has correct #includes/fwd-decls" in line:
+                self.filename = split_line[0][1:]
                 continue
 
             if stage == 'adding':
@@ -372,10 +377,13 @@ class IWYUChanges:
             return line
 
         name = []
+        nesting = 0
         for l in line.split():
-            if l in ['namespace','{','template','<typename','>','class','struct','}']:
+            if l in ['namespace','{','template','class','struct','}']:
                 continue
-            if '<' in l or '>' in l:
+            nesting += l.count('<')
+            nesting -= l.count('>')
+            if nesting > 0 or '<' in l or '>' in l:
                 continue
             name.append( l )
         name = '/'.join(name)
@@ -384,7 +392,7 @@ class IWYUChanges:
         name = name[:-1] + ".fwd.hh"
         if name in NONSTANDARD_FORWARDS:
             name = NONSTANDARD_FORWARDS[ name ]
-        if not os.path.exists( 'src/' + name ) and not os.path.exists( 'external/include/' + name ) and not os.path.exists( 'external/dbio/'+name ):
+        if not os.path.exists( 'src/' + name ) and not os.path.exists( 'external/include/' + name ) and not os.path.exists( 'external/dbio/'+name ) and not os.path.exists( 'external/boost_1_55_0/' + name ):
             raise ValueError("Forward header '"+name+"' not found - either create or list in NONSTANDARD_FORWARDS")
         return name
 
@@ -439,41 +447,49 @@ def check_file(filename, options):
             else:
                 mods.append( IWYUChanges(block) )
             block = []
+        elif line.startswith('(') and line.endswith(')'):
+            block.append(line)
+            mods.append( IWYUChanges(block) )
+            block = []
         else:
             block.append(line)
+
+    if ''.join(block).strip():
+        mods.append( IWYUChanges(block) )
 
     return mods
 
 def process_file(filename, options):
+    if not options.m:
+        if not os.path.exists( filename + ".iwyu" ):
+            mods = []
+            if os.path.exists( filename[:-3] + ".fwd.hh" ):
+                mods.extend( check_file(filename[:-3] + ".fwd.hh", options) )
 
-    if not os.path.exists( filename + ".iwyu" ):
-        mods = []
-        if os.path.exists( filename[:-3] + ".fwd.hh" ):
-            mods.extend( check_file(filename[:-3] + ".fwd.hh", options) )
+            #Headers are automatically checked for hh files.
+            mods.extend( check_file(filename, options) )
 
-        #Headers are automatically checked for hh files.
-        mods.extend( check_file(filename, options) )
+            # Remove added includes if nested headers have them
+            # Should be in nested include order
+            for ii in range( len(mods) ):
+                for jj in range( ii+1, len(mods) ):
+                    if not mods[ii].filename.startswith( mods[jj].filename[:-3] ):
+                        print "File "+mods[ii].filename+" is not in series with "+mods[jj].filename
+                        continue
+                    mods[jj].nested_prune( mods[ii] )
 
-        # Remove added includes if nested headers have them
-        # Should be in nested include order
-        for ii in range( len(mods) ):
-            for jj in range( ii+1, len(mods) ):
-                if not mods[ii].filename.startswith( mods[jj].filename[:-3] ):
-                    raise ValueError("File "+mods[ii].filename+" is not in series with "+mods[jj].filename)
-                mods[jj].nested_prune( mods[ii] )
-
-        for mod in mods:
-            mod.write_cache()
-            mod.prnt()
-
-    if options.m:
+            for mod in mods:
+                mod.write_cache()
+                mod.prnt()
+    else:
+        # Modify
         files = [filename]
         if not filename.endswith(".fwd.hh") and os.path.exists( filename[:-3] + ".fwd.hh" ):
             files.append( filename[:-3] + ".fwd.hh" )
         if filename.endswith(".cc") and os.path.exists( filename[:-3] + ".hh" ):
             files.append( filename[:-3] + ".hh" )
         for fn in files:
-            if os.path.exists( fn ):
+            if os.path.exists( fn ) and os.path.exists(fn +".iwyu"):
                 mod = read_mod_file(fn)
                 mod.change()
                 os.remove(fn +".iwyu" )

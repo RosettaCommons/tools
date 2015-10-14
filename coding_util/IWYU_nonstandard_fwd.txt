@@ -5,30 +5,142 @@
 #followed by the actual location, space separated.
 # For example:
 # core/foo/Bar.fwd.hh core/foo/BazAndBar.fwd.hh
+#
+# This doesn't attempt to be comprehensive - just the ones which I found were needed.
 
 #external
 cppdb/statement.fwd.hh cppdb/frontend.h
+cppdb/result.fwd.hh cppdb/frontend.h
 fem/common.fwd.hh fem/common.hh
+boost/function.fwd.hh boost/function.hpp
+boost/forward_traversal_tag.fwd.hh boost/iterator/iterator_facade.hpp
+#Smart pointer header
+boost/owner_less.fwd.hh utility/pointer/access_ptr.hh 
 
 utility/excn/EXCN_JD2Failure.fwd.hh utility/excn/Exceptions.hh
 utility/excn/EXCN_Msg_Exception.fwd.hh utility/excn/Exceptions.hh
 
+utility/options/BooleanOptionKey.fwd.hh utility/options/keys/BooleanOptionKey.fwd.hh
+utility/options/BooleanVectorOptionKey.fwd.hh utility/options/keys/BooleanVectorOptionKey.fwd.hh
+utility/options/FileOptionKey.fwd.hh utility/options/keys/FileOptionKey.fwd.hh
+utility/options/FileVectorOptionKey.fwd.hh utility/options/keys/FileVectorOptionKey.fwd.hh
+utility/options/IntegerOptionKey.fwd.hh utility/options/keys/IntegerOptionKey.fwd.hh
+utility/options/IntegerVectorOptionKey.fwd.hh utility/options/keys/IntegerOptionKey.fwd.hh
+utility/options/PathOptionKey.fwd.hh utility/options/keys/PathOptionKey.fwd.hh
+utility/options/PathVectorOptionKey.fwd.hh utility/options/keys/PathVectorOptionKey.fwd.hh
+utility/options/RealOptionKey.fwd.hh utility/options/keys/RealOptionKey.fwd.hh
+utility/options/RealVectorOptionKey.fwd.hh utility/options/keys/RealVectorOptionKey.fwd.hh
+utility/options/StringOptionKey.fwd.hh utility/options/keys/StringOptionKey.fwd.hh
+utility/options/StringVectorOptionKey.fwd.hh utility/options/keys/StringVectorOptionKey.fwd.hh
+
 numeric/expression_parser/ASTVisitor.fwd.hh numeric/expression_parser/Arithmetic.fwd.hh 
 numeric/random/RandomGenerator.fwd.hh numeric/random/random.fwd.hh
+numeric/random/DistributionSampler.fwd.hh numeric/random/DistributionSampler.hh
+numeric/geometry/hashing/bin_index_hasher.fwd.hh numeric/geometry/hashing/SixDHasher.fwd.hh
 
 basic/MetricValueBase.fwd.hh basic/MetricValue.fwd.hh
 basic/datacache/DataMapObj.fwd.hh basic/datacache/DataMapObj.hh
 
-core/chemical/orbitals/ICoorOrbitalData.fwd.hh core/chemical/orbitals/ICoorOrbitalData.hh
 core/chemical/RingConformer.fwd.hh core/chemical/RingConformerSet.fwd.hh
-core/io/silent/SilentEnergy.fwd.hh core/io/silent/SilentEnergy.hh
-core/scoring/EnergyEdge.fwd.hh core/scoring/EnergyGraph.fwd.hh
+core/chemical/orbitals/ICoorOrbitalData.fwd.hh core/chemical/orbitals/ICoorOrbitalData.hh
+core/chemical/rna/GaussianParameter.fwd.hh core/chemical/rna/RNA_FittedTorsionInfo.fwd.hh
 
+core/conformation/ResidueFactory.fwd.hh core/conformation/ResidueFactory.hh
+
+core/id/StubID.fwd.hh core/id/AtomID.fwd.hh
+
+core/io/silent/SilentEnergy.fwd.hh core/io/silent/SilentEnergy.hh
+core/io/silent/BinarySilentStruct.fwd.hh core/io/silent/silent.fwd.hh
+
+core/indexed_structure_store/FragmentSpecification.fwd.hh core/indexed_structure_store/FragmentStore.fwd.hh
+
+core/pack/dunbrack/DunbrackRotamerSampleData.fwd.hh core/pack/dunbrack/DunbrackRotamer.fwd.hh
+core/pack/interaction_graph/EdgeBase.fwd.hh core/pack/interaction_graph/InteractionGraphBase.fwd.hh
+core/pack/task/ResfileContents.fwd.hh core/pack/task/ResfileReader.fwd.hh
+core/pack/task/ResidueLevelTask.fwd.hh core/pack/task/PackerTask.fwd.hh
+core/pack/task/operation/InitializeFromCommandline.fwd.hh core/pack/task/operation/TaskOperations.fwd.hh
+core/pack/task/operation/RestrictToRepacking.fwd.hh core/pack/task/operation/TaskOperations.fwd.hh
+core/pack/task/operation/RestrictToRepackingRLT.fwd.hh core/pack/task/operation/ResLvlTaskOperations.fwd.hh
+
+core/scoring/EnergyEdge.fwd.hh core/scoring/EnergyGraph.fwd.hh
+core/scoring/packstat/CavityBallCluster.fwd.hh core/scoring/packstat/compute_sasa.hh
+core/scoring/ResPairMinimizationData.fwd.hh core/scoring/MinimizationData.fwd.hh
+core/scoring/ResSingleMinimizationData.fwd.hh core/scoring/MinimizationData.fwd.hh
+core/scoring/dssp/StrandPairingSet.fwd.hh core/scoring/dssp/StrandPairing.fwd.hh
+core/scoring/MembraneEmbed.fwd.hh core/scoring/MembranePotential.fwd.hh
+core/scoring/EMapVector.fwd.hh core/scoring/EnergyMap.fwd.hh
+core/scoring/ScoreTypeManager.fwd.hh core/scoring/ScoreTypeManager.hh
+core/scoring/ScoreFunctionFactory.fwd.hh core/scoring/ScoreFunctionFactory.hh
+core/scoring/hbonds/HBond.fwd.hh core/scoring/hbonds/HBondSet.fwd.hh
+core/scoring/motif/MotifHashManager.fwd.hh core/scoring/motif/motif_hash_stuff.hh
+
+protocols/abinitio/IterativeFullatom.fwd.hh protocols/abinitio/IterativeFullatom.hh
 protocols/antibody/PDBLandmark.fwd.hh protocols/antibody/AntibodyNumberingParser.fwd.hh
 protocols/antibody/design/PDBNumbering.fwd.hh protocols/antibody/design/util.hh
+
+protocols/cluster/ClusterPhilStyle.fwd.hh protocols/cluster/cluster.hh
+protocols/contact_map/Contact.fwd.hh protocols/contact_map/ContactMap.fwd.hh
+
 protocols/evaluation/MetaPoseEvaluator.fwd.hh protocols/evaluation/PoseEvaluator.fwd.hh
+
+protocols/features/strand_assembly/SandwichFragment.fwd.hh protocols/features/strand_assembly/SandwichFragment.hh
+protocols/features/strand_assembly/StrandFragment.fwd.hh protocols/features/strand_assembly/StrandFragment.hh
+protocols/frags/SingleResidueTorsionFragmentLibrary.fwd.hh protocols/frags/TorsionFragment.fwd.hh
+protocols/frag_picker/CSTalosIO.fwd.hh protocols/frag_picker/CSTalosIO.hh
+protocols/frag_picker/PhiPsiTalosIO.fwd.hh protocols/frag_picker/PhiPsiTalosIO.hh
+
+protocols/forge/remodel/RemodelDesignMover.fwd.hh protocols/forge/remodel/RemodelDesignMover.hh
+protocols/forge/remodel/RemodelData.fwd.hh protocols/forge/remodel/RemodelData.hh
+protocols/flexpack/interaction_graph/FlexbbEdge.fwd.hh protocols/flexpack/interaction_graph/FlexbbInteractionGraph.fwd.hh
+protocols/flexpack/interaction_graph/MinimalistFlexbbEdge.fwd.hh protocols/flexpack/interaction_graph/MinimalistFlexbbInteractionGraph.fwd.hh
+protocols/flexpack/interaction_graph/OTFFlexbbEdge.fwd.hh protocols/flexpack/interaction_graph/OTFFlexbbInteractionGraph.fwd.hh
+
+protocols/jd2/archive/Batch.fwd.hh protocols/jd2/archive/ArchiveManager.fwd.hh
+protocols/jd2/archive/AbstractArchiveBase.fwd.hh protocols/jd2/archive/ArchiveBase.fwd.hh
+protocols/jd2/archive/BaseArchiveManager.fwd.hh protocols/jd2/archive/ArchiveManager.fwd.hh
+
+protocols/jumping/DisulfPairingLibrary.fwd.hh protocols/jumping/DisulfPairingLibrary.hh
+protocols/genetic_algorithm/GeneticAlgorithmBase.fwd.hh protocols/genetic_algorithm/GeneticAlgorithm.fwd.hh
+
 protocols/loops/loop_closure/ccd/CcdMover.fwd.hh protocols/loops/loop_closure/ccd/CCDLoopClosureMover.fwd.hh
+protocols/loops/LoopsFileData.fwd.hh protocols/loops/LoopsFileIO.fwd.hh
+protocols/loophash/BackboneSegment.fwd.hh protocols/loophash/BackboneDB.hh
+
 protocols/match/Bool3DGrid.fwd.hh protocols/match/BumpGrid.fwd.hh
-protocols/match/match_dspos1.fwd.hh protocols/match/Hit.fwd.hh
-protocols/match/upstream/UpstreamResidueProcessor.fwd.hh protocols/match/upstream/UpstreamBuilder.fwd.hh
 protocols/match/HitHasher.fwd.hh protocols/match/MatchSet.fwd.hh
+protocols/match/match_dspos1.fwd.hh protocols/match/Hit.fwd.hh
+protocols/match/MatcherOutputStats.fwd.hh protocols/match/Matcher.fwd.hh
+protocols/match/upstream/UpstreamResidueProcessor.fwd.hh protocols/match/upstream/UpstreamBuilder.fwd.hh
+protocols/match/upstream/OriginalBackboneBuildPoint.fwd.hh protocols/match/upstream/OriginalScaffoldBuildPoint.fwd.hh
+protocols/match/upstream/SampleStrategyData.fwd.hh protocols/match/upstream/ProteinUpstreamBuilder.fwd.hh
+
+protocols/md/Rattle.fwd.hh protocols/md/Rattle.hh
+
+protocols/moves/RandomMover.fwd.hh protocols/moves/MoverContainer.fwd.hh
+
+protocols/normalmode/NormalModeMultifunc.fwd.hh protocols/normalmode/NormalModeMultiFunc.hh
+
+protocols/pack_daemon/EntityFunc.fwd.hh protocols/pack_daemon/DynamicAggregateFunction.fwd.hh
+protocols/pack_daemon/VectorExpressionCreator.fwd.hh protocols/pack_daemon/DynamicAggregateFunction.fwd.hh
+
+protocols/pockets/NonPlaidFingerprint.fwd.hh protocols/pockets/Fingerprint.fwd.hh
+protocols/pockets/PlaidFingerprint.fwd.hh protocols/pockets/Fingerprint.fwd.hh
+
+protocols/rigid/RigidBodyDofTransMover.fwd.hh protocols/rigid/RigidBodyMover.fwd.hh
+
+protocols/scoring/methods/pcs/PCS_tensor.fwd.hh protocols/scoring/methods/pcs/PseudocontactShiftTensor.fwd.hh
+protocols/scoring/methods/pcsTs1/PCS_tensor_Ts1.fwd.hh protocols/scoring/methods/pcsTs1/PseudocontactShiftTensor.fwd.hh
+protocols/scoring/methods/pcsTs2/PCS_tensor_Ts2.fwd.hh protocols/scoring/methods/pcsTs2/PseudocontactShiftTensor.fwd.hh
+protocols/scoring/methods/pcsTs3/PCS_tensor_Ts3.fwd.hh protocols/scoring/methods/pcsTs3/PseudocontactShiftTensor.fwd.hh
+protocols/scoring/methods/pcsTs4/PCS_tensor_Ts4.fwd.hh protocols/scoring/methods/pcsTs4/PseudocontactShiftTensor.fwd.hh
+
+protocols/sparta/GDB.fwd.hh protocols/sparta/GDB.hh
+
+protocols/stepwise/monte_carlo/mover/Attachment.fwd.hh protocols/stepwise/monte_carlo/mover/StepWiseMove.fwd.hh
+protocols/stepwise/modeler/rna/StepWiseRNA_CountStruct.fwd.hh protocols/stepwise/modeler/rna/StepWiseRNA_Classes.hh
+protocols/stepwise/modeler/rna/Torsion_Info.fwd.hh protocols/stepwise/modeler/rna/StepWiseRNA_Classes.hh
+
+protocols/toolbox/match_enzdes_util/ResInteractions.fwd.hh protocols/toolbox/match_enzdes_util/EnzdesLoopsFile.hh
+
+devel/residual_dipolar_coupling/RDC.fwd.hh devel/residual_dipolar_coupling/RDC_main.hh
+devel/splice/PoseFragmentInfo.fwd.hh devel/splice/AddFoldUnit.fwd.hh

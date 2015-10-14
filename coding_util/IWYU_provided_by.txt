@@ -21,6 +21,7 @@ utility/vectorL.hh utility/vector1.hh utility/vector0.hh
 utility/vector1_bool.hh utility/vector1.hh
 utility/vector0_bool.hh utility/vector0.hh
 utility/vectorL_bool.hh utility/vector1_bool.hh utility/vector1.hh utility/vector0_bool.hh utility/vector0.hh utility/vectorL.hh
+memory utility/vector1.hh utility/vector0.hh 
 
 boost/smart_ptr/enable_shared_from_this.hpp utility/pointer/owning_ptr.hh
 boost/smart_ptr/shared_ptr.hpp utility/pointer/owning_ptr.hh
@@ -40,6 +41,15 @@ utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh
 
 utility/CSI_Sequence.hh src/utility/backtrace.hh src/basic/Tracer.hh
 
+utility/io/zipstream.hpp utility/io/izstream.hh utility/io/ozstream.hh
+
+
+core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh #NOSUB
+protocols/moves/Mover.fwd.hh protocols/moves/MoverCreator.hh #NOSUB
+protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh #NOSUB
+protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh #NOSUB
+protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh #NOSUB
+
 #exit
 stdlib.h utility/exit.hh #NOSUB
 cstdlib utility/exit.hh #NOSUB
@@ -56,9 +66,6 @@ ObjexxFCL/FArray1.hh ObjexxFCL/FArray1D.hh #NOSUB
 ObjexxFCL/FArray2.hh ObjexxFCL/FArray2D.hh #NOSUB
 ObjexxFCL/FArray3.hh ObjexxFCL/FArray3D.hh #NOSUB
 
-# std::pair is defined in <utility>, but we normally get it from <map>
-utility map #NOSUB
-
 # asserts
 assert.h utility/assert.hh
 cassert utility/assert.hh
@@ -71,12 +78,16 @@ stdlib.h cstdlib
 string.h cstring
 time.h ctime
 
+# std::pair is defined in <utility>, but we normally get it from <map>
+utility map #NOSUB
+
 # Not strictly true, but needed for correct CLOCKS_PER_SEC on my machine
 sys/time.h time.h ctime
 
-Eigen/src/Core/* Eigen/Dense #NOSUB
+Eigen/src/* Eigen/Dense #NOSUB
+Eigen/src/* Eigen/SVD #NOSUB
 
-boost/lexical_cast.hpp boost/foreach.hpp #NOSUB
+boost/lexical_cast.hpp boost/foreach.hpp utility/tag/Tag.hh #NOSUB
 boost/mpl/bool.hpp boost/foreach.hpp #NOSUB
 boost/mpl/bool_fwd.hpp boost/foreach.hpp #NOSUB
 
@@ -97,4 +108,7 @@ boost/unordered/detail/* boost/unordered/unordered_map.hpp boost/unordered/unord
 boost/token_* boost/tokenizer.hpp
 boost/algorithm/string/* boost/algorithm/string.hpp
 boost/graph/detail/* boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh
-
+boost/format/* boost/format.hpp #NOSUB
+boost/bind/* boost/bind.hpp #NOSUB
+boost/function/* boost/function.hpp #NOSUB
+boost/accumulators/framework/* boost/accumulators/accumulators.hpp #NOSUB

@@ -26,6 +26,7 @@ Labonte <JWLabonte@jhu.edu> (PEP8/style tweaks, GLYCAM code additions)
 """
 
 #Imports
+from __future__ import with_statement
 import os
 
 

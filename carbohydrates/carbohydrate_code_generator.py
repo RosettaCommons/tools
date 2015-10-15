@@ -1,16 +1,31 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# :noTabs=true:
+# (c) Copyright Rosetta Commons Member Institutions.
+# (c) This file is part of the Rosetta software suite and is made available
+# (c) under license.
+# (c) The Rosetta software is developed by the contributing members of the
+# (c) Rosetta Commons.
+# (c) For more information, see http://www.rosettacommons.org.
+# (c) Questions about this can be addressed to University of Washington UW
+# (c) TechTransfer, email: license@u.washington.edu.
 
-########################################################################
-# see glycam.org/docs/forcefield/glycam-naming-2/ for more information #
-########################################################################
+"""File:  carbohydrate_code_generator.py
 
+Brief:  This Python script auto-generates a .codes file of alternative three-
+letter codes for use in Rosetta when loading in PDB files that use the GLYCAM
+naming scheme.
 
-########################################################################
-# to properly add to this program, be sure to add new codes to both    #
-# the lists and dictionaries for the linkage codes and sugar codes     #
-########################################################################
+Details:  See glycam.org/docs/forcefield/glycam-naming-2/ for more information.
 
+To properly add to this program, be sure to add new codes to both the lists and
+dictionaries for the linkage codes and sugar codes.
 
+Author:  Morgan Nance
+Labonte <JWLabonte@jhu.edu> (PEP8/style tweaks, GLYCAM code additions)
+
+"""
+
+#Imports
 import os
 
 

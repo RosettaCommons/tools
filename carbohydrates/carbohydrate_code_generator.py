@@ -63,69 +63,75 @@ terminal_values_dictionary = { 'Z' : "# 2,3", 'Y' : "# 2,4", 'O' : "# 2,5", \
 'M' : "# 5,6", 'T' : "# 2,3,4", 'L' : "# 2,3,5", 'S' : "# 2,3,6", 'R' : "# 2,4,6", \
 'K' : "# 2,5,6", 'Q' : "# 3,4,6", 'J' : "# 3,5,6", 'P' : "# 2,3,4,6", 'I' : "# 2,4,5,6" }
 
+# add each line to this list, which will then be dumped into a file
+file_contents = []
 
-with open( filename, 'wb' ) as fh:
-    # write the file header
-    fh.write( file_header )
+# add the file header
+file_contents.append( file_header )
+
+# loop over alpha and beta codes
+for anomer_type in alpha_and_beta_codes:
     
-    # loop over alpha and beta codes
-    for anomer_type in alpha_and_beta_codes:
-                
-        # loop over all capital one letter sugar codes
-        for one_letter_sugar_code in one_letter_sugar_code_list:
+    # loop over all capital one letter sugar codes
+    for one_letter_sugar_code in one_letter_sugar_code_list:
+        
+        # loop over the keys of the dictionaries to produce each combination of sugar
+        for one_letter_linkage_code in one_letter_linkage_code_list:
             
-            # loop over the keys of the dictionaries to produce each combination of sugar
-            for one_letter_linkage_code in one_letter_linkage_code_list:
+            ## put together the three letter code for the sugar
+            # "linkage code" + "one letter sugar code" + "anomer type"
+            three_letter_code = one_letter_linkage_code + one_letter_sugar_code + anomer_type
             
-                ## put together the three letter code for the sugar
-                # "linkage code" + "one letter sugar code" + "anomer type"
-                three_letter_code = one_letter_linkage_code + one_letter_sugar_code + anomer_type
+            # get the appropriate Rosetta code
+            Rosetta_code = one_letter_sugar_code_dict[ one_letter_sugar_code ]
                 
-                # get the appropriate Rosetta code
-                Rosetta_code = one_letter_sugar_code_dict[ one_letter_sugar_code ]
-                
-                # determine if this sugar has a terminal code
-                if one_letter_linkage_code in terminal_values_dictionary.keys():
-                    terminal_code = terminal_values_dictionary[ one_letter_linkage_code.upper() ]
-                elif one_letter_linkage_code == '0':
-                    terminal_code = "# terminal"
-                else:
-                    terminal_code = ''
-                
-                    
-                ## put together the Default HETNAM
-                # get the linkage direction
-                default_hetnam = one_letter_linkage_code_dict[ one_letter_linkage_code ]
-                
-                # determine if sugar is alpha or beta
-                if anomer_type.upper() == 'A':
-                    default_hetnam += "-alpha"
-                else:
-                    default_hetnam += "-beta"
-                
-                # determine if sugar is D or L
-                if one_letter_sugar_code.isupper():
-                    default_hetnam += "-D"
-                else:
-                    default_hetnam += "-L"
-                    
-                # add the three (or more) letter Rosetta code
-                default_hetnam += "-%s" %Rosetta_code
-                
-                # finally, determine if the sugar is in pyranose or furanose form
-                if anomer_type.isupper():
-                    default_hetnam += 'p'
-                else:
-                    default_hetnam += 'f'
-                
-                    
-                ## determine how many spaces you need between the Rosetta code and the Default HETNAM
-                num_of_spaces = 14 - len( Rosetta_code )
-                spaces = ' ' * num_of_spaces
+            # determine if this sugar has a terminal code
+            if one_letter_linkage_code in terminal_values_dictionary.keys():
+                terminal_code = terminal_values_dictionary[ one_letter_linkage_code.upper() ]
+            elif one_letter_linkage_code == '0':
+                terminal_code = "# terminal"
+            else:
+                terminal_code = ''
                 
                 
-                ## put together the row to be writen into the file
-                row = "  %s   %s%s%s  %s\n" %( three_letter_code, Rosetta_code, spaces, default_hetnam, terminal_code )
-                fh.write( row )
+            ## put together the Default HETNAM
+            # get the linkage direction
+            default_hetnam = one_letter_linkage_code_dict[ one_letter_linkage_code ]
+            
+            # determine if sugar is alpha or beta
+            if anomer_type.upper() == 'A':
+                default_hetnam += "-alpha"
+            else:
+                default_hetnam += "-beta"
+                
+            # determine if sugar is D or L
+            if one_letter_sugar_code.isupper():
+                default_hetnam += "-D"
+            else:
+                default_hetnam += "-L"
+                
+            # add the three (or more) letter Rosetta code
+            default_hetnam += "-%s" %Rosetta_code
+            
+            # finally, determine if the sugar is in pyranose or furanose form
+            if anomer_type.isupper():
+                default_hetnam += 'p'
+            else:
+                default_hetnam += 'f'
+                
+                
+            ## determine how many spaces you need between the Rosetta code and the Default HETNAM
+            num_of_spaces = 14 - len( Rosetta_code )
+            spaces = ' ' * num_of_spaces
+            
+            
+            ## put together the row to be writen into the file
+            row = "  %s   %s%s%s  %s\n" %( three_letter_code, Rosetta_code, spaces, default_hetnam, terminal_code )
+            file_contents.append( row )
+            
+        file_contents.append( "\n" )
 
-            fh.write( "\n" )
+
+# write data to file
+with open( filename, 'wb' ) as fh:
+    fh.writelines( file_contents )

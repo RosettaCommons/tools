@@ -67,9 +67,9 @@ one_letter_linkage_code_dict = {'0' : "->4)", '1' : "->1)", '2' : "->2)",
 # { "one letter GLYCAM code" : "Rosetta code" }
 one_letter_sugar_code_list = ['A', 'D', 'R', 'X', 'N', 'E', 'L', 'G', 'K',
                               'I', 'M', 'T', 'C', 'P', 'B', 'J', 'F', 'Q',
-                              'H', 'a', 'd', 'r', 'x', 'n', 'e', 'l', 'g',
-                              'k', 'i', 'm', 't', 'c', 'p', 'b', 'j', 'f',
-                              'q', 'h']
+                              'H', 'O', 'a', 'd', 'r', 'x', 'n', 'e', 'l',
+                              'g', 'k', 'i', 'm', 't', 'c', 'p', 'b', 'j',
+                              'f', 'q', 'h', 'o']
 
 one_letter_sugar_code_dict = {'A' : "Ara", 'D' : "Lyx", 'R' : "Rib",
                               'X' : "Xyl", 'N' : "All", 'E' : "Alt",
@@ -77,13 +77,14 @@ one_letter_sugar_code_dict = {'A' : "Ara", 'D' : "Lyx", 'R' : "Rib",
                               'I' : "Ido", 'M' : "Man", 'T' : "Tal",
                               'C' : "Fru", 'P' : "Psi", 'B' : "Sor",
                               'J' : "Tag", 'F' : "Fuc", 'Q' : "Qui",
-                              'H' : "Rha", 'a' : "Ara", 'd' : "Lyx",
-                              'r' : "Rib", 'x' : "Xyl", 'n' : "All",
-                              'e' : "Alt", 'l' : "Gal", 'g' : "Glc",
-                              'k' : "Gul", 'i' : "Ido", 'm' : "Man",
-                              't' : "Tal", 'c' : "Fru", 'p' : "Psi",
-                              'b' : "Sor", 'j' : "Tag", 'f' : "Fuc",
-                              'q' : "Qui", 'h' : "Rha"}
+                              'H' : "Rha", 'O' : "Gal", 'a' : "Ara",
+                              'd' : "Lyx", 'r' : "Rib", 'x' : "Xyl",
+                              'n' : "All", 'e' : "Alt", 'l' : "Gal",
+                              'g' : "Glc", 'k' : "Gul", 'i' : "Ido",
+                              'm' : "Man", 't' : "Tal", 'c' : "Fru",
+                              'p' : "Psi", 'b' : "Sor", 'j' : "Tag",
+                              'f' : "Fuc", 'q' : "Qui", 'h' : "Rha",
+                              'o' : "Gal"}
 
 # alpha and beta codes
 # making a list only for iteration purposes

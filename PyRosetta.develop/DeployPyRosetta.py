@@ -132,7 +132,9 @@ def main(args):
     i_gmp  = 'ftp://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2'
     i_mpfr = 'ftp://ftp.gnu.org/gnu/mpfr/mpfr-3.1.3.tar.bz2'
     i_mpc  = 'ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz'
-    i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.5.4/gcc-4.5.4.tar.bz2'
+    i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.3.6/gcc-4.3.6.tar.bz2'
+    #i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.7/gcc-4.4.7.tar.bz2'
+    #i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.5.4/gcc-4.5.4.tar.bz2'
 
 
     print 'Destination path:', prefix
@@ -165,26 +167,27 @@ def main(args):
         execute('Installing CMake...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, i_cmake, prefix, Options.jobs) )
 
 
-    if Platform == "macos"  and  not Options.skip_gcc:
-        _, _, gmp = i_gmp.rpartition('/')
-        execute('Downloading gmp...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gmp) )
-        execute('Unpacking gmp...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gmp) )
-        execute('Installing gmp...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, gmp, prefix, Options.jobs) )
+    # if Platform == "macos"  and  not Options.skip_gcc:
 
-        _, _, mpfr = i_mpfr.rpartition('/')
-        execute('Downloading mpfr...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpfr) )
-        execute('Unpacking mpfr...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, mpfr) )
-        execute('Installing mpfr...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, working_dir, mpfr, prefix, Options.jobs) )
+    #     gmp_arch = i_gmp.rpartition('/')[2];  gmp = gmp_arch[:-len('a.tar.bz2')]
+    #     execute('Downloading gmp...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gmp) )
+    #     execute('Unpacking gmp...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gmp_arch) )
+    #     execute('Installing gmp...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, gmp, prefix, Options.jobs) )
 
-        _, _, mpc = i_mpc.rpartition('/')
-        execute('Downloading mpc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpc) )
-        execute('Unpacking mpc...', 'cd %s && tar -vzxf %s/%s' % (working_dir, source_dir, mpc) )
-        execute('Installing mpc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, working_dir, mpc, prefix, Options.jobs) )
+    #     mpfr_arch = i_mpfr.rpartition('/')[2];  mpfr = mpfr_arch[:-len('.tar.bz2')]
+    #     execute('Downloading mpfr...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpfr) )
+    #     execute('Unpacking mpfr...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, mpfr_arch) )
+    #     execute('Installing mpfr...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, mpfr, prefix, prefix, Options.jobs) )
 
-        _, _, gcc = i_gcc.rpartition('/')
-        execute('Downloading mpc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gcc) )
-        execute('Unpacking mpc...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gcc) )
-        execute('Installing mpc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, working_dir, gcc, prefix, Options.jobs) )
+    #     mpc_arch = i_mpc.rpartition('/')[2];  mpc = mpc_arch[:-len('.tar.gz')]
+    #     execute('Downloading mpc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpc) )
+    #     execute('Unpacking mpc...', 'cd %s && tar -vzxf %s/%s' % (working_dir, source_dir, mpc_arch) )
+    #     execute('Installing mpc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, mpc, prefix, prefix, Options.jobs) )
+
+    #     gcc_arch = i_gcc.rpartition('/')[2];  gcc = gcc_arch[:-len('.tar.bz2')]
+    #     execute('Downloading gcc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gcc) )
+    #     execute('Unpacking gcc...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gcc_arch) )
+    #     execute('Installing gcc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, gcc, prefix, prefix, Options.jobs) )
 
 
 

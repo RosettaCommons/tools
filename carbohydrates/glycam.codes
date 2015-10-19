@@ -504,6 +504,188 @@
   PHA   Rha           ->2)-alpha-D-Rhap  # 2,3,4,6
   IHA   Rha           ->2)-alpha-D-Rhap  # 2,4,5,6
 
+  0OA   Gal           ->4)-alpha-D-Galp  # terminal
+  1OA   Gal           ->1)-alpha-D-Galp  
+  2OA   Gal           ->2)-alpha-D-Galp  
+  3OA   Gal           ->3)-alpha-D-Galp  
+  4OA   Gal           ->4)-alpha-D-Galp  
+  5OA   Gal           ->5)-alpha-D-Galp  
+  6OA   Gal           ->6)-alpha-D-Galp  
+  ZOA   Gal           ->2)-alpha-D-Galp  # 2,3
+  YOA   Gal           ->2)-alpha-D-Galp  # 2,4
+  OOA   Gal           ->2)-alpha-D-Galp  # 2,5
+  XOA   Gal           ->2)-alpha-D-Galp  # 2,6
+  WOA   Gal           ->3)-alpha-D-Galp  # 3,4
+  NOA   Gal           ->3)-alpha-D-Galp  # 3,5
+  VOA   Gal           ->3)-alpha-D-Galp  # 3,6
+  UOA   Gal           ->4)-alpha-D-Galp  # 4,6
+  MOA   Gal           ->5)-alpha-D-Galp  # 5,6
+  TOA   Gal           ->2)-alpha-D-Galp  # 2,3,4
+  LOA   Gal           ->2)-alpha-D-Galp  # 2,3,5
+  SOA   Gal           ->2)-alpha-D-Galp  # 2,3,6
+  ROA   Gal           ->2)-alpha-D-Galp  # 2,4,6
+  KOA   Gal           ->2)-alpha-D-Galp  # 2,5,6
+  QOA   Gal           ->3)-alpha-D-Galp  # 3,4,6
+  JOA   Gal           ->3)-alpha-D-Galp  # 3,5,6
+  POA   Gal           ->2)-alpha-D-Galp  # 2,3,4,6
+  IOA   Gal           ->2)-alpha-D-Galp  # 2,4,5,6
+
+  0ZA   Glc           ->4)-alpha-D-Glcp  # terminal
+  1ZA   Glc           ->1)-alpha-D-Glcp  
+  2ZA   Glc           ->2)-alpha-D-Glcp  
+  3ZA   Glc           ->3)-alpha-D-Glcp  
+  4ZA   Glc           ->4)-alpha-D-Glcp  
+  5ZA   Glc           ->5)-alpha-D-Glcp  
+  6ZA   Glc           ->6)-alpha-D-Glcp  
+  ZZA   Glc           ->2)-alpha-D-Glcp  # 2,3
+  YZA   Glc           ->2)-alpha-D-Glcp  # 2,4
+  OZA   Glc           ->2)-alpha-D-Glcp  # 2,5
+  XZA   Glc           ->2)-alpha-D-Glcp  # 2,6
+  WZA   Glc           ->3)-alpha-D-Glcp  # 3,4
+  NZA   Glc           ->3)-alpha-D-Glcp  # 3,5
+  VZA   Glc           ->3)-alpha-D-Glcp  # 3,6
+  UZA   Glc           ->4)-alpha-D-Glcp  # 4,6
+  MZA   Glc           ->5)-alpha-D-Glcp  # 5,6
+  TZA   Glc           ->2)-alpha-D-Glcp  # 2,3,4
+  LZA   Glc           ->2)-alpha-D-Glcp  # 2,3,5
+  SZA   Glc           ->2)-alpha-D-Glcp  # 2,3,6
+  RZA   Glc           ->2)-alpha-D-Glcp  # 2,4,6
+  KZA   Glc           ->2)-alpha-D-Glcp  # 2,5,6
+  QZA   Glc           ->3)-alpha-D-Glcp  # 3,4,6
+  JZA   Glc           ->3)-alpha-D-Glcp  # 3,5,6
+  PZA   Glc           ->2)-alpha-D-Glcp  # 2,3,4,6
+  IZA   Glc           ->2)-alpha-D-Glcp  # 2,4,5,6
+
+  0UA   Ido           ->4)-alpha-D-Idop  # terminal
+  1UA   Ido           ->1)-alpha-D-Idop  
+  2UA   Ido           ->2)-alpha-D-Idop  
+  3UA   Ido           ->3)-alpha-D-Idop  
+  4UA   Ido           ->4)-alpha-D-Idop  
+  5UA   Ido           ->5)-alpha-D-Idop  
+  6UA   Ido           ->6)-alpha-D-Idop  
+  ZUA   Ido           ->2)-alpha-D-Idop  # 2,3
+  YUA   Ido           ->2)-alpha-D-Idop  # 2,4
+  OUA   Ido           ->2)-alpha-D-Idop  # 2,5
+  XUA   Ido           ->2)-alpha-D-Idop  # 2,6
+  WUA   Ido           ->3)-alpha-D-Idop  # 3,4
+  NUA   Ido           ->3)-alpha-D-Idop  # 3,5
+  VUA   Ido           ->3)-alpha-D-Idop  # 3,6
+  UUA   Ido           ->4)-alpha-D-Idop  # 4,6
+  MUA   Ido           ->5)-alpha-D-Idop  # 5,6
+  TUA   Ido           ->2)-alpha-D-Idop  # 2,3,4
+  LUA   Ido           ->2)-alpha-D-Idop  # 2,3,5
+  SUA   Ido           ->2)-alpha-D-Idop  # 2,3,6
+  RUA   Ido           ->2)-alpha-D-Idop  # 2,4,6
+  KUA   Ido           ->2)-alpha-D-Idop  # 2,5,6
+  QUA   Ido           ->3)-alpha-D-Idop  # 3,4,6
+  JUA   Ido           ->3)-alpha-D-Idop  # 3,5,6
+  PUA   Ido           ->2)-alpha-D-Idop  # 2,3,4,6
+  IUA   Ido           ->2)-alpha-D-Idop  # 2,4,5,6
+
+  0VA   Gal           ->4)-alpha-D-Galp  # terminal
+  1VA   Gal           ->1)-alpha-D-Galp  
+  2VA   Gal           ->2)-alpha-D-Galp  
+  3VA   Gal           ->3)-alpha-D-Galp  
+  4VA   Gal           ->4)-alpha-D-Galp  
+  5VA   Gal           ->5)-alpha-D-Galp  
+  6VA   Gal           ->6)-alpha-D-Galp  
+  ZVA   Gal           ->2)-alpha-D-Galp  # 2,3
+  YVA   Gal           ->2)-alpha-D-Galp  # 2,4
+  OVA   Gal           ->2)-alpha-D-Galp  # 2,5
+  XVA   Gal           ->2)-alpha-D-Galp  # 2,6
+  WVA   Gal           ->3)-alpha-D-Galp  # 3,4
+  NVA   Gal           ->3)-alpha-D-Galp  # 3,5
+  VVA   Gal           ->3)-alpha-D-Galp  # 3,6
+  UVA   Gal           ->4)-alpha-D-Galp  # 4,6
+  MVA   Gal           ->5)-alpha-D-Galp  # 5,6
+  TVA   Gal           ->2)-alpha-D-Galp  # 2,3,4
+  LVA   Gal           ->2)-alpha-D-Galp  # 2,3,5
+  SVA   Gal           ->2)-alpha-D-Galp  # 2,3,6
+  RVA   Gal           ->2)-alpha-D-Galp  # 2,4,6
+  KVA   Gal           ->2)-alpha-D-Galp  # 2,5,6
+  QVA   Gal           ->3)-alpha-D-Galp  # 3,4,6
+  JVA   Gal           ->3)-alpha-D-Galp  # 3,5,6
+  PVA   Gal           ->2)-alpha-D-Galp  # 2,3,4,6
+  IVA   Gal           ->2)-alpha-D-Galp  # 2,4,5,6
+
+  0YA   Glc           ->4)-alpha-D-Glcp  # terminal
+  1YA   Glc           ->1)-alpha-D-Glcp  
+  2YA   Glc           ->2)-alpha-D-Glcp  
+  3YA   Glc           ->3)-alpha-D-Glcp  
+  4YA   Glc           ->4)-alpha-D-Glcp  
+  5YA   Glc           ->5)-alpha-D-Glcp  
+  6YA   Glc           ->6)-alpha-D-Glcp  
+  ZYA   Glc           ->2)-alpha-D-Glcp  # 2,3
+  YYA   Glc           ->2)-alpha-D-Glcp  # 2,4
+  OYA   Glc           ->2)-alpha-D-Glcp  # 2,5
+  XYA   Glc           ->2)-alpha-D-Glcp  # 2,6
+  WYA   Glc           ->3)-alpha-D-Glcp  # 3,4
+  NYA   Glc           ->3)-alpha-D-Glcp  # 3,5
+  VYA   Glc           ->3)-alpha-D-Glcp  # 3,6
+  UYA   Glc           ->4)-alpha-D-Glcp  # 4,6
+  MYA   Glc           ->5)-alpha-D-Glcp  # 5,6
+  TYA   Glc           ->2)-alpha-D-Glcp  # 2,3,4
+  LYA   Glc           ->2)-alpha-D-Glcp  # 2,3,5
+  SYA   Glc           ->2)-alpha-D-Glcp  # 2,3,6
+  RYA   Glc           ->2)-alpha-D-Glcp  # 2,4,6
+  KYA   Glc           ->2)-alpha-D-Glcp  # 2,5,6
+  QYA   Glc           ->3)-alpha-D-Glcp  # 3,4,6
+  JYA   Glc           ->3)-alpha-D-Glcp  # 3,5,6
+  PYA   Glc           ->2)-alpha-D-Glcp  # 2,3,4,6
+  IYA   Glc           ->2)-alpha-D-Glcp  # 2,4,5,6
+
+  0WA   Man           ->4)-alpha-D-Manp  # terminal
+  1WA   Man           ->1)-alpha-D-Manp  
+  2WA   Man           ->2)-alpha-D-Manp  
+  3WA   Man           ->3)-alpha-D-Manp  
+  4WA   Man           ->4)-alpha-D-Manp  
+  5WA   Man           ->5)-alpha-D-Manp  
+  6WA   Man           ->6)-alpha-D-Manp  
+  ZWA   Man           ->2)-alpha-D-Manp  # 2,3
+  YWA   Man           ->2)-alpha-D-Manp  # 2,4
+  OWA   Man           ->2)-alpha-D-Manp  # 2,5
+  XWA   Man           ->2)-alpha-D-Manp  # 2,6
+  WWA   Man           ->3)-alpha-D-Manp  # 3,4
+  NWA   Man           ->3)-alpha-D-Manp  # 3,5
+  VWA   Man           ->3)-alpha-D-Manp  # 3,6
+  UWA   Man           ->4)-alpha-D-Manp  # 4,6
+  MWA   Man           ->5)-alpha-D-Manp  # 5,6
+  TWA   Man           ->2)-alpha-D-Manp  # 2,3,4
+  LWA   Man           ->2)-alpha-D-Manp  # 2,3,5
+  SWA   Man           ->2)-alpha-D-Manp  # 2,3,6
+  RWA   Man           ->2)-alpha-D-Manp  # 2,4,6
+  KWA   Man           ->2)-alpha-D-Manp  # 2,5,6
+  QWA   Man           ->3)-alpha-D-Manp  # 3,4,6
+  JWA   Man           ->3)-alpha-D-Manp  # 3,5,6
+  PWA   Man           ->2)-alpha-D-Manp  # 2,3,4,6
+  IWA   Man           ->2)-alpha-D-Manp  # 2,4,5,6
+
+  0SA   Neu           ->4)-alpha-D-Neup  # terminal
+  1SA   Neu           ->1)-alpha-D-Neup  
+  2SA   Neu           ->2)-alpha-D-Neup  
+  3SA   Neu           ->3)-alpha-D-Neup  
+  4SA   Neu           ->4)-alpha-D-Neup  
+  5SA   Neu           ->5)-alpha-D-Neup  
+  6SA   Neu           ->6)-alpha-D-Neup  
+  ZSA   Neu           ->2)-alpha-D-Neup  # 2,3
+  YSA   Neu           ->2)-alpha-D-Neup  # 2,4
+  OSA   Neu           ->2)-alpha-D-Neup  # 2,5
+  XSA   Neu           ->2)-alpha-D-Neup  # 2,6
+  WSA   Neu           ->3)-alpha-D-Neup  # 3,4
+  NSA   Neu           ->3)-alpha-D-Neup  # 3,5
+  VSA   Neu           ->3)-alpha-D-Neup  # 3,6
+  USA   Neu           ->4)-alpha-D-Neup  # 4,6
+  MSA   Neu           ->5)-alpha-D-Neup  # 5,6
+  TSA   Neu           ->2)-alpha-D-Neup  # 2,3,4
+  LSA   Neu           ->2)-alpha-D-Neup  # 2,3,5
+  SSA   Neu           ->2)-alpha-D-Neup  # 2,3,6
+  RSA   Neu           ->2)-alpha-D-Neup  # 2,4,6
+  KSA   Neu           ->2)-alpha-D-Neup  # 2,5,6
+  QSA   Neu           ->3)-alpha-D-Neup  # 3,4,6
+  JSA   Neu           ->3)-alpha-D-Neup  # 3,5,6
+  PSA   Neu           ->2)-alpha-D-Neup  # 2,3,4,6
+  ISA   Neu           ->2)-alpha-D-Neup  # 2,4,5,6
+
   0aA   Ara           ->4)-alpha-L-Arap  # terminal
   1aA   Ara           ->1)-alpha-L-Arap  
   2aA   Ara           ->2)-alpha-L-Arap  
@@ -997,6 +1179,188 @@
   JhA   Rha           ->3)-alpha-L-Rhap  # 3,5,6
   PhA   Rha           ->2)-alpha-L-Rhap  # 2,3,4,6
   IhA   Rha           ->2)-alpha-L-Rhap  # 2,4,5,6
+
+  0oA   Gal           ->4)-alpha-L-Galp  # terminal
+  1oA   Gal           ->1)-alpha-L-Galp  
+  2oA   Gal           ->2)-alpha-L-Galp  
+  3oA   Gal           ->3)-alpha-L-Galp  
+  4oA   Gal           ->4)-alpha-L-Galp  
+  5oA   Gal           ->5)-alpha-L-Galp  
+  6oA   Gal           ->6)-alpha-L-Galp  
+  ZoA   Gal           ->2)-alpha-L-Galp  # 2,3
+  YoA   Gal           ->2)-alpha-L-Galp  # 2,4
+  OoA   Gal           ->2)-alpha-L-Galp  # 2,5
+  XoA   Gal           ->2)-alpha-L-Galp  # 2,6
+  WoA   Gal           ->3)-alpha-L-Galp  # 3,4
+  NoA   Gal           ->3)-alpha-L-Galp  # 3,5
+  VoA   Gal           ->3)-alpha-L-Galp  # 3,6
+  UoA   Gal           ->4)-alpha-L-Galp  # 4,6
+  MoA   Gal           ->5)-alpha-L-Galp  # 5,6
+  ToA   Gal           ->2)-alpha-L-Galp  # 2,3,4
+  LoA   Gal           ->2)-alpha-L-Galp  # 2,3,5
+  SoA   Gal           ->2)-alpha-L-Galp  # 2,3,6
+  RoA   Gal           ->2)-alpha-L-Galp  # 2,4,6
+  KoA   Gal           ->2)-alpha-L-Galp  # 2,5,6
+  QoA   Gal           ->3)-alpha-L-Galp  # 3,4,6
+  JoA   Gal           ->3)-alpha-L-Galp  # 3,5,6
+  PoA   Gal           ->2)-alpha-L-Galp  # 2,3,4,6
+  IoA   Gal           ->2)-alpha-L-Galp  # 2,4,5,6
+
+  0zA   Glc           ->4)-alpha-L-Glcp  # terminal
+  1zA   Glc           ->1)-alpha-L-Glcp  
+  2zA   Glc           ->2)-alpha-L-Glcp  
+  3zA   Glc           ->3)-alpha-L-Glcp  
+  4zA   Glc           ->4)-alpha-L-Glcp  
+  5zA   Glc           ->5)-alpha-L-Glcp  
+  6zA   Glc           ->6)-alpha-L-Glcp  
+  ZzA   Glc           ->2)-alpha-L-Glcp  # 2,3
+  YzA   Glc           ->2)-alpha-L-Glcp  # 2,4
+  OzA   Glc           ->2)-alpha-L-Glcp  # 2,5
+  XzA   Glc           ->2)-alpha-L-Glcp  # 2,6
+  WzA   Glc           ->3)-alpha-L-Glcp  # 3,4
+  NzA   Glc           ->3)-alpha-L-Glcp  # 3,5
+  VzA   Glc           ->3)-alpha-L-Glcp  # 3,6
+  UzA   Glc           ->4)-alpha-L-Glcp  # 4,6
+  MzA   Glc           ->5)-alpha-L-Glcp  # 5,6
+  TzA   Glc           ->2)-alpha-L-Glcp  # 2,3,4
+  LzA   Glc           ->2)-alpha-L-Glcp  # 2,3,5
+  SzA   Glc           ->2)-alpha-L-Glcp  # 2,3,6
+  RzA   Glc           ->2)-alpha-L-Glcp  # 2,4,6
+  KzA   Glc           ->2)-alpha-L-Glcp  # 2,5,6
+  QzA   Glc           ->3)-alpha-L-Glcp  # 3,4,6
+  JzA   Glc           ->3)-alpha-L-Glcp  # 3,5,6
+  PzA   Glc           ->2)-alpha-L-Glcp  # 2,3,4,6
+  IzA   Glc           ->2)-alpha-L-Glcp  # 2,4,5,6
+
+  0uA   Ido           ->4)-alpha-L-Idop  # terminal
+  1uA   Ido           ->1)-alpha-L-Idop  
+  2uA   Ido           ->2)-alpha-L-Idop  
+  3uA   Ido           ->3)-alpha-L-Idop  
+  4uA   Ido           ->4)-alpha-L-Idop  
+  5uA   Ido           ->5)-alpha-L-Idop  
+  6uA   Ido           ->6)-alpha-L-Idop  
+  ZuA   Ido           ->2)-alpha-L-Idop  # 2,3
+  YuA   Ido           ->2)-alpha-L-Idop  # 2,4
+  OuA   Ido           ->2)-alpha-L-Idop  # 2,5
+  XuA   Ido           ->2)-alpha-L-Idop  # 2,6
+  WuA   Ido           ->3)-alpha-L-Idop  # 3,4
+  NuA   Ido           ->3)-alpha-L-Idop  # 3,5
+  VuA   Ido           ->3)-alpha-L-Idop  # 3,6
+  UuA   Ido           ->4)-alpha-L-Idop  # 4,6
+  MuA   Ido           ->5)-alpha-L-Idop  # 5,6
+  TuA   Ido           ->2)-alpha-L-Idop  # 2,3,4
+  LuA   Ido           ->2)-alpha-L-Idop  # 2,3,5
+  SuA   Ido           ->2)-alpha-L-Idop  # 2,3,6
+  RuA   Ido           ->2)-alpha-L-Idop  # 2,4,6
+  KuA   Ido           ->2)-alpha-L-Idop  # 2,5,6
+  QuA   Ido           ->3)-alpha-L-Idop  # 3,4,6
+  JuA   Ido           ->3)-alpha-L-Idop  # 3,5,6
+  PuA   Ido           ->2)-alpha-L-Idop  # 2,3,4,6
+  IuA   Ido           ->2)-alpha-L-Idop  # 2,4,5,6
+
+  0vA   Gal           ->4)-alpha-L-Galp  # terminal
+  1vA   Gal           ->1)-alpha-L-Galp  
+  2vA   Gal           ->2)-alpha-L-Galp  
+  3vA   Gal           ->3)-alpha-L-Galp  
+  4vA   Gal           ->4)-alpha-L-Galp  
+  5vA   Gal           ->5)-alpha-L-Galp  
+  6vA   Gal           ->6)-alpha-L-Galp  
+  ZvA   Gal           ->2)-alpha-L-Galp  # 2,3
+  YvA   Gal           ->2)-alpha-L-Galp  # 2,4
+  OvA   Gal           ->2)-alpha-L-Galp  # 2,5
+  XvA   Gal           ->2)-alpha-L-Galp  # 2,6
+  WvA   Gal           ->3)-alpha-L-Galp  # 3,4
+  NvA   Gal           ->3)-alpha-L-Galp  # 3,5
+  VvA   Gal           ->3)-alpha-L-Galp  # 3,6
+  UvA   Gal           ->4)-alpha-L-Galp  # 4,6
+  MvA   Gal           ->5)-alpha-L-Galp  # 5,6
+  TvA   Gal           ->2)-alpha-L-Galp  # 2,3,4
+  LvA   Gal           ->2)-alpha-L-Galp  # 2,3,5
+  SvA   Gal           ->2)-alpha-L-Galp  # 2,3,6
+  RvA   Gal           ->2)-alpha-L-Galp  # 2,4,6
+  KvA   Gal           ->2)-alpha-L-Galp  # 2,5,6
+  QvA   Gal           ->3)-alpha-L-Galp  # 3,4,6
+  JvA   Gal           ->3)-alpha-L-Galp  # 3,5,6
+  PvA   Gal           ->2)-alpha-L-Galp  # 2,3,4,6
+  IvA   Gal           ->2)-alpha-L-Galp  # 2,4,5,6
+
+  0yA   Glc           ->4)-alpha-L-Glcp  # terminal
+  1yA   Glc           ->1)-alpha-L-Glcp  
+  2yA   Glc           ->2)-alpha-L-Glcp  
+  3yA   Glc           ->3)-alpha-L-Glcp  
+  4yA   Glc           ->4)-alpha-L-Glcp  
+  5yA   Glc           ->5)-alpha-L-Glcp  
+  6yA   Glc           ->6)-alpha-L-Glcp  
+  ZyA   Glc           ->2)-alpha-L-Glcp  # 2,3
+  YyA   Glc           ->2)-alpha-L-Glcp  # 2,4
+  OyA   Glc           ->2)-alpha-L-Glcp  # 2,5
+  XyA   Glc           ->2)-alpha-L-Glcp  # 2,6
+  WyA   Glc           ->3)-alpha-L-Glcp  # 3,4
+  NyA   Glc           ->3)-alpha-L-Glcp  # 3,5
+  VyA   Glc           ->3)-alpha-L-Glcp  # 3,6
+  UyA   Glc           ->4)-alpha-L-Glcp  # 4,6
+  MyA   Glc           ->5)-alpha-L-Glcp  # 5,6
+  TyA   Glc           ->2)-alpha-L-Glcp  # 2,3,4
+  LyA   Glc           ->2)-alpha-L-Glcp  # 2,3,5
+  SyA   Glc           ->2)-alpha-L-Glcp  # 2,3,6
+  RyA   Glc           ->2)-alpha-L-Glcp  # 2,4,6
+  KyA   Glc           ->2)-alpha-L-Glcp  # 2,5,6
+  QyA   Glc           ->3)-alpha-L-Glcp  # 3,4,6
+  JyA   Glc           ->3)-alpha-L-Glcp  # 3,5,6
+  PyA   Glc           ->2)-alpha-L-Glcp  # 2,3,4,6
+  IyA   Glc           ->2)-alpha-L-Glcp  # 2,4,5,6
+
+  0wA   Man           ->4)-alpha-L-Manp  # terminal
+  1wA   Man           ->1)-alpha-L-Manp  
+  2wA   Man           ->2)-alpha-L-Manp  
+  3wA   Man           ->3)-alpha-L-Manp  
+  4wA   Man           ->4)-alpha-L-Manp  
+  5wA   Man           ->5)-alpha-L-Manp  
+  6wA   Man           ->6)-alpha-L-Manp  
+  ZwA   Man           ->2)-alpha-L-Manp  # 2,3
+  YwA   Man           ->2)-alpha-L-Manp  # 2,4
+  OwA   Man           ->2)-alpha-L-Manp  # 2,5
+  XwA   Man           ->2)-alpha-L-Manp  # 2,6
+  WwA   Man           ->3)-alpha-L-Manp  # 3,4
+  NwA   Man           ->3)-alpha-L-Manp  # 3,5
+  VwA   Man           ->3)-alpha-L-Manp  # 3,6
+  UwA   Man           ->4)-alpha-L-Manp  # 4,6
+  MwA   Man           ->5)-alpha-L-Manp  # 5,6
+  TwA   Man           ->2)-alpha-L-Manp  # 2,3,4
+  LwA   Man           ->2)-alpha-L-Manp  # 2,3,5
+  SwA   Man           ->2)-alpha-L-Manp  # 2,3,6
+  RwA   Man           ->2)-alpha-L-Manp  # 2,4,6
+  KwA   Man           ->2)-alpha-L-Manp  # 2,5,6
+  QwA   Man           ->3)-alpha-L-Manp  # 3,4,6
+  JwA   Man           ->3)-alpha-L-Manp  # 3,5,6
+  PwA   Man           ->2)-alpha-L-Manp  # 2,3,4,6
+  IwA   Man           ->2)-alpha-L-Manp  # 2,4,5,6
+
+  0sA   Neu           ->4)-alpha-L-Neup  # terminal
+  1sA   Neu           ->1)-alpha-L-Neup  
+  2sA   Neu           ->2)-alpha-L-Neup  
+  3sA   Neu           ->3)-alpha-L-Neup  
+  4sA   Neu           ->4)-alpha-L-Neup  
+  5sA   Neu           ->5)-alpha-L-Neup  
+  6sA   Neu           ->6)-alpha-L-Neup  
+  ZsA   Neu           ->2)-alpha-L-Neup  # 2,3
+  YsA   Neu           ->2)-alpha-L-Neup  # 2,4
+  OsA   Neu           ->2)-alpha-L-Neup  # 2,5
+  XsA   Neu           ->2)-alpha-L-Neup  # 2,6
+  WsA   Neu           ->3)-alpha-L-Neup  # 3,4
+  NsA   Neu           ->3)-alpha-L-Neup  # 3,5
+  VsA   Neu           ->3)-alpha-L-Neup  # 3,6
+  UsA   Neu           ->4)-alpha-L-Neup  # 4,6
+  MsA   Neu           ->5)-alpha-L-Neup  # 5,6
+  TsA   Neu           ->2)-alpha-L-Neup  # 2,3,4
+  LsA   Neu           ->2)-alpha-L-Neup  # 2,3,5
+  SsA   Neu           ->2)-alpha-L-Neup  # 2,3,6
+  RsA   Neu           ->2)-alpha-L-Neup  # 2,4,6
+  KsA   Neu           ->2)-alpha-L-Neup  # 2,5,6
+  QsA   Neu           ->3)-alpha-L-Neup  # 3,4,6
+  JsA   Neu           ->3)-alpha-L-Neup  # 3,5,6
+  PsA   Neu           ->2)-alpha-L-Neup  # 2,3,4,6
+  IsA   Neu           ->2)-alpha-L-Neup  # 2,4,5,6
 
   0AB   Ara           ->4)-beta-D-Arap  # terminal
   1AB   Ara           ->1)-beta-D-Arap  
@@ -1492,6 +1856,188 @@
   PHB   Rha           ->2)-beta-D-Rhap  # 2,3,4,6
   IHB   Rha           ->2)-beta-D-Rhap  # 2,4,5,6
 
+  0OB   Gal           ->4)-beta-D-Galp  # terminal
+  1OB   Gal           ->1)-beta-D-Galp  
+  2OB   Gal           ->2)-beta-D-Galp  
+  3OB   Gal           ->3)-beta-D-Galp  
+  4OB   Gal           ->4)-beta-D-Galp  
+  5OB   Gal           ->5)-beta-D-Galp  
+  6OB   Gal           ->6)-beta-D-Galp  
+  ZOB   Gal           ->2)-beta-D-Galp  # 2,3
+  YOB   Gal           ->2)-beta-D-Galp  # 2,4
+  OOB   Gal           ->2)-beta-D-Galp  # 2,5
+  XOB   Gal           ->2)-beta-D-Galp  # 2,6
+  WOB   Gal           ->3)-beta-D-Galp  # 3,4
+  NOB   Gal           ->3)-beta-D-Galp  # 3,5
+  VOB   Gal           ->3)-beta-D-Galp  # 3,6
+  UOB   Gal           ->4)-beta-D-Galp  # 4,6
+  MOB   Gal           ->5)-beta-D-Galp  # 5,6
+  TOB   Gal           ->2)-beta-D-Galp  # 2,3,4
+  LOB   Gal           ->2)-beta-D-Galp  # 2,3,5
+  SOB   Gal           ->2)-beta-D-Galp  # 2,3,6
+  ROB   Gal           ->2)-beta-D-Galp  # 2,4,6
+  KOB   Gal           ->2)-beta-D-Galp  # 2,5,6
+  QOB   Gal           ->3)-beta-D-Galp  # 3,4,6
+  JOB   Gal           ->3)-beta-D-Galp  # 3,5,6
+  POB   Gal           ->2)-beta-D-Galp  # 2,3,4,6
+  IOB   Gal           ->2)-beta-D-Galp  # 2,4,5,6
+
+  0ZB   Glc           ->4)-beta-D-Glcp  # terminal
+  1ZB   Glc           ->1)-beta-D-Glcp  
+  2ZB   Glc           ->2)-beta-D-Glcp  
+  3ZB   Glc           ->3)-beta-D-Glcp  
+  4ZB   Glc           ->4)-beta-D-Glcp  
+  5ZB   Glc           ->5)-beta-D-Glcp  
+  6ZB   Glc           ->6)-beta-D-Glcp  
+  ZZB   Glc           ->2)-beta-D-Glcp  # 2,3
+  YZB   Glc           ->2)-beta-D-Glcp  # 2,4
+  OZB   Glc           ->2)-beta-D-Glcp  # 2,5
+  XZB   Glc           ->2)-beta-D-Glcp  # 2,6
+  WZB   Glc           ->3)-beta-D-Glcp  # 3,4
+  NZB   Glc           ->3)-beta-D-Glcp  # 3,5
+  VZB   Glc           ->3)-beta-D-Glcp  # 3,6
+  UZB   Glc           ->4)-beta-D-Glcp  # 4,6
+  MZB   Glc           ->5)-beta-D-Glcp  # 5,6
+  TZB   Glc           ->2)-beta-D-Glcp  # 2,3,4
+  LZB   Glc           ->2)-beta-D-Glcp  # 2,3,5
+  SZB   Glc           ->2)-beta-D-Glcp  # 2,3,6
+  RZB   Glc           ->2)-beta-D-Glcp  # 2,4,6
+  KZB   Glc           ->2)-beta-D-Glcp  # 2,5,6
+  QZB   Glc           ->3)-beta-D-Glcp  # 3,4,6
+  JZB   Glc           ->3)-beta-D-Glcp  # 3,5,6
+  PZB   Glc           ->2)-beta-D-Glcp  # 2,3,4,6
+  IZB   Glc           ->2)-beta-D-Glcp  # 2,4,5,6
+
+  0UB   Ido           ->4)-beta-D-Idop  # terminal
+  1UB   Ido           ->1)-beta-D-Idop  
+  2UB   Ido           ->2)-beta-D-Idop  
+  3UB   Ido           ->3)-beta-D-Idop  
+  4UB   Ido           ->4)-beta-D-Idop  
+  5UB   Ido           ->5)-beta-D-Idop  
+  6UB   Ido           ->6)-beta-D-Idop  
+  ZUB   Ido           ->2)-beta-D-Idop  # 2,3
+  YUB   Ido           ->2)-beta-D-Idop  # 2,4
+  OUB   Ido           ->2)-beta-D-Idop  # 2,5
+  XUB   Ido           ->2)-beta-D-Idop  # 2,6
+  WUB   Ido           ->3)-beta-D-Idop  # 3,4
+  NUB   Ido           ->3)-beta-D-Idop  # 3,5
+  VUB   Ido           ->3)-beta-D-Idop  # 3,6
+  UUB   Ido           ->4)-beta-D-Idop  # 4,6
+  MUB   Ido           ->5)-beta-D-Idop  # 5,6
+  TUB   Ido           ->2)-beta-D-Idop  # 2,3,4
+  LUB   Ido           ->2)-beta-D-Idop  # 2,3,5
+  SUB   Ido           ->2)-beta-D-Idop  # 2,3,6
+  RUB   Ido           ->2)-beta-D-Idop  # 2,4,6
+  KUB   Ido           ->2)-beta-D-Idop  # 2,5,6
+  QUB   Ido           ->3)-beta-D-Idop  # 3,4,6
+  JUB   Ido           ->3)-beta-D-Idop  # 3,5,6
+  PUB   Ido           ->2)-beta-D-Idop  # 2,3,4,6
+  IUB   Ido           ->2)-beta-D-Idop  # 2,4,5,6
+
+  0VB   Gal           ->4)-beta-D-Galp  # terminal
+  1VB   Gal           ->1)-beta-D-Galp  
+  2VB   Gal           ->2)-beta-D-Galp  
+  3VB   Gal           ->3)-beta-D-Galp  
+  4VB   Gal           ->4)-beta-D-Galp  
+  5VB   Gal           ->5)-beta-D-Galp  
+  6VB   Gal           ->6)-beta-D-Galp  
+  ZVB   Gal           ->2)-beta-D-Galp  # 2,3
+  YVB   Gal           ->2)-beta-D-Galp  # 2,4
+  OVB   Gal           ->2)-beta-D-Galp  # 2,5
+  XVB   Gal           ->2)-beta-D-Galp  # 2,6
+  WVB   Gal           ->3)-beta-D-Galp  # 3,4
+  NVB   Gal           ->3)-beta-D-Galp  # 3,5
+  VVB   Gal           ->3)-beta-D-Galp  # 3,6
+  UVB   Gal           ->4)-beta-D-Galp  # 4,6
+  MVB   Gal           ->5)-beta-D-Galp  # 5,6
+  TVB   Gal           ->2)-beta-D-Galp  # 2,3,4
+  LVB   Gal           ->2)-beta-D-Galp  # 2,3,5
+  SVB   Gal           ->2)-beta-D-Galp  # 2,3,6
+  RVB   Gal           ->2)-beta-D-Galp  # 2,4,6
+  KVB   Gal           ->2)-beta-D-Galp  # 2,5,6
+  QVB   Gal           ->3)-beta-D-Galp  # 3,4,6
+  JVB   Gal           ->3)-beta-D-Galp  # 3,5,6
+  PVB   Gal           ->2)-beta-D-Galp  # 2,3,4,6
+  IVB   Gal           ->2)-beta-D-Galp  # 2,4,5,6
+
+  0YB   Glc           ->4)-beta-D-Glcp  # terminal
+  1YB   Glc           ->1)-beta-D-Glcp  
+  2YB   Glc           ->2)-beta-D-Glcp  
+  3YB   Glc           ->3)-beta-D-Glcp  
+  4YB   Glc           ->4)-beta-D-Glcp  
+  5YB   Glc           ->5)-beta-D-Glcp  
+  6YB   Glc           ->6)-beta-D-Glcp  
+  ZYB   Glc           ->2)-beta-D-Glcp  # 2,3
+  YYB   Glc           ->2)-beta-D-Glcp  # 2,4
+  OYB   Glc           ->2)-beta-D-Glcp  # 2,5
+  XYB   Glc           ->2)-beta-D-Glcp  # 2,6
+  WYB   Glc           ->3)-beta-D-Glcp  # 3,4
+  NYB   Glc           ->3)-beta-D-Glcp  # 3,5
+  VYB   Glc           ->3)-beta-D-Glcp  # 3,6
+  UYB   Glc           ->4)-beta-D-Glcp  # 4,6
+  MYB   Glc           ->5)-beta-D-Glcp  # 5,6
+  TYB   Glc           ->2)-beta-D-Glcp  # 2,3,4
+  LYB   Glc           ->2)-beta-D-Glcp  # 2,3,5
+  SYB   Glc           ->2)-beta-D-Glcp  # 2,3,6
+  RYB   Glc           ->2)-beta-D-Glcp  # 2,4,6
+  KYB   Glc           ->2)-beta-D-Glcp  # 2,5,6
+  QYB   Glc           ->3)-beta-D-Glcp  # 3,4,6
+  JYB   Glc           ->3)-beta-D-Glcp  # 3,5,6
+  PYB   Glc           ->2)-beta-D-Glcp  # 2,3,4,6
+  IYB   Glc           ->2)-beta-D-Glcp  # 2,4,5,6
+
+  0WB   Man           ->4)-beta-D-Manp  # terminal
+  1WB   Man           ->1)-beta-D-Manp  
+  2WB   Man           ->2)-beta-D-Manp  
+  3WB   Man           ->3)-beta-D-Manp  
+  4WB   Man           ->4)-beta-D-Manp  
+  5WB   Man           ->5)-beta-D-Manp  
+  6WB   Man           ->6)-beta-D-Manp  
+  ZWB   Man           ->2)-beta-D-Manp  # 2,3
+  YWB   Man           ->2)-beta-D-Manp  # 2,4
+  OWB   Man           ->2)-beta-D-Manp  # 2,5
+  XWB   Man           ->2)-beta-D-Manp  # 2,6
+  WWB   Man           ->3)-beta-D-Manp  # 3,4
+  NWB   Man           ->3)-beta-D-Manp  # 3,5
+  VWB   Man           ->3)-beta-D-Manp  # 3,6
+  UWB   Man           ->4)-beta-D-Manp  # 4,6
+  MWB   Man           ->5)-beta-D-Manp  # 5,6
+  TWB   Man           ->2)-beta-D-Manp  # 2,3,4
+  LWB   Man           ->2)-beta-D-Manp  # 2,3,5
+  SWB   Man           ->2)-beta-D-Manp  # 2,3,6
+  RWB   Man           ->2)-beta-D-Manp  # 2,4,6
+  KWB   Man           ->2)-beta-D-Manp  # 2,5,6
+  QWB   Man           ->3)-beta-D-Manp  # 3,4,6
+  JWB   Man           ->3)-beta-D-Manp  # 3,5,6
+  PWB   Man           ->2)-beta-D-Manp  # 2,3,4,6
+  IWB   Man           ->2)-beta-D-Manp  # 2,4,5,6
+
+  0SB   Neu           ->4)-beta-D-Neup  # terminal
+  1SB   Neu           ->1)-beta-D-Neup  
+  2SB   Neu           ->2)-beta-D-Neup  
+  3SB   Neu           ->3)-beta-D-Neup  
+  4SB   Neu           ->4)-beta-D-Neup  
+  5SB   Neu           ->5)-beta-D-Neup  
+  6SB   Neu           ->6)-beta-D-Neup  
+  ZSB   Neu           ->2)-beta-D-Neup  # 2,3
+  YSB   Neu           ->2)-beta-D-Neup  # 2,4
+  OSB   Neu           ->2)-beta-D-Neup  # 2,5
+  XSB   Neu           ->2)-beta-D-Neup  # 2,6
+  WSB   Neu           ->3)-beta-D-Neup  # 3,4
+  NSB   Neu           ->3)-beta-D-Neup  # 3,5
+  VSB   Neu           ->3)-beta-D-Neup  # 3,6
+  USB   Neu           ->4)-beta-D-Neup  # 4,6
+  MSB   Neu           ->5)-beta-D-Neup  # 5,6
+  TSB   Neu           ->2)-beta-D-Neup  # 2,3,4
+  LSB   Neu           ->2)-beta-D-Neup  # 2,3,5
+  SSB   Neu           ->2)-beta-D-Neup  # 2,3,6
+  RSB   Neu           ->2)-beta-D-Neup  # 2,4,6
+  KSB   Neu           ->2)-beta-D-Neup  # 2,5,6
+  QSB   Neu           ->3)-beta-D-Neup  # 3,4,6
+  JSB   Neu           ->3)-beta-D-Neup  # 3,5,6
+  PSB   Neu           ->2)-beta-D-Neup  # 2,3,4,6
+  ISB   Neu           ->2)-beta-D-Neup  # 2,4,5,6
+
   0aB   Ara           ->4)-beta-L-Arap  # terminal
   1aB   Ara           ->1)-beta-L-Arap  
   2aB   Ara           ->2)-beta-L-Arap  
@@ -1985,6 +2531,188 @@
   JhB   Rha           ->3)-beta-L-Rhap  # 3,5,6
   PhB   Rha           ->2)-beta-L-Rhap  # 2,3,4,6
   IhB   Rha           ->2)-beta-L-Rhap  # 2,4,5,6
+
+  0oB   Gal           ->4)-beta-L-Galp  # terminal
+  1oB   Gal           ->1)-beta-L-Galp  
+  2oB   Gal           ->2)-beta-L-Galp  
+  3oB   Gal           ->3)-beta-L-Galp  
+  4oB   Gal           ->4)-beta-L-Galp  
+  5oB   Gal           ->5)-beta-L-Galp  
+  6oB   Gal           ->6)-beta-L-Galp  
+  ZoB   Gal           ->2)-beta-L-Galp  # 2,3
+  YoB   Gal           ->2)-beta-L-Galp  # 2,4
+  OoB   Gal           ->2)-beta-L-Galp  # 2,5
+  XoB   Gal           ->2)-beta-L-Galp  # 2,6
+  WoB   Gal           ->3)-beta-L-Galp  # 3,4
+  NoB   Gal           ->3)-beta-L-Galp  # 3,5
+  VoB   Gal           ->3)-beta-L-Galp  # 3,6
+  UoB   Gal           ->4)-beta-L-Galp  # 4,6
+  MoB   Gal           ->5)-beta-L-Galp  # 5,6
+  ToB   Gal           ->2)-beta-L-Galp  # 2,3,4
+  LoB   Gal           ->2)-beta-L-Galp  # 2,3,5
+  SoB   Gal           ->2)-beta-L-Galp  # 2,3,6
+  RoB   Gal           ->2)-beta-L-Galp  # 2,4,6
+  KoB   Gal           ->2)-beta-L-Galp  # 2,5,6
+  QoB   Gal           ->3)-beta-L-Galp  # 3,4,6
+  JoB   Gal           ->3)-beta-L-Galp  # 3,5,6
+  PoB   Gal           ->2)-beta-L-Galp  # 2,3,4,6
+  IoB   Gal           ->2)-beta-L-Galp  # 2,4,5,6
+
+  0zB   Glc           ->4)-beta-L-Glcp  # terminal
+  1zB   Glc           ->1)-beta-L-Glcp  
+  2zB   Glc           ->2)-beta-L-Glcp  
+  3zB   Glc           ->3)-beta-L-Glcp  
+  4zB   Glc           ->4)-beta-L-Glcp  
+  5zB   Glc           ->5)-beta-L-Glcp  
+  6zB   Glc           ->6)-beta-L-Glcp  
+  ZzB   Glc           ->2)-beta-L-Glcp  # 2,3
+  YzB   Glc           ->2)-beta-L-Glcp  # 2,4
+  OzB   Glc           ->2)-beta-L-Glcp  # 2,5
+  XzB   Glc           ->2)-beta-L-Glcp  # 2,6
+  WzB   Glc           ->3)-beta-L-Glcp  # 3,4
+  NzB   Glc           ->3)-beta-L-Glcp  # 3,5
+  VzB   Glc           ->3)-beta-L-Glcp  # 3,6
+  UzB   Glc           ->4)-beta-L-Glcp  # 4,6
+  MzB   Glc           ->5)-beta-L-Glcp  # 5,6
+  TzB   Glc           ->2)-beta-L-Glcp  # 2,3,4
+  LzB   Glc           ->2)-beta-L-Glcp  # 2,3,5
+  SzB   Glc           ->2)-beta-L-Glcp  # 2,3,6
+  RzB   Glc           ->2)-beta-L-Glcp  # 2,4,6
+  KzB   Glc           ->2)-beta-L-Glcp  # 2,5,6
+  QzB   Glc           ->3)-beta-L-Glcp  # 3,4,6
+  JzB   Glc           ->3)-beta-L-Glcp  # 3,5,6
+  PzB   Glc           ->2)-beta-L-Glcp  # 2,3,4,6
+  IzB   Glc           ->2)-beta-L-Glcp  # 2,4,5,6
+
+  0uB   Ido           ->4)-beta-L-Idop  # terminal
+  1uB   Ido           ->1)-beta-L-Idop  
+  2uB   Ido           ->2)-beta-L-Idop  
+  3uB   Ido           ->3)-beta-L-Idop  
+  4uB   Ido           ->4)-beta-L-Idop  
+  5uB   Ido           ->5)-beta-L-Idop  
+  6uB   Ido           ->6)-beta-L-Idop  
+  ZuB   Ido           ->2)-beta-L-Idop  # 2,3
+  YuB   Ido           ->2)-beta-L-Idop  # 2,4
+  OuB   Ido           ->2)-beta-L-Idop  # 2,5
+  XuB   Ido           ->2)-beta-L-Idop  # 2,6
+  WuB   Ido           ->3)-beta-L-Idop  # 3,4
+  NuB   Ido           ->3)-beta-L-Idop  # 3,5
+  VuB   Ido           ->3)-beta-L-Idop  # 3,6
+  UuB   Ido           ->4)-beta-L-Idop  # 4,6
+  MuB   Ido           ->5)-beta-L-Idop  # 5,6
+  TuB   Ido           ->2)-beta-L-Idop  # 2,3,4
+  LuB   Ido           ->2)-beta-L-Idop  # 2,3,5
+  SuB   Ido           ->2)-beta-L-Idop  # 2,3,6
+  RuB   Ido           ->2)-beta-L-Idop  # 2,4,6
+  KuB   Ido           ->2)-beta-L-Idop  # 2,5,6
+  QuB   Ido           ->3)-beta-L-Idop  # 3,4,6
+  JuB   Ido           ->3)-beta-L-Idop  # 3,5,6
+  PuB   Ido           ->2)-beta-L-Idop  # 2,3,4,6
+  IuB   Ido           ->2)-beta-L-Idop  # 2,4,5,6
+
+  0vB   Gal           ->4)-beta-L-Galp  # terminal
+  1vB   Gal           ->1)-beta-L-Galp  
+  2vB   Gal           ->2)-beta-L-Galp  
+  3vB   Gal           ->3)-beta-L-Galp  
+  4vB   Gal           ->4)-beta-L-Galp  
+  5vB   Gal           ->5)-beta-L-Galp  
+  6vB   Gal           ->6)-beta-L-Galp  
+  ZvB   Gal           ->2)-beta-L-Galp  # 2,3
+  YvB   Gal           ->2)-beta-L-Galp  # 2,4
+  OvB   Gal           ->2)-beta-L-Galp  # 2,5
+  XvB   Gal           ->2)-beta-L-Galp  # 2,6
+  WvB   Gal           ->3)-beta-L-Galp  # 3,4
+  NvB   Gal           ->3)-beta-L-Galp  # 3,5
+  VvB   Gal           ->3)-beta-L-Galp  # 3,6
+  UvB   Gal           ->4)-beta-L-Galp  # 4,6
+  MvB   Gal           ->5)-beta-L-Galp  # 5,6
+  TvB   Gal           ->2)-beta-L-Galp  # 2,3,4
+  LvB   Gal           ->2)-beta-L-Galp  # 2,3,5
+  SvB   Gal           ->2)-beta-L-Galp  # 2,3,6
+  RvB   Gal           ->2)-beta-L-Galp  # 2,4,6
+  KvB   Gal           ->2)-beta-L-Galp  # 2,5,6
+  QvB   Gal           ->3)-beta-L-Galp  # 3,4,6
+  JvB   Gal           ->3)-beta-L-Galp  # 3,5,6
+  PvB   Gal           ->2)-beta-L-Galp  # 2,3,4,6
+  IvB   Gal           ->2)-beta-L-Galp  # 2,4,5,6
+
+  0yB   Glc           ->4)-beta-L-Glcp  # terminal
+  1yB   Glc           ->1)-beta-L-Glcp  
+  2yB   Glc           ->2)-beta-L-Glcp  
+  3yB   Glc           ->3)-beta-L-Glcp  
+  4yB   Glc           ->4)-beta-L-Glcp  
+  5yB   Glc           ->5)-beta-L-Glcp  
+  6yB   Glc           ->6)-beta-L-Glcp  
+  ZyB   Glc           ->2)-beta-L-Glcp  # 2,3
+  YyB   Glc           ->2)-beta-L-Glcp  # 2,4
+  OyB   Glc           ->2)-beta-L-Glcp  # 2,5
+  XyB   Glc           ->2)-beta-L-Glcp  # 2,6
+  WyB   Glc           ->3)-beta-L-Glcp  # 3,4
+  NyB   Glc           ->3)-beta-L-Glcp  # 3,5
+  VyB   Glc           ->3)-beta-L-Glcp  # 3,6
+  UyB   Glc           ->4)-beta-L-Glcp  # 4,6
+  MyB   Glc           ->5)-beta-L-Glcp  # 5,6
+  TyB   Glc           ->2)-beta-L-Glcp  # 2,3,4
+  LyB   Glc           ->2)-beta-L-Glcp  # 2,3,5
+  SyB   Glc           ->2)-beta-L-Glcp  # 2,3,6
+  RyB   Glc           ->2)-beta-L-Glcp  # 2,4,6
+  KyB   Glc           ->2)-beta-L-Glcp  # 2,5,6
+  QyB   Glc           ->3)-beta-L-Glcp  # 3,4,6
+  JyB   Glc           ->3)-beta-L-Glcp  # 3,5,6
+  PyB   Glc           ->2)-beta-L-Glcp  # 2,3,4,6
+  IyB   Glc           ->2)-beta-L-Glcp  # 2,4,5,6
+
+  0wB   Man           ->4)-beta-L-Manp  # terminal
+  1wB   Man           ->1)-beta-L-Manp  
+  2wB   Man           ->2)-beta-L-Manp  
+  3wB   Man           ->3)-beta-L-Manp  
+  4wB   Man           ->4)-beta-L-Manp  
+  5wB   Man           ->5)-beta-L-Manp  
+  6wB   Man           ->6)-beta-L-Manp  
+  ZwB   Man           ->2)-beta-L-Manp  # 2,3
+  YwB   Man           ->2)-beta-L-Manp  # 2,4
+  OwB   Man           ->2)-beta-L-Manp  # 2,5
+  XwB   Man           ->2)-beta-L-Manp  # 2,6
+  WwB   Man           ->3)-beta-L-Manp  # 3,4
+  NwB   Man           ->3)-beta-L-Manp  # 3,5
+  VwB   Man           ->3)-beta-L-Manp  # 3,6
+  UwB   Man           ->4)-beta-L-Manp  # 4,6
+  MwB   Man           ->5)-beta-L-Manp  # 5,6
+  TwB   Man           ->2)-beta-L-Manp  # 2,3,4
+  LwB   Man           ->2)-beta-L-Manp  # 2,3,5
+  SwB   Man           ->2)-beta-L-Manp  # 2,3,6
+  RwB   Man           ->2)-beta-L-Manp  # 2,4,6
+  KwB   Man           ->2)-beta-L-Manp  # 2,5,6
+  QwB   Man           ->3)-beta-L-Manp  # 3,4,6
+  JwB   Man           ->3)-beta-L-Manp  # 3,5,6
+  PwB   Man           ->2)-beta-L-Manp  # 2,3,4,6
+  IwB   Man           ->2)-beta-L-Manp  # 2,4,5,6
+
+  0sB   Neu           ->4)-beta-L-Neup  # terminal
+  1sB   Neu           ->1)-beta-L-Neup  
+  2sB   Neu           ->2)-beta-L-Neup  
+  3sB   Neu           ->3)-beta-L-Neup  
+  4sB   Neu           ->4)-beta-L-Neup  
+  5sB   Neu           ->5)-beta-L-Neup  
+  6sB   Neu           ->6)-beta-L-Neup  
+  ZsB   Neu           ->2)-beta-L-Neup  # 2,3
+  YsB   Neu           ->2)-beta-L-Neup  # 2,4
+  OsB   Neu           ->2)-beta-L-Neup  # 2,5
+  XsB   Neu           ->2)-beta-L-Neup  # 2,6
+  WsB   Neu           ->3)-beta-L-Neup  # 3,4
+  NsB   Neu           ->3)-beta-L-Neup  # 3,5
+  VsB   Neu           ->3)-beta-L-Neup  # 3,6
+  UsB   Neu           ->4)-beta-L-Neup  # 4,6
+  MsB   Neu           ->5)-beta-L-Neup  # 5,6
+  TsB   Neu           ->2)-beta-L-Neup  # 2,3,4
+  LsB   Neu           ->2)-beta-L-Neup  # 2,3,5
+  SsB   Neu           ->2)-beta-L-Neup  # 2,3,6
+  RsB   Neu           ->2)-beta-L-Neup  # 2,4,6
+  KsB   Neu           ->2)-beta-L-Neup  # 2,5,6
+  QsB   Neu           ->3)-beta-L-Neup  # 3,4,6
+  JsB   Neu           ->3)-beta-L-Neup  # 3,5,6
+  PsB   Neu           ->2)-beta-L-Neup  # 2,3,4,6
+  IsB   Neu           ->2)-beta-L-Neup  # 2,4,5,6
 
   0Aa   Ara           ->4)-alpha-D-Araf  # terminal
   1Aa   Ara           ->1)-alpha-D-Araf  
@@ -2480,6 +3208,188 @@
   PHa   Rha           ->2)-alpha-D-Rhaf  # 2,3,4,6
   IHa   Rha           ->2)-alpha-D-Rhaf  # 2,4,5,6
 
+  0Oa   Gal           ->4)-alpha-D-Galf  # terminal
+  1Oa   Gal           ->1)-alpha-D-Galf  
+  2Oa   Gal           ->2)-alpha-D-Galf  
+  3Oa   Gal           ->3)-alpha-D-Galf  
+  4Oa   Gal           ->4)-alpha-D-Galf  
+  5Oa   Gal           ->5)-alpha-D-Galf  
+  6Oa   Gal           ->6)-alpha-D-Galf  
+  ZOa   Gal           ->2)-alpha-D-Galf  # 2,3
+  YOa   Gal           ->2)-alpha-D-Galf  # 2,4
+  OOa   Gal           ->2)-alpha-D-Galf  # 2,5
+  XOa   Gal           ->2)-alpha-D-Galf  # 2,6
+  WOa   Gal           ->3)-alpha-D-Galf  # 3,4
+  NOa   Gal           ->3)-alpha-D-Galf  # 3,5
+  VOa   Gal           ->3)-alpha-D-Galf  # 3,6
+  UOa   Gal           ->4)-alpha-D-Galf  # 4,6
+  MOa   Gal           ->5)-alpha-D-Galf  # 5,6
+  TOa   Gal           ->2)-alpha-D-Galf  # 2,3,4
+  LOa   Gal           ->2)-alpha-D-Galf  # 2,3,5
+  SOa   Gal           ->2)-alpha-D-Galf  # 2,3,6
+  ROa   Gal           ->2)-alpha-D-Galf  # 2,4,6
+  KOa   Gal           ->2)-alpha-D-Galf  # 2,5,6
+  QOa   Gal           ->3)-alpha-D-Galf  # 3,4,6
+  JOa   Gal           ->3)-alpha-D-Galf  # 3,5,6
+  POa   Gal           ->2)-alpha-D-Galf  # 2,3,4,6
+  IOa   Gal           ->2)-alpha-D-Galf  # 2,4,5,6
+
+  0Za   Glc           ->4)-alpha-D-Glcf  # terminal
+  1Za   Glc           ->1)-alpha-D-Glcf  
+  2Za   Glc           ->2)-alpha-D-Glcf  
+  3Za   Glc           ->3)-alpha-D-Glcf  
+  4Za   Glc           ->4)-alpha-D-Glcf  
+  5Za   Glc           ->5)-alpha-D-Glcf  
+  6Za   Glc           ->6)-alpha-D-Glcf  
+  ZZa   Glc           ->2)-alpha-D-Glcf  # 2,3
+  YZa   Glc           ->2)-alpha-D-Glcf  # 2,4
+  OZa   Glc           ->2)-alpha-D-Glcf  # 2,5
+  XZa   Glc           ->2)-alpha-D-Glcf  # 2,6
+  WZa   Glc           ->3)-alpha-D-Glcf  # 3,4
+  NZa   Glc           ->3)-alpha-D-Glcf  # 3,5
+  VZa   Glc           ->3)-alpha-D-Glcf  # 3,6
+  UZa   Glc           ->4)-alpha-D-Glcf  # 4,6
+  MZa   Glc           ->5)-alpha-D-Glcf  # 5,6
+  TZa   Glc           ->2)-alpha-D-Glcf  # 2,3,4
+  LZa   Glc           ->2)-alpha-D-Glcf  # 2,3,5
+  SZa   Glc           ->2)-alpha-D-Glcf  # 2,3,6
+  RZa   Glc           ->2)-alpha-D-Glcf  # 2,4,6
+  KZa   Glc           ->2)-alpha-D-Glcf  # 2,5,6
+  QZa   Glc           ->3)-alpha-D-Glcf  # 3,4,6
+  JZa   Glc           ->3)-alpha-D-Glcf  # 3,5,6
+  PZa   Glc           ->2)-alpha-D-Glcf  # 2,3,4,6
+  IZa   Glc           ->2)-alpha-D-Glcf  # 2,4,5,6
+
+  0Ua   Ido           ->4)-alpha-D-Idof  # terminal
+  1Ua   Ido           ->1)-alpha-D-Idof  
+  2Ua   Ido           ->2)-alpha-D-Idof  
+  3Ua   Ido           ->3)-alpha-D-Idof  
+  4Ua   Ido           ->4)-alpha-D-Idof  
+  5Ua   Ido           ->5)-alpha-D-Idof  
+  6Ua   Ido           ->6)-alpha-D-Idof  
+  ZUa   Ido           ->2)-alpha-D-Idof  # 2,3
+  YUa   Ido           ->2)-alpha-D-Idof  # 2,4
+  OUa   Ido           ->2)-alpha-D-Idof  # 2,5
+  XUa   Ido           ->2)-alpha-D-Idof  # 2,6
+  WUa   Ido           ->3)-alpha-D-Idof  # 3,4
+  NUa   Ido           ->3)-alpha-D-Idof  # 3,5
+  VUa   Ido           ->3)-alpha-D-Idof  # 3,6
+  UUa   Ido           ->4)-alpha-D-Idof  # 4,6
+  MUa   Ido           ->5)-alpha-D-Idof  # 5,6
+  TUa   Ido           ->2)-alpha-D-Idof  # 2,3,4
+  LUa   Ido           ->2)-alpha-D-Idof  # 2,3,5
+  SUa   Ido           ->2)-alpha-D-Idof  # 2,3,6
+  RUa   Ido           ->2)-alpha-D-Idof  # 2,4,6
+  KUa   Ido           ->2)-alpha-D-Idof  # 2,5,6
+  QUa   Ido           ->3)-alpha-D-Idof  # 3,4,6
+  JUa   Ido           ->3)-alpha-D-Idof  # 3,5,6
+  PUa   Ido           ->2)-alpha-D-Idof  # 2,3,4,6
+  IUa   Ido           ->2)-alpha-D-Idof  # 2,4,5,6
+
+  0Va   Gal           ->4)-alpha-D-Galf  # terminal
+  1Va   Gal           ->1)-alpha-D-Galf  
+  2Va   Gal           ->2)-alpha-D-Galf  
+  3Va   Gal           ->3)-alpha-D-Galf  
+  4Va   Gal           ->4)-alpha-D-Galf  
+  5Va   Gal           ->5)-alpha-D-Galf  
+  6Va   Gal           ->6)-alpha-D-Galf  
+  ZVa   Gal           ->2)-alpha-D-Galf  # 2,3
+  YVa   Gal           ->2)-alpha-D-Galf  # 2,4
+  OVa   Gal           ->2)-alpha-D-Galf  # 2,5
+  XVa   Gal           ->2)-alpha-D-Galf  # 2,6
+  WVa   Gal           ->3)-alpha-D-Galf  # 3,4
+  NVa   Gal           ->3)-alpha-D-Galf  # 3,5
+  VVa   Gal           ->3)-alpha-D-Galf  # 3,6
+  UVa   Gal           ->4)-alpha-D-Galf  # 4,6
+  MVa   Gal           ->5)-alpha-D-Galf  # 5,6
+  TVa   Gal           ->2)-alpha-D-Galf  # 2,3,4
+  LVa   Gal           ->2)-alpha-D-Galf  # 2,3,5
+  SVa   Gal           ->2)-alpha-D-Galf  # 2,3,6
+  RVa   Gal           ->2)-alpha-D-Galf  # 2,4,6
+  KVa   Gal           ->2)-alpha-D-Galf  # 2,5,6
+  QVa   Gal           ->3)-alpha-D-Galf  # 3,4,6
+  JVa   Gal           ->3)-alpha-D-Galf  # 3,5,6
+  PVa   Gal           ->2)-alpha-D-Galf  # 2,3,4,6
+  IVa   Gal           ->2)-alpha-D-Galf  # 2,4,5,6
+
+  0Ya   Glc           ->4)-alpha-D-Glcf  # terminal
+  1Ya   Glc           ->1)-alpha-D-Glcf  
+  2Ya   Glc           ->2)-alpha-D-Glcf  
+  3Ya   Glc           ->3)-alpha-D-Glcf  
+  4Ya   Glc           ->4)-alpha-D-Glcf  
+  5Ya   Glc           ->5)-alpha-D-Glcf  
+  6Ya   Glc           ->6)-alpha-D-Glcf  
+  ZYa   Glc           ->2)-alpha-D-Glcf  # 2,3
+  YYa   Glc           ->2)-alpha-D-Glcf  # 2,4
+  OYa   Glc           ->2)-alpha-D-Glcf  # 2,5
+  XYa   Glc           ->2)-alpha-D-Glcf  # 2,6
+  WYa   Glc           ->3)-alpha-D-Glcf  # 3,4
+  NYa   Glc           ->3)-alpha-D-Glcf  # 3,5
+  VYa   Glc           ->3)-alpha-D-Glcf  # 3,6
+  UYa   Glc           ->4)-alpha-D-Glcf  # 4,6
+  MYa   Glc           ->5)-alpha-D-Glcf  # 5,6
+  TYa   Glc           ->2)-alpha-D-Glcf  # 2,3,4
+  LYa   Glc           ->2)-alpha-D-Glcf  # 2,3,5
+  SYa   Glc           ->2)-alpha-D-Glcf  # 2,3,6
+  RYa   Glc           ->2)-alpha-D-Glcf  # 2,4,6
+  KYa   Glc           ->2)-alpha-D-Glcf  # 2,5,6
+  QYa   Glc           ->3)-alpha-D-Glcf  # 3,4,6
+  JYa   Glc           ->3)-alpha-D-Glcf  # 3,5,6
+  PYa   Glc           ->2)-alpha-D-Glcf  # 2,3,4,6
+  IYa   Glc           ->2)-alpha-D-Glcf  # 2,4,5,6
+
+  0Wa   Man           ->4)-alpha-D-Manf  # terminal
+  1Wa   Man           ->1)-alpha-D-Manf  
+  2Wa   Man           ->2)-alpha-D-Manf  
+  3Wa   Man           ->3)-alpha-D-Manf  
+  4Wa   Man           ->4)-alpha-D-Manf  
+  5Wa   Man           ->5)-alpha-D-Manf  
+  6Wa   Man           ->6)-alpha-D-Manf  
+  ZWa   Man           ->2)-alpha-D-Manf  # 2,3
+  YWa   Man           ->2)-alpha-D-Manf  # 2,4
+  OWa   Man           ->2)-alpha-D-Manf  # 2,5
+  XWa   Man           ->2)-alpha-D-Manf  # 2,6
+  WWa   Man           ->3)-alpha-D-Manf  # 3,4
+  NWa   Man           ->3)-alpha-D-Manf  # 3,5
+  VWa   Man           ->3)-alpha-D-Manf  # 3,6
+  UWa   Man           ->4)-alpha-D-Manf  # 4,6
+  MWa   Man           ->5)-alpha-D-Manf  # 5,6
+  TWa   Man           ->2)-alpha-D-Manf  # 2,3,4
+  LWa   Man           ->2)-alpha-D-Manf  # 2,3,5
+  SWa   Man           ->2)-alpha-D-Manf  # 2,3,6
+  RWa   Man           ->2)-alpha-D-Manf  # 2,4,6
+  KWa   Man           ->2)-alpha-D-Manf  # 2,5,6
+  QWa   Man           ->3)-alpha-D-Manf  # 3,4,6
+  JWa   Man           ->3)-alpha-D-Manf  # 3,5,6
+  PWa   Man           ->2)-alpha-D-Manf  # 2,3,4,6
+  IWa   Man           ->2)-alpha-D-Manf  # 2,4,5,6
+
+  0Sa   Neu           ->4)-alpha-D-Neuf  # terminal
+  1Sa   Neu           ->1)-alpha-D-Neuf  
+  2Sa   Neu           ->2)-alpha-D-Neuf  
+  3Sa   Neu           ->3)-alpha-D-Neuf  
+  4Sa   Neu           ->4)-alpha-D-Neuf  
+  5Sa   Neu           ->5)-alpha-D-Neuf  
+  6Sa   Neu           ->6)-alpha-D-Neuf  
+  ZSa   Neu           ->2)-alpha-D-Neuf  # 2,3
+  YSa   Neu           ->2)-alpha-D-Neuf  # 2,4
+  OSa   Neu           ->2)-alpha-D-Neuf  # 2,5
+  XSa   Neu           ->2)-alpha-D-Neuf  # 2,6
+  WSa   Neu           ->3)-alpha-D-Neuf  # 3,4
+  NSa   Neu           ->3)-alpha-D-Neuf  # 3,5
+  VSa   Neu           ->3)-alpha-D-Neuf  # 3,6
+  USa   Neu           ->4)-alpha-D-Neuf  # 4,6
+  MSa   Neu           ->5)-alpha-D-Neuf  # 5,6
+  TSa   Neu           ->2)-alpha-D-Neuf  # 2,3,4
+  LSa   Neu           ->2)-alpha-D-Neuf  # 2,3,5
+  SSa   Neu           ->2)-alpha-D-Neuf  # 2,3,6
+  RSa   Neu           ->2)-alpha-D-Neuf  # 2,4,6
+  KSa   Neu           ->2)-alpha-D-Neuf  # 2,5,6
+  QSa   Neu           ->3)-alpha-D-Neuf  # 3,4,6
+  JSa   Neu           ->3)-alpha-D-Neuf  # 3,5,6
+  PSa   Neu           ->2)-alpha-D-Neuf  # 2,3,4,6
+  ISa   Neu           ->2)-alpha-D-Neuf  # 2,4,5,6
+
   0aa   Ara           ->4)-alpha-L-Araf  # terminal
   1aa   Ara           ->1)-alpha-L-Araf  
   2aa   Ara           ->2)-alpha-L-Araf  
@@ -2973,6 +3883,188 @@
   Jha   Rha           ->3)-alpha-L-Rhaf  # 3,5,6
   Pha   Rha           ->2)-alpha-L-Rhaf  # 2,3,4,6
   Iha   Rha           ->2)-alpha-L-Rhaf  # 2,4,5,6
+
+  0oa   Gal           ->4)-alpha-L-Galf  # terminal
+  1oa   Gal           ->1)-alpha-L-Galf  
+  2oa   Gal           ->2)-alpha-L-Galf  
+  3oa   Gal           ->3)-alpha-L-Galf  
+  4oa   Gal           ->4)-alpha-L-Galf  
+  5oa   Gal           ->5)-alpha-L-Galf  
+  6oa   Gal           ->6)-alpha-L-Galf  
+  Zoa   Gal           ->2)-alpha-L-Galf  # 2,3
+  Yoa   Gal           ->2)-alpha-L-Galf  # 2,4
+  Ooa   Gal           ->2)-alpha-L-Galf  # 2,5
+  Xoa   Gal           ->2)-alpha-L-Galf  # 2,6
+  Woa   Gal           ->3)-alpha-L-Galf  # 3,4
+  Noa   Gal           ->3)-alpha-L-Galf  # 3,5
+  Voa   Gal           ->3)-alpha-L-Galf  # 3,6
+  Uoa   Gal           ->4)-alpha-L-Galf  # 4,6
+  Moa   Gal           ->5)-alpha-L-Galf  # 5,6
+  Toa   Gal           ->2)-alpha-L-Galf  # 2,3,4
+  Loa   Gal           ->2)-alpha-L-Galf  # 2,3,5
+  Soa   Gal           ->2)-alpha-L-Galf  # 2,3,6
+  Roa   Gal           ->2)-alpha-L-Galf  # 2,4,6
+  Koa   Gal           ->2)-alpha-L-Galf  # 2,5,6
+  Qoa   Gal           ->3)-alpha-L-Galf  # 3,4,6
+  Joa   Gal           ->3)-alpha-L-Galf  # 3,5,6
+  Poa   Gal           ->2)-alpha-L-Galf  # 2,3,4,6
+  Ioa   Gal           ->2)-alpha-L-Galf  # 2,4,5,6
+
+  0za   Glc           ->4)-alpha-L-Glcf  # terminal
+  1za   Glc           ->1)-alpha-L-Glcf  
+  2za   Glc           ->2)-alpha-L-Glcf  
+  3za   Glc           ->3)-alpha-L-Glcf  
+  4za   Glc           ->4)-alpha-L-Glcf  
+  5za   Glc           ->5)-alpha-L-Glcf  
+  6za   Glc           ->6)-alpha-L-Glcf  
+  Zza   Glc           ->2)-alpha-L-Glcf  # 2,3
+  Yza   Glc           ->2)-alpha-L-Glcf  # 2,4
+  Oza   Glc           ->2)-alpha-L-Glcf  # 2,5
+  Xza   Glc           ->2)-alpha-L-Glcf  # 2,6
+  Wza   Glc           ->3)-alpha-L-Glcf  # 3,4
+  Nza   Glc           ->3)-alpha-L-Glcf  # 3,5
+  Vza   Glc           ->3)-alpha-L-Glcf  # 3,6
+  Uza   Glc           ->4)-alpha-L-Glcf  # 4,6
+  Mza   Glc           ->5)-alpha-L-Glcf  # 5,6
+  Tza   Glc           ->2)-alpha-L-Glcf  # 2,3,4
+  Lza   Glc           ->2)-alpha-L-Glcf  # 2,3,5
+  Sza   Glc           ->2)-alpha-L-Glcf  # 2,3,6
+  Rza   Glc           ->2)-alpha-L-Glcf  # 2,4,6
+  Kza   Glc           ->2)-alpha-L-Glcf  # 2,5,6
+  Qza   Glc           ->3)-alpha-L-Glcf  # 3,4,6
+  Jza   Glc           ->3)-alpha-L-Glcf  # 3,5,6
+  Pza   Glc           ->2)-alpha-L-Glcf  # 2,3,4,6
+  Iza   Glc           ->2)-alpha-L-Glcf  # 2,4,5,6
+
+  0ua   Ido           ->4)-alpha-L-Idof  # terminal
+  1ua   Ido           ->1)-alpha-L-Idof  
+  2ua   Ido           ->2)-alpha-L-Idof  
+  3ua   Ido           ->3)-alpha-L-Idof  
+  4ua   Ido           ->4)-alpha-L-Idof  
+  5ua   Ido           ->5)-alpha-L-Idof  
+  6ua   Ido           ->6)-alpha-L-Idof  
+  Zua   Ido           ->2)-alpha-L-Idof  # 2,3
+  Yua   Ido           ->2)-alpha-L-Idof  # 2,4
+  Oua   Ido           ->2)-alpha-L-Idof  # 2,5
+  Xua   Ido           ->2)-alpha-L-Idof  # 2,6
+  Wua   Ido           ->3)-alpha-L-Idof  # 3,4
+  Nua   Ido           ->3)-alpha-L-Idof  # 3,5
+  Vua   Ido           ->3)-alpha-L-Idof  # 3,6
+  Uua   Ido           ->4)-alpha-L-Idof  # 4,6
+  Mua   Ido           ->5)-alpha-L-Idof  # 5,6
+  Tua   Ido           ->2)-alpha-L-Idof  # 2,3,4
+  Lua   Ido           ->2)-alpha-L-Idof  # 2,3,5
+  Sua   Ido           ->2)-alpha-L-Idof  # 2,3,6
+  Rua   Ido           ->2)-alpha-L-Idof  # 2,4,6
+  Kua   Ido           ->2)-alpha-L-Idof  # 2,5,6
+  Qua   Ido           ->3)-alpha-L-Idof  # 3,4,6
+  Jua   Ido           ->3)-alpha-L-Idof  # 3,5,6
+  Pua   Ido           ->2)-alpha-L-Idof  # 2,3,4,6
+  Iua   Ido           ->2)-alpha-L-Idof  # 2,4,5,6
+
+  0va   Gal           ->4)-alpha-L-Galf  # terminal
+  1va   Gal           ->1)-alpha-L-Galf  
+  2va   Gal           ->2)-alpha-L-Galf  
+  3va   Gal           ->3)-alpha-L-Galf  
+  4va   Gal           ->4)-alpha-L-Galf  
+  5va   Gal           ->5)-alpha-L-Galf  
+  6va   Gal           ->6)-alpha-L-Galf  
+  Zva   Gal           ->2)-alpha-L-Galf  # 2,3
+  Yva   Gal           ->2)-alpha-L-Galf  # 2,4
+  Ova   Gal           ->2)-alpha-L-Galf  # 2,5
+  Xva   Gal           ->2)-alpha-L-Galf  # 2,6
+  Wva   Gal           ->3)-alpha-L-Galf  # 3,4
+  Nva   Gal           ->3)-alpha-L-Galf  # 3,5
+  Vva   Gal           ->3)-alpha-L-Galf  # 3,6
+  Uva   Gal           ->4)-alpha-L-Galf  # 4,6
+  Mva   Gal           ->5)-alpha-L-Galf  # 5,6
+  Tva   Gal           ->2)-alpha-L-Galf  # 2,3,4
+  Lva   Gal           ->2)-alpha-L-Galf  # 2,3,5
+  Sva   Gal           ->2)-alpha-L-Galf  # 2,3,6
+  Rva   Gal           ->2)-alpha-L-Galf  # 2,4,6
+  Kva   Gal           ->2)-alpha-L-Galf  # 2,5,6
+  Qva   Gal           ->3)-alpha-L-Galf  # 3,4,6
+  Jva   Gal           ->3)-alpha-L-Galf  # 3,5,6
+  Pva   Gal           ->2)-alpha-L-Galf  # 2,3,4,6
+  Iva   Gal           ->2)-alpha-L-Galf  # 2,4,5,6
+
+  0ya   Glc           ->4)-alpha-L-Glcf  # terminal
+  1ya   Glc           ->1)-alpha-L-Glcf  
+  2ya   Glc           ->2)-alpha-L-Glcf  
+  3ya   Glc           ->3)-alpha-L-Glcf  
+  4ya   Glc           ->4)-alpha-L-Glcf  
+  5ya   Glc           ->5)-alpha-L-Glcf  
+  6ya   Glc           ->6)-alpha-L-Glcf  
+  Zya   Glc           ->2)-alpha-L-Glcf  # 2,3
+  Yya   Glc           ->2)-alpha-L-Glcf  # 2,4
+  Oya   Glc           ->2)-alpha-L-Glcf  # 2,5
+  Xya   Glc           ->2)-alpha-L-Glcf  # 2,6
+  Wya   Glc           ->3)-alpha-L-Glcf  # 3,4
+  Nya   Glc           ->3)-alpha-L-Glcf  # 3,5
+  Vya   Glc           ->3)-alpha-L-Glcf  # 3,6
+  Uya   Glc           ->4)-alpha-L-Glcf  # 4,6
+  Mya   Glc           ->5)-alpha-L-Glcf  # 5,6
+  Tya   Glc           ->2)-alpha-L-Glcf  # 2,3,4
+  Lya   Glc           ->2)-alpha-L-Glcf  # 2,3,5
+  Sya   Glc           ->2)-alpha-L-Glcf  # 2,3,6
+  Rya   Glc           ->2)-alpha-L-Glcf  # 2,4,6
+  Kya   Glc           ->2)-alpha-L-Glcf  # 2,5,6
+  Qya   Glc           ->3)-alpha-L-Glcf  # 3,4,6
+  Jya   Glc           ->3)-alpha-L-Glcf  # 3,5,6
+  Pya   Glc           ->2)-alpha-L-Glcf  # 2,3,4,6
+  Iya   Glc           ->2)-alpha-L-Glcf  # 2,4,5,6
+
+  0wa   Man           ->4)-alpha-L-Manf  # terminal
+  1wa   Man           ->1)-alpha-L-Manf  
+  2wa   Man           ->2)-alpha-L-Manf  
+  3wa   Man           ->3)-alpha-L-Manf  
+  4wa   Man           ->4)-alpha-L-Manf  
+  5wa   Man           ->5)-alpha-L-Manf  
+  6wa   Man           ->6)-alpha-L-Manf  
+  Zwa   Man           ->2)-alpha-L-Manf  # 2,3
+  Ywa   Man           ->2)-alpha-L-Manf  # 2,4
+  Owa   Man           ->2)-alpha-L-Manf  # 2,5
+  Xwa   Man           ->2)-alpha-L-Manf  # 2,6
+  Wwa   Man           ->3)-alpha-L-Manf  # 3,4
+  Nwa   Man           ->3)-alpha-L-Manf  # 3,5
+  Vwa   Man           ->3)-alpha-L-Manf  # 3,6
+  Uwa   Man           ->4)-alpha-L-Manf  # 4,6
+  Mwa   Man           ->5)-alpha-L-Manf  # 5,6
+  Twa   Man           ->2)-alpha-L-Manf  # 2,3,4
+  Lwa   Man           ->2)-alpha-L-Manf  # 2,3,5
+  Swa   Man           ->2)-alpha-L-Manf  # 2,3,6
+  Rwa   Man           ->2)-alpha-L-Manf  # 2,4,6
+  Kwa   Man           ->2)-alpha-L-Manf  # 2,5,6
+  Qwa   Man           ->3)-alpha-L-Manf  # 3,4,6
+  Jwa   Man           ->3)-alpha-L-Manf  # 3,5,6
+  Pwa   Man           ->2)-alpha-L-Manf  # 2,3,4,6
+  Iwa   Man           ->2)-alpha-L-Manf  # 2,4,5,6
+
+  0sa   Neu           ->4)-alpha-L-Neuf  # terminal
+  1sa   Neu           ->1)-alpha-L-Neuf  
+  2sa   Neu           ->2)-alpha-L-Neuf  
+  3sa   Neu           ->3)-alpha-L-Neuf  
+  4sa   Neu           ->4)-alpha-L-Neuf  
+  5sa   Neu           ->5)-alpha-L-Neuf  
+  6sa   Neu           ->6)-alpha-L-Neuf  
+  Zsa   Neu           ->2)-alpha-L-Neuf  # 2,3
+  Ysa   Neu           ->2)-alpha-L-Neuf  # 2,4
+  Osa   Neu           ->2)-alpha-L-Neuf  # 2,5
+  Xsa   Neu           ->2)-alpha-L-Neuf  # 2,6
+  Wsa   Neu           ->3)-alpha-L-Neuf  # 3,4
+  Nsa   Neu           ->3)-alpha-L-Neuf  # 3,5
+  Vsa   Neu           ->3)-alpha-L-Neuf  # 3,6
+  Usa   Neu           ->4)-alpha-L-Neuf  # 4,6
+  Msa   Neu           ->5)-alpha-L-Neuf  # 5,6
+  Tsa   Neu           ->2)-alpha-L-Neuf  # 2,3,4
+  Lsa   Neu           ->2)-alpha-L-Neuf  # 2,3,5
+  Ssa   Neu           ->2)-alpha-L-Neuf  # 2,3,6
+  Rsa   Neu           ->2)-alpha-L-Neuf  # 2,4,6
+  Ksa   Neu           ->2)-alpha-L-Neuf  # 2,5,6
+  Qsa   Neu           ->3)-alpha-L-Neuf  # 3,4,6
+  Jsa   Neu           ->3)-alpha-L-Neuf  # 3,5,6
+  Psa   Neu           ->2)-alpha-L-Neuf  # 2,3,4,6
+  Isa   Neu           ->2)-alpha-L-Neuf  # 2,4,5,6
 
   0Ab   Ara           ->4)-beta-D-Araf  # terminal
   1Ab   Ara           ->1)-beta-D-Araf  
@@ -3468,6 +4560,188 @@
   PHb   Rha           ->2)-beta-D-Rhaf  # 2,3,4,6
   IHb   Rha           ->2)-beta-D-Rhaf  # 2,4,5,6
 
+  0Ob   Gal           ->4)-beta-D-Galf  # terminal
+  1Ob   Gal           ->1)-beta-D-Galf  
+  2Ob   Gal           ->2)-beta-D-Galf  
+  3Ob   Gal           ->3)-beta-D-Galf  
+  4Ob   Gal           ->4)-beta-D-Galf  
+  5Ob   Gal           ->5)-beta-D-Galf  
+  6Ob   Gal           ->6)-beta-D-Galf  
+  ZOb   Gal           ->2)-beta-D-Galf  # 2,3
+  YOb   Gal           ->2)-beta-D-Galf  # 2,4
+  OOb   Gal           ->2)-beta-D-Galf  # 2,5
+  XOb   Gal           ->2)-beta-D-Galf  # 2,6
+  WOb   Gal           ->3)-beta-D-Galf  # 3,4
+  NOb   Gal           ->3)-beta-D-Galf  # 3,5
+  VOb   Gal           ->3)-beta-D-Galf  # 3,6
+  UOb   Gal           ->4)-beta-D-Galf  # 4,6
+  MOb   Gal           ->5)-beta-D-Galf  # 5,6
+  TOb   Gal           ->2)-beta-D-Galf  # 2,3,4
+  LOb   Gal           ->2)-beta-D-Galf  # 2,3,5
+  SOb   Gal           ->2)-beta-D-Galf  # 2,3,6
+  ROb   Gal           ->2)-beta-D-Galf  # 2,4,6
+  KOb   Gal           ->2)-beta-D-Galf  # 2,5,6
+  QOb   Gal           ->3)-beta-D-Galf  # 3,4,6
+  JOb   Gal           ->3)-beta-D-Galf  # 3,5,6
+  POb   Gal           ->2)-beta-D-Galf  # 2,3,4,6
+  IOb   Gal           ->2)-beta-D-Galf  # 2,4,5,6
+
+  0Zb   Glc           ->4)-beta-D-Glcf  # terminal
+  1Zb   Glc           ->1)-beta-D-Glcf  
+  2Zb   Glc           ->2)-beta-D-Glcf  
+  3Zb   Glc           ->3)-beta-D-Glcf  
+  4Zb   Glc           ->4)-beta-D-Glcf  
+  5Zb   Glc           ->5)-beta-D-Glcf  
+  6Zb   Glc           ->6)-beta-D-Glcf  
+  ZZb   Glc           ->2)-beta-D-Glcf  # 2,3
+  YZb   Glc           ->2)-beta-D-Glcf  # 2,4
+  OZb   Glc           ->2)-beta-D-Glcf  # 2,5
+  XZb   Glc           ->2)-beta-D-Glcf  # 2,6
+  WZb   Glc           ->3)-beta-D-Glcf  # 3,4
+  NZb   Glc           ->3)-beta-D-Glcf  # 3,5
+  VZb   Glc           ->3)-beta-D-Glcf  # 3,6
+  UZb   Glc           ->4)-beta-D-Glcf  # 4,6
+  MZb   Glc           ->5)-beta-D-Glcf  # 5,6
+  TZb   Glc           ->2)-beta-D-Glcf  # 2,3,4
+  LZb   Glc           ->2)-beta-D-Glcf  # 2,3,5
+  SZb   Glc           ->2)-beta-D-Glcf  # 2,3,6
+  RZb   Glc           ->2)-beta-D-Glcf  # 2,4,6
+  KZb   Glc           ->2)-beta-D-Glcf  # 2,5,6
+  QZb   Glc           ->3)-beta-D-Glcf  # 3,4,6
+  JZb   Glc           ->3)-beta-D-Glcf  # 3,5,6
+  PZb   Glc           ->2)-beta-D-Glcf  # 2,3,4,6
+  IZb   Glc           ->2)-beta-D-Glcf  # 2,4,5,6
+
+  0Ub   Ido           ->4)-beta-D-Idof  # terminal
+  1Ub   Ido           ->1)-beta-D-Idof  
+  2Ub   Ido           ->2)-beta-D-Idof  
+  3Ub   Ido           ->3)-beta-D-Idof  
+  4Ub   Ido           ->4)-beta-D-Idof  
+  5Ub   Ido           ->5)-beta-D-Idof  
+  6Ub   Ido           ->6)-beta-D-Idof  
+  ZUb   Ido           ->2)-beta-D-Idof  # 2,3
+  YUb   Ido           ->2)-beta-D-Idof  # 2,4
+  OUb   Ido           ->2)-beta-D-Idof  # 2,5
+  XUb   Ido           ->2)-beta-D-Idof  # 2,6
+  WUb   Ido           ->3)-beta-D-Idof  # 3,4
+  NUb   Ido           ->3)-beta-D-Idof  # 3,5
+  VUb   Ido           ->3)-beta-D-Idof  # 3,6
+  UUb   Ido           ->4)-beta-D-Idof  # 4,6
+  MUb   Ido           ->5)-beta-D-Idof  # 5,6
+  TUb   Ido           ->2)-beta-D-Idof  # 2,3,4
+  LUb   Ido           ->2)-beta-D-Idof  # 2,3,5
+  SUb   Ido           ->2)-beta-D-Idof  # 2,3,6
+  RUb   Ido           ->2)-beta-D-Idof  # 2,4,6
+  KUb   Ido           ->2)-beta-D-Idof  # 2,5,6
+  QUb   Ido           ->3)-beta-D-Idof  # 3,4,6
+  JUb   Ido           ->3)-beta-D-Idof  # 3,5,6
+  PUb   Ido           ->2)-beta-D-Idof  # 2,3,4,6
+  IUb   Ido           ->2)-beta-D-Idof  # 2,4,5,6
+
+  0Vb   Gal           ->4)-beta-D-Galf  # terminal
+  1Vb   Gal           ->1)-beta-D-Galf  
+  2Vb   Gal           ->2)-beta-D-Galf  
+  3Vb   Gal           ->3)-beta-D-Galf  
+  4Vb   Gal           ->4)-beta-D-Galf  
+  5Vb   Gal           ->5)-beta-D-Galf  
+  6Vb   Gal           ->6)-beta-D-Galf  
+  ZVb   Gal           ->2)-beta-D-Galf  # 2,3
+  YVb   Gal           ->2)-beta-D-Galf  # 2,4
+  OVb   Gal           ->2)-beta-D-Galf  # 2,5
+  XVb   Gal           ->2)-beta-D-Galf  # 2,6
+  WVb   Gal           ->3)-beta-D-Galf  # 3,4
+  NVb   Gal           ->3)-beta-D-Galf  # 3,5
+  VVb   Gal           ->3)-beta-D-Galf  # 3,6
+  UVb   Gal           ->4)-beta-D-Galf  # 4,6
+  MVb   Gal           ->5)-beta-D-Galf  # 5,6
+  TVb   Gal           ->2)-beta-D-Galf  # 2,3,4
+  LVb   Gal           ->2)-beta-D-Galf  # 2,3,5
+  SVb   Gal           ->2)-beta-D-Galf  # 2,3,6
+  RVb   Gal           ->2)-beta-D-Galf  # 2,4,6
+  KVb   Gal           ->2)-beta-D-Galf  # 2,5,6
+  QVb   Gal           ->3)-beta-D-Galf  # 3,4,6
+  JVb   Gal           ->3)-beta-D-Galf  # 3,5,6
+  PVb   Gal           ->2)-beta-D-Galf  # 2,3,4,6
+  IVb   Gal           ->2)-beta-D-Galf  # 2,4,5,6
+
+  0Yb   Glc           ->4)-beta-D-Glcf  # terminal
+  1Yb   Glc           ->1)-beta-D-Glcf  
+  2Yb   Glc           ->2)-beta-D-Glcf  
+  3Yb   Glc           ->3)-beta-D-Glcf  
+  4Yb   Glc           ->4)-beta-D-Glcf  
+  5Yb   Glc           ->5)-beta-D-Glcf  
+  6Yb   Glc           ->6)-beta-D-Glcf  
+  ZYb   Glc           ->2)-beta-D-Glcf  # 2,3
+  YYb   Glc           ->2)-beta-D-Glcf  # 2,4
+  OYb   Glc           ->2)-beta-D-Glcf  # 2,5
+  XYb   Glc           ->2)-beta-D-Glcf  # 2,6
+  WYb   Glc           ->3)-beta-D-Glcf  # 3,4
+  NYb   Glc           ->3)-beta-D-Glcf  # 3,5
+  VYb   Glc           ->3)-beta-D-Glcf  # 3,6
+  UYb   Glc           ->4)-beta-D-Glcf  # 4,6
+  MYb   Glc           ->5)-beta-D-Glcf  # 5,6
+  TYb   Glc           ->2)-beta-D-Glcf  # 2,3,4
+  LYb   Glc           ->2)-beta-D-Glcf  # 2,3,5
+  SYb   Glc           ->2)-beta-D-Glcf  # 2,3,6
+  RYb   Glc           ->2)-beta-D-Glcf  # 2,4,6
+  KYb   Glc           ->2)-beta-D-Glcf  # 2,5,6
+  QYb   Glc           ->3)-beta-D-Glcf  # 3,4,6
+  JYb   Glc           ->3)-beta-D-Glcf  # 3,5,6
+  PYb   Glc           ->2)-beta-D-Glcf  # 2,3,4,6
+  IYb   Glc           ->2)-beta-D-Glcf  # 2,4,5,6
+
+  0Wb   Man           ->4)-beta-D-Manf  # terminal
+  1Wb   Man           ->1)-beta-D-Manf  
+  2Wb   Man           ->2)-beta-D-Manf  
+  3Wb   Man           ->3)-beta-D-Manf  
+  4Wb   Man           ->4)-beta-D-Manf  
+  5Wb   Man           ->5)-beta-D-Manf  
+  6Wb   Man           ->6)-beta-D-Manf  
+  ZWb   Man           ->2)-beta-D-Manf  # 2,3
+  YWb   Man           ->2)-beta-D-Manf  # 2,4
+  OWb   Man           ->2)-beta-D-Manf  # 2,5
+  XWb   Man           ->2)-beta-D-Manf  # 2,6
+  WWb   Man           ->3)-beta-D-Manf  # 3,4
+  NWb   Man           ->3)-beta-D-Manf  # 3,5
+  VWb   Man           ->3)-beta-D-Manf  # 3,6
+  UWb   Man           ->4)-beta-D-Manf  # 4,6
+  MWb   Man           ->5)-beta-D-Manf  # 5,6
+  TWb   Man           ->2)-beta-D-Manf  # 2,3,4
+  LWb   Man           ->2)-beta-D-Manf  # 2,3,5
+  SWb   Man           ->2)-beta-D-Manf  # 2,3,6
+  RWb   Man           ->2)-beta-D-Manf  # 2,4,6
+  KWb   Man           ->2)-beta-D-Manf  # 2,5,6
+  QWb   Man           ->3)-beta-D-Manf  # 3,4,6
+  JWb   Man           ->3)-beta-D-Manf  # 3,5,6
+  PWb   Man           ->2)-beta-D-Manf  # 2,3,4,6
+  IWb   Man           ->2)-beta-D-Manf  # 2,4,5,6
+
+  0Sb   Neu           ->4)-beta-D-Neuf  # terminal
+  1Sb   Neu           ->1)-beta-D-Neuf  
+  2Sb   Neu           ->2)-beta-D-Neuf  
+  3Sb   Neu           ->3)-beta-D-Neuf  
+  4Sb   Neu           ->4)-beta-D-Neuf  
+  5Sb   Neu           ->5)-beta-D-Neuf  
+  6Sb   Neu           ->6)-beta-D-Neuf  
+  ZSb   Neu           ->2)-beta-D-Neuf  # 2,3
+  YSb   Neu           ->2)-beta-D-Neuf  # 2,4
+  OSb   Neu           ->2)-beta-D-Neuf  # 2,5
+  XSb   Neu           ->2)-beta-D-Neuf  # 2,6
+  WSb   Neu           ->3)-beta-D-Neuf  # 3,4
+  NSb   Neu           ->3)-beta-D-Neuf  # 3,5
+  VSb   Neu           ->3)-beta-D-Neuf  # 3,6
+  USb   Neu           ->4)-beta-D-Neuf  # 4,6
+  MSb   Neu           ->5)-beta-D-Neuf  # 5,6
+  TSb   Neu           ->2)-beta-D-Neuf  # 2,3,4
+  LSb   Neu           ->2)-beta-D-Neuf  # 2,3,5
+  SSb   Neu           ->2)-beta-D-Neuf  # 2,3,6
+  RSb   Neu           ->2)-beta-D-Neuf  # 2,4,6
+  KSb   Neu           ->2)-beta-D-Neuf  # 2,5,6
+  QSb   Neu           ->3)-beta-D-Neuf  # 3,4,6
+  JSb   Neu           ->3)-beta-D-Neuf  # 3,5,6
+  PSb   Neu           ->2)-beta-D-Neuf  # 2,3,4,6
+  ISb   Neu           ->2)-beta-D-Neuf  # 2,4,5,6
+
   0ab   Ara           ->4)-beta-L-Araf  # terminal
   1ab   Ara           ->1)-beta-L-Araf  
   2ab   Ara           ->2)-beta-L-Araf  
@@ -3961,4 +5235,186 @@
   Jhb   Rha           ->3)-beta-L-Rhaf  # 3,5,6
   Phb   Rha           ->2)-beta-L-Rhaf  # 2,3,4,6
   Ihb   Rha           ->2)-beta-L-Rhaf  # 2,4,5,6
+
+  0ob   Gal           ->4)-beta-L-Galf  # terminal
+  1ob   Gal           ->1)-beta-L-Galf  
+  2ob   Gal           ->2)-beta-L-Galf  
+  3ob   Gal           ->3)-beta-L-Galf  
+  4ob   Gal           ->4)-beta-L-Galf  
+  5ob   Gal           ->5)-beta-L-Galf  
+  6ob   Gal           ->6)-beta-L-Galf  
+  Zob   Gal           ->2)-beta-L-Galf  # 2,3
+  Yob   Gal           ->2)-beta-L-Galf  # 2,4
+  Oob   Gal           ->2)-beta-L-Galf  # 2,5
+  Xob   Gal           ->2)-beta-L-Galf  # 2,6
+  Wob   Gal           ->3)-beta-L-Galf  # 3,4
+  Nob   Gal           ->3)-beta-L-Galf  # 3,5
+  Vob   Gal           ->3)-beta-L-Galf  # 3,6
+  Uob   Gal           ->4)-beta-L-Galf  # 4,6
+  Mob   Gal           ->5)-beta-L-Galf  # 5,6
+  Tob   Gal           ->2)-beta-L-Galf  # 2,3,4
+  Lob   Gal           ->2)-beta-L-Galf  # 2,3,5
+  Sob   Gal           ->2)-beta-L-Galf  # 2,3,6
+  Rob   Gal           ->2)-beta-L-Galf  # 2,4,6
+  Kob   Gal           ->2)-beta-L-Galf  # 2,5,6
+  Qob   Gal           ->3)-beta-L-Galf  # 3,4,6
+  Job   Gal           ->3)-beta-L-Galf  # 3,5,6
+  Pob   Gal           ->2)-beta-L-Galf  # 2,3,4,6
+  Iob   Gal           ->2)-beta-L-Galf  # 2,4,5,6
+
+  0zb   Glc           ->4)-beta-L-Glcf  # terminal
+  1zb   Glc           ->1)-beta-L-Glcf  
+  2zb   Glc           ->2)-beta-L-Glcf  
+  3zb   Glc           ->3)-beta-L-Glcf  
+  4zb   Glc           ->4)-beta-L-Glcf  
+  5zb   Glc           ->5)-beta-L-Glcf  
+  6zb   Glc           ->6)-beta-L-Glcf  
+  Zzb   Glc           ->2)-beta-L-Glcf  # 2,3
+  Yzb   Glc           ->2)-beta-L-Glcf  # 2,4
+  Ozb   Glc           ->2)-beta-L-Glcf  # 2,5
+  Xzb   Glc           ->2)-beta-L-Glcf  # 2,6
+  Wzb   Glc           ->3)-beta-L-Glcf  # 3,4
+  Nzb   Glc           ->3)-beta-L-Glcf  # 3,5
+  Vzb   Glc           ->3)-beta-L-Glcf  # 3,6
+  Uzb   Glc           ->4)-beta-L-Glcf  # 4,6
+  Mzb   Glc           ->5)-beta-L-Glcf  # 5,6
+  Tzb   Glc           ->2)-beta-L-Glcf  # 2,3,4
+  Lzb   Glc           ->2)-beta-L-Glcf  # 2,3,5
+  Szb   Glc           ->2)-beta-L-Glcf  # 2,3,6
+  Rzb   Glc           ->2)-beta-L-Glcf  # 2,4,6
+  Kzb   Glc           ->2)-beta-L-Glcf  # 2,5,6
+  Qzb   Glc           ->3)-beta-L-Glcf  # 3,4,6
+  Jzb   Glc           ->3)-beta-L-Glcf  # 3,5,6
+  Pzb   Glc           ->2)-beta-L-Glcf  # 2,3,4,6
+  Izb   Glc           ->2)-beta-L-Glcf  # 2,4,5,6
+
+  0ub   Ido           ->4)-beta-L-Idof  # terminal
+  1ub   Ido           ->1)-beta-L-Idof  
+  2ub   Ido           ->2)-beta-L-Idof  
+  3ub   Ido           ->3)-beta-L-Idof  
+  4ub   Ido           ->4)-beta-L-Idof  
+  5ub   Ido           ->5)-beta-L-Idof  
+  6ub   Ido           ->6)-beta-L-Idof  
+  Zub   Ido           ->2)-beta-L-Idof  # 2,3
+  Yub   Ido           ->2)-beta-L-Idof  # 2,4
+  Oub   Ido           ->2)-beta-L-Idof  # 2,5
+  Xub   Ido           ->2)-beta-L-Idof  # 2,6
+  Wub   Ido           ->3)-beta-L-Idof  # 3,4
+  Nub   Ido           ->3)-beta-L-Idof  # 3,5
+  Vub   Ido           ->3)-beta-L-Idof  # 3,6
+  Uub   Ido           ->4)-beta-L-Idof  # 4,6
+  Mub   Ido           ->5)-beta-L-Idof  # 5,6
+  Tub   Ido           ->2)-beta-L-Idof  # 2,3,4
+  Lub   Ido           ->2)-beta-L-Idof  # 2,3,5
+  Sub   Ido           ->2)-beta-L-Idof  # 2,3,6
+  Rub   Ido           ->2)-beta-L-Idof  # 2,4,6
+  Kub   Ido           ->2)-beta-L-Idof  # 2,5,6
+  Qub   Ido           ->3)-beta-L-Idof  # 3,4,6
+  Jub   Ido           ->3)-beta-L-Idof  # 3,5,6
+  Pub   Ido           ->2)-beta-L-Idof  # 2,3,4,6
+  Iub   Ido           ->2)-beta-L-Idof  # 2,4,5,6
+
+  0vb   Gal           ->4)-beta-L-Galf  # terminal
+  1vb   Gal           ->1)-beta-L-Galf  
+  2vb   Gal           ->2)-beta-L-Galf  
+  3vb   Gal           ->3)-beta-L-Galf  
+  4vb   Gal           ->4)-beta-L-Galf  
+  5vb   Gal           ->5)-beta-L-Galf  
+  6vb   Gal           ->6)-beta-L-Galf  
+  Zvb   Gal           ->2)-beta-L-Galf  # 2,3
+  Yvb   Gal           ->2)-beta-L-Galf  # 2,4
+  Ovb   Gal           ->2)-beta-L-Galf  # 2,5
+  Xvb   Gal           ->2)-beta-L-Galf  # 2,6
+  Wvb   Gal           ->3)-beta-L-Galf  # 3,4
+  Nvb   Gal           ->3)-beta-L-Galf  # 3,5
+  Vvb   Gal           ->3)-beta-L-Galf  # 3,6
+  Uvb   Gal           ->4)-beta-L-Galf  # 4,6
+  Mvb   Gal           ->5)-beta-L-Galf  # 5,6
+  Tvb   Gal           ->2)-beta-L-Galf  # 2,3,4
+  Lvb   Gal           ->2)-beta-L-Galf  # 2,3,5
+  Svb   Gal           ->2)-beta-L-Galf  # 2,3,6
+  Rvb   Gal           ->2)-beta-L-Galf  # 2,4,6
+  Kvb   Gal           ->2)-beta-L-Galf  # 2,5,6
+  Qvb   Gal           ->3)-beta-L-Galf  # 3,4,6
+  Jvb   Gal           ->3)-beta-L-Galf  # 3,5,6
+  Pvb   Gal           ->2)-beta-L-Galf  # 2,3,4,6
+  Ivb   Gal           ->2)-beta-L-Galf  # 2,4,5,6
+
+  0yb   Glc           ->4)-beta-L-Glcf  # terminal
+  1yb   Glc           ->1)-beta-L-Glcf  
+  2yb   Glc           ->2)-beta-L-Glcf  
+  3yb   Glc           ->3)-beta-L-Glcf  
+  4yb   Glc           ->4)-beta-L-Glcf  
+  5yb   Glc           ->5)-beta-L-Glcf  
+  6yb   Glc           ->6)-beta-L-Glcf  
+  Zyb   Glc           ->2)-beta-L-Glcf  # 2,3
+  Yyb   Glc           ->2)-beta-L-Glcf  # 2,4
+  Oyb   Glc           ->2)-beta-L-Glcf  # 2,5
+  Xyb   Glc           ->2)-beta-L-Glcf  # 2,6
+  Wyb   Glc           ->3)-beta-L-Glcf  # 3,4
+  Nyb   Glc           ->3)-beta-L-Glcf  # 3,5
+  Vyb   Glc           ->3)-beta-L-Glcf  # 3,6
+  Uyb   Glc           ->4)-beta-L-Glcf  # 4,6
+  Myb   Glc           ->5)-beta-L-Glcf  # 5,6
+  Tyb   Glc           ->2)-beta-L-Glcf  # 2,3,4
+  Lyb   Glc           ->2)-beta-L-Glcf  # 2,3,5
+  Syb   Glc           ->2)-beta-L-Glcf  # 2,3,6
+  Ryb   Glc           ->2)-beta-L-Glcf  # 2,4,6
+  Kyb   Glc           ->2)-beta-L-Glcf  # 2,5,6
+  Qyb   Glc           ->3)-beta-L-Glcf  # 3,4,6
+  Jyb   Glc           ->3)-beta-L-Glcf  # 3,5,6
+  Pyb   Glc           ->2)-beta-L-Glcf  # 2,3,4,6
+  Iyb   Glc           ->2)-beta-L-Glcf  # 2,4,5,6
+
+  0wb   Man           ->4)-beta-L-Manf  # terminal
+  1wb   Man           ->1)-beta-L-Manf  
+  2wb   Man           ->2)-beta-L-Manf  
+  3wb   Man           ->3)-beta-L-Manf  
+  4wb   Man           ->4)-beta-L-Manf  
+  5wb   Man           ->5)-beta-L-Manf  
+  6wb   Man           ->6)-beta-L-Manf  
+  Zwb   Man           ->2)-beta-L-Manf  # 2,3
+  Ywb   Man           ->2)-beta-L-Manf  # 2,4
+  Owb   Man           ->2)-beta-L-Manf  # 2,5
+  Xwb   Man           ->2)-beta-L-Manf  # 2,6
+  Wwb   Man           ->3)-beta-L-Manf  # 3,4
+  Nwb   Man           ->3)-beta-L-Manf  # 3,5
+  Vwb   Man           ->3)-beta-L-Manf  # 3,6
+  Uwb   Man           ->4)-beta-L-Manf  # 4,6
+  Mwb   Man           ->5)-beta-L-Manf  # 5,6
+  Twb   Man           ->2)-beta-L-Manf  # 2,3,4
+  Lwb   Man           ->2)-beta-L-Manf  # 2,3,5
+  Swb   Man           ->2)-beta-L-Manf  # 2,3,6
+  Rwb   Man           ->2)-beta-L-Manf  # 2,4,6
+  Kwb   Man           ->2)-beta-L-Manf  # 2,5,6
+  Qwb   Man           ->3)-beta-L-Manf  # 3,4,6
+  Jwb   Man           ->3)-beta-L-Manf  # 3,5,6
+  Pwb   Man           ->2)-beta-L-Manf  # 2,3,4,6
+  Iwb   Man           ->2)-beta-L-Manf  # 2,4,5,6
+
+  0sb   Neu           ->4)-beta-L-Neuf  # terminal
+  1sb   Neu           ->1)-beta-L-Neuf  
+  2sb   Neu           ->2)-beta-L-Neuf  
+  3sb   Neu           ->3)-beta-L-Neuf  
+  4sb   Neu           ->4)-beta-L-Neuf  
+  5sb   Neu           ->5)-beta-L-Neuf  
+  6sb   Neu           ->6)-beta-L-Neuf  
+  Zsb   Neu           ->2)-beta-L-Neuf  # 2,3
+  Ysb   Neu           ->2)-beta-L-Neuf  # 2,4
+  Osb   Neu           ->2)-beta-L-Neuf  # 2,5
+  Xsb   Neu           ->2)-beta-L-Neuf  # 2,6
+  Wsb   Neu           ->3)-beta-L-Neuf  # 3,4
+  Nsb   Neu           ->3)-beta-L-Neuf  # 3,5
+  Vsb   Neu           ->3)-beta-L-Neuf  # 3,6
+  Usb   Neu           ->4)-beta-L-Neuf  # 4,6
+  Msb   Neu           ->5)-beta-L-Neuf  # 5,6
+  Tsb   Neu           ->2)-beta-L-Neuf  # 2,3,4
+  Lsb   Neu           ->2)-beta-L-Neuf  # 2,3,5
+  Ssb   Neu           ->2)-beta-L-Neuf  # 2,3,6
+  Rsb   Neu           ->2)-beta-L-Neuf  # 2,4,6
+  Ksb   Neu           ->2)-beta-L-Neuf  # 2,5,6
+  Qsb   Neu           ->3)-beta-L-Neuf  # 3,4,6
+  Jsb   Neu           ->3)-beta-L-Neuf  # 3,5,6
+  Psb   Neu           ->2)-beta-L-Neuf  # 2,3,4,6
+  Isb   Neu           ->2)-beta-L-Neuf  # 2,4,5,6
 

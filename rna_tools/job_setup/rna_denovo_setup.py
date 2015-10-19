@@ -391,7 +391,7 @@ if len( cutpoint_open ) > 0:
 
 if len( cutpoint_closed ) > 0:
     cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    cutpoint_closed = get_rid_of_previosly_defined_cutpoints( cutpoint_closed, working_res )
+    cutpoint_closed = get_rid_of_previously_defined_cutpoints( cutpoint_closed, working_res )
     if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:

@@ -14,6 +14,9 @@
 #    Rosetta/tools/clang_ast_transform/clang/build/bin
 #    directory
 
+# $1 == the comma separated list of the matchers to run on a particular file
+# $2 == the file to run the matchers on
+
 # get the directory where this script lives
 CLANG_AST_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 CLANG_BIN=$CLANG_AST_DIR/clang/build/bin
@@ -22,11 +25,14 @@ CLANG_BIN=$CLANG_AST_DIR/clang/build/bin
 SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
 
 # the file to "compile" should be the one and only argument to this script.
-FILE=$1
+MATCHERS=$1
+FILE=$2
+
+echo "matchers", $MATCHERS
 
 cd $SOURCE
 
-$CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_decl,find_field_decl $FILE -- \
+$CLANG_BIN/rosetta-refactor-tool -matchers=$MATCHERS $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem $SOURCE/external/boost_1_55_0/ \
@@ -48,4 +54,4 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	-I$SOURCE/external/boost_1_55_0 \
 	-I$SOURCE/external/dbio \
 	-I/usr/include \
-	-I/usr/local/include > $FILE.def
+	-I/usr/local/include

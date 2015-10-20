@@ -144,6 +144,7 @@ int RosettaRefactorTool::runMatchers() {
 	for(cl::list<std::string>::const_iterator it(Matchers.begin()), end(Matchers.end());
 			it != end; ++it) {
 		std::string matcher( *it );
+		std::cout << "Running with matcher: " << matcher << std::endl;
 		if(Verbose)
 			llvm::errs() << color("gray") << "Applying matcher: " << matcher << color("") << "\n";
 
@@ -166,6 +167,9 @@ int RosettaRefactorTool::runMatchers() {
 		}
 		if(matcher == "find_constructor_decl") {
 			#include "matchers/find/constructor_decl.hh"
+		}
+		if(matcher == "find_serialized_members") {
+			#include "matchers/find/serialization_funcs.hh"
 		}
 
 		// Code quality checkers

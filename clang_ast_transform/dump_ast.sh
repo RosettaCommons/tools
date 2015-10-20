@@ -32,6 +32,7 @@ $CLANG_BUILD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	-DBOOST_SYSTEM_NO_DEPRECATED \
 	-DNDEBUG \
 	-DPTR_MODERN -DPTR_BOOST \
+	-DSERIALIZATION \
 	-I$ROSETTA_SOURCE/src \
 	-I$ROSETTA_SOURCE/external/include \
 	-I$ROSETTA_SOURCE/src/platform/linux/64/clang/3.5-1ubuntu1 \

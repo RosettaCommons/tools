@@ -220,6 +220,7 @@ class Unit:
         self.uses_xyzVector = False
         self.uses_HomogeneousTransform = False
         self.uses_MathVector = False
+        self.uses_BoundingBox = False
         self.parsed_cc_file = None
         self.made_modifications = False
 
@@ -274,6 +275,7 @@ class Unit:
             self.stl_containers.add( vartype.partition(">")[0] )
             return
 
+        ignore_types = [ "allocator", "less", "equal_to" ]
         container = vartype[ : vartype.find("<") ]
         if container == "" : return
         if container == "shared_ptr" or container == "weak_ptr" :
@@ -282,7 +284,7 @@ class Unit:
             self.stl_containers.add( "utility" )
         elif container == "basic_string" :
             self.stl_containers.add( "string" )
-        elif container == "allocator" or container == "less" :
+        elif container in ignore_types :
             pass
         else :
             self.stl_containers.add( container )
@@ -372,6 +374,8 @@ class Unit:
                 self.uses_HomogeneousTransform = True
             if v.fullvartype.find( "MathVector" ) >= 0 :
                 self.uses_MathVector = True;
+            if v.fullvartype.find( "BoundingBox" ) >= 0 :
+                self.uses_BoundingBox = True;
             if v.fullvartype.find( "utility::vector1" ) >= 0 :
                 self.uses_vector1 = True
             if v.fullvartype.find( "utility::vector0" ) >= 0 :
@@ -746,7 +750,7 @@ class Unit:
         # look for the "#ifdef    SERIALIZATION" block at the top of the file
         # that contains #includes
         tup = self.find_serialization_block( buff, "#include" )
-        print "serialization includes:", tup
+        #print "serialization includes:", tup
         if tup[0] == -1 : return tup
         ifdefser_re = re.compile( "#ifdef\s*SERIALIZATION" )
         match = ifdefser_re.search( buff.contents[ tup[0] : ] )
@@ -985,6 +989,8 @@ class Unit:
             includes[ numeric_comment ].append( "numeric/HomogeneousTransform.srlz.hh" )
         if self.uses_MathVector :
             includes[ numeric_comment ].append( "numeric/MathVector.srlz.hh" )
+        if self.uses_BoundingBox :
+            includes[ numeric_comment ].append( "numeric/geometry/BoundingBox.srlz.hh" )
         if includes[ numeric_comment ] :
             comment_order.append( numeric_comment )
 

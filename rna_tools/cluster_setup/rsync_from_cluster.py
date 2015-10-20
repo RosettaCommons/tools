@@ -33,7 +33,7 @@ for m in args:
         extra_args.append( m )
     else:
         filenames.append( m )
-
+if len(filenames) == 0: filenames = ['.']
 dir = '.'
 
 clusterdir = abspath(dir).replace('/Users/%s/' % user_name,'')

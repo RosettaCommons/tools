@@ -19,49 +19,16 @@ public:
 		const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
 		if(!rewriteThisFile(opcall, *sm))
 			return;
-		std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
-		std::cout << "\nSave method:\n" << std::endl;
-		std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString(); std::cout << std::endl;
+		//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
+		std::cout << "Save method:" << save_method << " " << member_var << " " << opcall << " ";
+		//save_method->dump();
 		
-		//if(!decl->isCompleteDefinition())
-		//	return;
-		//
-		//const std::string name = decl->getQualifiedNameAsString();
-		//const std::string loc = decl->getSourceRange().getBegin().printToString(*sm);
-		//
-		//const CharSourceRange range = CharSourceRange::getTokenRange(decl->getSourceRange());
-		//SourceLocation SpellingBegin = sm->getSpellingLoc(range.getBegin());
-		//SourceLocation SpellingEnd = sm->getSpellingLoc(range.getEnd());
-		//std::pair<FileID, unsigned> Start = sm->getDecomposedLoc(SpellingBegin);
-		//std::pair<FileID, unsigned> End = sm->getDecomposedLoc(SpellingEnd);
-		//
-		//llvm::outs()
-		//	<< decl->getKindName() << "\t"
-		//	<< name << "\t"
-		//	<< "" << "\t"
-		//	<< loc << "\t"
-		//	<< Start.second << "-" << End.second << "\t"
-		//	<< (parent && parent->getKind() == Decl::ClassTemplate) << "\t"
-		//	<< decl->getAccess() << "\t"
-		//	<< decl->isPolymorphic() << "\t"
-		//	;
-		//llvm::outs() << "\n";
-		//if ( decl->getNumBases() > 0 ) {
-		//  for ( CXXRecordDecl::base_class_const_iterator iter = decl->bases_begin(), iter_end = decl->bases_end(); iter != iter_end; ++iter ) {
-		//    llvm::outs()
-		//      << "parent" << "\t"
-		//      << name << "\t"
-		//      << "" << "\t"
-		//      << loc << "\t"
-		//      << sm->getDecomposedLoc( iter->getLocStart() ).second << "-" << sm->getDecomposedLoc( iter->getLocEnd() ).second << "\t"
-		//      //<< iter->getType().getAsString() << "\t"
-		//      //<< iter->getType().getUnqualifiedType().getAsString() << "\t"
-		//      << iter->getType().getCanonicalType().getAsString() << "\t"
-		//      << iter->getAccessSpecifier() << "\t"
-		//      << iter->isVirtual();
-		//    llvm::outs() << "\n";
-		//  }
-		//}
+		//std::cout << std::endl;
+		std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		// 
+		std::cout << " " << member_var->getMemberNameInfo().getAsString();
+		std::cout << std::endl;
+		
 	}
 };
 
@@ -84,14 +51,24 @@ public:
 //   | |     `-MemberExpr 0x4aab2c0 <col:10> 'const float' lvalue ->myfloat_ 0x4aaaee0
 //   | |       `-CXXThisExpr 0x4aab2a8 <col:10> 'const class MyClass *' this
 
+// This works fine, but cannot report on multiple data members serialized within a single call operator, e.g. arc( myfloat_, mychar_ );
+// Finder.addMatcher(
+// 	operatorCallExpr(
+// 		hasDescendant( memberExpr().bind("member")),
+// 		hasAncestor( methodDecl(
+// 			hasName( "save" ),
+// 			hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
+// 		).bind("savemethod") )
+// 	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
+
+// This for some reason reports each match multiple times! Grrr
 Finder.addMatcher(
-	operatorCallExpr(
-		hasDescendant( memberExpr().bind("member")),
+	memberExpr( hasAncestor( operatorCallExpr(
 		hasAncestor( methodDecl(
-			hasName( "save" ),
-			hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
-		).bind("savemethod") )
-	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
+			hasName("save"),
+			hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))).bind("savemethod") )).bind("op_call"))
+	).bind("member"),
+	new SerializationFuncFinder(Replacements) );
 
 //Finder.addMatcher(
 //	recordDecl(

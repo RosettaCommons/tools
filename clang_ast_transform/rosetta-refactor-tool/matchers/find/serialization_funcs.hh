@@ -16,15 +16,17 @@ public:
 		SourceManager *sm = Result.SourceManager;
 		const CXXOperatorCallExpr * opcall = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
 		const MemberExpr * member_var = Result.Nodes.getStmtAs<MemberExpr>("member");
-		const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
+		//const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
+		const FunctionTemplateDecl * save_method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
+
 		if(!rewriteThisFile(opcall, *sm))
 			return;
 		//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
 		std::cout << "Save method:" << save_method << " " << member_var << " " << opcall << " ";
-		//save_method->dump();
+		save_method->dump();
 		
 		//std::cout << std::endl;
-		std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		//std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
 		// 
 		std::cout << " " << member_var->getMemberNameInfo().getAsString();
 		std::cout << std::endl;
@@ -56,19 +58,34 @@ public:
 // 	operatorCallExpr(
 // 		hasDescendant( memberExpr().bind("member")),
 // 		hasAncestor( methodDecl(
-// 			hasName( "save" ),
-// 			hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
+// 			hasName( "save" )
+// 			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
+// 			//hasTemplateArgument(0,refersToType(asString("class cereal::BinaryOutputArchive")))
 // 		).bind("savemethod") )
 // 	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
 
-// This for some reason reports each match multiple times! Grrr
 Finder.addMatcher(
-	memberExpr( hasAncestor( operatorCallExpr(
-		hasAncestor( methodDecl(
-			hasName("save"),
-			hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))).bind("savemethod") )).bind("op_call"))
-	).bind("member"),
-	new SerializationFuncFinder(Replacements) );
+	operatorCallExpr(
+		hasDescendant( memberExpr().bind("member")),
+		hasAncestor( functionTemplateDecl(
+			hasName( "save" )
+			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
+			,has( templateTypeParmDecl())
+		).bind("savemethod") )
+	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
+
+
+
+// This for some reason reports each match multiple times! Grrr
+//
+// Finder.addMatcher(
+// 	memberExpr( hasAncestor( operatorCallExpr(
+// 		hasAncestor( methodDecl(
+// 			hasName("save")
+// 			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
+// 		).bind("savemethod") )).bind("op_call"))
+// 	).bind("member"),
+// 	new SerializationFuncFinder(Replacements) );
 
 //Finder.addMatcher(
 //	recordDecl(

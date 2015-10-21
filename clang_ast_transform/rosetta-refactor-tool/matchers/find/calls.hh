@@ -76,9 +76,9 @@ CXXMethodDecl 0x43a0370 </data/rosetta/tools/clang_ast_transform/test-cases.cc:2
 */
 
 Finder.addMatcher(
-	methodDecl(
+	cxxMethodDecl(
 		forEachDescendant(
-			memberCallExpr().bind("call")
+			cxxMemberCallExpr().bind("call")
 		)
 	).bind("caller"),
 	new CallsFinder(Replacements, "memberCallExpr"));
@@ -107,7 +107,7 @@ CXXMethodDecl 0x380a590 </local/luki/tools/clang_ast_transform/test-cases.cc:213
 */
 
 Finder.addMatcher(
-	methodDecl(
+	cxxMethodDecl(
 		forEachDescendant(
 			callExpr(
 				has(

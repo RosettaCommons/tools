@@ -86,9 +86,9 @@ CXXDynamicCastExpr 0x54731c0 <col:33, col:82> 'const class numeric::expression_p
 */
 
 Finder.addMatcher(
-	dynamicCastExpr(
+	cxxDynamicCastExpr(
 		has(
-			operatorCallExpr(
+			cxxOperatorCallExpr(
 				allOf(
 					// CHILD EXPR: operator() for owning_ptr::operator()
 					has(
@@ -103,7 +103,7 @@ Finder.addMatcher(
 							declRefExpr( isUtilityPointer() )
 						),
 						has(
-							bindTemporaryExpr( isUtilityPointer() )
+							cxxBindTemporaryExpr( isUtilityPointer() )
 						)
 					)
 				)
@@ -117,9 +117,9 @@ Finder.addMatcher(
  */
  
 Finder.addMatcher(
-	staticCastExpr(
+	cxxStaticCastExpr(
 		has(
-			operatorCallExpr(
+			cxxOperatorCallExpr(
 				allOf(
 					// CHILD EXPR: operator() for owning_ptr::operator()
 					has(
@@ -134,7 +134,7 @@ Finder.addMatcher(
 							declRefExpr( isUtilityPointer() )
 						),
 						has(
-							bindTemporaryExpr( isUtilityPointer() )
+							cxxBindTemporaryExpr( isUtilityPointer() )
 						)
 					)
 				)
@@ -160,27 +160,27 @@ CacheableStringFloatMapCOP data = dynamic_cast< CacheableStringFloatMap const * 
 */
 
 Finder.addMatcher(
-	dynamicCastExpr(
+	cxxDynamicCastExpr(
 		has(
-			memberCallExpr().bind("membercallexpr")
+			cxxMemberCallExpr().bind("membercallexpr")
 		),
 		hasParent(
-			constructExpr( isUtilityPointer() )
+			cxxConstructExpr( isUtilityPointer() )
 		)
 	).bind("dyncastexpr"),
-	new RewriteDynamicCast(Replacements, "utility::pointer::dynamic_pointer_cast", "DynamicCast:memberCallExpr"));
+	new RewriteDynamicCast(Replacements, "utility::pointer::dynamic_pointer_cast", "DynamicCast:cxxMemberCallExpr"));
 
 /*
  * Same as above, but for static_cast< >, i.e. staticCastExpr
  */
 
 Finder.addMatcher(
-	staticCastExpr(
+	cxxStaticCastExpr(
 		has(
-			memberCallExpr().bind("membercallexpr")
+			cxxMemberCallExpr().bind("membercallexpr")
 		),
 		hasParent(
-			constructExpr( isUtilityPointer() )
+			cxxConstructExpr( isUtilityPointer() )
 		)
 	).bind("dyncastexpr"),
 	new RewriteDynamicCast(Replacements, "utility::pointer::static_pointer_cast", "StaticCast:memberCallExpr"));

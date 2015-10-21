@@ -64,123 +64,123 @@ public:
 
 // Pose
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::pose::Pose")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::pose::Pose")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Pose"));
 
 // Movers
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::moves::Mover")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::moves::Mover")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Mover"));
 
 // Packer
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::graph::Graph")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::graph::Graph")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Graph"));
 		
 // Residues
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::chemical::ResidueType")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::chemical::ResidueType")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::ResidueType"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::chemical::ResidueTypeSet")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::chemical::ResidueTypeSet")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::ResidueTypeSet"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::conformation::Residue")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::conformation::Residue")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Residue"));
 
 // Conformation
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::conformation::Conformation")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::conformation::Conformation")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Conformation"));
 
 // Datacache
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("basic::datacache::CacheableData")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("basic::datacache::CacheableData")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::CacheableData"));
 
 // Scoring
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::scoring::ScoreFunction")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::scoring::ScoreFunction")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::ScoreFunction"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::scoring::hbonds::HBondSet")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::scoring::hbonds::HBondSet")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::HBondSet"));
 
 // Graph
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::pack::task::PackerTask")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::pack::task::PackerTask")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::PackerTask"));
 
 // Atom Tree
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::kinematics::tree::Atom")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::kinematics::tree::Atom")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Atom"));
 
 // I/O
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::io::silent::SilentStruct")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::io::silent::SilentStruct")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::SilentStruct"));
 
 // Tag
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("utility::tag::Tag")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("utility::tag::Tag")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Tag"));
 
 // Environment
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::environment::Environment")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::environment::Environment")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Environment"));
 
 // Topology Broker
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::topology_broker::TopologyBroker")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::topology_broker::TopologyBroker")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::TopologyBroker"));
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::topology_broker::TopologyClaimer")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::topology_broker::TopologyClaimer")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::TopologyClaimer"));
 
 // Fragments
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("core::fragment::FragData")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("core::fragment::FragData")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::FragData"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::frag_picker::FragmentPicker")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::frag_picker::FragmentPicker")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::FragmentPicker"));
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::frag_picker::VallChunk")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::frag_picker::VallChunk")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::VallChunk"));
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::frag_picker::VallProvider")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::frag_picker::VallProvider")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::VallProvider"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::abinitio::Templates")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::abinitio::Templates")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::Templates"));
 
 // EnzDes
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::EnzConstraintIO")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::EnzConstraintIO")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::EnzConstraintIO"));
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::EnzConstraintParameters")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::EnzConstraintParameters")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::EnzConstraintParameters"));
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::InvrotTreeNodeBase")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::toolbox::match_enzdes_util::InvrotTreeNodeBase")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::InvrotTreeNodeBase"));
 
 // Misc Protocols
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::flexpack::rotamer_set::FlexbbRotamerSets")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::flexpack::rotamer_set::FlexbbRotamerSets")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::FlexbbRotamerSets"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::match::MatcherTask")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::match::MatcherTask")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::MatcherTask"));
 
 Finder.addMatcher(
-	varDecl(hasType(recordDecl(isSameOrDerivedFrom("protocols::optimize_weights::OptEMultifunc")))).bind("vardecl"),
+	varDecl(hasType(cxxRecordDecl(isSameOrDerivedFrom("protocols::optimize_weights::OptEMultifunc")))).bind("vardecl"),
 	new ObjOnStackFinder(Replacements, "ObjOnStackFinder::OptEMultifunc"));

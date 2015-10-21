@@ -85,8 +85,8 @@ Finder.addMatcher(
 
 // Method return type declaration
 Finder.addMatcher(
-	methodDecl().bind("decl"),
-	new RewriteDecl(Replacements, "Decl:methodDecl", "{"));
+	cxxMethodDecl().bind("decl"),
+	new RewriteDecl(Replacements, "Decl:cxxMethodDecl", "{"));
 
 // Function return type declaration
 Finder.addMatcher(

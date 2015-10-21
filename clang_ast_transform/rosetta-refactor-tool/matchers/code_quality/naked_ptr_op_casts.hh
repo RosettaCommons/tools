@@ -177,7 +177,7 @@ public:
 */
 
 Finder.addMatcher(
-	operatorCallExpr(
+	cxxOperatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -189,7 +189,7 @@ Finder.addMatcher(
 				),
 				// as_[0] = a;
 				has(
-					operatorCallExpr(
+					cxxOperatorCallExpr(
 						has(
 							memberExpr( containsUtilityPointer() ).bind("castTo")
 						)
@@ -203,7 +203,7 @@ Finder.addMatcher(
 				),
 				// = this
 				has(
-					thisExpr().bind("castFrom")
+					cxxThisExpr().bind("castFrom")
 				),
 				// function call
 				has(
@@ -248,7 +248,7 @@ Finder.addMatcher(
 */
 
 Finder.addMatcher(
-	operatorCallExpr(
+	cxxOperatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -260,7 +260,7 @@ Finder.addMatcher(
 				),
 				// as_[0] = a;
 				has(
-					operatorCallExpr(
+					cxxOperatorCallExpr(
 						has(
 							memberExpr( containsUtilityPointer() ).bind("castTo")
 						)

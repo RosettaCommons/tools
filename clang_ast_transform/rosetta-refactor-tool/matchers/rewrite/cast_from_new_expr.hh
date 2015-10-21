@@ -116,13 +116,13 @@ ExprWithCleanups 0x9e7cb58 <line:45:3, col:59> '<dependent type>'
 
 
 Finder.addMatcher(
-	functionalCastExpr( has(
-		bindTemporaryExpr( has(
-			constructExpr(
+	cxxFunctionalCastExpr( has(
+		cxxBindTemporaryExpr( has(
+			cxxConstructExpr(
 				argumentCountIs(1),
 				isUtilityPointer(),
 				has(
-					newExpr().bind("castFrom")
+					cxxNewExpr().bind("castFrom")
 				)
 			).bind("castTo")
 

@@ -118,8 +118,8 @@ RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
 	cl::ParseCommandLineOptions(argc, argv);
 	if(!Compilations) {
 		std::string ErrorMessage;
-		Compilations.reset(
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
+		Compilations =
+			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage);
 		if(!Compilations)
 			llvm::report_fatal_error(ErrorMessage);
 	}
@@ -235,8 +235,9 @@ int RosettaRefactorTool::runMatchers() {
 		}
 	}
 
-	// Run tool and generate change log
-	return Tool->run(clang::tooling::newFrontendActionFactory(&Finder));
+	// Run tool and generate change lo
+	std::unique_ptr< clang::tooling::FrontendActionFactory > factory = clang::tooling::newFrontendActionFactory(&Finder);
+	return Tool->run( factory.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

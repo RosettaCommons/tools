@@ -116,15 +116,15 @@ DeclStmt 0x9ef95e8 <line:84:5, col:123>
 Finder.addMatcher(
 	varDecl(
 		has(
-			constructExpr(
+			cxxConstructExpr(
 				isUtilityOwningPointer(),
 				has(
-					newExpr().bind("castFrom")
+					cxxNewExpr().bind("castFrom")
 				)
 			).bind("castTo")
 		)
 	).bind("vardecl"),
-	new RewriteCastFromNewVarDecl(Replacements, "CastFromNewVarDecl:constructExpr"));
+	new RewriteCastFromNewVarDecl(Replacements, "CastFromNewVarDecl:cxxConstructExpr"));
 
 
 /*
@@ -141,10 +141,10 @@ Finder.addMatcher(
 		has(
 			exprWithCleanups(
 				has(
-					constructExpr(
+					cxxConstructExpr(
 						isUtilityOwningPointer(),
 						has(
-							newExpr().bind("castFrom")
+							cxxNewExpr().bind("castFrom")
 						)
 					).bind("castTo")
 				)
@@ -180,14 +180,14 @@ Finder.addMatcher(
 Finder.addMatcher(
 	varDecl( has(
 		exprWithCleanups( has(
-			constructExpr(
+			cxxConstructExpr(
 				argumentCountIs(1),
 				has(
-					bindTemporaryExpr( has(
-						constructExpr(
+					cxxBindTemporaryExpr( has(
+						cxxConstructExpr(
 							isUtilityOwningPointer(),
 							has(
-								newExpr().bind("castFrom")
+								cxxNewExpr().bind("castFrom")
 							)
 						).bind("castTo")
 					) )

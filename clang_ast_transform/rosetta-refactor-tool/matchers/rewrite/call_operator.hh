@@ -82,7 +82,7 @@ CXXConstructExpr 0x7fcd48e19a58 <col:10, col:27> 'AtomCOP':'class utility::point
 */
 
 Finder.addMatcher(
-	operatorCallExpr(
+	cxxOperatorCallExpr(
 		allOf(
 			// CHILD EXPR: operator()
 			has(
@@ -94,13 +94,13 @@ Finder.addMatcher(
 					memberExpr( isUtilityPointer() ).bind("castFrom")
 				),
 				has(
-					bindTemporaryExpr( isUtilityPointer() ).bind("castFrom")
+					cxxBindTemporaryExpr( isUtilityPointer() ).bind("castFrom")
 				),
 				has(
 					declRefExpr( isUtilityPointer() ).bind("castFrom")
 				),
 				has(
-					operatorCallExpr( isUtilityPointer() ).bind("castFrom")
+					cxxOperatorCallExpr( isUtilityPointer() ).bind("castFrom")
 				)
 			),
 			// PARENT Expr/Stmt: castTo
@@ -108,12 +108,12 @@ Finder.addMatcher(
 			// (with and without implicit cast) but this is more strict/specific
 			anyOf(
 				hasParent(
-					constructExpr( isUtilityPointer() ).bind("castTo")
+					cxxConstructExpr( isUtilityPointer() ).bind("castTo")
 				),
 				hasParent(
 					implicitCastExpr(
 						hasParent(
-							constructExpr( isUtilityPointer() ).bind("castTo")
+							cxxConstructExpr( isUtilityPointer() ).bind("castTo")
 						)
 					)
 				)
@@ -147,7 +147,7 @@ BinaryOperator 0x1ee6ec0 <col:12, /data/rosetta/clang/build/bin/../lib/clang/3.5
 */
 
 Finder.addMatcher(
-	operatorCallExpr(
+	cxxOperatorCallExpr(
 		allOf(
 			// CHILD EXPR: operator()
 			has(
@@ -162,7 +162,7 @@ Finder.addMatcher(
 					declRefExpr( isUtilityPointer() ).bind("castFrom")
 				),
 				has(
-					bindTemporaryExpr( isUtilityPointer() ).bind("castFrom")
+					cxxBindTemporaryExpr( isUtilityPointer() ).bind("castFrom")
 				)
 			),
 			// PARENT Expr/Stmt: castTo

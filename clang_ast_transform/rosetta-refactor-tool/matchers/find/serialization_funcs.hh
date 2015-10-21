@@ -65,7 +65,7 @@ public:
 // 	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
 
 Finder.addMatcher(
-	operatorCallExpr(
+	cxxOperatorCallExpr(
 		hasDescendant( memberExpr().bind("member")),
 		hasAncestor( functionTemplateDecl(
 			hasName( "save" )

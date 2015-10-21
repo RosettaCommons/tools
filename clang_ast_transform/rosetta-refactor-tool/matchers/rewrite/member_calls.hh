@@ -130,12 +130,12 @@ public:
 
 
 Finder.addMatcher(
-	memberCallExpr(
+	cxxMemberCallExpr(
 		allOf(
 			has(
-				bindTemporaryExpr(
+				cxxBindTemporaryExpr(
 					has(
-						constructExpr(
+						cxxConstructExpr(
 							has(
 								declRefExpr().bind("castFrom")
 							)
@@ -173,12 +173,12 @@ Finder.addMatcher(
 */
 
 Finder.addMatcher(
-	memberCallExpr(
+	cxxMemberCallExpr(
 		allOf(
 			has(
-				bindTemporaryExpr(
+				cxxBindTemporaryExpr(
 					has(
-						constructExpr(
+						cxxConstructExpr(
 							has(
 								unaryOperator(
 									has(

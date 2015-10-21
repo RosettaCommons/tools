@@ -30,6 +30,6 @@ public:
 
 // CXXUnresolvedConstructExpr in templates
 Finder.addMatcher(
-	unresolvedConstructExpr( isUtilityPointer() ).bind("stmt"),
+	cxxUnresolvedConstructExpr( isUtilityPointer() ).bind("stmt"),
 	new RewritePointerName(Replacements));
 

@@ -44,5 +44,5 @@ public:
 };
 
 Finder.addMatcher(
-	constructorDecl().bind("constructordecl"),
+	cxxConstructorDecl().bind("constructordecl"),
 	new ConstructorDeclFinder(Replacements));

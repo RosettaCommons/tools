@@ -31,6 +31,8 @@
 #include <sstream>
 #include <sys/stat.h>
 
+#include "matchers/find/serialization_funcs.hh"
+
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace llvm;
@@ -173,7 +175,7 @@ int RosettaRefactorTool::runMatchers() {
 			#include "matchers/find/constructor_decl.hh"
 		}
 		if(matcher == "find_serialized_members") {
-			#include "matchers/find/serialization_funcs.hh"
+		  add_serialization_func_finder( Finder );
 		}
 
 		// Code quality checkers

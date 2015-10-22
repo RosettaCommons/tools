@@ -1,42 +1,73 @@
+// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-
+// vi: set ts=2 noet:
+//
+// (c) Copyright Rosetta Commons Member Institutions.
+// (c) This file is part of the Rosetta software suite and is made available under license.
+// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+// (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+
+#include "serialization_funcs.hh"
+
+#include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/Lex/Lexer.h"
+#include "clang/Tooling/CompilationDatabase.h"
+#include "clang/Tooling/Refactoring.h"
+#include "clang/Tooling/Tooling.h"
+#include "clang/Rewrite/Core/Rewriter.h"
+#include "clang/Frontend/FrontendActions.h"
+#include "clang/Frontend/TextDiagnosticPrinter.h"
+
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/raw_ostream.h"
+//#include "llvm/Support/system_error.h"
+
+#include <string>
+#include <set>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <sys/stat.h>
+
+
 /*
 	Find records with save and load functions and also the member variables
 	that are mentioned inside of these functions.
 */
 
-class SerializationFuncFinder : public ReplaceMatchCallback {
-private:
-	typedef std::set< std::pair< std::string, std::string > > data_members;
-	data_members save_variables_;
-	data_members load_variables_;
 
-public:
-	SerializationFuncFinder(tooling::Replacements *Replace) :
-		ReplaceMatchCallback(Replace, "RecordDeclFinder")
-		{}
+SerializationFuncFinder::SerializationFuncFinder(clang::tooling::Replacements *Replace) :
+	ReplaceMatchCallback(Replace, "RecordDeclFinder")
+{}
 
-	// Main callback for all matches
-	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
+// Main callback for all matches
+void SerializationFuncFinder::run(const clang::ast_matchers::MatchFinder::MatchResult &Result) {
+	using namespace clang;
 
-		SourceManager *sm = Result.SourceManager;
-		const CXXOperatorCallExpr * opcall = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
-		const MemberExpr * member_var = Result.Nodes.getStmtAs<MemberExpr>("member");
-		//const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
-		const FunctionTemplateDecl * method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
+	SourceManager *sm = Result.SourceManager;
+	const CXXOperatorCallExpr * opcall = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
+	const MemberExpr * member_var = Result.Nodes.getStmtAs<MemberExpr>("member");
+	//const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
+	const FunctionTemplateDecl * method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
 
-		if(!rewriteThisFile(opcall, *sm))
-			return;
-		//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
-		std::cout << "Save method:" << save_method << " " << member_var << " " << opcall << " ";
-		save_method->dump();
-		
-		std::cout << std::endl;
-		//std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
-		// 
-		std::cout << " " << member_var->getMemberNameInfo().getAsString();
-		std::cout << std::endl;
-		
-	}
-};
+	if(!rewriteThisFile(opcall, *sm))
+		return;
+	//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
+	std::cout << "method:" << method << " " << member_var << " " << opcall << " ";
+	method->dump();
+
+	std::cout << std::endl;
+	//std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	//
+	std::cout << " " << member_var->getMemberNameInfo().getAsString();
+	std::cout << std::endl;
+
+}
 
 //   | |-CXXMethodDecl 0x4aab890 <line:11:3, line:14:3> line:11:8 save 'void (class cereal::BinaryOutputArchive &) const'
 //   | | |-TemplateArgument type 'class cereal::BinaryOutputArchive'
@@ -82,16 +113,22 @@ public:
 
 // This for some reason reports each match multiple times! Grrr
 //
-Finder.addMatcher(
-	memberExpr( hasParent( cxxOperatorCallExpr(
-		hasAncestor( functionTemplateDecl(
-			hasName("save"),
-			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
-			has( ParmVarDecl( hasName( "Archive" ) ) )
-		).bind("savemethod") )).bind("op_call"))
-	).bind("member"),
-	new SerializationFuncFinder(Replacements) );
 
+void
+add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements ) {
+	using namespace clang;
+	using namespace clang::ast_matchers;
+
+	finder.addMatcher(
+		memberExpr( hasParent( cxxOperatorCallExpr(
+			hasAncestor( functionTemplateDecl(
+				hasName("save"),
+				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
+				has( parmVarDecl( hasName( "Archive" ) ) )
+			).bind("savemethod") )).bind("op_call"))
+		).bind("member"),
+		new SerializationFuncFinder( replacements ) );
+}
 //Finder.addMatcher(
 //	recordDecl(
 //		hasParent(
@@ -99,4 +136,3 @@ Finder.addMatcher(
 //		)
 //	).bind("recorddecl"),
 //	new RecordDeclFinder(Replacements));
-	

@@ -19,6 +19,8 @@ public:
 		//const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
 		const FunctionTemplateDecl * save_method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
 
+		std::cout << "opcall " << opcall << " member_var " << member_var << " save_method " << save_method << std::endl;
+
 		if(!rewriteThisFile(opcall, *sm))
 			return;
 		//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;

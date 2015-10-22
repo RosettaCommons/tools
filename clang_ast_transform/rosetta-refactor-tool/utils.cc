@@ -7,8 +7,7 @@
 // (c) For more information, see http://www.rosettacommons.org. Questions about this can be
 // (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
 
-#ifndef INCLUDED_utils_HH
-#define INCLUDED_utils_HH
+#include "utils.hh"
 
 #include <string>
 #include <cstring>
@@ -21,9 +20,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // String utils
 
-namespace {
+// luki created an anonymous namespace and I don't know why
+// namespace {
 
-std::string color(const char *_color, bool show_colors=false) {
+std::string color(const char *_color, bool show_colors) {
 
 	if(!show_colors)
 		return "";
@@ -49,7 +49,7 @@ void replace(std::string& str, const std::string& from, const std::string& to) {
 	}
 }
 
-std::string trim(const std::string & s, const char *whitespace =0) {
+std::string trim(const std::string & s, const char *whitespace ) {
 	size_t start, end;
 	if(!whitespace)
 		whitespace = " \r\n\t";
@@ -187,19 +187,20 @@ bool checkIsClassOperator(const std::string& type) {
 		type == "operator=";
 }
 
-} // namespace
+// end luki's anonymous namespace } // namespace
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Clang Utils
 
-namespace {
+// namespace {
 
-std::set<std::string> RewrittenLocations_;
+// GRRR
+// static std::set<std::string> RewrittenLocations_;
 
 // Returns the text that makes up 'node' in the source.
 // Returns an empty string if the text cannot be found.
-static std::string getText(
+std::string getText(
 	const clang::SourceManager &SourceManager,
 	const clang::SourceLocation &StartSpellingLocation,
 	const clang::SourceLocation &EndSpellingLocation
@@ -233,67 +234,7 @@ static std::string getText(
   return std::string(Text, End.second - Start.second);
 }
 
-template <typename T>
-static std::string getText(const clang::SourceManager &SourceManager, const T *Node) {
-	if(!Node)
-		return std::string();
-	return getText(SourceManager,
-		SourceManager.getSpellingLoc(Node->getLocStart()),
-		SourceManager.getSpellingLoc(Node->getLocEnd()));
-}
 
-template <typename T, typename U>
-static std::string getTextToDelim(const clang::SourceManager &SourceManager, const T *Node, const U *DelimNode) {
-	if(!Node || !DelimNode)
-		return std::string();
-	return getText(SourceManager,
-		SourceManager.getSpellingLoc(Node->getLocStart()),
-		SourceManager.getSpellingLoc(DelimNode->getLocStart()));
-}
+// } // anon namespace
 
-template <typename T>
-bool checkAndMarkSourceLocation(
-	T * node,
-	clang::SourceManager & sm
-) {
-	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
-	std::string locStrPartial( locStr );
-	size_t p = locStrPartial.find_last_of(':');
-	if(p != std::string::npos)
-		locStrPartial = std::string(locStrPartial, 0, p);
 
-	bool notYetSeen = (RewrittenLocations_.find(locStrPartial) == RewrittenLocations_.end());
-	if(notYetSeen)
-		RewrittenLocations_.insert(locStrPartial);
-	return notYetSeen;
-}
-
-template <typename T>
-bool checkAndDumpRewrite(
-	const std::string & tag,
-	clang::SourceManager & sm, T * node,
-	const std::string & newCodeStr,
-	bool verbose = false
-) {
-
-	bool notYetSeen = checkAndMarkSourceLocation(node, sm);
-	if(!verbose)
-		return notYetSeen;
-
-	const std::string locStr( node->getSourceRange().getBegin().printToString(sm) );
-	const std::string origCodeStr = getText(sm, node);
-
-	llvm::errs() << "@ " << locStr << color("cyan") << " (" << tag << ")" << color("");
-	if(!notYetSeen)
-		llvm::errs()  << " " << color("red") << "[skipped]" << color("");
-	llvm::errs() <<	"\n"
-		<< "- " << color("red") << origCodeStr << color("") << "\n"
-		<< "+ " << color("green") << newCodeStr << color("") << "\n"
-		<< "\n";
-
-	return notYetSeen;
-}
-
-} // anon namespace
-
-#endif

@@ -175,7 +175,7 @@ int RosettaRefactorTool::runMatchers() {
 			#include "matchers/find/constructor_decl.hh"
 		}
 		if(matcher == "find_serialized_members") {
-		  add_serialization_func_finder( Finder );
+		  add_serialization_func_finder( Finder, Replacements );
 		}
 
 		// Code quality checkers

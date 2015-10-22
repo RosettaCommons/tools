@@ -67,6 +67,7 @@ void SerializationFuncFinder::run(const clang::ast_matchers::MatchFinder::MatchR
 	std::cout << " " << member_var->getMemberNameInfo().getAsString();
 	std::cout << std::endl;
 
+	save_variables_.insert( std::make_pair( member_var->getMemberNameInfo().getAsString(), member_var->getMemberNameInfo().getAsString() ));
 }
 
 //   | |-CXXMethodDecl 0x4aab890 <line:11:3, line:14:3> line:11:8 save 'void (class cereal::BinaryOutputArchive &) const'

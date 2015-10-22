@@ -21,10 +21,8 @@
 
 class ReplaceMatchCallback : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:
-	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag)
-		: Replace(Replace), tag(tag), debug_( false ) {}
-	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug)
-		: Replace(Replace), tag(tag), debug_( debug ) {}
+	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag);
+	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug);
 
 private:
 	clang::tooling::Replacements *Replace;
@@ -45,12 +43,12 @@ protected:
 
 		if(!checkAndDumpRewrite(tag, sm, node, newCode))
 			return;
-		Replace->insert(Replacement(sm, node, newCode));
+		Replace->insert(clang::tooling::Replacement(sm, node, newCode));
 	}
 
 	template <typename T>
 	bool rewriteThisFile(T * node, clang::SourceManager & sm) {
-		using namespace clang;
+ 		using namespace clang;
 		if(!node)
 			return false;
 		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);

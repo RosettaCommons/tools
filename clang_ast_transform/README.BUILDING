@@ -9,24 +9,37 @@ Works on:
 mkdir clang && cd clang
 
 # Get clang sources
-svn co -r 206320 http://llvm.org/svn/llvm-project/llvm/trunk llvm
+svn co -r 250899 http://llvm.org/svn/llvm-project/llvm/trunk llvm
 cd llvm/tools
-svn co -r 206320 http://llvm.org/svn/llvm-project/cfe/trunk clang
+svn co -r 250899 http://llvm.org/svn/llvm-project/cfe/trunk clang
 cd clang/tools
-svn co -r 206320 http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
+svn co -r 250899 http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
 cd extra
 ln -s /data/rosetta/tools/clang_ast_transform/rosetta-refactor-tool/
 echo 'add_subdirectory(rosetta-refactor-tool)' >> CMakeLists.txt
 cd ../../../../../llvm/projects/
-svn co -r 206320 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+svn co -r 250899 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
 cd ../..
 
 # Configure and build
 mkdir build 
 cd build
 ../llvm/configure 
+
+# Optional: tell cmake to build with clang
+export CC=/usr/bin/clang
+export CXX=/usr/bin/clang++
+
 cmake -DCMAKE_BUILD_TYPE=Release ../llvm/
+# OR, to use Ninja instead of make
+cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ../llvm
+# OR if you would like the debug build -- but this is best done by creating a separate build_debug directory
+# and running the cmake command in that directory; the "-G Ninja" flag may be added to the command below as well.
+cmake -DCMAKE_BUILD_TYPE=Debug ../llvm
+
 make -j 8
+
+
 
 </commands>
 
@@ -35,3 +48,6 @@ luki@rosetta:~/clang/build$ ls -l bin/rosetta-refactor-tool
 
 luki@rosetta:~/clang/build$ file bin/rosetta-refactor-tool 
 bin/rosetta-refactor-tool: ELF 64-bit LSB  executable, x86-64, version 1 (GNU/Linux), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=c8ad0c579767dfffd19f2c3521db3b07fc6d6854, not stripped
+
+APL NOTE 10/22/2015: Updating the RosettaRefactorTool to use version 250899 of llvm and
+clang from the version that Luki had previously used, version 206320.

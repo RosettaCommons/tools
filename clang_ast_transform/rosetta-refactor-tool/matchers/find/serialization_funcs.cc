@@ -4,6 +4,10 @@
 */
 
 class SerializationFuncFinder : public ReplaceMatchCallback {
+private:
+	typedef std::set< std::pair< std::string, std::string > > data_members;
+	data_members save_variables_;
+	data_members load_variables_;
 
 public:
 	SerializationFuncFinder(tooling::Replacements *Replace) :
@@ -17,9 +21,7 @@ public:
 		const CXXOperatorCallExpr * opcall = Result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
 		const MemberExpr * member_var = Result.Nodes.getStmtAs<MemberExpr>("member");
 		//const CXXMethodDecl * save_method = Result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
-		const FunctionTemplateDecl * save_method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
-
-		std::cout << "opcall " << opcall << " member_var " << member_var << " save_method " << save_method << std::endl;
+		const FunctionTemplateDecl * method = Result.Nodes.getStmtAs<FunctionTemplateDecl>("savemethod");
 
 		if(!rewriteThisFile(opcall, *sm))
 			return;
@@ -27,7 +29,7 @@ public:
 		std::cout << "Save method:" << save_method << " " << member_var << " " << opcall << " ";
 		save_method->dump();
 		
-		//std::cout << std::endl;
+		std::cout << std::endl;
 		//std::cout << save_method->getThisType( *Result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
 		// 
 		std::cout << " " << member_var->getMemberNameInfo().getAsString();
@@ -66,28 +68,29 @@ public:
 // 		).bind("savemethod") )
 // 	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
 
-Finder.addMatcher(
-	cxxOperatorCallExpr(
-		hasDescendant( memberExpr().bind("member")),
-		hasAncestor( functionTemplateDecl(
-			hasName( "save" )
-			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
-			,has( templateTypeParmDecl())
-		).bind("savemethod") )
-	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
+// Finder.addMatcher(
+// 	cxxOperatorCallExpr(
+// 		hasDescendant( memberExpr().bind("member")),
+// 		hasAncestor( functionTemplateDecl(
+// 			hasName( "save" )
+// 			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::BinaryOutputArchive")))))
+// 			,has( templateTypeParmDecl())
+// 		).bind("savemethod") )
+// 	).bind( "op_call" ), new SerializationFuncFinder(Replacements) );
 
 
 
 // This for some reason reports each match multiple times! Grrr
 //
-// Finder.addMatcher(
-// 	memberExpr( hasAncestor( operatorCallExpr(
-// 		hasAncestor( methodDecl(
-// 			hasName("save")
-// 			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
-// 		).bind("savemethod") )).bind("op_call"))
-// 	).bind("member"),
-// 	new SerializationFuncFinder(Replacements) );
+Finder.addMatcher(
+	memberExpr( hasParent( cxxOperatorCallExpr(
+		hasAncestor( functionTemplateDecl(
+			hasName("save"),
+			//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
+			has( ParmVarDecl( hasName( "Archive" ) ) )
+		).bind("savemethod") )).bind("op_call"))
+	).bind("member"),
+	new SerializationFuncFinder(Replacements) );
 
 //Finder.addMatcher(
 //	recordDecl(

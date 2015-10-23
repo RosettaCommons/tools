@@ -4,11 +4,16 @@ set(LLVM_LINK_COMPONENTS
 
 set(LLVM_USED_LIBS clangTooling clangBasic clangAST clangASTMatchers )
 
-add_library( RosettaFinders
+add_clang_library( RosettaFinders
   serialization_funcs
+
+  LINK_LIBS
+  BasicRosettaMatchers
+  clangASTMatchers
+  LLVMSupport
   )
 
-target_link_libraries( RosettaFinders
-  LLVMSupport
-  clangASTMatchers
-)
+# target_link_libraries( RosettaFinders
+#   LLVMSupport
+#   clangASTMatchers
+# )

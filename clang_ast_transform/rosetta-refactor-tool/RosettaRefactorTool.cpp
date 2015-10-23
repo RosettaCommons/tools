@@ -40,6 +40,11 @@
 #include <sstream>
 #include <sys/stat.h>
 
+#include "matchers/find/calls.hh"
+#include "matchers/find/constructor_decl.hh"
+#include "matchers/find/field_decl.hh"
+#include "matchers/find/record_decl.hh"
+#include "matchers/find/self_ptr_in_ctor.hh"
 #include "matchers/find/serialization_funcs.hh"
 
 using namespace clang;
@@ -168,19 +173,19 @@ int RosettaRefactorTool::runMatchers() {
 
 		// Finders
 		if(matcher == "find_calls") {
-			#include "matchers/find/calls.hh"
+			add_calls_finder( Finder, Replacements );
 		}
 		if(matcher == "find_self_ptr_in_ctor") {
-			#include "matchers/find/self_ptr_in_ctor.hh"
+			add_self_ptr_in_ctor_finder( Finder, Replacements );
 		}
 		if(matcher == "find_record_decl") {
-			#include "matchers/find/record_decl.hh"
+			add_record_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_field_decl") {
-			#include "matchers/find/field_decl.hh"
+			add_field_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_constructor_decl") {
-			#include "matchers/find/constructor_decl.hh"
+			add_constructor_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_serialized_members") {
 		  add_serialization_func_finder( Finder, Replacements );

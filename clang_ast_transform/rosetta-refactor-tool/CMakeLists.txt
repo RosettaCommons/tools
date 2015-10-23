@@ -27,6 +27,11 @@ add_clang_executable(rosetta-refactor-tool
   RosettaRefactorTool.cpp
   matchers_base
   utils
+  matchers/find/calls
+  matchers/find/constructor_decl
+  matchers/find/field_decl
+  matchers/find/record_decl
+  matchers/find/self_ptr_in_ctor
   matchers/find/serialization_funcs
 )
 

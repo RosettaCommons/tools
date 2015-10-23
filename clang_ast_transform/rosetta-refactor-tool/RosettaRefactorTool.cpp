@@ -42,9 +42,9 @@ using clang::tooling::Replacement;
 // Command line options
 
 cl::opt<bool> Debug(
- 	"debug_rrt",
- 	cl::desc("Enable debugging output"),
- 	cl::init(false));
+	"debug",
+	cl::desc("Enable debugging output"),
+	cl::init(false));
 
 cl::opt<bool> Verbose(
 	"verbose",
@@ -94,7 +94,6 @@ public:
 	int runMatchers();
 	int saveOutput();
 
-	std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
 	clang::tooling::RefactoringTool * Tool;
 	std::string prefix_, suffix_;
 };
@@ -115,11 +114,8 @@ RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
 	using namespace clang::tooling;
 
 	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<clang::tooling::CompilationDatabase> CompilationsLocal(
-		FixedCompilationDatabase::loadFromCommandLine(argc, argv));
-
-	Compilations.swap( CompilationsLocal );
-
+	std::unique_ptr<CompilationDatabase> Compilations(
+			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
 
 	cl::ParseCommandLineOptions(argc, argv);
 	if(!Compilations) {
@@ -241,7 +237,7 @@ int RosettaRefactorTool::runMatchers() {
 		}
 	}
 
-	// Run tool and generate change log
+	// Run tool and generate change lo
 	std::unique_ptr< clang::tooling::FrontendActionFactory > factory = clang::tooling::newFrontendActionFactory(&Finder);
 	return Tool->run( factory.get() );
 }

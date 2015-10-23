@@ -123,7 +123,7 @@ add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang:
 	using namespace clang::ast_matchers;
 
 	finder.addMatcher(
-		memberExpr( hasParent( cxxOperatorCallExpr(
+		memberExpr( hasParent( operatorCallExpr(
 			hasAncestor( functionTemplateDecl(
 				hasName("save"),
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))

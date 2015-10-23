@@ -76,9 +76,9 @@ public:
 // x1->setPartner( this );
 
 Finder.addMatcher(
-	cxxConstructExpr(
+	constructExpr(
 		has(
-			cxxThisExpr().bind("castFrom")
+			thisExpr().bind("castFrom")
 		),
 		isUtilityPointer()
 	).bind("castTo"),
@@ -92,7 +92,7 @@ Finder.addMatcher(
 Finder.addMatcher(
 	unaryOperator(
 		hasParent(
-			cxxConstructExpr( isUtilityPointer() ).bind("castTo")
+			constructExpr( isUtilityPointer() ).bind("castTo")
 		),
 		has(
 			expr().bind("castFrom")

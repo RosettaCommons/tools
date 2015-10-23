@@ -118,10 +118,10 @@ public:
 */
 
 Finder.addMatcher(
-	cxxConstructExpr(
+	constructExpr(
 		isUtilityOwningPointer(),
 		has(
-			cxxNewExpr().bind("castFrom")
+			newExpr().bind("castFrom")
 		)
 	).bind("castTo"),
 	new RewriteCastFromNew(Replacements, "CastFromNew:constructExpr"));
@@ -145,9 +145,9 @@ Finder.addMatcher(
 */
 
 Finder.addMatcher(
-	cxxNewExpr(
+	newExpr(
 		hasParent(
-			cxxOperatorCallExpr(
+			operatorCallExpr(
 				has(
 					declRefExpr(
 						allOf(
@@ -205,7 +205,7 @@ first argument is an AtomAP
 
 
 Finder.addMatcher(
-	cxxConstructExpr(
+	constructExpr(
 		allOf(
 			isUtilityAccessPointer(),
 			has(

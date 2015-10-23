@@ -69,10 +69,10 @@ public:
 };
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		isUtilityPointer(),
 		has(
-			cxxMemberCallExpr(
+			memberCallExpr(
 				has(
 					memberExpr(
 						has(

@@ -83,14 +83,14 @@ private:
 */
 
 Finder.addMatcher(
-	cxxDynamicCastExpr(
+	dynamicCastExpr(
 		hasParent(
-			cxxConstructExpr( isUtilityPointer() ).bind("constructexpr")
+			constructExpr( isUtilityPointer() ).bind("constructexpr")
 		),
 		has(
 			unaryOperator(
 				has(
-					cxxMemberCallExpr(
+					memberCallExpr(
 						has(
 							memberExpr(
 								has(

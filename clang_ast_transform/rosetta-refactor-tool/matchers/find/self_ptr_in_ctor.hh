@@ -41,7 +41,7 @@ public:
 
 
 Finder.addMatcher(
-	cxxConstructorDecl(
+	constructorDecl(
 		// Doesn't work... so ugly "solution" above
 		//forEachDescendant(
 		//	memberCallExpr(

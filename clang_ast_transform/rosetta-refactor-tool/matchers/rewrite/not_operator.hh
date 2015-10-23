@@ -48,7 +48,7 @@ UnaryOperator 0x2a7ad10 <line:64:7, col:20> '_Bool' prefix '!'
 */
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			// CHILD EXPR: operator!
 			has(
@@ -60,7 +60,7 @@ Finder.addMatcher(
 					memberExpr( isUtilityPointer() )
 				),
 				has(
-					cxxBindTemporaryExpr( isUtilityPointer() )
+					bindTemporaryExpr( isUtilityPointer() )
 				),
 				has(
 					declRefExpr( isUtilityPointer() )

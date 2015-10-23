@@ -2,12 +2,12 @@ set(LLVM_LINK_COMPONENTS
   Support
   )
 
-add_subdirectory( matchers )
+# add_subdirectory( matchers )
 
-add_library( BasicRosettaMatchers
-  matchers_base
-  utils
-  )
+# add_library( BasicRosettaMatchers
+#   matchers_base
+#   utils
+#   )
 
 # target_link_libraries( BasicRosettaMatchers
 #   LLVMSupport
@@ -20,16 +20,16 @@ add_library( BasicRosettaMatchers
 
 add_clang_executable(rosetta-refactor-tool
   RosettaRefactorTool.cpp
+  matchers_base
+  utils
+  matchers/find/serialization_funcs
   )
 
 target_link_libraries(rosetta-refactor-tool
-  RosettaFinders
-  BasicRosettaMatchers
   LLVMSupport
   clangAST
   clangASTMatchers
   clangBasic
   clangFrontend
   clangTooling
-  clang
   )

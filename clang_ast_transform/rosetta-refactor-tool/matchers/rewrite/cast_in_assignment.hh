@@ -178,7 +178,7 @@ public:
 */
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -196,17 +196,17 @@ Finder.addMatcher(
 					).bind("castTo")
 				),
 				has(
-					cxxOperatorCallExpr(
+					operatorCallExpr(
 						isUtilityPointer()
 					).bind("castTo")
 				)
 			),
 			has(
-				cxxNewExpr().bind("castFrom")
+				newExpr().bind("castFrom")
 			)
 		)
 	).bind("expr"),
-	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:cxxNewExpr"));
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:newExpr"));
 
 /*
 class X {
@@ -235,7 +235,7 @@ class X {
 */
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isUtilityPointer() ).bind("castexpr")
@@ -249,13 +249,13 @@ Finder.addMatcher(
 				),
 				has(
 					// This doesn't work for some reason yet
-					expr(cxxNullPtrLiteralExpr()).bind("castFrom")
+					expr(nullPtrLiteralExpr()).bind("castFrom")
 				)
 			),
 			isUtilityPointer()
 		)
 	).bind("expr"),
-	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:cxxNullPtrLiteral/integerLiteral"));
+	new RewriteAssignmentsOper(Replacements, "AssignmentsOper:nullPtrLiteral/integerLiteral"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // We may not want to automagically rewrite those
@@ -320,7 +320,7 @@ RewriteAssignmentsOper RewriteAssignmentsOperCallback3(	Replacements,
 	"AssignmentsOper"
 );
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -332,7 +332,7 @@ Finder.addMatcher(
 				),
 				// as_[0] = a;
 				has(
-					cxxOperatorCallExpr(
+					operatorCallExpr(
 						has(
 							memberExpr( containsUtilityPointer() ).bind("castTo")
 						)
@@ -346,7 +346,7 @@ Finder.addMatcher(
 				),
 				// = this
 				has(
-					cxxThisExpr().bind("castFrom")
+					thisExpr().bind("castFrom")
 				),
 				// function call
 				has(
@@ -391,7 +391,7 @@ Finder.addMatcher(
 */
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -403,7 +403,7 @@ Finder.addMatcher(
 				),
 				// as_[0] = a;
 				has(
-					cxxOperatorCallExpr(
+					operatorCallExpr(
 						has(
 							memberExpr( containsUtilityPointer() ).bind("castTo")
 						)
@@ -435,7 +435,7 @@ Finder.addMatcher(
 */
 
 Finder.addMatcher(
-	cxxOperatorCallExpr(
+	operatorCallExpr(
 		allOf(
 			has(
 				declRefExpr( isClassOperator() ).bind("castexpr")
@@ -453,13 +453,13 @@ Finder.addMatcher(
 					).bind("castTo")
 				),
 				has(
-					cxxOperatorCallExpr(
+					operatorCallExpr(
 						isUtilityPointer()
 					).bind("castTo")
 				)
 			),
 			has(
-				cxxNewExpr().bind("castFrom")
+				newExpr().bind("castFrom")
 			)
 		)
 	).bind("expr"),

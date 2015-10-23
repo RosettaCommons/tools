@@ -48,11 +48,11 @@ CXXCtorInitializer Field 0x4f43710 'this_weak_ptr_' 'AtomTreeCAP':'class utility
 */
 
 Finder.addMatcher(
-	cxxConstructorDecl(
+	constructorDecl(
 		forEachConstructorInitializer(
-			cxxCtorInitializer(
+			ctorInitializer(
 				withInitializer(
-					cxxConstructExpr(
+					constructExpr(
 						has(
 							integerLiteral().bind("literal")
 						)
@@ -105,11 +105,11 @@ public:
 */
 
 Finder.addMatcher(
-	cxxConstructorDecl(
+	constructorDecl(
 		forEachConstructorInitializer(
-			cxxCtorInitializer(
+			ctorInitializer(
 				withInitializer(
-					cxxConstructExpr(
+					constructExpr(
 						has(
 							expr(isNullExpr()).bind("literal")
 						)

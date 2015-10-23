@@ -1,3 +1,12 @@
+// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-
+// vi: set ts=2 noet:
+//
+// (c) Copyright Rosetta Commons Member Institutions.
+// (c) This file is part of the Rosetta software suite and is made available under license.
+// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+// (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+
 //===- RosettaRefactorTool.cpp - Clean up for boost ptr conversion -===//
 //
 // This tool generates a log of source code changes to be applies to
@@ -94,6 +103,7 @@ public:
 	int runMatchers();
 	int saveOutput();
 
+	std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
 	clang::tooling::RefactoringTool * Tool;
 	std::string prefix_, suffix_;
 };
@@ -114,14 +124,16 @@ RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
 	using namespace clang::tooling;
 
 	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<CompilationDatabase> Compilations(
-			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
+	{
+		std::unique_ptr< CompilationDatabase > compdb_from_cl( FixedCompilationDatabase::loadFromCommandLine(argc, argv));
+		Compilations.swap( compdb_from_cl );
+	}
 
 	cl::ParseCommandLineOptions(argc, argv);
 	if(!Compilations) {
 		std::string ErrorMessage;
-		Compilations =
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage);
+		std::unique_ptr< CompilationDatabase > compdb_from_dir = CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage);
+		Compilations.swap( compdb_from_dir );
 		if(!Compilations)
 			llvm::report_fatal_error(ErrorMessage);
 	}
@@ -136,7 +148,7 @@ int RosettaRefactorTool::Run() {
 		return r;
 	return saveOutput();
 }
-	
+
 /// Run selected matchers
 int RosettaRefactorTool::runMatchers() {
 
@@ -237,8 +249,8 @@ int RosettaRefactorTool::runMatchers() {
 		}
 	}
 
-	// Run tool and generate change lo
-	std::unique_ptr< clang::tooling::FrontendActionFactory > factory = clang::tooling::newFrontendActionFactory(&Finder);
+	// Run tool and generate change log
+	std::unique_ptr< clang::tooling::FrontendActionFactory > factory(clang::tooling::newFrontendActionFactory(&Finder));
 	return Tool->run( factory.get() );
 }
 
@@ -246,9 +258,9 @@ int RosettaRefactorTool::runMatchers() {
 
 /// Save rewritten output to files or output to stdout
 int RosettaRefactorTool::saveOutput() {
-	
+
 	using namespace clang::tooling;
-	
+
 	LangOptions DefaultLangOptions;
 	IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
 	TextDiagnosticPrinter DiagnosticPrinter(llvm::errs(), &*DiagOpts);
@@ -291,7 +303,7 @@ int RosettaRefactorTool::saveOutput() {
 		}
 
 		// llvm::errs() << "Output directory: " << outputBaseDir << "\n";
-				
+
 		for (Rewriter::buffer_iterator I = Rewrite.buffer_begin(),
 				E = Rewrite.buffer_end(); I != E; ++I) {
 
@@ -308,7 +320,7 @@ int RosettaRefactorTool::saveOutput() {
 						origFileNameRelPath = std::string(origFileNameRelPath, i);
 				}
 			}
-			
+
 			std::string outputFileName = outputBaseDir + origFileNameRelPath;
 
 			// Create dir
@@ -342,12 +354,12 @@ int RosettaRefactorTool::saveOutput() {
 				llvm::errs()
 					<< origFileName << " -> " << outputFileName << ": "
 					<< (ok ? "OK" : "Failed!") << "\n";
-					
+
 				if(!ok)
 					result++;
 			}
 		}
 	}
-	
+
 	return result;
 }

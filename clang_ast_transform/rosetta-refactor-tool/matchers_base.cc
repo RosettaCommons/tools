@@ -20,3 +20,4 @@ ReplaceMatchCallback::ReplaceMatchCallback(clang::tooling::Replacements *Replace
 	: Replace(Replace), tag(tag), debug_( debug )
 {}
 
+ReplaceMatchCallback::~ReplaceMatchCallback() {}

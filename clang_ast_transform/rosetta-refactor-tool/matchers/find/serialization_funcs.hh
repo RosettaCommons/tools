@@ -29,6 +29,7 @@ private:
 
 public:
 	SerializationFuncFinder( clang::tooling::Replacements * replace );
+	virtual ~SerializationFuncFinder();
 
 	// Main callback for all matches
 	virtual void run( clang::ast_matchers::MatchFinder::MatchResult const & result);

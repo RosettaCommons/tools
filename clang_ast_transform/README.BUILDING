@@ -38,7 +38,8 @@ cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ../llvm
 cmake -DCMAKE_BUILD_TYPE=Debug ../llvm
 
 make -j 8
-
+#or if you're using ninja
+ninja -j 8
 
 
 </commands>

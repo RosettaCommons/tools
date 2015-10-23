@@ -45,6 +45,8 @@ SerializationFuncFinder::SerializationFuncFinder(clang::tooling::Replacements *R
 	ReplaceMatchCallback(Replace, "RecordDeclFinder")
 {}
 
+SerializationFuncFinder::~SerializationFuncFinder() {}
+
 // Main callback for all matches
 void SerializationFuncFinder::run(const clang::ast_matchers::MatchFinder::MatchResult &Result) {
 	using namespace clang;

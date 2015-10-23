@@ -23,7 +23,7 @@ class ReplaceMatchCallback : public clang::ast_matchers::MatchFinder::MatchCallb
 public:
 	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag);
 	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug);
-
+	virtual ~ReplaceMatchCallback();
 private:
 	clang::tooling::Replacements *Replace;
 

@@ -9,26 +9,27 @@ add_library( BasicRosettaMatchers
   utils
   )
 
-target_link_libraries( BasicRosettaMatchers
-  LLVMSupport
-  clangAST
-  clangASTMatchers
-  clangBasic
-  clangFrontend
-  clangTooling
-  )
+# target_link_libraries( BasicRosettaMatchers
+#   LLVMSupport
+#   clangAST
+#   clangASTMatchers
+#   clangBasic
+#   clangFrontend
+#   clangTooling
+#   )
 
 add_clang_executable(rosetta-refactor-tool
   RosettaRefactorTool.cpp
   )
 
 target_link_libraries(rosetta-refactor-tool
+  RosettaFinders
+  BasicRosettaMatchers
   LLVMSupport
   clangAST
   clangASTMatchers
   clangBasic
   clangFrontend
   clangTooling
-  BasicRosettaMatchers
-  RosettaFinders
+  clang
   )

@@ -140,7 +140,7 @@ bool checkAndDumpRewrite(
 	const std::string & tag,
 	clang::SourceManager & sm, T * node,
 	const std::string & newCodeStr,
-	bool verbose = false
+	bool verbose
 ) {
 
 	bool notYetSeen = checkAndMarkSourceLocation(node, sm);

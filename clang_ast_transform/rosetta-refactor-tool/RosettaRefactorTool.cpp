@@ -63,7 +63,14 @@
 #include "matchers/rewrite/cast_from_new_expr.hh"
 #include "matchers/rewrite/cast_from_new_vardecl.hh"
 #include "matchers/rewrite/cast_in_assignment.hh"
-
+#include "matchers/rewrite/ctor_initializer.hh"
+#include "matchers/rewrite/datamap_get.hh"
+#include "matchers/rewrite/dynamic_cast.hh"
+#include "matchers/rewrite/member_calls.hh"
+#include "matchers/rewrite/pointer_name.hh"
+#include "matchers/rewrite/real_comparison.hh"
+#include "matchers/rewrite/pose_dynamic_cast.hh"
+#include "matchers/rewrite/typedef.hh"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -200,10 +207,10 @@ int RosettaRefactorTool::runMatchers() {
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
-			#include "matchers/rewrite/typedef.hh"
+			add_typedef_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
-			#include "matchers/rewrite/pointer_name.hh"
+			add_pointer_name_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
 			add_cast_from_new_vardecl_rewriter( Finder, Replacements );
@@ -218,25 +225,25 @@ int RosettaRefactorTool::runMatchers() {
 			add_cast_in_assignment_rewriter( Finder, Replacements, DangerousRewrites );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
-			#include "matchers/rewrite/ctor_initializer.hh"
+			add_ctor_initializer_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
-			#include "matchers/rewrite/dynamic_cast.hh"
+			add_dynamic_cast_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_datamap_get") {
-			#include "matchers/rewrite/datamap_get.hh"
+			add_datamap_get_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
-			#include "matchers/rewrite/pose_dynamic_cast.hh"
+			add_pose_dynamic_cast_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
 			add_call_operator_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
-			#include "matchers/rewrite/member_calls.hh"
+			add_member_calls_rewriter( Finder, Replacements, DangerousRewrites );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_real_comparison") {
-			#include "matchers/rewrite/real_comparison.hh"
+			add_real_comparison_rewriter( Finder, Replacements );
 		}
 
 		// Adders

@@ -42,6 +42,14 @@ add_clang_executable(rosetta-refactor-tool
   matchers/rewrite/cast_from_new_expr
   matchers/rewrite/cast_from_new_vardecl
   matchers/rewrite/cast_in_assignment
+  matchers/rewrite/ctor_initializer
+  matchers/rewrite/datamap_get
+  matchers/rewrite/dynamic_cast
+  matchers/rewrite/member_calls
+  matchers/rewrite/pointer_name
+  matchers/rewrite/pose_dynamic_cast
+  matchers/rewrite/real_comparison
+  matchers/rewrite/typedef
 )
 
 target_link_libraries(rosetta-refactor-tool

@@ -7,13 +7,23 @@
 // (c) For more information, see http://www.rosettacommons.org. Questions about this can be
 // (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
 
-#ifndef INCLUDED_matchers_rewrite_datamap_get_HH
-#define INCLUDED_matchers_rewrite_datamap_get_HH
+/*
+	Find instances where get_self_ptr() or get_self_weak_ptr() is used in a c'tor.
+	This is illegal because the weak self-pointer isn't set yet, and will
+	result in bad_weak_ptr exception at runtime.
+*/
 
+#include "datamap_get.hh"
+
+#include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Tooling/Refactoring.h"
+#include "clang/Basic/SourceManager.h"
 
-#include "../../matchers_base.hh"
+#include "../../ast_matchers.hh"
+
+#include <string>
+
+using namespace clang;
 
 /*
 	Replace:
@@ -49,16 +59,60 @@
   | |             `-DeclRefExpr 0xa6dd328 <col:68> 'const string':'const class std::basic_string<char>' lvalue Var 0xa6dc8c0 'scorefxn_name' 'const string':'const class std::basic_string<char>'
 */
 
-class RewriteDataMapGet : public ReplaceMatchCallback {
-public:
-	RewriteDataMapGet(
-		clang::tooling::Replacements *Replace,
-		const char *tag = "DataMapGet");
+RewriteDataMapGet::RewriteDataMapGet(
+	tooling::Replacements *Replace,
+	const char *tag
+) :
+	ReplaceMatchCallback(Replace, tag)
+{}
 
-	virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &Result);
-};
+void RewriteDataMapGet::run(const ast_matchers::MatchFinder::MatchResult &Result) {
+	SourceManager &sm = *Result.SourceManager;
+
+	const Expr *declrefexpr = Result.Nodes.getStmtAs<Expr>("declrefexpr");
+	// const Expr *membercallexpr = Result.Nodes.getStmtAs<Expr>("membercallexpr");
+	const Expr *operatorcallexpr = Result.Nodes.getStmtAs<Expr>("operatorcallexpr");
+	const MemberExpr *memberexpr = Result.Nodes.getStmtAs<MemberExpr>("memberexpr");
+
+	if(!rewriteThisFile(operatorcallexpr, sm))
+		return;
+
+	// Get original code and cast type
+	const std::string origCode = getText(sm, memberexpr);
+	const std::string memberType = QualType::getAsString( declrefexpr->getType().split() );
+	const std::string memberName = memberexpr->getMemberNameInfo().getName().getAsString();
+
+	if(origCode.empty() || memberType != "basic::datacache::DataMap" || memberName != "get")
+		return;
+
+	size_t p = origCode.find("<");
+	std::string newCode =
+		trim(std::string(origCode, 0, p)) + "_ptr<" +
+		trim(std::string(origCode, p), "<>* ") +
+		">";
+
+	doRewrite(sm, memberexpr, origCode, newCode);
+}
 
 void
-add_datamap_get_rewriter( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements );
+add_datamap_get_rewriter( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements )
+{
+	using namespace clang::ast_matchers;
 
-#endif
+	finder.addMatcher(
+		operatorCallExpr(
+			isUtilityPointer(),
+			has(
+				memberCallExpr(
+					has(
+						memberExpr(
+							has(
+								declRefExpr().bind("declrefexpr")
+							)
+						).bind("memberexpr")
+					)
+				).bind("membercallexpr")
+			)
+		).bind("operatorcallexpr"),
+		new RewriteDataMapGet(replacements));
+}

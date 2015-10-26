@@ -277,13 +277,15 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
 
     if removeions:  goodnames.remove(' MG')
 
+    outputted_atoms = []
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
             num_model += 1
             if num_model > max_model:  break #Its an NMR model.
         if len(line) <= 21:  continue
-        if (line[21] in chainids or ignore_chain):
+        chain = line[21]
+        if (chain in chainids or ignore_chain):
             line_edit = line
 
             if line[0:3] == 'TER' and False:
@@ -299,12 +301,14 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
             #Don't save alternative conformations.
-            if line[16] == 'A':
-                continue;
+            #if line[16] == 'A': continue
+
+            atomnum = line[6:11]
+            if line_edit[22] == ' ': resnum = line_edit[23:26]
+            else:                    resnum = line_edit[22:26]
+            if ( chain, resnum, atomnum ) in outputted_atoms: continue # already found once
 
             if line_edit[0:4] == 'ATOM':
-                if line_edit[22] == ' ': resnum = line_edit[23:26]
-                else:                    resnum = line_edit[22:26]
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == 'GTP':
@@ -381,6 +385,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                     line_edit = line_edit.replace('  U', ' rU')
 
                 outstring += line_edit
+                outputted_atoms.append( (chain,resnum,atomnum) )
 
     #fastaid.write('\n')
 

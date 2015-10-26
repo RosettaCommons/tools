@@ -11,13 +11,13 @@
 #include <iostream>
 
 ReplaceMatchCallback::ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag)
-	: Replace(Replace), tag(tag), debug_( false )
+	: replace_(Replace), tag_(tag), debug_( false )
 {
 	std::cout << "Setting debug to false" << std::endl;
 }
 
 ReplaceMatchCallback::ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug)
-	: Replace(Replace), tag(tag), debug_( debug )
+	: replace_(Replace), tag_(tag), debug_( debug )
 {}
 
 ReplaceMatchCallback::~ReplaceMatchCallback() {}

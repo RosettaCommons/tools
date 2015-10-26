@@ -24,12 +24,17 @@ public:
 	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag);
 	ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug);
 	virtual ~ReplaceMatchCallback();
+
+	bool debug() const { return debug_; }
+	clang::tooling::Replacements * Replace() { return replace_; }
+	std::string const & tag() const { return tag_; }
+
 private:
-	clang::tooling::Replacements *Replace;
+	clang::tooling::Replacements * replace_;
+	std::string tag_;
+	bool debug_;
 
 protected:
-	std::string tag;
-	bool debug_;
 
 	template <typename T>
 	void doRewrite(
@@ -41,9 +46,9 @@ protected:
 		if(origCode == newCode)
 			return;
 
-		if(!checkAndDumpRewrite(tag, sm, node, newCode))
+		if(!checkAndDumpRewrite(tag_, sm, node, newCode))
 			return;
-		Replace->insert(clang::tooling::Replacement(sm, node, newCode));
+		replace_->insert(clang::tooling::Replacement(sm, node, newCode));
 	}
 
 	template <typename T>
@@ -53,12 +58,12 @@ protected:
 			return false;
 		const FullSourceLoc FullLocation = FullSourceLoc(node->getLocStart(), sm);
 		if(FullLocation.getFileID() != sm.getMainFileID()) {
-			// llvm::errs() << tag << " skipping file: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
+			// llvm::errs() << tag_ << " skipping file: " << node->getSourceRange().getBegin().printToString(sm) << "\n";
 			return false;
 		}
 
 		if (debug_)
-			llvm::errs() << color("blue") << tag << " matched: " << node->getSourceRange().getBegin().printToString(sm) << color("") << "\n";
+			llvm::errs() << color("blue") << tag_ << " matched: " << node->getSourceRange().getBegin().printToString(sm) << color("") << "\n";
 
 		return true;
 	}

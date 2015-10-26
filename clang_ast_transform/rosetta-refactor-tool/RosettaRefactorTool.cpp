@@ -47,6 +47,10 @@
 #include "matchers/find/self_ptr_in_ctor.hh"
 #include "matchers/find/serialization_funcs.hh"
 
+#include "matchers/code_quality/bad_pointer_casts.hh"
+#include "matchers/code_quality/naked_ptr_op_casts.hh"
+#include "matchers/code_quality/obj_on_stack.hh"
+
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace llvm;
@@ -193,13 +197,13 @@ int RosettaRefactorTool::runMatchers() {
 
 		// Code quality checkers
 		if(matcher == "code_quality_check" || matcher == "naked_ptr_op_casts") {
-			#include "matchers/code_quality/naked_ptr_op_casts.hh"
+			add_naked_ptr_op_casts_finder( Finder, Replacements );
 		}
 		if(matcher == "code_quality_check" || matcher == "bad_pointer_casts") {
-			#include "matchers/code_quality/bad_pointer_casts.hh"
+			add_bad_pointer_cast_finder( Finder, Replacements );
 		}
 		if(matcher == "code_quality_check" || matcher == "obj_ob_stack") {
-			#include "matchers/code_quality/obj_on_stack.hh"
+			add_obj_on_stack_finder( Finder, Replacements );
 		}
 
 		// Rewriters

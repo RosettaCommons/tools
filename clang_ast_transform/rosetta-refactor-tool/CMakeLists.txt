@@ -27,6 +27,9 @@ add_clang_executable(rosetta-refactor-tool
   RosettaRefactorTool.cpp
   matchers_base
   utils
+  matchers/code_quality/bad_pointer_casts
+  matchers/code_quality/naked_ptr_op_casts
+  matchers/code_quality/obj_on_stack
   matchers/find/calls
   matchers/find/constructor_decl
   matchers/find/field_decl

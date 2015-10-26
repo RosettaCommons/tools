@@ -199,8 +199,8 @@ for resnum in resnum_list:
     if n_jumps > 0:
         for i in xrange(n_jumps):
             #obligate pairs
-            new_pos1 = chunks[i][-1]
-            new_pos2 = chunks[i+1][0]
+            new_pos1 = min( chunks[i][-1], chunks[i+1][0] )
+            new_pos2 = max( chunks[i][-1], chunks[i+1][0] )
             already_listed = False
             for m in range( len( obligate_pair)/2 ):
                 pos1 = obligate_pair[ 2*m ]

@@ -38,7 +38,10 @@ add_clang_executable(rosetta-refactor-tool
   matchers/find/serialization_funcs
   matchers/rewrite/add_serialization_code
   matchers/rewrite/call_operator
+  matchers/rewrite/cast_from_new
+  matchers/rewrite/cast_from_new_expr
   matchers/rewrite/cast_from_new_vardecl
+  matchers/rewrite/cast_in_assignment
 )
 
 target_link_libraries(rosetta-refactor-tool

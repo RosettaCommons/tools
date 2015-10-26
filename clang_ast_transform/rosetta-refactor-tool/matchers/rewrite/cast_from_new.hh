@@ -31,6 +31,11 @@ public:
 		clang::tooling::Replacements * Replace,
 		const char *tag = "CastFromNew");
 
+	RewriteCastFromNew(
+		clang::tooling::Replacements * Replace,
+		bool debug,
+		const char *tag = "CastFromNew");
+
 	void run(const clang::ast_matchers::MatchFinder::MatchResult & Result);
 };
 

@@ -59,7 +59,10 @@
 
 #include "matchers/rewrite/add_serialization_code.hh"
 #include "matchers/rewrite/call_operator.hh"
+#include "matchers/rewrite/cast_from_new.hh"
+#include "matchers/rewrite/cast_from_new_expr.hh"
 #include "matchers/rewrite/cast_from_new_vardecl.hh"
+#include "matchers/rewrite/cast_in_assignment.hh"
 
 
 using namespace clang;
@@ -85,8 +88,8 @@ cl::opt<bool> Colors(
 	cl::desc("Enable color output"),
 	cl::init(true));
 
-cl::opt<bool> DangarousRewrites(
-	"danganous-rewrites",
+cl::opt<bool> DangerousRewrites(
+	"dangenous-rewrites",
 	cl::desc("Enable dangarous matchers in the rewriter"),
 	cl::init(false));
 
@@ -206,13 +209,13 @@ int RosettaRefactorTool::runMatchers() {
 			add_cast_from_new_vardecl_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_expr") {
-			#include "matchers/rewrite/cast_from_new_expr.hh"
+			add_cast_from_new_expr_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
-			#include "matchers/rewrite/cast_from_new.hh"
+			add_cast_from_new_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
-			#include "matchers/rewrite/cast_in_assignment.hh"
+			add_cast_in_assignment_rewriter( Finder, Replacements, DangerousRewrites );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
 			#include "matchers/rewrite/ctor_initializer.hh"

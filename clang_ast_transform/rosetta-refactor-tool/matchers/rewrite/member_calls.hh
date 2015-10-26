@@ -11,7 +11,7 @@
 		}
 */
 
-if(DangarousRewrites) {
+if(DangerousRewrites) {
 
 class RewriteClassMemberCalls : public ReplaceMatchCallback {
 public:

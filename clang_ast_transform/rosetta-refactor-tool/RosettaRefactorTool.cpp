@@ -40,6 +40,12 @@
 #include <sstream>
 #include <sys/stat.h>
 
+// Code includes
+#include "utils.hh"
+#include "ast_matchers.hh"
+#include "matchers_base.hh"
+#include "RosettaRefactorTool.hh"
+
 #include "matchers/find/calls.hh"
 #include "matchers/find/constructor_decl.hh"
 #include "matchers/find/field_decl.hh"
@@ -50,6 +56,11 @@
 #include "matchers/code_quality/bad_pointer_casts.hh"
 #include "matchers/code_quality/naked_ptr_op_casts.hh"
 #include "matchers/code_quality/obj_on_stack.hh"
+
+#include "matchers/rewrite/add_serialization_code.hh"
+#include "matchers/rewrite/call_operator.hh"
+#include "matchers/rewrite/cast_from_new_vardecl.hh"
+
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -94,28 +105,6 @@ cl::list<std::string> SourcePaths(
 	cl::desc("<source0> [... <sourceN>]"),
 	cl::OneOrMore);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Code includes
-
-#include "utils.hh"
-#include "ast_matchers.hh"
-#include "matchers_base.hh"
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Main tool class
-
-class RosettaRefactorTool {
-
-public:
-	RosettaRefactorTool(int argc, const char **argv);
-	int Run();
-	int runMatchers();
-	int saveOutput();
-
-	std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
-	clang::tooling::RefactoringTool * Tool;
-	std::string prefix_, suffix_;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -192,7 +181,7 @@ int RosettaRefactorTool::runMatchers() {
 			add_constructor_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_serialized_members") {
-		  add_serialization_func_finder( Finder, Replacements );
+			add_serialization_func_finder( Finder, Replacements );
 		}
 
 		// Code quality checkers
@@ -214,7 +203,7 @@ int RosettaRefactorTool::runMatchers() {
 			#include "matchers/rewrite/pointer_name.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
-			#include "matchers/rewrite/cast_from_new_vardecl.hh"
+			add_cast_from_new_vardecl_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_expr") {
 			#include "matchers/rewrite/cast_from_new_expr.hh"
@@ -238,7 +227,7 @@ int RosettaRefactorTool::runMatchers() {
 			#include "matchers/rewrite/pose_dynamic_cast.hh"
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
-			#include "matchers/rewrite/call_operator.hh"
+			add_call_operator_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
 			#include "matchers/rewrite/member_calls.hh"
@@ -249,7 +238,7 @@ int RosettaRefactorTool::runMatchers() {
 
 		// Adders
 		if(matcher == "add_serialization_code") {
-			#include "matchers/rewrite/add_serialization_code.hh"
+			add_serialization_code_rewriter( Finder, Replacements, this );
 		}
 
 		if(matcher == "rewrite_not_operator") {

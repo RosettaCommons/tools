@@ -100,24 +100,42 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	SourceManager *sm = result.SourceManager;
 	const CXXOperatorCallExpr * opcall = result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
 	const MemberExpr * member_var = result.Nodes.getStmtAs<MemberExpr>("member");
-	//const CXXMethodDecl * save_method = result.Nodes.getStmtAs<CXXMethodDecl>("savemethod");
-	const FunctionTemplateDecl * method = result.Nodes.getStmtAs<FunctionTemplateDecl>("method");
+	const CXXMethodDecl * methdecl = result.Nodes.getStmtAs<CXXMethodDecl>("methdecl");
+	const FunctionTemplateDecl * tempfunc = result.Nodes.getStmtAs<FunctionTemplateDecl>("tempfunc");
+	//const ParmVarDecl * parmvardecl = result.Nodes.getStmtAs<ParmVarDecl>("vardecl");
 
 	if(!rewriteThisFile(opcall, *sm))
 		return;
+	std::string classname = methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	std::string varname = member_var->getMemberNameInfo().getAsString();
+	std::string funcname = tempfunc->getNameAsString();
+
+
+  if ( funcname == "save" && std::find( save_variables_.begin(), save_variables_.end(), std::make_pair( classname, varname )) != save_variables_.end() ) {
+		return;
+	}
+  if ( funcname == "load" && std::find( load_variables_.begin(), load_variables_.end(), std::make_pair( classname, varname )) != load_variables_.end() ) {
+		return;
+	}
+
 	//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
 	if ( verbose_ ) {
-		std::cout << "method:" << method << " " << member_var << " " << opcall << " ";
-		method->dump();
-
-		std::cout << std::endl;
-		//std::cout << save_method->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		//std::cout << "HIT!" << std::endl;
+		//std::cout << "templated function:" << tempfunc << " " << member_var << " " << opcall << " " << methdecl << std::endl;
+		std::cout << tempfunc->getNameAsString() << " " << classname << " " << varname << std::endl;
+		// tempfunc->dump();
+		// std::cout << "\n";
+		// methdecl->dump();
+		// std::cout << std::endl;
+		// std::cout << "parm: " << parmvardecl->getOriginalType().getAsString() << " " << parmvardecl->isTemplateDecl() << std::endl;
 		//
-		std::cout << " " << member_var->getMemberNameInfo().getAsString();
-		std::cout << std::endl;
-	} else { std::cout << "SMF being very quiet" << std::endl; }
+		//
+		// std::cout << " " << varname << " " << classname;
+		//std::cout << "----\n" << std::endl;
+	}// else { std::cout << "SMF being very quiet" << std::endl; }
 
-	save_variables_.insert( std::make_pair( member_var->getMemberNameInfo().getAsString(), member_var->getMemberNameInfo().getAsString() ));
+	if ( funcname == "save" )	save_variables_.insert( std::make_pair(classname, varname ));
+	if ( funcname == "load" ) load_variables_.insert( std::make_pair(classname, varname ));
 }
 
 SerializedMemberFinder::class_names  const & SerializedMemberFinder::classes_w_serialization_funcs() const
@@ -188,10 +206,11 @@ match_to_saved_data_members() {
 	return
 		memberExpr( hasParent( operatorCallExpr(
 			hasAncestor( functionTemplateDecl(
-				hasName("save"),
+				anyOf(hasName("save"),hasName("load"))
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
-				has( parmVarDecl( hasName( "Archive" ) ) )
-			).bind("method") )).bind("op_call"))
+				//,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType()) ).bind("vardecl") )).bind("methdecl") )
+				,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ).bind("vardecl") )).bind("methdecl") )
+			).bind("tempfunc") )).bind("op_call"))
 		).bind("member");
 }
 
@@ -215,6 +234,8 @@ add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang:
 	std::cout << "adding serialized member finder" << std::endl;
 	finder.addMatcher( match_to_saved_data_members(), new SerializedMemberFinder( replacements, true ) );
 }
+
+
 //Finder.addMatcher(
 //	recordDecl(
 //		hasParent(

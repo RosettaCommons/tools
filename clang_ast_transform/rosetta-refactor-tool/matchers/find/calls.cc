@@ -61,6 +61,7 @@ void CallsFinder::run(const clang::ast_matchers::MatchFinder::MatchResult &Resul
 
 	// TODO: retrieve enclosing namespace of caller and call node -- how?
 
+	if ( ! call->getDirectCallee() ) return;
 	const std::string callingMethodName = caller->getNameAsString();
 	const std::string calledMethodName = call->getDirectCallee()->getNameAsString();
 

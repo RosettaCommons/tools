@@ -20,21 +20,56 @@
 #include <utility>
 
 
-class SerializationFuncFinder : public ReplaceMatchCallback {
+class SerializationFunctionFinder : public ReplaceMatchCallback {
 private:
-	typedef std::set< std::pair< std::string, std::string > > data_members;
+	typedef std::set< std::string > class_names;
 
-	data_members save_variables_;
-	data_members load_variables_;
-
+	class_names  classes_w_serialization_funcs_;
+	bool verbose_;
 public:
-	SerializationFuncFinder( clang::tooling::Replacements * replace );
-	virtual ~SerializationFuncFinder();
+
+	SerializationFunctionFinder( clang::tooling::Replacements * replace, bool verbose );
+	virtual ~SerializationFunctionFinder();
 
 	// Main callback for all matches
 	virtual void run( clang::ast_matchers::MatchFinder::MatchResult const & result);
 
+	class_names const & classes_w_serialization_funcs() const;
+
 };
+
+clang::ast_matchers::DeclarationMatcher
+match_to_serialization_method();
+
+
+class SerializedMemberFinder : public ReplaceMatchCallback {
+private:
+	typedef std::set< std::pair< std::string, std::string > > data_members;
+	typedef std::set< std::string > class_names;
+
+	class_names  classes_w_serialization_funcs_;
+	data_members save_variables_;
+	data_members load_variables_;
+	bool verbose_;
+public:
+	SerializedMemberFinder( clang::tooling::Replacements * replace, bool verbose = false );
+	virtual ~SerializedMemberFinder();
+
+	// Main callback for all matches
+	virtual void run( clang::ast_matchers::MatchFinder::MatchResult const & result);
+
+	class_names const & classes_w_serialization_funcs() const;
+	data_members const & members_saved() const;
+	data_members const & members_loaded() const;
+
+};
+
+clang::ast_matchers::StatementMatcher
+match_to_saved_data_members();
+
+clang::ast_matchers::StatementMatcher
+match_to_loaded_data_members();
+
 
 void
 add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements );

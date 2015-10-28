@@ -15,7 +15,7 @@
 #include "clang/AST/DeclCXX.h"
 
 
-#include "../../RosettaRefactorTool.hh"
+#include "../../original_tool/RosettaRefactorTool.hh"
 #include "../../matchers_base.hh"
 
 #include <string>

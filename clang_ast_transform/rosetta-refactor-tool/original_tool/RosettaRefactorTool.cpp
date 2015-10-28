@@ -41,36 +41,36 @@
 #include <sys/stat.h>
 
 // Code includes
-#include "utils.hh"
-#include "ast_matchers.hh"
-#include "matchers_base.hh"
+#include "../utils.hh"
+#include "../ast_matchers.hh"
+#include "../matchers_base.hh"
 #include "RosettaRefactorTool.hh"
 
-#include "matchers/find/calls.hh"
-#include "matchers/find/constructor_decl.hh"
-#include "matchers/find/field_decl.hh"
-#include "matchers/find/record_decl.hh"
-#include "matchers/find/self_ptr_in_ctor.hh"
-#include "matchers/find/serialization_funcs.hh"
+#include "../matchers/find/calls.hh"
+#include "../matchers/find/constructor_decl.hh"
+#include "../matchers/find/field_decl.hh"
+#include "../matchers/find/record_decl.hh"
+#include "../matchers/find/self_ptr_in_ctor.hh"
+#include "../matchers/find/serialization_funcs.hh"
 
-#include "matchers/code_quality/bad_pointer_casts.hh"
-#include "matchers/code_quality/naked_ptr_op_casts.hh"
-#include "matchers/code_quality/obj_on_stack.hh"
+#include "../matchers/code_quality/bad_pointer_casts.hh"
+#include "../matchers/code_quality/naked_ptr_op_casts.hh"
+#include "../matchers/code_quality/obj_on_stack.hh"
 
-#include "matchers/rewrite/add_serialization_code.hh"
-#include "matchers/rewrite/call_operator.hh"
-#include "matchers/rewrite/cast_from_new.hh"
-#include "matchers/rewrite/cast_from_new_expr.hh"
-#include "matchers/rewrite/cast_from_new_vardecl.hh"
-#include "matchers/rewrite/cast_in_assignment.hh"
-#include "matchers/rewrite/ctor_initializer.hh"
-#include "matchers/rewrite/datamap_get.hh"
-#include "matchers/rewrite/dynamic_cast.hh"
-#include "matchers/rewrite/member_calls.hh"
-#include "matchers/rewrite/pointer_name.hh"
-#include "matchers/rewrite/real_comparison.hh"
-#include "matchers/rewrite/pose_dynamic_cast.hh"
-#include "matchers/rewrite/typedef.hh"
+#include "../matchers/rewrite/add_serialization_code.hh"
+#include "../matchers/rewrite/call_operator.hh"
+#include "../matchers/rewrite/cast_from_new.hh"
+#include "../matchers/rewrite/cast_from_new_expr.hh"
+#include "../matchers/rewrite/cast_from_new_vardecl.hh"
+#include "../matchers/rewrite/cast_in_assignment.hh"
+#include "../matchers/rewrite/ctor_initializer.hh"
+#include "../matchers/rewrite/datamap_get.hh"
+#include "../matchers/rewrite/dynamic_cast.hh"
+#include "../matchers/rewrite/member_calls.hh"
+#include "../matchers/rewrite/pointer_name.hh"
+#include "../matchers/rewrite/real_comparison.hh"
+#include "../matchers/rewrite/pose_dynamic_cast.hh"
+#include "../matchers/rewrite/typedef.hh"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -253,7 +253,7 @@ int RosettaRefactorTool::runMatchers() {
 
 		if(matcher == "rewrite_not_operator") {
 			// Not needed; see comment in file
-			#include "matchers/rewrite/not_operator.hh"
+			#include "../matchers/rewrite/not_operator.hh"
 		}
 	}
 

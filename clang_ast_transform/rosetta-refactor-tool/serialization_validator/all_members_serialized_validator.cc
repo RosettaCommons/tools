@@ -41,9 +41,9 @@
 #include <sys/stat.h>
 
 // Code includes
-#include "utils.hh"
-#include "ast_matchers.hh"
-#include "matchers_base.hh"
+#include "../utils.hh"
+#include "../ast_matchers.hh"
+#include "../matchers_base.hh"
 // #include "RosettaRefactorTool.hh"
 
 // #include "matchers/find/calls.hh"
@@ -51,7 +51,7 @@
 // #include "matchers/find/field_decl.hh"
 // #include "matchers/find/record_decl.hh"
 // #include "matchers/find/self_ptr_in_ctor.hh"
-#include "matchers/find/serialization_funcs.hh"
+#include "../matchers/find/serialization_funcs.hh"
 
 // #include "matchers/code_quality/bad_pointer_casts.hh"
 // #include "matchers/code_quality/naked_ptr_op_casts.hh"
@@ -100,11 +100,11 @@ cl::opt<bool> DangerousRewrites(
 	cl::desc("Enable dangarous matchers in the rewriter"),
 	cl::init(false));
 
-cl::list<std::string> Matchers(
-	"matchers",
-	cl::CommaSeparated,
-	cl::OneOrMore,
-	cl::desc("Comma-separated list of matchers to apply"));
+// cl::list<std::string> Matchers(
+// 	"matchers",
+// 	cl::CommaSeparated,
+// 	cl::OneOrMore,
+// 	cl::desc("Comma-separated list of matchers to apply"));
 
 cl::opt<std::string> BuildPath(
 	cl::Positional,
@@ -116,8 +116,9 @@ cl::list<std::string> SourcePaths(
 	cl::OneOrMore);
 
 std::unique_ptr< clang::tooling::CompilationDatabase >
-compilation_database_from_commandline( int argc, const char **argv ) 
+compilation_database_from_commandline( int argc, const char **argv )
 {
+	using namespace clang::tooling;
 	std::unique_ptr< CompilationDatabase > compilations;
 	llvm::sys::PrintStackTraceOnErrorSignal();
 	{
@@ -146,13 +147,12 @@ int main(int argc, const char **argv) {
 	ast_matchers::MatchFinder finder;
 	tooling::Replacements * replacements = &(tool->getReplacements());
 
-	SerializedMemberFinder smf( replacements );
-	SerializationFunctionFinder sff( replacements );
+	SerializedMemberFinder smf( replacements, true );
+	SerializationFunctionFinder sff( replacements, true );
 
 	finder.addMatcher( match_to_serialization_method(), &sff );
 	finder.addMatcher( match_to_saved_data_members(),   &smf );
 	finder.addMatcher( match_to_loaded_data_members(),  &smf );
 
-	return tool->run( newFrontendActionFactory(&finder).get() )
+	return tool->run( newFrontendActionFactory(&finder).get() );
 }
-

@@ -60,7 +60,7 @@ void CallsFinder::run(const clang::ast_matchers::MatchFinder::MatchResult &Resul
 		return;
 
 	// TODO: retrieve enclosing namespace of caller and call node -- how?
-	
+
 	const std::string callingMethodName = caller->getNameAsString();
 	const std::string calledMethodName = call->getDirectCallee()->getNameAsString();
 
@@ -158,4 +158,3 @@ CXXMethodDecl 0x380a590 </local/luki/tools/clang_ast_transform/test-cases.cc:213
 |                 `-ImplicitCastExpr 0x29a0608 <col:19, col:27> 'ClassBOP (*)(void)' <FunctionToPointerDecay>
 |                   `-DeclRefExpr 0x29a05d0 <col:19, col:27> 'ClassBOP (void)' lvalue CXXMethod 0x292cdd0 'factory' 'ClassBOP (void)'
 */
-

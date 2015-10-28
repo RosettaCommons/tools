@@ -212,8 +212,8 @@ match_to_loaded_data_members() {
 void
 add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements ) {
 	using namespace clang;
-
-	finder.addMatcher( match_to_saved_data_members(), new SerializedMemberFinder( replacements ) );
+	std::cout << "adding serialized member finder" << std::endl;
+	finder.addMatcher( match_to_saved_data_members(), new SerializedMemberFinder( replacements, true ) );
 }
 //Finder.addMatcher(
 //	recordDecl(

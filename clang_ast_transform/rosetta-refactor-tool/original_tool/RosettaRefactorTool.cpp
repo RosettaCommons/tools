@@ -81,7 +81,7 @@ using clang::tooling::Replacement;
 // Command line options
 
 cl::opt<bool> Debug(
-	"debug",
+	"debug_rrt",
 	cl::desc("Enable debugging output"),
 	cl::init(false));
 
@@ -191,6 +191,7 @@ int RosettaRefactorTool::runMatchers() {
 			add_constructor_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_serialized_members") {
+			std::cout << "Calling add_serialization_func_finder" << std::endl;
 			add_serialization_func_finder( Finder, Replacements );
 		}
 

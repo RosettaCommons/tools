@@ -39,7 +39,7 @@ public:
 };
 
 clang::ast_matchers::DeclarationMatcher
-match_to_serialization_method();
+match_to_serialization_method_definition();
 
 
 class SerializedMemberFinder : public ReplaceMatchCallback {
@@ -66,6 +66,9 @@ public:
 
 clang::ast_matchers::StatementMatcher
 match_to_serialized_data_members();
+
+clang::ast_matchers::StatementMatcher
+match_to_externally_serialized_data_members();
 
 void
 add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements );

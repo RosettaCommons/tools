@@ -48,18 +48,28 @@ SerializationFunctionFinder::run( clang::ast_matchers::MatchFinder::MatchResult 
 	using namespace clang;
 
 	SourceManager *sm = result.SourceManager;
-	FunctionTemplateDecl const * method = result.Nodes.getStmtAs<FunctionTemplateDecl>("method");
-	RecordDecl const * recdecl = result.Nodes.getStmtAs<RecordDecl>("class");
+	FunctionTemplateDecl const * temp_decl = result.Nodes.getStmtAs<FunctionTemplateDecl>("temp_decl");
+	CXXMethodDecl const * meth_decl = result.Nodes.getStmtAs<CXXMethodDecl>("method_decl");
+	ReferenceType const * ref_to_serialized_class = result.Nodes.getStmtAs<ReferenceType>("serialized_class_type");
 
-	if(!rewriteThisFile(recdecl, *sm))
+	if(!rewriteThisFile(temp_decl, *sm))
 		return;
 
-	std::string classname = recdecl->getCanonicalDecl()->getKindName();
+	std::string classname;
+	if ( meth_decl ) {
+		classname = meth_decl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	} else {
+		classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	}
+
 	if ( verbose_ ) {
-		std::cout << "Found serialization function for record: " << classname << std::endl;
-		method->dump();
+		if ( classes_w_serialization_funcs_.find( classname ) == classes_w_serialization_funcs_.end() ) {
+			std::cout << "Found serialization function for record: " << classname << std::endl;
+		}
+		//temp_decl->dump();
 	} else { std::cout << "SFF being very quiet" << std::endl; }
 
+	classes_w_serialization_funcs_.insert( classname );
 }
 
 SerializationFunctionFinder::class_names const &
@@ -69,13 +79,19 @@ SerializationFunctionFinder::classes_w_serialization_funcs() const
 }
 
 clang::ast_matchers::DeclarationMatcher
-match_to_serialization_method()
+match_to_serialization_method_definition()
 {
 	using namespace clang::ast_matchers;
-	return functionTemplateDecl( anyOf( hasName( "save"), hasName("load"),hasName( "load_and_construct") ),
-		has( parmVarDecl( hasName( "Archive" ) ) ),
-		hasAncestor( recordDecl().bind( "class" ) )
-	).bind( "method" );
+	return functionTemplateDecl(
+		anyOf( hasName( "save"), hasName("load"),hasName( "load_and_construct") )
+		,hasDescendant( parmVarDecl( hasType( referenceType(pointee(asString("Archive" ))))))
+		,anyOf(
+			hasDescendant( methodDecl(isDefinition()).bind( "method_decl" )),
+			hasDescendant( functionDecl(
+				parameterCountIs(2)
+				,hasParameter(1,parmVarDecl(hasType( referenceType().bind("serialized_class_type"))))
+			)))
+	).bind( "temp_decl" );
 
 }
 
@@ -112,10 +128,10 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	 classname = methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
 	} else {
 		classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
-		std::cout << "ref_to_serialized_class:" << classname << std::endl;
+		//std::cout << "ref_to_serialized_class:" << classname << std::endl;
 		//vardecl->dump();
 		//tempfunc->dump();
-		std::cout << "\n\n";
+		//std::cout << "\n\n";
 	}
 	std::string varname = member_var->getMemberNameInfo().getAsString();
 	std::string funcname = tempfunc->getNameAsString();

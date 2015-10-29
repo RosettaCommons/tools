@@ -150,9 +150,8 @@ int main(int argc, const char **argv) {
 	SerializedMemberFinder smf( replacements, true );
 	SerializationFunctionFinder sff( replacements, true );
 
-	finder.addMatcher( match_to_serialization_method(), &sff );
-	finder.addMatcher( match_to_saved_data_members(),   &smf );
-	finder.addMatcher( match_to_loaded_data_members(),  &smf );
+	finder.addMatcher( match_to_serialization_method(),    &sff );
+	finder.addMatcher( match_to_serialized_data_members(), &smf );
 
 	return tool->run( newFrontendActionFactory(&finder).get() );
 }

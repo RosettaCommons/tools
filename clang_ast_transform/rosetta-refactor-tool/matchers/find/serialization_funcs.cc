@@ -98,23 +98,33 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	using namespace clang;
 
 	SourceManager *sm = result.SourceManager;
-	const CXXOperatorCallExpr * opcall = result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
+	// const CXXOperatorCallExpr * opcall = result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
 	const MemberExpr * member_var = result.Nodes.getStmtAs<MemberExpr>("member");
 	const CXXMethodDecl * methdecl = result.Nodes.getStmtAs<CXXMethodDecl>("methdecl");
 	const FunctionTemplateDecl * tempfunc = result.Nodes.getStmtAs<FunctionTemplateDecl>("tempfunc");
-	//const ParmVarDecl * parmvardecl = result.Nodes.getStmtAs<ParmVarDecl>("vardecl");
+	const ReferenceType * ref_to_serialized_class = result.Nodes.getStmtAs<ReferenceType>("serialized_class_type");
 
-	if(!rewriteThisFile(opcall, *sm))
+
+	if(!rewriteThisFile(member_var, *sm))
 		return;
-	std::string classname = methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	std::string classname;
+	if ( methdecl ) {
+	 classname = methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+	} else {
+		classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		std::cout << "ref_to_serialized_class:" << classname << std::endl;
+		//vardecl->dump();
+		//tempfunc->dump();
+		std::cout << "\n\n";
+	}
 	std::string varname = member_var->getMemberNameInfo().getAsString();
 	std::string funcname = tempfunc->getNameAsString();
 
 
-  if ( funcname == "save" && std::find( save_variables_.begin(), save_variables_.end(), std::make_pair( classname, varname )) != save_variables_.end() ) {
+  if ( funcname == "save" && save_variables_.find( std::make_pair( classname, varname )) != save_variables_.end() ) {
 		return;
 	}
-  if ( funcname == "load" && std::find( load_variables_.begin(), load_variables_.end(), std::make_pair( classname, varname )) != load_variables_.end() ) {
+  if ( funcname == "load" && load_variables_.find( std::make_pair( classname, varname )) != load_variables_.end() ) {
 		return;
 	}
 
@@ -200,39 +210,48 @@ SerializedMemberFinder::data_members const & SerializedMemberFinder::members_loa
 //
 
 clang::ast_matchers::StatementMatcher
-match_to_saved_data_members() {
+match_to_serialized_data_members() {
 	using namespace clang::ast_matchers;
 
 	return
-		memberExpr( hasParent( operatorCallExpr(
+		memberExpr(
 			hasAncestor( functionTemplateDecl(
-				anyOf(hasName("save"),hasName("load"))
+				anyOf(hasName("save"),hasName("load")),
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
 				//,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType()) ).bind("vardecl") )).bind("methdecl") )
-				,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ).bind("vardecl") )).bind("methdecl") )
-			).bind("tempfunc") )).bind("op_call"))
+				has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ).bind("vardecl") )).bind("methdecl") )
+			).bind("tempfunc") )
 		).bind("member");
 }
 
+// look for member variables that are referred to in "external" (i.e. non-member function) save and load methods
 clang::ast_matchers::StatementMatcher
-match_to_loaded_data_members() {
+match_to_externally_serialized_data_members() {
 	using namespace clang::ast_matchers;
 
 	return
-		memberExpr( hasParent( operatorCallExpr(
+		memberExpr(
 			hasAncestor( functionTemplateDecl(
-				hasName("load"),
+				anyOf(hasName("save"),hasName("load")),
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
-				has( parmVarDecl( hasName( "Archive" ) ) )
-			).bind("method") )).bind("op_call"))
+				//,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType()) ).bind("vardecl") )).bind("methdecl") )
+				hasDescendant( functionDecl(
+					hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ) )
+					,parameterCountIs( 2 )
+					,hasParameter(1,parmVarDecl(hasType( referenceType().bind("serialized_class_type"))))
+				))
+			).bind("tempfunc") )
 		).bind("member");
 }
+
 
 void
 add_serialization_func_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements ) {
 	using namespace clang;
 	std::cout << "adding serialized member finder" << std::endl;
-	finder.addMatcher( match_to_saved_data_members(), new SerializedMemberFinder( replacements, true ) );
+	SerializedMemberFinder * smf = new SerializedMemberFinder( replacements, true );
+	finder.addMatcher( match_to_serialized_data_members(), smf );
+	finder.addMatcher( match_to_externally_serialized_data_members(), smf );
 }
 
 

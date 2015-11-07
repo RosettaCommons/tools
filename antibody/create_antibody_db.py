@@ -256,6 +256,20 @@ def create_cdr_test_data():
         r['heavy_chain_sequence'] = read_fasta_file('test/%s/query_h.fasta' % t)[0]
         r['light_chain_sequence'] = read_fasta_file('test/%s/query_l.fasta' % t)[0]
 
+        for chain in [ 'L', 'H' ]:
+            sequence = []
+            numbering = []
+            for line in file( 'test/{}/numbering_{}.txt'.format(t, chain) ):
+                aa, num = line.split()
+                sequence.append(aa)
+                numbering.append(num)
+
+            key = dict(H='heavy', L='light')[chain]
+
+            r['trimmed_' + key + '_sequence'] = ''.join(sequence)
+            r['trimmed_' + key + '_numbering'] = ' '.join(numbering)
+
+
         data[ t.lower() ] = r
 
     with file('info/cdr-test-data.json', 'w') as f: json.dump(data, f, sort_keys=True, indent=2)

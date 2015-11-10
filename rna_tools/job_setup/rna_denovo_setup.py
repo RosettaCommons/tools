@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct
+from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_and_secstruct, get_all_stems
 from sys import argv
 from os import system, getcwd
 from os.path import exists, dirname, basename
@@ -12,6 +12,12 @@ from rosetta_exe import rosetta_exe
 # I could make this a little bit smarter:
 # if I look at input_res, I should be able to figure out obligate pairs "on the fly", right? This
 #  could either happen here, or within Rosetta.
+
+def flatten(l):
+    new_l = []
+    for e in l:
+        new_l.extend(e)
+    return new_l
 
 def Help():
     print
@@ -29,6 +35,7 @@ out_script = parse_options( argv, "out_script", "README_FARFAR" )
 nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
+secstruct_general = parse_options( argv, "secstruct_general", "")
 working_res = parse_options( argv, "working_res", [-1] )
 offset = parse_options( argv, "offset", 0 )
 tag = parse_options( argv, 'tag', "" )
@@ -54,6 +61,7 @@ obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [""] )
+bps_moves = parse_options( argv, "bps_moves", False )
 
 system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
@@ -64,6 +72,7 @@ system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- wi
 extra_args = ""
 if len( argv ) > 1: extra_args = string.join( argv[1:] )
 
+if len(secstruct_general) > 0 and bps_moves
 
 def is_even( num ):
     return (  2 * (num/2) == num ) # even
@@ -86,6 +95,8 @@ if len( secstruct_file ) > 0 :
 
 if len( secstruct ) == 0:
     for m in range(len(sequence)): secstruct += '.'
+if len( secstruct_general ) == 0:
+    for m in range(len(sequence)): secstruct_general += '.'
 
 if( not len( sequence ) == len( secstruct )):
     print sequence
@@ -108,18 +119,22 @@ for m in remove_pair:
 if len(working_res) <= 1:
     working_sequence = sequence
     working_secstruct = secstruct
+    working_secstruct_general = secstruct_general
     working_res = [i + 1 + offset for i in xrange(len(working_sequence))]
 else:# slice out the residues.
     working_sequence = ''
     working_secstruct = ''
+    working_secstruct_general = ''
     working_res.sort()
     for i in range(len(working_res)):
         m = working_res[ i ]
         if i > 0 and m > working_res[ i-1 ] + 1:
             working_sequence  += ' '
             working_secstruct += ' '
+            working_secstruct_general += ' '
         working_sequence  += sequence[  m-1-offset ]
         working_secstruct += secstruct[ m-1-offset ]
+        working_secstruct_general += secstruct_general[ m-1-offset ]
 
 print working_sequence
 print working_secstruct
@@ -219,6 +234,15 @@ for m in input_res:
         raise ValueError('Input residue %s not in working_res!!' % m)
     i = working_res.index( m )
     working_input_res.append( i+1 )
+
+stems = get_all_stems(working_secstruct)
+canonical_pairs = flatten(stems)
+stems = get_all_stems(working_secstruct_general)
+general_pairs = flatten(stems)
+
+for p in general_pairs:
+    if p not in canonical_pairs:
+        obligate_pair.extend(p)
 
 fasta_file_outstring, params_file_outstring = \
     prepare_fasta_and_params_file_from_sequence_and_secstruct(

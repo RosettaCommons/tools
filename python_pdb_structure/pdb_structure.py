@@ -152,9 +152,9 @@ class PDBStructure :
         zstr = line[ self.pdb_zcoord_range()[0]:self.pdb_zcoord_range()[1] ]
         return vector3d( float(xstr), float(ystr),float(zstr))
     def occupancy_from_pdbline( self, line ):
-        return float( line[ self.pdb_occupancy_range()[0]:self.pdb_occupancy_range()[1] ] )
+        return 1.0 if len(line) < self.pdb_occupancy_range()[1] else float( line[ self.pdb_occupancy_range()[0]:self.pdb_occupancy_range()[1] ] )
     def bfactor_from_pdbline( self, line ):
-        return float( line[ self.pdb_bfactor_range()[0]:self.pdb_bfactor_range()[1] ] )
+        return 0.0 if len(line) < self.pdb_bfactor_range()[1] else float( line[ self.pdb_bfactor_range()[0]:self.pdb_bfactor_range()[1] ] )
 
     def pdb_lines( self ) :
         lines = []

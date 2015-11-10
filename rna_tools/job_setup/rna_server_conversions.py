@@ -92,7 +92,6 @@ def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstru
 
     return ( fasta_file_outstring, params_file_outstring )
 
-
 def output_stems( stems, fixed_stems = False, input_res = None ):
     outstring = ''
     for stem_res in stems:

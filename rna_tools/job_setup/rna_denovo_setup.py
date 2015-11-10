@@ -72,7 +72,8 @@ system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- wi
 extra_args = ""
 if len( argv ) > 1: extra_args = string.join( argv[1:] )
 
-if len(secstruct_general) > 0 and bps_moves
+if len(secstruct_general) > 0 and not bps_moves:
+    raise ValueError("cannot supply secstruct_general without bps_moves")
 
 def is_even( num ):
     return (  2 * (num/2) == num ) # even
@@ -533,6 +534,9 @@ if len( working_cst_file ) > 0:
 
 if len( working_data_file ) > 0:
     command += " -data_file " + working_data_file
+
+if bps_moves:
+    command += " -bps_moves "
 
 command += ' ' + extra_args
 

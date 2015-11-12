@@ -297,9 +297,9 @@ for infile in infiles:
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
         else:
-            command += " -out:file:residue_type_set rna "
+            #command += " -out:file:residue_type_set rna "
             # will default to fa_standard, which holds rna residue types now.
-            command += " -chemical:patch_selectors VIRTUAL_RNA_RESIDUE VIRTUAL_PHOSPHATE VIRTUAL_RIBOSE "
+            #command += " -chemical:patch_selectors VIRTUAL_RNA_RESIDUE VIRTUAL_PHOSPHATE VIRTUAL_RIBOSE "
             pass
 
         if output_virtual: command += " -output_virtual "

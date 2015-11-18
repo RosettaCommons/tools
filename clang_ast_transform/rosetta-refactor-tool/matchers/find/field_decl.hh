@@ -21,15 +21,43 @@
 	result in bad_weak_ptr exception at runtime.
 */
 
+class FieldDeclaration {
+public:
+	std::string full_name_;
+	std::string var_name_;
+	std::string type_;
+	std::string type_desugared_;
+	std::string cls_;
+	std::string loc_;
+	clang::CharSourceRange range_;
+	unsigned int start_;
+	unsigned int end_;
+};
+
 class FieldDeclFinder : public ReplaceMatchCallback {
 
 public:
 	FieldDeclFinder(clang::tooling::Replacements *Replace);
+	FieldDeclFinder(clang::tooling::Replacements *Replace, bool verbose, bool match_target_file_only );
 
 	// Main callback for all matches
 	virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &Result);
 
+	std::list< std::string >
+	all_classes_with_fields() const;
+
+	std::list< FieldDeclaration >
+	fields_for_class( std::string const & classname ) const;
+
+private:
+	bool verbose_;
+	bool match_target_file_only_;
+	std::map< std::string, std::list< FieldDeclaration > > class_fields_;
+
 };
+
+clang::ast_matchers::DeclarationMatcher
+match_to_field_decl();
 
 void
 add_field_decl_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements );

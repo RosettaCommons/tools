@@ -48,7 +48,7 @@
 
 // #include "matchers/find/calls.hh"
 // #include "matchers/find/constructor_decl.hh"
-// #include "matchers/find/field_decl.hh"
+#include "../matchers/find/field_decl.hh"
 // #include "matchers/find/record_decl.hh"
 // #include "matchers/find/self_ptr_in_ctor.hh"
 #include "../matchers/find/serialization_funcs.hh"
@@ -138,6 +138,69 @@ compilation_database_from_commandline( int argc, const char **argv )
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int
+identify_datamembers_not_serialized(
+	SerializationFunctionFinder const & sff,
+	SerializedMemberFinder const & smf,
+	FieldDeclFinder const & fdf
+)
+{
+	SerializationFunctionFinder::class_names const & classes_w_serialization_funcs =
+		sff.classes_w_serialization_funcs();
+
+	SerializedMemberFinder::data_members const & saved_variables( smf.members_saved() );
+	SerializedMemberFinder::data_members const & loaded_variables( smf.members_loaded() );
+
+	SerializationFunctionFinder::data_members const & exempted_save_variables( sff.exempted_members_from_save() );
+	SerializationFunctionFinder::data_members const & exempted_load_variables( sff.exempted_members_from_load() );
+
+
+	std::list< std::string > classes_w_fields = fdf.all_classes_with_fields();
+	// for ( std::list< std::string >::const_iterator
+	// 				iter = classes_w_fields.begin(), iter_end = classes_w_fields.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Class with fields: " << *iter << std::endl;
+	// }
+	//
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = saved_variables.begin(), iter_end = saved_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Saved variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	//
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = loaded_variables.begin(), iter_end = loaded_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Loaded variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+
+	bool any_missed = false;
+	for ( SerializationFunctionFinder::class_names::const_iterator
+			class_iter = classes_w_serialization_funcs.begin(),
+			class_iter_end = classes_w_serialization_funcs.end();
+			class_iter != class_iter_end; ++class_iter ) {
+		//std::cout << "Examining class " << *class_iter << std::endl;
+		std::list< FieldDeclaration > fields = fdf.fields_for_class( *class_iter );
+		for ( std::list< FieldDeclaration >::const_iterator
+				field_iter = fields.begin(), field_iter_end = fields.end();
+				field_iter != field_iter_end; ++field_iter ) {
+			//std::cout << "  Examining field " << field_iter->var_name_ << std::endl;
+			std::pair< std::string, std::string > class_field_pair( std::make_pair( *class_iter, field_iter->var_name_ ) );
+			if ( saved_variables.find( class_field_pair ) == saved_variables.end() &&
+					exempted_save_variables.find( class_field_pair ) == exempted_save_variables.end() ) {
+				std::cout << "Data mameber of class " << *class_iter << " named " << field_iter->var_name_ << " was not saved" << std::endl;
+				any_missed = true;
+			}
+			if ( loaded_variables.find( class_field_pair ) == loaded_variables.end() &&
+					exempted_load_variables.find( class_field_pair ) == exempted_load_variables.end() ) {
+				std::cout << "Data mameber of class " << *class_iter << " named " << field_iter->var_name_ << " was not loaded" << std::endl;
+				any_missed = true;
+			}
+		}
+	}
+	return any_missed;
+}
+
 int main(int argc, const char **argv) {
 
 	using namespace clang::tooling;
@@ -147,12 +210,23 @@ int main(int argc, const char **argv) {
 	ast_matchers::MatchFinder finder;
 	tooling::Replacements * replacements = &(tool->getReplacements());
 
-	SerializedMemberFinder smf( replacements, true );
-	SerializationFunctionFinder sff( replacements, true );
+	SerializationFunctionFinder sff( replacements, false );
+	SerializedMemberFinder smf( replacements, false );
+	FieldDeclFinder fdf(
+		replacements,
+		false /* not verbose */,
+		false /*look for fields in all files, not just the target file */ );
 
 	finder.addMatcher( match_to_serialization_method_definition(), &sff );
 	finder.addMatcher( match_to_serialized_data_members(), &smf );
 	finder.addMatcher( match_to_externally_serialized_data_members(), &smf );
+	finder.addMatcher( match_to_field_decl(), &fdf );
 
-	return tool->run( newFrontendActionFactory(&finder).get() );
+	int run_result = tool->run( newFrontendActionFactory(&finder).get() );
+	if ( run_result != 0 ) {
+		return run_result;
+	}
+
+	int some_members_forgotten = identify_datamembers_not_serialized( sff, smf, fdf );
+	return some_members_forgotten;
 }

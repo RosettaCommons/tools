@@ -13,7 +13,7 @@
 ReplaceMatchCallback::ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag)
 	: replace_(Replace), tag_(tag), debug_( false )
 {
-	std::cout << "Setting debug to false" << std::endl;
+	//std::cout << "Setting debug to false" << std::endl;
 }
 
 ReplaceMatchCallback::ReplaceMatchCallback(clang::tooling::Replacements *Replace, const char *tag, bool debug)

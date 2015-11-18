@@ -20,20 +20,35 @@
 #include "clang/Basic/SourceManager.h"
 
 #include <string>
+#include <iostream>
 
 using namespace clang;
 
+// Default behavior for the class is to report to the screen the fields declared in a single
+// target file.  With the other constructor, it's possible to indicate that all files that are
+// #included from the target file should be examined, and it's possible to say that the fields
+// should not be written out to the screen.
 FieldDeclFinder::FieldDeclFinder(tooling::Replacements *Replace) :
-	ReplaceMatchCallback(Replace, "FieldDeclFinder")
-	{}
+	ReplaceMatchCallback(Replace, "FieldDeclFinder"),
+	verbose_( true ),
+	match_target_file_only_( true )
+{}
+
+FieldDeclFinder::FieldDeclFinder(tooling::Replacements *Replace, bool verbose, bool match_target_file_only ) :
+	ReplaceMatchCallback(Replace, "FieldDeclFinder"),
+	verbose_( verbose ),
+	match_target_file_only_( match_target_file_only )
+{}
 
 // Main callback for all matches
-void FieldDeclFinder::run(const ast_matchers::MatchFinder::MatchResult &Result) {
+void FieldDeclFinder::run(const ast_matchers::MatchFinder::MatchResult & Result) {
 
 	SourceManager *sm = Result.SourceManager;
 	const FieldDecl *decl = Result.Nodes.getStmtAs<FieldDecl>("fielddecl");
-	if(!rewriteThisFile(decl, *sm))
+
+	if( match_target_file_only_ && !rewriteThisFile(decl, *sm)) {
 		return;
+	}
 
 	const std::string type(
 		QualType::getAsString( decl->getType().split() )
@@ -52,27 +67,68 @@ void FieldDeclFinder::run(const ast_matchers::MatchFinder::MatchResult &Result) 
 	std::pair<FileID, unsigned> Start = sm->getDecomposedLoc(SpellingBegin);
 	std::pair<FileID, unsigned> End = sm->getDecomposedLoc(SpellingEnd);
 
-	llvm::outs()
-		<< "field" << "\t"
-		<< name << "\t"
-		<< cls << "\t"
-		<< loc << "\t"
-		<< Start.second << "-" << End.second << "\t"
-		<< type << "\t"
-		<< typeD << "\t"
-		;
-	llvm::outs() << "\n";
+	if ( verbose_ ) {
+		llvm::outs()
+			<< "field" << "\t"
+			<< name << "\t"
+			<< cls << "\t"
+			<< loc << "\t"
+			<< Start.second << "-" << End.second << "\t"
+			<< type << "\t"
+			<< typeD << "\t"
+			;
+		llvm::outs() << "\n";
+	}
+	FieldDeclaration fd;
+	fd.full_name_ = name;
+	fd.var_name_ = name.substr( cls.size()+2 );
+	fd.type_ = type;
+	fd.type_desugared_ = typeD;
+	fd.cls_ = cls;
+	fd.loc_ = loc;
+	fd.range_ = range;
+	fd.start_ = Start.second;
+	fd.end_ = End.second;
+
+	class_fields_[ cls ].push_back( fd );
+}
+
+std::list< std::string >
+FieldDeclFinder::all_classes_with_fields() const
+{
+	std::list< std::string > classnames;
+	for ( std::map< std::string, std::list< FieldDeclaration > >::const_iterator
+					iter = class_fields_.begin(), iter_end = class_fields_.end();
+				iter != iter_end; ++iter ) {
+		classnames.push_back( iter->first );
+	}
+	return classnames;
+}
+
+
+std::list< FieldDeclaration >
+FieldDeclFinder::fields_for_class( std::string const & classname ) const
+{
+	if ( class_fields_.find( classname ) == class_fields_.end() ) {
+		std::cout << "Didn't find any fields for the requested class! " << classname << std::endl;
+		std::list< FieldDeclaration > empty_list;
+		return empty_list;
+	} else {
+		return class_fields_.find( classname )->second;
+	}
+}
+
+clang::ast_matchers::DeclarationMatcher
+match_to_field_decl()
+{
+	using namespace clang::ast_matchers;
+	return fieldDecl().bind("fielddecl");
+
 }
 
 void
 add_field_decl_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements )
 {
-
-	using namespace clang::ast_matchers;
-
 	FieldDeclFinder *cb = new FieldDeclFinder(replacements);
-
-	finder.addMatcher(
-		fieldDecl().bind("fielddecl"),
-		cb);
+	finder.addMatcher( match_to_field_decl(),	cb);
 }

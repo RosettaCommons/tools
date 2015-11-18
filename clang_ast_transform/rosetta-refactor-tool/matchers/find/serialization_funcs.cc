@@ -34,6 +34,15 @@
 #include <sstream>
 #include <sys/stat.h>
 
+std::string
+no_class( std::string const & name_for_type ) {
+	if ( name_for_type.compare( 0, 5, "class " ) ) {
+		return name_for_type.substr( 6 );
+	} else {
+		return name_for_type;
+	}
+}
+
 SerializationFunctionFinder::SerializationFunctionFinder( clang::tooling::Replacements * replace, bool verbose ) :
 	ReplaceMatchCallback( replace, "SerializationFuncFinder" ),
 	verbose_( verbose )
@@ -55,11 +64,15 @@ SerializationFunctionFinder::run( clang::ast_matchers::MatchFinder::MatchResult 
 	if(!rewriteThisFile(temp_decl, *sm))
 		return;
 
+	//std::cout << "function body! " << func_body << std::endl;
+
 	std::string classname;
 	if ( meth_decl ) {
-		classname = meth_decl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		//classname = meth_decl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		classname = no_class( meth_decl->getThisType( *result.Context )->getPointeeType().getUnqualifiedType().getAsString() );
 	} else {
-		classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		//classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		classname = no_class( ref_to_serialized_class->getPointeeType().getUnqualifiedType().getAsString() );
 	}
 
 	if ( verbose_ ) {
@@ -67,9 +80,40 @@ SerializationFunctionFinder::run( clang::ast_matchers::MatchFinder::MatchResult 
 			std::cout << "Found serialization function for record: " << classname << std::endl;
 		}
 		//temp_decl->dump();
-	} else { std::cout << "SFF being very quiet" << std::endl; }
+	} else { /*std::cout << "SFF being very quiet" << std::endl;*/ }
 
 	classes_w_serialization_funcs_.insert( classname );
+
+	std::string funcname = temp_decl->getNameAsString();
+	bool is_save( funcname == "save" );
+
+	clang::SourceLocation begin( temp_decl->getSourceRange().getBegin() ), end( temp_decl->getSourceRange().getEnd() );
+	clang::SourceLocation endend( clang::Lexer::getLocForEndOfToken( end, 0, *sm, LangOptions() ));
+	char const * bptr( sm->getCharacterData( begin ));
+	char const * eptr( sm->getCharacterData( endend ));
+	std::string func_body( bptr, eptr-bptr );
+
+	int start_pos = 0;
+	while ( func_body.find( "// EXEMPT", start_pos ) != std::string::npos ) {
+		start_pos = func_body.find( "// EXEMPT", start_pos );
+		//std::cout << "start pos " << start_pos;
+		int eol = func_body.find( "\n", start_pos );
+		//std::cout << " eol " << eol << std::endl;
+		std::string exempt_line( func_body.substr( start_pos+9, eol-start_pos ));
+		start_pos = eol;
+		//std::cout << "exempt line: " << exempt_line << std::endl;
+		std::istringstream iss( exempt_line );
+		std::string varname;
+		while ( iss ) {
+			iss >> varname;
+			if ( is_save ) {
+				save_members_exempted_.insert( std::make_pair( classname, varname ));
+			} else {
+				load_members_exempted_.insert( std::make_pair( classname, varname ));
+			}
+		}
+	}
+
 }
 
 SerializationFunctionFinder::class_names const &
@@ -77,6 +121,19 @@ SerializationFunctionFinder::classes_w_serialization_funcs() const
 {
 	return classes_w_serialization_funcs_;
 }
+
+SerializationFunctionFinder::data_members const &
+SerializationFunctionFinder::exempted_members_from_save() const
+{
+	return save_members_exempted_;
+}
+
+SerializationFunctionFinder::data_members const &
+SerializationFunctionFinder::exempted_members_from_load() const
+{
+	return load_members_exempted_;
+}
+
 
 clang::ast_matchers::DeclarationMatcher
 match_to_serialization_method_definition()
@@ -125,9 +182,9 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 		return;
 	std::string classname;
 	if ( methdecl ) {
-	 classname = methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		classname = no_class( methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString() );
 	} else {
-		classname = ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString();
+		classname = no_class( ref_to_serialized_class->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString() );
 		//std::cout << "ref_to_serialized_class:" << classname << std::endl;
 		//vardecl->dump();
 		//tempfunc->dump();
@@ -140,7 +197,7 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
   if ( funcname == "save" && save_variables_.find( std::make_pair( classname, varname )) != save_variables_.end() ) {
 		return;
 	}
-  if ( funcname == "load" && load_variables_.find( std::make_pair( classname, varname )) != load_variables_.end() ) {
+  if ( ( funcname == "load" || funcname == "load_and_construct" ) && load_variables_.find( std::make_pair( classname, varname )) != load_variables_.end() ) {
 		return;
 	}
 
@@ -161,7 +218,7 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	}// else { std::cout << "SMF being very quiet" << std::endl; }
 
 	if ( funcname == "save" )	save_variables_.insert( std::make_pair(classname, varname ));
-	if ( funcname == "load" ) load_variables_.insert( std::make_pair(classname, varname ));
+	if ( funcname == "load" || funcname == "load_and_construct" ) load_variables_.insert( std::make_pair(classname, varname ));
 }
 
 SerializedMemberFinder::class_names  const & SerializedMemberFinder::classes_w_serialization_funcs() const
@@ -232,7 +289,7 @@ match_to_serialized_data_members() {
 	return
 		memberExpr(
 			hasAncestor( functionTemplateDecl(
-				anyOf(hasName("save"),hasName("load")),
+				anyOf(hasName("save"),hasName("load"),hasName("load_and_construct")),
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
 				//,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType()) ).bind("vardecl") )).bind("methdecl") )
 				has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ).bind("vardecl") )).bind("methdecl") )

@@ -21,12 +21,9 @@
 
 
 class SerializationFunctionFinder : public ReplaceMatchCallback {
-private:
-	typedef std::set< std::string > class_names;
-
-	class_names  classes_w_serialization_funcs_;
-	bool verbose_;
 public:
+	typedef std::set< std::string > class_names;
+	typedef std::set< std::pair< std::string, std::string > > data_members;
 
 	SerializationFunctionFinder( clang::tooling::Replacements * replace, bool verbose );
 	virtual ~SerializationFunctionFinder();
@@ -36,6 +33,15 @@ public:
 
 	class_names const & classes_w_serialization_funcs() const;
 
+	data_members const & exempted_members_from_save() const;
+	data_members const & exempted_members_from_load() const;
+
+private:
+
+	class_names  classes_w_serialization_funcs_;
+	data_members save_members_exempted_;
+	data_members load_members_exempted_;
+	bool verbose_;
 };
 
 clang::ast_matchers::DeclarationMatcher
@@ -43,15 +49,10 @@ match_to_serialization_method_definition();
 
 
 class SerializedMemberFinder : public ReplaceMatchCallback {
-private:
+public:
 	typedef std::set< std::pair< std::string, std::string > > data_members;
 	typedef std::set< std::string > class_names;
 
-	class_names  classes_w_serialization_funcs_;
-	data_members save_variables_;
-	data_members load_variables_;
-	bool verbose_;
-public:
 	SerializedMemberFinder( clang::tooling::Replacements * replace, bool verbose = false );
 	virtual ~SerializedMemberFinder();
 
@@ -62,6 +63,11 @@ public:
 	data_members const & members_saved() const;
 	data_members const & members_loaded() const;
 
+private:
+	class_names  classes_w_serialization_funcs_;
+	data_members save_variables_;
+	data_members load_variables_;
+	bool verbose_;
 };
 
 clang::ast_matchers::StatementMatcher

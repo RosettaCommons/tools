@@ -28,6 +28,10 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ../llvm/
 make -j 8
 
+#or if you're using ninja
+ninja -j 8
+
+
 </commands>
 
 luki@rosetta:~/clang/build$ ls -l bin/rosetta-refactor-tool 

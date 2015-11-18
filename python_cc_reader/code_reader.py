@@ -119,7 +119,7 @@ class CodeReader :
 
    def determine_visibility( self ) :
       #print self.long_comment, self.nested_ifdefs[-1][0], self.nested_ifdefs[-1][ 1], self.commentless_line,
-      if self.commentless_line == "\n" : 
+      if self.commentless_line == "\n" :
          return
       if self.re_pound_if.match( self.commentless_line ) :
          # cannot process "if" directives -- conservative
@@ -320,7 +320,7 @@ class HeavyCodeReader( CodeReader ) :
          return True
 
    def at_namespace_scope( self ) :
-      if self.at_class_scope() : 
+      if self.at_class_scope() :
          return False
       if len( self.namespace_stack ) == 0 :
          return False
@@ -482,7 +482,7 @@ class HeavyCodeReader( CodeReader ) :
                self.function_body_present = False
             else :
                self.function_body_present = True
-            
+
 
       elif self.at_class_scope() :
          priv_statement = False
@@ -507,7 +507,7 @@ class HeavyCodeReader( CodeReader ) :
             if uptosemicolon_line.find( "(" ) != -1:
                uptosemicolon_line = uptosemicolon_line.partition( "(" )[ 2 ]
                self.paren_depth = 1
-               self.found_lparen = True            
+               self.found_lparen = True
          self.paren_depth += uptosemicolon_line.count( "(" )
          self.paren_depth -= uptosemicolon_line.count( ")" )
          declaration_done = assertonlyless_line.find( ";" ) != -1 or ( self.found_lparen and self.paren_depth == 0 ) # assertonlyless_line.find( ")" ) != -1
@@ -585,7 +585,7 @@ class HeavyCodeReader( CodeReader ) :
             self.found_lparen = False
             if last_tok == ")" :
                #function declaration
-               
+
                rest_of_line = assertonlyless_line.split(")")[ 1 ]
                if rest_of_line.find( "{" ) != -1 or rest_of_line.find( ";" ) != -1 :
                   lcurly_ind = self.commentless_line.find( "{" )
@@ -599,7 +599,7 @@ class HeavyCodeReader( CodeReader ) :
                         self.function_body_present = False
                      else :
                         self.function_body_present = True
-                
+
 
                   self.processing_function_declaration = False
                else :
@@ -648,7 +648,7 @@ class HeavyCodeReader( CodeReader ) :
                   # where the function name is actually ind_of_lparen-3
                   self.function_name = toks[ ind_of_lparen - 3 ]
                   function_name_begin_ind = ind_of_lparen - 3
-                  #print "template function function_name_begin_ind reset: ", self.function_name 
+                  #print "template function function_name_begin_ind reset: ", self.function_name
                dstor_string = "~"+self.class_stack[ -1 ][ 0 ]
                #print dstor_string
                if self.function_name.find( dstor_string  ) != -1 :
@@ -672,7 +672,7 @@ class HeavyCodeReader( CodeReader ) :
                start = ind_of_lparen + 1
                self.function_args = []
                self.function_arg_names = []
-               while count < len( toks ) -1 : 
+               while count < len( toks ) -1 :
                   count += 1
                   if toks[ count ] == "," :
                      paramtype, paramname = self.interpret_toks_as_funcparam( toks[ start : count ] )
@@ -741,7 +741,7 @@ class HeavyCodeReader( CodeReader ) :
          print "instring:", instring
          print "strcopy:", strcopy
          break
-                  
+
       return retlist
 
    def interpret_toks_as_funcparam( self, toks ) :
@@ -826,11 +826,18 @@ class ClassDeclaration :
       self.is_templated = False
       self.functions = []
       self.data_members = [] # a list of ordered pairs, where [0] is the type, and [1] is the name of the variable
-      self.file_declared_within = ""      
+      self.file_declared_within = ""
 
-def read_classes_from_header( fname, flines ) :
+class HCROptions :
+   def __init__( self ) :
+      self.defined_preprocessor_variables = []
+
+
+def read_classes_from_header( fname, flines, options = None ) :
    classes = []
    cr = HeavyCodeReader()
+   if options :
+      cr.defined_macros = list( options.defined_preprocessor_variables )
    cr.push_new_file( fname )
    curr_class = None
    func = None
@@ -899,7 +906,7 @@ def find_data_members_assigned_in_assignment_operator( fname, flines, class_data
       if cr.at_class_scope() and cr.current_class_name() == class_data.name :
          if inline_asgnop_regex.search( cr.commentless_line ) :
             reading_asgnop = True
-            ns_scope = cr.last_scope_level        
+            ns_scope = cr.last_scope_level
       elif asgnop_regex.search( cr.commentless_line ) and cr.at_namespace_scope() :
          reading_asgnop = True
          ns_scope = cr.namespace_stack[-1][1]+1
@@ -968,17 +975,17 @@ def find_data_members_assigned_in_copy_constructor( fname, flines, class_data ) 
                #   print "before", dm
                dmassop = find_data_members_assigned_in_assignment_operator( fname, flines, class_data )
                if dmassop :
-                  dmass |=  dmassop 
+                  dmass |=  dmassop
                #for dm in dmass :
                #   print "after", dm
             for dm in class_data.data_members :
                #print "looking for datamember", dm[1], "on line", cr.commentless_line,
                restring = "[\s.>]*"+dm[ 1 ]+"[\s=[(]"
-               #print restring                                                                                                                             
+               #print restring
                if re.search( restring, cr.commentless_line ) :
                   #print "  found data member ", dm[ 1 ], "on the left hand side of the assignment statement: ", cr.commentless_line,
                   dmass.add( dm[1] )
-            
+
       else:
 
          if (cr.paren_depth != 0 or cr.at_namespace_scope()) and not on_own_line.search( cr.commentless_line ):

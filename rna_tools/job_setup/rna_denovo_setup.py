@@ -4,7 +4,7 @@ from rna_server_conversions import prepare_fasta_and_params_file_from_sequence_a
 from sys import argv
 from os import system, getcwd
 from os.path import exists, dirname, basename
-from parse_options import parse_options, get_ints
+from parse_options import parse_options, get_ints, get_resnum_chain
 from make_tag import make_tag, make_tag_with_dashes
 import string
 from rosetta_exe import rosetta_exe
@@ -86,9 +86,21 @@ def working_res_map( vector, working_res ):
             if m in working_res: working_vector.append(  working_res.index( m )+1 )
     return working_vector
 
+full_model_res    = []
+full_model_chains = []
 if len( fasta ) > 0 :
     assert( len(sequence) == 0 )
-    sequence = open( fasta ).readlines()[1].strip()
+    lines = open( fasta ).readlines()
+    for line in lines: # worst fasta reader in the world.
+        line = line.strip()
+        if line[0] == '>':
+            if len(sequence) > 0: cutpoint_open.append( full_model_res[ -1 ] )
+            for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chains )
+            continue
+        sequence += line
+
+if len( full_model_res ) == 0: full_model_res = range( offset+1, offset+len(sequence)+1)
+assert( len( full_model_res ) == len( sequence ) )
 
 if len( secstruct_file ) > 0 :
     assert( len(secstruct) == 0 )
@@ -110,35 +122,30 @@ assert( secstruct.count('{') == secstruct.count('}') )
 if ( tag == '' ):
     tag = basename(getcwd())
 
-
 assert( is_even( len(remove_pair) ) )
 for m in remove_pair:
-    pos = m - offset - 1
+    pos = full_model_res.index( m )
     assert( pos > -1 and pos < len( secstruct) and secstruct[ pos ] != '.' )
     secstruct = secstruct[:pos] + '.' + secstruct[ pos+1:]
 
-if len(working_res) <= 1:
-    working_sequence = sequence
-    working_secstruct = secstruct
-    working_secstruct_general = secstruct_general
-    working_res = [i + 1 + offset for i in xrange(len(working_sequence))]
-else:# slice out the residues.
-    working_sequence = ''
-    working_secstruct = ''
-    working_secstruct_general = ''
-    working_res.sort()
-    for i in range(len(working_res)):
-        m = working_res[ i ]
-        if i > 0 and m > working_res[ i-1 ] + 1:
-            working_sequence  += ' '
-            working_secstruct += ' '
-            working_secstruct_general += ' '
-        working_sequence  += sequence[  m-1-offset ]
-        working_secstruct += secstruct[ m-1-offset ]
-        working_secstruct_general += secstruct_general[ m-1-offset ]
+if len(working_res) == 0: working_res = full_model_res
+working_sequence = ''
+working_secstruct = ''
+working_secstruct_general = ''
+working_res.sort()
+for i in range(len(working_res)):
+    m = working_res[ i ]
+    if i > 0 and m > working_res[ i-1 ] + 1:
+        working_sequence  += ' '
+        working_secstruct += ' '
+        working_secstruct_general += ' '
+    working_sequence  += sequence[  full_model_res.index( m ) ]
+    working_secstruct += secstruct[ full_model_res.index( m ) ]
+    working_secstruct_general += secstruct_general[ full_model_res.index( m ) ]
 
 print working_sequence
 print working_secstruct
+print working_secstruct_general
 
 assert( working_secstruct.count('(') == working_secstruct.count(')') )
 assert( working_secstruct.count('[') == working_secstruct.count(']') )
@@ -175,7 +182,7 @@ for pdb in input_pdbs:
     actual_seq = ''
     for i in resnum:
         if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
-        actual_seq += sequence[i-1-offset]
+        actual_seq += sequence[ full_model_res.index( i )]
     if pdb_seq != actual_seq:
         print pdb_seq
         print actual_seq
@@ -193,11 +200,24 @@ for silent in input_silent_files:
     input_silent_res = input_silent_res[len_seq:]
     for i in resnum:
         if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
-        actual_seq += sequence[i-1-offset]
+        actual_seq += sequence[full_model_res.index(i)]
     if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
     resnum_list.append(resnum)
     input_res += resnum
+
+
+def already_listed_in_obligate_pair( new_pair, obligate_pair ):
+    new_pos1 = new_pair[ 0 ]
+    new_pos2 = new_pair[ 1 ]
+    already_listed = False
+    for m in range( len( obligate_pair)/2 ):
+        pos1 = obligate_pair[ 2*m ]
+        pos2 = obligate_pair[ 2*m+1 ]
+        if ( pos1 == new_pos1 and pos2 == new_pos2 ):
+            already_listed = True
+            break
+    return already_listed
 
 for resnum in resnum_list:
     #Find obligate pairs
@@ -217,16 +237,9 @@ for resnum in resnum_list:
             #obligate pairs
             new_pos1 = min( chunks[i][-1], chunks[i+1][0] )
             new_pos2 = max( chunks[i][-1], chunks[i+1][0] )
-            already_listed = False
-            for m in range( len( obligate_pair)/2 ):
-                pos1 = obligate_pair[ 2*m ]
-                pos2 = obligate_pair[ 2*m+1 ]
-                if ( pos1 == new_pos1 and pos2 == new_pos2 ):
-                    already_listed = True
-                    break
-            if already_listed: continue
-            obligate_pair.append( new_pos1 )
-            obligate_pair.append( new_pos2 )
+            new_pair = [new_pos1,new_pos2]
+            if not already_listed_in_obligate_pair( new_pair, obligate_pair ):
+                obligate_pair.extend( new_pair )
 
 #######################################################################
 working_input_res = []
@@ -236,14 +249,13 @@ for m in input_res:
     i = working_res.index( m )
     working_input_res.append( i+1 )
 
-stems = get_all_stems(working_secstruct)
-canonical_pairs = flatten(stems)
-stems = get_all_stems(working_secstruct_general)
-general_pairs = flatten(stems)
+canonical_pairs = flatten( get_all_stems(working_secstruct) )
+general_pairs = flatten( get_all_stems(working_secstruct_general))
 
 for p in general_pairs:
     if p not in canonical_pairs:
-        obligate_pair.extend(p)
+        new_pair = [working_res[p[0]-1],working_res[p[1]-1] ]
+        if not already_listed_in_obligate_pair( new_pair, obligate_pair ): obligate_pair.extend( new_pair )
 
 fasta_file_outstring, params_file_outstring = \
     prepare_fasta_and_params_file_from_sequence_and_secstruct(
@@ -411,14 +423,14 @@ def get_rid_of_previously_defined_cutpoints( cutpoint, working_res ):
     return cutpoint_filter
 
 if len( cutpoint_open ) > 0:
-    cutpoint_open = working_res_map( cutpoint_open, working_res )
-    cutpoint_open = get_rid_of_previously_defined_cutpoints( cutpoint_open, working_res )
-    if len( cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( cutpoint_open )+ "\n"
+    working_cutpoint_open = working_res_map( cutpoint_open, working_res )
+    working_cutpoint_open = get_rid_of_previously_defined_cutpoints( working_cutpoint_open, working_res )
+    if len( working_cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( working_cutpoint_open )+ "\n"
 
 if len( cutpoint_closed ) > 0:
-    cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    cutpoint_closed = get_rid_of_previously_defined_cutpoints( cutpoint_closed, working_res )
-    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( cutpoint_closed )+ "\n"
+    working_cutpoint_closed = working_res_map( cutpoint_closed, working_res )
+    working_cutpoint_closed = get_rid_of_previously_defined_cutpoints( working_cutpoint_closed, working_res )
+    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
 
 if len( virtual_anchor ) > 0:
     virtual_anchor = working_res_map( virtual_anchor, working_res )

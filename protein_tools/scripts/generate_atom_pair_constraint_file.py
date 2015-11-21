@@ -95,5 +95,3 @@ for index, atom in enumerate(structure_atoms):                    # iterate acro
                 outfile.write(str("AtomPair "+atom.get_id()+" "+str(res_num)+" "+atom2.get_id()+" "+str(res_num2)+" HARMONIC "+str(round(dist,3))+" "+str(options.relax_value)+"\n"))
             elif dist <= options.dist_cutoff:        # only apply restraints to atoms within cutoff distance
                 outfile.write(str("AtomPair "+atom.get_id()+" "+str(res_num)+" "+atom2.get_id()+" "+str(res_num2)+" HARMONIC "+str(round(dist,3))+" "+str(options.stdev)+"\n"))        # write the atom_pair_constraint line
-
-#subprocess.call(["capture_command.sh"] + sys.argv)

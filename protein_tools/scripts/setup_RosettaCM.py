@@ -603,7 +603,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Set up and run RosettaCM')
     parser.add_argument('--fasta', action="store", help='input fasta file',required=True)
     parser.add_argument('--alignment', action="store", default="", help='input alignment file')
-    parser.add_argument('--alignment_format', action="store", default="grishin", help='input alignment file format (grishin, modeller, or vie)')
+    parser.add_argument('--alignment_format', action="store", default="grishin", help='input alignment file format (grishin, modeller, hhsearch, clustalw, or fasta)')
     parser.add_argument('--templates', nargs='*', default=[], help="input target templates")
     parser.add_argument('--rosetta_bin', action="store", default="~/Rosetta/main/source/bin", help="rosetta path")
     parser.add_argument('--build', action="store", default="default", help="build name in rosetta executable")
@@ -654,24 +654,18 @@ if __name__=="__main__":
     # get alignment
     converted_aln = os.path.abspath("converted_alignment.aln")
     if args.alignment != "":
-        if args.alignment_format not in ["grishin", "modeller", "vie", "hhsearch", "clustalw", "fasta"]:
+        if args.alignment_format not in ["grishin", "modeller", "hhsearch", "clustalw", "fasta"]:
             print "Do not understand input alignment format: %s"%args.alignment_format
             sys.exit(-1)
 
         if args.alignment_format == "grishin":
             os.system("cp %s %s"%(alignment_fn, converted_aln))
+            grishin_lines = open(converted_aln).readlines()
+            alignment = Alignment()
+            alignment.read_grishin(grishin_lines)
         elif args.alignment_format in ["modeller", "hhsearch", "clustalw", "fasta"]:
             alignment = Alignment()
             alignment.convert(alignment_fn, args.alignment_format, converted_aln, "grishin")
-        else:
-            command = "~/bin/convert_aln.pl -format_in %s -format_out grishin -nosort -outfile %s %s -renumber_offset 200"%(args.alignment_format,converted_aln, alignment_fn)
-            if args.verbose: print "Running %s"%command
-            os.system(command)
-    else:
-        template_filenames = " %s"*len(input_templates)%(tuple(input_templates))
-        command = "/work/yfsong/SVN/fresh/ci_co/rosetta/workspace/workspaces/yfsong/devel/scripts/run_local_align.py --fasta %s --templates %s --out %s"%(fasta_fn, template_filenames, converted_aln)
-        if args.verbose: print "Running %s"%command
-        os.system(command)
 
     assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
 

@@ -31,19 +31,20 @@ if len(argv) < 3:
     exit()
 
 
+# note -- following has not been converted over entirely to handle input of residues through residue-numbering & chains
 out_script = parse_options( argv, "out_script", "README_FARFAR" )
 nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 secstruct_general = parse_options( argv, "secstruct_general", "")
-working_res = parse_options( argv, "working_res", [-1] )
+(working_res,working_chains) = parse_options( argv, "working_res", [[-1],[" "]] )
 offset = parse_options( argv, "offset", 0 )
 tag = parse_options( argv, 'tag', "" )
 fasta = parse_options( argv, 'fasta', "" )
 secstruct_file = parse_options( argv, 'secstruct_file', "" )
 input_pdbs = parse_options( argv, 's', [""] )
 input_silent_files = parse_options( argv, 'silent', [""] )
-input_silent_res = parse_options( argv, 'input_silent_res', [-1] )
+(input_silent_res,input_silent_chain) = parse_options( argv, 'input_silent_res', [[-1],[" "]] )
 fixed_stems = parse_options( argv, 'fixed_stems', False )
 no_minimize = parse_options( argv, 'no_minimize', False )
 is_cst_gap = parse_options( argv, 'cst_gap', False )
@@ -53,7 +54,7 @@ cst_file = parse_options( argv, 'cst_file', "" )
 data_file = parse_options( argv, 'data_file', "" )
 cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
 cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
-extra_minimize_res = parse_options( argv, "extra_minimize_res", [-1] )
+(extra_minimize_res,extra_minimize_chains) = parse_options( argv, "extra_minimize_res", [[-1],[" "]] )
 extra_minimize_chi_res = parse_options( argv, "extra_minimize_chi_res", [-1] )
 virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
 obligate_pair = parse_options( argv, "obligate_pair", [-1] )
@@ -83,7 +84,7 @@ def working_res_map( vector, working_res ):
     working_vector = []
     if len( working_res ) > 0:
         for m in vector:
-            if m in working_res: working_vector.append(  working_res.index( m )+1 )
+            if m in working_res: working_vector.append( working_res.index( m )+1 )
     return working_vector
 
 full_model_res    = []
@@ -93,7 +94,7 @@ if len( fasta ) > 0 :
     lines = open( fasta ).readlines()
     for line in lines: # worst fasta reader in the world.
         line = line.strip()
-        if line[0] == '>':
+        if len( line ) > 0 and line[0] == '>':
             if len(sequence) > 0: cutpoint_open.append( full_model_res[ -1 ] )
             for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chains )
             continue
@@ -128,11 +129,13 @@ for m in remove_pair:
     assert( pos > -1 and pos < len( secstruct) and secstruct[ pos ] != '.' )
     secstruct = secstruct[:pos] + '.' + secstruct[ pos+1:]
 
-if len(working_res) == 0: working_res = full_model_res
+if len(working_res) == 0:
+    working_res = full_model_res
+    working_chains = full_model_chains
 working_sequence = ''
 working_secstruct = ''
 working_secstruct_general = ''
-working_res.sort()
+#working_res.sort()
 for i in range(len(working_res)):
     m = working_res[ i ]
     if i > 0 and m > working_res[ i-1 ] + 1:
@@ -153,19 +156,24 @@ assert( working_secstruct.count('[') == working_secstruct.count(']') )
 #Add by FCC: process PDBs and generate reasonable obligate pairs
 def get_seq_and_resnum( pdb ):
     resnum = []
+    chains = []
     seq = ''
     old_res = None
+    old_chain = None
     for line in open(pdb):
         if len(line) > 50 and line[:4] == 'ATOM':
             curr_res = int( line[22:26] )
+            curr_chain = line[21]
             curr_seq = line[19]
-            if curr_res != old_res:
+            if curr_res != old_res or curr_chain != old_chain:
+                if ( (curr_res,curr_chain) in zip( resnum,chains ) ):
+                        raise ValueError('Residue/chain numbers in %s is not unique!!' % pdb)
                 resnum.append(curr_res)
+                chains.append(curr_chain)
                 old_res = curr_res
+                old_chain = curr_chain
                 seq += curr_seq
-    if resnum != sorted(resnum):
-        raise ValueError('Residue numbers in %s is not sorted!!' % pdb)
-    return seq, resnum
+    return seq, resnum, chains
 
 def get_silent_seq( silent ):
     for line in open(silent):
@@ -174,10 +182,11 @@ def get_silent_seq( silent ):
     raise ValueError('No sequence info found in the input silent file!')
 
 input_res = []
-
+input_chain = []
 resnum_list = []
+chain_list = []
 for pdb in input_pdbs:
-    pdb_seq, resnum = get_seq_and_resnum(pdb)
+    pdb_seq, resnum, chain = get_seq_and_resnum(pdb)
     pdb_seq = pdb_seq.lower()
     actual_seq = ''
     for i in resnum:
@@ -188,7 +197,9 @@ for pdb in input_pdbs:
         print actual_seq
         raise ValueError('The sequence in %s does not match input sequence!!' % pdb)
     resnum_list.append(resnum)
-    input_res += resnum
+    chain_list.append(chain)
+    input_res   += resnum
+    input_chain += chain
 
 for silent in input_silent_files:
     actual_seq = ''
@@ -198,14 +209,17 @@ for silent in input_silent_files:
         raise ValueError('input_silent_res is shorter then the total length of silent files!')
     resnum = input_silent_res[:len_seq]
     input_silent_res = input_silent_res[len_seq:]
+    chain = input_silent_chain[:len_seq]
+    input_silent_chain = input_silent_chain[len_seq:]
     for i in resnum:
         if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[full_model_res.index(i)]
     if seq.lower() != actual_seq.lower():
         raise ValueError('The sequence in %s does not match input sequence!!' % silent)
     resnum_list.append(resnum)
+    chain_list.append(chain)
     input_res += resnum
-
+    input_chain += chain
 
 def already_listed_in_obligate_pair( new_pair, obligate_pair ):
     new_pos1 = new_pair[ 0 ]
@@ -243,10 +257,10 @@ for resnum in resnum_list:
 
 #######################################################################
 working_input_res = []
-for m in input_res:
-    if m not in working_res :
-        raise ValueError('Input residue %s not in working_res!!' % m)
-    i = working_res.index( m )
+for m,chain in zip(input_res,input_chain):
+    if (m,chain) not in zip(working_res,working_chains):
+        raise ValueError('Input residue %s,%s not in working_res!!' % (m,chain) )
+    i = zip(working_res,working_chains).index( (m,chain) )
     working_input_res.append( i+1 )
 
 canonical_pairs = flatten( get_all_stems(working_secstruct) )
@@ -552,7 +566,7 @@ if bps_moves:
 
 command += ' ' + extra_args
 
-command += ' -output_res_num ' + make_tag_with_dashes( working_res, [] )
+command += ' -output_res_num ' + make_tag_with_dashes( working_res, working_chains )
 
 print command
 

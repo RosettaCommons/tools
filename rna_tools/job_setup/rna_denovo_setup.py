@@ -37,7 +37,7 @@ nstruct = parse_options(argv, "nstruct", 500)
 sequence = parse_options( argv, "sequence", "" )
 secstruct = parse_options( argv, "secstruct", "")
 secstruct_general = parse_options( argv, "secstruct_general", "")
-(working_res,working_chains) = parse_options( argv, "working_res", [[-1],[" "]] )
+(working_res,working_chain) = parse_options( argv, "working_res", [[-1],[" "]] )
 offset = parse_options( argv, "offset", 0 )
 tag = parse_options( argv, 'tag', "" )
 fasta = parse_options( argv, 'fasta', "" )
@@ -52,12 +52,13 @@ native_pdb = parse_options( argv, 'native', "" )
 working_native_pdb = parse_options( argv, 'working_native', "" )
 cst_file = parse_options( argv, 'cst_file', "" )
 data_file = parse_options( argv, 'data_file', "" )
-cutpoint_open = parse_options( argv, "cutpoint_open", [-1] )
-cutpoint_closed = parse_options( argv, "cutpoint_closed", [-1] )
-(extra_minimize_res,extra_minimize_chains) = parse_options( argv, "extra_minimize_res", [[-1],[" "]] )
-extra_minimize_chi_res = parse_options( argv, "extra_minimize_chi_res", [-1] )
-virtual_anchor = parse_options( argv, "virtual_anchor", [-1] )
-obligate_pair = parse_options( argv, "obligate_pair", [-1] )
+cutpoint_open_res_chain = parse_options( argv, "cutpoint_open", [[-1],[" "]] )
+cutpoint_closed_res_chain = parse_options( argv, "cutpoint_closed", [[-1],[" "]] )
+extra_minimize_res_chain = parse_options( argv, "extra_minimize_res", [[-1],[" "]] )
+extra_minimize_chi_res_chain = parse_options( argv, "extra_minimize_chi_res",[[-1],[" "]]  )
+virtual_anchor_res_chain = parse_options( argv, "virtual_anchor", [[-1],[" "]] )
+obligate_pair_res_chain = parse_options( argv, "obligate_pair", [[-1],[" "]] )
+obligate_pair = zip( obligate_pair_res_chain[0],obligate_pair_res_chain[1] )
 obligate_pair_explicit = parse_options( argv, "obligate_pair_explicit", [""] )
 remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
@@ -79,24 +80,33 @@ if len(secstruct_general) > 0 and not bps_moves:
 def is_even( num ):
     return (  2 * (num/2) == num ) # even
 
-def working_res_map( vector, working_res ):
+def working_res_map( vector, working_res, working_chain = [] ):
     if len( working_res ) == 0: return vector
     working_vector = []
-    if len( working_res ) > 0:
+    if isinstance( vector[ 0 ], list ): # its a list of residue, then list of chain
+        assert( isinstance( vector[ 1 ], list ) )
+        assert( len( working_chain ) == len( working_res ) )
+        working_res_chain = zip( working_res, working_chain )
+        for m in zip( vector[0], vector[1] ):
+            if m in working_res_chain: working_vector.append( working_res_chain.index( m )+1 )
+    else:
         for m in vector:
             if m in working_res: working_vector.append( working_res.index( m )+1 )
+
     return working_vector
 
 full_model_res    = []
-full_model_chains = []
+full_model_chain = []
 if len( fasta ) > 0 :
     assert( len(sequence) == 0 )
     lines = open( fasta ).readlines()
     for line in lines: # worst fasta reader in the world.
         line = line.strip()
         if len( line ) > 0 and line[0] == '>':
-            if len(sequence) > 0: cutpoint_open.append( full_model_res[ -1 ] )
-            for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chains )
+            if len(sequence) > 0:
+                cutpoint_open_res_chain[ 0 ].append( full_model_res[ -1 ] )
+                cutpoint_open_res_chain[ 1 ].append( full_model_chain[ -1 ] )
+            for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chain )
             continue
         sequence += line
 
@@ -131,14 +141,14 @@ for m in remove_pair:
 
 if len(working_res) == 0:
     working_res = full_model_res
-    working_chains = full_model_chains
+    working_chain = full_model_chain
 working_sequence = ''
 working_secstruct = ''
 working_secstruct_general = ''
 #working_res.sort()
 for i in range(len(working_res)):
     m = working_res[ i ]
-    if i > 0 and m > working_res[ i-1 ] + 1:
+    if i > 0 and ( ( m > working_res[ i-1 ] + 1 ) or ( working_chain [ i ] != working_chain[ i-1 ] ) ):
         working_sequence  += ' '
         working_secstruct += ' '
         working_secstruct_general += ' '
@@ -156,7 +166,7 @@ assert( working_secstruct.count('[') == working_secstruct.count(']') )
 #Add by FCC: process PDBs and generate reasonable obligate pairs
 def get_seq_and_resnum( pdb ):
     resnum = []
-    chains = []
+    chain = []
     seq = ''
     old_res = None
     old_chain = None
@@ -166,14 +176,14 @@ def get_seq_and_resnum( pdb ):
             curr_chain = line[21]
             curr_seq = line[19]
             if curr_res != old_res or curr_chain != old_chain:
-                if ( (curr_res,curr_chain) in zip( resnum,chains ) ):
+                if ( (curr_res,curr_chain) in zip( resnum,chain ) ):
                         raise ValueError('Residue/chain numbers in %s is not unique!!' % pdb)
                 resnum.append(curr_res)
-                chains.append(curr_chain)
+                chain.append(curr_chain)
                 old_res = curr_res
                 old_chain = curr_chain
                 seq += curr_seq
-    return seq, resnum, chains
+    return seq, resnum, chain
 
 def get_silent_seq( silent ):
     for line in open(silent):
@@ -233,17 +243,21 @@ def already_listed_in_obligate_pair( new_pair, obligate_pair ):
             break
     return already_listed
 
-for resnum in resnum_list:
+for resnum,chain in zip(resnum_list,chain_list):
     #Find obligate pairs
     chunks = []
     curr_chunk = []
     j = None
-    for i in resnum:
-        if j is not None and (i-1) != j:
+    d = None
+    for (i,c) in zip(resnum,chain):
+        if j is not None and \
+           d is not None and \
+           ( (i-1) != j or d != c ):
             chunks.append(curr_chunk)
             curr_chunk = []
         j = i
-        curr_chunk.append(i)
+        d = c
+        curr_chunk.append( (i,c) )
     chunks.append(curr_chunk)
     n_jumps = len(chunks) - 1
     if n_jumps > 0:
@@ -257,18 +271,21 @@ for resnum in resnum_list:
 
 #######################################################################
 working_input_res = []
+working_input_chain = []
 for m,chain in zip(input_res,input_chain):
-    if (m,chain) not in zip(working_res,working_chains):
+    if (m,chain) not in zip(working_res,working_chain):
         raise ValueError('Input residue %s,%s not in working_res!!' % (m,chain) )
-    i = zip(working_res,working_chains).index( (m,chain) )
+    i = zip(working_res,working_chain).index( (m,chain) )
     working_input_res.append( i+1 )
+    working_input_chain.append( chain )
 
 canonical_pairs = flatten( get_all_stems(working_secstruct) )
 general_pairs = flatten( get_all_stems(working_secstruct_general))
 
 for p in general_pairs:
     if p not in canonical_pairs:
-        new_pair = [working_res[p[0]-1],working_res[p[1]-1] ]
+        new_pair = [ (working_res[p[0]-1],working_chain[p[0]-1]),
+                     (working_res[p[1]-1],working_chain[p[1]-1]) ]
         if not already_listed_in_obligate_pair( new_pair, obligate_pair ): obligate_pair.extend( new_pair )
 
 fasta_file_outstring, params_file_outstring = \
@@ -323,16 +340,16 @@ if len( data_file ) > 0:
 
 
 assert( is_even( len(obligate_pair) ) )
-if len( obligate_pair ) > 0:
+if len( obligate_pair[ 0 ] ) > 0:
+    working_res_chain = zip( working_res, working_chain )
     for m in range( len( obligate_pair)/2 ):
         pos1 = obligate_pair[ 2*m ]
         pos2 = obligate_pair[ 2*m+1 ]
-        if pos1 not in working_res: continue
-        if pos2 not in working_res: continue
-        pos1 = working_res.index( pos1 ) + 1
-        pos2 = working_res.index( pos2 ) + 1
-        #params_file_outstring += "OBLIGATE  PAIR %d %d W W X \n" % (pos1, pos2)
-        params_file_outstring += "OBLIGATE  PAIR %d %d X X X \n" % (pos1, pos2)
+        if pos1 not in working_res_chain: continue
+        if pos2 not in working_res_chain: continue
+        working_pos1 = working_res_chain.index( pos1 ) + 1
+        working_pos2 = working_res_chain.index( pos2 ) + 1
+        params_file_outstring += "OBLIGATE  PAIR %d %d X X X \n" % (working_pos1, working_pos2)
 
 
 assert( is_even( len(remove_obligate_pair) ) )
@@ -426,29 +443,30 @@ if len( chain_connection ) > 0:
 #working_mg_pos = working_res_map( mg_pos, working_res )
 #if len( working_mg_pos ) > 0:
 #    for i in mg_pos:
-#        cutpoint_open.append( i-1 )
+#        cutpoint_open_res_chain.append( i-1 )
 #        virtual_anchor.append( i )
-def get_rid_of_previously_defined_cutpoints( cutpoint, working_res ):
+def get_rid_of_previously_defined_cutpoints( cutpoint, working_res, working_chain ):
     cutpoint_filter = []
     for m in cutpoint:
         if ( m == len( working_res ) ): continue
         if ( working_res[ m-1 ]+1 != working_res[ m ] ): continue # already recognized as a cutpoint.
+        if ( len( working_chain ) > 0 and working_chain[ m-1 ] != working_chain[ m ] ): continue # already recognized as a cutpoint.
         cutpoint_filter.append( m )
     return cutpoint_filter
 
-if len( cutpoint_open ) > 0:
-    working_cutpoint_open = working_res_map( cutpoint_open, working_res )
-    working_cutpoint_open = get_rid_of_previously_defined_cutpoints( working_cutpoint_open, working_res )
+if len( cutpoint_open_res_chain[0] ) > 0:
+    working_cutpoint_open = working_res_map( cutpoint_open_res_chain, working_res, working_chain )
+    working_cutpoint_open = get_rid_of_previously_defined_cutpoints( working_cutpoint_open, working_res, working_chain )
     if len( working_cutpoint_open ) > 0:    params_file_outstring += "CUTPOINT_OPEN  "+make_tag( working_cutpoint_open )+ "\n"
 
-if len( cutpoint_closed ) > 0:
-    working_cutpoint_closed = working_res_map( cutpoint_closed, working_res )
-    working_cutpoint_closed = get_rid_of_previously_defined_cutpoints( working_cutpoint_closed, working_res )
+if len( cutpoint_closed_res_chain[0] ) > 0:
+    working_cutpoint_closed = working_res_map( cutpoint_closed_res_chain, working_res, working_chain )
+    working_cutpoint_closed = get_rid_of_previously_defined_cutpoints( working_cutpoint_closed, working_res, working_chain )
     if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
 
-if len( virtual_anchor ) > 0:
-    virtual_anchor = working_res_map( virtual_anchor, working_res )
-    params_file_outstring += "VIRTUAL_ANCHOR "+make_tag( virtual_anchor )+ "\n"
+if len( virtual_anchor_res_chain[0] ) > 0:
+    working_virtual_anchor = working_res_map( virtual_anchor_res_chain, working_res, working_chain )
+    params_file_outstring += "VIRTUAL_ANCHOR "+make_tag( working_virtual_anchor )+ "\n"
 
 
 if len(cst_file) > 0:  # also have input data...
@@ -473,12 +491,6 @@ if len(cst_file) > 0:  # also have input data...
             if int(cols[3]) not in working_res: continue
             newline = "%s %d %s %d  %s\n" % (cols[0],  working_res.index(int(cols[1]))+1, cols[2],  working_res.index( int(cols[3]) )+1, string.join( cols[4:] ) )
             cst_file_outstring += newline
-
-
-
-for i in range(len(input_res)):
-    if input_res[i] in input_res[:i]: print 'WARNING -- double input_res?', input_res[i]
-
 
 fasta_file = tag+'.fasta'
 print
@@ -530,13 +542,13 @@ if len( working_native_pdb ) > 0:
 elif len( native_pdb ) > 0:
     command += " -native %s " % native_pdb
 
-if len( extra_minimize_res ) > 0:
-    extra_minimize_res = working_res_map( extra_minimize_res, working_res )
-    command += " -extra_minimize_res " + make_tag_with_dashes( extra_minimize_res, [] )
+if len( extra_minimize_res_chain[0] ) > 0:
+    working_extra_minimize_res = working_res_map( extra_minimize_res_chain, working_res, working_chain )
+    command += " -extra_minimize_res " + make_tag_with_dashes( working_extra_minimize_res, [] )
 
-if len( extra_minimize_chi_res ) > 0:
-    extra_minimize_chi_res = working_res_map( extra_minimize_chi_res, working_res )
-    command += " -extra_minimize_chi_res " + make_tag_with_dashes( extra_minimize_chi_res, [] )
+if len( extra_minimize_chi_res_chain[0] ) > 0:
+    working_extra_minimize_chi_res = working_res_map( extra_minimize_chi_res_chain, working_res, working_chain )
+    command += " -extra_minimize_chi_res " + make_tag_with_dashes( working_extra_minimize_chi_res, [] )
 
 if len( input_pdbs ) > 0:
     command += " -s"
@@ -566,7 +578,7 @@ if bps_moves:
 
 command += ' ' + extra_args
 
-command += ' -output_res_num ' + make_tag_with_dashes( working_res, working_chains )
+command += ' -output_res_num ' + make_tag_with_dashes( working_res, working_chain )
 
 print command
 

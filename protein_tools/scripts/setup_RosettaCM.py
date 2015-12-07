@@ -74,7 +74,7 @@ class SingleAlingmnet:
         tag = lines[aln_line_numbers[0]][1:].strip()
         self.target_pdb_code = tag[:4]
         self.target_pdb_chain = tag[4]
-        self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
+        self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
         self.target_start = 1
         for line in lines[aln_line_numbers[0]+1:aln_line_numbers[1]]:
             self.target_aln_seq += line.strip()
@@ -134,7 +134,7 @@ class SingleAlingmnet:
                     buff = block[0].strip().split()
                     self.target_pdb_code = buff[0][:4]
                     self.target_pdb_chain = buff[0][4]
-                    self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
+                    self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
                     self.target_aln_seq += buff[1]
 
                     buff = block[-1].strip().split()
@@ -145,23 +145,27 @@ class SingleAlingmnet:
         if len(block) != 0:
             self.query_start = 1
             self.target_start = 1
+	    target_line = block[0].strip().split()
+	    self.target_pdb_code = target_line[0][:4]
+	    self.target_pdb_chain = target_line[0][4]
+	    self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
+	    query_line = block[1].strip().split()
+	    self.query_tag = query_line[0]
+	    
+	    # Sequences can span muliple lines
+	    for i in range (0,len(block) - 2,2):
+		    buff = block[i].strip().split()
+		    self.target_aln_seq += buff[1]
 
-            buff = block[0].strip().split()
-            self.target_pdb_code = buff[0][:4]
-            self.target_pdb_chain = buff[0][4]
-            self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
-            self.target_aln_seq += buff[1]
-
-            buff = block[-1].strip().split()
-            self.query_tag = buff[0]
-            self.query_aln_seq += buff[1]
-            block = []
-        return self
+		    buff = block[i+1].strip().split()
+		    self.query_aln_seq += buff[1]
+	    block = []
+	    return self
 
     def grishin_lines(self):
         outlines = []
         outlines.append("## %s %s\n"%(self.query_tag, self.target_tag))
-        #outfile.write("## %s %s%s_%d\n"%(self.target_tags, self.target_pdb_and_chain[i_aln][0], self.target_pdb_and_chain[i_aln][1], i_aln+201))
+        #outfile.write("## %s %s%s_%d\n"%(self.target_tags, self.target_pdb_and_chain[i_aln][0], self.target_pdb_and_chain[i_aln][1], i_aln+thread))
         outlines.append("#  \n")
         if self.score_line == "":
             outlines.append("scores_from_program: 0\n")
@@ -290,7 +294,7 @@ class Alignment:
                     query_tag = tag
                 else:
                     target_tag = tag.replace(".pdb","")
-                    target_tag += "_%d"%(201+len(self.query_aln_seq))
+                    target_tag += "_%d"%(thread+len(self.query_aln_seq))
                     print target_tag
                 continue
             else:
@@ -375,7 +379,7 @@ class Alignment:
 
     def write_grishin(self, out_fn):
         assert(len(self.alignments) > 0), "Input alignment empty!!"
-        outfile = open(out_fn,'w')
+	outfile = open(out_fn,'w')
         for aln in self.alignments:
             for line in aln.grishin_lines():
                 outfile.write(line)
@@ -668,6 +672,17 @@ if __name__=="__main__":
             alignment.convert(alignment_fn, args.alignment_format, converted_aln, "grishin")
 
     assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
+    copy_cmd = "cp " + converted_aln + " " + run_dir
+    os.system( copy_cmd )
+    aln_file = open(converted_aln,'r')
+    # Check that target sequence is the first one in the aln file
+    for line in aln_file:
+	buff = line.strip().split()
+	if buff[0] == "##":
+	    print buff
+    	    assert (buff[1] == fasta_fn.split('/')[-1].split('.')[0]), "\
+    The first sequence ID in grishin alignment file must match the fasta file name. \n \
+                   -> You may have to rename or swap the order of sequences in your alignment file."
 
     if (not os.path.exists(run_dir)): os.makedirs(run_dir)
     os.chdir(run_dir)

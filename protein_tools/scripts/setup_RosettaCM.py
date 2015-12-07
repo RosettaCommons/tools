@@ -445,7 +445,7 @@ def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
 
 def write_xml(fn, template_filenames):
     xml_file=open(fn,'w')
-    xml_file.write("<dock_design>\n")
+    xml_file.write("<ROSETTASCRIPTS>\n")
     xml_file.write("    <TASKOPERATIONS>\n")
     xml_file.write("    </TASKOPERATIONS>\n")
     xml_file.write("    <SCOREFXNS>\n")
@@ -476,7 +476,7 @@ def write_xml(fn, template_filenames):
     xml_file.write("    <PROTOCOLS>\n")
     xml_file.write("        <Add mover=hybridize/>\n")
     xml_file.write("    </PROTOCOLS>\n")
-    xml_file.write("</dock_design>\n")
+    xml_file.write("</ROSETTASCRIPTS>\n")
     xml_file.close()
 
 def write_stage1_wts(wts_fn):

@@ -1,14 +1,13 @@
 #!/bin/bash
 
-# To run on this script on all headers in the Rosetta source tree, use the following command from within
+# To run on this script on all cc files in the Rosetta source tree, use the following command from within
 # the Rosetta/main/source/src directory:
 #
-# python /path/to/tools/clang_ast_transform/run_on_all_headers_w_fork.py -e /path/to/tools/clang_ast_transform/extract_serialization_data.sh -n 4
+# python /path/to/tools/clang_ast_transform/run_on_all_ccfiles_w_fork.py -e "bash /path/to/tools/clang_ast_transform/run_serialization_validator_on_file.sh" -n 10
 #
-# Once this has completed, cat all .def files into one file, and pass it to
-# make_serialize_templates.py to insert serialization stubs
 
-# 1: assume that this is being run from somewhere within the rosetta source tree
+# Assumptions for how this script is run below:
+# 1: assume that this is being run from somewhere within the rosetta "main" repository
 # 2: assume that this script lives in the Rosetta/tools/clang_ast_transform directory.
 #    The rosetta-refactor-tool must live in the
 #    Rosetta/tools/clang_ast_transform/clang/build/bin

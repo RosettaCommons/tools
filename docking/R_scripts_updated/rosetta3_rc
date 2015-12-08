@@ -1,0 +1,42 @@
+#.rosetta3_rc
+# Environment variables that will make your life in the Graylab easier.  Brian Weitzner 3/28/2011
+
+## File system issues prevent running integration tests on the NFS mounts, so I have a sym link
+## on the NFS mount to a checked out repository on my scratch disk.
+## The suffix is used to distinguish the scratch repo and the NFS repo.
+suffix=""
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+   suffix=_roam
+fi
+
+export rosetta_root=$HOME/Rosetta
+export rosetta_scripts=$rosetta_root/rosetta_scripts/docking
+
+export rosetta_R_scripts=$rosetta_scripts/R_scripts_updated
+export ROSETTA3_DB=$rosetta_root/rosetta$suffix/rosetta_database
+
+number_of_threads=1
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    number_of_threads=`grep -i "processor" /proc/cpuinfo | sort -u | wc -l`
+else
+    number_of_threads=`hostinfo | grep "logic" | awk '{ print $1 }'`
+fi
+
+alias build_rosetta_for_testing="cd $rosetta_root/rosetta$suffix/rosetta_source; ./scons.py -j$number_of_threads && ./scons.py -j$number_of_threads cat=test && ./scons.py -j$number_of_threads mode=release bin"
+
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+   source /home/apps/pyrosetta/latest.linux.64/SetPyRosettaEnvironment.sh
+elif [[ "$OSTYPE" == "darwin11" ]]; then
+    source /home/apps/pyrosetta/latest.Lion.64/SetPyRosettaEnvironment.sh
+elif [[ "$OSTYPE" == "darwin10" ]]; then
+   source /home/apps/pyrosetta/latest.SnowLeopard.64/SetPyRosettaEnvironment.sh
+fi
+
+export PATH=$PATH:$PYROSETTA:$rosetta_scripts
+
+export PYROSETTA_DATABASE=$PYROSETTA/rosetta_database
+export PYTHONPATH=$PYTHONPATH:$rosetta_root/rosetta_scripts/docking/pdb_scripts
+
+alias make_fragments="$rosetta_root/fragments/executables/make_fragments.pl"
+alias make_funnel_plot="R --file=$rosetta_R_scripts/plot_data.R"
+

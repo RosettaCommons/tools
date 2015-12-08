@@ -110,7 +110,7 @@ std::list< FieldDeclaration >
 FieldDeclFinder::fields_for_class( std::string const & classname ) const
 {
 	if ( class_fields_.find( classname ) == class_fields_.end() ) {
-		std::cout << "Didn't find any fields for the requested class! " << classname << std::endl;
+		//std::cout << "Didn't find any fields for the requested class! " << classname << std::endl;
 		std::list< FieldDeclaration > empty_list;
 		return empty_list;
 	} else {

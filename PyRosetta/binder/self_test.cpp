@@ -1,9 +1,17 @@
 
+#include <vector>
+
+enum class Global_Enum {G_E1, G_E2, G_E3};
+
+
 
 namespace aaaa {
 
 class A
 {
+	A() {}
+	A(int) {}
+	A(int, int) {}
 };
 
 };
@@ -17,7 +25,15 @@ class B : public aaaa::A
 public:
 	class B_A {};
 
+	enum class B_Enum {B_E1, B_E2, B_E3} ;
+
 	void foo() {}
+
+	B_Enum e;
+
+	int a, b, c;
+
+	static void B_static_foo() {}
 };
 
 template <class T>
@@ -38,8 +54,20 @@ struct S
 
 
 void global_function_foo() {}
+void global_function_foo( bbbb::Q<int> )
+{
+	struct Inner_struct {};
+	enum class Inner_Enum {I_E1, I_E2, I_E3};
 
-void global_function_foo( bbbb::Q<int> ) {}
+	int fpppp(int a);
+
+}
+
+using Vector_A = std::vector<aaaa::A>;
+
+typedef std::vector<aaaa::A> _Vector_A_typedef;
+
+void global_function_foo_vector( std::vector<aaaa::A> ) {}
 
 
 typedef bbbb::Q<int> T_Q_int;

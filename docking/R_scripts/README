@@ -1,0 +1,40 @@
+# RScripts Directory
+## JRJ 2015.12.09
+
+Adding readme since there was not one beforehand.
+Looks to be primarily composed of old scripts written/modified by Jeff.
+
+Enumeration of Scripts
+
+* do_fit.R: Sources (loads) jfit_coef.R, jE.R, and jz.R, then fits data with glm.
+
+* do_fit_FA.R: Sources (loads) jfit_coef.R, jE.R, and jz.R, then fits data with glm.
+
+* do_fit_bumpcut.R: Cuts out "bumpy" models and then does same as do_fit_FA.R.
+
+* do_fit_centroid.R: Sources (loads) jfit_coef.R, jE.R, and jz.R, then fits centroid data with glm.
+
+* do_fit_elec.R: Sources (loads) jfit_coef.R, jE.R, and jz.R then fits electrostatic data with glm.
+
+* do_just_score_plot.R: Sources (loads) jplots.R and plots scores of filtered data.
+
+* do_score4d_plots.R: Sources (loads) jplots.R and calculates a combined score and plots.
+
+* do_score_plots.R: Sources (loads) jplots.R and plots data.
+
+* do_target_and_score_plots.R: Sources (loads) jplots.R and plots data.
+
+* do_target_plots.R: Sources (loads) jplots and plots data.
+
+* init.R: Source jplots.R and plots scores. Sources jfit_coef.R and makes glm models.
+
+* jE.R: Looks to calculate enrichment.
+
+* jfit_coef.R: ???
+
+* jplots.R: Looks to load score files from directory (if not already loaded).
+            Generates list of score terms (fullatom or centroid).
+            Makes numerous plots.
+
+* jz.R: Looks to calculate z-scores.
+

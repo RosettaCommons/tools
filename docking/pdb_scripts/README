@@ -4,7 +4,9 @@ The argument usage for these scripts can be found by running the
 scripts with no arguments.
 
 * addChain.pl:  add a new chain to a pdb file that previously did not
-  have one extractChains.pl:  extract given chains from a pdb file,
+  have one 
+
+* extractChains.pl:  extract given chains from a pdb file,
   followed by a TER.  You can extract multiple chains at once, but
   there will be only one TER at the end.
 

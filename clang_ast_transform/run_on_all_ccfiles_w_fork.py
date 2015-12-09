@@ -69,5 +69,5 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   print jm.jobs
-   print jm.failed_jobs
+   if ( jm.jobs ) : print jm.jobs
+   if ( jm.failed_jobs ) : print jm.failed_jobs

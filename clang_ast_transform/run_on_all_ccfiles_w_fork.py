@@ -49,13 +49,8 @@ if __name__ == "__main__" :
       
    # includes = { 'test.hh': '' }
    os.chdir( "src" )
-   includes = scan_compilable_files()
+   jobs = compiled_cc_files()
    os.chdir( ".." )
-
-   re_hh_header  = re.compile("\S*\.cc$")
-   all_files = includes.keys()
-   hh_headers = regex_subset( all_files, re_hh_header )
-   jobs = hh_headers
 
    # print "%d files, running with %d jobs..." % ( len(jobs), num_cpu )
 
@@ -75,3 +70,6 @@ if __name__ == "__main__" :
 
    if ( jm.jobs ) : print jm.jobs
    if ( jm.failed_jobs ) : print jm.failed_jobs
+
+   if ( jm.jobs or jm.failed_jobs ) : sys.exit(1)
+   else : sys.exit( 0 )

@@ -36,7 +36,8 @@ def check_output(*args, **kwargs):
         stderr=subprocess.PIPE
     ).communicate()
     if e and len(e):
-        raise Exception(e)
+        #raise Exception(e)
+        print e
     return o
 
 

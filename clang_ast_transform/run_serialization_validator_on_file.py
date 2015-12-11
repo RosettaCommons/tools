@@ -31,19 +31,21 @@ import blargs
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str("filename").required()
-        p.str("executable_path") #if unspecified, looks in the clang/build/bin directory
+        p.str("executable_path") #the path to the serialization_validator executable; if unspecified, looks in the clang/build/bin directory
         p.str("json_output_path").default(".") #if unspecified, writes to the Rosetta/main/source directory
 
 
     # get the directory where this script lives
     # CLANG_AST_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+    # CLANG_BIN=$CLANG_AST_DIR/clang/build/bin
     if not executable_path :
         script_dir = os.path.realpath( __file__ ).rpartition("/run_serialization_validator_on_file.py")[0]
+        clang_exec_dir = script_dir + "/clang/build/bin"
+        serialization_validator_executable = clang_exec_dir + "/serialization_validator"
     else :
-        script_dir = executable_path
+        serialization_validator_executable = executable_path
 
-    # CLANG_BIN=$CLANG_AST_DIR/clang/build/bin
-    clang_exec_dir = script_dir + "/clang/build/bin"
+
     
     # get the directory where we're executing this script
     # SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
@@ -59,7 +61,7 @@ if __name__ == "__main__" :
     
     #cd $SOURCE
     os.chdir( rosetta_source_dir )
-    command = clang_exec_dir + "/serialization_validator " + fname + " -- " + \
+    command =  serialization_validator_executable + " " + fname + " -- " + \
               "clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS " + \
               "-std=c++11 " + \
               "-pipe " + \

@@ -56,7 +56,7 @@ class Queue(object):
     def is_empty(self):
         # run status_cmd and check output
         o = check_output(self._status_cmd)
-        return bool(len(o.split('\n')))      
+        return (len(o.split('\n')) < 1)      
 
     def submit_jobs(self):
         # source submit_file

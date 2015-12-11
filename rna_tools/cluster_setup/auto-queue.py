@@ -12,7 +12,7 @@ import datetime
 ### utility functions
 ###############################################################################
 def usage():
-    print "usage:", __file__, " --user <USER>"
+    print "usage:", __file__
 
 def format_time(t):
     t = datetime.datetime.fromtimestamp(t)
@@ -46,12 +46,12 @@ def check_output(*args, **kwargs):
 class Queue(object):
 
     def __init__(self, status_cmd = None, submit_file = None):
-        self._user = None
+        self._user = os.getlogin()
         self._status_cmd = status_cmd
         self._submit_file = submit_file
         if not os.path.exists(submit_file):
             raise Exception(submit_file+" does not exist!!!")
-        self._sleep_time = 5 #*60
+        self._sleep_time = 1*60
 
     def is_empty(self):
         # run status_cmd and check output
@@ -83,24 +83,22 @@ class Queue(object):
 
 class SLURMQueue(Queue):
 
-    def __init__(self, user = ''):
+    def __init__(self):
         Queue.__init__(
             self,
-            status_cmd = 'squeue --user {user} | tail --lines=+2'.format(user=user),
+            status_cmd = 'squeue --user {user} | tail --lines=+2'.format(user=os.getlogin()),
             submit_file = './sbatchMINI'
         )
-        self._user = user
 
 
 class PBSQueue(Queue):
 
-    def __init__(self, user = ''):
+    def __init__(self):
         Queue.__init__(
             self,
-            status_cmd = 'qstat | tail --lines=+3'.format(user=user),
+            status_cmd = 'qstat | tail --lines=+3',
             submit_file = './qsubMINI'
         )
-        self._user = user
 
 
 ###############################################################################
@@ -109,18 +107,18 @@ class PBSQueue(Queue):
 def get_queue(**kwargs):
     hostname = os.uname()[1]
     if 'sherlock' in hostname:
-        return SLURMQueue(user=kwargs['user'])
+        return SLURMQueue()
     elif 'biox3' in hostname:
-        return PBSQueue(user=kwargs['user'])
+        return PBSQueue()
     else:
         raise Exception("Hostname not vaild!")
 
 
 def get_queue_auto(**kwargs):
     if os.path.exists('/usr/bin/sbatch'):
-        return SLURMQueue(user=kwargs['user'])
+        return SLURMQueue()
     elif os.path.exists('/usr/bin/qsub'):
-        return PBSQueue(user=kwargs['user'])
+        return PBSQueue()
     else:
         raise Exception("Could not fine sbatch or qsub!!!")
 
@@ -143,12 +141,5 @@ if __name__ == '__main__':
 
     args = sys.argv[1:]
     kwargs = {}
-
-    if '--user' in args:
-        idx = args.index('--user')
-        args.pop(idx)
-        kwargs['user'] = args.pop(idx)
-    else:
-        usage()
 
     sys.exit(auto_queue(*args, **kwargs))

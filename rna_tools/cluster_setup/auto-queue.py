@@ -140,7 +140,7 @@ def auto_queue(*args, **kwargs):
 ###############################################################################
 if __name__ == '__main__':
     
-    args = sys.args[1:]
+    args = sys.argv[1:]
     kwargs = {}
     
     if '--user' in args:

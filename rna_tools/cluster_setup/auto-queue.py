@@ -73,7 +73,7 @@ class Queue(object):
                 log('Queue is empty', time=time.time())
                 self.submit_jobs()
                 log(self._submit_file,
-                    'has been submitted',
+                    'has been submitted\n',
                     time=time.time())
             except Exception as e:
                 log(e.__str__())

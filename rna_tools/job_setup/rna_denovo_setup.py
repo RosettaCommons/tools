@@ -462,7 +462,7 @@ if len( cutpoint_open_res_chain[0] ) > 0:
 if len( cutpoint_closed_res_chain[0] ) > 0:
     working_cutpoint_closed = working_res_map( cutpoint_closed_res_chain, working_res, working_chain )
     working_cutpoint_closed = get_rid_of_previously_defined_cutpoints( working_cutpoint_closed, working_res, working_chain )
-    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
+    if len( working_cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
 
 if len( virtual_anchor_res_chain[0] ) > 0:
     working_virtual_anchor = working_res_map( virtual_anchor_res_chain, working_res, working_chain )

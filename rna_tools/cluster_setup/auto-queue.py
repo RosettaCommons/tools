@@ -44,10 +44,10 @@ def check_output(*args, **kwargs):
 ### helper classes
 ###############################################################################
 class Queue(object):
-    
+
     def __init__(self, status_cmd = None, submit_file = None):
         self._user = None
-        self._status_cmd = status_cmd 
+        self._status_cmd = status_cmd
         self._submit_file = submit_file
         if not os.path.exists(submit_file):
             raise Exception(submit_file+" does not exist!!!")
@@ -56,13 +56,14 @@ class Queue(object):
     def is_empty(self):
         # run status_cmd and check output
         o = check_output(self._status_cmd)
-        return (len(o.split('\n')) < 1)      
+        o = filter(None, o.split('\n'))
+        return (len(o) < 1)
 
     def submit_jobs(self):
         # source submit_file
         o = check_output('source', self._submit_file)
         return True
-    
+
     def perpetuate(self):
         while True:
             try:
@@ -100,7 +101,7 @@ class PBSQueue(Queue):
             submit_file = './qsubMINI'
         )
         self._user = user
-        
+
 
 ###############################################################################
 ### helper functions
@@ -139,10 +140,10 @@ def auto_queue(*args, **kwargs):
 ### main script
 ###############################################################################
 if __name__ == '__main__':
-    
+
     args = sys.argv[1:]
     kwargs = {}
-    
+
     if '--user' in args:
         idx = args.index('--user')
         args.pop(idx)

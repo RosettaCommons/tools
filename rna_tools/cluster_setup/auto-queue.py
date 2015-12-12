@@ -52,8 +52,8 @@ class AutoQueue(object):
                  submit_file = None
     ):
         self._user = os.getlogin()
-        self._status_cmd = status_cmd.format(user=self._user)
-        self._submit_cmd = submit_cmd.format(submit_file = submit_file)
+        self._status_cmd = status_cmd.replace('USER', self._user)
+        self._submit_cmd = submit_cmd.replace('FILE', submit_file)
         self._submit_file = submit_file
         if not os.path.exists(submit_file):
             raise Exception(submit_file+" does not exist!!!")
@@ -125,8 +125,8 @@ class SLURMAutoQueue(AutoQueue):
     def __init__(self):
         AutoQueue.__init__(
             self,
-            status_cmd = "squeue --user {user} | tail --lines=+2",
-            submit_cmd = "source {submit_file} | awk '{print $4}'",
+            status_cmd = "squeue --user USER | tail --lines=+2",
+            submit_cmd = "source FILE | awk '{print $4}'",
             submit_file = "./sbatchMINI"
         )
 
@@ -137,7 +137,7 @@ class PBSAutoQueue(AutoQueue):
         AutoQueue.__init__(
             self,
             status_cmd = "qstat | tail --lines=+3",
-            submit_cmd = "source {submit_file} | awk '{print $1}'",
+            submit_cmd = "source FILE | awk '{print $1}'",
             submit_file = "./qsubMINI"
         )
 

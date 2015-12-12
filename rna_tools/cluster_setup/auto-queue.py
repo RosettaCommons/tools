@@ -44,7 +44,7 @@ def check_output(*args, **kwargs):
 ###############################################################################
 ### helper classes
 ###############################################################################
-class Queue(object):
+class AutoQueue(object):
 
     def __init__(self, 
                  status_cmd = None, 
@@ -120,10 +120,10 @@ class Queue(object):
         return False
 
 
-class SLURMQueue(Queue):
+class SLURMAutoQueue(AutoQueue):
 
     def __init__(self):
-        Queue.__init__(
+        AutoQueue.__init__(
             self,
             status_cmd = "squeue --user {user} | tail --lines=+2",
             submit_cmd = "source {submit_file} | awk '{print $4}'",
@@ -131,10 +131,10 @@ class SLURMQueue(Queue):
         )
 
 
-class PBSQueue(Queue):
+class PBSAutoQueue(AutoQueue):
 
     def __init__(self):
-        Queue.__init__(
+        AutoQueue.__init__(
             self,
             status_cmd = "qstat | tail --lines=+3",
             submit_cmd = "source {submit_file} | awk '{print $1}'",
@@ -148,18 +148,18 @@ class PBSQueue(Queue):
 def get_queue(**kwargs):
     hostname = os.uname()[1]
     if 'sherlock' in hostname:
-        return SLURMQueue()
+        return SLURMAutoQueue()
     elif 'biox3' in hostname:
-        return PBSQueue()
+        return PBSAutoQueue()
     else:
         raise Exception("Hostname not vaild!")
 
 
 def get_queue_auto(**kwargs):
     if os.path.exists('/usr/bin/sbatch'):
-        return SLURMQueue()
+        return SLURMAutoQueue()
     elif os.path.exists('/usr/bin/qsub'):
-        return PBSQueue()
+        return PBSAutoQueue()
     else:
         raise Exception("Could not fine sbatch or qsub!!!")
 

@@ -46,14 +46,24 @@ def check_output(*args, **kwargs):
 ###############################################################################
 class Queue(object):
 
-    def __init__(self, status_cmd = None, submit_file = None):
+    def __init__(self, 
+                 status_cmd = None, 
+                 submit_cmd = None, 
+                 submit_file = None
+    ):
         self._user = os.getlogin()
-        self._status_cmd = status_cmd
+        self._status_cmd = status_cmd.format(user=self._user)
+        self._submit_cmd = submit_cmd.format(submit_file = submit_file)
         self._submit_file = submit_file
         if not os.path.exists(submit_file):
             raise Exception(submit_file+" does not exist!!!")
         self._sleep_time = 1*60
+        self._queue = []
 
+    '''
+    # TODO
+    # calebgeniesse: deprecate after testing
+    #
     def is_empty(self):
         # run status_cmd and check output
         o = check_output(self._status_cmd)
@@ -80,6 +90,34 @@ class Queue(object):
                 log(e.__str__())
                 time.sleep(self._sleep_time)
         return False
+    '''
+
+    def _submit_jobs(self):
+        # source submit_file
+        o = check_output(self._submit_cmd)
+        self._queue = filter(None, o.split('\n'))
+
+    def _update_queue(self):
+        # run status command and parse jobs in queue
+        o = check_output(self._status_cmd)
+        self._queue = [id for id in self._queue if id in o]
+
+    def perpetuate(self):
+        while True:
+            try:
+                self._update_queue()
+                if len(self._queue):
+                    time.sleep(self._sleep_time)
+                    continue
+                log('queue is empty', time=time.time())
+                self._submit_jobs()
+                log(self._submit_file,
+                    'has been submitted\n',
+                    time=time.time())
+            except Exception as e:
+                log(e.__str__())
+                time.sleep(self._sleep_time)
+        return False
 
 
 class SLURMQueue(Queue):
@@ -87,8 +125,9 @@ class SLURMQueue(Queue):
     def __init__(self):
         Queue.__init__(
             self,
-            status_cmd = 'squeue --user {user} | tail --lines=+2'.format(user=os.getlogin()),
-            submit_file = './sbatchMINI'
+            status_cmd = "squeue --user {user} | tail --lines=+2",
+            submit_cmd = "source {submit_file} | awk '{print $4}'",
+            submit_file = "./sbatchMINI"
         )
 
 
@@ -97,8 +136,9 @@ class PBSQueue(Queue):
     def __init__(self):
         Queue.__init__(
             self,
-            status_cmd = 'qstat | tail --lines=+3',
-            submit_file = './qsubMINI'
+            status_cmd = "qstat | tail --lines=+3",
+            submit_cmd = "source {submit_file} | awk '{print $1}'",
+            submit_file = "./qsubMINI"
         )
 
 

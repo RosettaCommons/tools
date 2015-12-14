@@ -144,26 +144,25 @@ class PBSAutoQueue(AutoQueue):
 
 
 ###############################################################################
-### helper functions
+### factories
 ###############################################################################
-def get_queue(**kwargs):
-    hostname = os.uname()[1]
-    if 'sherlock' in hostname:
-        return SLURMAutoQueue()
-    elif 'biox3' in hostname:
-        return PBSAutoQueue()
-    else:
-        raise Exception("Hostname not vaild!")
+class AutoQueueFactoryException(Exception):
+    pass
+    
+class AutoQueueFactory(object):
+    
+    def __init__(self):
+        pass
+    
+    def get_auto_queue(self):
+        if os.path.exists('/usr/bin/sbatch'):
+            return SLURMAutoQueue()
+        elif os.path.exists('/usr/bin/qsub'):
+            return PBSAutoQueue()
+        else:
+            raise AutoQueueFactoryException("Could not find sbatch or qsub!!!")
 
-
-def get_queue_auto(**kwargs):
-    if os.path.exists('/usr/bin/sbatch'):
-        return SLURMAutoQueue()
-    elif os.path.exists('/usr/bin/qsub'):
-        return PBSAutoQueue()
-    else:
-        raise Exception("Could not fine sbatch or qsub!!!")
-
+auto_queue_factory = AutoQueueFactory()
 
 ###############################################################################
 ### main function
@@ -171,8 +170,7 @@ def get_queue_auto(**kwargs):
 def auto_queue(*args, **kwargs):
 
     ### TODO: should this just be a method of Queue?
-    #q = get_queue(**kwargs)
-    q = get_queue_auto(**kwargs)
+    q = auto_queue_factory.get_auto_queue()
     q.perpetuate()
 
 

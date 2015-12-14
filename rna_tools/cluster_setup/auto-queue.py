@@ -61,12 +61,18 @@ class AutoQueue(object):
         self._queue = []
 
     def _submit_jobs(self):
-        # source submit_file
+        '''
+        details: source submit_file
+        
+        '''
         o = check_output(self._submit_cmd)
         self._queue = filter(None, o.split('\n'))
 
     def _update_queue(self):
-        # run status command and parse jobs in queue
+        '''
+        details: run status command and parse jobs in queue
+        
+        '''
         o = check_output(self._status_cmd)
         self._queue = [id for id in self._queue if id in o]
 
@@ -93,7 +99,10 @@ class AutoQueue(object):
         return False
 
     def _cluster_queue_is_empty(self):
-        # run status_cmd and check output
+        '''
+        details: run status_cmd and check output
+        
+        '''
         o = check_output(self._status_cmd)
         o = filter(None, o.split('\n'))
         return (len(o) < 1)
@@ -163,6 +172,7 @@ class AutoQueueFactory(object):
             raise AutoQueueFactoryException("Could not find sbatch or qsub!!!")
 
 auto_queue_factory = AutoQueueFactory()
+
 
 ###############################################################################
 ### main function

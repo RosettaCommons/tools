@@ -60,38 +60,6 @@ class AutoQueue(object):
         self._sleep_time = 1*60
         self._queue = []
 
-    '''
-    # TODO
-    # calebgeniesse: deprecate after testing
-    #
-    def is_empty(self):
-        # run status_cmd and check output
-        o = check_output(self._status_cmd)
-        o = filter(None, o.split('\n'))
-        return (len(o) < 1)
-
-    def submit_jobs(self):
-        # source submit_file
-        o = check_output('source', self._submit_file)
-        return True
-
-    def perpetuate(self):
-        while True:
-            try:
-                if not self.is_empty():
-                    time.sleep(self._sleep_time)
-                    continue
-                log('Queue is empty', time=time.time())
-                self.submit_jobs()
-                log(self._submit_file,
-                    'has been submitted\n',
-                    time=time.time())
-            except Exception as e:
-                log(e.__str__())
-                time.sleep(self._sleep_time)
-        return False
-    '''
-
     def _submit_jobs(self):
         # source submit_file
         o = check_output(self._submit_cmd)
@@ -103,6 +71,11 @@ class AutoQueue(object):
         self._queue = [id for id in self._queue if id in o]
 
     def perpetuate(self):
+        '''
+        details: this method watches individual job ids, and re-submits these 
+                 jobs whenever they are no longer found in the queue
+ 
+        '''
         while True:
             try:
                 self._update_queue()
@@ -110,6 +83,34 @@ class AutoQueue(object):
                     time.sleep(self._sleep_time)
                     continue
                 log('queue is empty', time=time.time())
+                self._submit_jobs()
+                log(self._submit_file,
+                    'has been submitted\n',
+                    time=time.time())
+            except Exception as e:
+                log(e.__str__())
+                time.sleep(self._sleep_time)
+        return False
+
+    def _cluster_queue_is_empty(self):
+        # run status_cmd and check output
+        o = check_output(self._status_cmd)
+        o = filter(None, o.split('\n'))
+        return (len(o) < 1)
+
+    def perpetuate_nonspecific(self):
+        '''
+        details: this method watches the user's entire queue, and re-submits  
+                 jobs whenever it is empty (i.e. no jobs returned by qstat)
+ 
+        todo: test, deprecate?
+        '''
+        while True:
+            try:
+                if not self._cluster_queue_is_empty():
+                    time.sleep(self._sleep_time)
+                    continue
+                log('cluster queue is empty', time=time.time())
                 self._submit_jobs()
                 log(self._submit_file,
                     'has been submitted\n',

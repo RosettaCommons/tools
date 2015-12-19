@@ -1,1 +1,0 @@
-../python_cc_reader/test_compile.py

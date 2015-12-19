@@ -18,7 +18,7 @@ import blargs
 #
 # or if you want to pass extra arguments, just make sure that --filename is the last argument provided:
 #
-# python /path/to/tools/clang_ast_transform/run_on_all_ccfiles_w_fork.py -e "python /path/to/tools/clang_ast_transform/run_serialization_validator_on_file.py 
+# python /path/to/tools/clang_ast_transform/run_on_all_ccfiles_w_fork.py -e "python /path/to/tools/clang_ast_transform/run_serialization_validator_on_file.py
 # --executable_path /path/to/clang/build/bin --json_output_path /path/to/directory/for/json_output --filename" -n 10
 
 # Assumptions for how this script is run below:
@@ -46,19 +46,19 @@ if __name__ == "__main__" :
         serialization_validator_executable = executable_path
 
 
-    
+
     # get the directory where we're executing this script
     # SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
     rosetta_source_dir = os.getcwd().partition( "/src/" )[0]
-    
+
     # the file to "compile" should be the one and only argument to this script.
     #MATCHERS=$1
     # FILE=$1
     fname = filename
-    json_outfname = json_output_path + "/serialization_validator_" + fname.replace("/","_") + ".json"
-    
+    json_outfname = json_output_path + "/" + fname.replace("/","_")[ len('src/'): ] + ".json"
+
     #echo "matchers", $MATCHERS
-    
+
     #cd $SOURCE
     os.chdir( rosetta_source_dir )
     command =  serialization_validator_executable + " " + fname + " -- " + \
@@ -89,15 +89,18 @@ if __name__ == "__main__" :
               "-I/usr/local/include"
     command_list = command.split()
     #print command_list
-    p = subprocess.Popen( command_list, stdout = subprocess.PIPE )
-    output = p.stdout.read()
+    p = subprocess.Popen( command_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+
+    output, errors = p.communicate()
+    exit_code = p.returncode
+
     outlines = []
-    
+
     outdict = {}
     outdict[ fname ] = {}
-    outdict[ fname ][ "log" ] = "Human-readable log for " + fname
-    outdict[ fname ][ "state" ] = "passed"
-    
+    outdict[ fname ][ "log" ] = "Processing file " + fname + ':\n' + output + '\n' + errors
+    outdict[ fname ][ "state" ] = "failed" if exit_code else "finished"
+
     if output :
         lines = output.split("\n")
         for line in lines :
@@ -114,8 +117,7 @@ if __name__ == "__main__" :
             if load_save not in outdict[ fname ][ "results" ][ classname ] :
                 outdict[ fname ][ "results" ][ classname ][ load_save ] = []
             outdict[ fname ][ "results" ][ classname ][ load_save ].append( field )
-    
-    outlines = json.dumps( outdict )
-    open( json_outfname, "w" ).writelines( outlines )
-    
+
+    with file(json_outfname, 'w') as f: json.dump(outdict, f, sort_keys=True, indent=2)
+
     sys.exit( 1 if output else 0 )

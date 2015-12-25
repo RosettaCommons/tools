@@ -99,7 +99,7 @@ if __name__ == "__main__" :
     outdict = {}
     outdict[ fname ] = {}
     outdict[ fname ][ "log" ] = "Processing file " + fname + ':\n' + output + '\n' + errors
-    outdict[ fname ][ "state" ] = "failed" if exit_code else "finished"
+    outdict[ fname ][ "state" ] = "failed" if exit_code else "passed"
 
     if output :
         lines = output.split("\n")

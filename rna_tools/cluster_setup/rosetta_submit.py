@@ -29,7 +29,7 @@ if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
 if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
 
-    
+
 if hostname == 'lonestar':
     DO_MPI = True
     tasks_per_node_MPI = 12 # lonestar
@@ -42,7 +42,7 @@ if hostname == 'comet':
     tasks_per_node_MPI = 24
     account = expandvars("$COMET_ACCOUNT")
     if not len(account):
-        account = 'TG-MCB120152' 
+        account = 'TG-MCB120152'
 if hostname == 'sherlock':
     DO_MPI = True
     tasks_per_node_MPI = n_jobs if n_jobs < 16 else 16
@@ -59,7 +59,7 @@ if argv.count( '-development' )>0:
     pos = argv.index( '-development' )
     del( argv[pos] )
 
-# set name of queue to submit jobs to 
+# set name of queue to submit jobs to
 queue = 'normal'
 if '-queue' in argv:
     idx = argv.index('-queue')
@@ -76,7 +76,7 @@ if len( argv ) > 4:
     nhours = int( argv[4] )
     if ( nhours > 168 ):  Help()
     if hostname in ['sherlock', 'comet']:
-        nhours = min(nhours, 48)  
+        nhours = min(nhours, 48)
 
 if not exists( infile ):
     print 'Could not find: ', infile
@@ -239,8 +239,10 @@ for line in lines:
             queue2 = queue
             if hostname in ['comet']:
                 queue2 = 'shared'
+            if hostname in ['sherlock']:
+                queue2 = 'owners'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
-            
+
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
             fid_sbatch_submit_file = open( sbatch_submit_file, 'w' )
             fid_sbatch_submit_file.write( '#!/bin/bash\n'  )
@@ -298,8 +300,8 @@ if DO_MPI:
         for m in range( tasks_per_node_MPI ):
             count = count + 1
             if ( count <= tot_jobs ):
-                outfile = outfile_general.replace( '$(Process)', '%d' % count-1 )
-                errfile = errfile_general.replace( '$(Process)', '%d' % count-1 )
+                outfile = outfile_general.replace( '$(Process)', '%d' % (count-1) )
+                errfile = errfile_general.replace( '$(Process)', '%d' % (count-1) )
                 command_line_explicit = command_lines_explicit[ count-1 ] + ' > %s 2> %s' % (outfile, errfile)
                 if hostname in ["stampede", "sherlock", "comet"]:
                     fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
@@ -377,7 +379,7 @@ if DO_MPI:
         if account: fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A %s\n' % account )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
         #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
-        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n' 
+        fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n'
                                      % (job_file_MPI_ONEBATCH, hostname) )
     else:
         fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash    \n')

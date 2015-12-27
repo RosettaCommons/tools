@@ -38,6 +38,7 @@ for m in args:
 dir = '.'
 
 clusterdir = abspath(dir).replace('/Users/%s/' % user_name,'')
+clusterdir = clusterdir.replace('Dropbox/','')
 clusterdir = clusterdir.replace('/scratch/users/%s/' % user_name,'')
 clusterdir = clusterdir.replace('/work/%s/' % user_name,'')
 clusterdir = clusterdir.replace('/home/%s/' % user_name,'')

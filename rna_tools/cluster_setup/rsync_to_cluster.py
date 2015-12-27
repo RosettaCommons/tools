@@ -41,6 +41,7 @@ username = basename( expanduser('~') )
 
 # strip off directory name based on local path.
 clusterdir = abspath('.').replace('/Users/%s/' % username,'')
+clusterdir = clusterdir.replace('Dropbox/','')
 clusterdir = clusterdir.replace('/work/%s/' % username,'')
 clusterdir = clusterdir.replace('/home/%s/' % username,'')
 clusterdir = clusterdir.replace('/scratch/users/%s/' % username,'')

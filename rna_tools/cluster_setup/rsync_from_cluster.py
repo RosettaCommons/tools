@@ -26,34 +26,32 @@ if cluster == 'unknown':
 
 # handle flags like '--exclude' and '--delete' correctly
 args = argv[2:]
-filename = ''
+filenames = []
 extra_args = []
 for m in args:
     if len( m ) > 2 and m.find( '--' ) > -1:
         extra_args.append( m )
     else:
-        assert( len(filename) == 0 )
-        filename = m
-
+        filenames.append( m )
+if len(filenames) == 0: filenames = ['.']
 dir = '.'
 
-clusterdir = abspath(dir).replace('/Users/%s/' % user_name,'')
-clusterdir = clusterdir.replace('Dropbox/','')
-clusterdir = clusterdir.replace('/scratch/users/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/work/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/home/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/home1/%s/%s/' % ( xsede_dir_number, xsede_user_name ),'')
-clusterdir = clusterdir.replace('/work/%s/%s/' % (xsede_dir_number, xsede_user_name ),'')
-
-clusterdir = remotedir+clusterdir
+# strip off directory name based on local path.
+clusterdir = remotedir+strip_home_dirname( abspath(dir) )
 
 cluster_prefix = cluster+':'
 if len(cluster) == 0: cluster_prefix = ''
 
-command = 'rsync -avzL '+cluster_prefix+clusterdir + '/' + filename + ' . '+string.join(extra_args)
-print(command)
-system(command)
+commands = []
+for filename in filenames:
+    remote_filename = ' ' + cluster_prefix+clusterdir + '/' + filename
+    command = 'rsync -avzL '+ remote_filename + ' . '+string.join(extra_args)
+    print(command)
+    system(command)
+    commands.append( command )
 print
-print 'Ran the following command: '
-print(command)
+print 'Ran the following commands: '
+for command in commands:
+    print
+    print(command)
 

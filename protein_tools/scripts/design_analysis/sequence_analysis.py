@@ -18,7 +18,10 @@ except ImportError:
 def three_to_one(amino_acid):
 	amino_acid_names = { "ALA" : "A","GLY":"G","LEU":"L","ILE":"I","MET":"M","PHE":"F","VAL":"V","SER":"S","PRO":"P","THR":"T","TYR":"Y","HIS":"H","GLU":"E",\
 						"ASP": "D","ASN":"N","GLN":"Q","TRP":"W","CYS":"C","CYD":"C","ARG":"R","LYS":"K","TES":"X","S56":"X"}
-	return amino_acid_names[amino_acid]
+        if amino_acid not in amino_acid_names:
+            return 'X'
+        else:
+	    return amino_acid_names[amino_acid]
 
 # prelim junk#
 warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)

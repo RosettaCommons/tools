@@ -274,6 +274,10 @@ if ( defined $opts{add_pdbs_to_vall} ) {
     }
     else {
         @pdbs_to_vall = split( /,/, $opts{add_pdbs_to_vall} );
+	# make sure the PDB code is lower case
+	for (my $i=0;$i<=$#pdbs_to_vall;$i++) {
+		substr($pdbs_to_vall[$i],0,4) = lc substr($pdbs_to_vall[$i],0,4);
+	}
         print_debug( "pdbs to vall: " . join( " ", @pdbs_to_vall ) );
     }
 }
@@ -1837,7 +1841,7 @@ sub run_in_parallel {
       or die
       "ERROR! number of commands does not match results in run_in_parallel\n";
 
-		use Parallel::ForkManager;
+		use ForkManager;
 		use Sys::Hostname;
 		my $host = hostname;
     my $logprefix = "$runid-$host";

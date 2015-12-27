@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 
 from optparse import OptionParser
 from rosettautil.rosetta import rosettaScore
@@ -47,6 +47,6 @@ elif options.mode =="pdb" or options.mode=="PDB":
     for i in range(structs_to_print):
         (tag,score) = file_scores[i]
         print tag,score
-        
+
 else:
     parser.error("you must specify either 'pdb' or 'silent' with the --mode flag")

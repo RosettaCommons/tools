@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 import sys
 from rosettautil.rosetta import rosettaScore
 from rosettautil.protein import util
@@ -20,7 +20,7 @@ try:
     residue_id = int(options.start)
 except ValueError:
     sys.exit("residue number specified with -n must be an integer")
-    
+
 chain_id = ""
 for residue in struct.get_residues():
     chain = residue.get_parent()
@@ -35,8 +35,8 @@ for residue in struct.get_residues():
     else:
         residue.id=(' ',residue_id,' ')
     residue_id +=1
-    
-    
+
+
 io=PDBIO()
 io.set_structure(struct)
 outfile = fileutil.universal_open(args[1],'w')

@@ -6,7 +6,10 @@ import os
 import time
 
 
-def parse_stampede_nodefile(inp):
+def parse_nodefile(inp):
+    '''
+    Parse nodelist from file. Currently requires SLURM_NODELIST format.
+    '''
     inp.replace('\n', ',')
     node_list = []
     while len(inp) != 0:
@@ -36,27 +39,38 @@ def parse_stampede_nodefile(inp):
     return node_list
 
 
-def stampede_init( nodelist = '', job_cpus_per_node='' ):
-    socket_timeout = 3600 * 24
+def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
+    if cluster_name in ['stampede']:
+        submit_command = 'ibrun'
+    else:
+        submit_command = 'srun'
     port = 32568
+    socket_timeout = 3600 * 24
     key_phrase = '%x' % random.randrange(256**5)
+    
     if len( nodelist ) == 0:
         nodelist = open( 'nodefile.txt' ).read().strip()
-    nodes = parse_stampede_nodefile(nodelist)
-
     if len( job_cpus_per_node ) == 0:
         job_cpus_per_node = open('ncpus_per_node.txt').read().strip()
-    line = job_cpus_per_node
-    if '(' in line:
-        nworkers = int(line.split('(')[0])
-    else:
-        nworkers = int(line)
+    nodes = parse_nodefile(nodelist)
+    nworkers = int(job_cpus_per_node.split('(')[0])
     ncpus = nworkers * len(nodes)
+    
     print 'Submitting the ppserver...'
-    subprocess.Popen([
-        'ibrun', 'ppserver.py', '-k', str(socket_timeout), '-p', str(port),
-        '-w', str(nworkers), '-s', key_phrase])
-    ppservers = tuple([node + ':' + str(port) for node in nodes])
+    submit_cmdline = [submit_command, 'ppserver.py']
+    if not nworkers is None:
+        submit_cmdline += ['-w', str(nworkers)]
+    if not socket_timeout is None:
+        submit_cmdline += ['-k', str(socket_timeout)]
+    if not port is None:
+        submit_cmdline += ['-p', str(port)]
+    if not key_phrase is None:
+        submit_cmdline += ['-s', key_phrase]
+    subprocess.Popen(submit_cmdline)
+    if port is None:
+        ppservers = tuple([node for node in nodes])
+    else:
+        ppservers = tuple([node + ':' + str(port) for node in nodes])
     jobserver = pp.Server(
         ncpus=0, ppservers=ppservers, secret=key_phrase,
         socket_timeout=socket_timeout)
@@ -84,8 +98,14 @@ def submit_cmdline(work_dir, cmdline):
     output = ''
     returncode = 0
     try:
-        output = subprocess.check_output(
-            cmdline.split(), stderr=subprocess.STDOUT)
+        output, error = subprocess.Popen(
+            cmdline.split(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT ).communicate()
+        if error:
+            print error
+            output = error
+            returncode = 1
     except subprocess.CalledProcessError as err:
         output = err.output
         returncode = err.returncode

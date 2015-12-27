@@ -1,3 +1,25 @@
+// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-
+// vi: set ts=2 noet:
+//
+// (c) Copyright Rosetta Commons Member Institutions.
+// (c) This file is part of the Rosetta software suite and is made available under license.
+// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+// (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+
+/*
+	Find all function calls in class methods
+	To get a parsable list, run:
+	./run.sh test-cases.cc -matchers=find_calls -colors=false|grep ' => '|sed 's/ => /\t/'
+*/
+#ifndef INCLUDED_matchers_code_quality_bad_pointer_casts_HH
+#define INCLUDED_matchers_code_quality_bad_pointer_casts_HH
+
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Tooling/Refactoring.h"
+
+#include "../../matchers_base.hh"
+
 /*
 	Code quality checker finder:
 	- Find all cases where "this" is being put into an OP or AP
@@ -19,7 +41,7 @@ private:
 public:
 	X() {}
 	void setPartner(XAP p) { partner_ = p; }
-	
+
 	void foo1() {
 		XOP x1 = new X;         // OK
 		X & x1_r = *x1;         // OK
@@ -39,63 +61,22 @@ public:
 class BadPointerCastFinder : public ReplaceMatchCallback {
 public:
 	BadPointerCastFinder(
-		tooling::Replacements *Replace,
-		const char *tag = "BadPointerCastFinder") :
-		ReplaceMatchCallback(Replace, tag) {}
+		clang::tooling::Replacements *Replace,
+		const char *tag = "BadPointerCastFinder" );
 
-	virtual void run(const ast_matchers::MatchFinder::MatchResult &Result) {
-		SourceManager &sm = *Result.SourceManager;
-		const Expr *castFrom = Result.Nodes.getStmtAs<Expr>("castFrom");
-		const Expr *castTo = Result.Nodes.getStmtAs<Expr>("castTo");
+	BadPointerCastFinder(
+		clang::tooling::Replacements *Replace,
+		bool verbose,
+		const char *tag = "BadPointerCastFinder" );
 
-		if(!rewriteThisFile(castFrom, sm))
-			return;
 
-		const std::string locStr = castFrom->getSourceRange().getBegin().printToString(sm);
-		const std::string castFromType = QualType::getAsString( castFrom->getType().split() );
-		const std::string castToType = QualType::getAsString( castTo->getType().split() );
-		const std::string castFromTypeD = QualType::getAsString( castFrom->getType().getSplitDesugaredType() );
-		const std::string castToTypeD = QualType::getAsString( castTo->getType().getSplitDesugaredType() );
+	virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &Result);
 
-		if(Verbose) {
-			llvm::errs() << tag << ": " << locStr << "\n";
-
-			llvm::errs() << "castFrom: " << color("green") << castFromType << color("") << "\n";
-			if(castFromType != castFromTypeD && !castFromTypeD.empty())
-				llvm::errs() << "          " << color("green") << castFromTypeD << color("") << "\n";
-
-			llvm::errs() << "castTo:   " << color("red") << castToType << color("") << "\n";
-			if(castToType != castToTypeD && !castToTypeD.empty())
-				llvm::errs() << "          " << color("red") << castToTypeD << color("") << "\n";
-		}
-
-		llvm::outs() << tag << "\t" << locStr << "\t" << castFromType << "\t" << castToType << "\n";
-	}
+private:
+	bool verbose_;
 };
 
-// x1->setPartner( this );
+void
+add_bad_pointer_cast_finder( clang::ast_matchers::MatchFinder & finder, clang::tooling::Replacements * replacements );
 
-Finder.addMatcher(
-	constructExpr(
-		has(
-			thisExpr().bind("castFrom")
-		),
-		isUtilityPointer()
-	).bind("castTo"),
-	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:thisExpr"));
-
-
-// XOP x2 = &x1_r;
-// XAP x3 = &x1_r;
-// setPartner( &x1_r );
-
-Finder.addMatcher(
-	unaryOperator(
-		hasParent(
-			constructExpr( isUtilityPointer() ).bind("castTo")
-		),
-		has(
-			expr().bind("castFrom")
-		)
-	),
-	new BadPointerCastFinder(Replacements, "BadPointerCastFinder:unaryOperator"));
+#endif

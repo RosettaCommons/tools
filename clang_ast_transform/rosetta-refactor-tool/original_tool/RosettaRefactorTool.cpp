@@ -1,3 +1,12 @@
+// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing-whitespace:t;rm-trailing-spaces:t -*-
+// vi: set ts=2 noet:
+//
+// (c) Copyright Rosetta Commons Member Institutions.
+// (c) This file is part of the Rosetta software suite and is made available under license.
+// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+// (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+
 //===- RosettaRefactorTool.cpp - Clean up for boost ptr conversion -===//
 //
 // This tool generates a log of source code changes to be applies to
@@ -22,7 +31,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/system_error.h"
+//#include "llvm/Support/system_error.h"
 
 #include <string>
 #include <set>
@@ -30,6 +39,38 @@
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
+
+// Code includes
+#include "../utils.hh"
+#include "../ast_matchers.hh"
+#include "../matchers_base.hh"
+#include "RosettaRefactorTool.hh"
+
+#include "../matchers/find/calls.hh"
+#include "../matchers/find/constructor_decl.hh"
+#include "../matchers/find/field_decl.hh"
+#include "../matchers/find/record_decl.hh"
+#include "../matchers/find/self_ptr_in_ctor.hh"
+#include "../matchers/find/serialization_funcs.hh"
+
+#include "../matchers/code_quality/bad_pointer_casts.hh"
+#include "../matchers/code_quality/naked_ptr_op_casts.hh"
+#include "../matchers/code_quality/obj_on_stack.hh"
+
+#include "../matchers/rewrite/add_serialization_code.hh"
+#include "../matchers/rewrite/call_operator.hh"
+#include "../matchers/rewrite/cast_from_new.hh"
+#include "../matchers/rewrite/cast_from_new_expr.hh"
+#include "../matchers/rewrite/cast_from_new_vardecl.hh"
+#include "../matchers/rewrite/cast_in_assignment.hh"
+#include "../matchers/rewrite/ctor_initializer.hh"
+#include "../matchers/rewrite/datamap_get.hh"
+#include "../matchers/rewrite/dynamic_cast.hh"
+#include "../matchers/rewrite/member_calls.hh"
+#include "../matchers/rewrite/pointer_name.hh"
+#include "../matchers/rewrite/real_comparison.hh"
+#include "../matchers/rewrite/pose_dynamic_cast.hh"
+#include "../matchers/rewrite/typedef.hh"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -40,7 +81,7 @@ using clang::tooling::Replacement;
 // Command line options
 
 cl::opt<bool> Debug(
-	"debug",
+	"debug_rrt",
 	cl::desc("Enable debugging output"),
 	cl::init(false));
 
@@ -54,8 +95,8 @@ cl::opt<bool> Colors(
 	cl::desc("Enable color output"),
 	cl::init(true));
 
-cl::opt<bool> DangarousRewrites(
-	"danganous-rewrites",
+cl::opt<bool> DangerousRewrites(
+	"dangenous-rewrites",
 	cl::desc("Enable dangarous matchers in the rewriter"),
 	cl::init(false));
 
@@ -74,27 +115,6 @@ cl::list<std::string> SourcePaths(
 	cl::desc("<source0> [... <sourceN>]"),
 	cl::OneOrMore);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Code includes
-
-#include "utils.hh"
-#include "ast_matchers.hh"
-#include "matchers_base.hh"
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Main tool class
-
-class RosettaRefactorTool {
-
-public:
-	RosettaRefactorTool(int argc, const char **argv);
-	int Run();
-	int runMatchers();
-	int saveOutput();
-
-	clang::tooling::RefactoringTool * Tool;
-	std::string prefix_, suffix_;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -112,14 +132,16 @@ RosettaRefactorTool::RosettaRefactorTool(int argc, const char **argv)
 	using namespace clang::tooling;
 
 	llvm::sys::PrintStackTraceOnErrorSignal();
-	std::unique_ptr<CompilationDatabase> Compilations(
-			FixedCompilationDatabase::loadFromCommandLine(argc, argv));
+	{
+		std::unique_ptr< CompilationDatabase > compdb_from_cl( FixedCompilationDatabase::loadFromCommandLine(argc, argv));
+		Compilations.swap( compdb_from_cl );
+	}
 
 	cl::ParseCommandLineOptions(argc, argv);
 	if(!Compilations) {
 		std::string ErrorMessage;
-		Compilations.reset(
-			CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage));
+		std::unique_ptr< CompilationDatabase > compdb_from_dir = CompilationDatabase::loadFromDirectory(BuildPath, ErrorMessage);
+		Compilations.swap( compdb_from_dir );
 		if(!Compilations)
 			llvm::report_fatal_error(ErrorMessage);
 	}
@@ -134,7 +156,7 @@ int RosettaRefactorTool::Run() {
 		return r;
 	return saveOutput();
 }
-	
+
 /// Run selected matchers
 int RosettaRefactorTool::runMatchers() {
 
@@ -144,6 +166,7 @@ int RosettaRefactorTool::runMatchers() {
 	for(cl::list<std::string>::const_iterator it(Matchers.begin()), end(Matchers.end());
 			it != end; ++it) {
 		std::string matcher( *it );
+		std::cout << "Running with matcher: " << matcher << std::endl;
 		if(Verbose)
 			llvm::errs() << color("gray") << "Applying matcher: " << matcher << color("") << "\n";
 
@@ -153,95 +176,100 @@ int RosettaRefactorTool::runMatchers() {
 
 		// Finders
 		if(matcher == "find_calls") {
-			#include "matchers/find/calls.hh"
+			add_calls_finder( Finder, Replacements );
 		}
 		if(matcher == "find_self_ptr_in_ctor") {
-			#include "matchers/find/self_ptr_in_ctor.hh"
+			add_self_ptr_in_ctor_finder( Finder, Replacements );
 		}
 		if(matcher == "find_record_decl") {
-			#include "matchers/find/record_decl.hh"
+			add_record_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_field_decl") {
-			#include "matchers/find/field_decl.hh"
+			add_field_decl_finder( Finder, Replacements );
 		}
 		if(matcher == "find_constructor_decl") {
-			#include "matchers/find/constructor_decl.hh"
+			add_constructor_decl_finder( Finder, Replacements );
+		}
+		if(matcher == "find_serialized_members") {
+			std::cout << "Calling add_serialization_func_finder" << std::endl;
+			add_serialization_func_finder( Finder, Replacements );
 		}
 
 		// Code quality checkers
 		if(matcher == "code_quality_check" || matcher == "naked_ptr_op_casts") {
-			#include "matchers/code_quality/naked_ptr_op_casts.hh"
+			add_naked_ptr_op_casts_finder( Finder, Replacements );
 		}
 		if(matcher == "code_quality_check" || matcher == "bad_pointer_casts") {
-			#include "matchers/code_quality/bad_pointer_casts.hh"
+			add_bad_pointer_cast_finder( Finder, Replacements );
 		}
 		if(matcher == "code_quality_check" || matcher == "obj_ob_stack") {
-			#include "matchers/code_quality/obj_on_stack.hh"
+			add_obj_on_stack_finder( Finder, Replacements );
 		}
 
 		// Rewriters
 		if(matcher == "rewrite" || matcher == "rewrite_typedef") {
-			#include "matchers/rewrite/typedef.hh"
+			add_typedef_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pointer_name") {
-			#include "matchers/rewrite/pointer_name.hh"
+			add_pointer_name_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_vardecl") {
-			#include "matchers/rewrite/cast_from_new_vardecl.hh"
+			add_cast_from_new_vardecl_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new_expr") {
-			#include "matchers/rewrite/cast_from_new_expr.hh"
+			add_cast_from_new_expr_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_from_new") {
-			#include "matchers/rewrite/cast_from_new.hh"
+			add_cast_from_new_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_cast_in_assignment") {
-			#include "matchers/rewrite/cast_in_assignment.hh"
+			add_cast_in_assignment_rewriter( Finder, Replacements, DangerousRewrites );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_ctor_initializer") {
-			#include "matchers/rewrite/ctor_initializer.hh"
+			add_ctor_initializer_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_dynamic_cast") {
-			#include "matchers/rewrite/dynamic_cast.hh"
+			add_dynamic_cast_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_datamap_get") {
-			#include "matchers/rewrite/datamap_get.hh"
+			add_datamap_get_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_pose_dynamic_cast") {
-			#include "matchers/rewrite/pose_dynamic_cast.hh"
+			add_pose_dynamic_cast_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_call_operator") {
-			#include "matchers/rewrite/call_operator.hh"
+			add_call_operator_rewriter( Finder, Replacements );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_member_calls") {
-			#include "matchers/rewrite/member_calls.hh"
+			add_member_calls_rewriter( Finder, Replacements, DangerousRewrites );
 		}
 		if(matcher == "rewrite" || matcher == "rewrite_real_comparison") {
-			#include "matchers/rewrite/real_comparison.hh"
+			add_real_comparison_rewriter( Finder, Replacements );
 		}
 
 		// Adders
 		if(matcher == "add_serialization_code") {
-			#include "matchers/rewrite/add_serialization_code.hh"
+			add_serialization_code_rewriter( Finder, Replacements, this );
 		}
 
 		if(matcher == "rewrite_not_operator") {
 			// Not needed; see comment in file
-			#include "matchers/rewrite/not_operator.hh"
+			#include "../matchers/rewrite/not_operator.hh"
 		}
 	}
 
 	// Run tool and generate change log
-	return Tool->run(clang::tooling::newFrontendActionFactory(&Finder));
+	std::unique_ptr< clang::tooling::FrontendActionFactory > factory(clang::tooling::newFrontendActionFactory(&Finder));
+	return Tool->run( factory.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Save rewritten output to files or output to stdout
 int RosettaRefactorTool::saveOutput() {
-	
+
 	using namespace clang::tooling;
-	
+
 	LangOptions DefaultLangOptions;
 	IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
 	TextDiagnosticPrinter DiagnosticPrinter(llvm::errs(), &*DiagOpts);
@@ -284,7 +312,7 @@ int RosettaRefactorTool::saveOutput() {
 		}
 
 		// llvm::errs() << "Output directory: " << outputBaseDir << "\n";
-				
+
 		for (Rewriter::buffer_iterator I = Rewrite.buffer_begin(),
 				E = Rewrite.buffer_end(); I != E; ++I) {
 
@@ -301,7 +329,7 @@ int RosettaRefactorTool::saveOutput() {
 						origFileNameRelPath = std::string(origFileNameRelPath, i);
 				}
 			}
-			
+
 			std::string outputFileName = outputBaseDir + origFileNameRelPath;
 
 			// Create dir
@@ -335,12 +363,12 @@ int RosettaRefactorTool::saveOutput() {
 				llvm::errs()
 					<< origFileName << " -> " << outputFileName << ": "
 					<< (ok ? "OK" : "Failed!") << "\n";
-					
+
 				if(!ok)
 					result++;
 			}
 		}
 	}
-	
+
 	return result;
 }

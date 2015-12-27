@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
-from pp_util import load_jobfile, stampede_init, submit_cmdline
 import argparse
+import pp_util
 
 
 parser = argparse.ArgumentParser(
@@ -17,9 +17,9 @@ parser.add_argument(
     '-job_cpus_per_node', type=str, help='job cpus per node, should provided by SLURM',
     metavar='str', default='')
 args = parser.parse_args()
-work_dir_list, cmdline_list = load_jobfile(args.job_script)
-if args.cluster_name == 'stampede':
-    jobserver, ncpus = stampede_init( args.nodelist, args.job_cpus_per_node )
+work_dir_list, cmdline_list = pp_util.load_jobfile(args.job_script)
+if args.cluster_name in ['stampede', 'sherlock', 'comet']:
+    jobserver, ncpus = pp_util.jobserver_init( args.cluster_name, args.nodelist, args.job_cpus_per_node )
 else:
     raise argparse.ArgumentError("Invalid cluster_name!")
 active_nodes = jobserver.get_active_nodes()
@@ -37,7 +37,7 @@ jobs = []
 for work_dir, cmdline in zip(work_dir_list, cmdline_list):
     jobs.append(
         jobserver.submit(
-            submit_cmdline, (work_dir, cmdline),
+            pp_util.submit_cmdline, (work_dir, cmdline),
             modules=('subprocess', 'os')))
 jobserver.wait()
 

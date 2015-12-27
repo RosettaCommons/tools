@@ -1,10 +1,15 @@
 #!/usr/bin/python
 
 from os.path import expanduser,expandvars,basename
+import subprocess
 
 user_name = basename( expanduser('~') )
 biox3_user_name = expandvars( '$BIOX3_USER_NAME' )
 if biox3_user_name == '$BIOX3_USER_NAME': biox3_user_name = user_name
+sherlock_user_name = expandvars( '$SHERLOCK_USER_NAME' )
+if not len(sherlock_user_name): sherlock_user_name = user_name
+comet_user_name = expandvars( '$COMET_USER_NAME' )
+if not len(comet_user_name): comet_user_name = user_name
 xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
@@ -94,5 +99,23 @@ def cluster_check( cluster_in ):
     if cluster == 'kwip':      cluster = 'kwipapat@biox3.stanford.edu'
     if cluster == 'tsuname':   cluster = 'tsuname@biox3.stanford.edu'
 
+    if cluster == 'sherlock':
+        cluster = '%s@sherlock.stanford.edu' % sherlock_user_name
+        cluster_dir = '/home/%s/' % sherlock_user_name
+
+    if cluster == 'comet':
+        cluster = '%s@comet.sdsc.xsede.org' % comet_user_name
+        cluster_dir = '/home/%s/' % comet_user_name
+
     return (cluster,cluster_dir)
 
+
+def strip_home_dirname( clusterdir ):
+    clusterdir = clusterdir.replace('/Users/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('Dropbox/','')
+    clusterdir = clusterdir.replace('/scratch/users/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/work/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/home/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/home1/%s/%s/' % ( xsede_dir_number, xsede_user_name ),'')
+    clusterdir = clusterdir.replace('/work/%s/%s/' % (xsede_dir_number, xsede_user_name ),'')
+    return clusterdir

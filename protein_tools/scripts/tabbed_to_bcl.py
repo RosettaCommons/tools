@@ -1,4 +1,5 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
+
 from optparse import OptionParser
 import sys
 from rosettautil.util import fileutil

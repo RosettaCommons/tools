@@ -14,6 +14,7 @@
 
 #include <context.hpp>
 #include <function.hpp>
+#include <class.hpp>
 
 using namespace clang::tooling;
 using namespace llvm;
@@ -61,10 +62,6 @@ private:
 
 string wrap_CXXRecordDecl(CXXRecordDecl *R)
 {
-	// for(auto c = R->ctor_begin(); c != R->ctor_end(); ++c) {
-	// 	c->dump();
-	// }
-
 	// for(auto c = R->captures_begin(); c != R->captures_end(); ++c) {
 	// 	c->dump();
 	// }
@@ -87,6 +84,7 @@ class BinderVisitor : public RecursiveASTVisitor<BinderVisitor>
 public:
     explicit BinderVisitor(CompilerInstance *ci) : ast_context( &( ci->getASTContext() ) ) {}
 
+
 	virtual bool VisitFunctionDecl(FunctionDecl *record)
 	{
 		if( record->isCXXInstanceMember() ) return true;
@@ -97,60 +95,18 @@ public:
 		//errs() << I;
 		context.add(I);
 
-
-        //string funcName = func->getNameInfo().getName().getAsString();
-        //string funcName = func->getNameInfo().getAsString();
-
-		// QualType qt = record->getReturnType();
-		// string rqtype = qt.getAsString();
-		// //string rqtype = QualType::getAsString( qt.split() );
-
-		// string funcName = record->getQualifiedNameAsString();
-
-
-        // //if (funcName == "do_math") {
-        // //    rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
-		// errs() << "Visit function def: " << rqtype << ' ' << funcName << " isCXXClassMember:" << record->isCXXClassMember() << " isCXXInstanceMember:" << record->isCXXInstanceMember() << " isExternallyVisible:" << record->isExternallyVisible() << " isDefined:" << record->isDefined() << "\n";
-
-		// // errs() << "  name: " << record->getNameAsString() << "\n";
-		// // errs() << "  Return Type (getCanonicalType): " << qt.getCanonicalType().getAsString() << "\n";
-		// // errs() << "  Return Type (getCanonicalTypeInternal): " << qt->getCanonicalTypeInternal().getAsString() << "\n";
-		// // errs() << "  Return Type (getCanonicalTypeUnqualified): " << QualType( qt->getCanonicalTypeUnqualified() ).getAsString() << "\n";
-		//errs() << "  Source location:" << record->getLocation().printToString( ast_context->getSourceManager() ) << "\n";
-		//errs() << "  Source location: " << ast_context->getSourceManager().getFilename( record->getLocation() )  << "\n";
-		// errs() << "  Source location: " << ast_context->getSourceManager().getFileEntryForID( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).getFileID() )->getName() << "\n";
-
-		// if( auto comment = ast_context->getLocalCommentForDeclUncached(record) ) comment->dumpColor();
-
-
-		// for(uint i=0; i<record->getNumParams(); ++i) {
-		// 	errs() << "  param[" << i << "]: " << record->getParamDecl(i)->getName() << ' ' << record->getParamDecl(i)->getOriginalType().getAsString() << "\n";
-		// }
-
-		// //record->getReturnType().dump();
-        // //}
-		// errs() << "\n";
         return true;
     }
 
+	virtual bool VisitCXXRecordDecl(CXXRecordDecl *record) {
+		if( record->isCXXInstanceMember() ) return true;
+		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-	//virtual bool VisitRecordDecl(RecordDecl *record) {
-	// virtual bool VisitCXXRecordDecl(CXXRecordDecl *record) {
+		binder::Item I { binder::bind_class(record) };
+		context.add(I);
 
-	// 	if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
-
-    //     //string record_name = record->getNameInfo().getName().getAsString();
-	// 	//errs() << "Visit record def: " << record->getNameAsString() << "\n";
-	// 	errs() << "Visit VisitCXXRecordDecl:" << record->getQualifiedNameAsString() << " isCXXClassMember:" << record->isCXXClassMember() << " isCXXInstanceMember:" << record->isCXXInstanceMember() << " isExternallyVisible:" << record->isExternallyVisible() << "\n";
-
-	// 	//errs() << "                  " << record->getTypeSourceInfo()->getType()->getAsString() << "\n";
-	// 	//errs() << "                  " << record->getTypeForDecl()->getTypeClassName() << "\n";
-	// 	//errs() << "                  " << record->getDeclName().getAsString() << "\n";
-
-	// 	errs() << wrap_CXXRecordDecl(record);
-
-    //     return true;
-	// }
+        return true;
+    }
 
 	// virtual bool VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl *record) {
 	// 	if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
@@ -237,3 +193,63 @@ int main(int argc, const char **argv)
 
   return tool.run(newFrontendActionFactory<BinderFrontendAction>().get());
 }
+
+
+
+/*
+VisitFunctionDecl
+        //string funcName = func->getNameInfo().getName().getAsString();
+        //string funcName = func->getNameInfo().getAsString();
+
+		// QualType qt = record->getReturnType();
+		// string rqtype = qt.getAsString();
+		// //string rqtype = QualType::getAsString( qt.split() );
+
+		// string funcName = record->getQualifiedNameAsString();
+
+
+        // //if (funcName == "do_math") {
+        // //    rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
+		// errs() << "Visit function def: " << rqtype << ' ' << funcName << " isCXXClassMember:" << record->isCXXClassMember() << " isCXXInstanceMember:" << record->isCXXInstanceMember() << " isExternallyVisible:" << record->isExternallyVisible() << " isDefined:" << record->isDefined() << "\n";
+
+		// // errs() << "  name: " << record->getNameAsString() << "\n";
+		// // errs() << "  Return Type (getCanonicalType): " << qt.getCanonicalType().getAsString() << "\n";
+		// // errs() << "  Return Type (getCanonicalTypeInternal): " << qt->getCanonicalTypeInternal().getAsString() << "\n";
+		// // errs() << "  Return Type (getCanonicalTypeUnqualified): " << QualType( qt->getCanonicalTypeUnqualified() ).getAsString() << "\n";
+		//errs() << "  Source location:" << record->getLocation().printToString( ast_context->getSourceManager() ) << "\n";
+		//errs() << "  Source location: " << ast_context->getSourceManager().getFilename( record->getLocation() )  << "\n";
+		// errs() << "  Source location: " << ast_context->getSourceManager().getFileEntryForID( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).getFileID() )->getName() << "\n";
+
+		// if( auto comment = ast_context->getLocalCommentForDeclUncached(record) ) comment->dumpColor();
+
+
+		// for(uint i=0; i<record->getNumParams(); ++i) {
+		// 	errs() << "  param[" << i << "]: " << record->getParamDecl(i)->getName() << ' ' << record->getParamDecl(i)->getOriginalType().getAsString() << "\n";
+		// }
+
+		// //record->getReturnType().dump();
+        // //}
+		// errs() << "\n";
+
+
+
+virtual bool VisitRecordDecl(RecordDecl *record) {
+virtual bool VisitCXXRecordDecl(CXXRecordDecl *record) {
+	// 	if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+
+    //     //string record_name = record->getNameInfo().getName().getAsString();
+	// 	//errs() << "Visit record def: " << record->getNameAsString() << "\n";
+	// 	errs() << "Visit VisitCXXRecordDecl:" << record->getQualifiedNameAsString() << " isCXXClassMember:" << record->isCXXClassMember() << " isCXXInstanceMember:" << record->isCXXInstanceMember() << " isExternallyVisible:" << record->isExternallyVisible() << "\n";
+
+	// 	//errs() << "                  " << record->getTypeSourceInfo()->getType()->getAsString() << "\n";
+	// 	//errs() << "                  " << record->getTypeForDecl()->getTypeClassName() << "\n";
+	// 	//errs() << "                  " << record->getDeclName().getAsString() << "\n";
+
+	// 	errs() << wrap_CXXRecordDecl(record);
+
+    //     return true;
+	// }
+
+
+
+		*/

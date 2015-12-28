@@ -7,32 +7,24 @@
 // (c) For more information, see http://www.rosettacommons.org. Questions about this can be
 // (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
 
-/// @file   binder/function.hpp
-/// @brief  Binding generation for static and member functions
+/// @file   binder/class.hpp
+/// @brief  Binding generation for C++ struct and class objects
 /// @author Sergey Lyskov
 
-#ifndef _INCLUDED_function_hpp_
-#define _INCLUDED_function_hpp_
+#ifndef _INCLUDED_class_hpp_
+#define _INCLUDED_class_hpp_
 
 #include <context.hpp>
 
-#include <clang/AST/Decl.h>
+#include <clang/AST/DeclCXX.h>
 
 #include <string>
 
 
 namespace binder {
 
-
-// Generate function argument list separate by comma
-std::string function_arguments(clang::FunctionDecl *record);
-
-
-// Generate function pointer type string for given function. Example void (*)(int, doule)_ or  void (ClassName::*)(int, doule)_ for memeber function
-std::string function_pointer_type(clang::FunctionDecl *record);
-
-Item bind_function(clang::FunctionDecl *R);
+Item bind_class(clang::CXXRecordDecl *R);
 
 } // namespace binder
 
-#endif // _INCLUDED_function_hpp_
+#endif // _INCLUDED_class_hpp_

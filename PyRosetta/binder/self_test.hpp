@@ -9,9 +9,23 @@ namespace aaaa {
 class A
 {
 	A() {}
+public:
 	A(int) {}
+protected:
 	A(int, int) {}
 };
+
+struct S
+{
+	S() {}
+};
+
+
+void hi_(void)
+{
+	std::cout << "Hi in aaaa..." << std::endl;
+}
+
 
 };
 

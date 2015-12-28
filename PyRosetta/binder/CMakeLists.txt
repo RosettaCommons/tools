@@ -9,6 +9,7 @@ add_clang_executable(binder
   binder.cpp
   context.cpp
   function.cpp
+  class.cpp
 
   fmt/format.cc
   fmt/posix.cc

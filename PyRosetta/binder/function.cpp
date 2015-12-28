@@ -29,18 +29,29 @@ using namespace fmt::literals;
 namespace binder {
 
 
+// Generate function argument list separate by comma
+std::string function_arguments(clang::FunctionDecl *record)
+{
+	string r;
+
+	for(uint i=0; i<record->getNumParams(); ++i) {
+		r += record->getParamDecl(i)->getOriginalType().getAsString();
+		if( i != record->getNumParams()-1 ) r += ", ";
+	}
+
+	return r;
+}
+
+
 // Generate function pointer type string for given function. Example void (*)(int, doule)_ or  void (ClassName::*)(int, doule)_ for memeber function
 string function_pointer_type(FunctionDecl *record)
 {
-	string r;  //r{"("};
+	string r;
 	r += record->getReturnType().getAsString();  r+= " (*)(";
 
-	for(uint i=0; i<record->getNumParams(); ++i) {
-		r += record->getParamDecl(i)->getOriginalType().getAsString();  r += ", ";
-	}
+	r += function_arguments(record);
 
-	if( record->getNumParams() ) r[ r.size()-2 ] = ')';
-	else r += ") ";
+	r += ") ";
 
 	return r;
 }
@@ -53,9 +64,10 @@ Item bind_function(FunctionDecl *R)
 	string &c(I.code);
 
 	string function_name { R->getNameAsString() };
+	string function_qualified_name { R->getQualifiedNameAsString() };
 
 	//c += _module_variable_name_ + ".def(\"" + function_name + "\", " + function_pointer_type(R) + "&" + function_name + ", \"doc\");\n";
-	c += _module_variable_name_ + R"(.def("{}", ({}) &{}, "doc");)"_format(function_name, function_pointer_type(R), function_name);
+	c += _module_variable_name_ + R"(.def("{}", ({}) &{}, "doc");)"_format(function_name, function_pointer_type(R), function_qualified_name);
 
 	return I;
 }

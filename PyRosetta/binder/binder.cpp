@@ -91,8 +91,8 @@ public:
 		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
 
-		binder::Item I { binder::bind_function(record) };
-		//errs() << I;
+		binder::Item I { binder::bind_function(binder::_module_variable_name_, record) };
+		//outs() << I;
 		context.add(I);
 
         return true;

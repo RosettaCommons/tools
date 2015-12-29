@@ -48,14 +48,13 @@ Item bind_class(clang::CXXRecordDecl *C)
 	else {
 		for(auto t = C->ctor_begin(); t != C->ctor_end(); ++t) {
 			if( t->getAccess() == AS_public ) c+= "\t.def(pybind11::init<{}>())\n"_format( function_arguments(*t) );
-			//if( t->getAccess() == AS_none ) { outs() << "!!! AS_none access to: ";  t->dump(); }
 		}
 		c += '\n';
 	}
 
 	for(auto m = C->method_begin(); m != C->method_end(); ++m) {
-		if( m->getAccess() == AS_public ) {
-
+		if( m->getAccess() == AS_public  and   !isa<CXXConstructorDecl>(*m) ) {
+			c += '\t' + bind_function(*m) + '\n';
 		}
 	}
 

@@ -31,7 +31,12 @@ std::string function_arguments(clang::FunctionDecl *record);
 // Generate function pointer type string for given function. Example void (*)(int, doule)_ or  void (ClassName::*)(int, doule)_ for memeber function
 std::string function_pointer_type(clang::FunctionDecl *record);
 
-Item bind_function(clang::FunctionDecl *R);
+
+// Generate binding for given function: .def("foo", (std::string (aaaa::A::*)(int) ) &aaaa::A::foo, "doc")
+std::string bind_function(clang::FunctionDecl *F);
+
+
+Item bind_function(std::string const &module, clang::FunctionDecl *F);
 
 } // namespace binder
 

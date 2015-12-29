@@ -15,6 +15,8 @@
 
 #include <fmt/format.h>
 
+#include <clang/AST/DeclCXX.h>
+
 #include <vector>
 
 
@@ -29,7 +31,7 @@ using namespace fmt::literals;
 namespace binder {
 
 
-// Generate function argument list separate by comma
+// Generate function argument list separate by comma: int, bool, std::sting
 std::string function_arguments(clang::FunctionDecl *record)
 {
 	string r;
@@ -43,31 +45,45 @@ std::string function_arguments(clang::FunctionDecl *record)
 }
 
 
-// Generate function pointer type string for given function. Example void (*)(int, doule)_ or  void (ClassName::*)(int, doule)_ for memeber function
-string function_pointer_type(FunctionDecl *record)
+// Generate function pointer type string for given function: void (*)(int, doule)_ or  void (ClassName::*)(int, doule)_ for memeber function
+string function_pointer_type(FunctionDecl *F)
 {
 	string r;
-	r += record->getReturnType().getAsString();  r+= " (*)(";
+	string prefix { F->isCXXClassMember() ? cast<CXXRecordDecl>( F->getParent() )->getQualifiedNameAsString() + "::" : "" };
 
-	r += function_arguments(record);
+	r += F->getReturnType().getAsString();  r+= " ({}*)("_format(prefix);
+
+	r += function_arguments(F);
 
 	r += ") ";
 
 	return r;
 }
 
-
-Item bind_function(FunctionDecl *R)
+// Generate binding for given function: .def("foo", (std::string (aaaa::A::*)(int) ) &aaaa::A::foo, "doc")
+string bind_function(FunctionDecl *F)
 {
-	Item I{ R };
+	string function_name { F->getNameAsString() };
+	string function_qualified_name { F->getQualifiedNameAsString() };
+
+	string r = R"(.def("{}", ({}) &{}, "doc")"_format(function_name, function_pointer_type(F), function_qualified_name);
+
+
+	for(uint i=0; i<F->getNumParams(); ++i) r += ", pybind11::arg(\"{}\")"_format( string( F->getParamDecl(i)->getName() ) );
+
+	r += ')';
+
+	return r;
+}
+
+
+Item bind_function(string const &module, FunctionDecl *F)
+{
+	Item I{ F };
 
 	string &c(I.code);
 
-	string function_name { R->getNameAsString() };
-	string function_qualified_name { R->getQualifiedNameAsString() };
-
-	//c += _module_variable_name_ + ".def(\"" + function_name + "\", " + function_pointer_type(R) + "&" + function_name + ", \"doc\");\n";
-	c += _module_variable_name_ + R"(.def("{}", ({}) &{}, "doc");)"_format(function_name, function_pointer_type(R), function_qualified_name);
+	c += module + bind_function(F) + ';';
 
 	return I;
 }

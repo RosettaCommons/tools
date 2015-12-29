@@ -340,7 +340,7 @@ if DO_MPI:
                                             % (job_submit_file_MPI, hostname) )
             fid_queue_submit_file_MPI.close()
 
-            fid_queue_MPI.write( 'sbatch %s\n' % queue_submit_file_MPI )
+            fid_queue_MPI.write( 'sbatch --mem-per-cpu=2048 %s\n' % queue_submit_file_MPI )
         else:
             # qsub MPI
             jobname= (CWD + '/' + outdir).replace( '/', '_' )

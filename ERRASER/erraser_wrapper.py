@@ -263,15 +263,19 @@ def erraser_single_res( option ) :
     SWA_option.input_pdb = 'temp.pdb'
     SWA_option.log_out = 'rebuild_%s.out' % option.rebuild_res_pdb
     SWA_rebuild_erraser( SWA_option )
-    rebuilt_pdb_merge0 = './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % option.rebuild_res
-    rebuilt_pdb_orig0 = './temp_pdb_res_%d/output_pdb/S_000000.pdb' % option.rebuild_res
+    
+    # check success and copy final pdb
+    rebuilt_pdbs = [
+        './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % option.rebuild_res,
+        './temp_pdb_res_%d/output_pdb/S_000000.pdb' % option.rebuild_res,
+    ]
     rebuilt_pdb_final = ''
 
-    if exists(rebuilt_pdb_merge0) :
-        rebuilt_pdb_final = rebuilt_pdb_merge0
-    elif exists(rebuilt_pdb_orig0) :
-        rebuilt_pdb_final = rebuilt_pdb_orig0
-    else :
+    try:
+        # set rebuilt_pdb_final to the first existing pdb from list below
+        rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)          
+    except IndexError:
+        # no pdbs found 
         print "No alternative conformation is found...."
 
     if rebuilt_pdb_final != '' :
@@ -287,7 +291,7 @@ def erraser_single_res( option ) :
                 rebuilding_res_rs = int( line.split() [-1] )
 
         fixed_res = []
-        total_res = get_total_res(rebuilt_pdb_orig0)
+        total_res = get_total_res(rebuilt_pdbs[1])
         if rebuilding_res_rs == 1 :
             fixed_res = range(2,total_res+1)
         elif rebuilding_res_rs == total_res :
@@ -617,27 +621,26 @@ def seq_rebuild( option ) :
         SWA_rebuild_erraser( SWA_option )
 
         print 'Job completed for residue %s' % res
-
-        rebuilt_pdb_merge0 = './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res
-        rebuilt_pdb_orig0 = './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res
-        rebuilt_pdb_merge1 = './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res
-        rebuilt_pdb_orig1 = './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res
+        
+        # check success and copy final pdb
+        rebuilt_pdbs = [
+            './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
+        ]
         rebuilt_pdb_final = ''
 
-        if exists(rebuilt_pdb_merge0) :
-            rebuilt_pdb_final = rebuilt_pdb_merge0
-        elif exists(rebuilt_pdb_orig0) :
-            rebuilt_pdb_final = rebuilt_pdb_orig0
-        elif exists(rebuilt_pdb_merge1) :
-            rebuilt_pdb_final = rebuilt_pdb_merge1
-        elif exists(rebuilt_pdb_orig1) :
-            rebuilt_pdb_final = rebuilt_pdb_orig1
-
-        if rebuilt_pdb_final != '' :
+        try:
+            # set rebuilt_pdb_final to the first existing pdb from list below
+            rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+            
+            # at least one pdb found
             print "Residue %d is sucessfully rebuilt!" % res
             sucessful_res.append(res)
             copy(rebuilt_pdb_final, 'temp.pdb')
-        else :
+        except IndexError:
+            # no pdbs found 
             print "No suitable alternative structure can be sampled."
             print "Residue %d is not rebuilt!" % res
             failed_res.append(res)

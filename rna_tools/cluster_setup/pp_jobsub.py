@@ -23,6 +23,8 @@ if args.cluster_name in ['stampede', 'sherlock', 'comet']:
 else:
     raise argparse.ArgumentError("Invalid cluster_name!")
 active_nodes = jobserver.get_active_nodes()
+if 'local' in active_nodes:
+    active_nodes.pop('local')
 active_cpus = sum(active_nodes.values())
 print 'Active_nodes:', active_nodes
 print 'N_cpus = %d, Active_cpus = %d' % (ncpus, active_cpus)

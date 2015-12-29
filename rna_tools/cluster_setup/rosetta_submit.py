@@ -298,9 +298,9 @@ if DO_MPI:
         for m in range( tasks_per_node_MPI ):
             count = count + 1
             if ( count <= tot_jobs ):
-                outfile = outfile_general.replace( '$(Process)', '%d' % count-1 )
-                errfile = errfile_general.replace( '$(Process)', '%d' % count-1 )
-                command_line_explicit = command_lines_explicit[ count-1 ] + ' > %s 2> %s' % (outfile, errfile)
+                outfile = outfile_general.replace( '$(Process)', '%d' % (count-1) )
+                errfile = errfile_general.replace( '$(Process)', '%d' % (count-1) )
+                command_line_explicit = command_lines_explicit[ count-1 ]
                 if hostname in ["stampede", "sherlock", "comet"]:
                     fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
                 else:

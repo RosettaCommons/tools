@@ -132,6 +132,7 @@ def grep(pattern, input_file) :
             out_lines.append(line[:-1])
 
     return out_lines
+
 ###################################################
 def remove(pattern) :
     """
@@ -394,7 +395,7 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     pdbs = [pdb for pdb in glob('S_*.pdb') if pdb not in other_pdbs]
     for pdb in pdbs:
         idx = pdb.replace('S_','').replace('.pdb','')
-        if not idx.isdigit():
+        if not idx.isdigit() or len(idx) >= 6:
             continue
         move(pdb, pdb.replace(idx, idx.zfill(6)))
     ##############################################################################               

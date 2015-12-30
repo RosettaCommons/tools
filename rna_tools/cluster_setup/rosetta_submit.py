@@ -354,7 +354,7 @@ if DO_MPI:
             fid_queue_submit_file_MPI.write( '#$ -j y    # Combine stderr and stdout\n')
             fid_queue_submit_file_MPI.write( '#$ -o $JOB_NAME.o$JOB_ID   # Name of the output file\n')
             fid_queue_submit_file_MPI.write( '#$ -pe %dway %d    # Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, tasks_per_node_MPI) )
-            fid_queue_submit_file_MPI.write( '#$ -q normal   # Queue name normal\n')
+            fid_queue_submit_file_MPI.write( '#$ -q %s   # Queue name \n' % queue )
             if nhours == 0: # for testing
                 fid_queue_submit_file_MPI.write( '#$ -l h_rt=00:01:00    # Run time (hh:mm:ss)\n' )
             else:

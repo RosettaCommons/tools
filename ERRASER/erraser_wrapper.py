@@ -23,7 +23,7 @@ def erraser( option ) :
     print 'Starting erraser...'
     start_time=time.time()
     #Faster rebuilding mode
-    option.num_pose_kept_cluster = 1
+    option.num_pose_kept_cluster = 10
     option.finalize()
 
     #####Temporary data output folder##################################

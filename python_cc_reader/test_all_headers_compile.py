@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # :noTabs=true:
 
 from test_compile import test_compile

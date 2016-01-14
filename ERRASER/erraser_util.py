@@ -132,6 +132,7 @@ def grep(pattern, input_file) :
             out_lines.append(line[:-1])
 
     return out_lines
+
 ###################################################
 def remove(pattern) :
     """
@@ -373,6 +374,7 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
         os.mkdir(output_folder_name)
 
     os.chdir( output_folder_name )
+    other_pdbs = glob('*.pdb')
 
     command = rosetta_bin_path("rna_extract", rosetta_bin)
 
@@ -384,10 +386,19 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
     command += " -output_virtual " + str(output_virtual).lower()
     if( rna_prot_erraser ) :
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true "
-
+    
     print "######Start submitting the Rosetta command for extract_pdb##################"
     subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"
+
+    ############## Reformat pdb files withoriginal naming conventions ############                                                                          
+    pdbs = [pdb for pdb in glob('S_*.pdb') if pdb not in other_pdbs]
+    for pdb in pdbs:
+        idx = pdb.replace('S_','').replace('.pdb','')
+        if not idx.isdigit() or len(idx) >= 6:
+            continue
+        move(pdb, pdb.replace(idx, idx.zfill(6)))
+    ##############################################################################               
 
     os.chdir( base_dir )
     return True

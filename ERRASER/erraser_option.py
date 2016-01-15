@@ -210,6 +210,15 @@ class erraser_option :
         self.finalize()
 
     def finalize( self ) :
+        
+        ######################################################################
+        # calebgeniesse: these cause trouble with rna_prot... turn off for now 
+        #                ideally, fix issues in in rosetta code ASAP
+        ######################################################################
+        if self.rna_prot_erraser is True: 
+            self.constrain_phosphate = False
+            self.vary_geometry = False
+        
         if self.input_pdb == '' :
             error_exit( 'input_pdb not specified for erraser_option!!!' )
         check_path_exist( self.input_pdb )

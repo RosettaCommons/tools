@@ -263,7 +263,7 @@ def erraser_single_res( option ) :
     SWA_option.input_pdb = 'temp.pdb'
     SWA_option.log_out = 'rebuild_%s.out' % option.rebuild_res_pdb
     SWA_rebuild_erraser( SWA_option )
-    
+
     # check success and copy final pdb
     rebuilt_pdbs = [
         './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % option.rebuild_res,
@@ -273,9 +273,9 @@ def erraser_single_res( option ) :
 
     try:
         # set rebuilt_pdb_final to the first existing pdb from list below
-        rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)          
+        rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
     except IndexError:
-        # no pdbs found 
+        # no pdbs found
         print "No alternative conformation is found...."
 
     if rebuilt_pdb_final != '' :
@@ -621,7 +621,7 @@ def seq_rebuild( option ) :
         SWA_rebuild_erraser( SWA_option )
 
         print 'Job completed for residue %s' % res
-        
+
         # check success and copy final pdb
         rebuilt_pdbs = [
             './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
@@ -634,13 +634,13 @@ def seq_rebuild( option ) :
         try:
             # set rebuilt_pdb_final to the first existing pdb from list below
             rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
-            
+
             # at least one pdb found
             print "Residue %d is sucessfully rebuilt!" % res
             sucessful_res.append(res)
             copy(rebuilt_pdb_final, 'temp.pdb')
         except IndexError:
-            # no pdbs found 
+            # no pdbs found
             print "No suitable alternative structure can be sampled."
             print "Residue %d is not rebuilt!" % res
             failed_res.append(res)
@@ -814,7 +814,10 @@ def SWA_rebuild_erraser( option ) :
     #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
     #protein case
     if option.rna_prot_erraser :
-        common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+        if rebuild_res_final-1 > 0:
+            common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+        else:
+            common_cmd += " -jump_point_pairs %d-%d " % ( total_res, rebuild_res_final+1 )
     else : #RNA only original case
         common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
 
@@ -823,8 +826,8 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rmsd_res %d " %(total_res)
     common_cmd += " -native " + native_pdb_final
     common_cmd += " -score:weights %s " % option.scoring_file
-    
-    #Rescue 2012 defaults 
+
+    #Rescue 2012 defaults
     if option.o2prime_legacy_mode is True:
         common_cmd += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
     if option.use_2prime_OH_potential is False:

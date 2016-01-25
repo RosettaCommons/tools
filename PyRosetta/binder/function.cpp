@@ -17,9 +17,13 @@
 
 #include <clang/AST/DeclCXX.h>
 
+#include <clang/AST/ExprCXX.h>
+#include <clang/AST/ASTContext.h>
+
 #include <vector>
 
 
+using namespace llvm;
 using namespace clang;
 
 using std::string;
@@ -60,6 +64,20 @@ string function_pointer_type(FunctionDecl *F)
 	return r;
 }
 
+// Generate string representation of given expression
+string expresion_to_string(clang::Expr *e)
+{
+	clang::LangOptions lang_opts;
+	lang_opts.CPlusPlus = true;
+	clang::PrintingPolicy Policy(lang_opts);
+
+	std::string _;
+	llvm::raw_string_ostream s(_);
+	e->printPretty(s, 0, Policy);
+	return s.str();
+}
+
+
 // Generate binding for given function: .def("foo", (std::string (aaaa::A::*)(int) ) &aaaa::A::foo, "doc")
 string bind_function(FunctionDecl *F)
 {
@@ -69,7 +87,30 @@ string bind_function(FunctionDecl *F)
 	string r = R"(.def("{}", ({}) &{}, "doc")"_format(function_name, function_pointer_type(F), function_qualified_name);
 
 
-	for(uint i=0; i<F->getNumParams(); ++i) r += ", pybind11::arg(\"{}\")"_format( string( F->getParamDecl(i)->getName() ) );
+	for(auto p = F->param_begin(); p != F->param_end(); ++p) {
+		string defalt_argument = (*p)->hasDefaultArg() ? " = " + expresion_to_string( (*p)->getDefaultArg() ) : "";
+		r += ", pybind11::arg(\"{}\"){}"_format( string( (*p)->getName() ), defalt_argument );
+
+		//outs() << (*p)->getDefaultArg()->getAsString();
+		//(*p)->dump();
+		// if( (*p)->hasDefaultArg() ) {
+		// 	outs() << "  CXXDefaultArgExpr: " << (*p)->getName() << " = " << expresion_to_string( (*p)->getDefaultArg() ) << "\n";
+
+		// 	//SourceRange s = (*p)->getDefaultArgRange();
+		// 	//s.getBegin().dump( F->getASTContext().getSourceManager() );
+
+
+		// 	//if( auto e = dyn_cast<clang::CXXDefaultArgExpr>( (*p)->getDefaultArg() ) ) {
+		// 		//e->dump();
+		// 	// }
+
+		// 	// Expr::EvalResult result;
+		// 	// if( (*p)->getDefaultArg()->EvaluateAsRValue(result, F->getASTContext() ) ) {
+		// 	// 	outs() << "  Default for: " << (*p)->getName() << " = " << result.Val.getAsString(F->getASTContext(), (*p)->getOriginalType() ) << "\n";
+		// 	// }
+		// }
+
+	}
 
 	r += ')';
 
@@ -77,17 +118,21 @@ string bind_function(FunctionDecl *F)
 }
 
 
-Item bind_function(string const &module, FunctionDecl *F)
+/// check if generator can create binding
+bool FunctionBinder::is_bindable() const
 {
-	Item I{ F };
-
-	string &c(I.code);
-
-	c += module + bind_function(F) + ';';
-
-	return I;
+	return true;
 }
 
+
+/// generate binding code
+string FunctionBinder::operator()(string const &module_variable_name, string const &indentation) const
+{
+	//return indentation+"// Function: " + F->getQualifiedNameAsString() + "\n";
+	string c = indentation + module_variable_name + bind_function(F) + ";\n\n";
+
+	return c;
+}
 
 
 } // namespace binder

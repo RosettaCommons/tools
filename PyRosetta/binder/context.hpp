@@ -24,54 +24,88 @@
 
 namespace binder {
 
-//const string _module_variable_name_{"~!@#module_variable_name#@!~"};
-const std::string _module_variable_name_{"m"};
-
-/// Item - replresent binding info for function, class, enum or variable
-struct Item
+/// Bindings Generator - represent object that can generate binding info for function, class, enum or data variable
+class Binder
 {
+public:
 	typedef std::string string;
 
-	Item(clang::NamedDecl *decl);
+	virtual ~Binder() {}
 
-	string name; // full C++ name of this element including namespace
-	string path; // path for Python module for this namespace
+	/// check if generator can create binding
+	virtual bool is_bindable() const = 0;
 
+	/// generate binding code
+	virtual string operator()(string const &module_variable_name, string const &indentation="\t") const = 0;
 
-	//vector<string> includes;
-	string include;  // name of header file that needed to be include in order to compile this bindings
-
-	std::vector<string> dependencies;  // list of C++ names that need to be defined/binded before this item could be compiled
-
-	string code;  // C++ code that create bindins for this item
+	virtual clang::NamedDecl * get_named_decl() const = 0;
 };
 
 
-llvm::raw_ostream & operator << (llvm::raw_ostream & os, Item const &i);
+typedef std::shared_ptr< Binder > BinderOP;
+
+typedef std::vector<BinderOP> Binders;
+
+
+// struct Item_
+// {
+// 	typedef std::string string;
+
+// 	Item_(clang::NamedDecl *decl);
+
+// 	string name; // full C++ name of this element including namespace
+// 	string path; // path for Python module for this namespace
+
+
+// 	//vector<string> includes;
+// 	string include;  // name of header file that needed to be include in order to compile this bindings
+
+// 	std::vector<string> dependencies;  // list of C++ names that need to be defined/binded before this item could be compiled
+
+// 	string code;  // C++ code that create bindins for this item
+// };
+
+
+llvm::raw_ostream & operator << (llvm::raw_ostream & os, Binder const &b);
 
 /// Module - represent bindings of individual Python module
-struct Module
-{
-	std::string path;
-
-	std::vector<Item> items;
-};
+// struct Module
+// {
+// 	std::string path;
+// 	std::vector<BinderOP> binders;
+// };
 
 
 /// Context - root, hold bindings info for whole TranslationUnit
-struct Context
+class Context
 {
 	typedef std::string string;
 
+public:
 
-	std::unordered_map<string, Module> modules;
-
-	std::unordered_map<string, Item> system_items;
-
-	void add(Item const &);
+	void add(BinderOP &);
 
 	void generate();
+
+private:
+	std::unordered_map<string, Binders> modules;
+
+	std::unordered_map<string, BinderOP> system_binders;
+
+	void create_all_nested_namespaces();
+
+	/// create vector of all namespaces and sort it
+	std::vector<string> sorted_namespaces();
+	std::vector<string> bind_namespaces(string const &namespace_, size_t max_code_size);
 };
+
+
+/// indent given code
+std::string indent(std::string const &code, std::string const &indentation);
+
+
+// calculate namespace path from given NamedDecl, like: std, core::pose
+std::string namespace_from_named_decl(clang::NamedDecl *decl);
 
 
 

@@ -23,7 +23,31 @@
 
 namespace binder {
 
-Item bind_class(clang::CXXRecordDecl *R);
+class ClassBinder : public Binder
+{
+public:
+	ClassBinder(clang::CXXRecordDecl *c) : C(c) {}
+
+
+	/// check if generator can create binding
+	bool is_bindable() const override;
+
+
+	/// generate binding code
+	string operator()(string const &module_variable_name, string const &indentation="\t") const override;
+
+
+	clang::NamedDecl * get_named_decl() const override { return C; };
+
+private:
+	clang::CXXRecordDecl *C;
+};
+
+
+
+//Item bind_class(clang::CXXRecordDecl *R);
+
+
 
 } // namespace binder
 

@@ -36,7 +36,32 @@ std::string function_pointer_type(clang::FunctionDecl *record);
 std::string bind_function(clang::FunctionDecl *F);
 
 
-Item bind_function(std::string const &module, clang::FunctionDecl *F);
+//Item bind_function(std::string const &module, clang::FunctionDecl *F);
+
+
+class FunctionBinder : public Binder
+{
+public:
+	FunctionBinder(clang::FunctionDecl *f) : F(f) {}
+
+
+	/// check if generator can create binding
+	bool is_bindable() const override;
+
+
+	/// generate binding code
+	string operator()(string const &module_variable_name, string const &indentation="\t") const override;
+
+
+    clang::NamedDecl * get_named_decl() const override { return F; };
+
+
+private:
+	clang::FunctionDecl *F;
+};
+
+
+
 
 } // namespace binder
 

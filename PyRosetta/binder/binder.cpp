@@ -91,9 +91,9 @@ public:
 		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
 
-		binder::Item I { binder::bind_function(binder::_module_variable_name_, record) };
+		binder::BinderOP F{ new binder::FunctionBinder(record) };
 		//outs() << I;
-		context.add(I);
+		context.add(F);
 
         return true;
     }
@@ -102,8 +102,8 @@ public:
 		if( record->isCXXInstanceMember() ) return true;
 		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-		binder::Item I { binder::bind_class(record) };
-		context.add(I);
+		binder::BinderOP C{ new binder::ClassBinder(record) };
+		context.add(C);
 
         return true;
     }

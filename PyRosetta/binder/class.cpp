@@ -30,17 +30,31 @@ using namespace fmt::literals;
 
 namespace binder {
 
-Item bind_class(clang::CXXRecordDecl *C)
+// Generate bindings for class data member
+string bind_data_member(FieldDecl *d, string const &class_qualified_name)
 {
-	Item I{ C };
+	return ".def_readwrite(\"{}\", &{}::{})"_format(d->getNameAsString(), class_qualified_name, d->getNameAsString());
+}
 
-	string &c(I.code);
 
+/// check if generator can create binding
+bool ClassBinder::is_bindable() const
+{
+	return true;
+}
+
+
+/// generate binding code
+string ClassBinder::operator()(string const &module_variable_name, string const &indentation) const
+{
 	string class_name { C->getNameAsString() };
 	string class_qualified_name { C->getQualifiedNameAsString() };
 
+	string c;// = indentation+"// Class: " + R->getQualifiedNameAsString() + "\n";
+
+
 	//class_<A>(module_a, "A")
-	c += R"(pybind11::class_<{}>({}, "{}"))"_format(class_qualified_name, _module_variable_name_, class_name) + '\n';
+	c += R"(pybind11::class_<{}>({}, "{}"))"_format(class_qualified_name, module_variable_name, class_name) + '\n';
 
 	if( C->ctor_begin() == C->ctor_end() ) {  // No constructors defined, adding default constructor
 		c+= "\t.def(pybind11::init<>())\n\n";
@@ -52,18 +66,23 @@ Item bind_class(clang::CXXRecordDecl *C)
 		c += '\n';
 	}
 
+	for(auto d = C->decls_begin(); d != C->decls_end(); ++d) {
+		if(FieldDecl *f = dyn_cast<FieldDecl>(*d) ) {
+			if( f->getAccess() == AS_public ) c+= '\t' + bind_data_member(f, class_qualified_name) + '\n';
+		}
+	}
+
+
 	for(auto m = C->method_begin(); m != C->method_end(); ++m) {
-		if( m->getAccess() == AS_public  and   !isa<CXXConstructorDecl>(*m) ) {
+		if( m->getAccess() == AS_public  and   !isa<CXXConstructorDecl>(*m)  and   !isa<CXXDestructorDecl>(*m)) {
 			c += '\t' + bind_function(*m) + '\n';
 		}
 	}
 
 	c += ";\n\n";
 
-
-	return I;
+	return indent(c, indentation);
 }
-
 
 
 } // namespace binder

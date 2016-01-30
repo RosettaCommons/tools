@@ -6,7 +6,7 @@ def read_file(file_path):
         my_file = f.readlines()
     return my_file
 
-def write_blocks(block_set, fname):
+def write_trim_blocks(block_set, fname):
     if os.path.isfile(fname) == True:
         os.remove(fname)
     for block in block_set:
@@ -17,6 +17,8 @@ def write_blocks(block_set, fname):
                 new_block.append(line)
         with open(fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
+            if len(block_set) == 3:
+                myfile.write(block[2])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
             
 def write_full_blocks(block_set, fname):
@@ -79,7 +81,8 @@ def identify_errors(log_blocks):
     error_blocks = []
     fill_error_blocks = []
     ace_error_blocks = []
-    segfault_blocks = []
+    assert_segfault_blocks = []
+    misc_segfault_blocks = []
     resMap_range_error_blocks = []
     letter3_error_blocks = []
     rotno_error_blocks = []
@@ -105,7 +108,12 @@ def identify_errors(log_blocks):
             if ind == len(block)-1:
                 by_star = (line.lower()).split('*')
                 if 'completed' not in by_star:
-                    segfault_blocks.append([pdb,block])
+                    for line_num in xrange(len(block)-1):
+                        rvs_line = (block[ind - line_num].lower()).split()
+                        if "Assertion" in rvs_line and 'failed' in rvs_line: #[1].split():
+                            assert_segfault_blocks.append([pdb,block,''.join(rvs_line)])
+                        else:
+                            misc_segfault_blocks.append([pdb,block])
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()
@@ -161,7 +169,7 @@ def identify_errors(log_blocks):
                 error_blocks.append([pdb,block])
                 break
 
-    return [segfault_blocks, \
+    return [misc_segfault_blocks, \
             error_blocks, \
             ace_error_blocks, \
             fill_error_blocks, \
@@ -177,7 +185,8 @@ def identify_errors(log_blocks):
             unREC_token_error_blocks , \
             unREC_expTec_error_blocks, \
             pose_load_error_blocks, \
-            typeEle_error_blocks]
+            typeEle_error_blocks, \
+            assert_segfault_blocks]
 
 
 def main(argv):
@@ -190,9 +199,11 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print "The number of blocks with segfaults ", len(all_errors[0]), "\n"
+    print "The number of blocks with misc segfaults ", len(all_errors[0]), "\n"
     
-    print "The number of blocks with unidentified errors ", len(all_errors[1]), "\n"
+    print "The number of blocks with assertion segfaults ", len(all_errors[17]), "\n"
+    
+    print "The number of blocks with misc unidentified errors ", len(all_errors[1]), "\n"
 
     print "The number of blocks with ace errors ", len(all_errors[2]), "\n"
 
@@ -224,30 +235,25 @@ def main(argv):
 
     print "The number of blocks with cannot type atom with element errors ", len(all_errors[16]), "\n"
     
-    write_full_blocks(all_errors[ 0], 'segfault.log')
-    write_blocks(all_errors[ 1], 'unidentified_error.log')
-    write_blocks(all_errors[ 2], 'ACE_error.log')
-    write_blocks(all_errors[ 3], 'fill_atom_error.log')
-    write_blocks(all_errors[ 4], 'resMap_range_error.log')
-    write_blocks(all_errors[ 5], 'nonACE_res_error.log')
-    write_blocks(all_errors[ 6], 'rotno_error.log')
-    write_blocks(all_errors[ 7], 'polymer_bond_error.log')
-    write_blocks(all_errors[ 8], 'PatchOperation_error.log')
-    write_blocks(all_errors[ 9], 'ace_CYS.log')
-    write_blocks(all_errors[10], 'resUnrec.log')
-    write_blocks(all_errors[11], 'eleUnrec.log')
-    write_blocks(all_errors[12], 'aTypeUnrec.log')
-    write_blocks(all_errors[13], 'token.log')
-    write_blocks(all_errors[14], 'expTech.log')
-    write_blocks(all_errors[15], 'poseLoad.log')
-    write_blocks(all_errors[16], 'typAtomEle.log')
+    write_full_blocks(all_errors[ 0], 'miscSegfault.log')
+    write_trim_blocks(all_errors[ 1], 'unidentified_error.log')
+    write_trim_blocks(all_errors[ 2], 'ACE_error.log')
+    write_trim_blocks(all_errors[ 3], 'fill_atom_error.log')
+    write_trim_blocks(all_errors[ 4], 'resMap_range_error.log')
+    write_trim_blocks(all_errors[ 5], 'nonACE_res_error.log')
+    write_trim_blocks(all_errors[ 6], 'rotno_error.log')
+    write_trim_blocks(all_errors[ 7], 'polymer_bond_error.log')
+    write_trim_blocks(all_errors[ 8], 'PatchOperation_error.log')
+    write_trim_blocks(all_errors[ 9], 'ace_CYS.log')
+    write_trim_blocks(all_errors[10], 'resUnrec.log')
+    write_trim_blocks(all_errors[11], 'eleUnrec.log')
+    write_trim_blocks(all_errors[12], 'aTypeUnrec.log')
+    write_trim_blocks(all_errors[13], 'token.log')
+    write_trim_blocks(all_errors[14], 'expTech.log')
+    write_trim_blocks(all_errors[15], 'poseLoad.log')
+    write_trim_blocks(all_errors[16], 'typAtomEle.log')
+    write_trim_blocks(all_errors[17], 'assertSegfault.log')
 
-    '''for block in all_errors[0]:
-        with open('unidentified_error_blocks', 'a') as myfile:
-            myfile.write('\n\n\n******%s******\n\n\n' % block[0])
-            myfile.writelines(block[1])'''
-
-    #print [x[0] for x in ace_error_blocks]
 
 if __name__ == '__main__':
 

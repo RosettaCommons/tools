@@ -59,7 +59,8 @@ def log_blocker(log):
     for i, line in enumerate(log):
         if line[:20] == "core.init: command: ":
             path = line.split('command: ')[-1].strip('\r\n') + ' >>log 2>&1'
-        if line[:51] == "protocols.jd2.PDBJobInputter: filling pose from PDB":
+        if line[:51] == "protocols.jd2.PDBJobInputter: filling pose from PDB" or \
+           line[:51] == "protocols.jd2.mmCIFJobInputter: filling pose from mmCIF":
             pdb = line.split('/')[-1][3:7]
         if i >= index_blocks[count][0] and i <= index_blocks[count][1]:
             block.append(line)

@@ -23,7 +23,7 @@ def write_trim_blocks(block_set, fname):
                 myfile.write(block[3])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
         with open('%s.path' % fname, 'a') as mypathfile:
-            myfile.write('%s\n' % block[2])
+            myfile.write('%s \n' % block[2])
             
 def write_full_blocks(block_set, fname):
     if os.path.isfile('%s.log' % fname) == True:
@@ -35,7 +35,7 @@ def write_full_blocks(block_set, fname):
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in block[1]])
         with open('%s.path' % fname, 'a') as mypathfile:
-            myfile.write('%s\n' % block[2])
+            myfile.write('%s \n' % block[2])
 
 def log_blocker(log):
     log_blocks = []
@@ -243,24 +243,24 @@ def main(argv):
 
     print "The number of blocks with cannot type atom with element errors ", len(all_errors[16]), "\n"
     
-    write_full_blocks(all_errors[ 0], 'miscSegfault.log')
-    write_trim_blocks(all_errors[ 1], 'unidentified_error.log')
-    write_trim_blocks(all_errors[ 2], 'ACE_error.log')
-    write_trim_blocks(all_errors[ 3], 'fill_atom_error.log')
-    write_trim_blocks(all_errors[ 4], 'resMap_range_error.log')
-    write_trim_blocks(all_errors[ 5], 'nonACE_res_error.log')
-    write_trim_blocks(all_errors[ 6], 'rotno_error.log')
-    write_trim_blocks(all_errors[ 7], 'polymer_bond_error.log')
-    write_trim_blocks(all_errors[ 8], 'PatchOperation_error.log')
-    write_trim_blocks(all_errors[ 9], 'ace_CYS.log')
-    write_trim_blocks(all_errors[10], 'resUnrec.log')
-    write_trim_blocks(all_errors[11], 'eleUnrec.log')
-    write_trim_blocks(all_errors[12], 'aTypeUnrec.log')
-    write_trim_blocks(all_errors[13], 'token.log')
-    write_trim_blocks(all_errors[14], 'expTech.log')
-    write_trim_blocks(all_errors[15], 'poseLoad.log')
-    write_trim_blocks(all_errors[16], 'typAtomEle.log')
-    write_full_blocks(all_errors[17], 'nullPointerAssertion.log')
+    write_full_blocks(all_errors[ 0], 'miscSegfault')
+    write_trim_blocks(all_errors[ 1], 'unidentified_error')
+    write_trim_blocks(all_errors[ 2], 'ACE_error')
+    write_trim_blocks(all_errors[ 3], 'fill_atom_error')
+    write_trim_blocks(all_errors[ 4], 'resMap_range_error')
+    write_trim_blocks(all_errors[ 5], 'nonACE_res_error')
+    write_trim_blocks(all_errors[ 6], 'rotno_error')
+    write_trim_blocks(all_errors[ 7], 'polymer_bond_error')
+    write_trim_blocks(all_errors[ 8], 'PatchOperation_error')
+    write_trim_blocks(all_errors[ 9], 'ace_CYS')
+    write_trim_blocks(all_errors[10], 'resUnrec')
+    write_trim_blocks(all_errors[11], 'eleUnrec')
+    write_trim_blocks(all_errors[12], 'aTypeUnrec')
+    write_trim_blocks(all_errors[13], 'token')
+    write_trim_blocks(all_errors[14], 'expTech')
+    write_trim_blocks(all_errors[15], 'poseLoad')
+    write_trim_blocks(all_errors[16], 'typAtomEle')
+    write_full_blocks(all_errors[17], 'nullPointerAssertion')
 
 
 if __name__ == '__main__':

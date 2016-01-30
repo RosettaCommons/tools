@@ -127,6 +127,9 @@ def identify_errors(log_blocks):
                 elif "disulfide-bonded" in by_col: #and "partner" in by_col[1].split():
                     aceCYS_error_blocks.append([pdb,block])
                     break
+                elif '3-letter' in next_line:
+                    letter3_error_blocks.append([pdb,block,''.join(next_line)])
+                    break
                 elif "unrecognized" in by_col and "residue" in by_col: #[1].split():
                     unREC_res_error_blocks.append([pdb,block])
                     break
@@ -136,17 +139,14 @@ def identify_errors(log_blocks):
                 elif "unrecognized" in by_col and "atom_type_name" in by_col: #[1].split():
                     unREC_aType_error_blocks.append([pdb,block])
                     break
-                elif "unrecognized" in pre_line and "compound" in pre_line and "token" in by_col: #[1].split():
+                elif "unrecognized" in pre_line and "compound" in pre_line and "token" in pre_line: #[1].split():
                     unREC_token_error_blocks.append([pdb,block])
                     break
-                elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in by_col: #[1].split():
+                elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in by_line: #[1].split():
                     unREC_expTec_error_blocks.append([pdb,block])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block])
-                    break
-                elif '3-letter' in next_line:
-                    letter3_error_blocks.append([pdb,block,''.join(next_line)])
                     break
                 else:
                     error_blocks.append([pdb,block])

@@ -110,10 +110,12 @@ def identify_errors(log_blocks):
                 if 'completed' not in by_star:
                     for line_num in xrange(len(block)-1):
                         rvs_line = (block[ind - line_num].lower()).split()
-                        if "Assertion" in rvs_line and 'failed' in rvs_line: #[1].split():
+                        if "assertion" in rvs_line and 'failed' in rvs_line: #[1].split():
                             assert_segfault_blocks.append([pdb,block,''.join(rvs_line)])
+                            break
                         else:
                             misc_segfault_blocks.append([pdb,block])
+                            break
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()

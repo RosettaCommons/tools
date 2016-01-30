@@ -80,6 +80,11 @@ def identify_errors(log_blocks):
     polymer_bond_error_blocks = []
     staple_error_blocks = []
     aceCYS_error_blocks = []
+    unREC_res_error_blocks   = [] 
+    unREC_ele_error_blocks   = [] 
+    unREC_aType_error_blocks = [] 
+    unREC_token_error_blocks = [] 
+    unREC_expTec_error_blocks= [] 
 
     for block in log_blocks:
         pdb = block[0]
@@ -113,6 +118,21 @@ def identify_errors(log_blocks):
                 elif "disulfide-bonded" in by_col: #and "partner" in by_col[1].split():
                     aceCYS_error_blocks.append([pdb,block])
                     break
+                elif "unrecognized" in by_col and "residue" in by_col: #[1].split():
+                    unREC_res_error_blocks.append([pdb,block])
+                    break
+                elif "unrecognized" in by_col and "element_symbol" in by_col: #[1].split():
+                    unREC_ele_error_blocks.append([pdb,block])
+                    break
+                elif "unrecognized" in by_col and "atom_type_name" in by_col: #[1].split():
+                    unREC_aType_error_blocks.append([pdb,block])
+                    break
+                elif "unrecognized" in by_col and "compound" in by_col and "token" in by_col: #[1].split():
+                    unREC_token_error_blocks.append([pdb,block])
+                    break
+                elif "unrecognized" in by_col and "experimental" in by_col and "technique" in by_col: #[1].split():
+                    unREC_expTec_error_blocks.append([pdb,block])
+                    break
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block])
                     break
@@ -135,7 +155,12 @@ def identify_errors(log_blocks):
             rotno_error_blocks, \
             polymer_bond_error_blocks, \
             staple_error_blocks, \
-            aceCYS_error_blocks]
+            aceCYS_error_blocks, \
+            unREC_res_error_blocks   , \
+            unREC_ele_error_blocks   , \
+            unREC_aType_error_blocks , \
+            unREC_token_error_blocks , \
+            unREC_expTec_error_blocks]
 
 
 def main(argv):
@@ -167,17 +192,33 @@ def main(argv):
     print "The number of blocks with PatchOperation errors ", len(all_errors[8]), "\n"
     
     print "The number of blocks with ace.CYS errors ", len(all_errors[9]), "\n"
+    
+    print "The number of blocks with unrecognized residue errors ", len(all_errors[10]), "\n"
+    
+    print "The number of blocks with unrecognized element errors ", len(all_errors[11]), "\n"
+    
+    print "The number of blocks with unrecognized atom_type errors ", len(all_errors[12]), "\n"
+    
+    print "The number of blocks with unrecognized token errors ", len(all_errors[13]), "\n"
+    
+    print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14]), "\n"
+    
 
-    write_blocks(all_errors[0], 'segfault.log')
-    write_blocks(all_errors[1], 'unidentified_error.log')
-    write_blocks(all_errors[2], 'ACE_error.log')
-    write_blocks(all_errors[3], 'fill_atom_error.log')
-    write_blocks(all_errors[4], 'resMap_range_error.log')
-    write_blocks(all_errors[5], 'nonACE_res_error.log')
-    write_blocks(all_errors[6], 'rotno_error.log')
-    write_blocks(all_errors[7], 'polymer_bond_error.log')
-    write_blocks(all_errors[8], 'PatchOperation_error.log')
-    write_blocks(all_errors[9], 'ace_CYS.log')
+    write_blocks(all_errors[ 0], 'segfault.log')
+    write_blocks(all_errors[ 1], 'unidentified_error.log')
+    write_blocks(all_errors[ 2], 'ACE_error.log')
+    write_blocks(all_errors[ 3], 'fill_atom_error.log')
+    write_blocks(all_errors[ 4], 'resMap_range_error.log')
+    write_blocks(all_errors[ 5], 'nonACE_res_error.log')
+    write_blocks(all_errors[ 6], 'rotno_error.log')
+    write_blocks(all_errors[ 7], 'polymer_bond_error.log')
+    write_blocks(all_errors[ 8], 'PatchOperation_error.log')
+    write_blocks(all_errors[ 9], 'ace_CYS.log')
+    write_blocks(all_errors[10], 'resUnrec.log')
+    write_blocks(all_errors[11], 'eleUnrec.log')
+    write_blocks(all_errors[12], 'aTypeUnrec.log')
+    write_blocks(all_errors[13], 'token.log')
+    write_blocks(all_errors[14], 'expTech.log')
 
     '''for block in all_errors[0]:
         with open('unidentified_error_blocks', 'a') as myfile:

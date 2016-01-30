@@ -44,29 +44,46 @@ def log_blocker(log):
     end_indices = []
     for ind, line in enumerate(log):
         if line[:26] == "core.init: Rosetta version":
-            if ind != 0 and ind-1 not in end_indices:
-                end_indices.append(ind-1)
-            if ind not in start_indices:
+            # for the first line the reads 'core.init: Rosetta version" 
+            # append this index to start
+            if not start_indices:
                 start_indices.append(ind)
+            # for additional cases where 'core.init: Rosetta version" 
+            # is found append it to the starting indexes
+            if ind != start_indices[-1]:
+                start_indices.append(ind)
+            # look up from the line that reads 'core.init: Rosetta version" 
+            # if the above line is not in end_indices, append it.
+            if ind != 0 and ind-1 != end_indices[-1]:
+                end_indices.append(ind-1)
         if "completed" in (line.lower()).split('*'):
-            if ind not in end_indices:
+            # for the first case of *****completed*****
+            # append it to end_indices
+            if not end_indices:
                 end_indices.append(ind)
-            if ind != len(log) -1 and ind+1 not in start_indices:
+            # for subsequent cases where *****completed*****
+            # is not found in end, append it
+            if ind != end_indices[-1]:
+                end_indices.append(ind)
+            # finally, look forward a line and see if that index
+            # is in start, if not append it
+            if ind != len(log) -1 and ind+1 != start_indices[-1]:
                 start_indices.append(ind+1)
-    print len(start_indices)
-    print len(end_indices)
-    print start_indices
-    print end_indices
+        if ind == len(log) -1 and ind != end_indices[-1]:
+            end_indices.append(ind)
+                
+    #print len(start_indices)
+    #print len(end_indices)
+
     index_blocks = zip(start_indices, end_indices)
-    print index_blocks
     #index_blocks = [list(x) for x in index_blocks]
     #print len(indices)
     #index_blocks = []
-    '''for i, ind_num in enumerate(indices):
+    for i, ind_num in enumerate(indices):
         if i == len(indices)-1:
             index_blocks.append([ind_num, len(log)])
         else:
-            index_blocks.append([ind_num, indices[i+1]-1])'''
+            index_blocks.append([ind_num, indices[i+1]-1])
     print "The number of pdb log files via index_blocks: ", len(index_blocks), "\n"
     #print index_blocks
     count = 0

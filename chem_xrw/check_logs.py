@@ -13,8 +13,6 @@ def write_blocks(block_set, fname):
         new_block = []
         for line in block[1]:
             by_col = (''.join((line.lower()).split(':'))).split()
-            #by_braq = (line.lower()).split(']')
-            #by_error = (line.lower()).split('error')
             if 'error' in by_col or '[error]' in by_col:
                 new_block.append(line)
         with open(fname, 'a') as myfile:
@@ -88,11 +86,13 @@ def identify_errors(log_blocks):
     polymer_bond_error_blocks = []
     staple_error_blocks = []
     aceCYS_error_blocks = []
-    unREC_res_error_blocks   = [] 
-    unREC_ele_error_blocks   = [] 
+    unREC_res_error_blocks = [] 
+    unREC_ele_error_blocks = [] 
     unREC_aType_error_blocks = [] 
     unREC_token_error_blocks = [] 
-    unREC_expTec_error_blocks= [] 
+    unREC_expTec_error_blocks = [] 
+    pose_load_error_blocks = []
+    typeEle_error_blocks = []
 
     for block in log_blocks:
         pdb = block[0]
@@ -148,6 +148,12 @@ def identify_errors(log_blocks):
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block])
                     break
+                elif "exception" in by_col and "jobdistributor" in by_col: #[1].split():
+                    pose_load_error_blocks.append([pdb,block])
+                    break
+                elif "cannot" in by_col and "type" in by_col and "element" in by_col: #[1].split():
+                    typeEle_error_blocks.append([pdb,block])
+                    break
                 else:
                     error_blocks.append([pdb,block])
                     break
@@ -169,7 +175,9 @@ def identify_errors(log_blocks):
             unREC_ele_error_blocks   , \
             unREC_aType_error_blocks , \
             unREC_token_error_blocks , \
-            unREC_expTec_error_blocks]
+            unREC_expTec_error_blocks, \
+            pose_load_error_blocks, \
+            typeEle_error_blocks]
 
 
 def main(argv):
@@ -212,7 +220,10 @@ def main(argv):
     
     print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14]), "\n"
     
+    print "The number of blocks with pose load errors ", len(all_errors[15]), "\n"
 
+    print "The number of blocks with cannot type atom with element errors ", len(all_errors[16]), "\n"
+    
     write_full_blocks(all_errors[ 0], 'segfault.log')
     write_blocks(all_errors[ 1], 'unidentified_error.log')
     write_blocks(all_errors[ 2], 'ACE_error.log')
@@ -228,6 +239,8 @@ def main(argv):
     write_blocks(all_errors[12], 'aTypeUnrec.log')
     write_blocks(all_errors[13], 'token.log')
     write_blocks(all_errors[14], 'expTech.log')
+    write_blocks(all_errors[15], 'poseLoad.log')
+    write_blocks(all_errors[16], 'typAtomEle.log')
 
     '''for block in all_errors[0]:
         with open('unidentified_error_blocks', 'a') as myfile:

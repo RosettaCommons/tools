@@ -23,7 +23,7 @@ def write_trim_blocks(block_set, fname):
                 myfile.write(block[3])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
         with open('%s.path' % fname, 'a') as mypathfile:
-            myfile.write('%s \n' % block[2])
+            mypathfile.write('%s \n' % block[2])
             
 def write_full_blocks(block_set, fname):
     if os.path.isfile('%s.log' % fname) == True:
@@ -35,7 +35,7 @@ def write_full_blocks(block_set, fname):
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in block[1]])
         with open('%s.path' % fname, 'a') as mypathfile:
-            myfile.write('%s \n' % block[2])
+            mypathfile.write('%s \n' % block[2])
 
 def log_blocker(log):
     log_blocks = []

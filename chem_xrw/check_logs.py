@@ -7,27 +7,35 @@ def read_file(file_path):
     return my_file
 
 def write_trim_blocks(block_set, fname):
-    if os.path.isfile(fname) == True:
-        os.remove(fname)
+    if os.path.isfile('%s.log' % fname) == True:
+        os.remove('%s.log' % fname)
+    if os.path.isfile('%s.path' % fname) == True:
+        os.remove('%s.path' % fname)
     for block in block_set:
         new_block = []
         for line in block[1]:
             by_col = (''.join((line.lower()).split(':'))).split()
             if 'error' in by_col or '[error]' in by_col:
                 new_block.append(line)
-        with open(fname, 'a') as myfile:
+        with open('%s.log' % fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
-            if len(block) == 3:
-                myfile.write(block[2])
+            if len(block) == 4:
+                myfile.write(block[3])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
+        with open('%s.path' % fname, 'a') as mypathfile:
+            myfile.write('%s\n' % block[2])
             
 def write_full_blocks(block_set, fname):
-    if os.path.isfile(fname) == True:
-        os.remove(fname)
+    if os.path.isfile('%s.log' % fname) == True:
+        os.remove('%s.log' % fname)
+    if os.path.isfile('%s.path' % fname) == True:
+        os.remove('%s.path' % fname)
     for block in block_set:
-        with open(fname, 'a') as myfile:
+        with open('%s.log' % fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in block[1]])
+        with open('%s.path' % fname, 'a') as mypathfile:
+            myfile.write('%s\n' % block[2])
 
 def log_blocker(log):
     log_blocks = []
@@ -49,25 +57,21 @@ def log_blocker(log):
     log_blocks = []
     block = []
     for i, line in enumerate(log):
+        if line[:20] == "core.init: command: ":
+            path = line.split()[-1] + ' >>log 2>&1'
         if line[:51] == "protocols.jd2.PDBJobInputter: filling pose from PDB":
             pdb = line.split('/')[-1][3:7]
         if i >= index_blocks[count][0] and i <= index_blocks[count][1]:
             block.append(line)
             
         if i == index_blocks[count][1]:
-            log_blocks.append([pdb,block])
+            log_blocks.append([pdb,block,path])
             block = []
             count += 1
         elif i == len(log)-1:
-            log_blocks.append([pdb,block])
+            log_blocks.append([pdb,block,path])
     print "The number of pdb log files via log_blocks dictated by index_blocks ", len(log_blocks), "\n"
-    #print [x[0] for x in log_blocks]
     
-    #for iblock in index_blocks:
-        #log_block = [line for i, line in enumerate(log) if i >= iblock[0] and i <= iblock[1]]
-        #log_blocks.append(log_block)
-    
-    #print log_blocks[0]
     return log_blocks, len(index_blocks) 
             
 def identify_blocks_by_pdb(block):
@@ -99,6 +103,7 @@ def identify_errors(log_blocks):
 
     for block in log_blocks:
         pdb = block[0]
+        path = block[2]
         block = block[1]
         assertion = False
         for ind, line in enumerate(block):
@@ -112,64 +117,64 @@ def identify_errors(log_blocks):
                     for line_num in xrange(len(block)-1):
                         rvs_line = (block[ind - line_num].lower()).split()
                         if "assertion" in rvs_line and 'failed.' in rvs_line: #[1].split():
-                            assert_segfault_blocks.append([pdb,block,''.join(rvs_line)])
+                            assert_segfault_blocks.append([pdb,block,path,''.join(rvs_line)])
                             assertion = True
                             break
                     if assertion == False:
-                        misc_segfault_blocks.append([pdb,block])
+                        misc_segfault_blocks.append([pdb,block,path])
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()
                 if 'ace' in next_line:
-                    ace_error_blocks.append([pdb,block])
+                    ace_error_blocks.append([pdb,block,path])
                     break
                 elif "fill_missing_atoms!" in by_col:#[1].split():
-                    fill_error_blocks.append([pdb,block])
+                    fill_error_blocks.append([pdb,block,path])
                     break
                 elif "packed_rotno_conversion_data_current_" in by_col:#[1].split():
-                    rotno_error_blocks.append([pdb,block])
+                    rotno_error_blocks.append([pdb,block,path])
                     break
                 elif "polymer" in by_col and 'incompatible' in by_col: #[1].split():
-                    polymer_bond_error_blocks.append([pdb,block])
+                    polymer_bond_error_blocks.append([pdb,block,path])
                     break
                 elif "patchoperation" in by_col: #[1].split():
-                    staple_error_blocks.append([pdb,block])
+                    staple_error_blocks.append([pdb,block,path])
                     break
                 elif "disulfide-bonded" in by_col: #and "partner" in by_col[1].split():
-                    aceCYS_error_blocks.append([pdb,block])
+                    aceCYS_error_blocks.append([pdb,block,path])
                     break
                 elif '3-letter' in next_line:
-                    letter3_error_blocks.append([pdb,block,''.join(next_line)])
+                    letter3_error_blocks.append([pdb,block,path,' '.join(next_line) + '\n'])
                     break
                 elif "unrecognized" in by_col and "residue" in by_col: #[1].split():
-                    unREC_res_error_blocks.append([pdb,block])
+                    unREC_res_error_blocks.append([pdb,block,path])
                     break
                 elif "unrecognized" in by_col and "element_symbol" in by_col: #[1].split():
-                    unREC_ele_error_blocks.append([pdb,block])
+                    unREC_ele_error_blocks.append([pdb,block,path])
                     break
                 elif "unrecognized" in by_col and "atom_type_name" in by_col: #[1].split():
-                    unREC_aType_error_blocks.append([pdb,block])
+                    unREC_aType_error_blocks.append([pdb,block,path])
                     break
                 elif "unrecognized" in pre_line and "compound" in pre_line and "token" in pre_line: #[1].split():
-                    unREC_token_error_blocks.append([pdb,block])
+                    unREC_token_error_blocks.append([pdb,block,path])
                     break
                 elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in pre_line: #[1].split():
-                    unREC_expTec_error_blocks.append([pdb,block])
+                    unREC_expTec_error_blocks.append([pdb,block,path])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:
-                    resMap_range_error_blocks.append([pdb,block])
+                    resMap_range_error_blocks.append([pdb,block,path])
                     break
                 elif "exception" in by_col and "jobdistributor" in by_col: #[1].split():
-                    pose_load_error_blocks.append([pdb,block])
+                    pose_load_error_blocks.append([pdb,block,path])
                     break
                 elif "cannot" in by_col and "type" in by_col and "element" in by_col: #[1].split():
-                    typeEle_error_blocks.append([pdb,block])
+                    typeEle_error_blocks.append([pdb,block,path])
                     break
                 else:
-                    error_blocks.append([pdb,block])
+                    error_blocks.append([pdb,block,path])
                     break
             elif '[error]' in by_col:
-                error_blocks.append([pdb,block])
+                error_blocks.append([pdb,block,path])
                 break
 
     return [misc_segfault_blocks, \
@@ -255,7 +260,7 @@ def main(argv):
     write_trim_blocks(all_errors[14], 'expTech.log')
     write_trim_blocks(all_errors[15], 'poseLoad.log')
     write_trim_blocks(all_errors[16], 'typAtomEle.log')
-    write_trim_blocks(all_errors[17], 'nullPointerAssertion.log')
+    write_full_blocks(all_errors[17], 'nullPointerAssertion.log')
 
 
 if __name__ == '__main__':

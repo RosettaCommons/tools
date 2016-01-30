@@ -1,10 +1,24 @@
-import sys, os
+import sys, os, os.path
 
 def read_file(file_path):
     with open(file_path, 'r') as f:
         my_file = f.readlines()
     return my_file
 
+def write_blocks(block_set, fname):
+    if os.path.isfile(fname) == True:
+        os.remove(fname)
+    for block in block_set:
+        new_block = []
+        for line in block[1]:
+            by_col = (line.lower()).split(':')
+            by_braq = (line.lower()).split(']')
+            if 'error' in by_col or '[error' in by_braq:
+                new_block.append(line)
+        with open(fname, 'a') as myfile:
+            myfile.write('\n\n\n******%s******\n\n\n' % block[0])
+            myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
+            
 
 def log_blocker(log):
     log_blocks = []
@@ -61,6 +75,11 @@ def identify_errors(log_blocks):
     segfault_blocks = []
     resMap_range_error_blocks = []
     letter3_error_blocks = []
+    rotno_error_blocks = []
+    polymer_bond_error_blocks = []
+    staple_error_blocks = []
+    aceCYS_error_blocks = []
+
     for block in log_blocks:
         pdb = block[0]
         block = block[1]
@@ -80,6 +99,18 @@ def identify_errors(log_blocks):
                 elif "fill_missing_atoms!" in by_col[1].split():
                     fill_error_blocks.append([pdb,block])
                     break
+                elif "packed_rotno_conversion_data_current_" in by_col[1].split():
+                    rotno_error_blocks.append([pdb,block])
+                    break
+                elif "polymer" in by_col[1].split() and 'incompatible' in by_col[1].split():
+                    polymer_bond_error_blocks.append([pdb,block])
+                    break
+                elif "PatchOperation" in by_col[1].split():
+                    staple_error_blocks.append([pdb,block])
+                    break
+                elif "disulfide-bonded" in by_col[1].split():
+                    aceCYS_error_blocks.append([pdb,block])
+                    break
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block])
                     break
@@ -92,13 +123,17 @@ def identify_errors(log_blocks):
             elif '[error' in by_braq:
                 error_blocks.append([pdb,block])
                 break
-    
-    return [error_blocks, \
-            segfault_blocks, \
+
+    return [segfault_blocks, \
+            error_blocks, \
             ace_error_blocks, \
             fill_error_blocks, \
             resMap_range_error_blocks, \
-            letter3_error_blocks]
+            letter3_error_blocks, \
+            rotno_error_blocks, \
+            polymer_bond_error_blocks, \
+            staple_error_blocks, \
+            aceCYS_error_blocks]
 
 
 def main(argv):
@@ -111,9 +146,9 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print "The number of blocks with segfaults ", len(all_errors[1]), "\n"
+    print "The number of blocks with segfaults ", len(all_errors[0]), "\n"
     
-    print "The number of blocks with unidentified errors ", len(all_errors[0]), "\n"
+    print "The number of blocks with unidentified errors ", len(all_errors[1]), "\n"
 
     print "The number of blocks with ace errors ", len(all_errors[2]), "\n"
 
@@ -123,19 +158,29 @@ def main(argv):
     
     print "The number of blocks with res errors not ace ", len(all_errors[5]), "\n"
         
-    for block in all_errors[0]:
-        #print block
-        #print '\n\n\n\n\n\n\n'
-        #print block[0]
-        #print '\n\n\n\n\n\n\n'
-        #print block[1]
+    print "The number of blocks with rotno errors ", len(all_errors[6]), "\n"
+    
+    print "The number of blocks with polymer bond errors ", len(all_errors[7]), "\n"
+    
+    print "The number of blocks with PatchOperation errors ", len(all_errors[8]), "\n"
+    
+    print "The number of blocks with ace.CYS errors ", len(all_errors[9]), "\n"
+
+    write_blocks(all_errors[0], 'segfault.log')
+    write_blocks(all_errors[1], 'unidentified_error.log')
+    write_blocks(all_errors[2], 'ACE_error.log')
+    write_blocks(all_errors[3], 'fill_atom_error.log')
+    write_blocks(all_errors[4], 'resMap_range_error.log')
+    write_blocks(all_errors[5], 'nonACE_res_error.log')
+    write_blocks(all_errors[6], 'rotno_error.log')
+    write_blocks(all_errors[7], 'polymer_bond_error.log')
+    write_blocks(all_errors[8], 'PatchOperation_error.log')
+    write_blocks(all_errors[9], 'ace_CYS.log')
+
+    '''for block in all_errors[0]:
         with open('unidentified_error_blocks', 'a') as myfile:
-            #print block[0]
-            #print '\n\n\n'
-            #print block[1]
-            #sys.exit()
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
-            myfile.writelines(block[1])
+            myfile.writelines(block[1])'''
 
     #print [x[0] for x in ace_error_blocks]
 

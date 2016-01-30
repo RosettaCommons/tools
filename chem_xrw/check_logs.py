@@ -11,9 +11,10 @@ def write_blocks(block_set, fname):
     for block in block_set:
         new_block = []
         for line in block[1]:
-            by_col = (line.lower()).split(':')
-            by_braq = (line.lower()).split(']')
-            if 'error' in by_col or '[error' in by_braq:
+            by_col = (''.join((line.lower()).split(':'))).split()
+            #by_braq = (line.lower()).split(']')
+            #by_error = (line.lower()).split('error')
+            if 'error' in by_col or '[error]' in by_col:
                 new_block.append(line)
         with open(fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
@@ -85,8 +86,9 @@ def identify_errors(log_blocks):
         block = block[1]
         for ind, line in enumerate(block):
             #print line
-            by_col = (line.lower()).split(':')
-            by_braq = (line.lower()).split(']')
+            #by_col = (line.lower()).split(':')
+            by_col = (''.join((line.lower()).split(':'))).split()
+            #by_braq = (line.lower()).split(']')
             if ind == len(block)-1:
                 by_star = (line.lower()).split('*')
                 if 'completed' not in by_star:
@@ -96,19 +98,19 @@ def identify_errors(log_blocks):
                 if 'ace' in next_line:
                     ace_error_blocks.append([pdb,block])
                     break
-                elif "fill_missing_atoms!" in by_col[1].split():
+                elif "fill_missing_atoms!" in by_col:#[1].split():
                     fill_error_blocks.append([pdb,block])
                     break
-                elif "packed_rotno_conversion_data_current_" in by_col[1].split():
+                elif "packed_rotno_conversion_data_current_" in by_col:#[1].split():
                     rotno_error_blocks.append([pdb,block])
                     break
-                elif "polymer" in by_col[1].split() and 'incompatible' in by_col[1].split():
+                elif "polymer" in by_col and 'incompatible' in by_col: #[1].split():
                     polymer_bond_error_blocks.append([pdb,block])
                     break
-                elif "PatchOperation" in by_col[1].split():
+                elif "patchoperation" in by_col: #[1].split():
                     staple_error_blocks.append([pdb,block])
                     break
-                elif "disulfide-bonded" in by_col[1].split():
+                elif "disulfide-bonded" in by_col: #and "partner" in by_col[1].split():
                     aceCYS_error_blocks.append([pdb,block])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:
@@ -120,7 +122,7 @@ def identify_errors(log_blocks):
                 else:
                     error_blocks.append([pdb,block])
                     break
-            elif '[error' in by_braq:
+            elif '[error]' in by_col:
                 error_blocks.append([pdb,block])
                 break
 

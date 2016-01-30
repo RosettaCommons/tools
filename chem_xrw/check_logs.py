@@ -21,6 +21,13 @@ def write_blocks(block_set, fname):
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
             
+def write_full_blocks(block_set, fname):
+    if os.path.isfile(fname) == True:
+        os.remove(fname)
+    for block in block_set:
+        with open(fname, 'a') as myfile:
+            myfile.write('\n\n\n******%s******\n\n\n' % block[0])
+            myfile.writelines([('%s  {0}' % block[0]).format(i) for i in block[1]])
 
 def log_blocker(log):
     log_blocks = []
@@ -206,7 +213,7 @@ def main(argv):
     print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14]), "\n"
     
 
-    write_blocks(all_errors[ 0], 'segfault.log')
+    write_full_blocks(all_errors[ 0], 'segfault.log')
     write_blocks(all_errors[ 1], 'unidentified_error.log')
     write_blocks(all_errors[ 2], 'ACE_error.log')
     write_blocks(all_errors[ 3], 'fill_atom_error.log')

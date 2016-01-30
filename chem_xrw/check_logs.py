@@ -100,6 +100,7 @@ def identify_errors(log_blocks):
     for block in log_blocks:
         pdb = block[0]
         block = block[1]
+        assertion = False
         for ind, line in enumerate(block):
             #print line
             #by_col = (line.lower()).split(':')
@@ -110,10 +111,12 @@ def identify_errors(log_blocks):
                 if 'completed' not in by_star:
                     for line_num in xrange(len(block)-1):
                         rvs_line = (block[ind - line_num].lower()).split()
-                        if "assertion" in rvs_line and 'failed' in rvs_line: #[1].split():
+                        if "assertion" in rvs_line and 'failed.' in rvs_line: #[1].split():
                             assert_segfault_blocks.append([pdb,block,''.join(rvs_line)])
+                            assertion = True
                             break
-                    misc_segfault_blocks.append([pdb,block])
+                    if assertion = False
+                        misc_segfault_blocks.append([pdb,block])
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()

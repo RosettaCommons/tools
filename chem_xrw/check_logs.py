@@ -40,11 +40,12 @@ def write_full_blocks(block_set, fname):
 def log_blocker(log):
     log_blocks = []
     
+    # points of interest (starts)
     indices = []
     for ind, line in enumerate(log):
         if line[:26] == "core.init: Rosetta version":
             indices.append(ind)
-    #print len(indices)
+    # paired points based on real starts and assumed ends
     index_blocks = []
     for i, ind_num in enumerate(indices):
         if i == len(indices)-1:
@@ -54,6 +55,10 @@ def log_blocker(log):
     print "The number of pdb log files via index_blocks: ", len(index_blocks), "\n"
     #print index_blocks
     count = 0
+    # Log_blocks is a list of lists where each list has three members
+    # member one is the pdb
+    # member two is the block (chunk of log file)
+    # member three is the path (exe + file path)
     log_blocks = []
     block = []
     for i, line in enumerate(log):
@@ -73,7 +78,7 @@ def log_blocker(log):
             log_blocks.append([pdb,block,path])
     print "The number of pdb log files via log_blocks dictated by index_blocks ", len(log_blocks), "\n"
     
-    return log_blocks, len(index_blocks) 
+    return log_blocks 
             
 def identify_blocks_by_pdb(block):
     for line in block:
@@ -83,6 +88,8 @@ def identify_blocks_by_pdb(block):
     return [pdb, block]
 
 def identify_errors(log_blocks):
+    # Each of these return data structures are like the log_blocks
+    # however they have less information
     error_blocks = []
     fill_error_blocks = []
     ace_error_blocks = []
@@ -109,7 +116,7 @@ def identify_errors(log_blocks):
         assertion = False
         for ind, line in enumerate(block):
             #print line
-            #by_col = (line.lower()).split(':')
+            # splits line by a colon 
             by_col = (''.join((line.lower()).split(':'))).split()
             #by_braq = (line.lower()).split(']')
             if ind == len(block)-1:
@@ -124,6 +131,7 @@ def identify_errors(log_blocks):
                     if assertion == False:
                         misc_segfault_blocks.append([pdb,block,path])
             if 'error' in by_col:
+                # For eacch error line we break up the +- 1 lines by spaces
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()
                 if 'ace' in next_line:
@@ -202,7 +210,7 @@ def main(argv):
 
     log_file = read_file(argv[0])
     
-    log_blocks, pdb_per_block = log_blocker(log_file)
+    log_blocks = log_blocker(log_file)
     
     #log_blocks = [identify_blocks_by_pdb(x) for x in log_blocks]
 

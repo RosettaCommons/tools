@@ -40,17 +40,33 @@ def write_full_blocks(block_set, fname):
 def log_blocker(log):
     log_blocks = []
     
-    indices = []
+    start_indices = []
+    end_indices = []
     for ind, line in enumerate(log):
         if line[:26] == "core.init: Rosetta version":
-            indices.append(ind)
+            if ind != 0 and ind-1 not in end_indices:
+                end_indices.append(ind-1)
+            if ind not in start_indices:
+                start_indices.append(ind)
+        if "completed" in (line.lower()).split('*'):
+            if ind not in end_indices:
+                end_indices.append(ind)
+            if ind != len(log) -1 and ind+1 not in start_indices:
+                start_indices.append(ind+1)
+    print len(start_indices)
+    print len(end_indices)
+    print start_indices
+    print end_indices
+    index_blocks = zip(start_indices, end_indices)
+    print index_blocks
+    #index_blocks = [list(x) for x in index_blocks]
     #print len(indices)
-    index_blocks = []
-    for i, ind_num in enumerate(indices):
+    #index_blocks = []
+    '''for i, ind_num in enumerate(indices):
         if i == len(indices)-1:
             index_blocks.append([ind_num, len(log)])
         else:
-            index_blocks.append([ind_num, indices[i+1]-1])
+            index_blocks.append([ind_num, indices[i+1]-1])'''
     print "The number of pdb log files via index_blocks: ", len(index_blocks), "\n"
     #print index_blocks
     count = 0
@@ -61,7 +77,7 @@ def log_blocker(log):
             path = line.split('command: ')[-1].strip('\r\n') + ' >>log 2>&1'
         if line[:51] == "protocols.jd2.PDBJobInputter: filling pose from PDB" or \
            line[:55] == "protocols.jd2.mmCIFJobInputter: filling pose from mmCIF":
-            pdb = line.split('/')[-1][3:7]
+            pdb = (line.split('/')[-1]).split('pdb')[-1][:4]
         if i >= index_blocks[count][0] and i <= index_blocks[count][1]:
             block.append(line)
             

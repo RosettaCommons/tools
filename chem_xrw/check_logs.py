@@ -101,6 +101,7 @@ def identify_errors(log_blocks):
                     segfault_blocks.append([pdb,block])
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()
+                pre_line = (block[ind-1].lower()).split()
                 if 'ace' in next_line:
                     ace_error_blocks.append([pdb,block])
                     break
@@ -128,10 +129,10 @@ def identify_errors(log_blocks):
                 elif "unrecognized" in by_col and "atom_type_name" in by_col: #[1].split():
                     unREC_aType_error_blocks.append([pdb,block])
                     break
-                elif "unrecognized" in by_col and "compound" in by_col and "token" in by_col: #[1].split():
+                elif "unrecognized" in pre_line and "compound" in pre_line and "token" in by_col: #[1].split():
                     unREC_token_error_blocks.append([pdb,block])
                     break
-                elif "unrecognized" in by_col and "experimental" in by_col and "technique" in by_col: #[1].split():
+                elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in by_col: #[1].split():
                     unREC_expTec_error_blocks.append([pdb,block])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:

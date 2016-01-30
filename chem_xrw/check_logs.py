@@ -115,7 +115,7 @@ def identify_errors(log_blocks):
                             assert_segfault_blocks.append([pdb,block,''.join(rvs_line)])
                             assertion = True
                             break
-                    if assertion = False
+                    if assertion == False
                         misc_segfault_blocks.append([pdb,block])
             if 'error' in by_col:
                 next_line = (block[ind+1].lower()).split()

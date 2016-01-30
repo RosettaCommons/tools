@@ -142,7 +142,7 @@ def identify_errors(log_blocks):
                 elif "unrecognized" in pre_line and "compound" in pre_line and "token" in pre_line: #[1].split():
                     unREC_token_error_blocks.append([pdb,block])
                     break
-                elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in by_line: #[1].split():
+                elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in pre_line: #[1].split():
                     unREC_expTec_error_blocks.append([pdb,block])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:

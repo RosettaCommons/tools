@@ -58,7 +58,7 @@ def log_blocker(log):
             count += 1
         elif i == len(log)-1:
             log_blocks.append([pdb,block])
-    print "The number of pdb log files via log_blocks dicctated by index_blocks ", len(log_blocks), "\n"
+    print "The number of pdb log files via log_blocks dictated by index_blocks ", len(log_blocks), "\n"
     #print [x[0] for x in log_blocks]
     
     #for iblock in index_blocks:

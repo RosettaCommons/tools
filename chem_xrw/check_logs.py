@@ -20,7 +20,7 @@ def log_blocker(log):
             index_blocks.append([ind_num, len(log)])
         else:
             index_blocks.append([ind_num, indices[i+1]-1])
-    print len(index_blocks)
+    print "The number of pdb log files via index_blocks: ", len(index_blocks), "\n"
     #print index_blocks
     count = 0
     log_blocks = []
@@ -37,7 +37,7 @@ def log_blocker(log):
             count += 1
         elif i == len(log)-1:
             log_blocks.append([pdb,block])
-    print len(log_blocks)
+    print "The number of pdb log files via log_blocks dicctated by index_blocks ", len(log_blocks), "\n"
     #print [x[0] for x in log_blocks]
     
     #for iblock in index_blocks:
@@ -56,7 +56,11 @@ def identify_blocks_by_pdb(block):
 
 def identify_errors(log_blocks):
     error_blocks = []
+    fill_error_blocks = []
+    ace_error_blocks = []
     segfault_blocks = []
+    resMap_range_error_blocks = []
+    letter3_error_blocks = []
     for block in log_blocks:
         pdb = block[0]
         block = block[1]
@@ -69,12 +73,33 @@ def identify_errors(log_blocks):
                 if 'completed' not in by_star:
                     segfault_blocks.append([pdb,block])
             if 'error' in by_col:
-                error_blocks.append([pdb,block])
-                break
+                next_line = (block[ind+1].lower()).split()
+                if 'ace' in next_line:
+                    ace_error_blocks.append([pdb,block])
+                    break
+                elif "fill_missing_atoms!" in by_col[1].split():
+                    fill_error_blocks.append([pdb,block])
+                    break
+                elif 'res_map' in next_line and 'range' in next_line:
+                    resMap_range_error_blocks.append([pdb,block])
+                    break
+                elif '3-letter' in next_line:
+                    letter3_error_blocks.append([pdb,block,''.join(next_line)])
+                    break
+                else:
+                    error_blocks.append([pdb,block])
+                    break
             elif '[error' in by_braq:
                 error_blocks.append([pdb,block])
                 break
-    return error_blocks, segfault_blocks
+    
+    return [error_blocks, \
+            segfault_blocks, \
+            ace_error_blocks, \
+            fill_error_blocks, \
+            resMap_range_error_blocks, \
+            letter3_error_blocks]
+
 
 def main(argv):
 
@@ -84,12 +109,35 @@ def main(argv):
     
     #log_blocks = [identify_blocks_by_pdb(x) for x in log_blocks]
 
-    error_blocks, segfault_blocks = identify_errors(log_blocks)
+    all_errors = identify_errors(log_blocks)
 
-    print len(error_blocks)
+    print "The number of blocks with segfaults ", len(all_errors[1]), "\n"
     
-    print len(segfault_blocks)
+    print "The number of blocks with unidentified errors ", len(all_errors[0]), "\n"
+
+    print "The number of blocks with ace errors ", len(all_errors[2]), "\n"
+
+    print "The number of blocks with fill errors ", len(all_errors[3]), "\n"
+    
+    print "The number of blocks with resMap range errors ", len(all_errors[4]), "\n"
+    
+    print "The number of blocks with res errors not ace ", len(all_errors[5]), "\n"
         
+    for block in all_errors[0]:
+        #print block
+        #print '\n\n\n\n\n\n\n'
+        #print block[0]
+        #print '\n\n\n\n\n\n\n'
+        #print block[1]
+        with open('unidentified_error_blocks', 'a') as myfile:
+            #print block[0]
+            #print '\n\n\n'
+            #print block[1]
+            #sys.exit()
+            myfile.write('\n\n\n******%s******\n\n\n' % block[0])
+            myfile.writelines(block[1])
+
+    #print [x[0] for x in ace_error_blocks]
 
 if __name__ == '__main__':
 

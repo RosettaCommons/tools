@@ -204,7 +204,7 @@ def main(argv):
 
     print "The number of blocks with misc segfaults ", len(all_errors[0]), "\n"
     
-    print "The number of blocks with assertion segfaults ", len(all_errors[17]), "\n"
+    print "The number of blocks with null pointer assertions ", len(all_errors[17]), "\n"
     
     print "The number of blocks with misc unidentified errors ", len(all_errors[1]), "\n"
 
@@ -255,7 +255,7 @@ def main(argv):
     write_trim_blocks(all_errors[14], 'expTech.log')
     write_trim_blocks(all_errors[15], 'poseLoad.log')
     write_trim_blocks(all_errors[16], 'typAtomEle.log')
-    write_trim_blocks(all_errors[17], 'assertSegfault.log')
+    write_trim_blocks(all_errors[17], 'nullPointerAssertion.log')
 
 
 if __name__ == '__main__':

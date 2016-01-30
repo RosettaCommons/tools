@@ -17,7 +17,7 @@ def write_trim_blocks(block_set, fname):
                 new_block.append(line)
         with open(fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])
-            if len(block_set) == 3:
+            if len(block) == 3:
                 myfile.write(block[2])
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
             

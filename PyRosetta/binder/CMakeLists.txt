@@ -7,9 +7,18 @@ set(LLVM_USED_LIBS clangTooling clangBasic clangAST)
 
 add_clang_executable(binder
   binder.cpp
+
+  context.hpp
   context.cpp
-  function.cpp
+
+  class.hpp
   class.cpp
+
+  function.hpp
+  function.cpp
+
+  util.hpp
+  util.cpp
 
   fmt/format.cc
   fmt/posix.cc

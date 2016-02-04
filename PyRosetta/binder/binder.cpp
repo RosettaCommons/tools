@@ -19,9 +19,10 @@
 using namespace clang::tooling;
 using namespace llvm;
 
+
 // Apply a custom category to all command-line options so that they are the
 // only ones displayed.
-static llvm::cl::OptionCategory BinderToolCategory("binder options");
+static llvm::cl::OptionCategory BinderToolCategory("Binder options");
 
 // CommonOptionsParser declares HelpMessage with a description of the common
 // command-line options related to the compilation database and input files.
@@ -41,7 +42,12 @@ using std::string;
 // using namespace llvm;
 
 
+cl::opt<std::string> O_root_module("root-module", cl::desc("Name of root module"), /*cl::init("example"),*/ cl::cat(BinderToolCategory));
+//cl::opt<std::string> O_root_module("root-module", cl::desc("Name of root module"), cl::Required, cl::cat(BinderToolCategory));
 
+cl::opt<int> O_max_file_size("max-file-size", cl::desc("Specify maximum length of generated source files"), cl::init(1024*256), cl::cat(BinderToolCategory));
+
+cl::opt<std::string> O_prefix("prefix", cl::desc("Output prefix for all generated files. Might contain directories."), cl::init(""), cl::cat(BinderToolCategory));
 
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor>
@@ -151,7 +157,7 @@ public:
 	// }
 
 
-	void generate(void) { context.generate(); }
+	void generate(void) { context.generate(O_root_module, O_prefix, O_max_file_size); }
 private:
     ASTContext *ast_context;
 
@@ -187,11 +193,13 @@ public:
 
 int main(int argc, const char **argv)
 {
-  CommonOptionsParser op(argc, argv, BinderToolCategory);
+	CommonOptionsParser op(argc, argv, BinderToolCategory);
 
-  ClangTool tool(op.getCompilations(), op.getSourcePathList());
+	ClangTool tool(op.getCompilations(), op.getSourcePathList());
 
-  return tool.run(newFrontendActionFactory<BinderFrontendAction>().get());
+	//outs() << "Root module: " << O_root_module << "\n";
+
+	return tool.run(newFrontendActionFactory<BinderFrontendAction>().get());
 }
 
 

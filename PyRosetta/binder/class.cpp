@@ -13,6 +13,7 @@
 
 #include <class.hpp>
 #include <function.hpp>
+#include <util.hpp>
 
 #include <fmt/format.h>
 

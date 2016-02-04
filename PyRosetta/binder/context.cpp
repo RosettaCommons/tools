@@ -14,11 +14,13 @@
 
 #include <context.hpp>
 
+#include <util.hpp>
 #include <fmt/format.h>
 
 
 #include <sstream>
 #include <fstream>
+#include <set>
 
 using namespace llvm;
 using namespace clang;
@@ -34,62 +36,6 @@ namespace binder {
 const std::string _root_module_variable_name_{"m"};
 
 
-/// Split string using given separator
-vector<string> split(string const &buffer, string const & separator="\n")
-{
-	string line;
-	vector<string> lines;
-
-	for(uint i=0; i<buffer.size(); ++i) {
-		if( buffer.compare(i, separator.size(), separator) ) line.push_back( buffer[i] );
-		else {
-			lines.push_back(line);
-			line.resize(0);
-		}
-	}
-
-	if( line.size() ) lines.push_back(line);
-
-	return lines;
-}
-
-
-/// Replace all occurrences of string
-void replace(string &s, string const & from, string const &to)
-{
-	size_t i = s.size();
-	while( ( i = s.rfind(from, i) ) != string::npos) {
-		s.replace(i, from.size(), to);
-		--i;
-	}
-}
-
-
-string indent(string const &code, string const &indentation)
-{
-	auto lines = split(code);
-	string r;
-
-	for(auto & l : lines) r += indentation + l + '\n';
-
-	return r;
-}
-
-
-string namespace_from_named_decl(NamedDecl *decl)
-{
-	string qn = decl->getQualifiedNameAsString();
-	string n  = decl->getNameAsString();
-	//name = decl->getQualifiedNameAsString();
-
-	int namespace_len = qn.size() - n.size();
-
-	string path = decl->getQualifiedNameAsString().substr(0, namespace_len > 1 ? namespace_len-2 : namespace_len );  // removing trailing '::'
-
-	return path;
-}
-
-
 llvm::raw_ostream & operator << (llvm::raw_ostream & os, Binder const &b)
 {
 	clang::NamedDecl *decl = b.get_named_decl();
@@ -102,29 +48,12 @@ llvm::raw_ostream & operator << (llvm::raw_ostream & os, Binder const &b)
 }
 
 
-/// Calculate base (upper) namespace for given one: core::pose::motif --> core::pose
-string base_namespace(string const & ns)
-{
-	size_t f = ns.rfind("::");
-	if( f == string::npos ) return "";
-	else return ns.substr(0, f);
-}
-
-
-/// Calculate last namespace for given one: core::pose::motif --> motif
-string last_namespace(string const & ns)
-{
-	size_t f = ns.rfind("::");
-	if( f == string::npos ) return ns;
-	else return ns.substr(f+2, ns.size()-f-2);
-}
 
 // Generate C++ name of pybind11 module variable
 string module_variable(string const & namespace_)
 {
 	if( namespace_.size() ) {
-		string m{namespace_};
-		replace(m, "::", "_"); // std::replace(m.begin(), m.end(), ':', '_');
+		string m{ replace(namespace_, "::", "_") }; // std::replace(m.begin(), m.end(), ':', '_');
 		return _root_module_variable_name_+"_" + m;
 	}
 	else return _root_module_variable_name_;
@@ -190,9 +119,21 @@ vector<string> Context::sorted_namespaces()
 }
 
 
+// generate code for include directives and cleanup the includes vector
+string generate_include_directives(vector<string> &includes)
+{
+	string r;
+	for(auto &i : std::set<string>(includes.begin(), includes.end() ) ) r += "#include " + i + '\n';
+	includes.resize(0);
+	return r;
+}
+
 /// generate bindings for namespace and split it in chunks so maximum size is ~ max_code_size
 vector<string> Context::bind_namespaces(string const &namespace_, size_t max_code_size)
 {
+	string const header = "\n#include <pybind11/pybind11.h>\n\n";
+	vector<string> includes;
+
 	vector<BinderOP> & binders( modules[namespace_] );
 
 	string prototypes;
@@ -208,11 +149,15 @@ vector<string> Context::bind_namespaces(string const &namespace_, size_t max_cod
 		}
 
 		r += (*b)(_root_module_variable_name_, "\t");
+		add_relevant_include(b->get_named_decl(), includes);
 
-		if( r.size() >= max_code_size ) { r+= "}\n"; R.push_back(r); r=""; }
+		if( r.size() >= max_code_size ) {
+			R.push_back( generate_include_directives(includes) + header + r + "}\n");
+			r = "";
+		}
 	}
 
-	if( r.size() ) { r+= "}\n"; R.push_back(r); }
+	if( r.size() ) { r+= "}\n"; R.push_back( generate_include_directives(includes) + header + r ); }
 
 	string module_main = "\n\n" + prototypes + "\n" + module_binder_function(namespace_, true) + " {\n";
 	for(size_t i=0; i<R.size(); ++i) {
@@ -221,7 +166,7 @@ vector<string> Context::bind_namespaces(string const &namespace_, size_t max_cod
 	module_main += "}\n";
 
 	if( R.size() ) R.back() += module_main;
-	else R.push_back(module_main);
+	else R.push_back( generate_include_directives(includes) + header + module_main );
 
 	return R;
 }
@@ -229,15 +174,14 @@ vector<string> Context::bind_namespaces(string const &namespace_, size_t max_cod
 
 
 const char * module_header = R"_(#include <pybind11/pybind11.h>
-#include <self_test.hpp>
 
 {}
-PYBIND11_PLUGIN(example) {{
+PYBIND11_PLUGIN({}) {{
 	pybind11::module {}("{}", "{}");
 
 )_";
 
-void Context::generate()
+void Context::generate(string const &root_module, std::string const &prefix, int maximum_file_length)
 {
 
 	//s << "#include <pybind11/pybind11.h>\nPYBIND11_PLUGIN(example) {\n\tpybind11::module m(\"example\", \"example module\");\n";
@@ -257,7 +201,7 @@ void Context::generate()
 	}
 
 	std::stringstream s;
-	s << format(module_header, module_function_defs, _root_module_variable_name_, "example", "example module");
+	s << format(module_header, module_function_defs, root_module, _root_module_variable_name_, root_module, root_module + " module");
 
 	s << module_var_defs << "\n" << module_function_calls;
 	s << "\treturn m.ptr();\n}\n";
@@ -268,16 +212,28 @@ void Context::generate()
 	// //for(auto &b : binders) s << indent(b("m"), "\t");
 	// for(auto &b : binders) s << (*b)("m", "\t");
 	// s << "\treturn m.ptr();\n}\n";
+	vector<string> sources;
 
 	for(auto &ns : modules) {
-		vector<string> files = bind_namespaces(ns.first, 1024*256);
-		for(auto &f : files) s << f;
+		vector<string> files = bind_namespaces(ns.first, maximum_file_length);
+
+		//for(auto &f : files) s << f;
+		for(uint i=0; i<files.size(); ++i) {
+			string file_name = prefix + ( ns.first.size() ? replace(ns.first, "::", "-") : root_module ) + "-" + std::to_string(i) + ".cpp";
+
+			std::ofstream(file_name) << files[i];
+			sources.push_back(file_name);
+		}
 	}
 
-	errs() << s.str() << "\n";
+	//errs() << s.str() << "\n";
+	string file_name = prefix + root_module + ".cpp";
+	std::ofstream(file_name) << s.str();
+	sources.push_back(file_name);
 
-	std::ofstream f("../tools/clang/tools/extra/binder/_example_/example.cpp");
-	f << s.str();
+	std::ofstream f(prefix + root_module + ".sources");
+	for(auto &s : sources) f << s << "\n";
+
 }
 
 

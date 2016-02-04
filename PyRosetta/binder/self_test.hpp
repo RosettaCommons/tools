@@ -1,41 +1,26 @@
-#include <string>
-#include <iostream>
 
-class A {
-public:
-	int n;
-	float f;
-	double d;
-};
-
-//std::string foo1(std::string s = std::string("aaa") ) { return s; }
-
-//std::string foo2(std::string s = "aaa" ) { return s; }
-//void foo3(A a=A() ) {}
-
-
-std::string foo(int a) { return "foo1"; }
-std::string foo(int a, int b) { return "foo2"; }
-std::string foo(int a, int b, int c) { return "foo3: a="+std::to_string(a)+" b="+std::to_string(b)+" c="+std::to_string(c); }
+// aaaaa
 
 
 
+#include <self_test_01.hpp>
 
-namespace aaaa {
 
-namespace bbbb {
+// namespace aaaa {
 
-namespace cccc {
-std::string foo_cccc(int a) { return "foo1"; }
-}
+// namespace bbbb {
 
-}
+// namespace cccc {
+// std::string foo_cccc(int a) { return "foo1"; }
+// }
 
-namespace dd {
-std::string foo_dd(int a) { return "foo1"; }
-}
+// }
 
-}
+// namespace dd {
+// std::string foo_dd(int a) { return "foo1"; }
+// }
+
+// }
 
 
 

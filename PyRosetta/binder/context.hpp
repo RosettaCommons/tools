@@ -85,7 +85,7 @@ public:
 
 	void add(BinderOP &);
 
-	void generate();
+	void generate(std::string const &root_module, std::string const &prefix, int maximum_file_length);
 
 private:
 	std::unordered_map<string, Binders> modules;
@@ -99,13 +99,6 @@ private:
 	std::vector<string> bind_namespaces(string const &namespace_, size_t max_code_size);
 };
 
-
-/// indent given code
-std::string indent(std::string const &code, std::string const &indentation);
-
-
-// calculate namespace path from given NamedDecl, like: std, core::pose
-std::string namespace_from_named_decl(clang::NamedDecl *decl);
 
 
 

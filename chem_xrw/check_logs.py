@@ -256,7 +256,7 @@ def main(argv):
     print len(all_errors[16]), "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
     print len(all_errors[18]), "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
     print len(all_errors[19]), "The number of blocks with 'unable to find desired variant residue' errors [usually sugars]' (sugarVariant.log) ", len(all_errors[19])
-    print len(all_errors[20]), "The number of blocks with 'Cannot load in ResidueType for entry with no atoms.' (0AtomRestype.log) ", len(all_errors[19])
+    print len(all_errors[20]), "The number of blocks with 'Cannot load in ResidueType for entry with no atoms.' (0AtomRestype.log) ", len(all_errors[20])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')

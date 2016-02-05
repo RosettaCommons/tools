@@ -24,7 +24,7 @@ def write_trim_blocks(block_set, fname):
             myfile.writelines([('%s  {0}' % block[0]).format(i) for i in new_block])
         with open('%s.path' % fname, 'a') as mypathfile:
             mypathfile.write('%s \n' % block[2])
-            
+
 def write_full_blocks(block_set, fname):
     if os.path.isfile('%s.log' % fname) == True:
         os.remove('%s.log' % fname)
@@ -39,7 +39,7 @@ def write_full_blocks(block_set, fname):
 
 def log_blocker(log):
     log_blocks = []
-    
+
     # points of interest (starts)
     indices = []
     for ind, line in enumerate(log):
@@ -69,7 +69,7 @@ def log_blocker(log):
             pdb = line.split('/')[-1][3:7]
         if i >= index_blocks[count][0] and i <= index_blocks[count][1]:
             block.append(line)
-            
+
         if i == index_blocks[count][1]:
             log_blocks.append([pdb,block,path])
             block = []
@@ -77,9 +77,9 @@ def log_blocker(log):
         elif i == len(log)-1:
             log_blocks.append([pdb,block,path])
     print "The number of pdb log files via log_blocks dictated by index_blocks ", len(log_blocks), "\n"
-    
-    return log_blocks 
-            
+
+    return log_blocks
+
 def identify_blocks_by_pdb(block):
     for line in block:
         if line[:51] == "protocols.jd2.PDBJobInputter: filling pose from PDB":
@@ -90,25 +90,25 @@ def identify_blocks_by_pdb(block):
 def identify_errors(log_blocks):
     # Each of these return data structures are like the log_blocks
     # however they have less information
-    error_blocks = []
-    fill_error_blocks = []
-    ace_error_blocks = []
-    assert_segfault_blocks = []
-    misc_segfault_blocks = []
-    resMap_range_error_blocks = []
-    letter3_error_blocks = []
-    rotno_error_blocks = []
-    polymer_bond_error_blocks = []
-    staple_error_blocks = []
-    aceCYS_error_blocks = []
-    unREC_res_error_blocks = [] 
-    unREC_ele_error_blocks = [] 
-    unREC_aType_error_blocks = [] 
-    unREC_token_error_blocks = [] 
-    unREC_expTec_error_blocks = [] 
-    pose_load_error_blocks = []
-    typeEle_error_blocks = []
-    zero_length_xyzVector_error_blocks = []
+    error_blocks = []                       #0
+    fill_error_blocks = []                  #1
+    ace_error_blocks = []                   #2
+    assert_segfault_blocks = []             #3
+    misc_segfault_blocks = []               #4
+    resMap_range_error_blocks = []          #5
+    letter3_error_blocks = []               #6
+    rotno_error_blocks = []                 #7
+    polymer_bond_error_blocks = []          #8
+    staple_error_blocks = []                #9
+    aceCYS_error_blocks = []                #10
+    unREC_res_error_blocks = []             #11
+    unREC_ele_error_blocks = []             #12
+    unREC_aType_error_blocks = []           #13
+    unREC_token_error_blocks = []           #14
+    unREC_expTec_error_blocks = []          #15
+    pose_load_error_blocks = []             #16
+    typeEle_error_blocks = []               #17
+    zero_length_xyzVector_error_blocks = [] #18
 
     for block in log_blocks:
         pdb = block[0]
@@ -117,7 +117,7 @@ def identify_errors(log_blocks):
         assertion = False
         for ind, line in enumerate(block):
             #print line
-            # splits line by a colon 
+            # splits line by a colon
             by_col = (''.join((line.lower()).split(':'))).split()
             #by_braq = (line.lower()).split(']')
             if ind == len(block)-1:
@@ -215,50 +215,50 @@ def identify_errors(log_blocks):
 def main(argv):
 
     log_file = read_file(argv[0])
-    
+
     log_blocks = log_blocker(log_file)
-    
+
     #log_blocks = [identify_blocks_by_pdb(x) for x in log_blocks]
 
     all_errors = identify_errors(log_blocks)
 
     print "The number of blocks with misc segfaults ", len(all_errors[0])
-    
+
     print "The number of blocks with null pointer assertions ", len(all_errors[17])
-    
+
     print "The number of blocks with misc unidentified errors ", len(all_errors[1])
 
     print "The number of blocks with ace errors ", len(all_errors[2])
 
     print "The number of blocks with fill errors ", len(all_errors[3])
-    
+
     print "The number of blocks with resMap range errors ", len(all_errors[4])
-    
+
     print "The number of blocks with res errors not ace ", len(all_errors[5])
-        
+
     print "The number of blocks with rotno errors ", len(all_errors[6])
-    
+
     print "The number of blocks with polymer bond errors ", len(all_errors[7])
-    
+
     print "The number of blocks with PatchOperation errors ", len(all_errors[8])
-    
+
     print "The number of blocks with ace.CYS errors ", len(all_errors[9])
-    
+
     print "The number of blocks with unrecognized residue errors ", len(all_errors[10])
-    
+
     print "The number of blocks with unrecognized element errors ", len(all_errors[11])
-    
+
     print "The number of blocks with unrecognized atom_type errors ", len(all_errors[12])
-    
+
     print "The number of blocks with unrecognized token errors ", len(all_errors[13])
-    
+
     print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14])
-    
+
     print "The number of blocks with pose load errors ", len(all_errors[15])
 
     print "The number of blocks with cannot type atom with element errors ", len(all_errors[16])
-    
-    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[17])
+
+    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[18])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')
@@ -278,6 +278,7 @@ def main(argv):
     write_trim_blocks(all_errors[15], 'poseLoad')
     write_trim_blocks(all_errors[16], 'typAtomEle')
     write_full_blocks(all_errors[17], 'nullPointerAssertion')
+    write_full_blocks(all_errors[18], 'zeroLengthXYZVector')
 
 
 if __name__ == '__main__':

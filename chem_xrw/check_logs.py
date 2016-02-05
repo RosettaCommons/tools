@@ -246,13 +246,13 @@ def main(argv):
 
     print "The number of blocks with PatchOperation errors ", len(all_errors[8])
 
-    print "The number of blocks with ace.CYS errors ", len(all_errors[9])
+    print "The number of blocks with ace.CYS errors (needs acetylated CYS restype) ", len(all_errors[9])
 
     print "The number of blocks with unrecognized residue errors ", len(all_errors[10])
 
     print "The number of blocks with unrecognized element errors ", len(all_errors[11])
 
-    print "The number of blocks with unrecognized atom_type errors ", len(all_errors[12])
+    print "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log)", len(all_errors[12])
 
     print "The number of blocks with unrecognized token errors ", len(all_errors[13])
 
@@ -278,7 +278,7 @@ def main(argv):
     write_trim_blocks(all_errors[11], 'eleUnrec')
     write_trim_blocks(all_errors[12], 'aTypeUnrec')
     write_trim_blocks(all_errors[13], 'token')
-    write_trim_blocks(all_errors[14], 'expTech')
+    write_full_blocks(all_errors[14], 'expTech')
     write_trim_blocks(all_errors[15], 'poseLoad')
     write_trim_blocks(all_errors[16], 'typAtomEle')
     write_full_blocks(all_errors[17], 'nullPointerAssertion')

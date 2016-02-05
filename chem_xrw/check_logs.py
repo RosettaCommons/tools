@@ -117,7 +117,7 @@ def identify_errors(log_blocks):
         assertion = False
         for ind, line in enumerate(block):
             #print line
-            # splits line by a colon
+            # splits line by colons and spaces
             by_col = (''.join((line.lower()).split(':'))).split()
             #by_braq = (line.lower()).split(']')
             if ind == len(block)-1:
@@ -174,7 +174,7 @@ def identify_errors(log_blocks):
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block,path])
                     break
-                elif "cannot normalize xyzvector of length() zero" in by_col:
+                elif "normalize" in by_col and "xyzvector" in by_col and "zero" in by_col:
                     zero_length_xyzVector_error_blocks.append([pdb,block,path])
                     break
                     #unclear that pose_load_error is real - I think this catches when a file is missing?

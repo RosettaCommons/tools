@@ -119,6 +119,7 @@ def identify_errors(log_blocks):
     seqpos_0_error_blocks = []              #22
     disulfide_restype_error_blocks = []     #23
     disulfide_from_atom_error_blocks = []   #24
+    header_compound_value_error_blocks = [] #25
 
     for block in log_blocks:
         pdb = block[0]
@@ -180,6 +181,9 @@ def identify_errors(log_blocks):
                     break
                 elif "unrecognized" in pre_line and "experimental" in pre_line and "technique" in pre_line: #[1].split():
                     unREC_expTec_error_blocks.append([pdb,block,path])
+                    break
+                elif "attempting" in pre_line and "compound" in pre_line and "value" in pre_line: #[1].split():
+                    header_compound_value_error_blocks.append([pdb,block,path])
                     break
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block,path])
@@ -243,8 +247,8 @@ def identify_errors(log_blocks):
             multiple_disulfides_error_blocks, \
             seqpos_0_error_blocks, \
             disulfide_restype_error_blocks, \
-            disulfide_from_atom_error_blocks] #24
-
+            disulfide_from_atom_error_blocks, \
+            header_compound_value_error_blocks] #25
 
 def main(argv):
 
@@ -270,8 +274,10 @@ def main(argv):
     print len(all_errors[10]), "The number of blocks with unrecognized residue errors (straight 'unrecognized residue', usually ligands?) (resUnrec.log)  ", len(all_errors[10])
     print len(all_errors[11]), "The number of blocks with unrecognized element errors (eleUnrec.log) ", len(all_errors[11])
     print len(all_errors[12]), "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log) ", len(all_errors[12])
+    print "next few are header errors"
     print len(all_errors[13]), "The number of blocks with 'unrecognized compound token string' errors (token.log) ", len(all_errors[13])
     print len(all_errors[14]), "The number of blocks with unrecognized experimental technique errors (expTech.log) ", len(all_errors[14])
+    print len(all_errors[25]), "The number of blocks with compound header errors (NOTE TYPO IN ROSETTA LOG!) (compoundHeader.log) ", len(all_errors[25])
     print len(all_errors[15]), "The number of blocks with misc pose load errors (usually means missing file on my end) (poseLoad.log) ", len(all_errors[15])
     print len(all_errors[16]), "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
     print len(all_errors[18]), "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
@@ -307,6 +313,7 @@ def main(argv):
     write_trim_blocks(all_errors[22], 'seqpos0')
     write_trim_blocks(all_errors[23], 'resTypeSS')
     write_trim_blocks(all_errors[24], 'atomSS')
+    write_trim_blocks(all_errors[25], 'compoundHeader')
 
 if __name__ == '__main__':
 

@@ -114,6 +114,7 @@ def identify_errors(log_blocks):
     typeEle_error_blocks = []               #17
     zero_length_xyzVector_error_blocks = [] #18
     sugar_variant_error_blocks = []         #19
+    zero_atom_restype_error_blocks = []     #20
 
     for block in log_blocks:
         pdb = block[0]
@@ -192,6 +193,9 @@ def identify_errors(log_blocks):
                 elif "unable to find desired variant residue" in line:
                     sugar_variant_error_blocks.append([pdb,block,path])
                     break
+                elif "Cannot load in ResidueType for entry with no atoms." in line:
+                    zero_atom_restype_error_blocks.append([pdb,block,path])
+                    break
                 else:
                     error_blocks.append([pdb,block,path])
                     break
@@ -218,7 +222,8 @@ def identify_errors(log_blocks):
             typeEle_error_blocks, \
             assert_segfault_blocks, \
             zero_length_xyzVector_error_blocks, \
-            sugar_variant_error_blocks]         #19
+            sugar_variant_error_blocks, \
+            zero_atom_restype_error_blocks]         #20
 
 
 def main(argv):
@@ -250,7 +255,8 @@ def main(argv):
     print len(all_errors[15]), "The number of blocks with misc pose load errors (usually means missing file on my end) (poseLoad.log) ", len(all_errors[15])
     print len(all_errors[16]), "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
     print len(all_errors[18]), "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
-    print len(all_errors[19]), "The number of blocks with 'unable to find desired variant residue' errors [usually sugars] (sugarVariant.log) ", len(all_errors[19])
+    print len(all_errors[19]), "The number of blocks with 'unable to find desired variant residue' errors [usually sugars]' (sugarVariant.log) ", len(all_errors[19])
+    print len(all_errors[20]), "The number of blocks with 'Cannot load in ResidueType for entry with no atoms.' (0AtomRestype.log) ", len(all_errors[19])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')
@@ -272,6 +278,7 @@ def main(argv):
     write_full_blocks(all_errors[17], 'nullPointerAssertion')
     write_trim_blocks(all_errors[18], 'zeroLengthXYZVector')
     write_trim_blocks(all_errors[19], 'sugarVariant')
+    write_trim_blocks(all_errors[20], '0AtomRestype')
 
 if __name__ == '__main__':
 

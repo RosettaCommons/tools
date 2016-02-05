@@ -226,37 +226,37 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print "The number of blocks with misc segfaults ", len(all_errors[0])
+    print "The number of blocks with misc segfaults [often misclassified due to output buffering between cerr and cout] (miscSegfault.log) " , len(all_errors[0])
 
-    print "The number of blocks with null pointer assertions ", len(all_errors[17])
+    print "The number of blocks with null pointer assertions (nullPointerAssertion.log) ", len(all_errors[17])
 
-    print "The number of blocks with misc unidentified errors ", len(all_errors[1])
+    print "The number of blocks with misc unidentified errors (unidentified_error) ", len(all_errors[1])
 
-    print "The number of blocks with ace errors ", len(all_errors[2])
+    print "The number of blocks with acetylated N-terminus errors (ACE_error.log) ", len(all_errors[2])
 
-    print "The number of blocks with fill errors ", len(all_errors[3])
+    print "The number of blocks with 'too many tries in fill_missing_atoms!' errors (fill_missing_atoms.log) ", len(all_errors[3])
 
-    print "The number of blocks with resMap range errors ", len(all_errors[4])
+    print "The number of blocks with 'Residue outside res_map range' errors (resMap_range_error.log) ", len(all_errors[4])
 
-    print "The number of blocks with res errors not ace ", len(all_errors[5])
+    print "The number of blocks with non-ACE 'no match found for unrecognized residue' errors (usually branch-point) ", len(all_errors[5])
 
-    print "The number of blocks with rotno errors ", len(all_errors[6])
+    print "The number of blocks with packed_rotno_conversion_data_current_ errors (rotno_error.log) ", len(all_errors[6])
 
-    print "The number of blocks with polymer bond errors ", len(all_errors[7])
+    print "The number of blocks with 'Can't create a polymer bond' errors (usually sugars) (polymer_bod_error.log) ", len(all_errors[7])
 
-    print "The number of blocks with PatchOperation errors ", len(all_errors[8])
+    print "The number of blocks with PatchOperation errors (PatchOperation.log) ", len(all_errors[8])
 
-    print "The number of blocks with ace.CYS errors (needs acetylated CYS restype) ", len(all_errors[9])
+    print "The number of blocks with ace.CYS errors (needs acetylated CYS restype) (ace_CYS.log) ", len(all_errors[9])
 
-    print "The number of blocks with unrecognized residue errors ", len(all_errors[10])
+    print "The number of blocks with unrecognized residue errors (straight 'unrecognized residue', usually ligands?) (resUnrec.log)  ", len(all_errors[10])
 
-    print "The number of blocks with unrecognized element errors ", len(all_errors[11])
+    print "The number of blocks with unrecognized element errors (eleUnrec.log) ", len(all_errors[11])
 
-    print "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log)", len(all_errors[12])
+    print "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log) ", len(all_errors[12])
 
     print "The number of blocks with unrecognized token errors ", len(all_errors[13])
 
-    print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14])
+    print "The number of blocks with unrecognized experimental technique errors (expTech.log) ", len(all_errors[14])
 
     print "The number of blocks with pose load errors ", len(all_errors[15])
 
@@ -267,17 +267,17 @@ def main(argv):
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')
     write_trim_blocks(all_errors[ 2], 'ACE_error')
-    write_trim_blocks(all_errors[ 3], 'fill_atom_error')
+    write_trim_blocks(all_errors[ 3], 'fill_missing_atoms')
     write_trim_blocks(all_errors[ 4], 'resMap_range_error')
     write_trim_blocks(all_errors[ 5], 'nonACE_res_error')
     write_trim_blocks(all_errors[ 6], 'rotno_error')
     write_trim_blocks(all_errors[ 7], 'polymer_bond_error')
-    write_trim_blocks(all_errors[ 8], 'PatchOperation_error')
+    write_trim_blocks(all_errors[ 8], 'PatchOperation')
     write_trim_blocks(all_errors[ 9], 'ace_CYS')
     write_trim_blocks(all_errors[10], 'resUnrec')
     write_trim_blocks(all_errors[11], 'eleUnrec')
     write_trim_blocks(all_errors[12], 'aTypeUnrec')
-    write_trim_blocks(all_errors[13], 'token')
+    write_full_blocks(all_errors[13], 'token')
     write_full_blocks(all_errors[14], 'expTech')
     write_trim_blocks(all_errors[15], 'poseLoad')
     write_trim_blocks(all_errors[16], 'typAtomEle')

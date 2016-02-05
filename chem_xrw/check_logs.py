@@ -283,7 +283,7 @@ def main(argv):
     print len(all_errors[24]), "The number of blocks with 'Can't find an atom to disulfide bond from' (atomSS.log) ", len(all_errors[24])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
-    write_trim_blocks(all_errors[ 1], 'unidentified_error')
+    write_full_blocks(all_errors[ 1], 'unidentified_error')
     write_trim_blocks(all_errors[ 2], 'ACE_error')
     write_trim_blocks(all_errors[ 3], 'fill_missing_atoms')
     write_trim_blocks(all_errors[ 4], 'resMap_range_error')

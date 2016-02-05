@@ -226,43 +226,25 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print "The number of blocks with misc segfaults [often misclassified due to output buffering between cerr and cout] (miscSegfault.log) " , len(all_errors[0])
-
-    print "The number of blocks with null pointer assertions (nullPointerAssertion.log) ", len(all_errors[17])
-
-    print "The number of blocks with misc unidentified errors (unidentified_error) ", len(all_errors[1])
-
-    print "The number of blocks with acetylated N-terminus errors (ACE_error.log) ", len(all_errors[2])
-
-    print "The number of blocks with 'too many tries in fill_missing_atoms!' errors (fill_missing_atoms.log) ", len(all_errors[3])
-
-    print "The number of blocks with 'Residue outside res_map range' errors (resMap_range_error.log) ", len(all_errors[4])
-
-    print "The number of blocks with non-ACE 'no match found for unrecognized residue' errors (usually branch-point) ", len(all_errors[5])
-
-    print "The number of blocks with packed_rotno_conversion_data_current_ errors (rotno_error.log) ", len(all_errors[6])
-
-    print "The number of blocks with 'Can't create a polymer bond' errors (usually sugars) (polymer_bod_error.log) ", len(all_errors[7])
-
-    print "The number of blocks with PatchOperation errors (PatchOperation.log) ", len(all_errors[8])
-
-    print "The number of blocks with ace.CYS errors (needs acetylated CYS restype) (ace_CYS.log) ", len(all_errors[9])
-
-    print "The number of blocks with unrecognized residue errors (straight 'unrecognized residue', usually ligands?) (resUnrec.log)  ", len(all_errors[10])
-
-    print "The number of blocks with unrecognized element errors (eleUnrec.log) ", len(all_errors[11])
-
-    print "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log) ", len(all_errors[12])
-
-    print "The number of blocks with 'unrecognized compound token string' errors (token.log) ", len(all_errors[13])
-
-    print "The number of blocks with unrecognized experimental technique errors (expTech.log) ", len(all_errors[14])
-
-    print "The number of blocks with misc pose load errors (usually means missing file on my end) (poseLoad.log) ", len(all_errors[15])
-
-    print "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
-
-    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
+    print len(all_errors[00]), "The number of blocks with misc segfaults [often misclassified due to output buffering between cerr and cout] (miscSegfault.log) " , len(all_errors[0])
+    print len(all_errors[17]), "The number of blocks with null pointer assertions (nullPointerAssertion.log) ", len(all_errors[17])
+    print len(all_errors[01]), "The number of blocks with misc unidentified errors (unidentified_error) ", len(all_errors[1])
+    print len(all_errors[02]), "The number of blocks with acetylated N-terminus errors (ACE_error.log) ", len(all_errors[2])
+    print len(all_errors[03]), "The number of blocks with 'too many tries in fill_missing_atoms!' errors (fill_missing_atoms.log) ", len(all_errors[3])
+    print len(all_errors[04]), "The number of blocks with 'Residue outside res_map range' errors (resMap_range_error.log) ", len(all_errors[4])
+    print len(all_errors[05]), "The number of blocks with non-ACE 'no match found for unrecognized residue' errors (usually branch-point) ", len(all_errors[5])
+    print len(all_errors[06]), "The number of blocks with packed_rotno_conversion_data_current_ errors (rotno_error.log) ", len(all_errors[6])
+    print len(all_errors[07]), "The number of blocks with 'Can't create a polymer bond' errors (usually sugars) (polymer_bod_error.log) ", len(all_errors[7])
+    print len(all_errors[08]), "The number of blocks with PatchOperation errors (PatchOperation.log) ", len(all_errors[8])
+    print len(all_errors[09]), "The number of blocks with ace.CYS errors (needs acetylated CYS restype) (ace_CYS.log) ", len(all_errors[9])
+    print len(all_errors[10]), "The number of blocks with unrecognized residue errors (straight 'unrecognized residue', usually ligands?) (resUnrec.log)  ", len(all_errors[10])
+    print len(all_errors[11]), "The number of blocks with unrecognized element errors (eleUnrec.log) ", len(all_errors[11])
+    print len(all_errors[12]), "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log) ", len(all_errors[12])
+    print len(all_errors[13]), "The number of blocks with 'unrecognized compound token string' errors (token.log) ", len(all_errors[13])
+    print len(all_errors[14]), "The number of blocks with unrecognized experimental technique errors (expTech.log) ", len(all_errors[14])
+    print len(all_errors[15]), "The number of blocks with misc pose load errors (usually means missing file on my end) (poseLoad.log) ", len(all_errors[15])
+    print len(all_errors[16]), "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
+    print len(all_errors[18]), "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')

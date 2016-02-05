@@ -254,15 +254,15 @@ def main(argv):
 
     print "The number of blocks with unrecognized atom_type_name errors (aTypeUnrec.log) ", len(all_errors[12])
 
-    print "The number of blocks with unrecognized token errors ", len(all_errors[13])
+    print "The number of blocks with 'unrecognized compound token string' errors (token.log) ", len(all_errors[13])
 
     print "The number of blocks with unrecognized experimental technique errors (expTech.log) ", len(all_errors[14])
 
-    print "The number of blocks with pose load errors ", len(all_errors[15])
+    print "The number of blocks with misc pose load errors (usually means missing file on my end) (poseLoad.log) ", len(all_errors[15])
 
-    print "The number of blocks with cannot type atom with element errors ", len(all_errors[16])
+    print "The number of blocks with cannot type atom with element errors (typAtomEle.log) ", len(all_errors[16])
 
-    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[18])
+    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors (zeroLengthXYZVector.log) ", len(all_errors[18])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')

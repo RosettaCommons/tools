@@ -222,43 +222,41 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print "The number of blocks with misc segfaults ", len(all_errors[0]), "\n"
+    print "The number of blocks with misc segfaults ", len(all_errors[0])
     
-    print "The number of blocks with null pointer assertions ", len(all_errors[17]), "\n"
+    print "The number of blocks with null pointer assertions ", len(all_errors[17])
     
-    print "The number of blocks with misc unidentified errors ", len(all_errors[1]), "\n"
+    print "The number of blocks with misc unidentified errors ", len(all_errors[1])
 
-    print "The number of blocks with ace errors ", len(all_errors[2]), "\n"
+    print "The number of blocks with ace errors ", len(all_errors[2])
 
-    print "The number of blocks with fill errors ", len(all_errors[3]), "\n"
+    print "The number of blocks with fill errors ", len(all_errors[3])
     
-    print "The number of blocks with resMap range errors ", len(all_errors[4]), "\n"
+    print "The number of blocks with resMap range errors ", len(all_errors[4])
     
-    print "The number of blocks with res errors not ace ", len(all_errors[5]), "\n"
+    print "The number of blocks with res errors not ace ", len(all_errors[5])
         
-    print "The number of blocks with rotno errors ", len(all_errors[6]), "\n"
+    print "The number of blocks with rotno errors ", len(all_errors[6])
     
-    print "The number of blocks with polymer bond errors ", len(all_errors[7]), "\n"
+    print "The number of blocks with polymer bond errors ", len(all_errors[7])
     
-    print "The number of blocks with PatchOperation errors ", len(all_errors[8]), "\n"
+    print "The number of blocks with PatchOperation errors ", len(all_errors[8])
     
-    print "The number of blocks with ace.CYS errors ", len(all_errors[9]), "\n"
+    print "The number of blocks with ace.CYS errors ", len(all_errors[9])
     
-    print "The number of blocks with unrecognized residue errors ", len(all_errors[10]), "\n"
+    print "The number of blocks with unrecognized residue errors ", len(all_errors[10])
     
-    print "The number of blocks with unrecognized element errors ", len(all_errors[11]), "\n"
+    print "The number of blocks with unrecognized element errors ", len(all_errors[11])
     
-    print "The number of blocks with unrecognized atom_type errors ", len(all_errors[12]), "\n"
+    print "The number of blocks with unrecognized atom_type errors ", len(all_errors[12])
     
-    print "The number of blocks with unrecognized token errors ", len(all_errors[13]), "\n"
+    print "The number of blocks with unrecognized token errors ", len(all_errors[13])
     
-    print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14]), "\n"
+    print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14])
     
-    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[17])
+    print "The number of blocks with pose load errors ", len(all_errors[15])
 
-    print "The number of blocks with pose load errors ", len(all_errors[15]), "\n"
-
-    print "The number of blocks with cannot type atom with element errors ", len(all_errors[16]), "\n"
+    print "The number of blocks with cannot type atom with element errors ", len(all_errors[16])
     
     print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[17])
 

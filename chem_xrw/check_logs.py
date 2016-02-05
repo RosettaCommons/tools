@@ -278,7 +278,7 @@ def main(argv):
     write_trim_blocks(all_errors[15], 'poseLoad')
     write_trim_blocks(all_errors[16], 'typAtomEle')
     write_full_blocks(all_errors[17], 'nullPointerAssertion')
-    write_full_blocks(all_errors[18], 'zeroLengthXYZVector')
+    write_trim_blocks(all_errors[18], 'zeroLengthXYZVector')
 
 
 if __name__ == '__main__':

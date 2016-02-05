@@ -108,6 +108,7 @@ def identify_errors(log_blocks):
     unREC_expTec_error_blocks = [] 
     pose_load_error_blocks = []
     typeEle_error_blocks = []
+    zero_length_xyzVector_error_blocks = []
 
     for block in log_blocks:
         pdb = block[0]
@@ -131,7 +132,7 @@ def identify_errors(log_blocks):
                     if assertion == False:
                         misc_segfault_blocks.append([pdb,block,path])
             if 'error' in by_col:
-                # For eacch error line we break up the +- 1 lines by spaces
+                # For each error line we break up the +- 1 lines by spaces
                 next_line = (block[ind+1].lower()).split()
                 pre_line = (block[ind-1].lower()).split()
                 if 'ace' in next_line:
@@ -173,6 +174,10 @@ def identify_errors(log_blocks):
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block,path])
                     break
+                elif "cannot normalize xyzvector of length() zero" in by_col:
+                    zero_length_xyzVector_error_blocks.append([pdb,block,path])
+                    break
+                    #unclear that pose_load_error is real - I think this catches when a file is missing?
                 elif "exception" in by_col and "jobdistributor" in by_col: #[1].split():
                     pose_load_error_blocks.append([pdb,block,path])
                     break
@@ -203,7 +208,8 @@ def identify_errors(log_blocks):
             unREC_expTec_error_blocks, \
             pose_load_error_blocks, \
             typeEle_error_blocks, \
-            assert_segfault_blocks]
+            assert_segfault_blocks, \
+            zero_length_xyzVector_error_blocks]
 
 
 def main(argv):
@@ -248,10 +254,14 @@ def main(argv):
     
     print "The number of blocks with unrecognized experimental_technique errors ", len(all_errors[14]), "\n"
     
+    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[17])
+
     print "The number of blocks with pose load errors ", len(all_errors[15]), "\n"
 
     print "The number of blocks with cannot type atom with element errors ", len(all_errors[16]), "\n"
     
+    print "The number of blocks with 'Cannot normalize xyzVector of length() zero' errors", len(all_errors[17])
+
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_trim_blocks(all_errors[ 1], 'unidentified_error')
     write_trim_blocks(all_errors[ 2], 'ACE_error')

@@ -46,7 +46,7 @@ public:
 
 
 	/// check if generator can create binding
-	bool is_bindable() const override;
+	//bool is_bindable() const override;
 
 
 	/// generate binding code
@@ -60,6 +60,9 @@ private:
 	clang::FunctionDecl *F;
 };
 
+
+/// check if generator can create binding
+bool is_bindable(clang::FunctionDecl *F);
 
 
 

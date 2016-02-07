@@ -33,7 +33,7 @@ public:
 	virtual ~Binder() {}
 
 	/// check if generator can create binding
-	virtual bool is_bindable() const = 0;
+	//virtual bool is_bindable() const = 0;
 
 	/// generate binding code
 	virtual string operator()(string const &module_variable_name, string const &indentation="\t") const = 0;

@@ -16,6 +16,7 @@
 #define _INCLUDED_util_hpp_
 
 #include <clang/AST/Decl.h>
+#include <clang/AST/DeclTemplate.h>
 
 #include <string>
 #include <vector>
@@ -49,6 +50,11 @@ std::string last_namespace(std::string const & ns);
 // replace all _Bool types with bool
 void fix_boolean_types(std::string &type);
 
+// Generate string representation of given expression
+std::string expresion_to_string(clang::Expr *e);
+
+// Generate string representation of given TemplateArgument
+std::string template_argument_to_string(clang::TemplateArgument const &);
 
 // extract include needed for declaration and add it to includes
 bool add_relevant_include(clang::NamedDecl *decl, std::vector<std::string> &includes);

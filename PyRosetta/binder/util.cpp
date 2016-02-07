@@ -14,6 +14,7 @@
 #include <util.hpp>
 
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/ExprCXX.h>
 
 
 using namespace llvm;
@@ -114,6 +115,36 @@ void fix_boolean_types(string &type)
 }
 
 
+// Generate string representation of given expression
+string expresion_to_string(clang::Expr *e)
+{
+	clang::LangOptions lang_opts;
+	lang_opts.CPlusPlus = true;
+	clang::PrintingPolicy Policy(lang_opts);
+
+	std::string _;
+	llvm::raw_string_ostream s(_);
+	e->printPretty(s, 0, Policy);
+	return s.str();
+}
+
+
+// Generate string representation of given TemplateArgument
+string template_argument_to_string(clang::TemplateArgument const &t)
+{
+	clang::LangOptions lang_opts;
+	lang_opts.CPlusPlus = true;
+	clang::PrintingPolicy Policy(lang_opts);
+
+	std::string _;
+	llvm::raw_string_ostream s(_);
+	t.print(Policy, s);
+	return s.str();
+}
+
+
+
+
 // extract include needed for declaration and add it to includes
 bool add_relevant_include(NamedDecl *decl, vector<string> &includes)
 {
@@ -147,6 +178,8 @@ bool add_relevant_include(NamedDecl *decl, vector<string> &includes)
 
 	return include.isValid();
 }
+
+
 
 
 } // namespace binder

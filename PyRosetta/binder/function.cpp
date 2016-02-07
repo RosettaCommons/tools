@@ -13,12 +13,11 @@
 
 #include <function.hpp>
 
-
+#include <class.hpp>
 #include <util.hpp>
 #include <fmt/format.h>
 
 #include <clang/AST/DeclCXX.h>
-#include <clang/AST/ExprCXX.h>
 #include <clang/AST/ASTContext.h>
 
 #include <vector>
@@ -56,30 +55,21 @@ string function_arguments(clang::FunctionDecl *record)
 string function_pointer_type(FunctionDecl *F)
 {
 	string r;
-	string prefix { F->isCXXClassMember() ? cast<CXXRecordDecl>( F->getParent() )->getQualifiedNameAsString() + "::" : "" };
+	string prefix, maybe_const;
+	if( auto m = dyn_cast<CXXMethodDecl>(F) ) {
+		prefix = m->isStatic() ? "" : class_qualified_name( cast<CXXRecordDecl>( F->getParent() ) ) + "::";
+	    maybe_const = m->isConst() ? " const" : "";
+	}
 
-	r += F->getReturnType().getAsString();  r+= " ({}*)("_format(prefix);
+	r += F->getReturnType().getCanonicalType().getAsString();  r+= " ({}*)("_format(prefix);
 
 	r += function_arguments(F);
 
-	r += ") ";
+	r += ")" + maybe_const;
 
 	fix_boolean_types(r);
 
 	return r;
-}
-
-// Generate string representation of given expression
-string expresion_to_string(clang::Expr *e)
-{
-	clang::LangOptions lang_opts;
-	lang_opts.CPlusPlus = true;
-	clang::PrintingPolicy Policy(lang_opts);
-
-	std::string _;
-	llvm::raw_string_ostream s(_);
-	e->printPretty(s, 0, Policy);
-	return s.str();
 }
 
 
@@ -89,12 +79,15 @@ string bind_function(FunctionDecl *F)
 	string function_name { F->getNameAsString() };
 	string function_qualified_name { F->getQualifiedNameAsString() };
 
-	string r = R"(.def("{}", ({}) &{}, "doc")"_format(function_name, function_pointer_type(F), function_qualified_name);
+	CXXMethodDecl * m = dyn_cast<CXXMethodDecl>(F);
+	string maybe_static = m and m->isStatic() ? "_static" : "";
+
+	string r = R"(.def{}("{}", ({}) &{}, "doc")"_format(maybe_static, function_name, function_pointer_type(F), function_qualified_name);
 
 	//F->dump();
 
 	for(auto p = F->param_begin(); p != F->param_end(); ++p) {
-		string defalt_argument = (*p)->hasDefaultArg() ? " = " + expresion_to_string( (*p)->getDefaultArg() ) : "";
+		string defalt_argument = (*p)->hasDefaultArg() ? " = ({})({})"_format( (*p)->getOriginalType().getCanonicalType().getAsString(), expresion_to_string( (*p)->getDefaultArg() ) ) : "";
 		r += ", pybind11::arg(\"{}\"){}"_format( string( (*p)->getName() ), defalt_argument );
 
 		//add_relevant_include(*p, includes);
@@ -127,20 +120,49 @@ string bind_function(FunctionDecl *F)
 
 
 /// check if generator can create binding
-bool FunctionBinder::is_bindable() const
+// bool FunctionBinder::is_bindable() const
+// {
+// 	return true;
+// }
+
+
+bool is_bindable(QualType const &qt)
 {
-	return true;
+	bool r = true;
+
+	r &= !qt->isFunctionPointerType()  and  !qt->isInstantiationDependentType();
+
+	if( auto pt = dyn_cast<PointerType>( qt.getTypePtr() ) ) {
+		if( pt->getPointeeType()->isPointerType() ) return false;  // refuse to bind 'value**...' types
+	}
+
+	// if( auto rt = dyn_cast<RecordType>( qt.getTypePtr() ) ) {
+	// 	if( auto cxxr = dyn_cast<CXXRecordDecl>( rt->getDecl() ) ) r &= is_bindable(cxxr);
+	// }
+
+	//outs() << " isInstantiationDependentType(): " << qt->isInstantiationDependentType() << "\n";
+	//qt->dump();
+
+
+	return r;
 }
 
 
 /// check if generator can create binding
 bool is_bindable(FunctionDecl *F)
 {
-	QualType ret( F->getReturnType() );
+	bool r = true;
 
-	//if( )
+	// todo: bindging for operators and type conversion
+	r &= !F->isOverloadedOperator()  and  !isa<CXXConversionDecl>(F);
 
-	return true;
+	QualType rt( F->getReturnType() );
+
+	r &= is_bindable(rt);
+
+	for(auto p = F->param_begin(); p != F->param_end(); ++p) r &= is_bindable( (*p)->getOriginalType() );
+
+	return r;
 }
 
 

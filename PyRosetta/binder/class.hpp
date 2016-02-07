@@ -30,7 +30,7 @@ public:
 
 
 	/// check if generator can create binding
-	bool is_bindable() const override;
+	//bool is_bindable() const override;
 
 
 	/// generate binding code
@@ -43,6 +43,17 @@ private:
 	clang::CXXRecordDecl *C;
 };
 
+
+// generate class name that could be used in bindings code indcluding template specialization if any
+std::string class_name(clang::CXXRecordDecl *C);
+
+
+// generate qualified class name that could be used in bindings code indcluding template specialization if any
+std::string class_qualified_name(clang::CXXRecordDecl *C);
+
+
+/// check if generator can create binding
+bool is_bindable(clang::CXXRecordDecl *C);
 
 
 //Item bind_class(clang::CXXRecordDecl *R);

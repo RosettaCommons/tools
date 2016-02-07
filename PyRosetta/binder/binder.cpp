@@ -15,6 +15,7 @@
 #include <context.hpp>
 #include <function.hpp>
 #include <class.hpp>
+#include <util.hpp>
 
 using namespace clang::tooling;
 using namespace llvm;
@@ -96,10 +97,13 @@ public:
 		if( record->isCXXInstanceMember() ) return true;
 		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-
-		binder::BinderOP F{ new binder::FunctionBinder(record) };
-		//outs() << I;
-		context.add(F);
+		if( binder::is_bindable(record)  and  binder::namespace_from_named_decl(record)=="utility" ) {
+			binder::BinderOP F{ new binder::FunctionBinder(record) };
+			context.add(F);
+		}
+		else {
+			//outs() << "Skipping " << record->getQualifiedNameAsString() << " because it is not bindable...\n";
+		}
 
         return true;
     }
@@ -108,8 +112,10 @@ public:
 		if( record->isCXXInstanceMember() ) return true;
 		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-		binder::BinderOP C{ new binder::ClassBinder(record) };
-		context.add(C);
+		if( binder::is_bindable(record)  and  binder::namespace_from_named_decl(record)=="utility" ) {
+			binder::BinderOP C{ new binder::ClassBinder(record) };
+			context.add(C);
+		}
 
         return true;
     }

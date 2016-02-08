@@ -120,6 +120,7 @@ def identify_errors(log_blocks):
     disulfide_restype_error_blocks = []     #23
     disulfide_from_atom_error_blocks = []   #24
     header_compound_value_error_blocks = [] #25
+    multiple_nr_SS_error_blocks = []        #26
 
     for block in log_blocks:
         pdb = block[0]
@@ -207,6 +208,9 @@ def identify_errors(log_blocks):
                 elif "SSBond records list multiple disulfides for this residue!" in line:
                     multiple_disulfides_error_blocks.append([pdb,block,path])
                     break
+                elif "SSBond records list multiple nonredundant disulfides for this residue!" in line:
+                    multiple_nr_SS_error_blocks.append([pdb,block,path])
+                    break
                 elif "The sequence position requested was 0." in line:
                     seqpos_0_error_blocks.append([pdb,block,path])
                     break
@@ -248,7 +252,8 @@ def identify_errors(log_blocks):
             seqpos_0_error_blocks, \
             disulfide_restype_error_blocks, \
             disulfide_from_atom_error_blocks, \
-            header_compound_value_error_blocks] #25
+            header_compound_value_error_blocks, \
+            multiple_nr_SS_error_blocks] #26
 
 def main(argv):
 
@@ -284,6 +289,7 @@ def main(argv):
     print len(all_errors[19]), "The number of blocks with 'unable to find desired variant residue' errors [usually sugars]' (sugarVariant.log) ", len(all_errors[19])
     print len(all_errors[20]), "The number of blocks with 'Cannot load in ResidueType for entry with no atoms.' (0AtomRestype.log) ", len(all_errors[20])
     print len(all_errors[21]), "The number of blocks with 'SSBond records list multiple disulfides for this residue.' (multiSS.log) ", len(all_errors[21])
+    print len(all_errors[26]), "The number of blocks with 'SSBond records list multiple nonredundant disulfides for this residue.' (multiNR_SS.log) ", len(all_errors[26])
     print len(all_errors[22]), "The number of blocks with 'The sequence position requested was 0.' (seqpos0.log) ", len(all_errors[22])
     print len(all_errors[23]), "The number of blocks with 'unable to create appropriate residue type for disulfide' (resTypeSS.log) ", len(all_errors[23])
     print len(all_errors[24]), "The number of blocks with 'Can't find an atom to disulfide bond from' (atomSS.log) ", len(all_errors[24])
@@ -314,6 +320,7 @@ def main(argv):
     write_trim_blocks(all_errors[23], 'resTypeSS')
     write_trim_blocks(all_errors[24], 'atomSS')
     write_trim_blocks(all_errors[25], 'compoundHeader')
+    write_trim_blocks(all_errors[26], 'multiNR_SS' )
 
 if __name__ == '__main__':
 

@@ -54,16 +54,41 @@ string template_specialization(clang::CXXRecordDecl *C)
 
 
 // generate class name that could be used in bindings code indcluding template specialization if any
-string class_name(clang::CXXRecordDecl *C)
+string class_name(CXXRecordDecl *C)
 {
 	return C->getNameAsString() + template_specialization(C);
 }
 
 
 // generate qualified class name that could be used in bindings code indcluding template specialization if any
-string class_qualified_name(clang::CXXRecordDecl *C)
+string class_qualified_name(CXXRecordDecl *C)
 {
 	return C->getQualifiedNameAsString() + template_specialization(C);
+}
+
+// Return true if class have direct or inderect std::enable_shared_from_this as base class
+bool is_inherited_from_enable_shared_from_this(CXXRecordDecl *C)
+{
+	//outs() << "is_inherited_from_enable_shared_from_this: " << C->getQualifiedNameAsString() << "\n";
+	if( C->getQualifiedNameAsString() == "std::enable_shared_from_this" ) return true;
+
+	for(auto b = C->bases_begin(); b!=C->bases_end(); ++b) {
+		//if( b->getAccessSpecifier() == AS_public)
+		if( auto r = dyn_cast<RecordType>(b->getType().getCanonicalType().getTypePtr() ) ) {
+			if( is_inherited_from_enable_shared_from_this( cast<CXXRecordDecl>(r->getDecl() ) ) ) return true;
+		}
+	}
+
+	return false;
+}
+
+
+/// check if generator can create binding
+bool is_bindable(FieldDecl *f)
+{
+	if( f->getType()->isAnyPointerType() ) return false;
+
+	return true;
 }
 
 
@@ -102,8 +127,10 @@ string ClassBinder::operator()(string const &module_variable_name, string const 
 {
 	string c;
 
-	//class_<A>(module_a, "A")
-	c += R"(pybind11::class_<{}>({}, "{}"))"_format(class_qualified_name(C), module_variable_name, class_name(C)) + '\n';
+	string qualified_name{ class_qualified_name(C) };
+	// class_<A>(module_a, "A") or class_<A, std::shared_ptr<A>>(module_a, "A")
+	string maybe_holder_type = is_inherited_from_enable_shared_from_this(C) ? ", std::shared_ptr<{}>"_format(qualified_name) : "";
+	c += R"(pybind11::class_<{}{}>({}, "{}"))"_format(qualified_name, maybe_holder_type, module_variable_name, class_name(C)) + '\n';
 
 	if( !C->isAbstract() ) {
 		if( C->ctor_begin() == C->ctor_end() ) {  // No constructors defined, adding default constructor
@@ -112,7 +139,7 @@ string ClassBinder::operator()(string const &module_variable_name, string const 
 		else {
 			bool added=false;
 			for(auto t = C->ctor_begin(); t != C->ctor_end(); ++t) {
-				if( t->getAccess() == AS_public  and  !t->isMoveConstructor() ) { added=true;  c+= "\t.def(pybind11::init<{}>())\n"_format( function_arguments(*t) ); }
+				if( t->getAccess() == AS_public  and  !t->isMoveConstructor()  and  is_bindable(*t) ) { added=true;  c+= "\t.def(pybind11::init<{}>())\n"_format( function_arguments(*t) ); }
 			}
 			if(added) c += '\n';
 		}
@@ -120,12 +147,12 @@ string ClassBinder::operator()(string const &module_variable_name, string const 
 
 	for(auto d = C->decls_begin(); d != C->decls_end(); ++d) {
 		if(FieldDecl *f = dyn_cast<FieldDecl>(*d) ) {
-			if( f->getAccess() == AS_public ) c+= '\t' + bind_data_member(f, class_qualified_name(C)) + '\n';
+			if( f->getAccess() == AS_public  and  is_bindable(f) ) c+= '\t' + bind_data_member(f, class_qualified_name(C)) + '\n';
 		}
 	}
 
 	for(auto m = C->method_begin(); m != C->method_end(); ++m) {
-		if( is_bindable(*m)  and  m->getAccess() == AS_public  and   !isa<CXXConstructorDecl>(*m)  and   !isa<CXXDestructorDecl>(*m)  /*and  !m->isStatic()*/) {
+		if( m->getAccess() == AS_public  and  is_bindable(*m)  and  !isa<CXXConstructorDecl>(*m)  and   !isa<CXXDestructorDecl>(*m) ) {
 			//(*m)->dump();
 			c += '\t' + bind_function(*m) + '\n';
 		}

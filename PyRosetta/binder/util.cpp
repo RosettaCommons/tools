@@ -52,8 +52,9 @@ string replace(string const &s, string const & from, string const &to)
 	size_t i = r.size();
 	while( ( i = r.rfind(from, i) ) != string::npos) {
 		r.replace(i, from.size(), to);
-		--i;
+		if(i) --i; else break;
 	}
+
 	return r;
 }
 

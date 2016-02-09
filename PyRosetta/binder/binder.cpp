@@ -92,14 +92,15 @@ public:
     explicit BinderVisitor(CompilerInstance *ci) : ast_context( &( ci->getASTContext() ) ) {}
 
 
-	virtual bool VisitFunctionDecl(FunctionDecl *record)
+	virtual bool VisitFunctionDecl(FunctionDecl *F)
 	{
-		if( record->isCXXInstanceMember() ) return true;
-		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+		if( F->isCXXInstanceMember() or isa<CXXMethodDecl>(F) ) return true;
+		if( FullSourceLoc(F->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-		if( binder::is_bindable(record)  and  binder::namespace_from_named_decl(record)=="utility" ) {
-			binder::BinderOP F{ new binder::FunctionBinder(record) };
-			context.add(F);
+		if( binder::is_bindable(F)  and  !binder::namespace_from_named_decl(F).compare(0, 7, "utility") ) {
+			//outs() << "Adding function: " << F->getQualifiedNameAsString() << "\n";
+			binder::BinderOP b{ new binder::FunctionBinder(F) };
+			context.add(b);
 		}
 		else {
 			//outs() << "Skipping " << record->getQualifiedNameAsString() << " because it is not bindable...\n";
@@ -108,13 +109,14 @@ public:
         return true;
     }
 
-	virtual bool VisitCXXRecordDecl(CXXRecordDecl *record) {
-		if( record->isCXXInstanceMember() ) return true;
-		if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+	virtual bool VisitCXXRecordDecl(CXXRecordDecl *C) {
+		if( C->isCXXInstanceMember() ) return true;
+		if( FullSourceLoc(C->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-		if( binder::is_bindable(record)  and  binder::namespace_from_named_decl(record)=="utility" ) {
-			binder::BinderOP C{ new binder::ClassBinder(record) };
-			context.add(C);
+		if( binder::is_bindable(C)  and  !binder::namespace_from_named_decl(C).compare(0, 7, "utility") ) {
+			//outs() << "Adding class: " << C->getQualifiedNameAsString() << "\n";
+			binder::BinderOP b{ new binder::ClassBinder(C) };
+			context.add(b);
 		}
 
         return true;

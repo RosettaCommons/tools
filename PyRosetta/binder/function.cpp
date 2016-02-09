@@ -20,6 +20,9 @@
 #include <clang/AST/DeclCXX.h>
 #include <clang/AST/ASTContext.h>
 
+#include <clang/AST/ExprCXX.h>
+
+
 #include <vector>
 
 
@@ -87,8 +90,27 @@ string bind_function(FunctionDecl *F)
 	//F->dump();
 
 	for(auto p = F->param_begin(); p != F->param_end(); ++p) {
-		string defalt_argument = (*p)->hasDefaultArg() ? " = ({})({})"_format( (*p)->getOriginalType().getCanonicalType().getAsString(), expresion_to_string( (*p)->getDefaultArg() ) ) : "";
-		r += ", pybind11::arg(\"{}\"){}"_format( string( (*p)->getName() ), defalt_argument );
+		// .def("myFunction", py::arg("arg") = SomeType(123));
+		//string defalt_argument = (*p)->hasDefaultArg() ? " = ({})({})"_format( (*p)->getOriginalType().getCanonicalType().getAsString(), expresion_to_string( (*p)->getDefaultArg() ) ) : "";
+		//string defalt_argument = (*p)->hasDefaultArg() ? expresion_to_string( (*p)->getDefaultArg() ) : "";
+		//r += ", pybind11::arg(\"{}\"){}"_format( string( (*p)->getName() ), defalt_argument );
+
+		// .def("myFunction", py::arg_t<int>("arg", 123, "123"));
+		if( (*p)->hasDefaultArg() ) {
+			string arg_type = (*p)->getOriginalType().getCanonicalType().getAsString();  fix_boolean_types(arg_type);
+			r += ", pybind11::arg_t<{}>(\"{}\", {}, \"{}\")"_format(arg_type,
+																	string( (*p)->getName() ),
+																	expresion_to_string( (*p)->getDefaultArg() ),
+																	replace(expresion_to_string( (*p)->getDefaultArg() ), "\"", "\\\"") );
+
+			// clang::Expr *e = (*p)->getDefaultArg();
+			// clang::Expr::EvalResult result;
+			// outs() << "ex: " << expresion_to_string(e) << " EvaluateAsRValue: " << e->EvaluateAsRValue(result, F->getASTContext());
+			// outs() << " res: " << result.Val.getAsString(F->getASTContext(), (*p)->getOriginalType()) << "\n";
+		}
+		else r += ", pybind11::arg(\"{}\")"_format( string( (*p)->getName() ) );
+
+
 
 		//add_relevant_include(*p, includes);
 
@@ -130,19 +152,20 @@ bool is_bindable(QualType const &qt)
 {
 	bool r = true;
 
-	r &= !qt->isFunctionPointerType()  and  !qt->isInstantiationDependentType();
+	r &= !qt->isFunctionPointerType()  and  !qt->isInstantiationDependentType()  and  !qt->isArrayType();  //and  !qt->isConstantArrayType()  and  !qt->isIncompleteArrayType()  and  !qt->isVariableArrayType()  and  !qt->isDependentSizedArrayType()
 
 	if( auto pt = dyn_cast<PointerType>( qt.getTypePtr() ) ) {
 		if( pt->getPointeeType()->isPointerType() ) return false;  // refuse to bind 'value**...' types
+		if( pt->getPointeeType()->isArrayType() or pt->getPointeeType()->isConstantArrayType() ) return false;  // refuse to bind 'T* v[]...' types
+		//qt->dump();
 	}
 
 	// if( auto rt = dyn_cast<RecordType>( qt.getTypePtr() ) ) {
 	// 	if( auto cxxr = dyn_cast<CXXRecordDecl>( rt->getDecl() ) ) r &= is_bindable(cxxr);
 	// }
 
-	//outs() << " isInstantiationDependentType(): " << qt->isInstantiationDependentType() << "\n";
+	//outs() << " isIncompleteArrayType(): " << qt->isIncompleteArrayType() << " r:" << r << "\n";
 	//qt->dump();
-
 
 	return r;
 }
@@ -154,7 +177,7 @@ bool is_bindable(FunctionDecl *F)
 	bool r = true;
 
 	// todo: bindging for operators and type conversion
-	r &= !F->isOverloadedOperator()  and  !isa<CXXConversionDecl>(F);
+	r &= !F->isOverloadedOperator()  and  !isa<CXXConversionDecl>(F)  and  !F->isDeleted();
 
 	QualType rt( F->getReturnType() );
 

@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 //#include <iostream>
 
 /*
@@ -48,38 +49,48 @@ namespace utility {
 // 	void foo() {};
 // };
 
-template <typename T>
-class TUA;
+// template <typename T>
+// class TUA;
 
-template <typename T>
-class TUA {
-public:
-	T t;
-};
-
-
-typedef TUA<int> TUA_int;
+// template <typename T>
+// class TUA {
+// public:
+// 	T t;
+// };
 
 
-void foo_TUA(TUA_int a) {};
+// typedef TUA<int> TUA_int;
 
 
-template< bool >
-struct vectorL_IndexSelector
-{
-};
+// void foo_TUA(TUA_int a) {};
 
 
-/// @brief vectorL index type selector: Negative lower index specialization
-template<>
-struct vectorL_IndexSelector< false >
-{
-	inline
-	static
-	bool
-	ge() { return true; }
-};
+// template< bool >
+// struct vectorL_IndexSelector
+// {
+// };
 
+
+// /// @brief vectorL index type selector: Negative lower index specialization
+// template<>
+// struct vectorL_IndexSelector< false >
+// {
+// 	inline
+// 	static
+// 	bool
+// 	ge() { return true; }
+// };
+
+
+// template <class T>
+// void swap(TUA<T>) {}
+
+// void foo_i(int **a) {}
+// std::string foo_s(std::string const &a="aaa") { return a; }
+
+
+
+namespace csi {
 
 class CSI_Sequence
 {
@@ -97,12 +108,29 @@ private:
 	std::string sequence_;
 };
 
-template <class T>
-void swap(TUA<T>) {}
+void foo_csi(char * const argv[]) {}
 
-void foo_i(int **a) {}
-std::string foo_s(std::string const &a="aaa") { return a; }
+class ESFT : public std::enable_shared_from_this<ESFT>
+{
+public:
+	int a;
+};
 
 
+class ESFT2 : public ESFT
+{
+public:
+	std::shared_ptr<ESFT2> shared_from_this() {
+        return shared_from_this();
+    }
+
+	void * fn;
+	int a;
+
+};
+
+void foo(std::string a = "abc") {}
+
+} // namespace csi
 
 } // namespace utility

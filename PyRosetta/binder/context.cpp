@@ -65,9 +65,7 @@ string module_binder_function(string const & namespace_, bool prototype, string 
 	string r;
 
 	if( namespace_.size() ) {
-		string m{namespace_};
-		replace(m, "::", "_");
-		r = "bind_" + _root_module_variable_name_ + "_" + m;
+		r = "bind_" + _root_module_variable_name_ + "_" + replace(namespace_, "::", "_");;
 	}
 	else r = "bind_" + _root_module_variable_name_;
 
@@ -131,7 +129,7 @@ string generate_include_directives(vector<string> &includes)
 /// generate bindings for namespace and split it in chunks so maximum size is ~ max_code_size
 vector<string> Context::bind_namespaces(string const &namespace_, size_t max_code_size)
 {
-	string const header = "\n#include <pybind11/pybind11.h>\n#include <pybind11/stl.h>\n\n";
+	string const header = "\n#include <pybind11/pybind11.h>\n//#include <pybind11/stl.h>\n\n";
 	vector<string> includes;
 
 	vector<BinderOP> & binders( modules[namespace_] );

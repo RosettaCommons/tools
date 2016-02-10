@@ -121,6 +121,7 @@ def identify_errors(log_blocks):
     disulfide_from_atom_error_blocks = []   #24
     header_compound_value_error_blocks = [] #25
     multiple_nr_SS_error_blocks = []        #26
+    zero_nres_blocks = []                   #27
 
     for block in log_blocks:
         pdb = block[0]
@@ -226,6 +227,9 @@ def identify_errors(log_blocks):
             elif '[error]' in by_col:
                 error_blocks.append([pdb,block,path])
                 break
+            elif "nres 0" in line:
+                zero_nres_blocks.append([pdb,block,path])
+                break
 
     return [misc_segfault_blocks, \
             error_blocks, \
@@ -253,8 +257,8 @@ def identify_errors(log_blocks):
             disulfide_restype_error_blocks, \
             disulfide_from_atom_error_blocks, \
             header_compound_value_error_blocks, \
-            multiple_nr_SS_error_blocks] #26
-
+            multiple_nr_SS_error_blocks, \
+            zero_nres_blocks] #27
 def main(argv):
 
     log_file = read_file(argv[0])
@@ -293,6 +297,7 @@ def main(argv):
     print len(all_errors[22]), "The number of blocks with 'The sequence position requested was 0.' (seqpos0.log) ", len(all_errors[22])
     print len(all_errors[23]), "The number of blocks with 'unable to create appropriate residue type for disulfide' (resTypeSS.log) ", len(all_errors[23])
     print len(all_errors[24]), "The number of blocks with 'Can't find an atom to disulfide bond from' (atomSS.log) ", len(all_errors[24])
+    print len(all_errors[27]), "The number of blocks with zero residue structures' (zeronres.list) ", len(all_errors[27])
 
     write_full_blocks(all_errors[ 0], 'miscSegfault')
     write_full_blocks(all_errors[ 1], 'unidentified_error')
@@ -320,7 +325,8 @@ def main(argv):
     write_trim_blocks(all_errors[23], 'resTypeSS')
     write_trim_blocks(all_errors[24], 'atomSS')
     write_trim_blocks(all_errors[25], 'compoundHeader')
-    write_trim_blocks(all_errors[26], 'multiNR_SS' )
+    write_trim_blocks(all_errors[26], 'multiNR_SS')
+    write_path_files( all_errors[27], 'zeronres')
 
 if __name__ == '__main__':
 

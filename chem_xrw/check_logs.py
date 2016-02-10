@@ -6,7 +6,7 @@ def read_file(file_path):
         my_file = f.readlines()
     return my_file
 
-def clear_old_files():
+def clear_old_files(fname):
     if os.path.isfile('%s.log' % fname) == True:
         os.remove('%s.log' % fname)
     if os.path.isfile('%s.cmdpath' % fname) == True:
@@ -22,12 +22,12 @@ def write_path_files(block, fname):
         mypathfile.write('%s \n' % block[0])
 
 def write_path_files_from_blocks(block_set, fname):
-    clear_old_files()
+    clear_old_files(fname)
     for block in block_set:
         write_path_files(block, fname)
 
 def write_trim_blocks(block_set, fname):
-    clear_old_files()
+    clear_old_files(fname)
     for block in block_set:
         new_block = []
         for line in block[1]:
@@ -42,7 +42,7 @@ def write_trim_blocks(block_set, fname):
         write_path_files(block, fname)
 
 def write_full_blocks(block_set, fname):
-    clear_old_files()
+    clear_old_files(fname)
     for block in block_set:
         with open('%s.log' % fname, 'a') as myfile:
             myfile.write('\n\n\n******%s******\n\n\n' % block[0])

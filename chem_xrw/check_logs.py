@@ -102,24 +102,24 @@ def identify_blocks_by_pdb(block):
 def identify_errors(log_blocks):
     # Each of these return data structures are like the log_blocks
     # however they have less information
-    error_blocks = []                       #0
-    fill_error_blocks = []                  #1
+    error_blocks = []                       #1
+    fill_error_blocks = []                  #3
     ace_error_blocks = []                   #2
-    assert_segfault_blocks = []             #3
-    misc_segfault_blocks = []               #4
-    resMap_range_error_blocks = []          #5
-    letter3_error_blocks = []               #6
-    rotno_error_blocks = []                 #7
-    polymer_bond_error_blocks = []          #8
-    staple_error_blocks = []                #9
-    aceCYS_error_blocks = []                #10
-    unREC_res_error_blocks = []             #11
-    unREC_ele_error_blocks = []             #12
-    unREC_aType_error_blocks = []           #13
-    unREC_token_error_blocks = []           #14
-    unREC_expTec_error_blocks = []          #15
-    pose_load_error_blocks = []             #16
-    typeEle_error_blocks = []               #17
+    assert_segfault_blocks = []             #17
+    misc_segfault_blocks = []               #0
+    resMap_range_error_blocks = []          #4
+    partly_recognized_error_blocks = []     #5
+    rotno_error_blocks = []                 #6
+    polymer_bond_error_blocks = []          #7
+    staple_error_blocks = []                #8
+    aceCYS_error_blocks = []                #9
+    unREC_res_error_blocks = []             #10
+    unREC_ele_error_blocks = []             #11
+    unREC_aType_error_blocks = []           #12
+    unREC_token_error_blocks = []           #13
+    unREC_expTec_error_blocks = []          #14
+    pose_load_error_blocks = []             #15
+    typeEle_error_blocks = []               #16
     zero_length_xyzVector_error_blocks = [] #18
     sugar_variant_error_blocks = []         #19
     zero_atom_restype_error_blocks = []     #20
@@ -175,7 +175,7 @@ def identify_errors(log_blocks):
                     aceCYS_error_blocks.append([pdb,block,path])
                     break
                 elif '3-letter' in next_line:
-                    letter3_error_blocks.append([pdb,block,path,' '.join(next_line) + '\n'])
+                    partly_recognized_error_blocks.append([pdb,block,path,' '.join(next_line) + '\n'])
                     break
                 elif "unrecognized" in by_col and "residue" in by_col: #[1].split():
                     unREC_res_error_blocks.append([pdb,block,path])
@@ -244,7 +244,7 @@ def identify_errors(log_blocks):
             ace_error_blocks, \
             fill_error_blocks, \
             resMap_range_error_blocks, \
-            letter3_error_blocks, \
+            partly_recognized_error_blocks, \
             rotno_error_blocks, \
             polymer_bond_error_blocks, \
             staple_error_blocks, \
@@ -277,13 +277,13 @@ def main(argv):
 
     all_errors = identify_errors(log_blocks)
 
-    print len(all_errors[00]), "The number of blocks with misc segfaults [often misclassified due to output buffering between cerr and cout] (miscSegfault.log) " , len(all_errors[0])
+    print len(all_errors[ 0]), "The number of blocks with misc segfaults [often misclassified due to output buffering between cerr and cout] (miscSegfault.log) " , len(all_errors[ 0])
     print len(all_errors[17]), "The number of blocks with null pointer assertions (nullPointerAssertion.log) ", len(all_errors[17])
     print len(all_errors[ 1]), "The number of blocks with misc unidentified errors (unidentified_error) ", len(all_errors[1])
     print len(all_errors[ 2]), "The number of blocks with acetylated N-terminus errors (ACE_error.log) ", len(all_errors[2])
     print len(all_errors[ 3]), "The number of blocks with 'too many tries in fill_missing_atoms!' errors (fill_missing_atoms.log) ", len(all_errors[3])
     print len(all_errors[ 4]), "The number of blocks with 'Residue outside res_map range' errors (resMap_range_error.log) ", len(all_errors[4])
-    print len(all_errors[ 5]), "The number of blocks with non-ACE 'no match found for unrecognized residue' errors (usually branch-point) ", len(all_errors[5])
+    print len(all_errors[ 5]), "The number of blocks with partly recognized residue errors (usually branch-point) (partly_recognized_res.log)", len(all_errors[5])
     print len(all_errors[ 6]), "The number of blocks with packed_rotno_conversion_data_current_ errors (rotno_error.log) ", len(all_errors[6])
     print len(all_errors[ 7]), "The number of blocks with 'Can't create a polymer bond' errors (usually sugars) (polymer_bod_error.log) ", len(all_errors[7])
     print len(all_errors[ 8]), "The number of blocks with PatchOperation errors (PatchOperation.log) ", len(all_errors[8])
@@ -312,7 +312,7 @@ def main(argv):
     write_trim_blocks(all_errors[ 2], 'ACE_error')
     write_trim_blocks(all_errors[ 3], 'fill_missing_atoms')
     write_trim_blocks(all_errors[ 4], 'resMap_range_error')
-    write_trim_blocks(all_errors[ 5], 'nonACE_res_error')
+    write_trim_blocks(all_errors[ 5], 'partly_recognized_res')
     write_trim_blocks(all_errors[ 6], 'rotno_error')
     write_trim_blocks(all_errors[ 7], 'polymer_bond_error')
     write_trim_blocks(all_errors[ 8], 'PatchOperation')

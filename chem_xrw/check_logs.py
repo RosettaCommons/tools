@@ -233,8 +233,12 @@ def identify_errors(log_blocks):
                     error_blocks.append([pdb,block,path])
                     break
             elif '[error]' in by_col:
-                error_blocks.append([pdb,block,path])
-                break
+                if "Cannot normalize xyzVector of length() zero" in line: #this one has a race condition sometimes, shows up on the wrong line
+                    zero_length_xyzVector_error_blocks.append([pdb,block,path])
+                    break
+                else:
+                    error_blocks.append([pdb,block,path])
+                    break
             elif "nres 0" in line:
                 zero_nres_blocks.append([pdb,block,path])
                 break

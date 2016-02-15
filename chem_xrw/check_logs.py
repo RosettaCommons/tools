@@ -198,7 +198,7 @@ def identify_errors(log_blocks):
                 elif 'res_map' in next_line and 'range' in next_line:
                     resMap_range_error_blocks.append([pdb,block,path])
                     break
-                elif "normalize" in next_line and "xyzvector" in next_line and "zero" in next_line:
+                elif "Cannot normalize xyzVector of length() zero" in line:
                     zero_length_xyzVector_error_blocks.append([pdb,block,path])
                     break
                 #unclear that pose_load_error is real - I think this catches when a file is missing?

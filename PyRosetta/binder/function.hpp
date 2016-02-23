@@ -44,16 +44,19 @@ class FunctionBinder : public Binder
 public:
 	FunctionBinder(clang::FunctionDecl *f) : F(f) {}
 
-
 	/// check if generator can create binding
-	//bool is_bindable() const override;
+	bool bindable() const override;
 
+	/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+	string id() const override;
 
-	/// generate binding code
-	string operator()(string const &module_variable_name, string const &indentation="\t") const override;
+	/// generate binding code for this object and all its dependencies
+	void bind(Context &) override;
 
+    clang::NamedDecl * named_decl() const override { return F; };
 
-    clang::NamedDecl * get_named_decl() const override { return F; };
+	// check if bindings for object should be skipped
+	bool is_skipping_requested(std::vector<std::string> const & namespaces_to_skip) const override { return false; }
 
 
 private:
@@ -62,7 +65,7 @@ private:
 
 
 /// check if generator can create binding
-bool is_bindable(clang::FunctionDecl *F);
+bool is_bindable(clang::FunctionDecl const *F);
 
 
 

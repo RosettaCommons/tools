@@ -46,9 +46,12 @@ using std::string;
 cl::opt<std::string> O_root_module("root-module", cl::desc("Name of root module"), /*cl::init("example"),*/ cl::cat(BinderToolCategory));
 //cl::opt<std::string> O_root_module("root-module", cl::desc("Name of root module"), cl::Required, cl::cat(BinderToolCategory));
 
-cl::opt<int> O_max_file_size("max-file-size", cl::desc("Specify maximum length of generated source files"), cl::init(1024*256), cl::cat(BinderToolCategory));
+cl::opt<int> O_max_file_size("max-file-size", cl::desc("Specify maximum length of generated source files"), cl::init(1024*4), cl::cat(BinderToolCategory));
 
 cl::opt<std::string> O_prefix("prefix", cl::desc("Output prefix for all generated files. Might contain directories."), cl::init(""), cl::cat(BinderToolCategory));
+
+cl::list<std::string> O_bind("bind", cl::desc("Namespace to bind, could be specified more then once. Specify \"\" to bind all namespaces.")); // , cl::OneOrMore
+cl::list<std::string> O_skip("skip", cl::desc("Namespace to skip, could be specified more then once")); // , cl::OneOrMore
 
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor>
@@ -92,59 +95,80 @@ public:
     explicit BinderVisitor(CompilerInstance *ci) : ast_context( &( ci->getASTContext() ) ) {}
 
 
+	bool shouldVisitTemplateInstantiations () const { return true; }
+
+
 	virtual bool VisitFunctionDecl(FunctionDecl *F)
 	{
 		if( F->isCXXInstanceMember() or isa<CXXMethodDecl>(F) ) return true;
-		if( FullSourceLoc(F->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 
-		if( binder::is_bindable(F)  and  !binder::namespace_from_named_decl(F).compare(0, 7, "utility") ) {
-			//outs() << "Adding function: " << F->getQualifiedNameAsString() << "\n";
-			binder::BinderOP b{ new binder::FunctionBinder(F) };
+		if( binder::is_bindable(F) ) {
+			binder::BinderOP b = std::make_shared<binder::FunctionBinder>(F);
 			context.add(b);
 		}
-		else {
-			//outs() << "Skipping " << record->getQualifiedNameAsString() << " because it is not bindable...\n";
-		}
+
+		// if( FullSourceLoc(F->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+		// if( binder::is_bindable(F)  and  !binder::namespace_from_named_decl(F).compare(0, 7, "utility") ) {
+		// 	outs() << "Adding function: " << F->getQualifiedNameAsString() << "\n";
+		// 	binder::BinderOP b{ std::make_shared<binder::FunctionBinder>(F) };
+		// 	context.add(b);
+		// }
+		// else {
+		// 	//outs() << "Skipping " << record->getQualifiedNameAsString() << " because it is not bindable...\n";
+		// }
 
         return true;
     }
 
 	virtual bool VisitCXXRecordDecl(CXXRecordDecl *C) {
-		if( C->isCXXInstanceMember() ) return true;
-		if( FullSourceLoc(C->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+		if( C->isCXXInstanceMember()  or  C->isCXXClassMember() ) return true;
 
-		if( binder::is_bindable(C)  and  !binder::namespace_from_named_decl(C).compare(0, 7, "utility") ) {
-			//outs() << "Adding class: " << C->getQualifiedNameAsString() << "\n";
-			binder::BinderOP b{ new binder::ClassBinder(C) };
+		if( binder::is_bindable(C) ) {
+			binder::BinderOP b = std::make_shared<binder::ClassBinder>(C);
 			context.add(b);
 		}
+
+		// if( FullSourceLoc(C->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+		// if( isa<ClassTemplateSpecializationDecl>(C) ) {
+		// 	errs() << "Visit VisitCXXRecordDecl->ClassTemplateSpecializationDecl:" << C->getQualifiedNameAsString() << binder::template_specialization(C) << "\n";
+		// }
+		// if( binder::is_bindable(C)  and  !binder::namespace_from_named_decl(C).compare(0, 7, "utility") ) {
+		// 	outs() << "Adding class: " << C->getQualifiedNameAsString() << "\n";
+		// 	binder::BinderOP b{ std::make_shared<binder::ClassBinder>(C) };
+		// 	context.add(b);
+		// }
 
         return true;
     }
 
-	// virtual bool VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl *record) {
-	// 	if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
-
-	// 	errs() << "Visit ClassTemplateSpecializationDecl:" << record->getQualifiedNameAsString() << "\n";
-	// 	record->dump();
+	// virtual bool VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl *C) {
+	// 	if( FullSourceLoc(C->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+	// 	errs() << "Visit ClassTemplateSpecializationDecl:" << C->getQualifiedNameAsString() << binder::template_specialization(C) << "\n";
+	// 	C->dump();
     //     return true;
 	// }
 
 	// virtual bool VisitTemplateDecl(TemplateDecl *record) {
 	// 	//if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
 	// 	errs() << "Visit TemplateDecl: " << record->getQualifiedNameAsString() << "\n";
-	// 	record->dump();
+	// 	//record->dump();
     //     return true;
 	// }
 
-
-	// virtual bool VisitTypedefDecl(TypedefDecl *record) {
-	// 	if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
-
-	// 	errs() << "Visit TypedefDecl: " << record->getQualifiedNameAsString() << "\n";
-	// 	// record->dump();
+	// virtual bool VisitClassTemplateDecl(ClassTemplateDecl *record) {
+	// 	//if( FullSourceLoc(record->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+	// 	errs() << "Visit ClassTemplateDecl: " << record->getQualifiedNameAsString() << binder::template_specialization( record->getTemplatedDecl() ) << "\n";
+	// 	//record->dump();
     //     return true;
 	// }
+
+	virtual bool VisitTypedefDecl(TypedefDecl *T) {
+		if( FullSourceLoc(T->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+
+		//errs() << "Visit TypedefDecl: " << T->getQualifiedNameAsString() << "  Type: " << T->getUnderlyingType()->getCanonicalTypeInternal()/*getCanonicalType()*/.getAsString() << "\n";
+		// record->dump();
+        return true;
+	}
 
 
 	// virtual bool VisitFieldDecl(FieldDecl *record) {
@@ -153,11 +177,12 @@ public:
     //     return true;
 	// }
 
-	// virtual bool VisitEnumDecl(EnumDecl *record) {
-	// 	errs() << "GlobalVisitor EnumDecl: " << record->getQualifiedNameAsString() << " isCXXClassMember:" << record->isCXXClassMember() << " isCXXInstanceMember:" << record->isCXXInstanceMember() << " isExternallyVisible:" << record->isExternallyVisible() << "\n";
-	// 	record->dump();
-    //     return true;
-	// }
+	virtual bool VisitEnumDecl(EnumDecl *E) {
+		if( FullSourceLoc(E->getLocation(), ast_context->getSourceManager() ).isInSystemHeader() ) return true;
+		//errs() << "Visitor EnumDecl: " << E->getQualifiedNameAsString() << " isCXXClassMember:" << E->isCXXClassMember() << " isCXXInstanceMember:" << E->isCXXInstanceMember() << " isExternallyVisible:" << E->isExternallyVisible() << "\n";
+		//E->dump();
+        return true;
+	}
 
 	// virtual bool VisitNamedDecl(NamedDecl *record) {
 	// 	errs() << "Visit NamedRecord: " << record->getQualifiedNameAsString() << "\n";
@@ -165,7 +190,10 @@ public:
 	// }
 
 
-	void generate(void) { context.generate(O_root_module, O_prefix, O_max_file_size); }
+	void generate(void) {
+		context.generate(O_root_module, O_bind, O_skip, O_prefix, O_max_file_size);
+	}
+
 private:
     ASTContext *ast_context;
 
@@ -206,6 +234,7 @@ int main(int argc, const char **argv)
 	ClangTool tool(op.getCompilations(), op.getSourcePathList());
 
 	//outs() << "Root module: " << O_root_module << "\n";
+	//for(auto &s : O_bind) outs() << "Binding: " << s << "\n";
 
 	return tool.run(newFrontendActionFactory<BinderFrontendAction>().get());
 }

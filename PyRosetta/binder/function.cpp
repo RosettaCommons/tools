@@ -87,8 +87,6 @@ string bind_function(FunctionDecl *F)
 
 	string r = R"(.def{}("{}", ({}) &{}, "doc")"_format(maybe_static, function_name, function_pointer_type(F), function_qualified_name);
 
-	//F->dump();
-
 	for(auto p = F->param_begin(); p != F->param_end(); ++p) {
 		// .def("myFunction", py::arg("arg") = SomeType(123));
 		//string defalt_argument = (*p)->hasDefaultArg() ? " = ({})({})"_format( (*p)->getOriginalType().getCanonicalType().getAsString(), expresion_to_string( (*p)->getDefaultArg() ) ) : "";
@@ -96,7 +94,7 @@ string bind_function(FunctionDecl *F)
 		//r += ", pybind11::arg(\"{}\"){}"_format( string( (*p)->getName() ), defalt_argument );
 
 		// .def("myFunction", py::arg_t<int>("arg", 123, "123"));
-		if( (*p)->hasDefaultArg() ) {
+		if( (*p)->hasDefaultArg()  and  !(*p)->hasUninstantiatedDefaultArg() ) {
 			string arg_type = (*p)->getOriginalType().getCanonicalType().getAsString();  fix_boolean_types(arg_type);
 			r += ", pybind11::arg_t<{}>(\"{}\", {}, \"{}\")"_format(arg_type,
 																	string( (*p)->getName() ),
@@ -109,8 +107,6 @@ string bind_function(FunctionDecl *F)
 			// outs() << " res: " << result.Val.getAsString(F->getASTContext(), (*p)->getOriginalType()) << "\n";
 		}
 		else r += ", pybind11::arg(\"{}\")"_format( string( (*p)->getName() ) );
-
-
 
 		//add_relevant_include(*p, includes);
 
@@ -154,11 +150,23 @@ bool is_bindable(QualType const &qt)
 
 	r &= !qt->isFunctionPointerType()  and  !qt->isInstantiationDependentType()  and  !qt->isArrayType();  //and  !qt->isConstantArrayType()  and  !qt->isIncompleteArrayType()  and  !qt->isVariableArrayType()  and  !qt->isDependentSizedArrayType()
 
-	if( auto pt = dyn_cast<PointerType>( qt.getTypePtr() ) ) {
+	if( PointerType const *pt = dyn_cast<PointerType>( qt.getTypePtr() ) ) {
 		if( pt->getPointeeType()->isPointerType() ) return false;  // refuse to bind 'value**...' types
 		if( pt->getPointeeType()->isArrayType() or pt->getPointeeType()->isConstantArrayType() ) return false;  // refuse to bind 'T* v[]...' types
 		//qt->dump();
+		r &= is_bindable( pt->getPointeeType() );
 	}
+
+	if( ReferenceType const *rt = dyn_cast<ReferenceType>( qt.getTypePtr() ) ) {
+		//rt->dump();
+		//outs() << "Ref " << qt.getAsString() << " -> " << is_bindable( rt->getPointeeType() ) << "\n";
+		r &= is_bindable( rt->getPointeeType() );
+	}
+
+	if( Type const *tp = qt.getTypePtrOrNull() ) {
+		if( CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) r &= is_bindable(rd);
+	}
+
 
 	// if( auto rt = dyn_cast<RecordType>( qt.getTypePtr() ) ) {
 	// 	if( auto cxxr = dyn_cast<CXXRecordDecl>( rt->getDecl() ) ) r &= is_bindable(cxxr);
@@ -167,12 +175,13 @@ bool is_bindable(QualType const &qt)
 	//outs() << " isIncompleteArrayType(): " << qt->isIncompleteArrayType() << " r:" << r << "\n";
 	//qt->dump();
 
+	//outs() << "Qt " << qt.getAsString() << " -> " << r << " isInstantiationDependentType: " << qt->isInstantiationDependentType() << "\n";
 	return r;
 }
 
 
 /// check if generator can create binding
-bool is_bindable(FunctionDecl *F)
+bool is_bindable(FunctionDecl const *F)
 {
 	bool r = true;
 
@@ -189,13 +198,35 @@ bool is_bindable(FunctionDecl *F)
 }
 
 
-/// generate binding code
-string FunctionBinder::operator()(string const &module_variable_name, string const &indentation) const
+/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+string FunctionBinder::id() const
 {
-	//return indentation+"// Function: " + F->getQualifiedNameAsString() + "\n";
-	string c = indentation + module_variable_name + bind_function(F) + ";\n\n";
+	string maybe_const;
+	if( auto m = dyn_cast<CXXMethodDecl>(F) ) maybe_const = m->isConst() ? " const" : "";
 
-	return c;
+	string r = F->getReturnType().getCanonicalType().getAsString() + " "+ F->getQualifiedNameAsString() + "(" + function_arguments(F) + ")" + maybe_const;
+	fix_boolean_types(r);
+	return r;
+}
+
+
+bool FunctionBinder::bindable() const
+{
+	return binder::is_bindable(F);
+}
+
+
+/// generate binding code for this object and all its dependencies
+void FunctionBinder::bind(Context &context)
+{
+	if( is_binded() ) return;
+
+	string const indentation="\t";
+	string const module_variable_name = context.module_variable_name( namespace_from_named_decl(F) );
+	string const include = relevant_include(F);
+
+	code()  = indentation+"// " + F->getQualifiedNameAsString() + " " + function_arguments(F) + " file:" + include.substr(1, include.size()-2) + " line:" + line_number(F) + "\n";
+	code() += indentation + module_variable_name + bind_function(F) + ";\n\n";
 }
 
 

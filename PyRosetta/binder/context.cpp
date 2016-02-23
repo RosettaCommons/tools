@@ -17,6 +17,7 @@
 #include <util.hpp>
 #include <fmt/format.h>
 
+#include <clang/AST/ASTContext.h>
 
 #include <sstream>
 #include <fstream>
@@ -33,88 +34,84 @@ using fmt::format;
 
 namespace binder {
 
-const std::string _root_module_variable_name_{"m"};
+//const std::string _module_variable_name_{"M"};
+
+/// return true if object declared in system header
+bool Binder::is_in_system_header()
+{
+	NamedDecl * decl( named_decl() );
+	ASTContext & ast_context( decl->getASTContext() );
+	SourceManager & sm( ast_context.getSourceManager() );
+
+	return FullSourceLoc( decl->getLocation(), sm ).isInSystemHeader();
+}
+
 
 
 llvm::raw_ostream & operator << (llvm::raw_ostream & os, Binder const &b)
 {
-	clang::NamedDecl *decl = b.get_named_decl();
+	clang::NamedDecl *decl = b.named_decl();
 
 	string name  = decl->getNameAsString();
 	string qualified_name = decl->getQualifiedNameAsString();
 	string path = decl->getQualifiedNameAsString().substr(0, qualified_name.size() - name.size() );
 
-	return os << "B{name=" << name << ", path=" << path << ", include= , code=\n" << b("module") << "\n}\n";
+	return os << "B{name=" << name << ", path=" << path << "\n";  //<< ", include= " code=\n" << b("module") << "\n}
 }
-
-
-
-// Generate C++ name of pybind11 module variable
-string module_variable(string const & namespace_)
-{
-	if( namespace_.size() ) {
-		string m{ replace(namespace_, "::", "_") }; // std::replace(m.begin(), m.end(), ':', '_');
-		return _root_module_variable_name_+"_" + m;
-	}
-	else return _root_module_variable_name_;
-}
-
-// Generate prototype/call for function binding particular module
-string module_binder_function(string const & namespace_, bool prototype, string const &extra="", string const arg=_root_module_variable_name_)
-{
-	string r;
-
-	if( namespace_.size() ) {
-		r = "bind_" + _root_module_variable_name_ + "_" + replace(namespace_, "::", "_");;
-	}
-	else r = "bind_" + _root_module_variable_name_;
-
-	if( extra.size() ) r += "_" + extra;
-
-	r += "({})"_format( prototype ? "pybind11::module &" + _root_module_variable_name_ : arg );
-
-	r = prototype ? "void " + r : '\t' + r;
-
-	return r;
-}
-
 
 void Context::add(BinderOP &b)
 {
-	string ns = namespace_from_named_decl( b->get_named_decl() );
-	modules[ns].push_back(b);
+	if( ids.count( b->id() ) ) {
+		//errs() << "Skipping adding duplicate binder for: " + b->id() + "...\n";
+		return;
+	}
+
+	binders.push_back(b);
+	ids.insert( b->id() );
+
+	if( TypeDecl * type_decl = dyn_cast<TypeDecl>( b->named_decl() ) ) types[ typename_from_type_decl(type_decl) ] = b;
+
+	//string ns = namespace_from_named_decl( b->named_decl() );
+	//modules[ns].push_back(b);
+
 	//outs() << "Adding to: " << ns << "\n";
 }
 
 
-/// recursivly create all nested namespaces in case some is missings
-void Context::create_all_nested_namespaces()
+/// examine binded objects and recursivly create all nested namespaces
+std::set<string> Context::create_all_nested_namespaces()
 {
-	vector<string> n;
+	vector<string> namespaces;//{""};
 
-	for(auto & p : modules) {
-		string ns = p.first;
+	for(auto & b : binders) {
+		if( b->is_binded() ) {
+			string ns = namespace_from_named_decl( b->named_decl() );
 
-		while( ns.size() ) {
-			ns = base_namespace(ns);
-			n.push_back(ns);
+			while( ns.size() ) {
+				namespaces.push_back(ns);
+				ns = base_namespace(ns);
+			}
 		}
 	}
 
-	for(auto & i : n) modules[i];
-	modules[""];
+	std::set<string> s( namespaces.begin(), namespaces.end() );
+	//namespaces.assign( s.begin(), s.end() );
+
+	//std::sort( std::begin(namespaces), std::end(namespaces) );
+
+	return s;
 }
 
-/// create vector of all namespaces and sort it
-vector<string> Context::sorted_namespaces()
-{
-	vector<string> n;
-	for(auto & p : modules) n.push_back(p.first);
+// /// create vector of all namespaces and sort it
+// vector<string> Context::sorted_namespaces()
+// {
+// 	vector<string> n;
+// 	for(auto & p : modules) n.push_back(p.first);
 
-	std::sort( std::begin(n), std::end(n) );
+// 	std::sort( std::begin(n), std::end(n) );
 
-	return n;
-}
+// 	return n;
+// }
 
 
 // generate code for include directives and cleanup the includes vector
@@ -126,102 +123,185 @@ string generate_include_directives(vector<string> &includes)
 	return r;
 }
 
-/// generate bindings for namespace and split it in chunks so maximum size is ~ max_code_size
-vector<string> Context::bind_namespaces(string const &namespace_, size_t max_code_size)
+
+std::string Context::module_variable_name(std::string const& namespace_)
 {
-	string const header = "\n#include <pybind11/pybind11.h>\n//#include <pybind11/stl.h>\n\n";
-	vector<string> includes;
-
-	vector<BinderOP> & binders( modules[namespace_] );
-
-	string prototypes;
-
-	vector<string> R;
-	string r;
-
-	for(auto &b : binders) {
-		if( r.size() == 0 ) {
-			r += module_binder_function(namespace_, true, std::to_string( R.size() ) );
-			prototypes += r + ";\n";
-			r += " {\n";
-		}
-
-		r += (*b)(_root_module_variable_name_, "\t");
-		add_relevant_include(b->get_named_decl(), includes);
-
-		if( r.size() >= max_code_size ) {
-			R.push_back( generate_include_directives(includes) + header + r + "}\n");
-			r = "";
-		}
-	}
-
-	if( r.size() ) { r+= "}\n"; R.push_back( generate_include_directives(includes) + header + r ); }
-
-	string module_main = "\n\n" + prototypes + "\n" + module_binder_function(namespace_, true) + " {\n";
-	for(size_t i=0; i<R.size(); ++i) {
-		module_main += module_binder_function(namespace_, false, std::to_string(i) ) + ";\n"; // calls to binder functions
-	}
-	module_main += "}\n";
-
-	if( R.size() ) R.back() += module_main;
-	else R.push_back( generate_include_directives(includes) + header + module_main );
-
-	return R;
+	return "M(\"" + namespace_ + "\")";
 }
 
 
+/// walk over all binders and bind one that belong to requested namespaces
+void Context::bind(std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip)
+{
+	for(auto & sp : binders) {
+		Binder & b( *sp );
+		if( !b.is_in_system_header() and  b.bindable() ) {
+			bool bind = false;
+			string namespace_ = namespace_from_named_decl( b.named_decl() );
 
-const char * module_header = R"_(#include <pybind11/pybind11.h>
-{}
-PYBIND11_PLUGIN({}) {{
-	pybind11::module {}("{}", "{}");
+			for(auto &n : namespaces_to_bind) {
+				if( begins_wtih(namespace_, n) ) { bind = true; break; }
+				//else outs() << "begins_wtih...false:" << namespace_from_named_decl( b.named_decl() ) << " - " << n << "\n";
+			}
 
+			for(auto &s : namespaces_to_skip) {
+				if( namespace_ == s) {
+					outs() << "Skipping: " << b.named_decl()->getQualifiedNameAsString() << "\n";
+					bind=false;
+					break;
+				}
+			}
+
+			if( b.is_skipping_requested(namespaces_to_skip) ) {
+				outs() << "Skipping: " << b.named_decl()->getQualifiedNameAsString() << "\n";
+				bind = false;
+			}
+
+			if(bind) {
+				//outs() << "Adding: " << b.named_decl()->getQualifiedNameAsString() << "\n";
+				b.bind(*this);
+			}
+		}
+	}
+}
+
+
+/// Generate file name where binding for given generator should be stored
+string file_name_prefix_for_binder(BinderOP &b)
+{
+	clang::NamedDecl *decl = b->named_decl();
+
+	string include = relevant_include(decl);
+
+	if( include.size() <= 2 ) throw std::runtime_error( "file_name_for_decl failed!!! include name for decl: " + string(*b) + " is too short!");
+	include = include.substr(1, include.size()-2);
+
+	return replace( replace( replace( replace(include, ".hh", ""), ".hpp", ""), ".h", ""), ".", "_");
+}
+
+
+const char * main_module_header = R"_(#include <map>
+#include <memory>
+#include <stdexcept>
+#include <functional>
+
+#include <pybind11/pybind11.h>
+
+typedef std::function< pybind11::module & (std::string const &) > ModuleGetter;
+
+{0}
+
+PYBIND11_PLUGIN({1}) {{
+	std::map <std::string, std::shared_ptr<pybind11::module> > modules;
+	ModuleGetter M = [&](std::string const &namespace_) -> pybind11::module & {{
+		auto it = modules.find(namespace_);
+		if( it == modules.end() ) throw std::runtime_error("Attempt to access pybind11::module for namespace " + namespace_ + " before it was created!!!");
+		return * it->second;
+	}};
+
+	modules[""] = std::make_shared<pybind11::module>("{1}", "{1} module");
+
+	std::vector< std::pair<std::string, std::string> > sub_modules {{ {2} }};
+	for(auto &p : sub_modules ) modules[p.first+"::"+p.second] = std::make_shared<pybind11::module>( modules[p.first]->def_submodule(p.second.c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() ) );
+
+{3}
+	return modules[""]->ptr();
+}}
 )_";
 
-void Context::generate(string const &root_module, std::string const &prefix, int maximum_file_length)
+const char * module_header = "\n#include <pybind11/pybind11.h>\n//#include <pybind11/stl.h>\n\n";
+
+const char * module_function_suffix = "(std::function< pybind11::module &(std::string const &namespace_) > &M)";
+
+void Context::generate(string const &root_module, std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip, std::string const &prefix, uint maximum_file_length)
 {
+	bind(namespaces_to_bind, namespaces_to_skip);
 
-	//s << "#include <pybind11/pybind11.h>\nPYBIND11_PLUGIN(example) {\n\tpybind11::module m(\"example\", \"example module\");\n";
+	vector<string> sources;
+	vector<string> binding_function_names;
 
-	create_all_nested_namespaces();
-	vector<string> namespaces = sorted_namespaces();
+	std::map<string, int> file_names;
 
-	string module_var_defs, module_function_defs, module_function_calls;
+	for(uint i=0; i<binders.size(); ++i) {
+		if( binders[i]->is_binded() ) {
+			string np = file_name_prefix_for_binder(binders[i]);
+			string file_name = np + ( file_names[np] ? "_"+std::to_string(file_names[np]) : "" );
+			++file_names[np];
 
-	for(auto & n : namespaces) {
-		if( n.size() ) {
-			module_var_defs += "\tpybind11::module {} = {}.def_submodule(\"{}\", \"Bindings for {} namespace\");\n"_format( module_variable(n), module_variable( base_namespace(n) ), last_namespace(n), n);
+			string function_name = "bind_" + replace(file_name, "/", "_");
+			file_name += ".b.cpp";
+
+			sources.push_back(file_name);
+			binding_function_names.push_back(function_name);
+			//outs() << string(*binders[i]) << " → " << file_name << "\n";
+
+			string code;
+			string namespace_ = namespace_from_named_decl( binders[i]->named_decl() );
+			vector<string> includes;
+
+			for(; code.size()<maximum_file_length  and  i<binders.size()  and  namespace_==namespace_from_named_decl( binders[i]->named_decl() ); ++i) {
+				code += binders[i]->code();
+				add_relevant_includes(binders[i]->named_decl(), includes);
+			}
+
+			code = generate_include_directives(includes) + module_header + "void " + function_name + module_function_suffix + "\n{\n" + code + "}\n";
+
+			update_source_file(prefix, file_name, code);
 		}
+	}
 
-		module_function_defs += module_binder_function(n, true) + ";\n";
-		module_function_calls += module_binder_function(n, false, "", module_variable(n)) + ";\n";
+	string namespace_pairs;
+	std::set<string> namespaces = create_all_nested_namespaces();
+	for(auto & n : namespaces) {
+		if( n.size() ) namespace_pairs += "{{\"{}\", \"{}\"}}, "_format(base_namespace(n), last_namespace(n));
+	}
+
+	string binding_function_decls, binding_function_calls;
+	for(auto &f : binding_function_names) {
+		binding_function_decls += "void " + f + module_function_suffix + ";\n";
+		binding_function_calls += "\t" + f + "(M);\n";
 	}
 
 	std::stringstream s;
-	s << format(module_header, module_function_defs, root_module, _root_module_variable_name_, root_module, root_module + " module");
+	s << format(main_module_header, binding_function_decls, root_module, namespace_pairs, binding_function_calls);
 
-	s << module_var_defs << "\n" << module_function_calls;
-	s << "\treturn m.ptr();\n}\n";
 
-	//for(auto & p : modules) outs() << "Ns: " << p.first << "\n";
+	//s << "#include <pybind11/pybind11.h>\nPYBIND11_PLUGIN(example) {\n\tpybind11::module m(\"example\", \"example module\");\n";
 
-	// vector<BinderOP> & binders( modules[""] );
-	// //for(auto &b : binders) s << indent(b("m"), "\t");
-	// for(auto &b : binders) s << (*b)("m", "\t");
+	// string module_var_defs, module_function_defs, module_function_calls;
+
+	// for(auto & n : namespaces) {
+	// 	if( n.size() ) {
+	// 		module_var_defs += "\tpybind11::module {} = {}.def_submodule(\"{}\", \"Bindings for {} namespace\");\n"_format( module_variable(n), module_variable( base_namespace(n) ), last_namespace(n), n);
+	// 	}
+
+	// 	module_function_defs += module_binder_function(n, true) + ";\n";
+	// 	module_function_calls += module_binder_function(n, false, "", module_variable(n)) + ";\n";
+	// }
+
+	//s << format(main_module_header, module_function_defs, root_module, _root_module_variable_name_, root_module, root_module + " module");
+
+	// s << module_var_defs << "\n" << module_function_calls;
 	// s << "\treturn m.ptr();\n}\n";
-	vector<string> sources;
 
-	for(auto &ns : modules) {
-		vector<string> files = bind_namespaces(ns.first, maximum_file_length);
+	// //for(auto & p : modules) outs() << "Ns: " << p.first << "\n";
 
-		//for(auto &f : files) s << f;
-		for(uint i=0; i<files.size(); ++i) {
-			string file_name = prefix + ( ns.first.size() ? replace(ns.first, "::", "-") : root_module ) + "-" + std::to_string(i) + ".cpp";
+	// // vector<BinderOP> & binders( modules[""] );
+	// // //for(auto &b : binders) s << indent(b("m"), "\t");
+	// // for(auto &b : binders) s << (*b)("m", "\t");
+	// // s << "\treturn m.ptr();\n}\n";
 
-			std::ofstream(file_name) << files[i];
-			sources.push_back(file_name);
-		}
-	}
+	// for(auto &ns : modules) {
+	// 	vector<string> files = bind_namespaces(ns.first, maximum_file_length);
+
+	// 	//for(auto &f : files) s << f;
+	// 	for(uint i=0; i<files.size(); ++i) {
+	// 		string file_name = prefix + ( ns.first.size() ? replace(ns.first, "::", "-") : root_module ) + "-" + std::to_string(i) + ".cpp";
+
+	// 		std::ofstream(file_name) << files[i];
+	// 		sources.push_back(file_name);
+	// 	}
+	// }
 
 	//errs() << s.str() << "\n";
 	string file_name = prefix + root_module + ".cpp";
@@ -230,8 +310,6 @@ void Context::generate(string const &root_module, std::string const &prefix, int
 
 	std::ofstream f(prefix + root_module + ".sources");
 	for(auto &s : sources) f << s << "\n";
-
 }
-
 
 } // namespace binder

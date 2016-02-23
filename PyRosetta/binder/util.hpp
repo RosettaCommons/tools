@@ -31,12 +31,19 @@ std::vector<std::string> split(std::string const &buffer, std::string const & se
 std::string replace(std::string const &s, std::string const & from, std::string const &to);
 
 
+/// check if string begins with given prefix
+bool begins_wtih(std::string const &source, std::string const &prefix);
+
+
 /// indent given code
 std::string indent(std::string const &code, std::string const &indentation);
 
 
-// calculate namespace path from given NamedDecl, like: std, core::pose
-std::string namespace_from_named_decl(clang::NamedDecl *decl);
+/// calculate namespace path from given NamedDecl, like: std, core::pose
+std::string namespace_from_named_decl(clang::NamedDecl const *decl);
+
+
+std::string typename_from_type_decl(clang::TypeDecl *decl);
 
 
 /// Calculate base (upper) namespace for given one: core::pose::motif --> core::pose
@@ -47,17 +54,30 @@ std::string base_namespace(std::string const & ns);
 std::string last_namespace(std::string const & ns);
 
 
-// replace all _Bool types with bool
+
+/// replace all _Bool types with bool
 void fix_boolean_types(std::string &type);
 
-// Generate string representation of given expression
+/// Generate string representation of given expression
 std::string expresion_to_string(clang::Expr *e);
 
-// Generate string representation of given TemplateArgument
+/// Generate string representation of given TemplateArgument
 std::string template_argument_to_string(clang::TemplateArgument const &);
 
-// extract include needed for declaration and add it to includes
-bool add_relevant_include(clang::NamedDecl *decl, std::vector<std::string> &includes);
+
+
+/// calcualte line in source file for NamedDecl
+std::string line_number(clang::NamedDecl *decl);
+
+// extract include path needed for declaration itself (without template dependency if any) and return it, return empty string if no relevant include could be found (ie for build-in's)
+std::string relevant_include(clang::NamedDecl *decl);
+
+/// extract include needed for declaration and add it to includes
+bool add_relevant_includes(clang::NamedDecl *decl, std::vector<std::string> &includes);
+
+/// Try to read exisitng file and if content does not match to code - write a new version. Also create nested dirs starting from prefix if nessesary.
+void update_source_file(std::string const &prefix, std::string const &file_name, std::string const &code);
+
 
 
 } // namespace binder

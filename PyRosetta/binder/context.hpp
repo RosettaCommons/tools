@@ -19,10 +19,15 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <string>
+#include <vector>
+#include <set>
 #include <unordered_map>
 
 
 namespace binder {
+
+class Context;
+
 
 /// Bindings Generator - represent object that can generate binding info for function, class, enum or data variable
 class Binder
@@ -33,12 +38,32 @@ public:
 	virtual ~Binder() {}
 
 	/// check if generator can create binding
-	//virtual bool is_bindable() const = 0;
+	virtual bool bindable() const = 0;
 
-	/// generate binding code
-	virtual string operator()(string const &module_variable_name, string const &indentation="\t") const = 0;
+	/// generate binding code for this object and all its dependencies
+	virtual void bind(Context &) = 0;
 
-	virtual clang::NamedDecl * get_named_decl() const = 0;
+	virtual clang::NamedDecl * named_decl() const = 0;
+
+	/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+	virtual string id() const = 0;
+
+	// check if bindings for object should be skipped
+	virtual bool is_skipping_requested(std::vector<std::string> const & namespaces_to_skip) const = 0;
+
+	// return true if code was already generate for this object
+	bool is_binded() const { return code_.size(); }
+
+	// return binding code
+	string & code() { return code_; }
+
+	/// return true if object declared in system header
+	bool is_in_system_header();
+
+	explicit operator std::string() const { return id(); /*named_decl()->getQualifiedNameAsString();*/ }
+
+private:
+	string code_;
 };
 
 
@@ -46,24 +71,6 @@ typedef std::shared_ptr< Binder > BinderOP;
 
 typedef std::vector<BinderOP> Binders;
 
-
-// struct Item_
-// {
-// 	typedef std::string string;
-
-// 	Item_(clang::NamedDecl *decl);
-
-// 	string name; // full C++ name of this element including namespace
-// 	string path; // path for Python module for this namespace
-
-
-// 	//vector<string> includes;
-// 	string include;  // name of header file that needed to be include in order to compile this bindings
-
-// 	std::vector<string> dependencies;  // list of C++ names that need to be defined/binded before this item could be compiled
-
-// 	string code;  // C++ code that create bindins for this item
-// };
 
 
 llvm::raw_ostream & operator << (llvm::raw_ostream & os, Binder const &b);
@@ -85,17 +92,40 @@ public:
 
 	void add(BinderOP &);
 
-	void generate(std::string const &root_module, std::string const &prefix, int maximum_file_length);
+	void generate(string const &root_module, std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip, std::string const &prefix, uint maximum_file_length);
+
+	void bind(std::string const &object);
+
+	/// generate C++ expression for module variable for namespace_
+	string module_variable_name(string const & namespace_);
+
+	//void request_bindings(std::vector<string> const & namespaces);
+	// is binding requested
 
 private:
-	std::unordered_map<string, Binders> modules;
 
+	/// array of all binderes from translation unit
+	std::vector<BinderOP> binders;
+
+	/// types → binder
+	std::unordered_map<string, BinderOP> types;
+
+	std::set<string> ids;
+
+	// binder.id() → binder
+	//std::unordered_map<string, Binders> binders_map;
+
+	std::unordered_map<string, Binders> modules;
 	std::unordered_map<string, BinderOP> system_binders;
 
-	void create_all_nested_namespaces();
+
+	/// bind all objects residing in namespaces and it dependency
+	void bind(std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip);
+
+	std::set<string> create_all_nested_namespaces();
 
 	/// create vector of all namespaces and sort it
-	std::vector<string> sorted_namespaces();
+	//std::vector<string> sorted_namespaces();
 	std::vector<string> bind_namespaces(string const &namespace_, size_t max_code_size);
 };
 

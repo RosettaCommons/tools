@@ -19,6 +19,7 @@
 #include <clang/AST/DeclCXX.h>
 
 #include <string>
+#include <vector>
 
 
 namespace binder {
@@ -30,18 +31,27 @@ public:
 
 
 	/// check if generator can create binding
-	//bool is_bindable() const override;
+    bool bindable() const override;
 
+	/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+	string id() const override;
 
-	/// generate binding code
-	string operator()(string const &module_variable_name, string const &indentation="\t") const override;
+	/// generate binding code for this object and all its dependencies
+	void bind(Context &) override;
 
+	clang::NamedDecl * named_decl() const override { return C; };
 
-	clang::NamedDecl * get_named_decl() const override { return C; };
+	// check if bindings for object should be skipped
+	bool is_skipping_requested(std::vector<std::string> const & namespaces_to_skip) const override;
+
 
 private:
 	clang::CXXRecordDecl *C;
 };
+
+
+// generate classtemplate specialization for ClassTemplateSpecializationDecl or empty string otherwise
+std::string template_specialization(clang::CXXRecordDecl const *C);
 
 
 // generate class name that could be used in bindings code indcluding template specialization if any
@@ -53,10 +63,14 @@ std::string class_qualified_name(clang::CXXRecordDecl *C);
 
 
 /// check if generator can create binding
-bool is_bindable(clang::CXXRecordDecl *C);
+bool is_bindable(clang::CXXRecordDecl const *C);
 
 
-//Item bind_class(clang::CXXRecordDecl *R);
+/// check if bindings for particular object was requested
+bool is_binding_requested(clang::CXXRecordDecl const *C, std::vector<std::string> const & namespaces_to_bind);
+
+// check if bindings for object should be skipped
+bool is_skipping_requested(clang::CXXRecordDecl const *C, std::vector<std::string> const & namespaces_to_skip);
 
 
 

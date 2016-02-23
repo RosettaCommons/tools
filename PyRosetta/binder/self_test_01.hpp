@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 #include <memory>
 //#include <iostream>
 
@@ -37,8 +38,33 @@ inline void foo_A(aa::A& a, aa::aa_INT) {}
 
 */
 
+enum E1 {E1A, E1B};
+
 
 namespace utility {
+
+// template <class T> class N
+// {
+// 	enum OptionTypes {
+// 		UNKNOWN_OPTION,
+// 	};
+
+// 	void private_foo(std::vector<OptionTypes> );
+
+// public:
+// 	void foo() {}
+// };
+
+// void foo_N(N<int>) {}
+
+
+void foo() {}
+//void foo_string_const(std::string) {}
+
+void foo_string_const(std::string const &) {}
+void foo_string(std::string  &) {}
+void foo_int_const(int const &) {}
+void foo_int(int &) {}
 
 // class UA;
 
@@ -89,48 +115,65 @@ namespace utility {
 // std::string foo_s(std::string const &a="aaa") { return a; }
 
 
+// class TUAC : public TUA_int
+// {};
 
-namespace csi {
+// void foo(TUA_int) {}
+// void foo(TUA<float>) {}
 
-class CSI_Sequence
-{
-public:
-	/// @brief constructor
-	CSI_Sequence(std::string sequence) {}
+// namespace csi {
 
-	operator std::string() const { return sequence_; }
-
-	/// @brief operator to output our sequence so we can write: std::cout << CSI_SequenceObject
-	//friend std::ostream & operator << (std::ostream & os, CSI_Sequence const &sq) { os << sq.sequence_; return os; }
-
-	void foo(int) const {};
-private:
-	std::string sequence_;
-};
-
-void foo_csi(char * const argv[]) {}
-
-class ESFT : public std::enable_shared_from_this<ESFT>
-{
-public:
-	int a;
-};
+// enum E2 {E2A, E2B};
 
 
-class ESFT2 : public ESFT
-{
-public:
-	std::shared_ptr<ESFT2> shared_from_this() {
-        return shared_from_this();
-    }
+// namespace inner1 {
+// namespace inner2 {
+// namespace inner3 {
+// void foo() {}
+// }
+// }
+// }
 
-	void * fn;
-	int a;
+// class CSI_Sequence
+// {
+// public:
+// 	/// @brief constructor
+// 	CSI_Sequence(std::string sequence) {}
 
-};
+// 	operator std::string() const { return sequence_; }
 
-void foo(std::string a = "abc") {}
+// 	/// @brief operator to output our sequence so we can write: std::cout << CSI_SequenceObject
+// 	//friend std::ostream & operator << (std::ostream & os, CSI_Sequence const &sq) { os << sq.sequence_; return os; }
 
-} // namespace csi
+// 	void foo(int) const {};
+// private:
+// 	std::string sequence_;
+// };
+
+// void foo_csi(char * const argv[]) {}
+
+// class ESFT : public std::enable_shared_from_this<ESFT>
+// {
+// public:
+// 	int a;
+// };
+
+
+// class ESFT2 : public ESFT
+// {
+// public:
+// 	std::shared_ptr<ESFT2> shared_from_this() {
+//         return shared_from_this();
+//     }
+
+// 	void * fn;
+// 	int a;
+
+// };
+
+// void foo(std::string a = "abc") {}
+// std:: string foo(int a) { return ""; }
+
+//} // namespace csi
 
 } // namespace utility

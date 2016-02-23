@@ -20,6 +20,7 @@
 //#include <vector>
 
 #include <clang/AST/DeclTemplate.h>
+//#include <clang/AST/TemplateBase.h>
 
 using namespace llvm;
 using namespace clang;
@@ -33,7 +34,7 @@ using namespace fmt::literals;
 namespace binder {
 
 // generate classtemplate specialization for ClassTemplateSpecializationDecl or empty string otherwise
-string template_specialization(clang::CXXRecordDecl *C)
+string template_specialization(clang::CXXRecordDecl const *C)
 {
 	string templ;
 
@@ -49,6 +50,7 @@ string template_specialization(clang::CXXRecordDecl *C)
 		templ.back() = '>';
 	}
 
+	fix_boolean_types(templ);
 	return templ;
 }
 
@@ -83,6 +85,12 @@ bool is_inherited_from_enable_shared_from_this(CXXRecordDecl *C)
 }
 
 
+/// generate list of class/enum names on which this CXXRecordDecl depend to get binded ommiting build-in types
+// vector<string> calculate_dependency(CXXRecordDecl *C)
+// {
+// }
+
+
 /// check if generator can create binding
 bool is_bindable(FieldDecl *f)
 {
@@ -100,11 +108,73 @@ string bind_data_member(FieldDecl *d, string const &class_qualified_name)
 
 
 /// check if generator can create binding
-bool is_bindable(clang::CXXRecordDecl *C)
+bool is_bindable(clang::CXXRecordDecl const *C)
 {
 	bool r = true;
 
 	r &= C->isCompleteDefinition()  and  !C->isDependentType(); //C->hasDefinition();
+
+
+	//outs() << "is_bindable(CXXRecordDecl): " << C->getQualifiedNameAsString() << template_specialization(C) << " " << r << "\n";
+
+
+	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
+		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
+			// if( template_specialization(C) == "<1,utility::options::OptionCollection::OptionTypes,std::allocator<utility::options::OptionCollection::OptionTypes>>" ) {
+			// 	if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+			// 		Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+			// 		if(tp) tp->dump();
+			// 		if( TagDecl *td = tp->getAsTagDecl() ) {
+			// 			if( td->getAccess() != AS_public ) {
+			// 				outs() << "Access NOT public!\n";
+			// 			//outs() << "Private template TYPE arg: " << td->getNameAsString() << "\n";
+			// 				return false;
+			// 			}
+			// 		} else {
+			// 			outs() << "Access public!\n";
+			// 		}
+			// 	}
+			// 	//t->getTemplateArgs()[i].dump( outs() );
+			// 	//C->dump();
+			// }
+
+			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+				Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+
+				if( TagDecl *td = tp->getAsTagDecl() ) {
+					if( td->getAccess() == AS_protected  or  td->getAccess() == AS_private  ) {
+						//outs() << "Private template TYPE arg: " << td->getNameAsString() << "\n";
+						return false;
+					}
+				}
+
+
+				// if( tp  and  (tp->isRecordType() or tp->isEnumeralType())  and  !tp->isBuiltinType()  and  !begins_wtih(template_argument_to_string(t->getTemplateArgs()[i]), "std::") ) {
+				// 	TagDecl *td = tp->getAsTagDecl();
+
+				// 	//if(td)
+				// 	if(FieldDecl *fd = dyn_cast<FieldDecl>(td) ) {
+				// 		outs() << "FieldDecl!!! " << fd-> getNameAsString() << "\n";
+				// 		if( fd->getAccess() != AS_public ) return false;
+				// 		//if( f->getAccess() == AS_public  and  is_bindable(f) ) c+= '\t' + bind_data_member(f, class_qualified_name(C)) + '\n';
+				// 	}
+				// 	//CXXRecordDecl *rd =	tp->getAsCXXRecordDecl();
+				// }
+			}
+
+			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Declaration )  {
+				if( ValueDecl *v = t->getTemplateArgs()[i].getAsDecl() ) {
+					if( v->getAccess() == AS_protected   or  v->getAccess() == AS_private ) {
+						outs() << "Private template VALUE arg: " << v->getNameAsString() << "\n";
+						return false;
+					}
+				}
+			}
+
+		}
+	}
+
+
 
 	// todo: bindging for abstract classes
 	//if(r) r &= !C->isAbstract();  // need an 'if' here or clang assert got triggered on classed with incomplete definitions
@@ -122,9 +192,70 @@ bool is_bindable(clang::CXXRecordDecl *C)
 }
 
 
-/// generate binding code
-string ClassBinder::operator()(string const &module_variable_name, string const &indentation) const
+/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+string ClassBinder::id() const
 {
+	return class_qualified_name(C);
+}
+
+/// check if generator can create binding
+bool ClassBinder::bindable() const
+{
+	return is_bindable(C);
+}
+
+
+// /// check if bindings for particular object was requested
+// bool is_binding_requested(clang::CXXRecordDecl const *C, std::vector<string> const & namespaces_to_bind)
+// {
+// 	bool bind = false;
+// 	string namespace_ = namespace_from_named_decl(C);
+// 	for(auto &n : namespaces_to_bind) {
+// 		if( begins_wtih(namespace_, n) ) { bind = true; break; }
+// 		//else outs() << "begins_wtih...false:" << namespace_from_named_decl( b.named_decl() ) << " - " << n << "\n";
+// 	}
+// 	return bind;
+// }
+
+
+// check if bindings for object should be skipped
+bool ClassBinder::is_skipping_requested(std::vector<string> const & namespaces_to_skip) const
+{
+	bool skip = false;
+
+	string namespace_ = namespace_from_named_decl(C);
+
+	for(auto &s : namespaces_to_skip) {
+		if( namespace_ == s) {
+			skip = true;
+			break;
+		}
+	}
+
+	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
+
+		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
+			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+				Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+				if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
+					//if(CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) skip |= is_skipping_requested(rd);
+				}
+			}
+		}
+	}
+
+	return skip;
+}
+
+
+/// generate binding code for this object and all its dependencies
+void ClassBinder::bind(Context &context)
+{
+	if( is_binded() ) return;
+
+	string const indentation="\t";
+	string const module_variable_name =  context.module_variable_name( namespace_from_named_decl(C) );
+
 	string c;
 
 	string qualified_name{ class_qualified_name(C) };
@@ -158,10 +289,14 @@ string ClassBinder::operator()(string const &module_variable_name, string const 
 		}
 	}
 
+	//outs() << "typename_from_type_decl: " << typename_from_type_decl(C) << "\n";
+
 	c += ";\n\n";
 
-	return indent(c, indentation);
+	code() = indent(c, indentation);
 }
+
+//is binding requested
 
 
 } // namespace binder

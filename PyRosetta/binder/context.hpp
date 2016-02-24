@@ -14,6 +14,8 @@
 #ifndef _INCLUDED_context_hpp_
 #define _INCLUDED_context_hpp_
 
+#include <config.hpp>
+
 #include <clang/AST/Decl.h>
 
 #include <llvm/Support/raw_ostream.h>
@@ -37,19 +39,22 @@ public:
 
 	virtual ~Binder() {}
 
+	/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+	virtual string id() const = 0;
+
+	// return Clang AST NamedDecl pointer to original declaration used to create this Binder
+	virtual clang::NamedDecl * named_decl() const = 0;
+
 	/// check if generator can create binding
 	virtual bool bindable() const = 0;
+
+	/// check if user requested binding for the given declaration
+	virtual bool binding_requested(Config const &) const = 0;
+
 
 	/// generate binding code for this object and all its dependencies
 	virtual void bind(Context &) = 0;
 
-	virtual clang::NamedDecl * named_decl() const = 0;
-
-	/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
-	virtual string id() const = 0;
-
-	// check if bindings for object should be skipped
-	virtual bool is_skipping_requested(std::vector<std::string> const & namespaces_to_skip) const = 0;
 
 	// return true if code was already generate for this object
 	bool is_binded() const { return code_.size(); }
@@ -92,7 +97,7 @@ public:
 
 	void add(BinderOP &);
 
-	void generate(string const &root_module, std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip, std::string const &prefix, uint maximum_file_length);
+	void generate(Config const &config);
 
 	void bind(std::string const &object);
 
@@ -115,18 +120,18 @@ private:
 	// binder.id() → binder
 	//std::unordered_map<string, Binders> binders_map;
 
-	std::unordered_map<string, Binders> modules;
-	std::unordered_map<string, BinderOP> system_binders;
+	//std::unordered_map<string, Binders> modules;
+	//std::unordered_map<string, BinderOP> system_binders;
 
 
 	/// bind all objects residing in namespaces and it dependency
-	void bind(std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip);
+	void bind(Config const &config);
 
 	std::set<string> create_all_nested_namespaces();
 
 	/// create vector of all namespaces and sort it
 	//std::vector<string> sorted_namespaces();
-	std::vector<string> bind_namespaces(string const &namespace_, size_t max_code_size);
+	//std::vector<string> bind_namespaces(string const &namespace_, size_t max_code_size);
 };
 
 

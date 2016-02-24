@@ -174,8 +174,6 @@ bool is_bindable(clang::CXXRecordDecl const *C)
 		}
 	}
 
-
-
 	// todo: bindging for abstract classes
 	//if(r) r &= !C->isAbstract();  // need an 'if' here or clang assert got triggered on classed with incomplete definitions
 
@@ -191,12 +189,37 @@ bool is_bindable(clang::CXXRecordDecl const *C)
 	return r;
 }
 
+/// check if user requested binding for the given declaration
+bool is_binding_requested(clang::CXXRecordDecl const *C, Config const &config)
+{
+	bool bind = config.is_namespace_binding_requested( namespace_from_named_decl(C) );
+
+	//outs() << "Skipping: " << b.named_decl()->getQualifiedNameAsString() << "\n";
+
+	if(bind) {
+		if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
+			for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
+				if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+					Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+					if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
+						if(CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) bind &= is_binding_requested(rd, config);
+					}
+				}
+			}
+		}
+	}
+
+	return bind;
+
+}
+
 
 /// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
 string ClassBinder::id() const
 {
 	return class_qualified_name(C);
 }
+
 
 /// check if generator can create binding
 bool ClassBinder::bindable() const
@@ -205,46 +228,10 @@ bool ClassBinder::bindable() const
 }
 
 
-// /// check if bindings for particular object was requested
-// bool is_binding_requested(clang::CXXRecordDecl const *C, std::vector<string> const & namespaces_to_bind)
-// {
-// 	bool bind = false;
-// 	string namespace_ = namespace_from_named_decl(C);
-// 	for(auto &n : namespaces_to_bind) {
-// 		if( begins_wtih(namespace_, n) ) { bind = true; break; }
-// 		//else outs() << "begins_wtih...false:" << namespace_from_named_decl( b.named_decl() ) << " - " << n << "\n";
-// 	}
-// 	return bind;
-// }
-
-
-// check if bindings for object should be skipped
-bool ClassBinder::is_skipping_requested(std::vector<string> const & namespaces_to_skip) const
+/// check if user requested binding for the given declaration
+bool ClassBinder::binding_requested(Config const &config) const
 {
-	bool skip = false;
-
-	string namespace_ = namespace_from_named_decl(C);
-
-	for(auto &s : namespaces_to_skip) {
-		if( namespace_ == s) {
-			skip = true;
-			break;
-		}
-	}
-
-	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
-
-		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
-			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
-				Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
-				if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
-					//if(CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) skip |= is_skipping_requested(rd);
-				}
-			}
-		}
-	}
-
-	return skip;
+	return is_binding_requested(C, config);
 }
 
 
@@ -296,7 +283,7 @@ void ClassBinder::bind(Context &context)
 	code() = indent(c, indentation);
 }
 
-//is binding requested
+
 
 
 } // namespace binder

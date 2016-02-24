@@ -180,6 +180,18 @@ bool is_bindable(QualType const &qt)
 }
 
 
+/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
+string FunctionBinder::id() const
+{
+	string maybe_const;
+	if( auto m = dyn_cast<CXXMethodDecl>(F) ) maybe_const = m->isConst() ? " const" : "";
+
+	string r = F->getReturnType().getCanonicalType().getAsString() + " "+ F->getQualifiedNameAsString() + "(" + function_arguments(F) + ")" + maybe_const;
+	fix_boolean_types(r);
+	return r;
+}
+
+
 /// check if generator can create binding
 bool is_bindable(FunctionDecl const *F)
 {
@@ -198,21 +210,17 @@ bool is_bindable(FunctionDecl const *F)
 }
 
 
-/// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
-string FunctionBinder::id() const
-{
-	string maybe_const;
-	if( auto m = dyn_cast<CXXMethodDecl>(F) ) maybe_const = m->isConst() ? " const" : "";
-
-	string r = F->getReturnType().getCanonicalType().getAsString() + " "+ F->getQualifiedNameAsString() + "(" + function_arguments(F) + ")" + maybe_const;
-	fix_boolean_types(r);
-	return r;
-}
-
 
 bool FunctionBinder::bindable() const
 {
 	return binder::is_bindable(F);
+}
+
+
+/// check if user requested binding for the given declaration
+bool FunctionBinder::binding_requested(Config const &config) const
+{
+	return config.is_namespace_binding_requested( namespace_from_named_decl(F) );
 }
 
 

@@ -66,6 +66,8 @@ void foo_string(std::string  &) {}
 void foo_int_const(int const &) {}
 void foo_int(int &) {}
 
+class CA {};
+
 // class UA;
 
 // class A {

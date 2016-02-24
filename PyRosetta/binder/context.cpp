@@ -131,36 +131,13 @@ std::string Context::module_variable_name(std::string const& namespace_)
 
 
 /// walk over all binders and bind one that belong to requested namespaces
-void Context::bind(std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip)
+void Context::bind(Config const &config)
 {
 	for(auto & sp : binders) {
 		Binder & b( *sp );
-		if( !b.is_in_system_header() and  b.bindable() ) {
-			bool bind = false;
-			string namespace_ = namespace_from_named_decl( b.named_decl() );
-
-			for(auto &n : namespaces_to_bind) {
-				if( begins_wtih(namespace_, n) ) { bind = true; break; }
-				//else outs() << "begins_wtih...false:" << namespace_from_named_decl( b.named_decl() ) << " - " << n << "\n";
-			}
-
-			for(auto &s : namespaces_to_skip) {
-				if( namespace_ == s) {
-					outs() << "Skipping: " << b.named_decl()->getQualifiedNameAsString() << "\n";
-					bind=false;
-					break;
-				}
-			}
-
-			if( b.is_skipping_requested(namespaces_to_skip) ) {
-				outs() << "Skipping: " << b.named_decl()->getQualifiedNameAsString() << "\n";
-				bind = false;
-			}
-
-			if(bind) {
-				//outs() << "Adding: " << b.named_decl()->getQualifiedNameAsString() << "\n";
-				b.bind(*this);
-			}
+		if( !b.is_in_system_header() and  b.bindable()  and  b.binding_requested(config) ) {
+			//outs() << "Adding: " << b.named_decl()->getQualifiedNameAsString() << "\n";
+			b.bind(*this);
 		}
 	}
 }
@@ -213,9 +190,9 @@ const char * module_header = "\n#include <pybind11/pybind11.h>\n//#include <pybi
 
 const char * module_function_suffix = "(std::function< pybind11::module &(std::string const &namespace_) > &M)";
 
-void Context::generate(string const &root_module, std::vector<string> const & namespaces_to_bind, std::vector<string> const & namespaces_to_skip, std::string const &prefix, uint maximum_file_length)
+void Context::generate(Config const &config)
 {
-	bind(namespaces_to_bind, namespaces_to_skip);
+	bind(config);
 
 	vector<string> sources;
 	vector<string> binding_function_names;
@@ -239,14 +216,14 @@ void Context::generate(string const &root_module, std::vector<string> const & na
 			string namespace_ = namespace_from_named_decl( binders[i]->named_decl() );
 			vector<string> includes;
 
-			for(; code.size()<maximum_file_length  and  i<binders.size()  and  namespace_==namespace_from_named_decl( binders[i]->named_decl() ); ++i) {
+			for(; code.size()<config.maximum_file_length  and  i<binders.size()  and  namespace_==namespace_from_named_decl( binders[i]->named_decl() ); ++i) {
 				code += binders[i]->code();
 				add_relevant_includes(binders[i]->named_decl(), includes);
 			}
 
 			code = generate_include_directives(includes) + module_header + "void " + function_name + module_function_suffix + "\n{\n" + code + "}\n";
 
-			update_source_file(prefix, file_name, code);
+			update_source_file(config.prefix, file_name, code);
 		}
 	}
 
@@ -263,7 +240,7 @@ void Context::generate(string const &root_module, std::vector<string> const & na
 	}
 
 	std::stringstream s;
-	s << format(main_module_header, binding_function_decls, root_module, namespace_pairs, binding_function_calls);
+	s << format(main_module_header, binding_function_decls, config.root_module, namespace_pairs, binding_function_calls);
 
 
 	//s << "#include <pybind11/pybind11.h>\nPYBIND11_PLUGIN(example) {\n\tpybind11::module m(\"example\", \"example module\");\n";
@@ -304,11 +281,11 @@ void Context::generate(string const &root_module, std::vector<string> const & na
 	// }
 
 	//errs() << s.str() << "\n";
-	string file_name = prefix + root_module + ".cpp";
+	string file_name = config.prefix + config.root_module + ".cpp";
 	std::ofstream(file_name) << s.str();
 	sources.push_back(file_name);
 
-	std::ofstream f(prefix + root_module + ".sources");
+	std::ofstream f(config.prefix + config.root_module + ".sources");
 	for(auto &s : sources) f << s << "\n";
 }
 

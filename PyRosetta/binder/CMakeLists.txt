@@ -14,6 +14,9 @@ add_clang_executable(binder
   class.hpp
   class.cpp
 
+  config.hpp
+  config.cpp
+
   enum.hpp
   enum.cpp
 

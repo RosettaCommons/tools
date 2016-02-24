@@ -11,7 +11,6 @@
 // Declares llvm::cl::extrahelp.
 #include "llvm/Support/CommandLine.h"
 
-
 #include <context.hpp>
 #include <function.hpp>
 #include <class.hpp>
@@ -191,7 +190,7 @@ public:
 
 
 	void generate(void) {
-		context.generate(O_root_module, O_bind, O_skip, O_prefix, O_max_file_size);
+		context.generate( binder::Config(O_root_module, O_bind, O_skip, O_prefix, O_max_file_size) );
 	}
 
 private:

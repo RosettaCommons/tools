@@ -9,7 +9,7 @@
 # (c) Questions about this can be addressed to University of Washington UW
 # (c) TechTransfer, email: license@u.washington.edu.
 
-"""File:  carbohydrate_code_generator.py
+"""File:  GLYCAM_code_generator.py
 
 Brief:  This Python script auto-generates a .codes file of alternative three-
 letter codes for use in Rosetta when loading in PDB files that use the GLYCAM
@@ -121,6 +121,6 @@ for anomer_type in alpha_and_beta_codes:
             
 
 
-# write data to file
+# write data to glycam.codes file
 with open(filename, 'wb') as fh:
     fh.writelines(file_contents)

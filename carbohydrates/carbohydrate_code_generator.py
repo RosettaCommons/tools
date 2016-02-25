@@ -119,7 +119,6 @@ for anomer_type in alpha_and_beta_codes:
                                           spaces, default_hetnam, terminal_code)
             file_contents.append(row)
             
-        file_contents.append("\n")
 
 
 # write data to file

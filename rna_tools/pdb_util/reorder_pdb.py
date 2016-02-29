@@ -12,7 +12,7 @@ for main_pdb in pdbs:
     assert( main_pdb[-4:] == '.pdb' )
     outfile = main_pdb.replace( '.pdb', '.REORDER.pdb' )
     fid = open( outfile, 'w' )
-    [ coords_main, lines_main, sequence_main ] = read_pdb( main_pdb )
+    [ coords_main, lines_main, sequence_main, _, __ ] = read_pdb( main_pdb )
 
     chains = lines_main.keys()
     chains.sort()

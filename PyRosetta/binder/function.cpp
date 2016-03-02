@@ -233,7 +233,7 @@ void FunctionBinder::add_relevant_includes(std::vector<std::string> &includes) c
 {
 	add_relevant_include(F, includes);
 
-	binder::add_relevant_includes(F->getReturnType(), includes);
+	binder::add_relevant_includes(F->getReturnType().getDesugaredType(F->getASTContext()), includes);
 	for(uint i=0; i<F->getNumParams(); ++i) {
 		QualType qt = F->getParamDecl(i)->getOriginalType();
 

@@ -178,8 +178,9 @@ PYBIND11_PLUGIN({1}) {{
 
 	modules[""] = std::make_shared<pybind11::module>("{1}", "{1} module");
 
-	std::vector< std::pair<std::string, std::string> > sub_modules {{ {2} }};
-	for(auto &p : sub_modules ) modules[p.first+"::"+p.second] = std::make_shared<pybind11::module>( modules[p.first]->def_submodule(p.second.c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() ) );
+	std::vector< std::pair<std::string, std::string> > sub_modules {{
+{2}	}};
+	for(auto &p : sub_modules ) modules[p.first.size() ? p.first+"::"+p.second : p.second] = std::make_shared<pybind11::module>( modules[p.first]->def_submodule(p.second.c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() ) );
 
 {3}
 	return modules[""]->ptr();
@@ -230,7 +231,7 @@ void Context::generate(Config const &config)
 	string namespace_pairs;
 	std::set<string> namespaces = create_all_nested_namespaces();
 	for(auto & n : namespaces) {
-		if( n.size() ) namespace_pairs += "{{\"{}\", \"{}\"}}, "_format(base_namespace(n), last_namespace(n));
+		if( n.size() ) namespace_pairs += "\t\t{{\"{}\", \"{}\"}},\n"_format(base_namespace(n), last_namespace(n));
 	}
 
 	string binding_function_decls, binding_function_calls;

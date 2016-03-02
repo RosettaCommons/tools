@@ -224,7 +224,7 @@ bool is_binding_requested(clang::CXXRecordDecl const *C, Config const &config)
 // extract include needed for declaration and add it to includes
 void add_relevant_includes(clang::CXXRecordDecl const *C, vector<string> &includes)
 {
-	outs() << "add_relevant_includes(class): " << C->getQualifiedNameAsString() << template_specialization(C) << "\n";
+	//outs() << "add_relevant_includes(class): " << C->getQualifiedNameAsString() << template_specialization(C) << "\n";
 	if( !begins_wtih(C->getQualifiedNameAsString(), "std::") ) add_relevant_include(C, includes);
 
 	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {

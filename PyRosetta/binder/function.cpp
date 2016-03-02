@@ -154,17 +154,20 @@ bool is_bindable(QualType const &qt)
 		if( pt->getPointeeType()->isPointerType() ) return false;  // refuse to bind 'value**...' types
 		if( pt->getPointeeType()->isArrayType() or pt->getPointeeType()->isConstantArrayType() ) return false;  // refuse to bind 'T* v[]...' types
 		//qt->dump();
-		r &= is_bindable( pt->getPointeeType() );
+		r &= is_bindable( pt->getPointeeType()/*.getCanonicalType()*/ );
 	}
 
 	if( ReferenceType const *rt = dyn_cast<ReferenceType>( qt.getTypePtr() ) ) {
 		//rt->dump();
 		//outs() << "Ref " << qt.getAsString() << " -> " << is_bindable( rt->getPointeeType() ) << "\n";
-		r &= is_bindable( rt->getPointeeType() );
+		r &= is_bindable( rt->getPointeeType()/*.getCanonicalType()*/ );
 	}
 
-	if( Type const *tp = qt.getTypePtrOrNull() ) {
-		if( CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) r &= is_bindable(rd);
+	if( Type const *tp = qt/*.getCanonicalType()*/.getTypePtrOrNull() ) {
+		if( CXXRecordDecl *rd = tp->getAsCXXRecordDecl() ) {
+			//outs() << "is_bindable qt CXXRecordDecl:" << rd->getQualifiedNameAsString() << " " << is_bindable(rd) << "\n";
+			r &= is_bindable(rd);
+		}
 	}
 
 
@@ -175,7 +178,7 @@ bool is_bindable(QualType const &qt)
 	//outs() << " isIncompleteArrayType(): " << qt->isIncompleteArrayType() << " r:" << r << "\n";
 	//qt->dump();
 
-	//outs() << "Qt " << qt.getAsString() << " -> " << r << " isInstantiationDependentType: " << qt->isInstantiationDependentType() << "\n";
+	//outs() << "Qt " << qt.getAsString() << " -> " << r /*<< " isInstantiationDependentType: " << qt->isInstantiationDependentType() */ << "\n";
 	return r;
 }
 
@@ -206,6 +209,7 @@ bool is_bindable(FunctionDecl const *F)
 
 	for(auto p = F->param_begin(); p != F->param_end(); ++p) r &= is_bindable( (*p)->getOriginalType() );
 
+	//outs() << "is_bindable: " << F->getQualifiedNameAsString() << " " << r << "\n";
 	return r;
 }
 
@@ -224,6 +228,26 @@ bool FunctionBinder::binding_requested(Config const &config) const
 }
 
 
+/// extract include needed for this generator and add it to includes vector
+void FunctionBinder::add_relevant_includes(std::vector<std::string> &includes) const
+{
+	add_relevant_include(F, includes);
+
+	binder::add_relevant_includes(F->getReturnType(), includes);
+	for(uint i=0; i<F->getNumParams(); ++i) {
+		QualType qt = F->getParamDecl(i)->getOriginalType();
+
+		binder::add_relevant_includes( qt.getDesugaredType(F->getASTContext()), includes);
+	}
+
+	// if(CXXRecordDecl *r = F->getReturnType()->getAsCXXRecordDecl() ) binder::add_relevant_includes(r, includes);
+	// for(uint i=0; i<F->getNumParams(); ++i) {
+	// 	QualType qt = F->getParamDecl(i)->getOriginalType();
+	// 	if( CXXRecordDecl *r = qt.getDesugaredType(F->getASTContext())->getAsCXXRecordDecl() ) binder::add_relevant_includes(r, includes);
+	// }
+}
+
+
 /// generate binding code for this object and all its dependencies
 void FunctionBinder::bind(Context &context)
 {
@@ -233,9 +257,8 @@ void FunctionBinder::bind(Context &context)
 	string const module_variable_name = context.module_variable_name( namespace_from_named_decl(F) );
 	string const include = relevant_include(F);
 
-	code()  = indentation+"// " + F->getQualifiedNameAsString() + " " + function_arguments(F) + " file:" + include.substr(1, include.size()-2) + " line:" + line_number(F) + "\n";
+	code()  = indentation+"// " + F->getQualifiedNameAsString() + "(" + function_arguments(F) + ") file:" + include.substr(1, include.size()-2) + " line:" + line_number(F) + "\n";
 	code() += indentation + module_variable_name + bind_function(F) + ";\n\n";
 }
-
 
 } // namespace binder

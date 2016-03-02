@@ -26,7 +26,7 @@ using namespace llvm;
 using namespace clang;
 
 using std::string;
-//using std::vector;
+using std::vector;
 //using std::unordered_map;
 
 using namespace fmt::literals;
@@ -112,10 +112,15 @@ bool is_bindable(clang::CXXRecordDecl const *C)
 {
 	bool r = true;
 
-	r &= C->isCompleteDefinition()  and  !C->isDependentType(); //C->hasDefinition();
+	if( C->isDependentType() ) return false;
 
-
-	//outs() << "is_bindable(CXXRecordDecl): " << C->getQualifiedNameAsString() << template_specialization(C) << " " << r << "\n";
+	// outs() << "is_bindable(CXXRecordDecl): " << C->getQualifiedNameAsString() //<< template_specialization(C)
+	// 	   << " C->hasDefinition():" << C->hasDefinition()
+	// 	   << " C->isCompleteDefinition():" << C->isCompleteDefinition()
+	// 	   // << " C->isThisDeclarationADefinition():" << C->isThisDeclarationADefinition()
+	// 	   // << " C->getDefinition():" << C->getDefinition()
+	// 	//<< " C->isDependentType():" << C->isDependentType()
+	// 	   <<"\n";
 
 
 	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
@@ -172,6 +177,8 @@ bool is_bindable(clang::CXXRecordDecl const *C)
 			}
 
 		}
+	} else {
+		r &= C->isCompleteDefinition() /* and C->getDefinition() */  /*and  C->hasDefinition()*/;
 	}
 
 	// todo: bindging for abstract classes
@@ -214,6 +221,30 @@ bool is_binding_requested(clang::CXXRecordDecl const *C, Config const &config)
 }
 
 
+// extract include needed for declaration and add it to includes
+void add_relevant_includes(clang::CXXRecordDecl const *C, vector<string> &includes)
+{
+	outs() << "add_relevant_includes(class): " << C->getQualifiedNameAsString() << template_specialization(C) << "\n";
+	if( !begins_wtih(C->getQualifiedNameAsString(), "std::") ) add_relevant_include(C, includes);
+
+	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(C) ) {
+
+		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
+			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+				add_relevant_includes( t->getTemplateArgs()[i].getAsType().getDesugaredType(C->getASTContext()) , includes);
+
+				// Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+				// if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
+				// 	CXXRecordDecl *rd = tp->getAsCXXRecordDecl();
+				// 	//TagDecl *td = tp->getAsTagDecl();
+				// 	add_relevant_includes(rd, includes);
+				// }
+			}
+		}
+	}
+}
+
+
 /// Generate string id that uniquly identify C++ binding object. For functions this is function prototype and for classes forward declaration.
 string ClassBinder::id() const
 {
@@ -232,6 +263,13 @@ bool ClassBinder::bindable() const
 bool ClassBinder::binding_requested(Config const &config) const
 {
 	return is_binding_requested(C, config);
+}
+
+
+/// extract include needed for this generator and add it to includes vector
+void ClassBinder::add_relevant_includes(std::vector<std::string> &includes) const
+{
+	binder::add_relevant_includes(C, includes);
 }
 
 

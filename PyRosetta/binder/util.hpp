@@ -69,11 +69,20 @@ std::string template_argument_to_string(clang::TemplateArgument const &);
 /// calcualte line in source file for NamedDecl
 std::string line_number(clang::NamedDecl *decl);
 
-// extract include path needed for declaration itself (without template dependency if any) and return it, return empty string if no relevant include could be found (ie for build-in's)
-std::string relevant_include(clang::NamedDecl *decl);
+
+// extract include path needed for declaration itself (without template dependency if any), return empty string if no include could be found
+std::string relevant_include(clang::NamedDecl const *decl);
+
+// extract include path needed for declaration itself (without template dependency if any), do nothing if include could not be found (ie for build-in's)
+void add_relevant_include(clang::NamedDecl const *decl, std::vector<std::string> &includes);
+
+/// extract include needed for this generator and add it to includes vector
+void add_relevant_includes(clang::QualType qt, /*clang::ASTContext const &context,*/ std::vector<std::string> &includes);
+
+
 
 /// extract include needed for declaration and add it to includes
-bool add_relevant_includes(clang::NamedDecl *decl, std::vector<std::string> &includes);
+//bool add_relevant_includes(clang::NamedDecl *decl, std::vector<std::string> &includes);
 
 /// Try to read exisitng file and if content does not match to code - write a new version. Also create nested dirs starting from prefix if nessesary.
 void update_source_file(std::string const &prefix, std::string const &file_name, std::string const &code);

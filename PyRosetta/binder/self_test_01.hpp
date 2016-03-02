@@ -3,6 +3,8 @@
 #include <memory>
 //#include <iostream>
 
+#include <self_test.incl.hpp>
+
 /*
 namespace aa {
 
@@ -58,17 +60,59 @@ namespace utility {
 // void foo_N(N<int>) {}
 
 
-void foo() {}
+//void foo() {}
 //void foo_string_const(std::string) {}
 
-void foo_string_const(std::string const &) {}
-void foo_string(std::string  &) {}
-void foo_int_const(int const &) {}
-void foo_int(int &) {}
+// void foo_string_const(std::string const &) {}
+// void foo_string(std::string  &) {}
+// void foo_int_const(int const &) {}
+// void foo_int(int &) {}
 
-class CA {};
+// class CA {};
+// template<typename T>
+// void foo_aaaa(int) {}
 
-// class UA;
+// //template<>
+// //void foo_aaaa<aaaa::A>(int);
+
+// void foo()
+// {
+// 	foo_aaaa<aaaa::A>(0);
+// }
+
+
+
+template<typename T>
+class TA
+{
+public:
+	T value;
+};
+
+
+template<int S>
+class TI
+{
+public:
+	int values[S];
+};
+
+
+class B : public TA<aaaa::A> {};
+
+//void foo_A( std::shared_ptr< const aaaa::A > &) {}
+//void foo_A( std::shared_ptr< TA<aaaa::A> > &) {}
+
+typedef TA<aaaa::A> TA_A;
+
+void foo_TA(TA<aaaa::A>) {}
+
+template<int T>
+void foo_T(TI<T> &) {}
+
+// typedef TA<aaaa::A> TA_A;
+
+// class TC : public TA<aaaa::A> {};
 
 // class A {
 // public:

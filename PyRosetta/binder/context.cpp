@@ -218,7 +218,7 @@ void Context::generate(Config const &config)
 
 			for(; code.size()<config.maximum_file_length  and  i<binders.size()  and  namespace_==namespace_from_named_decl( binders[i]->named_decl() ); ++i) {
 				code += binders[i]->code();
-				add_relevant_includes(binders[i]->named_decl(), includes);
+				binders[i]->add_relevant_includes(includes);
 			}
 
 			code = generate_include_directives(includes) + module_header + "void " + function_name + module_function_suffix + "\n{\n" + code + "}\n";

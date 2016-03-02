@@ -54,11 +54,13 @@ public:
 	bool bindable() const override;
 
 	/// check if user requested binding for the given declaration
-	virtual bool binding_requested(Config const &) const override;
+	bool binding_requested(Config const &) const override;
+
+	/// extract include needed for this generator and add it to includes vector
+	void add_relevant_includes(std::vector<std::string> &includes) const override;
 
 	/// generate binding code for this object and all its dependencies
 	void bind(Context &) override;
-
 
 private:
 	clang::FunctionDecl *F;

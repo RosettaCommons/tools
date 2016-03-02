@@ -41,6 +41,9 @@ public:
 	/// check if user requested binding for the given declaration
 	virtual bool binding_requested(Config const &) const override;
 
+	/// extract include needed for this generator and add it to includes vector
+	void add_relevant_includes(std::vector<std::string> &includes) const override;
+
 	/// generate binding code for this object and all its dependencies
 	void bind(Context &) override;
 
@@ -70,6 +73,9 @@ bool is_binding_requested(clang::CXXRecordDecl const *C, std::vector<std::string
 
 // check if bindings for object should be skipped
 bool is_skipping_requested(clang::CXXRecordDecl const *C, std::vector<std::string> const & namespaces_to_skip);
+
+// extract include needed for declaration and add it to includes
+void add_relevant_includes(clang::CXXRecordDecl const *C, std::vector<std::string> &includes);
 
 
 

@@ -13,6 +13,8 @@
 
 #include <util.hpp>
 
+#include <class.hpp>
+
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ExprCXX.h>
 
@@ -193,8 +195,8 @@ string line_number(NamedDecl *decl)
 // }
 
 
-// extract include path needed for declaration itself (without template dependency if any) and return it, return empty string if no relevant include could be found (ie for build-in's)
-string relevant_include(NamedDecl *decl)
+// extract include path needed for declaration itself (without template dependency if any), return empty string if no include could be found
+string relevant_include(NamedDecl const *decl)
 {
 	ASTContext & ast_context( decl->getASTContext() );
 	SourceManager & sm( ast_context.getSourceManager() );
@@ -226,37 +228,59 @@ string relevant_include(NamedDecl *decl)
 	return include_string;
 }
 
+// extract include path needed for declaration itself (without template dependency if any), do nothing if include could not be found (ie for build-in's)
+void add_relevant_include(NamedDecl const *decl, vector<string> &includes)
+{
+	string include = relevant_include(decl);
+
+	if( include.size() ) includes.push_back(include);
+}
+
+/// extract include needed for this generator and add it to includes vector
+void add_relevant_includes(QualType qt, /*const ASTContext &context,*/ std::vector<std::string> &includes)
+{
+	//QualType qt = qt.getDesugaredType(context);
+
+	//outs() << "add_relevant_includes(qt): " << qt.getAsString() << "\n";
+
+	if( PointerType const *pt = dyn_cast<PointerType>( qt.getTypePtr() ) ) add_relevant_includes(pt->getPointeeType(), includes);
+
+	if( ReferenceType const *rt = dyn_cast<ReferenceType>( qt.getTypePtr() ) ) add_relevant_includes(rt->getPointeeType(), includes);
+
+	if( CXXRecordDecl *r = qt->getAsCXXRecordDecl() ) add_relevant_includes(r, includes);
+}
+
 
 // extract include needed for declaration and add it to includes
-bool add_relevant_includes(NamedDecl *decl, vector<string> &includes)
-{
-	bool added = false;
+// bool add_relevant_includes(NamedDecl *decl, vector<string> &includes)
+// {
+// 	bool added = false;
 
-	if( !begins_wtih(decl->getQualifiedNameAsString(), "std::") ) {
-		string include_string = relevant_include(decl);
+// 	if( !begins_wtih(decl->getQualifiedNameAsString(), "std::") ) {
+// 		string include_string = relevant_include(decl);
 
-		if( include_string.size() ) {
-			includes.push_back(include_string);
-			added = true;
-		}
-	}
+// 		if( include_string.size() ) {
+// 			includes.push_back(include_string);
+// 			added = true;
+// 		}
+// 	}
 
-	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(decl) ) {
+// 	if( auto t = dyn_cast<ClassTemplateSpecializationDecl>(decl) ) {
 
-		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
-			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
-				Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
-				if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
-					//CXXRecordDecl *rd = tp->getAsCXXRecordDecl();
-					TagDecl *td = tp->getAsTagDecl();
-					added |= add_relevant_includes(td, includes);
-				}
-			}
-		}
-	}
+// 		for(uint i=0; i < t->getTemplateArgs().size(); ++i) {
+// 			if( t->getTemplateArgs()[i].getKind() == TemplateArgument::Type ) {
+// 				Type const *tp = t->getTemplateArgs()[i].getAsType().getTypePtrOrNull();
+// 				if( tp  and  (tp->isRecordType() or tp->isEnumeralType()) and  !tp->isBuiltinType() ) {
+// 					//CXXRecordDecl *rd = tp->getAsCXXRecordDecl();
+// 					TagDecl *td = tp->getAsTagDecl();
+// 					added |= add_relevant_includes(td, includes);
+// 				}
+// 			}
+// 		}
+// 	}
 
-	return added;
-}
+// 	return added;
+// }
 
 
 /// Try to read exisitng file and if content does not match to code - write a new version. Also create nested dirs starting from prefix if nessesary.

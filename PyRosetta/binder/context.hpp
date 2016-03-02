@@ -51,10 +51,11 @@ public:
 	/// check if user requested binding for the given declaration
 	virtual bool binding_requested(Config const &) const = 0;
 
+	/// extract include needed for this generator and add it to includes vector
+	virtual void add_relevant_includes(std::vector<std::string> &includes) const = 0;
 
 	/// generate binding code for this object and all its dependencies
 	virtual void bind(Context &) = 0;
-
 
 	// return true if code was already generate for this object
 	bool is_binded() const { return code_.size(); }

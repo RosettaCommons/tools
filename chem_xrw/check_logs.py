@@ -289,7 +289,7 @@ def main(argv):
     print len(all_errors[ 4]), "structures with 'Residue outside res_map range' errors (resMap_range_error.log) ", len(all_errors[4])
     print len(all_errors[ 5]), "structures with partly recognized residue errors (usually branch-point) (partly_recognized_res.log)", len(all_errors[5])
     print len(all_errors[ 6]), "structures with packed_rotno_conversion_data_current_ errors (rotno_error.log) ", len(all_errors[6])
-    print len(all_errors[ 7]), "structures with 'Can't create a polymer bond' errors (usually sugars) (polymer_bod_error.log) ", len(all_errors[7])
+    print len(all_errors[ 7]), "structures with 'Can't create a polymer bond' errors (usually sugars) (polymer_bond_error.log) ", len(all_errors[7])
     print len(all_errors[ 8]), "structures with PatchOperation errors (PatchOperation.log) ", len(all_errors[8])
     print len(all_errors[ 9]), "structures with ace.CYS errors (needs acetylated CYS restype) (ace_CYS.log) ", len(all_errors[9])
     print len(all_errors[10]), "structures with unrecognized residue errors (straight 'unrecognized residue', usually ligands?) (resUnrec.log)  ", len(all_errors[10])

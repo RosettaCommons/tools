@@ -9,7 +9,7 @@
 # (c) Questions about this can be addressed to University of Washington UW
 # (c) TechTransfer, email: license@u.washington.edu.
 
-"""File:  carbohydrate_code_generator.py
+"""File:  GLYCAM_code_generator.py
 
 Brief:  This Python script auto-generates a .codes file of alternative three-
 letter codes for use in Rosetta when loading in PDB files that use the GLYCAM
@@ -28,6 +28,7 @@ Labonte <JWLabonte@jhu.edu> (PEP8/style tweaks, GLYCAM code additions)
 #Imports
 from __future__ import with_statement
 import os
+from carbohydrate_data import *
 
 
 # filename preparation
@@ -45,61 +46,6 @@ file_header = "# A list of 3-letter GLYCAM codes for monosaccharide " \
               "more information.\n\n" \
               "# CODES ARE CASE-SENSITIVE!\n\n" \
               "# Code  Rosetta Code  Default HETNAM\n" \
-
-# linkage code dictionary
-# { "one letter linkage code" : "Default HETNAM linkage" }
-one_letter_linkage_code_list = ['0', '1', '2', '3', '4', '5', '6', 'Z', 'Y',
-                                'O', 'X', 'W', 'N', 'V', 'U', 'M', 'T', 'L',
-                                'S', 'R', 'K', 'Q', 'J', 'P', 'I']
-
-one_letter_linkage_code_dict = {'0' : "->4)", '1' : "->1)", '2' : "->2)",
-                                '3' : "->3)", '4' : "->4)", '5' : "->5)",
-                                '6' : "->6)", 'Z' : "->2)", 'Y' : "->2)",
-                                'O' : "->2)", 'X' : "->2)", 'W' : "->3)",
-                                'N' : "->3)", 'V' : "->3)", 'U' : "->4)",
-                                'M' : "->5)", 'T' : "->2)", 'L' : "->2)",
-                                'S' : "->2)", 'R' : "->2)", 'K' : "->2)",
-                                'Q' : "->3)", 'J' : "->3)", 'P' : "->2)",
-                                'I' : "->2)"}
-
-# one letter code dictionary
-# iterate over keys to get the one letter sugar codes
-# { "one letter GLYCAM code" : "Rosetta code" }
-one_letter_sugar_code_list = ['A', 'D', 'R', 'X', 'N', 'E', 'L', 'G', 'K',
-                              'I', 'M', 'T', 'C', 'P', 'B', 'J', 'F', 'Q',
-                              'H', 'a', 'd', 'r', 'x', 'n', 'e', 'l', 'g',
-                              'k', 'i', 'm', 't', 'c', 'p', 'b', 'j', 'f',
-                              'q', 'h']
-
-one_letter_sugar_code_dict = {'A' : "Ara", 'D' : "Lyx", 'R' : "Rib",
-                              'X' : "Xyl", 'N' : "All", 'E' : "Alt",
-                              'L' : "Gal", 'G' : "Glc", 'K' : "Gul",
-                              'I' : "Ido", 'M' : "Man", 'T' : "Tal",
-                              'C' : "Fru", 'P' : "Psi", 'B' : "Sor",
-                              'J' : "Tag", 'F' : "Fuc", 'Q' : "Qui",
-                              'H' : "Rha", 'a' : "Ara", 'd' : "Lyx",
-                              'r' : "Rib", 'x' : "Xyl", 'n' : "All",
-                              'e' : "Alt", 'l' : "Gal", 'g' : "Glc",
-                              'k' : "Gul", 'i' : "Ido", 'm' : "Man",
-                              't' : "Tal", 'c' : "Fru", 'p' : "Psi",
-                              'b' : "Sor", 'j' : "Tag", 'f' : "Fuc",
-                              'q' : "Qui", 'h' : "Rha"}
-
-# alpha and beta codes
-# making a list only for iteration purposes
-alpha_and_beta_codes = ['A', 'B', 'a', 'b']
-
-
-# terminal values dictionary
-# { "one letter linkage code" : "terminal values" }
-terminal_values_dictionary = {'Z' : "# 2,3", 'Y' : "# 2,4", 'O' : "# 2,5",
-                              'X' : "# 2,6", 'W' : "# 3,4", 'N' : "# 3,5",
-                              'V' : "# 3,6", 'U' : "# 4,6", 'M' : "# 5,6",
-                              'T' : "# 2,3,4", 'L' : "# 2,3,5",
-                              'S' : "# 2,3,6", 'R' : "# 2,4,6",
-                              'K' : "# 2,5,6", 'Q' : "# 3,4,6",
-                              'J' : "# 3,5,6", 'P' : "# 2,3,4,6",
-                              'I' : "# 2,4,5,6"}
 
 # add each line to this list, which will then be dumped into a file
 file_contents = []
@@ -173,9 +119,8 @@ for anomer_type in alpha_and_beta_codes:
                                           spaces, default_hetnam, terminal_code)
             file_contents.append(row)
             
-        file_contents.append("\n")
 
 
-# write data to file
+# write data to glycam.codes file
 with open(filename, 'wb') as fh:
     fh.writelines(file_contents)

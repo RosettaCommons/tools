@@ -41,7 +41,7 @@ def central_compile_command() :
    # if your compiler doesn't support -S, you might see this error:
    # cc1plus: error: output filename specified twice
 
-   include_directories = " -I./ -I../external/include -Iplatform/" + os + "/" + nbits + "/gcc -Iplatform/" + os + "/" + nbits +  " -Iplatform/" + os + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio"
+   include_directories = " -I./ -I../external -I../external/include -Iplatform/" + os + "/" + nbits + "/gcc -Iplatform/" + os + "/" + nbits +  " -Iplatform/" + os + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio"
 
    generic_command = " -c -std=c++98 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store -DPTR_MODERN -DPTR_BOOST" + include_directories
    return compiler, generic_command
@@ -53,7 +53,7 @@ def cxxtest_testgen_command() :
 
 
 def cxxtest_gcc_compile_command() :
-   return "g++ -c -isystem ../external/boost_1_55_0/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/dbio -I/usr/local/include -I/usr/include -o "
+   return "g++ -c -isystem ../external/boost_1_55_0/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/dbio -I/usr/local/include -I/usr/include -o "
 
 def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
    out_log = "out.log"

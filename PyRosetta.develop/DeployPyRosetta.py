@@ -64,8 +64,14 @@ def main(args):
       help="Number of processors to use on when building(default: 1)",
     )
 
-    parser.add_option("--omit-cmake",
+    parser.add_option("--skip-cmake",
       default=False,
+      action="store_true",
+      help="Disbale installation of cmake. Use if system already have it installed..",
+    )
+
+    parser.add_option("--skip-gcc",
+      default=False if Platform == "macos" else True,
       action="store_true",
       help="Disbale installation of cmake. Use if system already have it installed..",
     )
@@ -122,13 +128,22 @@ def main(args):
     i_python_lib = 'python%s.%s' % sys.version_info[:2]
     i_BuildPyrosetta = prefix +'/BuildPyRosetta.sh'
 
+    # GCC install for Mac OS X
+    i_gmp  = 'ftp://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2'
+    i_mpfr = 'ftp://ftp.gnu.org/gnu/mpfr/mpfr-3.1.3.tar.bz2'
+    i_mpc  = 'ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz'
+    i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.3.6/gcc-4.3.6.tar.bz2'
+    #i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.7/gcc-4.4.7.tar.bz2'
+    #i_gcc  = 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.5.4/gcc-4.5.4.tar.bz2'
+
+
     print 'Destination path:', prefix
     #print 'Data dir:', data_dir
     print 'Working dir:', working_dir
     print 'Source dir: ', source_dir
     print 'Python dynamic lib to be used:', i_python_lib
     print 'PyRosetta building dir:', Options.rosetta_source if Options.rosetta_source else '[SKIPPED]'
-    print 'Omit CMake install:', Options.omit_cmake
+    print 'Skip CMake install:', Options.skip_cmake
     print 'Compiler to use when buiilding PyRosetta:', Options.compiler
     print 'Debug:', Options.debug
 
@@ -146,10 +161,35 @@ def main(args):
 
     execute('Testing source file...', cd_work_env + 'ls')
 
-    if not Options.omit_cmake:
+    if not Options.skip_cmake:
         execute('Downloading CMake...', 'cd %s && %s "http://www.cmake.org/files/v2.8/%s.tar.gz"' % (source_dir, Options.loader, i_cmake) )
         execute('Unpacking CMake...', 'cd %s && tar -vzxf %s/%s.tar.gz' % (working_dir, source_dir, i_cmake) )
         execute('Installing CMake...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, i_cmake, prefix, Options.jobs) )
+
+
+    # if Platform == "macos"  and  not Options.skip_gcc:
+
+    #     gmp_arch = i_gmp.rpartition('/')[2];  gmp = gmp_arch[:-len('a.tar.bz2')]
+    #     execute('Downloading gmp...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gmp) )
+    #     execute('Unpacking gmp...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gmp_arch) )
+    #     execute('Installing gmp...', 'cd %s/%s && ./configure --prefix=%s && make -j%s && make install' % (working_dir, gmp, prefix, Options.jobs) )
+
+    #     mpfr_arch = i_mpfr.rpartition('/')[2];  mpfr = mpfr_arch[:-len('.tar.bz2')]
+    #     execute('Downloading mpfr...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpfr) )
+    #     execute('Unpacking mpfr...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, mpfr_arch) )
+    #     execute('Installing mpfr...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, mpfr, prefix, prefix, Options.jobs) )
+
+    #     mpc_arch = i_mpc.rpartition('/')[2];  mpc = mpc_arch[:-len('.tar.gz')]
+    #     execute('Downloading mpc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_mpc) )
+    #     execute('Unpacking mpc...', 'cd %s && tar -vzxf %s/%s' % (working_dir, source_dir, mpc_arch) )
+    #     execute('Installing mpc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, mpc, prefix, prefix, Options.jobs) )
+
+    #     gcc_arch = i_gcc.rpartition('/')[2];  gcc = gcc_arch[:-len('.tar.bz2')]
+    #     execute('Downloading gcc...', 'cd %s && %s "%s"' % (source_dir, Options.loader, i_gcc) )
+    #     execute('Unpacking gcc...', 'cd %s && tar -vjxf %s/%s' % (working_dir, source_dir, gcc_arch) )
+    #     execute('Installing gcc...', 'cd %s/%s && ./configure --prefix=%s --with-gmp=%s && make -j%s && make install' % (working_dir, gcc, prefix, prefix, Options.jobs) )
+
+
 
     # CVS version, now depricated
     # execute('Getting GCCXML...', 'cd %s && mkdir gccxml-cvs && cd gccxml-cvs && cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co -D 2012-10-20 gccxml' % (working_dir, ) )
@@ -158,9 +198,20 @@ def main(args):
     # execute('Building GCCXML...', cd_work_env + 'cd gccxml-cvs/gccxml-build && make -j%s && make install' % Options.jobs )
 
     execute('Getting GCCXML...', 'cd %s && mkdir gccxml-git && cd gccxml-git && git clone https://github.com/gccxml/gccxml.git' % (working_dir, ) )  # git reset --hard 1bfbbe93ae16e97b010fb111305d169e3dcfd5a4
+
+    # print 'Fixing CMake rules for Mac...'
+    # file_name = working_dir+'/gccxml-git/gccxml/GCC/CMakeLists.txt'
+    # data = file(file_name).read()
+    # b, _, e = data.partition('IF(APPLE AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")')
+    # data = b + 'IF(APPLE AND CMAKE_C_COMPILER_ID MATCHES "^(Clang)$")' + e
+    # with file(file_name, 'w') as f: f.write(data)
+
     execute('Creating GCCXML build dir...', cd_work_env + 'mkdir gccxml-git/gccxml-build')
-    execute('Configuring GCCXML...', cd_work_env + 'cd gccxml-git/gccxml-build && cmake ../gccxml -DCMAKE_INSTALL_PREFIX:PATH=%s' % prefix)
+    execute('Configuring GCCXML...', cd_work_env + 'cd gccxml-git/gccxml-build && cmake ../gccxml -DCMAKE_INSTALL_PREFIX:PATH=%s -DCMAKE_C_COMPILER=`which gcc` -DCMAKE_CXX_COMPILER=`which g++`' % prefix)  #   -DCMAKE_C_COMPILER_IS=GNU -DCMAKE_CXX_COMPILER_ID=GNU -DCMAKE_COMPILER_IS_GNUCXX=TRUE
     execute('Building GCCXML...', cd_work_env + 'cd gccxml-git/gccxml-build && make -j%s && make install' % Options.jobs )
+
+
+
 
     #execute('Unpacking PyGCCXML...', 'cd %s && unzip  %s/%s.zip' % (working_dir, data_dir, i_pygccxml) )
     #execute('Installing PyGCCXML...', cd_work_env + 'cd %s && python setup.py install --prefix=%s' % (i_pygccxml, prefix) )

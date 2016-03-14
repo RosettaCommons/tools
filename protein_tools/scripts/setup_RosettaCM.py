@@ -74,7 +74,7 @@ class SingleAlingmnet:
         tag = lines[aln_line_numbers[0]][1:].strip()
         self.target_pdb_code = tag[:4]
         self.target_pdb_chain = tag[4]
-        self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
+        self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
         self.target_start = 1
         for line in lines[aln_line_numbers[0]+1:aln_line_numbers[1]]:
             self.target_aln_seq += line.strip()
@@ -134,7 +134,7 @@ class SingleAlingmnet:
                     buff = block[0].strip().split()
                     self.target_pdb_code = buff[0][:4]
                     self.target_pdb_chain = buff[0][4]
-                    self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
+                    self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
                     self.target_aln_seq += buff[1]
 
                     buff = block[-1].strip().split()
@@ -145,23 +145,27 @@ class SingleAlingmnet:
         if len(block) != 0:
             self.query_start = 1
             self.target_start = 1
+	    target_line = block[0].strip().split()
+	    self.target_pdb_code = target_line[0][:4]
+	    self.target_pdb_chain = target_line[0][4]
+	    self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
+	    query_line = block[1].strip().split()
+	    self.query_tag = query_line[0]
+	    
+	    # Sequences can span muliple lines
+	    for i in range (0,len(block) - 2,2):
+		    buff = block[i].strip().split()
+		    self.target_aln_seq += buff[1]
 
-            buff = block[0].strip().split()
-            self.target_pdb_code = buff[0][:4]
-            self.target_pdb_chain = buff[0][4]
-            self.target_tag = "%s%s_201"%(self.target_pdb_code,self.target_pdb_chain)
-            self.target_aln_seq += buff[1]
-
-            buff = block[-1].strip().split()
-            self.query_tag = buff[0]
-            self.query_aln_seq += buff[1]
-            block = []
-        return self
+		    buff = block[i+1].strip().split()
+		    self.query_aln_seq += buff[1]
+	    block = []
+	    return self
 
     def grishin_lines(self):
         outlines = []
         outlines.append("## %s %s\n"%(self.query_tag, self.target_tag))
-        #outfile.write("## %s %s%s_%d\n"%(self.target_tags, self.target_pdb_and_chain[i_aln][0], self.target_pdb_and_chain[i_aln][1], i_aln+201))
+        #outfile.write("## %s %s%s_%d\n"%(self.target_tags, self.target_pdb_and_chain[i_aln][0], self.target_pdb_and_chain[i_aln][1], i_aln+thread))
         outlines.append("#  \n")
         if self.score_line == "":
             outlines.append("scores_from_program: 0\n")
@@ -290,7 +294,7 @@ class Alignment:
                     query_tag = tag
                 else:
                     target_tag = tag.replace(".pdb","")
-                    target_tag += "_%d"%(201+len(self.query_aln_seq))
+                    target_tag += "_%d"%(thread+len(self.query_aln_seq))
                     print target_tag
                 continue
             else:
@@ -375,7 +379,7 @@ class Alignment:
 
     def write_grishin(self, out_fn):
         assert(len(self.alignments) > 0), "Input alignment empty!!"
-        outfile = open(out_fn,'w')
+	outfile = open(out_fn,'w')
         for aln in self.alignments:
             for line in aln.grishin_lines():
                 outfile.write(line)
@@ -441,7 +445,7 @@ def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
 
 def write_xml(fn, template_filenames):
     xml_file=open(fn,'w')
-    xml_file.write("<dock_design>\n")
+    xml_file.write("<ROSETTASCRIPTS>\n")
     xml_file.write("    <TASKOPERATIONS>\n")
     xml_file.write("    </TASKOPERATIONS>\n")
     xml_file.write("    <SCOREFXNS>\n")
@@ -472,7 +476,7 @@ def write_xml(fn, template_filenames):
     xml_file.write("    <PROTOCOLS>\n")
     xml_file.write("        <Add mover=hybridize/>\n")
     xml_file.write("    </PROTOCOLS>\n")
-    xml_file.write("</dock_design>\n")
+    xml_file.write("</ROSETTASCRIPTS>\n")
     xml_file.close()
 
 def write_stage1_wts(wts_fn):
@@ -603,7 +607,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Set up and run RosettaCM')
     parser.add_argument('--fasta', action="store", help='input fasta file',required=True)
     parser.add_argument('--alignment', action="store", default="", help='input alignment file')
-    parser.add_argument('--alignment_format', action="store", default="grishin", help='input alignment file format (grishin, modeller, or vie)')
+    parser.add_argument('--alignment_format', action="store", default="grishin", help='input alignment file format (grishin, modeller, hhsearch, clustalw, or fasta)')
     parser.add_argument('--templates', nargs='*', default=[], help="input target templates")
     parser.add_argument('--rosetta_bin', action="store", default="~/Rosetta/main/source/bin", help="rosetta path")
     parser.add_argument('--build', action="store", default="default", help="build name in rosetta executable")
@@ -654,26 +658,31 @@ if __name__=="__main__":
     # get alignment
     converted_aln = os.path.abspath("converted_alignment.aln")
     if args.alignment != "":
-        if args.alignment_format not in ["grishin", "modeller", "vie", "hhsearch", "clustalw", "fasta"]:
+        if args.alignment_format not in ["grishin", "modeller", "hhsearch", "clustalw", "fasta"]:
             print "Do not understand input alignment format: %s"%args.alignment_format
             sys.exit(-1)
 
         if args.alignment_format == "grishin":
             os.system("cp %s %s"%(alignment_fn, converted_aln))
+            grishin_lines = open(converted_aln).readlines()
+            alignment = Alignment()
+            alignment.read_grishin(grishin_lines)
         elif args.alignment_format in ["modeller", "hhsearch", "clustalw", "fasta"]:
             alignment = Alignment()
             alignment.convert(alignment_fn, args.alignment_format, converted_aln, "grishin")
-        else:
-            command = "~/bin/convert_aln.pl -format_in %s -format_out grishin -nosort -outfile %s %s -renumber_offset 200"%(args.alignment_format,converted_aln, alignment_fn)
-            if args.verbose: print "Running %s"%command
-            os.system(command)
-    else:
-        template_filenames = " %s"*len(input_templates)%(tuple(input_templates))
-        command = "/work/yfsong/SVN/fresh/ci_co/rosetta/workspace/workspaces/yfsong/devel/scripts/run_local_align.py --fasta %s --templates %s --out %s"%(fasta_fn, template_filenames, converted_aln)
-        if args.verbose: print "Running %s"%command
-        os.system(command)
 
     assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
+    copy_cmd = "cp " + converted_aln + " " + run_dir
+    os.system( copy_cmd )
+    aln_file = open(converted_aln,'r')
+    # Check that target sequence is the first one in the aln file
+    for line in aln_file:
+	buff = line.strip().split()
+	if buff[0] == "##":
+	    print buff
+    	    assert (buff[1] == fasta_fn.split('/')[-1].split('.')[0]), "\
+    The first sequence ID in grishin alignment file must match the fasta file name. \n \
+                   -> You may have to rename or swap the order of sequences in your alignment file."
 
     if (not os.path.exists(run_dir)): os.makedirs(run_dir)
     os.chdir(run_dir)

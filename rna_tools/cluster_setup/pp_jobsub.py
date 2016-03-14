@@ -23,12 +23,14 @@ if args.cluster_name in ['stampede', 'sherlock', 'comet']:
 else:
     raise argparse.ArgumentError("Invalid cluster_name!")
 active_nodes = jobserver.get_active_nodes()
+if 'local' in active_nodes:
+    active_nodes.pop('local')
 active_cpus = sum(active_nodes.values())
 print 'Active_nodes:', active_nodes
 print 'N_cpus = %d, Active_cpus = %d' % (ncpus, active_cpus)
 assert (ncpus == active_cpus)
 
-print 'Starting sumbitting jobs...'
+print 'Starting submitting jobs...'
 print '# of jobs = %d, # of cpus = %d' % (len(cmdline_list), ncpus)
 if len(cmdline_list) > ncpus:
     sys.stderr.write('WARNING: More jobs than the total amount of CPUs\n')

@@ -26,15 +26,14 @@ if cluster == 'unknown':
 
 # handle flags like '--exclude' and '--delete' correctly
 args = argv[2:]
-filename = ''
+filenames = []
 extra_args = []
 for m in args:
     if len( m ) > 2 and m.find( '--' ) > -1:
         extra_args.append( m )
     else:
-        assert( len(filename) == 0 )
-        filename = m
-
+        filenames.append( m )
+if len(filenames) == 0: filenames = ['.']
 dir = '.'
 
 clusterdir = abspath(dir).replace('/Users/%s/' % user_name,'')
@@ -49,10 +48,16 @@ clusterdir = remotedir+clusterdir
 cluster_prefix = cluster+':'
 if len(cluster) == 0: cluster_prefix = ''
 
-command = 'rsync -avzL '+cluster_prefix+clusterdir + '/' + filename + ' . '+string.join(extra_args)
-print(command)
-system(command)
+commands = []
+for filename in filenames:
+    remote_filename = ' ' + cluster_prefix+clusterdir + '/' + filename
+    command = 'rsync -avzL '+ remote_filename + ' . '+string.join(extra_args)
+    print(command)
+    system(command)
+    commands.append( command )
 print
-print 'Ran the following command: '
-print(command)
+print 'Ran the following commands: '
+for command in commands:
+    print
+    print(command)
 

@@ -12,7 +12,7 @@
 ## @brief  Script to create antibody.db file from old info/* files
 ## @author Sergey Lyskov
 
-import sys, time, os.path, urllib2, httplib, socket
+import os, sys, time, os.path, urllib2, httplib, socket, json
 
 
 def read_formated_text_file(file_name):
@@ -186,12 +186,7 @@ def detect_components(cdr_info):
 
 
 
-
-def main(args):
-    ''' Script to create antibody.db file from old info/* files
-    '''
-
-
+def create_antibody_db():
     cdr_info, cdr_legend = read_formated_text_file('info/cdr_info')
 
 
@@ -221,8 +216,72 @@ def main(args):
                 del cdr_info[p][k]
 
     #write_formated_text_file('info/antibody.db', cdr_info, 'pdb resolution BioType date LightType StructSouce H1 H2 H3 L1 L2 L3 FRH FRL HEAVY LIGHT'.split())
-    write_formated_text_file('info/antibody.db', cdr_info, 'pdb resolution BioType date LightType StructSouce h1 h2 h3 l1 l2 l3 frh frl heavy light'.split())
+    write_formated_text_file('info/antibody.info', cdr_info, 'pdb resolution BioType date LightType StructSouce h1 h2 h3 l1 l2 l3 frh frl heavy light'.split())
 
+
+
+
+def read_fasta_file(file_name):
+    """ return array of sequences from FASTA formatted file
+
+    file_name -- relative or absolute path to FASTA file
+    """
+    seqArray=[]
+    seqArrayNames=[]
+    seq=""
+    for l in file(file_name):
+        if l.startswith('>'):
+            if not "" == seq:
+	        seqArray.append(seq)
+		seq=""
+            seqArrayNames.append(l.rstrip())
+        else:
+            seq=seq+l.rstrip()
+    seqArray.append(seq)
+    return seqArray
+
+
+# Generating data set for Rosetta CDR unit tests
+def create_cdr_test_data():
+    tests = [d for d in os.listdir('test') if d != '.svn']
+
+    data = {}
+
+    for t in tests:
+        #print 'CDR test target: {}...'.format(t)
+
+        r = json.load( file('test/%s/%s.json' % (t, t) ) )
+        for k in r: r[k.lower()] = r.pop(k)
+
+        r['heavy_chain_sequence'] = read_fasta_file('test/%s/query_h.fasta' % t)[0]
+        r['light_chain_sequence'] = read_fasta_file('test/%s/query_l.fasta' % t)[0]
+
+        for chain in [ 'L', 'H' ]:
+            sequence = []
+            numbering = []
+            for line in file( 'test/{}/numbering_{}.txt'.format(t, chain) ):
+                aa, num = line.split()
+                sequence.append(aa)
+                numbering.append(num)
+
+            key = dict(H='heavy', L='light')[chain]
+
+            r['trimmed_' + key + '_sequence'] = ''.join(sequence)
+            r['trimmed_' + key + '_numbering'] = ' '.join(numbering)
+
+
+        data[ t.lower() ] = r
+
+    with file('info/cdr-test-data.json', 'w') as f: json.dump(data, f, sort_keys=True, indent=2)
+
+
+
+def main(args):
+    ''' Script to create antibody.db file from old info/* files and cdr-test-data.json file for unit tests
+    '''
+    #create_antibody_db()
+
+    create_cdr_test_data()
 
 
 if __name__ == "__main__": main(sys.argv)

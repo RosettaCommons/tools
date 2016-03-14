@@ -34,8 +34,8 @@ class JobManager :
          del self.jobs[ p ]
 
 def run_job(executable, job):
-	 # print "Running %s on %s" % (executable, job)
-	 command_list = [ executable, "src/" + job ]
+	 print "Running %s on %s" % (executable, job); sys.stdout.flush()
+	 command_list = executable.split(); command_list.append( "src/" + job )
 	 return subprocess.call( command_list ) == 0
 	
 if __name__ == "__main__" :
@@ -44,7 +44,9 @@ if __name__ == "__main__" :
       p.str( "executable" ).shorthand("e").required()
       
    # includes = { 'test.hh': '' }
+   os.chdir( "src" )
    includes = scan_compilable_files()
+   os.chdir( ".." )
 
    re_hh_header  = re.compile("\S*\.hh$")
    all_files = includes.keys()

@@ -39,7 +39,7 @@ def parse_nodefile(inp):
     return node_list
 
 
-def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):  
+def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
     if cluster_name in ['stampede']:
         submit_command = 'ibrun'
     else:
@@ -47,7 +47,7 @@ def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
     port = 32568
     socket_timeout = 3600 * 24
     key_phrase = '%x' % random.randrange(256**5)
-    
+
     if len( nodelist ) == 0:
         nodelist = open( 'nodefile.txt' ).read().strip()
     if len( job_cpus_per_node ) == 0:
@@ -55,9 +55,9 @@ def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
     nodes = parse_nodefile(nodelist)
     nworkers = int(job_cpus_per_node.split('(')[0])
     ncpus = nworkers * len(nodes)
-    
+
     print 'Submitting the ppserver...'
-    submit_cmdline = [submit_command, 'ppserver.py']
+    submit_cmdline = [submit_command, '/home/rhiju/src/pp-1.6.4/ppserver.py']
     if not nworkers is None:
         submit_cmdline += ['-w', str(nworkers)]
     if not socket_timeout is None:
@@ -72,7 +72,7 @@ def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
     else:
         ppservers = tuple([node + ':' + str(port) for node in nodes])
     jobserver = pp.Server(
-        ncpus=0, ppservers=ppservers, secret=key_phrase,
+        ncpus=ncpus, ppservers=ppservers, secret=key_phrase,
         socket_timeout=socket_timeout)
     time.sleep(30)
     return jobserver, ncpus
@@ -89,6 +89,7 @@ def load_jobfile(filename):
                 cmdline_list.append(cmdline)
         except:
             continue
+    print cmdline_list
     return work_dir_list, cmdline_list
 
 

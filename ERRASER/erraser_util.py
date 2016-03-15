@@ -454,7 +454,7 @@ def phenix_rna_validate(input_pdb, outliers_only = True):
             cols = line.strip().replace(':','  ').split()
             if cols[2].isalpha() and len(cols[2]) == 1:
                 cols.insert(0, cols.pop(2))
-            if cols[1][0].isalpha():
+            if len(cols[1]) > 4:
                 c = cols.pop(1)
                 chain, res = c[0], c[1:]
                 cols.insert(1, chain)

@@ -11,6 +11,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               ' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
               '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
               ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
+              'ROS': 'Z[ROS]',
               }
 
 def get_sequences( pdbname, removechain = 0 ):
@@ -45,6 +46,9 @@ def get_sequences( pdbname, removechain = 0 ):
             if len(line_edit)>75:
                 if (line_edit[76:78] == 'SE'):
                     line_edit = line_edit[0:76]+' S'+line_edit[78:]
+
+        if (line[0:6] == 'HETATM') & (line[17:20] in longer_names.keys() ):
+            line_edit = 'ATOM  '+line[6:]
 
         if line_edit[0:4] == 'ATOM':
             resnum = line_edit[22:26].replace( ' ', '' )
@@ -92,7 +96,7 @@ if __name__=='__main__':
     parser.add_argument('pdbname', help='pdbfile to get sequence from')
     parser.add_argument('--removechain', action='store_true')
     args=parser.parse_args()
-    
+
     ( sequences, all_chains, all_resnums ) = get_sequences( args.pdbname, removechain = args.removechain )
     print string.join(sequences, '')
-    
+

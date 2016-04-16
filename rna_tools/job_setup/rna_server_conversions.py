@@ -22,22 +22,41 @@ def ValidationError( string ):
     exit()
 
 def join_sequence( sequence ):
+    """ Remove spacer nucleotides and return sequence """
     sequence_joined = ''
     chainbreak_pos = []
     count = 0
+    in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
+        if c == '[' and sequence_joined[-1] == 'Z': # in a ligand
+            sequence_joined += c
+            in_nonstandard_name = True
+            continue
+        if c == ']' and in_nonstandard_name:
+            sequence_joined += c
+            in_nonstandard_name = False
+            continue
+        if in_nonstandard_name:
+            sequence_joined += c
+            continue
+        if c == 'Z':
+            sequence_joined += c
+            count += 1
+            continue
         if c in nts or c in secstruct_chars:
             sequence_joined += c.lower()
             count += 1
-        elif c in spacers:
+            continue
+        if c in spacers:
             if ( c == 0 ):
                 raise ValidationError( "Cannot start secstruct with spacer!" )
                 return None
             chainbreak_pos.append( count )
-        else:
-            raise ValidationError( "Unrecognized character in sequence: %s" % c  )
-            return None
+            continue
+
+        raise ValidationError( "Unrecognized character in sequence: %s" % c  )
+        return None
     return ( sequence_joined, chainbreak_pos )
 
 def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstruct='', fixed_stems = False, input_res = None ):
@@ -301,7 +320,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
 
             #Don't save alternative conformations.
             #if line[16] == 'A': continue
-
+            if len( line ) < 26: continue
             atomnum = line[6:11]
             if line_edit[22] == ' ': resnum = line_edit[23:26]
             else:                    resnum = line_edit[22:26]

@@ -340,7 +340,7 @@ if len( data_file ) > 0:
 
 
 assert( is_even( len(obligate_pair) ) )
-if len( obligate_pair[ 0 ] ) > 0:
+if obligate_pair and len( obligate_pair[ 0 ] ) > 0:
     working_res_chain = zip( working_res, working_chain )
     for m in range( len( obligate_pair)/2 ):
         pos1 = obligate_pair[ 2*m ]

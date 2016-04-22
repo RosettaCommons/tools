@@ -92,11 +92,17 @@ def checkBannedWords(filedata):
 def checkGuards(filedata):
 	prune(filedata)
 	lines = filedata["prunedlines"]
+        if len(lines) == 0:
+            #No parsed lines means a trivial header that doesn't need includes (e.g. documentation only)
+            return []
 	idx = 0
 	for l in lines:
 		if l and not(l.startswith("#include")):
 			break
 		idx += 1
+        if idx >= len(lines):
+            #A "meta" include - only has include lines,. The sub includes should have their own include guards.
+            return []
 	if not(lines[idx].startswith("#ifndef") and lines[-1].startswith("#endif")):
 		return ["Missing inclusion guards."]
 	return []
@@ -135,8 +141,9 @@ def checkGuardsWithNaming(filedata):
 
 CodingConventions = [
 		(checkHeader, ["hh"]),
-		(checkBannedWords, ["hh"]),
-		(checkGuards, ["hh"]),
+		(checkHeader, ["cc"]),
+#		(checkBannedWords, ["hh"]),
+#		(checkGuards, ["hh"]),
 #		(checkGuardWithNaming, ["hh"]),
 	]
 

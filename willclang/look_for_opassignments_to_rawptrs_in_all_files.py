@@ -101,6 +101,7 @@ class Runner:
                     "-I%s"%(rosetta_source_basedir + "src/platform/macos"),
                     "-I%s"%(rosetta_source_basedir + "external"),
                     "-I%s"%(rosetta_source_basedir + "external/boost_1_46_1"),
+                    "-I%s"%(rosetta_source_basedir + "external"),
                     "-I%s"%(rosetta_source_basedir + "external/include"),
                     "-I%s"%(rosetta_source_basedir + "external/dbio"),
                     "-I%s"%("/usr/lib/clang/2.9/include")

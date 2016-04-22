@@ -6,3 +6,4 @@
 .view_commit_log.pickle
 *.swp
 rna_tools/bin/*py
+glycam.codes

@@ -41,7 +41,7 @@ def central_compile_command() :
    # if your compiler doesn't support -S, you might see this error:
    # cc1plus: error: output filename specified twice
 
-   include_directories = " -I./ -I../external/include -Iplatform/" + os + "/" + nbits + "/gcc -Iplatform/" + os + "/" + nbits +  " -Iplatform/" + os + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio"
+   include_directories = " -I./ -I../external/include -Iplatform/" + os + "/" + nbits + "/gcc -Iplatform/" + os + "/" + nbits +  " -Iplatform/" + os + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio -I../external/libxml2/include"
 
    generic_command = " -c -std=c++98 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store -DPTR_MODERN -DPTR_BOOST" + include_directories
    return compiler, generic_command

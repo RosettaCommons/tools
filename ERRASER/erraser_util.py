@@ -299,8 +299,12 @@ def parse_option_chain_res_list ( argv, tag ) :
                 break
             input_string = input_string.upper()
 
-            chain_id = input_string[0]
-            input_string = input_string[1:]
+            if ':' in input_string:
+                chain_id = input_string[0]
+                input_string = input_string[2:]
+            else:
+                chain_id = input_string[0]
+                input_string = input_string[1:]
             split_string = input_string.split('-')
 
             for num in split_string :
@@ -310,12 +314,12 @@ def parse_option_chain_res_list ( argv, tag ) :
                     error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
 
             if len(split_string) == 1 :
-                list_load.append('%s%s' % (chain_id, split_string[0]) )
+                list_load.append('%s:%s' % (chain_id, split_string[0]) )
             elif len(split_string) == 2 :
                 start_num = int(split_string[0])
                 end_num = int(split_string[1])
                 for j in range(start_num, end_num + 1) :
-                    list_load.append('%s%s' % (chain_id, j))
+                    list_load.append('%s:%s' % (chain_id, j))
             else :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
     print "%s = %s" % (tag, list_load)
@@ -1028,7 +1032,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 P_coord_cur = []
                 if not is_current_het :
                     res_no += 1
-                    orig_res = '%s%s' % (line[21], line[22:27])
+                    orig_res = '%s:%s' % (line[21], line[22:27])
                     orig_res = orig_res.replace(' ', '')
                     res_conversion_list.append(orig_res)
 

@@ -61,7 +61,7 @@ def rosetta_database_path(rosetta_folder = "") :
     if rosetta_folder == "" :
         rosetta_folder = expandvars("$ROSETTA")
         if rosetta_folder == "$ROSETTA" :
-            error_exit("USER need to set environmental variable $ROSETTA and pointed it to the Rosetta folder!")
+            error_exit("USER needs to set environmental variable $ROSETTA and point it to the Rosetta folder!")
 
     database_folder = rosetta_folder + "/main/database/" #Default Rosetta folder structure
     if  not exists(database_folder) : #Otherwise, assume the input folder name is database path
@@ -339,6 +339,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     if ( rna_prot_erraser ) :
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
+    command += " -ignore_unrecognized_res" # -ignore_waters"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"
@@ -419,13 +420,19 @@ def phenix_rna_validate(input_pdb, outliers_only = True):
     """
     Parse output of phenix.rna_validate.
     """
-    
+
+    def is_number(x):
+        try:
+            int(x)
+            return True
+        except ValueError:
+            return False
+
     check_path_exist(input_pdb)
     command = "phenix.rna_validate " + input_pdb
     if outliers_only is False:
         command += " outliers_only=False"
     output = subprocess_out(command)
-
     data_type = None
     data_types = ["pucker", "bond", "angle", "suite"]
     data_headers = {
@@ -456,8 +463,22 @@ def phenix_rna_validate(input_pdb, outliers_only = True):
                 if "yes" not in line:
                     continue
             cols = line.strip().replace(':','  ').split()
-            if cols[2].isalpha() and len(cols[2]) == 1:
+
+            # This is intended to capture "if the third column is the residue name"
+            # but that's not necessarily alpha or 1 long.
+            # but the res num is always numeric, and it is only second
+            # in the same circumstance
+            #if cols[2].isalpha() and len(cols[2]) == 1:
+            if is_number(cols[1]):
                 cols.insert(0, cols.pop(2))
+
+            # This can also happen in the first element of cols
+            if len(cols[0]) > 4:
+                c = cols.pop(0)
+                chain, res = c[0], c[1:]
+                cols.insert(1, chain)
+                cols.insert(2, res)
+
             if len(cols[1]) > 4:
                 c = cols.pop(1)
                 chain, res = c[0], c[1:]
@@ -465,9 +486,9 @@ def phenix_rna_validate(input_pdb, outliers_only = True):
                 cols.insert(2, res)
             data[data_type].append( cols )
 
-    return data   
+    return data
 #####################################################
-def find_error_res(input_pdb) :
+def find_error_res(input_pdb):
     """
     Return a list of error resdiue in the given pdb file (RNA only).
     Use phenix.rna_validate.
@@ -491,11 +512,13 @@ def find_error_res(input_pdb) :
     error_res = list(set(sorted(error_res)))
     return error_res
 #####################################################
-def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
+def pdb2fasta(input_pdb, fasta_out, using_protein = False):
     """
     Extract fasta info from pdb.
     """
     check_path_exist(input_pdb)
+
+    print "making the fasta", fasta_out
 
     longer_names={' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
                   'ADE': 'a', 'CYT': 'c', 'GUA': 'g', 'URI': 'u',
@@ -508,6 +531,26 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
                                'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K',
                                'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
                                'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
+
+    # The shell is your friend. Love the shell.
+    #grep = subprocess.Popen( ["grep", "-r", "IO_STRING", "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(
+    #                          rosetta_database_path()) ], stdout=subprocess.PIPE )
+    # we are ok with shell = True i guess
+    iostringlines = subprocess_out( "grep -r IO_STRING {0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(rosetta_database_path()) )
+    #print iostringlines
+    newlines = []
+    for ln in iostringlines:
+        newlines.append( re.sub(".*IO_STRING ", "", ln ) )
+    #print newlines
+    tlcs = [ nl[0:3] for nl in newlines ]
+    olcs = [ nl[4] for nl in newlines ]
+    #awk1 =\
+    #print subprocess.check_output( ["awk", "-F':'", "{print $2}"], stdin = subprocess.PIPE )#, stdout=subprocess.PIPE )
+
+    # keys are the three characters around $2; values are $3
+    # since all RNA nonnatural have proper TLCs this isn't an issue at the moment
+    longer_names.update( dict(zip( tlcs, olcs ) ) ) #subprocess.check_output(["awk", "{print $2}"], stdin=grep.stdout).split("\n"), subprocess.check_output(("awk", "{print $3}"), stdin=grep.stdout).split("\n") ) ) )
+    #print longer_names
 
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
@@ -522,9 +565,9 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False) :
                 if not resnum == oldresnum:
                     longname = line[17:20]
                     if longer_names.has_key(longname):
-                        output.write( longer_names[longname] );
+                        output.write( longer_names[longname] )
                     else:
-                        output.write( 'X')
+                        output.write( 'X' )
                 oldresnum = resnum
     output.write('\n')
     output.close()
@@ -798,13 +841,26 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
     check_path_exist(orig_pdb)
     check_path_exist(rs_pdb)
 
+    rna_res = ["  G", "G  ", " rG", "GUA",
+               "  A", "A  ", " rA", "ADE",
+               "  U", "U  ", " rU", "URI",
+               "  C", "C  ", " rC", "CYT"]
+
+
+    grep = subprocess.Popen(["grep", "-r", "IO_STRING",
+                         "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_phenix/".format(
+                             rosetta_database_path())], stdout=subprocess.PIPE)
+    rna_res.append(subprocess.check_output(["awk", "{print $2}"], stdin=grep.stdout).split("\n"))
+    grep = subprocess.Popen(["grep", "-r", "IO_STRING",
+                         "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(
+                             rosetta_database_path())], stdout=subprocess.PIPE)
+    rna_res.append(subprocess.check_output(("awk", "{print $2}"), stdin=grep.stdout).split("\n"))
+
+
     def is_line_rna (line) :
         res_name = line[17:20]
-        rna_res = ["  G", "G  ", " rG", "GUA",
-                   "  A", "A  ", " rA", "ADE",
-                   "  U", "U  ", " rU", "URI",
-                   "  C", "C  ", " rC", "CYT"]
         return (res_name in rna_res)
+
     ###################################
     output_pdb = open(out_name, 'w')
     lines_rs = open(rs_pdb).readlines()
@@ -856,7 +912,14 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 current_res = res_orig
 
             atom_index += 1
-            output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
+            output_line = ""
+            if not res_name_orig in rna_types:
+                # could be a nonnatural rna
+                output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
+                           res_name_orig + line_orig[20:])
+                print output_line
+            else:
+                output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
                            rna_types[res_name_orig] + line_orig[20:])
 
             lines_rs_temp = lines_rs[:]
@@ -871,7 +934,7 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 if atom_name_convert.has_key(atom_name) :
                     atom_name = atom_name_convert[atom_name]
 
-                if (rna_types[res_name] != rna_types[res_name_orig]) : continue
+                #if (rna_types[res_name] != rna_types[res_name_orig]) : continue
                 if (atom_name != atom_name_orig) : continue
                 if (res != res_rs) : break
                 output_line = (output_line[0:27] + line_rs[27:55] + output_line[55:])
@@ -884,8 +947,15 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
             output_line = ''
             res_name_orig = line_orig[17:20]
             if is_line_rna(line_orig) :
-                output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
-                               rna_types[res_name_orig] + line_orig[20:])
+                output_line = ""
+                if not res_name_orig in rna_types:
+                    # could be a nonnatural rna
+                    output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
+                                   res_name_orig + line_orig[20:])
+                    print output_line
+                else:
+                    output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:17] +
+                                   rna_types[res_name_orig] + line_orig[20:])
             else :
                 output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:])
             output_pdb.write(output_line)
@@ -977,11 +1047,26 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                          "  U":" rU", "U  ":" rU", "URI":" rU", " rU":" rU", "rU ":" rU",
                          "  C":" rC", "C  ":" rC", "CYT":" rC", " rC":" rC", "rC ":" rC",}
 
+    rna_names = []
+    grep = subprocess.Popen( ["grep", "-r", "IO_STRING", "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_phenix/".format(rosetta_database_path())], stdout=subprocess.PIPE )
+    rna_names = subprocess.check_output(["awk", "{print $2}"], stdin=grep.stdout ).split("\n")
+    grep = subprocess.Popen( ["grep", "-r", "IO_STRING", "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(rosetta_database_path())], stdout=subprocess.PIPE )
+    rna_names += subprocess.check_output(("awk", "{print $2}"), stdin=grep.stdout ).split("\n")
+
+    #print rna_names
+
     protein_res_names = ['ALA', 'ARG', 'ASN', 'ASP',
                          'CYS', 'GLU', 'GLN', 'GLY',
                          'HIS', 'ILE', 'LEU', 'LYS',
                          'MET', 'PHE', 'PRO', 'SER',
                          'THR', 'TRP', 'TYR', 'VAL']
+
+    # append contents of l-ncaa; ignore peptoids for now
+    grep = subprocess.Popen( ["grep", "-r", "IO_STRING", "{0}chemical/residue_type_sets/fa_standard/residue_types/l-ncaa/".format(rosetta_database_path())], stdout=subprocess.PIPE )
+    #protein_res_names.append( subprocess.check_output(("awk", "{print $2}"), stdin=grep.stdout ).split("\n") )
+    protein_res_names += subprocess.check_output(("awk", "{print $2}"), stdin=grep.stdout).split("\n")
+
+    #print protein_res_names
 
     res_conversion_list = []
     fixed_res_list = []
@@ -1010,12 +1095,12 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                         res_name = res_name_convert[res_name]
                 elif using_protein and (res_name in protein_res_names):
                     pass
-                else :
+                elif not res_name in rna_names:
                     continue
 
             current_res = line[21:27]
 
-            if current_res != previous_res :
+            if current_res != previous_res:
                 previous_res = current_res
                 is_previous_het = is_current_het
                 if (not is_previous_het) and (not is_current_het) :
@@ -1030,7 +1115,8 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                     O3prime_coord_pre = O3prime_coord_cur
                 O3prime_coord_cur = []
                 P_coord_cur = []
-                if not is_current_het :
+                # also increment for NC residues.
+                if not is_current_het or ( res_name in protein_res_names or res_name in rna_names ):
                     res_no += 1
                     orig_res = '%s:%s' % (line[21], line[22:27])
                     orig_res = orig_res.replace(' ', '')
@@ -1070,7 +1156,10 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                             if res_no > 0 :
                                 fixed_res_list.append( res_no )
 
-            if not is_current_het :
+            # HETATM records that contain protein or RNA residues must be okay.
+            #print rna_names
+            #print protein_res_names
+            if not is_current_het or ( res_name in protein_res_names or res_name in rna_names ):
                 atm_no += 1
                 if len(line) < 80 :
                     line = line[:-1]
@@ -1078,7 +1167,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                         line += ' '
                     line += '\n'
                 line_list = list(line)
-                line_list[4:11] = str(atm_no).rjust(7)
+                line_list[6:11] = str(atm_no).rjust(5)
                 line_list[12:16] = atom_name
                 line_list[16] = ' '
                 line_list[17:20] = res_name

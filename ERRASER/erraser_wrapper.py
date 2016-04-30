@@ -46,6 +46,8 @@ def erraser( option ) :
     regularized_input_pdb = basename(option.input_pdb).replace('.pdb', '_regularized.pdb')
     regularize_pdb(option.input_pdb, regularized_input_pdb)
     [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
+    # AMW: OK, the recent method to allow some HETATMs is making CL leak in (for example)
+    # So how about we use -ignore_unrecognized_res here? Seems concise.
     if not exists('minimize_0.pdb') :
         rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
     else :
@@ -73,7 +75,7 @@ def erraser( option ) :
     for res in extra_res_final :
         if res in fixed_res_final :
             res_name = res_conversion_list[res - 1]
-            error_message  = "Confliction: rebuild_extra_res %s is either covalently bonded to a modified base" % res_name
+            error_message  = "Conflict: rebuild_extra_res %s is either covalently bonded to a modified base" % res_name
             error_message += " or in user-input -fixed_res!!!"
             error_exit(error_message)
     ###################################################################
@@ -513,6 +515,7 @@ def full_struct_slice_and_minimize( option ) :
     print 'Starting full_struct_slice_and_minimize...'
     start_time=time.time()
     option.finalize()
+    print "constrain_P Is ", option.constrain_phosphate
 
     #####Set temp folder#######################
     base_dir = os.getcwd()
@@ -769,7 +772,7 @@ def SWA_rebuild_erraser( option ) :
     else :
         allow_syn_pyrimidine =  str(option.allow_syn_pyrimidine).lower()
     ##########Check if the rebuilding Rsd is at chain break###########
-    is_chain_break =False
+    is_chain_break = False
     if rebuild_res_final == 1 or rebuild_res_final == total_res :
         is_chain_break = True
     else :
@@ -791,7 +794,9 @@ def SWA_rebuild_erraser( option ) :
 
     #####################Create fasta file########################
     fasta_file=temp_folder + '/fasta'
+    print "About to call pdb2fasta"
     pdb2fasta(native_pdb_final, fasta_file, using_protein = option.rna_prot_erraser)
+    print "came back from pdb2fasta"
     #########################Common Options######################
     common_cmd = ""
 

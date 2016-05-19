@@ -339,6 +339,9 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
     if ( rna_prot_erraser ) :
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
+    
+    # calebgeniesse: output virtual phosphates here
+    command += " -output_virtual true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
     print "######Rosetta section completed#############################################"

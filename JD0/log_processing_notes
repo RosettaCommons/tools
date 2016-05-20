@@ -1,0 +1,2 @@
+  379  grep -v "missing heavyatom" ../subdirs/*/log > slim1
+  382  grep -v " atoms at position " slim1 > slim2

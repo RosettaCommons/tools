@@ -40,7 +40,8 @@ if len(dir) == 0: dir = '.'
 username = basename( expanduser('~') )
 
 # strip off directory name based on local path.
-clusterdir = remotedir+strip_home_dirname( abspath(dir) )
+clusterdir = remotedir
+clusterdir += strip_home_dirname( abspath('.') )
 
 # make sure directory on cluster is ready for files.
 command = 'ssh ' + cluster + ' mkdir -p '+clusterdir

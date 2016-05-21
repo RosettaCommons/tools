@@ -12,7 +12,8 @@ from get_sequence import get_sequence
 
 MAX_SEQUENCE_LENGTH = 32
 
-nts = ['g','c','u','a','G','C','U','A','z','Z']
+nts = ['g','c','u','a','G','C','U','A']
+ligands = ['z','Z','w']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};
@@ -29,7 +30,7 @@ def join_sequence( sequence ):
     in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
-        if c == '[' and sequence_joined[-1] == 'Z': # in a ligand
+        if c == '[' and sequence_joined[-1] in ligands: # in a ligand
             sequence_joined += c
             in_nonstandard_name = True
             continue
@@ -40,11 +41,11 @@ def join_sequence( sequence ):
         if in_nonstandard_name:
             sequence_joined += c
             continue
-        if c == 'Z':
+        if c in ligands:
             sequence_joined += c
             count += 1
             continue
-        if c in nts or c in secstruct_chars:
+        if c in nts or c in secstruct_chars or c in ligands:
             sequence_joined += c.lower()
             count += 1
             continue

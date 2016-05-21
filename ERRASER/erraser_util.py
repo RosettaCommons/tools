@@ -452,8 +452,13 @@ def phenix_rna_validate(input_pdb, outliers_only = True):
                 if "yes" not in line:
                     continue
             cols = line.strip().replace(':','  ').split()
-            if cols[2].isalpha():
+            if cols[2].isalpha() and len(cols[2]) == 1:
                 cols.insert(0, cols.pop(2))
+            if len(cols[1]) > 4:
+                c = cols.pop(1)
+                chain, res = c[0], c[1:]
+                cols.insert(1, chain)
+                cols.insert(2, res)
             data[data_type].append( cols )
 
     return data   

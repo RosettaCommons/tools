@@ -87,6 +87,7 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/src/platform/linux " + \
               "-I" + rosetta_source_dir + "/external/boost_1_55_0 " + \
               "-I" + rosetta_source_dir + "/external/dbio " + \
+              "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \
               "-I/usr/local/include"
     command_list = command.split()

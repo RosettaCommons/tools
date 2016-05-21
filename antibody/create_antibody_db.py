@@ -198,11 +198,15 @@ def create_antibody_db():
         if p in frh_info: cdr_info[p]['FRH'] = frh_info[p]['FRH']
         if p in frl_info: cdr_info[p]['FRL'] = frl_info[p]['FRL']
 
+        cdr_info[p]['StructSource'] = cdr_info[p]['StructSouce']
+
         new_key = p.partition('_chothia.pdb')[0][3:]
         cdr_info[new_key] = cdr_info[p]
         del cdr_info[p]
 
         cdr_info[new_key]['pdb'] = new_key
+
+
 
         for k in cdr_info[new_key]: cdr_info[new_key][k] = '-' if cdr_info[new_key][k]=='none' else cdr_info[new_key][k]
 
@@ -215,9 +219,7 @@ def create_antibody_db():
                 cdr_info[p][nk] = cdr_info[p][k]
                 del cdr_info[p][k]
 
-    #write_formated_text_file('info/antibody.db', cdr_info, 'pdb resolution BioType date LightType StructSouce H1 H2 H3 L1 L2 L3 FRH FRL HEAVY LIGHT'.split())
-    write_formated_text_file('info/antibody.info', cdr_info, 'pdb resolution BioType date LightType StructSouce h1 h2 h3 l1 l2 l3 frh frl heavy light'.split())
-
+    write_formated_text_file('info/antibody.info', cdr_info, 'pdb resolution BioType date LightType StructSource h1 h2 h3 l1 l2 l3 frh frl heavy light'.split())
 
 
 
@@ -279,7 +281,7 @@ def create_cdr_test_data():
 def main(args):
     ''' Script to create antibody.db file from old info/* files and cdr-test-data.json file for unit tests
     '''
-    #create_antibody_db()
+    create_antibody_db()
 
     create_cdr_test_data()
 

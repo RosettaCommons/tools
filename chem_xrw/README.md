@@ -63,6 +63,9 @@ Note the escaping of one of the &s in sed.
 #JD0
 Go read and/or perform the JD0 readme.
 
+#options
+Let me suggest you use the options file in the PDB_diagnostic integration test as inspiration.  Don't use it verbatim (you'll want at least the pdb ccd library).
+
 #Process the results
 I tend to get on the order of 20 GB of log files when running this experiment, but the vast majority of those logs are certain output lines repeated many, many times inside (code) loops caused by (chemical) ring structures that the reading-in machinery has difficulty with.  You'll want to grep out some of these uninformative lines from the raw logs to speed later processing and slash the memory cap needed for the last step.  At a minimum, I suggest (note subdirs comes from JD0)
 

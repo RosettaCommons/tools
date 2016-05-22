@@ -1,3 +1,5 @@
+﻿Contact Steven Lewis, smlewi@gmail.com, for support.  Will Hansen wrote much of the script used in the last step.
+
 This directory describes the process of running the PDB_diagnostic app against the whole PDB.  PDB_diagnostic was created for the purpose of exercising a the code to generate Poses from PDB-format structure files (pdbs and mmcifs), and is a pilot app over in the main repo.
 
 The steps are:
@@ -23,11 +25,59 @@ Here's how I do it.  First, generate a file containing the paths to every file i
 
 find /path/to/pdbmirror -name "pdb*ent.gz" > allpdbs.l
 
-"pdb*ent.gz" is a pattern t
+"pdb*ent.gz" is a pattern that matches how the files are stored, it's not xxxx.pdb.gz as you'd expect.  Find will return 116000+ lines like:
 
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb1iso.ent.gz
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb4is9.ent.gz
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb4ist.ent.gz
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb3is8.ent.gz
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb4isl.ent.gz
+/home/smlewis/Desktop/PDB_mirror/whole_PDB_as_PDBgz/is/pdb2isw.ent.gz
 
+Now allpdbs.l is a list file of all your inputs.
 
+Next we randomize it.  This is optional, but I think it's a good idea, because I think there are stretches with a bunch of huge ribosome structures that are adjacent in PDB-ID space.  If you are going to run on more than one processor, you'll want them distributed; random is close enough.
 
+sort -R  allpdbs.l > allpdbs.random.l
 
+Next we turn our PDB target paths into Rosetta commands.  You can do this with rectangle edit in emacs (c-space for mark, c-x r t for rectangle insert), or sed.
 
-This script check_logs.py, along with the Rosetta application PDB_diagnostic, is used to determine what PDBs Rosetta has problems reading.  PDB_diagnostic is intended to be run against the entire PDB dataset (all 116K+ PDBs).  The log files are then concatenated and fed through check_logs.py.  The script parses the log file to determine which PDBs had errors, and can classify more than 20 of those errors.  Contact Steven Lewis, smlewi@gmail.com, for support.  Will Hansen wrote much of the script.
+From 
+/home/smlewis/whole_PDB_as_PDBgz/is/pdb1iso.ent.gz
+/home/smlewis/whole_PDB_as_PDBgz/is/pdb4is9.ent.gz
+/home/smlewis/whole_PDB_as_PDBgz/is/pdb4ist.ent.gz
+
+We want
+../../PDB_diagnostic.linuxgccrelease @../../options -s /home/smlewis/whole_PDB_as_PDBgz/el/pdb5els.ent.gz >>log 2>&1
+../../PDB_diagnostic.linuxgccrelease @../../options -s /home/smlewis/whole_PDB_as_PDBgz/fa/pdb4fa8.ent.gz >>log 2>&1
+../../PDB_diagnostic.linuxgccrelease @../../options -s /home/smlewis/whole_PDB_as_PDBgz/zk/pdb1zk1.ent.gz >>log 2>&1
+
+(yes, the PDB codes changed, ignore that).  We've added a Rosetta invocation and options to the front end, and logging to the back end (this is for bash, BTW).
+
+Sed command is:
+
+cat allpdbs.random.l | sed 's:^:../../PDB_diagnostic.linuxgccrelease @../../options -s :' | sed 's:$: >>log 2>\&1:' > rosetta_commands.l
+
+Note the escaping of one of the &s in sed.
+
+#JD0
+Go read and/or perform the JD0 readme.
+
+#Process the results
+I tend to get on the order of 20 GB of log files when running this experiment, but the vast majority of those logs are certain output lines repeated many, many times inside (code) loops caused by (chemical) ring structures that the reading-in machinery has difficulty with.  You'll want to grep out some of these uninformative lines from the raw logs to speed later processing and slash the memory cap needed for the last step.  At a minimum, I suggest (note subdirs comes from JD0)
+
+cat subdirs/*/log | grep -v "missing heavyatom" | grep -v " atoms at position " > slimlog
+
+Continue cutting slimlog as necessary to make the file size reasonable by removing repeated uninformative log lines; use your best judgment.
+
+#Analyze the results
+
+check_logs.py slimlog > check_logs.log
+
+This will also spawn dozens of extra files.  The script parses the log file to determine which PDBs had errors, and can classify more than 20 of those errors.
+
+check_logs.log is a summary of results.
+
+*.list is just PDBs that failed with a particular error type.
+*.cmdpath is the command paths (as in rosetta_commands.l above) ready to be resubmitted via JD0.
+*.log is log snippets for explanation and diagnosis.

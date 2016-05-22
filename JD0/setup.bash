@@ -5,7 +5,7 @@ mpth=$cwd/subdirs
 echo $mpth
 
 #split this file into 10 files, don't break lines, use numeric suffixes padded to 2 digits
-split -a 2 -n l/10 --numeric-suffixes=1 allpdbs.random.l allpdbs_slice_
+split -a 2 -n l/10 --numeric-suffixes=1 rosetta_commands.list allpdbs_slice_
 
 rm -r $mpth
 mkdir $mpth

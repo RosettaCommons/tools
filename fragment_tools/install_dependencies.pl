@@ -16,7 +16,7 @@ foreach my $arg (@ARGV) {
 if (!$installtype) {
 	print "\n";
 	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr]\n\n";
-	print "This script installs blast, psipred, sparks-x, and the NCBI non-redundant (nr) database.\n";
+	print "This script installs blast, psipred, csblast, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "<standard> will only install what is missing.\n";
 	print "<overwrite> will do a fresh installation.\n";
 	print "[uniref90] will use the uniref90 sequence database (NCBI nr is the default.)\n";
@@ -26,6 +26,7 @@ if (!$installtype) {
 	print "Install locations: \n";
 	print " $Bin/blast\n";
 	print " $Bin/psipred\n";
+	print " $Bin/csblast\n";
 	print " $Bin/sparks-x\n";
 	print " $Bin/databases/nr\n";
 	print " $Bin/databases/nr_pfilt\n";
@@ -113,6 +114,51 @@ Jones, D.T. (1999) Protein secondary structure prediction based on
 position-specific scoring matrices. J. Mol. Biol. 292:195-202.
 
 PSIPREDCREDIT
+chdir($Bin);
+
+# csblast https://github.com/cangermueller/csblast
+if ($overwrite || !-d "$Bin/csblast/bin") {
+	my $package = "v2.2.3.tar.gz";
+	my $url = "https://github.com/cangermueller/csblast/archive/$package";
+
+	print "INSTALLING CSBLAST from $url\n";
+
+	system("rm -rf $Bin/csblast") if (-d "$Bin/csblast"); # clean up interrupted attempts
+	(mkdir("$Bin/csblast")) or die "ERROR! cannot mkdir $Bin/csblast$!\n";
+	chdir("$Bin/csblast/");
+	system("wget -N $url");
+	system("tar -zxvf $package");
+  my $sph_package = "sparsehash-2.0.3.tar.gz";
+  system("wget -N https://github.com/sparsehash/sparsehash/archive/$sph_package");
+	system("tar -zxvf $sph_package");
+	push(@packages_to_clean, "$Bin/csblast/$package", "$Bin/csblast/$sph_package");
+
+	chdir("$Bin/csblast/sparsehash-sparsehash-2.0.3");
+  system("./configure --prefix=$Bin/csblast/local");
+	system("make install"); # build from src
+
+	chdir("$Bin/csblast");
+  system("mv csblast-*/* .");
+	chdir("$Bin/csblast/src");
+  system('sed -i -e "s|^INC.*|INC = -I../local/include|" Makefile');
+  system("make csblast csbuild");
+
+	(-d "$Bin/csblast/bin") or die "ERROR! psipred installation failed!\n";
+}
+
+my $csblast_credit =<<CSBLASTCREDIT;
+
+>>>> PLEASE CITE THE FOLLOWING FOR CSBLAST <<<<
+
+Angermüller, C., Biegert, A., & Söding, J. (2012). Discriminative modelling of
+context-specific amino acid substitution probabilities. Bioinformatics, 28(24),
+3240-3247.
+
+Biegert, A., & Söding, J. (2009). Sequence context-specific profiles for
+homology searching.  Proceedings of the National Academy of Sciences,106(10),
+3770-3775.
+
+CSBLASTCREDIT
 chdir($Bin);
 
 # SPARKS-X/SPINE-X
@@ -260,6 +306,7 @@ print "\n";
 print " Installed\n";
 print "     blast: $Bin/blast\n";
 print "   psipred: $Bin/psipred\n";
+print "   csblast: $Bin/csblast\n";
 print "  sparks-x: $Bin/sparks-x\n";
 if (!$skip_nr) {
 	print "        nr: $datdir/nr\n" if ($database eq "nr");
@@ -271,6 +318,7 @@ print "\nDone!\n";
 
 print $blast_credit;
 print $psipred_credit;
+print $csblast_credit;
 print $sparksx_credit;
 
 print "FOR ACADEMIC USE ONLY.\n\n";

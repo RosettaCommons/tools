@@ -2,6 +2,8 @@ import os.path
 import imp
 from copy import deepcopy
 
+
+
 file_path = os.path.split( os.path.abspath(__file__) ) [0]
 imp.load_source('erraser_util', file_path + '/erraser_util.py')
 imp.load_source('erraser_option', file_path + '/erraser_option.py')
@@ -575,6 +577,96 @@ def full_struct_slice_and_minimize( option ) :
 ##### full_struct_slice_and_minimize end   ############################
 
 
+##### asynchronous SWA_rebuild_erraser (asynch process) #######################
+def SWA_rebuild_erraser_async(SWA_option, res):
+    print 'Starting to rebuild residue %s' % res
+    
+    SWA_option.rebuild_res = res
+    SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
+
+    SWA_rebuild_erraser( SWA_option )
+
+    print 'Job completed for residue %s' % res
+    return True
+
+
+##### multiprocess SWA_rebuild_erraser (multiproc wrapper) ####################
+def SWA_rebuild_erraser_multiproc( SWA_option ):
+    
+    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
+    pool = multiprocessing.Pool(processes=SWA_option.nproc)
+        
+    processes = []
+    for res in SWA_option.rebuild_res_list:
+        #SWA_option.input_pdb = './temp_pdb_res_%d/output_pdb/temp.pdb' % res
+        SWA_option.input_pdb = 'temp_%d.pdb' % res
+        copy('temp.pdb', SWA_option.input_pdb)
+        proc = pool.apply_async(
+            SWA_rebuild_erraser_async,
+            args=(SWA_option, res)
+        )
+        processes.append(proc)
+
+    results = [proc.get() for proc in processes]
+
+    pool.close()
+    pool.join()
+
+
+    ### check each run and merge rebuilt residues back into temp.pdb
+    sucessful_res, failed_res = [], []
+    for res in SWA_option.rebuild_res_list:        
+        # check success and copy final pdb
+        rebuilt_pdbs = [
+            './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
+            './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
+        ]
+        rebuilt_pdb_final = ''
+
+        try:
+            # set rebuilt_pdb_final to the first existing pdb from list below
+            rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+            
+            # instead, copy only the rebuilt residue into the 'temp.pdb'
+            tempdir = './tem_pdb_res_%d/output_pdb/' % res
+            rebuilt_res_pdb = tempdir + 'temp_rebuilt_res.pdb'
+            rebuilt_pdb_merged = tempdir + 'temp_rebuilt_res_merged.pdb'
+
+            # get total res... merge res and everything downstream
+            total_res = get_total_res(rebuilt_pdb_final)
+
+            # slice out rebuilt residue
+            rebuilt_res = pdb_slice(
+                rebuilt_pdb_final, 
+                rebuilt_res_pdb, 
+                '%d-%d' % (res, total_res)
+            )[0]
+
+            # merge rebuilt residue with temp
+            sliced2orig_merge_back(
+                'temp.pdb', 
+                rebuilt_res_pdb, 
+                rebuilt_pdb_merged, 
+                '%d-%d' % (res, total_res)  
+            )
+            copy(rebuilt_pdb_merged, 'temp.pdb')
+
+            # at least one pdb found
+            print "Residue %d is sucessfully rebuilt!" % res
+            sucessful_res.append(res)
+
+        except Exception as e:
+            # no pdbs found 
+            print "No suitable alternative structure can be sampled."
+            print "Residue %d is not rebuilt!" % res
+            failed_res.append(res)
+
+        if not SWA_option.verbose :
+            remove('temp_pdb_res_%d' % res)
+        
+        return sucessful_res, failed_res
 
 
 ##### seq_rebuild start ###############################################
@@ -609,46 +701,55 @@ def seq_rebuild( option ) :
 
     copy(option.input_pdb, 'temp.pdb')
 
-    sucessful_res = []
-    failed_res = []
     SWA_option = deepcopy(option)
-    for res in option.rebuild_res_list :
-        print 'Starting to rebuild residue %s' % res
-        SWA_option.input_pdb = 'temp.pdb'
-        SWA_option.rebuild_res = res
-        SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
+    sucessful_res = []
+    failed_res = []        
 
-        SWA_rebuild_erraser( SWA_option )
+    if option.nproc > 0:                
+        sucessful_res, failed_res = SWA_rebuild_erraser_multiproc( SWA_option )
+    else:
 
-        print 'Job completed for residue %s' % res
-        
-        # check success and copy final pdb
-        rebuilt_pdbs = [
-            './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
-        ]
-        rebuilt_pdb_final = ''
-
-        try:
-            # set rebuilt_pdb_final to the first existing pdb from list below
-            rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+        for res in option.rebuild_res_list:
             
-            # at least one pdb found
-            print "Residue %d is sucessfully rebuilt!" % res
-            sucessful_res.append(res)
-            copy(rebuilt_pdb_final, 'temp.pdb')
-        except IndexError:
-            # no pdbs found 
-            print "No suitable alternative structure can be sampled."
-            print "Residue %d is not rebuilt!" % res
-            failed_res.append(res)
+            print 'Starting to rebuild residue %s' % res
 
-        if not option.verbose :
-            remove('temp_pdb_res_%d' % res)
+            SWA_option.input_pdb = 'temp.pdb'
+            SWA_option.rebuild_res = res
+            SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
 
-        print '###################################'
+            SWA_rebuild_erraser( SWA_option )
+
+            print 'Job completed for residue %s' % res
+            
+            # check success and copy final pdb
+            rebuilt_pdbs = [
+                './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
+            ]
+            rebuilt_pdb_final = ''
+
+            try:
+                # set rebuilt_pdb_final to the first existing pdb from list below
+                rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+            
+                # at least one pdb found
+                print "Residue %d is sucessfully rebuilt!" % res
+                sucessful_res.append(res)
+                copy(rebuilt_pdb_final, 'temp.pdb')
+            except IndexError:
+                # no pdbs found 
+                print "No suitable alternative structure can be sampled."
+                print "Residue %d is not rebuilt!" % res
+                failed_res.append(res)
+
+            if not option.verbose :
+                remove('temp_pdb_res_%d' % res)
+
+
+
+    print '###################################'
 
     copy('temp.pdb', option.out_pdb)
     os.chdir(base_dir)

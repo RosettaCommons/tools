@@ -60,7 +60,7 @@ if ($overwrite || !-d "$Bin/blast/bin" || !-d "$Bin/blast/data") {
 	} elsif ($proc =~ /ia64/) {
 		$package = "blast-2.2.17-ia64-linux.tar.gz";
 	}
-	my $url = "ftp://ftp.ncbi.nih.gov/blast/executables/release/2.2.17/$package";
+	my $url = "ftp://ftp.ncbi.nih.gov/blast/executables/legacy/2.2.17/$package";
 	print "INSTALLING BLAST from $url ....\n";
 	system("rm -rf blast") if (-d "blast");  # clean up interrupted attempts
 	system("wget -N $url");
@@ -91,7 +91,7 @@ if ($overwrite || !-d "$Bin/psipred/bin" || !-d "$Bin/psipred/data") {
 	chdir("$Bin/psipred/");
 	system("wget -N $url");
 	if (!-s $package ) {
-		$url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old/$package";
+		$url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old_versions/$package";
 		print "wget failed, trying $url ....\n";
 		system("wget -N $url");
 	}

@@ -41,7 +41,7 @@ def renumber_pdb(pdbnames, new_numbers, chains = [], retain_atom_num = 0):
                 if retain_atom_num:
                     line_edit = '%s%s%s' % (line_edit[0:22], newnum, line_edit[26:] )
                 else:
-                    print 'replace: ', line_edit[22:26],'->',newnum
+                    #print 'replace: ', line_edit[22:26],'->',newnum
                     line_edit = '%s%5d%s%s%s%s' % (line_edit[0:6],atomnum,line[11:21],newchain, newnum, line_edit[26:] )
 
 

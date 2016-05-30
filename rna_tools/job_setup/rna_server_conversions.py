@@ -7,8 +7,7 @@ from os import popen,system
 from os.path import exists,dirname,basename,abspath
 
 #from rna_conversion import make_rna_rosetta_ready
-from get_sequence import get_sequence
-
+from get_sequence import get_sequence, hetatm_map
 
 MAX_SEQUENCE_LENGTH = 32
 
@@ -291,8 +290,6 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             chainids[i] = ' '
 
     goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG' }
-
 
     if removeions:  goodnames.remove(' MG')
 
@@ -307,6 +304,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if (chain in chainids or ignore_chain):
             line_edit = line
 
+            # some of following is copied out of get_sequence.py -- should not copy code.
             if line[0:3] == 'TER' and False:
                 continue
             elif (line[0:6] == 'HETATM') & (line[17:20]=='MSE'): #Selenomethionine

@@ -622,7 +622,7 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
             rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
             
             # instead, copy only the rebuilt residue into the 'temp.pdb'
-            tempdir = './tem_pdb_res_%d/output_pdb/' % res
+            tempdir = './temp_%d_pdb_res_%d/output_pdb/' % (res, res)
             rebuilt_res_pdb = tempdir + 'temp_rebuilt_res.pdb'
             rebuilt_pdb_merged = tempdir + 'temp_rebuilt_res_merged.pdb'
 
@@ -656,7 +656,7 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
             failed_res.append(res)
 
         if not SWA_option.verbose :
-            remove('temp_pdb_res_%d' % res)
+            remove('temp_%d_pdb_res_%d' % (res,res))
         
     return sucessful_res, failed_res
 

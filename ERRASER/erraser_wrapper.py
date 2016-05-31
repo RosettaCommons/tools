@@ -587,23 +587,20 @@ def SWA_rebuild_erraser_async(SWA_option):
 
 ##### multiprocess SWA_rebuild_erraser (multiproc wrapper) ####################
 def SWA_rebuild_erraser_multiproc( SWA_option ):
-    
-    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
-    pool = multiprocessing.Pool(processes=SWA_option.nproc)
-        
-    processes = []
+     
+    ### setup SWA_opt_async_list 
+    SWA_opt_async_list = []
     for res in SWA_option.rebuild_res_list:
-        #SWA_option.input_pdb = './temp_pdb_res_%d/output_pdb/temp.pdb' % res
         SWA_option_async = deepcopy(SWA_option)
         SWA_option_async.rebuild_res = res
         SWA_option_async.input_pdb = 'temp_%d.pdb' % res
         SWA_option_async.log_out = 'seq_rebuild_temp_%s.out' % res
         copy('temp.pdb', SWA_option_async.input_pdb)
-        proc = pool.apply_async(SWA_rebuild_erraser_async, args=(SWA_option_async,))
-        processes.append(proc)
+        SWA_opt_async_list.append(SWA_option_async)
 
-    results = [proc.get() for proc in processes]
-
+    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
+    pool = multiprocessing.Pool(processes=SWA_option.nproc)       
+    async_result = pool.map_async(SWA_rebuild_erraser_async, SWA_opt_async_list)   
     pool.close()
     pool.join()
 
@@ -661,7 +658,7 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
         if not SWA_option.verbose :
             remove('temp_pdb_res_%d' % res)
         
-        return sucessful_res, failed_res
+    return sucessful_res, failed_res
 
 
 ##### seq_rebuild start ###############################################

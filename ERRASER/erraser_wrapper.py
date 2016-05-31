@@ -578,15 +578,10 @@ def full_struct_slice_and_minimize( option ) :
 
 
 ##### asynchronous SWA_rebuild_erraser (asynch process) #######################
-def SWA_rebuild_erraser_async(SWA_option, res):
-    print 'Starting to rebuild residue %s' % res
-    
-    SWA_option.rebuild_res = res
-    SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
-
+def SWA_rebuild_erraser_async(SWA_option):
+    print 'Starting to rebuild residue %s' % SWA_option.rebuild_res
     SWA_rebuild_erraser( SWA_option )
-
-    print 'Job completed for residue %s' % res
+    print 'Job completed for residue %s' % SWA_option.rebuild_res
     return True
 
 
@@ -599,12 +594,12 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
     processes = []
     for res in SWA_option.rebuild_res_list:
         #SWA_option.input_pdb = './temp_pdb_res_%d/output_pdb/temp.pdb' % res
-        SWA_option.input_pdb = 'temp_%d.pdb' % res
-        copy('temp.pdb', SWA_option.input_pdb)
-        proc = pool.apply_async(
-            SWA_rebuild_erraser_async,
-            args=(SWA_option, res)
-        )
+        SWA_option_async = deepcopy(SWA_option)
+        SWA_option_async.rebuild_res = res
+        SWA_option_async.input_pdb = 'temp_%d.pdb' % res
+        SWA_option_async.log_out = 'seq_rebuild_temp_%s.out' % res
+        copy('temp.pdb', SWA_option_async.input_pdb)
+        proc = pool.apply_async(SWA_rebuild_erraser_async, args=(SWA_option_async,))
         processes.append(proc)
 
     results = [proc.get() for proc in processes]
@@ -618,10 +613,10 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
     for res in SWA_option.rebuild_res_list:        
         # check success and copy final pdb
         rebuilt_pdbs = [
-            './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
+            './temp_%d_pdb_res_%d/output_pdb/S_000000_merge.pdb' % (res, res),
+            './temp_%d_pdb_res_%d/output_pdb/S_000000.pdb' % (res, res),
+            './temp_%d_pdb_res_%d/output_pdb/S_000001_merge.pdb' % (res, res),
+            './temp_%d_pdb_res_%d/output_pdb/S_000001.pdb' % (res, res),
         ]
         rebuilt_pdb_final = ''
 

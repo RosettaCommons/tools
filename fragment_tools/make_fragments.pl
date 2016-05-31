@@ -25,6 +25,7 @@ $| = 1; # disable stdout buffering
 #    ./psipred             http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/
 #    ./databases/nr_pfilt  from ./databases/nr using ./psipred/bin/pfilt
 #    ./sparks-x            http://sparks-lab.org/yueyang/server/SPARKS-X/
+#    ./csblast             https://github.com/cangermueller/csblast
 
 # ROSETTA
 my $FRAGMENT_PICKER = "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
@@ -33,22 +34,25 @@ my $ROSETTA_DATABASE = "$Bin/../../main/database"; # rosetta database
 my $VALL = "$Bin/vall.jul19.2011"; # template database
 
 # BLAST path (Requires non-blast+ NCBI version)
-my $BLAST_DIR = "$Bin/../../../../src/blast";
+my $BLAST_DIR = "$Bin/blast";
 my $BLAST_NUM_CPUS = 8;    # number of processors to use (blastpgp -a option)
 
 # NR database path
-my $NR = "$Bin/../../../databases/nr/nr";
+my $NR = "$Bin/databases/nr";
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
-my $SPARKS = "$Bin/../../../../src/sparks-x/bin/buildinp_query.sh";
+my $SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh";
 
 # PSIPRED (for secondary structure prediction)
-my $PSIPRED_DIR = "$Bin/../../../../src/psipred";
+my $PSIPRED_DIR = "$Bin/psipred";
 my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
+
+# CSBLAST/CSBUILD (for de-novo sequence profile generation)
+my $CSBLAST_DIR = "$Bin/csblast";
 
 # pfilt filtered NR database used for PSIPRED (see PSIPRED readme)
 # $NR will be used if empty
-my $PFILTNR = "$Bin/../../../databases/nr/nr_pfilt";
+my $PFILTNR = "$Bin/databases/nr_pfilt";
 
 my $INTERNET_HOST = "localhost";
 
@@ -59,8 +63,11 @@ my $INTERNET_HOST = "localhost";
 # your cluster. The script should take any command as the argument(s).
 # If the script does not exist, jobs will run serially.
 # Requires: http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
-my $SLAVE_LAUNCHER = "$Bin/../../../../bin/launch_on_slave.py";
+my $SLAVE_LAUNCHER = "";
 my $SLAVE_LAUNCHER_MAX_JOBS = 40;    # depends on your available machines/cpus
+## for SLAVE_LAUNCHER parallel jobs
+my $SLAVE_MAX_WAIT     = 96 * 60 * 60;
+my $SLAVE_MAX_ATTEMPTS = 2;
 
 # pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
 #  --no_structure_profile option is added to reduce the run time
@@ -92,79 +99,10 @@ my $INSTALL_DEPENDENCIES_DATABASE = "nr"; # "uniref50" # "uniref90"
 ###############################################################################
 
 
-# check for dependencies and install if necessary
-$BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
-$SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh" if (!-s $SPARKS);
-$PSIPRED_DIR = "$Bin/psipred" if (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data");
-
-my @POSSIBLE_NR_LOCATIONS = (
-	$NR,
-	"$Bin/databases/nr",
-	"$Bin/../../../databases/nr/nr",
-	"/scratch/robetta/local_db/nr/nr",
-	"/work/robetta/databases/local_db/nr/nr"
-);
-
-my $skip_nr = "";
-foreach my $n (@POSSIBLE_NR_LOCATIONS) {
-	if (-s "$n.pal") {
-		$NR = $n;
-		$skip_nr = "skip_nr";
-		last;
-	}
-}
-foreach my $n (@POSSIBLE_NR_LOCATIONS) {
-	if (-s $n."_pfilt.pal") {
-		$PFILTNR = $n."_pfilt";
-		last;
-	}
-}
-my $must_install = 0;
-if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
-	print "Dependency 'blast' does not exist!\n";
-	$must_install = 1;
-} elsif (!-s $SPARKS) {
-	print "Dependency 'sparks-x' does not exist!\n";
-	$must_install = 1;
-} elsif (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data") {
-	print "Dependency 'psipred' does not exist!\n";
-	$must_install = 1;
-} elsif (!-s "$NR.pal") {
-	print "Dependency 'nr' does not exist!\n";
-	$NR = "$Bin/databases/nr";
-	$must_install = 1;
-} elsif (!-s "$PFILTNR.pal") {
-	print "Dependency 'nr_pfilt' does not exist!\n";
-	$PFILTNR = "$Bin/databases/nr_pfilt";
-	$skip_nr = "";
-	$must_install = 1;
-}
-if ($must_install && $INSTALL_DEPENDENCIES) {
-	print "\n";
-	print "Running install_dependencies.pl\n";
-	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
-	print "Please be patient.....\n\n";
-	system("$Bin/install_dependencies.pl $INSTALL_DEPENDENCIES $INSTALL_DEPENDENCIES_DATABASE $skip_nr");
-	print "\n";
-}
-
 use File::Path;
 use File::Copy qw/ copy /;
 use File::Basename;
 use Time::Local;
-
-## THESE FILE LOCATIONS DEPEND ON THE SOFTWARE PACKAGE
-my $PSIBLAST = "$BLAST_DIR/bin/blastpgp -a $BLAST_NUM_CPUS ";
-my $MAKEMAT = "$BLAST_DIR/bin/makemat";   # makemat utility (part of NCBI tools)
-my $PSIPRED = "$PSIPRED_DIR/bin/psipred"; # psipred
-my $PSIPASS2 = "$PSIPRED_DIR/bin/psipass2";    # psipass2 (part of psipred pkg)
-my $PSIPRED_DATA = "$PSIPRED_DIR/data";    # dir containing psipred data files.
-my $SAM           = "$SAM_DIR/bin/target99";     # sam target99
-my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
-
-## for SLAVE_LAUNCHER parallel jobs
-my $SLAVE_MAX_WAIT     = 96 * 60 * 60;
-my $SLAVE_MAX_ATTEMPTS = 2;
 
 
 use Cwd qw/ cwd abs_path /;
@@ -178,6 +116,7 @@ $options{fastafile} = abs_path( $opts{f} );
 $options{rundir}      = cwd();     # get the full path (needed for sam stuff)
 $options{homs}        = 1;
 $options{frags}  = 1;
+$options{csbuild_profile} = 0;
 $options{psipredfile} = "";
 $options{samfile}     = "";
 $options{porterfile}  = "";
@@ -207,6 +146,80 @@ foreach my $key ( keys %opts ) {
 
 $options{DEBUG} = 1 if ( $options{verbose} );
 
+### check for dependencies and install if necessary
+$BLAST_DIR = "$Bin/blast" if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data");
+$SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh" if (!-s $SPARKS);
+$PSIPRED_DIR = "$Bin/psipred" if (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data");
+
+my @POSSIBLE_NR_LOCATIONS = (
+	$NR,
+	"$Bin/databases/nr",
+	"$Bin/../../../databases/nr/nr",
+	"/scratch/robetta/local_db/nr/nr",
+	"/work/robetta/databases/local_db/nr/nr"
+);
+
+my $skip_nr = "";
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s "$n.pal") {
+		$NR = $n;
+		$skip_nr = "skip_nr";
+		last;
+	}
+}
+foreach my $n (@POSSIBLE_NR_LOCATIONS) {
+	if (-s $n."_pfilt.pal") {
+		$PFILTNR = $n."_pfilt";
+		last;
+	}
+}
+
+my $must_install = 0;
+if (!-d "$BLAST_DIR/bin" || !-d "$BLAST_DIR/data") {
+	print "Dependency 'blast' does not exist!\n";
+	$must_install = 1;
+} elsif (!-s $SPARKS) {
+	print "Dependency 'sparks-x' does not exist!\n";
+	$must_install = 1;
+} elsif (!-d "$PSIPRED_DIR/bin" || !-d "$PSIPRED_DIR/data") {
+	print "Dependency 'psipred' does not exist!\n";
+	$must_install = 1;
+}
+
+if (!$options{csbuild_profile}) {
+  if (!-s "$NR.pal") {
+    print "Dependency 'nr' does not exist!\n";
+    $NR = "$Bin/databases/nr";
+    $must_install = 1;
+  } elsif (!-s "$PFILTNR.pal") {
+    print "Dependency 'nr_pfilt' does not exist!\n";
+    $PFILTNR = "$Bin/databases/nr_pfilt";
+    $skip_nr = "";
+    $must_install = 1;
+  }
+} else {
+  $skip_nr = "skip_nr";
+}
+
+if ($must_install && $INSTALL_DEPENDENCIES) {
+	print "\n";
+	print "Running install_dependencies.pl\n";
+	print "Note: the NCBI non-redundant (nr) sequence database is very large.\n";
+	print "Please be patient.....\n\n";
+	system("$Bin/install_dependencies.pl $INSTALL_DEPENDENCIES $INSTALL_DEPENDENCIES_DATABASE $skip_nr");
+	print "\n";
+}
+
+## THESE FILE LOCATIONS DEPEND ON THE SOFTWARE PACKAGE
+my $PSIBLAST = "$BLAST_DIR/bin/blastpgp -a $BLAST_NUM_CPUS ";
+my $MAKEMAT = "$BLAST_DIR/bin/makemat";   # makemat utility (part of NCBI tools)
+my $PSIPRED = "$PSIPRED_DIR/bin/psipred"; # psipred
+my $PSIPASS2 = "$PSIPRED_DIR/bin/psipass2";    # psipass2 (part of psipred pkg)
+my $PSIPRED_DATA = "$PSIPRED_DIR/data";    # dir containing psipred data files.
+my $SAM           = "$SAM_DIR/bin/target99";     # sam target99
+my $SAM_uniqueseq = "$SAM_DIR/bin/uniqueseq";    # sam uniqueseq
+my $CSBUILD = "$CSBLAST_DIR/bin/csbuild";
+
 # check for picker
 if (!-s $FRAGMENT_PICKER) {
   warn "WARNING! $FRAGMENT_PICKER does not exist. Trying default.\n";
@@ -218,11 +231,14 @@ if (!-s $FRAGMENT_PICKER) {
 }
 
 # check nr database
-if (!-s $PFILTNR) {
-	$PFILTNR = $NR;
-	print_debug("nr_pfilt database missing so using nr: $NR");
+if (!$options{csbuild_profile}) {
+  if (!-s $PFILTNR) {
+    $PFILTNR = $NR;
+    print_debug("nr_pfilt database missing so using nr: $NR");
+  }
+
+  (-s $NR) or die "ERROR! $NR does not exist.\n";
 }
-(-s $NR) or die "ERROR! $NR does not exist.\n";
 
 
 # for homolog detection
@@ -367,6 +383,47 @@ if ( -f "$options{runid}.make_fragments.success" ) {
 my $sequence = read_fasta( $options{fastafile} );
 print_debug("Sequence: $sequence");
 
+# Run csbuild to generate sequence profile (.check) and pssm (.pssm)
+# This bypasses psiblast calls for profile generation in sparks and psipred
+if ($options{csbuild_profile}) {
+  print_debug("Generating structure profile & pssm via csbuild.");
+  system("$CSBUILD -i $options{fastafile} -I fas -D $CSBLAST_DIR/data/K4000.crf -o $options{runid}.check -O chk");
+  system("cp $options{runid}.check sstmp.chk");
+  system("echo sstmp.chk > sstmp.pn");
+  system("echo $options{fastafile} > sstmp.sn");
+  system("$MAKEMAT -P sstmp");
+  (-s "sstmp.mtx") or die "ERROR! Failed to create .mtx file: makemat failed!\n";
+
+  my $placeholder = "$Bin/pdb2vall/structure_profile_scripts/placeholder_seqs/placeholder_seqs";
+  if (!-s "$placeholder.phr") {
+    system("$BLAST_DIR/bin/formatdb -o T -i $placeholder");
+  }
+
+  my $blast = "$options{runid}.blast";
+  open(F, ">$blast") or die "ERROR! cannot open $blast: $!\n";
+  my $aacnt = 0;
+  my $totalaacnt = 0;
+  foreach my $aa (split(//,$sequence)) {
+          $aacnt++;
+          $totalaacnt++;
+          if ($aacnt == 1) {
+                  printf F "%-14.14s", $options{runid};
+          }
+          if ($aacnt >= 101) {
+                  print F "$aa\n\n";
+                  $aacnt = 0;
+                  next;
+          }
+          print F $aa;
+          print F "\n\n" if ($totalaacnt >= length($sequence));
+  }
+  close(F);
+
+  system("$PSIBLAST -i $options{fastafile} -B $blast -Q $options{runid}.pssm -t 1 -j 1 -h 0.001 -e 0.001 -b 0 -k 0 -d $placeholder");
+  (-s "$options{runid}.pssm") or die "ERROR! failed to create single sequence pssm file: blastpgp failed!\n";
+  system("cp $options{runid}.pssm $options{fastafile}.pssm");
+}
+
 # run sparks
 if ($SPARKS) {
     unless ( &nonempty_file_exists( $options{fastafile} . ".phipsi" ) ) {
@@ -416,9 +473,6 @@ push( @cleanup_files, ( "$options{runid}.pssm", "error.log" ) );
 if ( $options{psipred}
     || ( $options{psipredfile} && -s $options{psipredfile} ) )
 {
-    print_debug("Running psipred");
-    print_debug("Using nr_pfilt: $PFILTNR");
-
     if ( $options{psipredfile} && -s $options{psipredfile} ) {
         $options{psipred} = 1;
         system("cp $options{psipredfile} $options{runid}.psipred_ss2");
@@ -426,32 +480,22 @@ if ( $options{psipred}
     else {
 
         # run psi-blast for psipred
-        unless ( &nonempty_file_exists("sstmp.chk")
-            && &nonempty_file_exists("sstmp.ascii")
-            && &nonempty_file_exists("ss_blast") )
+        unless ( &nonempty_file_exists("sstmp.chk") )
         {
-            if (
-                !&try_try_again(
-"$PSIBLAST -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
-                    2,
-                    [ "sstmp.chk", "sstmp.ascii" ],
-                    [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]
-                )
-              )
-            {
-                die("psipred psi-blast failed!\n");
-            }
-            push( @cleanup_files, ( "ss_blast", "sstmp.chk", "sstmp.ascii" ) );
-        }
+            print_debug("Running psi-blast for psipred, using $PFILTNR.");
+            my $psiblast_success = &try_try_again(
+              "$PSIBLAST -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
+              2, [ "sstmp.chk", "sstmp.ascii" ], [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]);
+            $psiblast_success or die("psipred psi-blast failed!\n");
 
-        unless ( &nonempty_file_exists("psitmp.sn") ) {
-            &run( "echo $options{fastafile} > psitmp.sn", ("psitmp.sn") );
-        }
-        unless ( &nonempty_file_exists("psitmp.pn") ) {
-            &run( "echo sstmp.chk > psitmp.pn", ("psitmp.pn") );
+            push( @cleanup_files, ( "ss_blast", "sstmp.chk", "sstmp.ascii" ) );
+        } else {
+            print_debug("Using existing sstmp.chk");
         }
 
         unless ( &nonempty_file_exists("sstmp.mtx") ) {
+            &run( "echo $options{fastafile} > psitmp.sn", ("psitmp.sn") );
+            &run( "echo sstmp.chk > psitmp.pn", ("psitmp.pn") );
             if (
                 !&try_try_again(
                     "$MAKEMAT -P psitmp",
@@ -461,7 +505,9 @@ if ( $options{psipred}
             {
                 die("psipred: makemat failed.");
             }
-        }
+        } else {
+            print_debug("Using existing sstmp.mtx");
+          }
 
         unless ( &nonempty_file_exists("psipred_ss") ) {
             my $psipredcmd =
@@ -831,7 +877,7 @@ if ( scalar @pdbs_to_vall ) {
     chdir($pdbs2valldir);
 
     if ( !-s "$options{runid}\_pdbs_to_vall.vall" ) {
-        if ( !-s $SLAVE_LAUNCHER ) {    # run in series
+        if ( !-e $SLAVE_LAUNCHER ) {    # run in series
             foreach my $pdb (@pdbs_to_vall) {
                 my $cmd = "$PDB2VALL -p $pdb";
                 produce_output_with_cmd( $cmd, "$pdb.vall",
@@ -1080,7 +1126,7 @@ CMDTXT
     }
 }
 
-if (-s $SLAVE_LAUNCHER) {           # run in parallel
+if (-e $SLAVE_LAUNCHER) {           # run in parallel
     my ( @commands, @results );
     foreach my $size (@fragsizes) {
         push( @results, "$options{runid}.$options{n_frags}.$size" . "mers" );
@@ -1153,6 +1199,7 @@ sub getCommandLineOptions {
       qq{usage: $0  [-rundir <full path to run directory (default = ./)>
 		\t-verbose  specify for chatty output
 		\t-id  <5 character pdb code/chain id, e.g. 1tum_>
+		\t-csbuild_profile Generate sequence profile via csbuild, rather than psiblast.
 		\t-nopsipred  don\'t run psipred. (run by default)
 		\t-sam  run sam.
 		\t-porter  run porter.
@@ -1177,7 +1224,7 @@ sub getCommandLineOptions {
     # Get args
     my %opts;
     &GetOptions(
-        \%opts,             "psipred!",
+        \%opts,             "psipred!", "csbuild_profile!",
         "sam!",             "homs!",
         "frags!",           "porter!",
         "psipredfile=s",    "samfile=s",
@@ -1841,7 +1888,8 @@ sub run_in_parallel {
       or die
       "ERROR! number of commands does not match results in run_in_parallel\n";
 
-		use ForkManager;
+    #Only load ForkManager if required.
+		eval "use ForkManager";
 		use Sys::Hostname;
 		my $host = hostname;
     my $logprefix = "$runid-$host";

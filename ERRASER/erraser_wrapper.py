@@ -585,6 +585,47 @@ def SWA_rebuild_erraser_async(SWA_option):
     return True
 
 
+##### synchronous SWA_rebuild_erraser (post processing) #######################
+def SWA_rebuild_erraser_postproc( SWA_option ):
+    
+    sucessful_res, failed_res = [], []
+ 
+    try:
+        
+        # look for first existing pdb, try merge first
+        output_pdb_dir = '/'.join([SWA_option.work_dir, 'output_pdb/'])
+        output_pdbs = glob(output_pdb_dir + 'S_*merge.pdb')
+        if not len(output_pdbs):
+            output_pdbs = glob(output_pdb_dir + 'S_.pdb')
+        SWA_option.output_pdb = sorted(output_pdbs).pop(0)
+        
+        # get total res... merge res and everything downstream
+        total_res = get_total_res(SWA_option.output_pdb)
+
+        # merge rebuilt residue with temp
+        sliced2orig_merge_back(
+            SWA_option.input_pdb, 
+            SWA_option.output_pdb, 
+            'temp.pdb', 
+             range(SWA_option.rebuild_res, total_res+1)  
+        )
+ 
+        # at least one pdb found
+        print "Residue %d is sucessfully rebuilt!" % SWA_option.rebuild_res
+        sucessful_res.append(SWA_option.rebuild_res)
+
+    except Exception as e:
+        # no pdbs found 
+        print "No suitable alternative structure can be sampled."
+        print "Residue %d is not rebuilt!" % SWA_option.rebuild_res
+        failed_res.append(SWA_option.rebuild_res)
+
+    if not SWA_option.verbose and not SWA_option.debug:
+        remove(SWA_option.work_dir)
+        
+    return sucessful_res, failed_res
+
+
 ##### multiprocess SWA_rebuild_erraser (multiproc wrapper) ####################
 def SWA_rebuild_erraser_multiproc( SWA_option ):
      
@@ -594,6 +635,7 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
         SWA_option_async = deepcopy(SWA_option)
         SWA_option_async.rebuild_res = res
         SWA_option_async.input_pdb = 'temp_%d.pdb' % res
+        SWA_option_async.work_dir = "temp_%d_pdb_res_%d" % (res, res)
         SWA_option_async.log_out = 'seq_rebuild_temp_%s.out' % res
         copy('temp.pdb', SWA_option_async.input_pdb)
         SWA_opt_async_list.append(SWA_option_async)
@@ -604,61 +646,15 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
     pool.close()
     pool.join()
 
-
     ### check each run and merge rebuilt residues back into temp.pdb
-    sucessful_res, failed_res = [], []
-    for res in SWA_option.rebuild_res_list:        
-        # check success and copy final pdb
-        rebuilt_pdbs = [
-            './temp_%d_pdb_res_%d/output_pdb/S_000000_merge.pdb' % (res, res),
-            './temp_%d_pdb_res_%d/output_pdb/S_000000.pdb' % (res, res),
-            './temp_%d_pdb_res_%d/output_pdb/S_000001_merge.pdb' % (res, res),
-            './temp_%d_pdb_res_%d/output_pdb/S_000001.pdb' % (res, res),
-        ]
-        rebuilt_pdb_final = ''
+    results = map(SWA_rebuild_erraser_postproc, SWA_opt_async_list)
+   
+    sucess_res, failed_res = [], []
+    for result in results:
+        sucess_res.extend(result[0])
+        failed_res.extend(result[1])
 
-        try:
-            # set rebuilt_pdb_final to the first existing pdb from list below
-            rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
-            
-            # instead, copy only the rebuilt residue into the 'temp.pdb'
-            tempdir = './temp_%d_pdb_res_%d/output_pdb/' % (res, res)
-            rebuilt_res_pdb = tempdir + 'temp_rebuilt_res.pdb'
-            rebuilt_pdb_merged = tempdir + 'temp_rebuilt_res_merged.pdb'
-
-            # get total res... merge res and everything downstream
-            total_res = get_total_res(rebuilt_pdb_final)
-
-            # slice out rebuilt residue
-            rebuilt_res = pdb_slice(
-                rebuilt_pdb_final, 
-                rebuilt_res_pdb, 
-                '%d-%d' % (res, total_res)
-            )[0]
-
-            # merge rebuilt residue with temp
-            sliced2orig_merge_back(
-                'temp.pdb', 
-                rebuilt_res_pdb, 
-                rebuilt_pdb_merged, 
-                '%d-%d' % (res, total_res)  
-            )
-            copy(rebuilt_pdb_merged, 'temp.pdb')
-
-            # at least one pdb found
-            print "Residue %d is sucessfully rebuilt!" % res
-            sucessful_res.append(res)
-
-        except Exception as e:
-            # no pdbs found 
-            print "No suitable alternative structure can be sampled."
-            print "Residue %d is not rebuilt!" % res
-            failed_res.append(res)
-
-        if not SWA_option.verbose :
-            remove('temp_%d_pdb_res_%d' % (res,res))
-        
-    return sucessful_res, failed_res
+    return sucess_res, failed_res
 
 
 ##### seq_rebuild start ###############################################
@@ -940,6 +936,7 @@ def SWA_rebuild_erraser( option ) :
 
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
     if not is_chain_break :
@@ -1118,6 +1115,7 @@ def SWA_rebuild_erraser( option ) :
         if exists(out_slient_file) :
             extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True, rna_prot_erraser=option.rna_prot_erraser)
 
+
     ##############Merge the sliced region back to starting pdb######
     if option.slice_nearby :
         os.chdir( output_pdb_folder )
@@ -1125,6 +1123,7 @@ def SWA_rebuild_erraser( option ) :
         for pdb_file in pdb_file_list :
             sliced2orig_merge_back( native_pdb, pdb_file, pdb_file.replace('.pdb', '_merge.pdb'), res_sliced_all )
     #############################################################
+
     os.chdir(base_dir)
 
     if not option.verbose :

@@ -263,5 +263,8 @@ class erraser_option :
             self.rosetta_bin = self.rosetta_folder
             self.rosetta_database = self.rosetta_folder
 
-        if self.nproc is 'all':
-            self.nproc = multiprocessing.cpu_count() - 1
+        
+        max_cpu = multiprocessing.cpu_count()
+        if self.nproc > max_cpu:
+            print "Number of processes requested exceeds CPU count (nproc=%d, max_cpu=%d) ... setting nproc to %d" % (self.nproc, max_cpu, max_cpu)
+            self.nproc = max_cpu

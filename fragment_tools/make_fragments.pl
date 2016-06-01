@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
-use FindBin qw( $Bin );
+# Resolve symlinks to find source deploymnet
+use FindBin qw( $RealBin );
+my $Bin = $RealBin;
 use constant VERSION => 3.10;
 $| = 1; # disable stdout buffering
 
@@ -430,9 +432,13 @@ if ($SPARKS) {
         print_debug(
             "Running sparks for phi, psi, and solvent accessibility predictions"
         );
-        ( system("$SPARKS $options{fastafile}") == 0
-              && -s $options{fastafile} . ".phipsi" )
-          or die("sparks failed!\n");
+        my $sparks_result = system("$SPARKS $options{fastafile}");
+        if (!($sparks_result == 0 && -s $options{fastafile} . ".phipsi" )) {
+          if (length($SPARKS) > 100) {
+            print "sparks path length > 100 characters, which may cause internal errors. Try moving to a shorter path prefix.\n";
+          }
+          die("sparks failed!\n");
+        }
     }
 }
 

@@ -1,6 +1,4 @@
-#!/usr/bin/perl -w
-
-use strict;
+#!/usr/bin/perl
 
 if ( @ARGV < 1 ) {
 	print "Not enough arguments. Exiting...
@@ -16,38 +14,18 @@ if ( @ARGV < 1 ) {
 	die () ;
 }
 
-my %threetoone=("ALA","A","CYS","C","ASP","D","GLU","E","PHE","F","GLY","G","HIS","H","ILE","I","LYS","K","LEU","L","MET","M",
-                "ASN","N","PRO","P","GLN","Q","ARG","R","SER","S","THR","T","VAL","V","TRP","W","TYR","Y");
-# dead code
-#my $l1std=11;
-#my $l2std=7;
-#my $l3std=9;
-#my $h1std=10;
-#my $h2std=16;
-#my $h3std=8;
+%threetoone=("ALA",A,"CYS",C,"ASP",D,"GLU",E,"PHE",F,"GLY",G,"HIS",H,"ILE",I,"LYS",K,"LEU",L,"MET",M,"ASN",N,"PRO",P,"GLN",Q,"ARG",R,"SER",S,"THR",T,"VAL",V,"TRP",W,"TYR",Y);
+#%threetoone=("ALA",A,"CYS",C,"ASP",D,"GLU",E,"PHE",F,"GLY",G,"HIS",H,"ILE",I,"LYS",K,"LEU",L,"MET",M,"ASN",N,"PRO",P,"GLN",Q,"ARG",R,"SER",S,"THR",T,"VAL",V,"TRP",W,"TYR",Y,"TYS",Y,"MSE",M,"TPO",Y, "PTR",T,"SEP",S,"CSD",C,"MLY",K);
 
-my ($lenl1,$lenl2,$lenl3,$lenh1,$lenh2,$lenh3);
-my ($lenfrl1,$lenfrl2,$lenfrl3,$lenfrl4,$lenfrh1,$lenfrh2,$lenfrh3,$lenfrh4);
-my ($frl1,$frl2,$frl3,$frl4,$frh1,$frh2,$frh3,$frh4);
+$l1std=11;
+$l2std=7;
+$l3std=9;
+$h1std=10;
+$h2std=16;
+$h3std=8;
 
-my ($pdbfile,$filename);
-my ($lightchain, $heavychain);
-my ($nreslight,$ncyslight);
-my ($nresheavy,$ncysheavy);
-my ($lightseq,$heavyseq);
-my ($l1,$l2,$l3,$h1,$h2,$h3);
-
-my (@newnumberfrl1, @newnumberfrl2, @newnumberfrl3, $newnumberfrl4, @newnumberl1, @newnumberl2, @newnumberl3);
-my (@newnumberfrh1, @newnumberfrh2, @newnumberfrh3, $newnumberfrh4, @newnumberh1, @newnumberh2, @newnumberh3);
-
-my ($heavyseq_first, $heavyseq_second);
-my ($lightseq_first, $lightseq_second);
-
-my $len;
-
-
-my $list=shift @ARGV;
-open(LIST,"<$list")||die "E: Could not open '$list'. $!";
+$list=shift @ARGV;
+open(LIST,$list)||die();
 
 &initialize;
 
@@ -64,58 +42,70 @@ while($pdbfile ne ''){
 
 sub initialize{
 	#get the pdbfilename and the chain ID's 
-	my $line=<LIST>;
-	if (defined($line)) {
-		chomp($line);
-		my @fileandchains=split(/ +/,$line);
-		$pdbfile=$fileandchains[0];
-		my $chains=$fileandchains[1];
-		my @array=split(/:/,$chains);
-		$lightchain=substr($array[0],0,1);
-		$heavychain=substr($array[0],1,1);
-		$nreslight=$ncyslight=0;
-		$nresheavy=$ncysheavy=0;
-		$lightseq=$heavyseq=$l1=$l2=$l3=$h1=$h2=$h3='';
-	} else {
-		# terminates the execution
-		$pdbfile="";
-	}
+	$line=<LIST>;
+	chop($line);
+	@fileandchains=split(/ +/,$line);
+	$pdbfile=$fileandchains[0];
+	$chains=$fileandchains[1];
+	@array=split(/:/,$chains);
+	$lightchain=substr($array[0],0,1);
+	$heavychain=substr($array[0],1,1);
+	$nreslight=$ncyslight=0;
+	$nresheavy=$ncysheavy=0;
+	$lightseq=$heavyseq=$l1=$l2=$l3=$h1=$h2=$h3='';
 }
 
-sub readpdbfile {
+sub readpdbfile{
 	#read the actual pdb file and then identify the light and the heavy chain sequence.
 	$filename=$pdbfile.".pdb";
 
 	#$filename = $pdbfile.".ent" if !(-e $filename);
 
-	unless( -e $filename){
+	if(-e $filename){
+
+	}else{
 		print "No PDB $filename\n";
 		exit;
 	}
 
 
-	open(PDBFILE,"<$filename") or die("Could not open pdfile '$filename'. $!");
-	open(CHOTHIALIGHT,">$pdbfile\_chothia.light") or die ("Could not create cothia-numbered light chain at '$pdbfile\_chothia.light'. $!");
-	open(CHOTHIAHEAVY,">$pdbfile\_chothia.heavy") or die ("Could not create cothia-numbered heavy chain at '$pdbfile\_chothia.heavy'. $!");
-	my $line=<PDBFILE>;
+	open(PDBFILE,$filename)||die();
+	open(CHOTHIALIGHT,">$pdbfile\_chothia.light");
+	open(CHOTHIAHEAVY,">$pdbfile\_chothia.heavy");
+	$line=<PDBFILE>;
 	chop($line);
 
 	while($line ne ''){
-		my ($identifier,$atomno,$atom,$residue,$chain,$residueno,@junk)=split(/ +/,$line);
+		($identifier,$atomno,$atom,$residue,$chain,$residueno,@junk)=split(/ +/,$line);
 
 		$identifier = substr($line,0,6);
 		$atomno = substr($line,6,5);
 		$atom = substr($line,12,4);
-		my $alt_loc = substr($line,16,1);
+		$alt_loc = substr($line,16,1);
 		$residue = substr($line,17,3);
 		$chain = substr($line,21,1);
 		$residueno = substr($line,22,4);
-		my $insert_code=substr($line,26,1);
-		my $x = substr($line,30,8);
-		my $y = substr($line,38,8);
-		my $z = substr($line,46,8);
+		$insert_code=substr($line,26,1);
+		$x = substr($line,30,8);
+		$y = substr($line,38,8);
+		$z = substr($line,46,8);
 
-		my ($old_residueno,$old_insert_code,$old_alt_loc)="";
+		if($residue eq "TYS"){
+			$residue = "TYR";
+		}elsif($residue eq "MSE"){
+			$residue = "MET";
+		}elsif($residue eq "TPO"){
+			$residue = "TYR";
+		}elsif($residue eq "PTR"){
+			$residue = "THR";
+		}elsif($residue eq "SEP"){
+			$residue = "SER";
+		}elsif($residue eq "CSD"){
+			$residue = "CYS";
+		}elsif($residue eq "MLY"){
+			$residue = "LYS";
+		}
+
 		if($identifier =~ "ATOM" and $atom =~ "CA"){
 			if($chain eq $lightchain){
 				$lightseq=$lightseq.$threetoone{$residue}unless(   ($old_residueno eq $residueno) and ($old_alt_loc ne $alt_loc)  and ($old_insert_code eq $insert_code)  );
@@ -131,17 +121,13 @@ sub readpdbfile {
 		}
 
 		$line=<PDBFILE>;
-		if (defined($line)) {
-			chomp($line);
-		} else {
-			$line="";
-		}
+		chop($line);
 	}
 
 	### Split a sequence into two parts ###
 	if(length($lightseq) > 120){
 		$lightseq_first  = substr($lightseq, 0, 60);
-		$lightseq_second = substr($lightseq, 50, 70);
+		$lightseq_second = substr($lightseq, 50, 60);
 	}else{
 		$lightseq_first  = substr($lightseq, 0, 60);
 		$lightseq_second = substr($lightseq, 50);
@@ -159,35 +145,54 @@ sub readpdbfile {
 sub findcdrs{
 	#*********L1***************************
 	# C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)
-	my $var;
-	$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WYM|WYY)/;
+	#$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WYM|WYY)/;
+	$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY|WYE|WYV|WSL|WHR)/;	# NEW
 	if($var){
-		my $temp=$&;
+		$temp=$&;
 		$lenl1=length ($temp)-4;
 		$l1=substr($temp,1,$lenl1);
+	}
+
+	if($pdbfile =~ /2vh5/){
+		$lenl1 = 11;
+		$l1 = "RASQSISSYLN";
 	}
 	#************************************
 
 	#***********L3********************
 	# C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)
-	$var = $lightseq_second =~/C[A-Z]{1,15}(L|F|V|S)G[A-Z](G|Y)/;
+	#$var = $lightseq_second =~/C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)/;
+	$var = $lightseq_second =~/C[A-Z]{1,17}(F|V|S)G[A-Z](A|G|Y)/;	# NEW
 	if($var){
-		my $temp=$&;
+		$temp=$&;
 		$lenl3=length ($temp)-5;
 		$l3=substr($temp,1,$lenl3);
 
 	}
-	if($pdbfile eq "1xiw"){
+	if($pdbfile =~ /1xiw/){	# NEW
 		$lenl3 = 9;
 		$l3 = "QQGNTLPWT";
+	}elsif($pdbfile =~ /5f7e/){
+		$lenl3 = 5;
+		$l3 = "QQYEF";
+	}elsif($pdbfile =~ /2vh5/){
+		$lenl3 = 9;
+		$l3 = "QQSVMIPMT";
+	}elsif($pdbfile =~ /5cck/){
+		$lenl3 = 10;
+		$l3 = "CSYANYDKLI";
+	}elsif($pdbfile =~ /4lsv/||$pdbfile =~ /4jpv/){
+		$lenl3 = 5;
+		$l3 = "QVYEF";
 	}
 	#****************************
 
 	#**************H1************
 	# C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)
-	$var = $heavyseq_first =~/C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)/; 
+	#$var = $heavyseq_first =~/C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)/; 
+	$var = $heavyseq_first =~/C[A-Z]{1,18}(W)(W|I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|W)(Q|K|H|E|L|R|S|V)/; 	# NEW
 	if($var){
-		my $temp=$&;
+		$temp=$&;
 		$lenh1=length ($temp)-8;
 		$h1=substr($temp,4,$lenh1);
 	}
@@ -196,20 +201,44 @@ sub findcdrs{
 	$var = 0;
 
 	#***********H3****************
-	if($pdbfile eq "1tqb"){
+	#if($pdbfile eq "1tqb"){
+	if($pdbfile =~ /1tqb/ || $pdbfile =~ /1tqc/ || $pdbfile =~ /1tpx/){	# NEW
 		$var = $heavyseq_second =~/FTRGTDYWGQG/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
 		if($var){
-			my $temp=$&;
+			$temp=$&;
 			$lenh3=length ($temp)-7;
 			$h3=substr($temp,3,$lenh3);
 			$h1 = "GYTFTNYGMN";
 			$lenh1 = 10;
 		}
+	}elsif($pdbfile =~ /4k3d/){	# NEW
+			$h3 = "VHQETKKYQSCPDGYRERSDCSNRPACGTSDCCRVSVFGNCLTTLPVSYSYTYNYEWHVDV";
+			$lenh3 = 61;
+	}elsif($pdbfile =~ /4k3e/){	# NEW
+			$h3 = "VHQETRKTCSDGYIAVDSCGRGQSDGCVNDCNSCYYGWRNCRRQPAIHSYEFHVDA";
+			$lenh3 = 56;
+	}elsif($pdbfile =~ /5c0n/){	# NEW
+			$h3 = "PDNDGTSGYLSGFGL";
+			$lenh3 = 15;
+	}elsif($pdbfile =~ /2vh5/){	# NEW
+		$var = $heavyseq_second =~/VARGRFFDYWGQG/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
+		if($var){
+			$temp=$&;
+			$lenh3=length ($temp)-7;
+			$h3=substr($temp,3,$lenh3);
+			$h1 = "GFTFSTFSMN";
+			$lenh1 = 10;
+		}
 	}else{
 		# C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)
-		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|Q|G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
+
+		if($pdbfile =~ /5c0n/){
+			print "$heavyseq_second\n";
+		}
+
+		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C|S)[A-Z](S|Q|G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
 		if($var){
-			my $temp=$&;
+			$temp=$&;
 			$lenh3=length ($temp)-7;
 			$h3=substr($temp,3,$lenh3);
 		}
@@ -219,34 +248,34 @@ sub findcdrs{
 
 	#***************************
 
-	my $l1start= index($lightseq,$l1);
-	my $l1end=$l1start+$lenl1-1;
-	my $l2start=$l1end+16;
-	my $l2end=$l2start+7-1;
+	$l1start= index($lightseq,$l1);
+	$l1end=$l1start+$lenl1-1;
+	$l2start=$l1end+16;
+	$l2end=$l2start+7-1;
 	#L211
 	#$l2end=$l2start+11-1;
-	my $l3start= index($lightseq,$l3);
-	my $l3end=$l3start+$lenl3-1;
-	my $l2=substr($lightseq,$l2start,7);
+	$l3start= index($lightseq,$l3);
+	$l3end=$l3start+$lenl3-1;
+	$l2=substr($lightseq,$l2start,7);
 	$lenl2=7;
 	#L211
 	#$lenl2=11;
 
-	my $h1start = index($heavyseq,$h1);
-	my $h1end=$h1start+$lenh1-1;
-	my $h3start= index($heavyseq,$h3);
-	my $h3end=$h3start+$lenh3-1;
+	$h1start = index($heavyseq,$h1);
+	$h1end=$h1start+$lenh1-1;
+	$h3start= rindex($heavyseq,$h3);
+	$h3end=$h3start+$lenh3-1;
 
-	my $h2start=$h1end+15;
-	my $h2end=$h3start-33;
+	$h2start=$h1end+15;
+	$h2end=$h3start-33;
 
-	if($pdbfile eq "1MFE"){
+	if($pdbfile =~ /1MFE/){
 		$h2start = $h1end + 15 - 1;
-	}elsif($pdbfile eq "1MRD" || $pdbfile eq "1MRF"){
+	}elsif($pdbfile =~ /1MRD/ || $pdbfile =~ /1MRF/){
 		$h2end = $h3start - 33 + 3;
-	}elsif($pdbfile eq "2X7L"){
+	}elsif($pdbfile =~ /2X7L/){
 		$h2end = $h3start - 33 + 2;
-	}elsif($pdbfile eq "3MNW"){
+	}elsif($pdbfile =~ /3MNW/){
 		$h2start = $h1end + 15 - 2;
 	}
 
@@ -270,7 +299,7 @@ sub findcdrs{
 	$lenfrh3=length($frh3);
 	$frh4=substr($heavyseq,$h3end+1,10);
 	$lenfrh4=length($frh4);
-	my $seq1=$frh1.$h1.$frh2.$h2.$frh3.$h3; # not used again
+	$seq1=$frh1.$h1.$frh2.$h2.$frh3.$h3;
 
 	print "$filename\t$frl1 - \"$l1\" - $frl2 - \"$l2\" - $frl3 - \"$l3\" - $frl4\n";
 	print "$filename\t$frh1 - \"$h1\" - $frh2 - \"$h2\" - $frh3 - \"$h3\" - $frh4\n";
@@ -278,7 +307,6 @@ sub findcdrs{
 
 
 sub renumbercdrs{
-	my @string;
 	$string[1]=$newnumberfrl1[$lenfrl1];
 	$string[2]=$newnumberl1[$lenl1];
 	$string[3]=$newnumberfrl2[$lenfrl2];
@@ -287,11 +315,11 @@ sub renumbercdrs{
 	$string[6]=$newnumberl3[$lenl3];
 	$string[7]=$newnumberfrl4;
 
-	for(my $i=1;$i<=7;$i++){
-		my @array=split(/,/,$string[$i]);
-		my $nelements=@array;
+	for($i=1;$i<=7;$i++){
+		@array=split(/,/,$string[$i]);
+		$nelements=@array;
 
-		for(my $j=0;$j <$nelements;$j++){
+		for($j=0;$j <$nelements;$j++){
 			print CHOTHIALIGHT "$array[$j]\n";
 		}
 
@@ -305,17 +333,20 @@ sub renumbercdrs{
 	$string[6]=$newnumberh3[$lenh3];
 	$string[7]=$newnumberfrh4;
 
-	for(my $i=1;$i<=7;$i++){
-		my @array=split(/,/,$string[$i]);
-		my $nelements=@array;
+	for($i=1;$i<=7;$i++){
+		@array=split(/,/,$string[$i]);
+		$nelements=@array;
 
-		for(my $j=0;$j <$nelements;$j++){
+		for($j=0;$j <$nelements;$j++){
 			print CHOTHIAHEAVY "$array[$j]\n";
 		}
 	}
 }
 
 sub assignnumbering{
+	$newnumberfrl1[17]="6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[18]="5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[19]="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[20]="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[21]="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[22]="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
@@ -323,6 +354,10 @@ sub assignnumbering{
 	$newnumberfrl1[24]="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[25]="-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[26]="-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[27]="-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[28]="-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[29]="-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[30]="-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 
 	if($frl1 =~ /[LMVI][A-Z][QE][A-Z]{9}G[A-Z]{4}[LVIMF][STN]C/){
 		$newnumberfrl1[20]="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
@@ -379,6 +414,8 @@ sub assignnumbering{
 	
 	$newnumberfrl4="98,99,100,101,102,103,104,105,106,107,108,109";
 	
+	$newnumberfrh1[19]="7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
+	$newnumberfrh1[20]="6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[21]="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[22]="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[23]="3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
@@ -418,10 +455,10 @@ sub assignnumbering{
 	$newnumberfrh3[31]="66,67,68,69,70,71,72,73,74,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94";
 	$newnumberfrh3[32]="66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,82A,82B,82C,83,84,85,86,87,88,89,90,91,92,93,94";
 	
-	$newnumberh3[3]="95,101,102";
-	$newnumberh3[4]="95,96,101,102";
-	$newnumberh3[5]="95,96,97,101,102";
-	$newnumberh3[6]="95,96,97,98,101,102";
+	$newnumberh3[3]="95,96,97";
+	$newnumberh3[4]="95,96,97,98";
+	$newnumberh3[5]="95,96,97,98,99";
+	$newnumberh3[6]="95,96,97,98,99,100";
 	$newnumberh3[7]="95,96,97,98,99,101,102";
 	$newnumberh3[8]="95,96,97,98,99,100,101,102";
 	$newnumberh3[9]="95,96,97,98,99,100,100A,101,102";
@@ -448,24 +485,24 @@ sub assignnumbering{
 
 
 sub checknumbering{
-	my $error="NOK";
-	my ($error1,$error2,$error3,$error4,$error5)=(0,0,0,0,0);
+	$error="NOK";
+	$error1=$error2=$error3=$error4=$error5=0;
 
-	my $val1=substr($frh1,-22,1);
-	my $val2=substr($frh1,-20,1);
-	my $val3=substr($frh1,-11,1);
-	my $val4=substr($frh1,-6,1);
-	my $val5=substr($frh1,-5,1);
+	$val1=substr($frh1,-22,1);
+	$val2=substr($frh1,-20,1);
+	$val3=substr($frh1,-11,1);
+	$val4=substr($frh1,-6,1);
+	$val5=substr($frh1,-5,1);
 
-	my $val6=substr($frh1,-19,1);
-	my $val7=substr($frh1,-18,1);
-	my $val8=substr($frh1,-17,1);
+	$val6=substr($frh1,-19,1);
+	$val7=substr($frh1,-18,1);
+	$val8=substr($frh1,-17,1);
 
-	my $h18 = substr($frh1,-8,1);
-	my $string1="$val2$val7$val8";
-	my $string2="$val2$val6$val7";
+	$h18 = substr($frh1,-8,1);
+	$string1="$val2$val7$val8";
+	$string2="$val2$val6$val7";
 
-	my $type = "unknown";
+	$type = "unknown";
 	$type = "type1" if($string1 eq "EGP");
 	$type = "type2" if($string1 eq "EGG");
 	$type = "type3" if ($string2 =~ /Q[A-O,Q-Z]G/);
@@ -481,7 +518,6 @@ sub checknumbering{
 	#print "$pdbfile\t$val1\t$val2\t$val3\t$val4\t$val5\t$error\t$lenfrh1\t$frh1\t$lenfrh3\t$frh3\n";
 	#print "DK:$pdbfile\t$lenfrh3\t$frh3\n";
 
-	my $krithi=0; # not used anywhere else
 	if($krithi){
 		$val1=substr($frl1,-20,1);
 		$val2=substr($frl1,-18,1);

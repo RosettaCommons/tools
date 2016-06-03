@@ -243,14 +243,14 @@ def main(args):
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
 
-    global frlh_info
+    #global frlh_info
     global frl_info
     global frh_info
 
-    frlh_info, legend = {}, ''
-    for l in file( _script_path_ + '/info/frlh_info' ):
-        if l.startswith('# '): legend = l[2:].split()
-        elif len(l)>8: frlh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
+    #frlh_info, legend = {}, ''
+    #for l in file( _script_path_ + '/info/frlh_info' ):
+    #    if l.startswith('# '): legend = l[2:].split()
+    #    elif len(l)>8: frlh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     frl_info, legend = {}, ''
     for l in file( _script_path_ + '/info/frl_info' ):
@@ -911,7 +911,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         elif len(l)>8: cdr_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
 
-    for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
+    #for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
 
     # cdr_info consistency check
     for name, i in cdr_info.items():

@@ -475,6 +475,9 @@ def erraser_minimize( option ) :
         command += " -edensity:mapfile %s " % option.map_file
         command += " -edensity:mapreso %s " % option.map_reso
         command += " -edensity:realign no "
+
+    command += ' -graphic false '
+    
     print "cmdline: %s" % command
     print "#######Submit the Rosetta Command Line###############"
     subprocess_call(command, sys.stdout, sys.stderr)
@@ -578,7 +581,9 @@ def full_struct_slice_and_minimize( option ) :
 
 
 ##### asynchronous SWA_rebuild_erraser (asynch process) #######################
-def SWA_rebuild_erraser_async(SWA_option):
+def SWA_rebuild_erraser_async( SWA_option ):
+    with SWA_option.lock:
+        copy('temp.pdb', SWA_option.input_pdb)
     print 'Starting to rebuild residue %s' % SWA_option.rebuild_res
     SWA_rebuild_erraser( SWA_option )
     print 'Job completed for residue %s' % SWA_option.rebuild_res
@@ -598,18 +603,16 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
         if not len(output_pdbs):
             output_pdbs = glob(output_pdb_dir + 'S_.pdb')
         SWA_option.output_pdb = sorted(output_pdbs).pop(0)
-        
-        # get total res... merge res and everything downstream
-        total_res = get_total_res(SWA_option.output_pdb)
 
         # merge rebuilt residue with temp
         sliced2orig_merge_back(
-            SWA_option.input_pdb, 
+            'temp.pdb',
             SWA_option.output_pdb, 
-            'temp.pdb', 
-             range(SWA_option.rebuild_res, total_res+1)  
+            SWA_option.input_pdb,
+            [SWA_option.rebuild_res]
         )
- 
+        copy(SWA_option.input_pdb, 'temp.pdb')
+
         # at least one pdb found
         print "Residue %d is sucessfully rebuilt!" % SWA_option.rebuild_res
         sucessful_res.append(SWA_option.rebuild_res)
@@ -628,7 +631,12 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
 
 ##### multiprocess SWA_rebuild_erraser (multiproc wrapper) ####################
 def SWA_rebuild_erraser_multiproc( SWA_option ):
-     
+
+    ### init multiprocessing
+    mp_pool = multiprocessing.Pool(processes=SWA_option.nproc)
+    mp_manager = multiprocessing.Manager()
+    mp_lock = mp_manager.Lock()
+
     ### setup SWA_opt_async_list 
     SWA_opt_async_list = []
     for res in SWA_option.rebuild_res_list:
@@ -637,14 +645,16 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
         SWA_option_async.input_pdb = 'temp_%d.pdb' % res
         SWA_option_async.work_dir = "temp_%d_pdb_res_%d" % (res, res)
         SWA_option_async.log_out = 'seq_rebuild_temp_%s.out' % res
-        copy('temp.pdb', SWA_option_async.input_pdb)
+        SWA_option_async.lock = mp_lock
         SWA_opt_async_list.append(SWA_option_async)
 
     ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
-    pool = multiprocessing.Pool(processes=SWA_option.nproc)       
-    async_result = pool.map_async(SWA_rebuild_erraser_async, SWA_opt_async_list)   
-    pool.close()
-    pool.join()
+    async_result = mp_pool.map_async(
+        SWA_rebuild_erraser_async,
+        SWA_opt_async_list
+    )   
+    mp_pool.close()
+    mp_pool.join()
 
     ### check each run and merge rebuilt residues back into temp.pdb
     results = map(SWA_rebuild_erraser_postproc, SWA_opt_async_list)
@@ -936,6 +946,7 @@ def SWA_rebuild_erraser( option ) :
 
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+    common_cmd += ' -graphic false '
 
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '

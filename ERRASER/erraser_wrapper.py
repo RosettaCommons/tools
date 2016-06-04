@@ -617,7 +617,7 @@ def full_struct_slice_and_minimize( option ) :
         print exists('after_min.pdb')
         move('after_min.pdb', option.out_pdb)
     else :
-        if option.nproc > 0:
+        if option.nproc > 0 and option.multiproc_minimize is True:
             print "Input pdb >= 150 residus, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
             minimize_option.n_chunk = n_chunk
             full_struct_slice_and_minimize_multiproc(minimize_option)

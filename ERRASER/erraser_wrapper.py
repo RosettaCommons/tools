@@ -503,6 +503,77 @@ def erraser_minimize( option ) :
 
 
 
+##### full_struct_slice_and_minimize_async start ##########################
+def full_struct_slice_and_minimize_async( minimize_option ):
+    with minimize_option.lock:
+        copy("before_min.pdb", minimize_option.input_pdb)
+    print "Start minimizing chunk %s..." % minimize_option.chunk_idx
+    print "Chunk %s residues: %s" % (
+        minimize_option.chunk_idx, 
+        minimize_option.res_slice
+    )
+    erraser_minimize( minimize_option )
+        
+    print "Minimization for chunk %s ends sucessfully." % (
+        minimize_option.chunk_idx
+    )
+    return True
+
+
+##### full_struct_slice_and_minimize_postproc start ##########################
+def full_struct_slice_and_minimize_postproc( minimize_option ):
+ 
+    # merge rebuilt residue with temp
+    merge_pdb = minimize_option.out_pdb.replace('.pdb', '_merge.pdb')
+    sliced2orig_merge_back(
+        'after_min.pdb',
+        minimize_option.out_pdb, 
+        merge_pdb,
+        minimize_option.res_slice
+    )
+    copy(merge_pdb, 'after_min.pdb')
+    return True
+
+##### full_struct_slice_and_minimize_multiproc start ##########################
+def full_struct_slice_and_minimize_multiproc( option ):
+
+    ### init multiprocessing
+    mp_pool = multiprocessing.Pool(processes=option.nproc)
+    mp_manager = multiprocessing.Manager()
+    mp_lock = mp_manager.Lock()
+
+    ### setup SWA_opt_async_list 
+    minimize_opt_async_list = []
+    res_slice_list = pdb_slice_into_chunks(option.input_pdb, option.n_chunk)
+    for chunk_idx, res_slice in enumerate(res_slice_list, start = 1):
+        minimize_opt_async = deepcopy(option)
+        minimize_opt_async.chunk_idx = chunk_idx
+        minimize_opt_async.input_pdb = "before_min_%d.pdb" % chunk_idx
+        minimize_opt_async.out_pdb = "after_min_%d.pdb" % chunk_idx
+        minimize_opt_async.res_slice = res_slice
+        minimize_opt_async.log_out = "full_minimize_temp_%s.out" % chunk_idx
+        minimize_opt_async.lock = mp_lock
+        minimize_opt_async_list.append(minimize_opt_async)
+
+    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
+    async_result = mp_pool.map_async(
+        full_struct_slice_and_minimize_async,
+        minimize_opt_async_list
+    )   
+    mp_pool.close()
+    mp_pool.join()
+
+    ### check each run and merge rebuilt residues back into temp.pdb
+    #move('after_min.pdb', option.out_pdb)
+    copy("before_min.pdb", "after_min.pdb")
+    results = map(
+        full_struct_slice_and_minimize_postproc, 
+        minimize_opt_async_list
+    )
+    copy("after_min.pdb", option.out_pdb)
+  
+    return 
+
 
 ##### full_struct_slice_and_minimize start ############################
 def full_struct_slice_and_minimize( option ) :
@@ -546,21 +617,26 @@ def full_struct_slice_and_minimize( option ) :
         print exists('after_min.pdb')
         move('after_min.pdb', option.out_pdb)
     else :
-        print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
-        res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
-        current_chunk = 0
-        for res_slice in res_slice_list :
-            print "Start minimizing chunk %s..." % current_chunk
-            print "Chunk %s residues: %s" % (current_chunk, res_slice)
-            current_chunk += 1
-            minimize_option.input_pdb = "before_min.pdb"
-            minimize_option.out_pdb = "after_min.pdb"
-            minimize_option.res_slice = res_slice
-            minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
-            erraser_minimize( minimize_option )
-            copy('after_min.pdb', 'before_min.pdb')
-            print "Minimization for chunk %s ends sucessfully." % current_chunk
-        move('after_min.pdb', option.out_pdb)
+        if option.nproc > 0:
+            print "Input pdb >= 150 residus, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
+            minimize_option.n_chunk = n_chunk
+            full_struct_slice_and_minimize_multiproc(minimize_option)
+        else:
+            print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
+            res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
+            current_chunk = 0
+            for res_slice in res_slice_list :
+                print "Start minimizing chunk %s..." % current_chunk
+                print "Chunk %s residues: %s" % (current_chunk, res_slice)
+                current_chunk += 1
+                minimize_option.input_pdb = "before_min.pdb"
+                minimize_option.out_pdb = "after_min.pdb"
+                minimize_option.res_slice = res_slice
+                minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
+                erraser_minimize( minimize_option )
+                copy('after_min.pdb', 'before_min.pdb')
+                print "Minimization for chunk %s ends sucessfully." % current_chunk
+            move('after_min.pdb', option.out_pdb)
 
     os.chdir(base_dir)
 
@@ -602,12 +678,12 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
         output_pdbs = glob(output_pdb_dir + 'S_*merge.pdb')
         if not len(output_pdbs):
             output_pdbs = glob(output_pdb_dir + 'S_.pdb')
-        SWA_option.output_pdb = sorted(output_pdbs).pop(0)
+        SWA_option.out_pdb = sorted(output_pdbs).pop(0)
 
         # merge rebuilt residue with temp
         sliced2orig_merge_back(
             'temp.pdb',
-            SWA_option.output_pdb, 
+            SWA_option.out_pdb, 
             SWA_option.input_pdb,
             [SWA_option.rebuild_res]
         )

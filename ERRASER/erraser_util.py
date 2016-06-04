@@ -1274,7 +1274,6 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
 
     out = open(out_name, 'w')
     new_pdb_read = open(new_pdb)
-    new_pdb_line = new_pdb_read.readline()
     res_new_pre = -10
     res_orig_pre = -10
     is_residue_done = False
@@ -1295,20 +1294,27 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 atom_num += 1
                 out.write('%s%7d%s' %(line[0:4], atom_num, line[11:]) )
             else :
-                if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
-                    if new_pdb_line[21].isspace():
-                        new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
-                    atom_num += 1
-                    out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
-                    res_new_pre = int( new_pdb_line[22:26] )
-
+                # calebgeniesse: this fails to check that new line has same res as res num
+                #if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
+                #    res_new = int( new_pdb_line[22:26] )
+                #    if res_new == res_num :
+                #        if new_pdb_line[21].isspace():
+                #            new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
+                #        atom_num += 1
+                #        out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
+                #        res_new_pre = int( new_pdb_line[22:26] )
+  
+                # calebgeniesse: read through pdb until res_num is found
+                res_new_pre = res_num
                 while True :
                     new_pdb_line = new_pdb_read.readline()
                     if new_pdb_line == "" :
                         break
                     if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                         res_new = int( new_pdb_line[22:26] )
-                        if res_new == res_new_pre :
+                        if res_new != res_num:
+                            continue
+                        if res_new == res_new_pre:
                             if new_pdb_line[21].isspace():
                                 new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
                             atom_num += 1

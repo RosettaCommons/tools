@@ -92,7 +92,7 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
-        self.nproc = max(parse_options( argv, 'nproc', 0), parse_options( argv, 'j', 0))
+        self.nproc = parse_options( argv, 'nproc', 0 )
         self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
 
 
@@ -153,7 +153,7 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
-        self.nproc = max(parse_options( argv, 'nproc', 0), parse_options( argv, 'j', 0))
+        self.nproc = parse_options( argv, 'nproc', 0 )
         self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
 
         #erraser_single_res options
@@ -193,7 +193,7 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
-        self.nproc = max(parse_options( argv, 'nproc', 0), parse_options( argv, 'j', 0))
+        self.nproc = parse_options( argv, 'nproc', 0 )
         self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
 
         #erraser options

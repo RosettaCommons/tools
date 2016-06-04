@@ -671,6 +671,10 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
     
     sucessful_res, failed_res = [], []
  
+    print "Processing SWA_rebuild_erraser results for residue: %d" % (
+        SWA_option.rebuild_res
+    )
+
     try:
         
         # look for first existing pdb, try merge first
@@ -681,13 +685,14 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
         SWA_option.out_pdb = sorted(output_pdbs).pop(0)
 
         # merge rebuilt residue with temp
+        merge_pdb = 'temp_%d_merge.pdb' % SWA_option.rebuild_res
         sliced2orig_merge_back(
             'temp.pdb',
             SWA_option.out_pdb, 
-            SWA_option.input_pdb,
+            merge_pdb ,
             [SWA_option.rebuild_res]
         )
-        copy(SWA_option.input_pdb, 'temp.pdb')
+        copy(merge_pdb, 'temp.pdb')
 
         # at least one pdb found
         print "Residue %d is sucessfully rebuilt!" % SWA_option.rebuild_res
@@ -733,10 +738,9 @@ def SWA_rebuild_erraser_multiproc( SWA_option ):
     mp_pool.join()
 
     ### check each run and merge rebuilt residues back into temp.pdb
-    results = map(SWA_rebuild_erraser_postproc, SWA_opt_async_list)
-   
     sucess_res, failed_res = [], []
-    for result in results:
+    for SWA_opt in SWA_opt_async_list:
+        result = SWA_rebuild_erraser_postproc( SWA_opt )
         sucess_res.extend(result[0])
         failed_res.extend(result[1])
 

@@ -1305,14 +1305,16 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 #        res_new_pre = int( new_pdb_line[22:26] )
   
                 # calebgeniesse: read through pdb until res_num is found
-                res_new_pre = res_num
+                res_new_pre = None
                 while True :
                     new_pdb_line = new_pdb_read.readline()
                     if new_pdb_line == "" :
                         break
                     if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                         res_new = int( new_pdb_line[22:26] )
-                        if res_new != res_num:
+                        if res_new == res_num:
+                            res_new_pre = res_new
+                        if res_new_pre is None:
                             continue
                         if res_new == res_new_pre:
                             if new_pdb_line[21].isspace():

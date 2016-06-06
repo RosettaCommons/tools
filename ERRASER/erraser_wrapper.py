@@ -682,15 +682,17 @@ def SWA_rebuild_erraser_postproc( SWA_option ):
         output_pdbs = glob(output_pdb_dir + 'S_00000?_merge.pdb')
         if not len(output_pdbs):
             output_pdbs = glob(output_pdb_dir + 'S_00000?.pdb')
+        output_pdbs = glob(output_pdb_dir + 'S_00000?.pdb')
         SWA_option.out_pdb = sorted(output_pdbs).pop(0)
 
         # merge rebuilt residue with temp
         merge_pdb = 'temp_%d_merge.pdb' % SWA_option.rebuild_res
+        total_res = get_total_res(SWA_option.out_pdb)
         sliced2orig_merge_back(
             'temp.pdb',
             SWA_option.out_pdb, 
             merge_pdb ,
-            [SWA_option.rebuild_res]
+            range(SWA_option.rebuild_res, total_res+1)
         )
         copy(merge_pdb, 'temp.pdb')
 

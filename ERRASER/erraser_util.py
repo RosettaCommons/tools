@@ -1331,6 +1331,7 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                         else :
                             break
                 is_residue_done = True
+            
     out.close()
     return True
 ####################################

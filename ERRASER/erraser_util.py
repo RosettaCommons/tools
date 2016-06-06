@@ -1274,6 +1274,7 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
 
     out = open(out_name, 'w')
     new_pdb_read = open(new_pdb)
+    new_pdb_line = new_pdb_read.readline()
     res_new_pre = -10
     res_orig_pre = -10
     is_residue_done = False
@@ -1294,6 +1295,8 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 atom_num += 1
                 out.write('%s%7d%s' %(line[0:4], atom_num, line[11:]) )
             else :
+                # calebgeniesse: this section is just hacky now now.. should be refactored
+
                 # calebgeniesse: this fails to check that new line has same res as res num
                 #if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                 #    res_new = int( new_pdb_line[22:26] )
@@ -1305,10 +1308,13 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 #        res_new_pre = int( new_pdb_line[22:26] )
   
                 # calebgeniesse: read through pdb until res_num is found
-                res_new_pre = None
+                res_new_pre, res_new = None, None
                 while True :
-                    new_pdb_line = new_pdb_read.readline()
-                    if new_pdb_line == "" :
+                    if res_new:
+                        new_pdb_line = new_pdb_read.readline()
+                    if not new_pdb_line:
+                        break
+                    if res_new_pre and new_pdb_line == "" :
                         break
                     if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                         res_new = int( new_pdb_line[22:26] )

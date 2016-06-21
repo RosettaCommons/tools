@@ -180,7 +180,7 @@ class VarDecToRefCountSubclassPointerFinder :
     """
     Recursive routine that returns True when a node returns a pointer to a class derived from refcount
     Handles variables that have previously been declared, functions that return pointers to classes
-    derived from refcount, array accesses, and any of the previous three wrapped in parenthesis.    
+    derived from refcount, array accesses, and any of the previous three wrapped in parenthesis.
     """
     if node.cursor.kind == CursorKind.DECL_REF_EXPR :
       return self.decl_ref_expr_to_refcount_subclass( node )
@@ -216,7 +216,7 @@ class VarDecToRefCountSubclassPointerFinder :
       if not nodedefchild0def : return False
       return nodedefchild0def.cursor.get_usr() in self.code_reader.classes_deriving_from_refcount
     return False
-      
+
   def array_index_returns_ptr_to_refcount_subclass( self, node ) :
     """
     Returns True for nodes which represent access to an array of pointers
@@ -422,7 +422,7 @@ class CodeQualityChecker_FindStackDeclaredObjectsReservedForTheHeap :
 #    for token in node.cursor.get_tokens() :
 #      print token.spelling,
 #    print
-  
+
 
 if __name__ == "__main__" :
 

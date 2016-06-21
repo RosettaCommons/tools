@@ -34,10 +34,16 @@
 #include <sstream>
 #include <sys/stat.h>
 
+// Take a string that begins with "class " and remove it;
+// e.g. "class MyClass" becomes "MyClass"
 std::string
 no_class( std::string const & name_for_type ) {
-	if ( name_for_type.compare( 0, 5, "class " ) ) {
+	if ( name_for_type.compare( 0, 6, "class " ) == 0 ) {
+		//std::cout << "name_for_type: " << name_for_type << " truncated to " << name_for_type.substr( 6 ) << std::endl;
 		return name_for_type.substr( 6 );
+	} else if ( name_for_type.compare( 0, 7, "struct " ) == 0 ) {
+		//std::cout << "name_for_type: " << name_for_type << " truncated to " << name_for_type.substr( 7 ) << std::endl;
+		return name_for_type.substr( 7 );
 	} else {
 		return name_for_type;
 	}
@@ -170,7 +176,7 @@ SerializedMemberFinder::~SerializedMemberFinder() {}
 void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchResult &result) {
 	using namespace clang;
 
-	SourceManager *sm = result.SourceManager;
+	//SourceManager *sm = result.SourceManager;
 	// const CXXOperatorCallExpr * opcall = result.Nodes.getStmtAs<CXXOperatorCallExpr>("op_call");
 	const MemberExpr * member_var = result.Nodes.getStmtAs<MemberExpr>("member");
 	const CXXMethodDecl * methdecl = result.Nodes.getStmtAs<CXXMethodDecl>("methdecl");
@@ -178,8 +184,14 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	const ReferenceType * ref_to_serialized_class = result.Nodes.getStmtAs<ReferenceType>("serialized_class_type");
 
 
-	if(!rewriteThisFile(member_var, *sm))
-		return;
+	//if(!rewriteThisFile(member_var, *sm))
+	//	return;
+
+	//if ( ! rewriteThisFile( tempfunc, *sm )) return;
+
+	//std::cout << "Matched " << member_var->getMemberNameInfo().getAsString() << std::endl;
+	//return;
+
 	std::string classname;
 	if ( methdecl ) {
 		classname = no_class( methdecl->getThisType( *result.Context )->getPointeeType().getCanonicalType().getUnqualifiedType().getAsString() );
@@ -202,6 +214,9 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	}
 
 	//std::cout << "found one" << std::endl; opcall->dump(); std::cout << "\n"; member_var->dump(); std::cout << "\n" << std::endl;
+	//std::cout << "tempfunc" << std::endl;
+	//tempfunc->dump();
+	//std::cout << "\n\n";
 	if ( verbose_ ) {
 		//std::cout << "HIT!" << std::endl;
 		//std::cout << "templated function:" << tempfunc << " " << member_var << " " << opcall << " " << methdecl << std::endl;

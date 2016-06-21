@@ -70,13 +70,13 @@ def print_raw_ast(cursor,depth=0):
 	|  |  |  FIELD_DECL reg_save_area
 	|  TYPEDEF_DECL __builtin_va_list
 	|  |  TYPE_REF __va_list_tag
-	|  |  INTEGER_LITERAL 
+	|  |  INTEGER_LITERAL
 	|  VAR_DECL i
 	|  VAR_DECL ir
 	|  |  UNEXPOSED_EXPR i
 	|  |  |  DECL_REF_EXPR i
 	|  VAR_DECL ip
-	|  |  UNARY_OPERATOR 
+	|  |  UNARY_OPERATOR
 	|  |  |  DECL_REF_EXPR i
 	|  VAR_DECL ic
 	|  |  UNEXPOSED_EXPR i
@@ -90,7 +90,7 @@ def print_raw_ast(cursor,depth=0):
 def hashcursor(c):
 	"""
 	get a unique string for a cursor
-	
+
 	>>> n = get_doctest_ast("test.cc").root.srcchild[1]
 	>>> hashcursor(n.cursor)
 	'c:@ir'
@@ -103,7 +103,7 @@ class ASTException(Exception):
 		self.value = value
 	def __str__(self):
 		return repr(self.value)
-		
+
 
 
 class Include(object):
@@ -112,9 +112,9 @@ class Include(object):
 		super(Include, self).__init__()
 		self.fname = fname
 		self.provided_by = set()
-		self.provided_by_transitive = set()		
+		self.provided_by_transitive = set()
 		self.namemap = namemap
-	
+
 	def __str__(self,depth=0,printed=None):
 		s = self.fname+", provided by:"
 		tmp = list(self.provided_by_transitive)
@@ -122,10 +122,10 @@ class Include(object):
 		for c in tmp:
 			s += "\n    "+c.fname
 		return s
-	
+
 	def __cmp__(self,othr):
 		return cmp(self.fname,othr.fname)
-	
+
 
 
 class Node(object):
@@ -148,7 +148,7 @@ class Node(object):
 			#assert childiter.next().spelling == "__uint128_t"
 			#assert childiter.next().spelling == "__va_list_tag"
 			#assert childiter.next().spelling == "__va_list_tag"
-			#assert childiter.next().spelling == "__builtin_va_list"				
+			#assert childiter.next().spelling == "__builtin_va_list"
 		else:
 			self.fname = str(self.cursor.location.file)  #: filename of sourcefile this node came from
 			self.start = self.cursor.extent.start.offset #: start position in sourcefile
@@ -156,8 +156,8 @@ class Node(object):
 		if self.cursor.get_definition():
 		 	self.ast.locmap[hashcursor(self.cursor)] = self
 		self.allchild = [Node(ast,c,self) for c in childiter] #: all children
-		self.update_srcchild()                                
-	
+		self.update_srcchild()
+
 	def update_srcchild(self):
 		"""
 		updates list of same-srcfile children
@@ -168,19 +168,19 @@ class Node(object):
 			#if c.type().startswith("UNEXPOSED"): continue
 			self.srcchild.append(c)
 		for c in self.srcchild: c.update_srcchild()
-	
+
 	def includes_used(self):
 		"""
 		returns [sorted list of includes] {map of nodes which think they need a particular include}
 		attempt to find the headers which are actually needed for the core in the sourcefile
 		in the following example, many headers are included, but only something in tdef3.hh is actually used.
-		
+
 		WORK IN PROGRESS!
-		
+
 		>>> ast = get_doctest_ast("test_inc.cc")
-		
+
 		print all headers:
-		
+
 		>>> for h in sorted(ast.all_headers): print h            #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		/.../willclang/test/include/class1.hh
 		/.../willclang/test/include/class2.hh
@@ -195,23 +195,23 @@ class Node(object):
 		/.../willclang/test/include/func3.hh
 		/.../willclang/test/include/func4.hh
 		/.../willclang/test/include/ns1.hh
-		...		
-		
+		...
+
 		but these aren't all needed, the ast it just this:
-		
+
 		>>> print ast.root.getstr()                               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		TRANSLATION_UNIT ...
 		| VAR_DECL i     'tdef3 i'
 		| | TYPE_REF tdef3     'tdef3'
-		
+
 		print only headers "referred" to in the actual source:
-		
+
 		>>> inc,inc_why = ast.root.includes_used()
 		>>> for h in sorted(inc): print h                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		/.../willclang/test/include/tdef3.hh
-		
+
 		The node(s) which think they need a particular header are reported in the map 'inc_why' (2nd return):
-		
+
 		>>> for h in inc:                                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		...    print h
 		...    for n in inc_why[h]:
@@ -233,7 +233,7 @@ class Node(object):
 					td = td.get_definition()
 					if td is None: break
 					chld = list(td.get_children())
-					if td.location.file: 
+					if td.location.file:
 						fn = str(td.location.file)
 						if self.parent.is_decl():
 							if self.parent.is_ptr_or_ref():	fn = self.ast.switch_to_fwd(fn)
@@ -241,21 +241,21 @@ class Node(object):
 							if fn != self.ast.fname:
 								inc.add(fn)
 								incwhy.setdefault(fn,[]).append(self)
-					if len(chld)==1: td = chld[0]					
+					if len(chld)==1: td = chld[0]
 		for c in self.srcchild:
 		 	cinc,cincwhy = c.includes_used()
 			inc |= cinc
 			for k in incwhy: cincwhy.setdefault(k,[]).extend(incwhy[k])
 			incwhy = cincwhy
 		return inc,incwhy
-	
+
 	def search(self,name):
 		rslt = []
 		if self.cursor and (str(self.cursor.displayname).endswith(name) or str(self.cursor.spelling).endswith(name)):
 			rslt.append(self)
 		for c in self.srcchild: rslt.extend(c.search(name))
 		return rslt
-	
+
 	def splitcode(self):
 		if self.fname == self.ast.fname:
 			if self.srcchild:
@@ -267,7 +267,7 @@ class Node(object):
 			else:
 				self.code.append(self.ast.code[self.start:self.end])
 			for c in self.srcchild: c.splitcode()
-	
+
 	def isdefinition(self):
 		"""
 		>>> def visit(node): print "IS_DEF:",str(node.isdefinition()).ljust(5),node.getstr(recursive=False)
@@ -286,7 +286,7 @@ class Node(object):
 		...
 		"""
 		return self.cursor.is_definition()
-	
+
 	def definition(self):
 		"""
 		>>> ast = get_doctest_ast("test_ref.cc")
@@ -298,8 +298,8 @@ class Node(object):
 		| FUNCTION_DECL msfunc
 		| | PARM_DECL ms
 		| | | TYPE_REF struct MyStruct
-		| | COMPOUND_STMT 
-		| | | RETURN_STMT 
+		| | COMPOUND_STMT
+		| | | RETURN_STMT
 		| | | | UNEXPOSED_EXPR i
 		| | | | | MEMBER_REF_EXPR i
 		| | | | | | DECL_REF_EXPR ms
@@ -341,10 +341,10 @@ class Node(object):
 		if not d: return None
 		try: return self.ast.locmap[hashcursor(d)]
 		except KeyError: return None
-	
+
 	def type(self):
 		return str(self.cursor.kind)[11:]
-	
+
 	def children_of_type(self,t,recurseall=False):
 		"""
 		>>> ast = get_doctest_ast("types.cc")
@@ -362,15 +362,15 @@ class Node(object):
 		for c in (self.allchild if recurseall else self.srcchild):
 			n.extend(c.children_of_type(t))
 		return n
-	
+
 	def namespace(self):
 		"""
 		get the full namespace of any-old-thing. you *can't* do this with grep!
-		
+
 		.. todo::
 			find another way to get namespace of arbitrary things, because this the parent-reference approach
 			is really the only reason each node needs a wrapper. this is expensive
-		
+
 		>>> ast = get_doctest_ast("test_ns.cc")
 		>>> visit = lambda x: x.codeline() + (" IN " if x.namespace() else "") + x.namespace()
 		>>> ast.root.treeprint(visit)     #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
@@ -405,18 +405,18 @@ class Node(object):
 				ns = p.cursor.spelling + "::" + ns
 			p = p.parent
 		return ns.rstrip(":")
-	
+
 	def codeline(self):
 		"""
 		>>> n = get_doctest_ast("types.cc").root.search("test_types")[0]
 		>>> print n.codeline()
 		void test_types() {i ...| ct &mr(m);MSP msp;}
-		"""		
+		"""
 		assert self.fname == self.ast.fname
 		code = self.ast.code[self.start:self.end]
 		l = (code if len(code) < 50 else code[:22]+" ...| "+code[-22:])
 		return l.replace("\n","").replace("\t","")
-	
+
 	def treemap(self,func,allchild=False):
 		"""
 		>>> def visit(node): print node.cursor.location
@@ -437,7 +437,7 @@ class Node(object):
 		children = self.allchild if allchild else self.srcchild
 		for c in children:
 			c.treemap(func,allchild)
-	
+
 	def treeprint(self,func,allchild=False,depth=0):
 		"""
 		>>> ast = get_doctest_ast("test_ref.cc")
@@ -453,12 +453,12 @@ class Node(object):
 		| | | | | | FOO UNEXPOSED_EXPR msfunc     'msfunc'
 		| | | | | | | FOO DECL_REF_EXPR msfunc     'msfunc'
 		| | | | | | FOO DECL_REF_EXPR ms     'ms'
-		"""		
+		"""
 		print "| "*depth+str(func(self))
 		children = self.allchild if allchild else self.srcchild
 		for c in children:
 			c.treeprint(func,allchild,depth+1)
-	
+
 	def is_decl(self):
 		"""
 		>>> def visit(node): print "IS_DECL:",node.is_decl(),node.getstr(recursive=False)
@@ -476,15 +476,15 @@ class Node(object):
 		...
 		"""
 		return self.cursor.kind in DECL_TYPES
-	
+
 	def is_ptr_or_ref(self):
 		"""
-		returns True if this node is a reference or pointer type; 
-		returns False if this node is a non-reference and non-pointer type;	
+		returns True if this node is a reference or pointer type;
+		returns False if this node is a non-reference and non-pointer type;
 		should return None if not a declaration
-		
+
 		WORK IN PROGRESS
-		
+
 		>>> def visit(node): print "IS_PtrRef:",node.is_ptr_or_ref(),node.getstr(recursive=False)
 		>>> ast = get_doctest_ast("types.cc")
 		>>> ast.root.treemap(visit)                            #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
@@ -499,7 +499,7 @@ class Node(object):
 		IS_PtrRef: None  DECL_REF_EXPR i              'i'
 		IS_PtrRef: None  DECL_STMT                    'MyStruct m;'
 		IS_PtrRef: False VAR_DECL m                   'MyStruct m'
-		...	
+		...
 		IS_PtrRef: True  VAR_DECL mp                  'MyStruct *mp'
 		IS_PtrRef: None  TYPE_REF struct MyStruct     'MyStruct'
 		IS_PtrRef: None  DECL_STMT                    'MyStruct &mr(m);'
@@ -514,36 +514,36 @@ class Node(object):
 			if c.kind==CursorKind.TYPE_REF:
 				if c.displayname.endswith("OP"): return True
 				if c.displayname.endswith("OPs"): return True
-				if c.displayname.endswith("CAP"): return True				
+				if c.displayname.endswith("CAP"): return True
 		return self.cursor.type.get_canonical().get_pointee().kind!=TypeKind.INVALID
-	
+
 	def getstr(self,recursive=True,recurseall=False,depth=0):
 		"""
 		make a printable string from a node
-		
+
 		say raw source is this (test2.hh contains ns1::i):
-		
+
 		>>> ast = get_doctest_ast("test2.cc")
 		>>> print ast.code                                          #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		#include <test2.hh>
 		using namespace ns1;
 		int j = ns1::i;
-		
+
 		raw ast looks like this:
-		
+
 		>>> print_raw_ast(ast.tu.cursor)                             #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		TRANSLATION_UNIT ...
 		|  NAMESPACE ns1
 		|  |  VAR_DECL i
-		|  USING_DIRECTIVE 
+		|  USING_DIRECTIVE
 		|  |  NAMESPACE_REF ns1
 		|  VAR_DECL j
 		|  |  UNEXPOSED_EXPR i
 		|  |  |  DECL_REF_EXPR i
 		|  |  |  |  NAMESPACE_REF ns1
-		
+
 		by default prints only nodes from parsed src file:
-		
+
 		>>> print ast.root.getstr(recursive=True,recurseall=False)   #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		TRANSLATION_UNIT ...
 		| USING_DIRECTIVE      'using namespace ns1'
@@ -552,18 +552,18 @@ class Node(object):
 		| | UNEXPOSED_EXPR i     'ns1::i'
 		| | | DECL_REF_EXPR i     'ns1::i'
 		| | | | NAMESPACE_REF ns1     'ns1'
-		
+
 		with recursive=False prints only this node
-		
+
 		>>> print ast.root.getstr(recursive=False)                   #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		TRANSLATION_UNIT ...
-		
+
 		with recurseall, you get lines from included headers (NAMESPACE,VAR_DECL):
-		
+
 		>>> print ast.root.getstr(recursive=True,recurseall=True)    #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		TRANSLATION_UNIT ...
 		| NAMESPACE ns1
-		| | VAR_DECL i 
+		| | VAR_DECL i
 		| USING_DIRECTIVE      'using namespace ns1'
 		| | NAMESPACE_REF ns1     'ns1'
 		| VAR_DECL j     'int j = ns1::i'
@@ -590,7 +590,7 @@ class Node(object):
 				s += "\n"
 				s += c.getstr(recursive,recurseall,depth+1)
 		return s
-	
+
 	def gencode(self,SP=""):
 		s = ""
 		if self.allchild:
@@ -601,10 +601,10 @@ class Node(object):
 		else:
 			if self.code: s += self.code[0]
 		return SP+s+SP
-	
+
 	def __str__(self):
 		return self.getstr(0,False)
-	
+
 	def check(self,recursive=True):
 		"""
 		>>> node = get_doctest_ast("test.cc").root
@@ -616,7 +616,7 @@ class Node(object):
 		Traceback (most recent call last):
 		    assert self.fname == str(self.cursor.location.file)
 		AssertionError
-		>>> test = node		
+		>>> test = node
 		>>> test.allchild[1].allchild = []
 		>>> test.check()
 		Traceback (most recent call last):
@@ -639,7 +639,7 @@ class Node(object):
 			else: assert self in self.parent.srcchild  and self in self.parent.allchild
 		if not recursive: return
 		for c in self.allchild: c.check()
-	
+
 	def checksrcoverlap(self):
 		fail = False
 		for c in self.srcchild:
@@ -663,14 +663,14 @@ class Node(object):
 			# 	print str(c.start).rjust(5)+"-"+str(c.end).ljust(5),"   ",c
 			# print
 		for c in self.srcchild: c.checksrcoverlap()
-		
-	
+
+
 
 
 class AST(object):
 	"""
 	Wrapper of libclang ast
-	
+
 	>>> ast = get_doctest_ast("test.cc")
 	"""
 	def __init__(self,src,clangargs=None,clangwd=None):
@@ -719,7 +719,7 @@ class AST(object):
 		#print "consistency check"
 		#self.root.check()
 		self.all_headers = self.get_all_headers()
-	
+
 	def get_all_headers(self):
 		"""
 		>>> ast = get_doctest_ast("test_fwd.cc")
@@ -730,11 +730,11 @@ class AST(object):
 		/.../willclang/test/include/class3.hh
 		"""
 		return set(str(x.include) for x in self.tu.get_includes())
-	
+
 	def check_tu(self):
 		"""
 		check for parse errors
-		
+
 		>>> ast = get_doctest_ast("bad.cc")               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		Traceback (most recent call last):
 		ASTException: "Parse failed from Errors:...Error: no member named 'not_func' in namespace 'foo::bar' AT .../test/bad.cc line 13 col 38"
@@ -747,11 +747,11 @@ class AST(object):
 			if err.severity >= err.Error: fail = True
 		if fail:
 			raise ASTException("Parse failed from Errors: "+msg)
-	
+
 	def check(self):
 		"""
 		consistency check for ast
-		
+
 		>>> ast = get_doctest_ast("bad.cc")               #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		Traceback (most recent call last):
 		ASTException: "Parse failed from Errors:...Error: no member named 'not_func' in namespace 'foo::bar' AT .../test/bad.cc line 13 col 38"
@@ -764,22 +764,22 @@ class AST(object):
 		"""
 		self.check_tu()
 		self.root.check()
-	
+
 	def get_necessary_headers(self):
 		"""
 		wrapper for self.root.includes_used()
-		"""	
+		"""
 		inc,incwhy = self.root.includes_used()
 		return inc,incwhy
-	
+
 	def transitive_include_gragh(self,inc_subset,inc_why=None):
 		"""
 		return {map of headers H to sets of all other headers which provide them}
 		find all headers which (possibly transitively) include a header H
-		
+
 		.. todo::
 			replace the lame Include class with a map or something, no reason for it to exist right now
-		
+
 		>>> ast = get_doctest_ast("test_inc.cc")
 		>>> necessary_headers = [str(x.include) for x in ast.tu.get_includes()]
 		>>> inodes,inc_subset = ast.transitive_include_gragh(necessary_headers)
@@ -803,7 +803,7 @@ class AST(object):
 		...
 		>>> ast.transitive_include_gragh(["imaginary_header.hh"])    #doctest: +ELLIPSIS, +REPORT_NDIFF, +NORMALIZE_WHITESPACE
 		Traceback (most recent call last):
-		ASTException: 
+		ASTException:
 		'Bad inc_subset! Include: imaginary_header.hh not referenced in clang parse of: /.../willclang/test/test_inc.cc!'
 		"""
 		inc_all = list(self.tu.get_includes())
@@ -838,7 +838,7 @@ class AST(object):
 					msg += "\n    "+n.fname+":"+str(n.cursor.location.line)+" "+n.getstr(recursive=False)
 			raise ASTException(msg)
 		t = dict()
-		inodes = dict()	
+		inodes = dict()
 		# incrs = set()
 		for cur in inc_all:
 			incer = abs2relpath[str(cur.location.file)]
@@ -860,7 +860,7 @@ class AST(object):
 			if k in inc_subset:
 				inodes_nes[k] = set(x.fname for x in v.provided_by_transitive if x.fname in inc_subset)
 		return inodes_nes,inc_subset
-	
+
 	def switch_to_fwd(self,fn):
 		"""
 		>>> ast = get_doctest_ast("test_fwd.cc")
@@ -879,7 +879,7 @@ class AST(object):
 			tmp = fn[:-3]+".fwd.hh"
 			if tmp in self.all_headers: return tmp
 		return fn
-	
+
 	def switch_to_hh(self,fn):
 		"""
 		>>> ast = get_doctest_ast("test_fwd.cc")
@@ -898,11 +898,11 @@ class AST(object):
 			tmp = fn[:-7]+".hh"
 			if tmp in self.all_headers: return tmp
 		return fn
-	
+
 	def __str__(self):
 		return self.root.getstr()
 
-		
+
 class SourceFile(object):
 	"""
 	SourceFile holds an individual C++ sourcefile
@@ -917,28 +917,28 @@ class SourceFile(object):
 		if not clangargs: clangargs = list()
 		self.clangargs = clangargs
 		self.clangwd = clangwd
-	
+
 	# def get_code(self):
 		# if not self.code:
 		# 	with open(fname) as o:
 		# 		self.code = o.read()
-  
+
 	def get_ast(self):
 		if not self.ast:
 			self.ast = AST(self,self.clangargs,self.clangwd)
 		return self.ast
-	
+
 
 
 class RosettaSourceFile(SourceFile):
 	"""Same as SourceFile, except sepcifies rosetta includes for clang"""
 	def __init__(self, fname):
-		clangargs = ["-Isrc","-Iexternal/include","-Iexternal/dbio","-Isrc/platform/"+rosetta_platform()]		
+		clangargs = ["-Isrc","-Iexternal","-Iexternal/include","-Iexternal/dbio","-Isrc/platform/"+rosetta_platform()]
 		clangwd="/Users/sheffler/svn/rosetta/rosetta_source/"
 		if not os.path.exists(clangwd):
 			clangwd = None
 		super(RosettaSourceFile,self).__init__(fname,clangargs,clangwd)
-	
+
 
 
 def setup_extra_doctests():
@@ -956,34 +956,34 @@ def setup_extra_doctests():
 	| STRUCT_DECL class4
 	| | FIELD_DECL i
 	| VAR_DECL def1
-	| | INTEGER_LITERAL 
+	| | INTEGER_LITERAL
 	| VAR_DECL def2
 	| VAR_DECL def3
-	| | INTEGER_LITERAL 
+	| | INTEGER_LITERAL
 	| VAR_DECL def4
-	| | INTEGER_LITERAL 
+	| | INTEGER_LITERAL
 	| FUNCTION_DECL func1
 	| | PARM_DECL t
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | UNEXPOSED_EXPR t
 	| | | | | DECL_REF_EXPR t
 	| FUNCTION_DECL func2
 	| | PARM_DECL t
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | UNEXPOSED_EXPR t
 	| | | | | DECL_REF_EXPR t
 	| FUNCTION_DECL func3
 	| | PARM_DECL t
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | UNEXPOSED_EXPR t
 	| | | | | DECL_REF_EXPR t
 	| FUNCTION_DECL func4
 	| | PARM_DECL t
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | UNEXPOSED_EXPR t
 	| | | | | DECL_REF_EXPR t
 	| NAMESPACE ns1
@@ -1044,30 +1044,30 @@ def setup_extra_doctests():
 	| | TEMPLATE_TYPE_PARAMETER T
 	| | PARM_DECL t
 	| | | TYPE_REF T
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | DECL_REF_EXPR t
 	| FUNCTION_TEMPLATE tfunc2
 	| | TEMPLATE_TYPE_PARAMETER T
 	| | PARM_DECL t
 	| | | TYPE_REF T
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | DECL_REF_EXPR t
 	| FUNCTION_TEMPLATE tfunc3
 	| | TEMPLATE_TYPE_PARAMETER T
 	| | PARM_DECL t
 	| | | TYPE_REF T
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
 	| | | | DECL_REF_EXPR t
 	| FUNCTION_TEMPLATE tfunc4
 	| | TEMPLATE_TYPE_PARAMETER T
 	| | PARM_DECL t
 	| | | TYPE_REF T
-	| | COMPOUND_STMT 
-	| | | RETURN_STMT 
-	| | | | DECL_REF_EXPR t    
+	| | COMPOUND_STMT
+	| | | RETURN_STMT
+	| | | | DECL_REF_EXPR t
 	"""
 	return TEST
 
@@ -1077,7 +1077,7 @@ if __name__ == '__main__':
 	# ast = get_doctest_ast("template.cc")
 	# print_raw_ast(ast.root.cursor)
 	# inc_nes = ast.src.get_necessary_headers()
-	# for i in inc_nes: print "PREPRUNE",i	
+	# for i in inc_nes: print "PREPRUNE",i
 #	print ast.root.getstr(recursive=True)
 #	print ast.root.srcchild[-1].is_ptr_or_ref()
 	import doctest

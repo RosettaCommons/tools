@@ -188,12 +188,12 @@ identify_datamembers_not_serialized(
 			std::pair< std::string, std::string > class_field_pair( std::make_pair( *class_iter, field_iter->var_name_ ) );
 			if ( saved_variables.find( class_field_pair ) == saved_variables.end() &&
 					exempted_save_variables.find( class_field_pair ) == exempted_save_variables.end() ) {
-				std::cout << "Data mameber of class " << *class_iter << " named " << field_iter->var_name_ << " was not saved" << std::endl;
+				std::cout << "Data member of class " << *class_iter << " named " << field_iter->var_name_ << " was not saved" << std::endl;
 				any_missed = true;
 			}
 			if ( loaded_variables.find( class_field_pair ) == loaded_variables.end() &&
 					exempted_load_variables.find( class_field_pair ) == exempted_load_variables.end() ) {
-				std::cout << "Data mameber of class " << *class_iter << " named " << field_iter->var_name_ << " was not loaded" << std::endl;
+				std::cout << "Data member of class " << *class_iter << " named " << field_iter->var_name_ << " was not loaded" << std::endl;
 				any_missed = true;
 			}
 		}

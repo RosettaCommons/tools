@@ -45,8 +45,9 @@
 (ido-mode t)
 (setq ido-enable-flex-matching t)
 
+; This function is broken on large python files like options_rosetta.py or pilot_apps.src.settings.all - it's a known bug https://github.com/bbatsov/prelude/issues/703).  Enable per-file with M-x which-function-mode, or turn this on here at your own risk and remember to disable it for large python files.
 ; put the current function in the bottom buffer
-(which-function-mode t)
+;(which-function-mode t)
 
 ; C-c o takes you from the cc file to hh file and visa versa
 (add-hook 'c-mode-common-hook

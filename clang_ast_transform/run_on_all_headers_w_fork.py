@@ -35,7 +35,7 @@ class JobManager :
 
 def run_job(executable, job):
 	 print "Running %s on %s" % (executable, job); sys.stdout.flush()
-	 command_list = [ executable, "src/" + job ]
+	 command_list = executable.split(); command_list.append( "src/" + job )
 	 return subprocess.call( command_list ) == 0
 	
 if __name__ == "__main__" :

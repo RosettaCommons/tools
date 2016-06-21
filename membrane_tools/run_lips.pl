@@ -108,7 +108,7 @@ my $lips_low="";
 open(OUT,">$pdb_id.lipo");
 print OUT "Lipid exposed data: resnum mean-lipo lipophil entropy\n";
 open(DATA,">$pdb_id.raw");
-$url="http://gila.bioengr.uic.edu/cgi-bin/lips/script.cgi";
+$url="http://gila.bioe.uic.edu/lab/lips/lips.txt";
 for($helix_num=1;$helix_num<=$helix_counter;$helix_num++)
 {
     my $sequences="";

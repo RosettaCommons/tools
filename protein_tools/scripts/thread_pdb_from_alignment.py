@@ -1,7 +1,22 @@
 #!/usr/bin/env python
 
-from Bio import AlignIO
-import Bio.PDB
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    import Bio.PDB
+    from Bio import AlignIO
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 from optparse import OptionParser
 import sys
 import array

@@ -1,9 +1,25 @@
 #!/usr/bin/env python2.7
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    from Bio.PDB import PDBExceptions
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 import sys
 import warnings
 import argparse
 import collections
-from Bio.PDB import PDBExceptions
 from multiprocessing import Pool
 from rosettautil.protein import util, pdbStat, amino_acids
 warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
@@ -64,13 +80,13 @@ def main(pdb):
                                        'scores':line.split()[1:]}
             if "CtermProteinFull" in line.split()[0]:
                 counter += 1
-                chain_numbering = 1 
+                chain_numbering = 1
     for res_id,identifier in zip(residues,scores):
         scores[identifier]['chain'] = res_id.get_parent().get_id()
 	if res_id.get_id()[2].strip():
-		scores[identifier]['chain number'] = str(res_id.get_id()[1]) + res_id.get_id()[2] 
+		scores[identifier]['chain number'] = str(res_id.get_id()[1]) + res_id.get_id()[2]
 	else:
-		scores[identifier]['chain number'] = res_id.get_id()[1] 
+		scores[identifier]['chain number'] = res_id.get_id()[1]
     return [pdb.split('/')[-1],scores,score_titles]
 
 def format_and_return(scores,outfile):
@@ -102,7 +118,7 @@ def format_and_return(scores,outfile):
                         residue['res_id_one_letter'],residue['chain'],
                         residue['pose'],residue['chain number'],",".join(residue['scores'])))
 
-    
+
 if __name__ == '__main__':
     if args.multi:
         try:

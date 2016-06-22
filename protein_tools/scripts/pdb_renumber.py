@@ -1,9 +1,25 @@
 #!/usr/bin/env python
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    from Bio.PDB import *
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 import sys
 from rosettautil.rosetta import rosettaScore
 from rosettautil.protein import util
 from rosettautil.util import fileutil
-from Bio.PDB import *
 from optparse import OptionParser
 
 usage = "%prog input.pdb output.pdb"

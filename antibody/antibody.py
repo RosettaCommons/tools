@@ -15,7 +15,7 @@
 ## @author JKLeman
 ## @author Jeff Gray
 
-import os, sys, re, json, commands, shutil
+import os, sys, re, json, commands, shutil, random
 
 from optparse import OptionParser, IndentedHelpFormatter
 from time import time
@@ -46,6 +46,9 @@ def main(args):
     ''' Script for preparing detecting antibodys and preparing info for Rosetta protocol.
     '''
     starttime = time()
+
+    random.seed(1)  # using constant seed so create_virtual_template_pdbs funtion produce non stochastic results
+
     parser = OptionParser(usage="usage: %prog [OPTIONS] [TESTS]")
     parser.set_description(main.__doc__)
 
@@ -63,7 +66,7 @@ def main(args):
       action="store",
       help="Specify single FASTA-formatted file with both the light and the heavy chain. If the heavy chain is not longer than the light chain, then use the direct assignment with -H and -L.",
     )
- 
+
     parser.add_option('--prefix',
       action="store", default='grafting/',
       help="Prefix for output files (directory name). Default is grafting/.",
@@ -158,7 +161,7 @@ def main(args):
       action="store_false", dest='kink_constraints', default=True,
       help="Skip generation of kink constraints file (require PyRosetta). Default is False.",
     )
-	
+
     parser.add_option("--multi-template-grafting",
       action="store_true", default=False, dest="multi_template",
       help="Graft multiple templates and output multiple decoys. Default is False.",
@@ -204,7 +207,7 @@ def main(args):
           action="store", default='',
           help="Specify path(s) or PDB code(s) for %s template. If specified this will overwrite blast selection. Use comma delimitation for multiple templates." % name,
         )
-		
+
         parser.add_option('--' + name + '-multi-graft',
           action="store_true", default=False,
           help="Turn on multi-template grafting of %s region." % name,
@@ -240,14 +243,14 @@ def main(args):
     (options, args) = parser.parse_args(args=args[1:])
     global Options;  Options = options
 
-    global frlh_info
+    #global frlh_info
     global frl_info
     global frh_info
 
-    frlh_info, legend = {}, ''
-    for l in file( _script_path_ + '/info/frlh_info' ):
-        if l.startswith('# '): legend = l[2:].split()
-        elif len(l)>8: frlh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
+    #frlh_info, legend = {}, ''
+    #for l in file( _script_path_ + '/info/frlh_info' ):
+    #    if l.startswith('# '): legend = l[2:].split()
+    #    elif len(l)>8: frlh_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
     frl_info, legend = {}, ''
     for l in file( _script_path_ + '/info/frl_info' ):
@@ -432,7 +435,7 @@ def main(args):
 ########################################################
 def read_fasta_file(file_name):
     """ return array of sequences from FASTA formatted file
-    
+
     file_name -- relative or absolute path to FASTA file
     """
     seqArray=[]
@@ -441,7 +444,7 @@ def read_fasta_file(file_name):
     for l in file(file_name):
         if l.startswith('>'):
             if not "" == seq:
-	        seqArray.append(seq) 
+	        seqArray.append(seq)
 		seq=""
             seqArrayNames.append(l.rstrip())
         else:
@@ -485,7 +488,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
     H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)' # Jeff's mod for ATHM set
    #H1_pattern=r'C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)'
     H3_pattern=r'C[A-Z]{1,33}(W)(G|A|C)[A-Z]{1,2}(Q|S|G|R)'
-    
+
     ''' Identift CDR region and return them as dict with keys: 'FR_H1', 'FR_H2', 'FR_H3', 'FR_H4', 'FR_L1', 'FR_L2', 'FR_L3', 'FR_L4', 'H1', 'H2', 'H3', 'L1', 'L2', 'L3'
     '''
     light_first = light_chain[:65] if len(light_chain) > 130 else light_chain[:60]
@@ -582,7 +585,7 @@ def IdentifyCDRs(light_chain, heavy_chain):
         print "H3 detected: %s (%d residues at positions %d to %d)" % (H3, len(H3), H3_start, H3_end)
     else:
         print "H3 detected: False"
-        
+
 
     if H1 and H3:
         #H1_start = heavy_chain.index(H1)
@@ -908,7 +911,7 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
         elif len(l)>8: cdr_info[l.split()[0]] =  dict( zip(legend, l.split() ) )
 
 
-    for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
+    #for line in file(  _script_path_ + '/info/fv_length' ): cdr_info[ line.split()[0] ]  [ line.split()[1]+'_length' ]  =  int( line.split()[2] )
 
     # cdr_info consistency check
     for name, i in cdr_info.items():
@@ -1074,36 +1077,36 @@ def create_virtual_template_pdbs(prefix, decoy):
                             check = 1
                             o.write( line2 )
 
-                #                                                               v needed to circumvent collinearity!
-                x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 )
-                x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 )
-                x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 )
-                x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 )
+                # v needed to circumvent collinearity!
+                # x_coord_n  = '%8.3f' % ( float(x_coord) + 100 + cnt_res * 2 )
+                # x_coord_ca = '%8.3f' % ( float(x_coord) + 110 + cnt_res * 2 )
+                # x_coord_c  = '%8.3f' % ( float(x_coord) + 120 + cnt_res * 2 )
+                # x_coord_o  = '%8.3f' % ( float(x_coord) + 130 + cnt_res * 2 )
 
-                y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 )
-                y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 )
-                y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 )
-                y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 )
+                # y_coord_n  = '%8.3f' % ( float(y_coord) + 100 + cnt_res * 2 )
+                # y_coord_ca = '%8.3f' % ( float(y_coord) + 110 + cnt_res * 2 )
+                # y_coord_c  = '%8.3f' % ( float(y_coord) + 120 + cnt_res * 2 )
+                # y_coord_o  = '%8.3f' % ( float(y_coord) + 130 + cnt_res * 2 )
 
-                z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 )
-                z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 )
-                z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 )
-                z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 )
+                # z_coord_n  = '%8.3f' % ( float(z_coord) + 100 + cnt_res * 2 )
+                # z_coord_ca = '%8.3f' % ( float(z_coord) + 110 + cnt_res * 2 )
+                # z_coord_c  = '%8.3f' % ( float(z_coord) + 120 + cnt_res * 2 )
+                # z_coord_o  = '%8.3f' % ( float(z_coord) + 130 + cnt_res * 2 )
 
-                #x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
-                #x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
-                #x_coord_c  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
-                #x_coord_o  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
+                x_coord_n  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
+                x_coord_ca = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
+                x_coord_c  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
+                x_coord_o  = '%8.3f' % ( float(x_coord) + random.uniform(1, 200) )
 
-                #y_coord_n  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
-                #y_coord_ca = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
-                #y_coord_c  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
-                #y_coord_o  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
+                y_coord_n  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
+                y_coord_ca = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
+                y_coord_c  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
+                y_coord_o  = '%8.3f' % ( float(y_coord) + random.uniform(1, 200) )
 
-                #z_coord_n  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
-                #z_coord_ca = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
-                #z_coord_c  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
-                #z_coord_o  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
+                z_coord_n  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
+                z_coord_ca = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
+                z_coord_c  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
+                z_coord_o  = '%8.3f' % ( float(z_coord) + random.uniform(1, 200) )
 
                 if res_num_q.isdigit():
                     if int(res_num_q) < 100:
@@ -1331,7 +1334,7 @@ def kink_or_extend(CDRs):
 # Dihedral CA 220 CA 221 CA 222 CA 223 SQUARE_WELL2 2.704 0.523 100; EXTEND
 def output_cter_constraint(base,prefix,decoy):
     """Output kink constraint files for a set of antibodies.
-    
+
     FIXME: A better description is needed - why for instance is the decoy not consituting to f ?
 
     base -- 'KINK' or 'EXTEND'
@@ -1482,7 +1485,7 @@ def filter_by_template_bfactor(k, results, cdr_query, cdr_info):
 
 def filter_by_outlier(k, results, cdr_query, cdr_info):
     """ Template filter by outlier
-    
+
     FIXME: Some better description may help
     """
 

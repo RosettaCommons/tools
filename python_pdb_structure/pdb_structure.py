@@ -18,6 +18,7 @@ class Atom :
         self.occupancy = 1.0
         self.bfactor = 0
         self.het = False
+        self.elem = ""
 
 class Residue :
     def __init__( self ) :
@@ -117,6 +118,7 @@ class PDBStructure :
                 atom.pdb_index = self.atnum_from_pdbline( line )
                 atom.occupancy = self.occupancy_from_pdbline( line )
                 atom.bfactor = self.bfactor_from_pdbline( line )
+                atom.element = self.element_from_pdbline( line )
                 atom.het = line[0:6] == "HETATM"
                 last_residue.add_atom( atom )
         if last_residue.resname != "":
@@ -133,6 +135,7 @@ class PDBStructure :
     def pdb_zcoord_range( self ) :     return ( 46, 54 )
     def pdb_occupancy_range( self ) :  return ( 56, 60 )
     def pdb_bfactor_range( self ) :    return ( 61, 66 )
+    def element_range( self ) :        return ( 76, 78 )
 
     def atname_from_pdbline( self, line ) :
         return line[ self.pdb_atname_range()[0]:self.pdb_atname_range()[1] ]
@@ -155,7 +158,9 @@ class PDBStructure :
         return 1.0 if len(line) < self.pdb_occupancy_range()[1] else float( line[ self.pdb_occupancy_range()[0]:self.pdb_occupancy_range()[1] ] )
     def bfactor_from_pdbline( self, line ):
         return 0.0 if len(line) < self.pdb_bfactor_range()[1] else float( line[ self.pdb_bfactor_range()[0]:self.pdb_bfactor_range()[1] ] )
-
+    def element_from_pdbline( self, line ) :
+        therange = self.element_range()
+        return "" if len(line) < therange[1] else line[ therange[0]:therange[1] ]
     def pdb_lines( self ) :
         lines = []
         count_atoms = 0
@@ -176,12 +181,13 @@ class PDBStructure :
                         line = line[:self.pdb_resstring_range()[0]] + ("%5s" % (res.resstring+" ") ) + line[self.pdb_resstring_range()[1]:]
                     else :
                         line = line[:self.pdb_resstring_range()[0]] + ("%5s" % (res.resstring    ) ) + line[self.pdb_resstring_range()[1]:]
-                    line = line[:self.pdb_xcoord_range()[0]] + ( " %7.3f" % atom.xyz.x() ) + line[self.pdb_xcoord_range()[1]:] 
-                    line = line[:self.pdb_ycoord_range()[0]] + ( " %7.3f" % atom.xyz.y() ) + line[self.pdb_ycoord_range()[1]:] 
+                    line = line[:self.pdb_xcoord_range()[0]] + ( " %7.3f" % atom.xyz.x() ) + line[self.pdb_xcoord_range()[1]:]
+                    line = line[:self.pdb_ycoord_range()[0]] + ( " %7.3f" % atom.xyz.y() ) + line[self.pdb_ycoord_range()[1]:]
                     line = line[:self.pdb_zcoord_range()[0]] + ( " %7.3f" % atom.xyz.z() ) + line[self.pdb_zcoord_range()[1]:]
                     line = line[:self.pdb_occupancy_range()[0]] + ( "%4.2f" % atom.occupancy ) + line[self.pdb_occupancy_range()[1]:]
                     line = line[:self.pdb_bfactor_range()[0]] + ( "%5.2f" % atom.bfactor ) + line[self.pdb_bfactor_range()[1]:]
-      
+                    line = line[:self.element_range()[0]] + ( "%2s" % atom.element ) + line[self.element_range()[1]:]
+
                     lines.append( line + "\n" )
             lines.append( "TER\n")
         return lines
@@ -226,7 +232,7 @@ def sequence_identity_rate_for_two_pdbstructures( pdb1, pdb2 ) :
 def xyz_limits_for_pdb( pdb ) :
    lower_xyz = vector3d()
    upper_xyz = vector3d()
-   first = True 
+   first = True
    count = 0
    for chain in pdb.chains :
       for res in chain.residues :

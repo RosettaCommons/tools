@@ -68,6 +68,7 @@ if __name__ == "__main__" :
               "-ffor-scope " + \
               "-DEXIT_THROWS_EXCEPTION " + \
               "-isystem " + rosetta_source_dir + "/external/boost_1_55_0/ " + \
+              "-isystem " + rosetta_source_dir + "/external/ " + \
               "-isystem " + rosetta_source_dir + "/external/include/ " + \
               "-isystem " + rosetta_source_dir + "/external/dbio/ " + \
               "-DUNUSUAL_ALLOCATOR_DECLARATION " + \
@@ -78,6 +79,7 @@ if __name__ == "__main__" :
               "-DPTR_STD -DCXX11 " + \
               "-DSERIALIZATION " + \
               "-I" + rosetta_source_dir + "/src " + \
+              "-I" + rosetta_source_dir + "/external " + \
               "-I" + rosetta_source_dir + "/external/include " + \
               "-I" + rosetta_source_dir + "/src/platform/linux/64/clang/3.5-1ubuntu1 " + \
               "-I" + rosetta_source_dir + "/src/platform/linux/64/clang " + \
@@ -85,6 +87,7 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/src/platform/linux " + \
               "-I" + rosetta_source_dir + "/external/boost_1_55_0 " + \
               "-I" + rosetta_source_dir + "/external/dbio " + \
+              "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \
               "-I/usr/local/include"
     command_list = command.split()

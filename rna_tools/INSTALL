@@ -1,4 +1,4 @@
-export RNA_TOOLS=$ROSETTA/tools/rna_tools/
+export RNA_TOOLS=$ROSETTA_TOOLS/rna_tools/
 
 #Runs the commands
 python $RNA_TOOLS/sym_link.py

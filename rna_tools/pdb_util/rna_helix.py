@@ -16,12 +16,14 @@ parser.add_argument('-finish_weights', default='', help='Weights file defining a
 parser.add_argument('-silent', default='', help='silent file output')
 parser.add_argument('-dump', action='store_true', default=False, help='dump intermediate pdbs')
 parser.add_argument('-put_intra_into_total', action='store_true',default=False, help='calculate intra-res terms and include in totals')
+parser.add_argument('-rosetta_folder', required=False, default=None, help='path to /Rosetta/')
+parser.add_argument('-extension', required=False, default=None, help='executable extension')
 args = parser.parse_args()
 
 
 #Build the helix
 temp = tempfile.NamedTemporaryFile(delete=False)
-cmdline  = rosetta_exe('rna_helix')
+cmdline  = rosetta_exe('rna_helix', rosetta_folder=args.rosetta_folder, extension=args.extension)
 cmdline += (' -rna::corrected_geo  '+
             '-score:rna_torsion_potential RNA11_based_new ' +
             '-chemical::enlarge_H_lj ')

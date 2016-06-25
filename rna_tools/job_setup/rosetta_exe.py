@@ -24,6 +24,8 @@ def rosetta_exe(exe_file, rosetta_folder = None, extension = None) :
 		check_path_exist(exe_folder)
 		exe_path = ""
 		if extension is not None:
+			if extension[0] != '.':
+				extension = '.'+extension
 			exe_path = join(exe_folder, exe_file + extension)
 		else:
 			for ext in name_extensions :

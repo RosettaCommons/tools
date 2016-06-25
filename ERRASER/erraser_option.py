@@ -72,6 +72,8 @@ class erraser_option :
         self.use_2prime_OH_potential = False
         self.fcc2012_new_torsional_potential = True
         self.fcc2012_scoring_file = True
+        
+        self.enlarge_H_lj = False
 
     def read_cmdline_full( self, argv ) :
         #General options
@@ -134,6 +136,8 @@ class erraser_option :
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
         self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "True" )
+        
+        self.enlarge_H_lj = parse_options( argv, "enlarge_H_lj", "True" )
 
         self.finalize()
 
@@ -172,6 +176,8 @@ class erraser_option :
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
         self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "True" )
 
+        self.enlarge_H_lj = parse_options(argv, "enlarge_H_lj", "True")
+
         self.finalize()
 
     def read_cmdline_erraser_single_res( self, argv ) :
@@ -206,6 +212,8 @@ class erraser_option :
         self.use_2prime_OH_potential = parse_options( argv, "use_2prime_OH_potential", "False" )
         self.fcc2012_new_torsional_potential = parse_options( argv, "fcc2012_new_torsional_potential", "True" )
         self.fcc2012_scoring_file = parse_options( argv, "fcc2012_scoring_file", "True" )
+
+        self.enlarge_H_lj = parse_options(argv, "enlarge_H_lj", "True")
 
         self.finalize()
 

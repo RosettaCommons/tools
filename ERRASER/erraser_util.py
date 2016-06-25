@@ -50,6 +50,7 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
             break
     check_path_exist(exe_path)
     return exe_path
+
 #####################################################
 def rosetta_database_path(rosetta_folder = "") :
     """
@@ -68,6 +69,7 @@ def rosetta_database_path(rosetta_folder = "") :
         database_folder = rosetta_folder
     check_path_exist(database_folder)
     return database_folder
+
 ###################################################
 def subprocess_call(command, out = sys.stdout, err = sys.stderr, is_append_file = False):
     """
@@ -98,6 +100,7 @@ def subprocess_call(command, out = sys.stdout, err = sys.stderr, is_append_file 
     out_channel.flush()
     err_channel.flush()
 ###################################################
+
 def subprocess_out(command, err = sys.stderr):
     """
     Execute the given commands in /usr/bin/sh.
@@ -120,30 +123,28 @@ def subprocess_out(command, err = sys.stderr):
         os.fsync(err_channel)
     return out_list
 ###################################################
+
 def grep(pattern, input_file) :
     """
     Search for the given pattern in the input file.
     Return a list of lines containing the pattern.
     """
     check_path_exist(input_file)
-    out_lines = []
-    for line in open(input_file) :
-        if re.search(pattern, line) :
-            out_lines.append(line[:-1])
+    out_lines = [ line[:-1] for line in open(input_file) if re.search( pattern, line ) ]
 
     return out_lines
-
 ###################################################
+
 def remove(pattern) :
     """
     Remove files/folder that agree with the pattern.
     """
-    for path in glob(pattern) :
-        if os.path.isfile(path) :
+    for path in glob(pattern):
+        if os.path.isfile(path):
             os.remove(path)
-        elif os.path.isdir(path) :
+        elif os.path.isdir(path):
             shutil.rmtree(path)
-        else :
+        else:
             error_exit("Not a file nor a dir!!!")
 ###################################################
 def copy(file1, dst) :
@@ -224,7 +225,8 @@ def parse_options( argv, tag, default):
         else:
             return default
 ###############################
-def parse_option_int_list ( argv, tag ) :
+
+def parse_option_int_list( argv, tag ):
     """
     Parse input cmdline option with the following format:
     ... -tag 1 5 7-20 40 45-60 ...
@@ -233,32 +235,36 @@ def parse_option_int_list ( argv, tag ) :
     list_load = []
     tag_argv = '-%s' % tag
 
-    if tag_argv in argv :
-        pos = argv.index(tag_argv)
+    if not tag_argv in argv:
+        print "%s = %s" % (tag, list_load)
+        return list_load
 
-        for i in range( pos + 1, len(argv) ) :
-            input_string = argv[i]
-            if input_string[0] == '-' :
-                break
-            split_string = input_string.split('-')
+    pos = argv.index(tag_argv)
+    for i in range( pos + 1, len(argv) ) :
+        input_string = argv[i]
+        if input_string[0] == '-' :
+            break
+        split_string = input_string.split('-')
 
-            for num in split_string :
-                try :
+        for num in split_string :
+            try :
                     int(num)
-                except :
-                    error_exit("Incorrect input for -%s: instance %s" % (tag, input_string) )
-
-            if len(split_string) == 1 :
-                list_load.append(int(split_string[0]))
-            elif len(split_string) == 2 :
-                start_num = int(split_string[0])
-                end_num = int(split_string[1])
-                for j in range(start_num, end_num + 1) :
-                    list_load.append(j)
-            else :
+            except :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, input_string) )
+
+        if len(split_string) == 1 :
+            list_load.append(int(split_string[0]))
+        elif len(split_string) == 2 :
+            start_num = int(split_string[0])
+            end_num = int(split_string[1])
+            for j in range(start_num, end_num + 1) :
+                list_load.append(j)
+        else:
+            error_exit("Incorrect input for -%s: instance %s" % (tag, input_string) )
+
     print "%s = %s" % (tag, list_load)
     return list_load
+
 ###############################
 def parse_option_string_list ( argv, tag ) :
     """
@@ -280,6 +286,7 @@ def parse_option_string_list ( argv, tag ) :
     print "%s = %s" % (tag, list_load)
     return list_load
 ##########################################
+
 def parse_option_chain_res_list ( argv, tag ) :
     """
     Parse input cmdline option with the following format:
@@ -287,42 +294,47 @@ def parse_option_chain_res_list ( argv, tag ) :
     Return a list of strings with number expanded:
     ['A10', 'B20', 'B21', 'B22', ... ]
     """
+    print argv
     list_load = []
     tag_argv = '-%s' % tag
 
-    if tag_argv in argv :
-        pos = argv.index(tag_argv)
+    if not tag_argv in argv :
+        print "%s = %s" % (tag, list_load)
+        return list_load
+    
+    pos = argv.index(tag_argv)
+    #print pos
+    for i in range( pos + 1, len(argv) ) :
+        input_string = argv[i]
+        if input_string[0] == '-' :
+            break
+        input_string = input_string.upper()
 
-        for i in range( pos + 1, len(argv) ) :
-            input_string = argv[i]
-            if input_string[0] == '-' :
-                break
-            input_string = input_string.upper()
+        if ':' in input_string:
+            chain_id = input_string[0]
+            input_string = input_string[2:]
+        else:
+            chain_id = input_string[0]
+            input_string = input_string[1:]
+        split_string = input_string.split('-')
 
-            if ':' in input_string:
-                chain_id = input_string[0]
-                input_string = input_string[2:]
-            else:
-                chain_id = input_string[0]
-                input_string = input_string[1:]
-            split_string = input_string.split('-')
-
-            for num in split_string :
-                try :
-                    int(num)
-                except :
-                    error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
-
-            if len(split_string) == 1 :
-                list_load.append('%s:%s' % (chain_id, split_string[0]) )
-            elif len(split_string) == 2 :
-                start_num = int(split_string[0])
-                end_num = int(split_string[1])
-                for j in range(start_num, end_num + 1) :
-                    list_load.append('%s:%s' % (chain_id, j))
-            else :
+        for num in split_string :
+            try :
+                int(num)
+            except :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
-    print "%s = %s" % (tag, list_load)
+
+        if len(split_string) == 1 :
+            list_load.append('%s:%s' % (chain_id, split_string[0]) )
+        elif len(split_string) == 2 :
+            start_num = int(split_string[0])
+            end_num = int(split_string[1])
+            for j in range(start_num, end_num + 1) :
+                list_load.append('%s:%s' % (chain_id, j))
+        else :
+            error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
+    
+	print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
 def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
@@ -407,6 +419,7 @@ def extract_pdb( silent_file, output_folder_name, rosetta_bin = "",
 
     os.chdir( base_dir )
     return True
+
 #####################################################
 def phenix_release_tag():
     output = subprocess_out('phenix.version')
@@ -532,26 +545,6 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False):
                                'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S',
                                'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'} )
 
-    # The shell is your friend. Love the shell.
-    #grep = subprocess.Popen( ["grep", "-r", "IO_STRING", "{0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(
-    #                          rosetta_database_path()) ], stdout=subprocess.PIPE )
-    # we are ok with shell = True i guess
-    iostringlines = subprocess_out( "grep -r IO_STRING {0}chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/".format(rosetta_database_path()) )
-    #print iostringlines
-    newlines = []
-    for ln in iostringlines:
-        newlines.append( re.sub(".*IO_STRING ", "", ln ) )
-    #print newlines
-    tlcs = [ nl[0:3] for nl in newlines ]
-    olcs = [ nl[4] for nl in newlines ]
-    #awk1 =\
-    #print subprocess.check_output( ["awk", "-F':'", "{print $2}"], stdin = subprocess.PIPE )#, stdout=subprocess.PIPE )
-
-    # keys are the three characters around $2; values are $3
-    # since all RNA nonnatural have proper TLCs this isn't an issue at the moment
-    longer_names.update( dict(zip( tlcs, olcs ) ) ) #subprocess.check_output(["awk", "{print $2}"], stdin=grep.stdout).split("\n"), subprocess.check_output(("awk", "{print $3}"), stdin=grep.stdout).split("\n") ) ) )
-    #print longer_names
-
     output = open(fasta_out, 'w')
     output.write( ">%s\n" % os.path.basename(input_pdb) )
     oldresnum = ''
@@ -567,11 +560,12 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False):
                     if longer_names.has_key(longname):
                         output.write( longer_names[longname] )
                     else:
-                        output.write( 'X' )
+                        output.write( "X[{0}]".format(longname) )
                 oldresnum = resnum
     output.write('\n')
     output.close()
     return True
+
 ##################################################
 def pdb_slice(input_pdb, out_name, segment) :
     """
@@ -597,24 +591,24 @@ def pdb_slice(input_pdb, out_name, segment) :
     if len(kept_res) == 0 :
         error_exit("Invalid input of 'segment' option!")
 
-
     output = open(out_name, 'w')
     previous_res = -1
     old_res = 0
     new_res = 0
     new_atom = 0
-    for line in open(input_pdb):
-        if len(line) > 20 and line[0:4] == 'ATOM' :
-            current_res = int(line[22:26])
-            if current_res != previous_res :
-                old_res += 1
-                previous_res = current_res
-                if old_res in kept_res :
-                    new_res += 1
 
+    atomlines = ( line for line in open(input_pdb) if len(line) > 20 and line[0:4] == 'ATOM' ) #generator
+    for line in atomlines:
+        current_res = int(line[22:26])
+        if current_res != previous_res :
+            old_res += 1
+            previous_res = current_res
             if old_res in kept_res :
-                new_atom += 1
-                output.write('%s%7d%s%4d%s' % (line[0:4], new_atom, line[11:22], new_res, line[26:]) )
+                new_res += 1
+
+        if old_res in kept_res :
+            new_atom += 1
+            output.write('%s%7d%s%4d%s' % (line[0:4], new_atom, line[11:22], new_res, line[26:]) )
 
     output.close()
     return kept_res
@@ -716,14 +710,14 @@ def regularize_pdb(input_pdb, out_name) :
         if len(line) > 6 and ( line[0:4] == 'ATOM' or line[0:6] == 'ANISOU' or line[0:6] == 'HETATM' ) :
             res_name = line[17:20]
             atom_name = line[12:16]
-            if not res_name in rna_types :
+            if not res_name in rna_types:
                 output_pdb.write(line)
-            else :
+            else:
                 res_name = rna_types[res_name]
                 if atom_name in atom_name_convert :
                     atom_name = atom_name_convert[atom_name]
                 output_pdb.write(line[:12] + atom_name + ' ' + res_name + line[20:])
-        else :
+        else:
             output_pdb.write(line)
 #############################################################
 def regularize_OP1_OP2(input_pdb, out_name) :
@@ -897,7 +891,8 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                         res_rs = res
                         break
                     else :
-                        atom_index += 1
+                        if atom_index < 99999:
+                            atom_index += 1
                         atom_name = line_rs[12:16].replace('*', "'")
                         if atom_name_convert.has_key(atom_name) :
                             atom_name = atom_name_convert[atom_name]
@@ -911,7 +906,8 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                         lines_rs.remove(line_rs)
                 current_res = res_orig
 
-            atom_index += 1
+            if atom_index < 99999:
+                atom_index += 1
             output_line = ""
             if not res_name_orig in rna_types:
                 # could be a nonnatural rna
@@ -962,7 +958,8 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
         elif (header == 'HETATM' or
             (header == 'ATOM  ' and (not is_line_rna(line_orig) ) ) ):
             res_name_orig = line_orig[17:20]
-            atom_index += 1
+            if atom_index < 99999:
+                atom_index += 1
             output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:])
             output_pdb.write(output_line)
         elif (header != 'MASTER' and header[0:3] != 'END' and header != 'ANISOU') :
@@ -1394,7 +1391,7 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                     out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
                     res_new_pre = int( new_pdb_line[22:26] )
 
-                while True :
+                while True:
                     new_pdb_line = new_pdb_read.readline()
                     if new_pdb_line == "" :
                         break
@@ -1425,18 +1422,13 @@ def find_chi_angle( input_pdb, res ) :
 
     atm_coords_list = []
     is_purine = True
-    for line in open(input_pdb) :
-        if len(line) > 6 and line[0:4] == 'ATOM' :
-            res_num = int( line[22:26] )
-            if res == res_num :
-                atm_name = line[12:16].replace(' ', '')
-                res_name = line[19]
-                is_purine = res_name in 'GA'
-                coord = []
-                coord.append( float( line[30:38] ) )
-                coord.append( float( line[38:46] ) )
-                coord.append( float( line[46:54] ) )
-                atm_coords_list.append( [atm_name, coord] )
+    atomlines = ( line for line in open(input_pdb) if len(line) > 6 and line[0:4] == 'ATOM' and int( line[22:26] ) == res )
+    for line in atomlines:
+        atm_name = line[12:16].replace(' ', '')
+        res_name = line[19]
+        is_purine = res_name in 'GA'
+        coord = [ float( line[30:38] ), float( line[38:46] ), float( line[46:54] ) ]
+        atm_coords_list.append( [atm_name, coord] )
     atom1 = coord_from_atm_name("O4'", atm_coords_list)
     atom2 = coord_from_atm_name("C1'", atm_coords_list)
     if is_purine :

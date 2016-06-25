@@ -42,10 +42,11 @@ def erraser( option ) :
         print 'Create temporary directory %s...' % temp_dir
         os.mkdir(temp_dir)
     ########################################################################
+
     os.chdir(temp_dir)
     regularized_input_pdb = basename(option.input_pdb).replace('.pdb', '_regularized.pdb')
     regularize_pdb(option.input_pdb, regularized_input_pdb)
-    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
+    [res_conversion_list, fixed_res_final, cutpoint_res_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
     # AMW: OK, the recent method to allow some HETATMs is making CL leak in (for example)
     # So how about we use -ignore_unrecognized_res here? Seems concise.
     if not exists('minimize_0.pdb') :
@@ -53,43 +54,41 @@ def erraser( option ) :
     else :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
-    for res in option.fixed_res :
-        fixed_res_final.append( res_num_convert(res_conversion_list, res) )
-
-    for res in option.cutpoint :
-        cutpoint_final.append( res_num_convert(res_conversion_list, res) )
-
-    extra_res_final = []
-    for res in option.extra_res :
-        extra_res_final.append( res_num_convert(res_conversion_list, res) )
-
+    fixed_res_final = []
+    fixed_res_final.extend( [ res_num_convert(res_conversion_list, res) for res in option.fixed_res ] )
     fixed_res_final.sort()
-    cutpoint_final.sort()
+    cutpoint_res_final = []
+    cutpoint_res_final.extend( [ res_num_convert(res_conversion_list, res) for res in option.cutpoint ] )
+    cutpoint_res_final.sort()
+    extra_res_final = []
+    extra_res_final.extend( [ res_num_convert(res_conversion_list, res) for res in option.extra_res ] )
     extra_res_final.sort()
+
     print "fixed_res_final in Rosetta pdb file = %s" % fixed_res_final
-    print "cutpoint_final in Rosetta pdb file = %s" % cutpoint_final
+    print "cutpoint_res_final in Rosetta pdb file = %s" % cutpoint_res_final
     print "extra_res_final in Rosetta pdb file = %s" % extra_res_final
     option.fixed_res_rs = fixed_res_final
-    option.cutpoint_rs = cutpoint_final
+    option.cutpoint_rs = cutpoint_res_final
 
-    for res in extra_res_final :
-        if res in fixed_res_final :
+    for res in extra_res_final:
+        if res in fixed_res_final:
             res_name = res_conversion_list[res - 1]
             error_message  = "Conflict: rebuild_extra_res %s is either covalently bonded to a modified base" % res_name
             error_message += " or in user-input -fixed_res!!!"
             error_exit(error_message)
     ###################################################################
+
     minimize_option = deepcopy(option)
     rebuild_option = deepcopy(option)
     rebuild_option.ideal_geometry = False
-    if not exists('minimize_1.pdb') :
+    if exists('minimize_1.pdb') :
+        print 'minimize_1.pdb already exists... Skip the minimization step.'
+    else:
         print 'Starting whole-structure minimization 1...'
         minimize_option.input_pdb = "minimize_0.pdb"
         minimize_option.out_pdb = "minimize_1.pdb"
         minimize_option.log_out = "minimize_1.out"
         full_struct_slice_and_minimize( minimize_option )
-    else :
-        print 'minimize_1.pdb already exists... Skip the minimization step.'
     print 'Minimization 1 completed sucessfully.'
     ###################################################################
 
@@ -99,9 +98,7 @@ def erraser( option ) :
         rosetta2std_pdb( 'minimize_%s.pdb' % step, 'standardized.pdb', CRYST1_line )
         rebuild_res_error = find_error_res("standardized.pdb")
         #Also include extra_res in the error category
-        for res in extra_res_final :
-            if not res in rebuild_res_error :
-                rebuild_res_error.append(res)
+        rebuild_res_error.extend( [ res for res in extra_res_final if res not in rebuild_res_error ] )
 
         #Find residues with large RMSD before and after minimization for rebuilding
         #Excludes residues already in rebuild_res_error
@@ -112,17 +109,12 @@ def erraser( option ) :
             rebuild_res_rmsd = range(1, total_res + 1)
         elif option.rebuild_rmsd :
             res_rmsd_list = res_wise_rmsd('minimize_%s.pdb' % (step - 1),'minimize_%s.pdb' % step)
-            res_rmsd_list_temp = []
-            for res_list in res_rmsd_list :
-                if not res_list[0] in rebuild_res_error :
-                    res_rmsd_list_temp.append(res_list)
+            res_rmsd_list_temp = [ res_list for res_list in res_rmsd_list if not res_list[0] in rebuild_res_error ]
             res_rmsd_list = sorted(res_rmsd_list_temp, key = lambda x : x[1], reverse=True)
             rmsd_cutoff = float(option.map_reso) * 0.05
             percentage_cutoff = 0.2
 
-            for i in range(0, int(len(res_rmsd_list) * percentage_cutoff)) :
-                if res_rmsd_list[i][1] > rmsd_cutoff :
-                    rebuild_res_rmsd.append(res_rmsd_list[i][0])
+            rebuild_res_rmsd = [ res_rmsd_list[i][0] for i in range(0, int(len(res_rmsd_list) * percentage_cutoff)) if res_rmsd_list[i][1] > rmsd_cutoff ]
 
         #Residues in fixed_res are not rebuilt so needed to be removed from the lists
         for res in fixed_res_final :
@@ -148,48 +140,46 @@ def erraser( option ) :
             print '\n', "DONE!...Total time taken= %f seconds" %(total_time) , '\n'
             print '###################################'
             sys.exit(0)
+
         ###################################################################
-        if not exists('rebuild_%s.pdb' % step) :
-            if not exists('rebuild_outlier_%s.pdb' % step) :
-
-                if len(rebuild_res_error) != 0 :
-                    rebuild_option.input_pdb = "minimize_%s.pdb" % step
-                    rebuild_option.out_pdb = "rebuild_outlier_%s.pdb" % step
-                    rebuild_option.rebuild_res_list = rebuild_res_error
-                    rebuild_option.log_out = 'rebuild_outlier_%s.out' % step
-                    seq_rebuild( rebuild_option )
-                else :
-                    print 'No errorenous residues... Skip the error residues rebuilding step %s.' % step
-                    copy('minimize_%s.pdb' % step, 'rebuild_outlier_%s.pdb' % step)
-
-            else :
+        if exists('rebuild_%s.pdb' % step):
+            print 'rebuild_%s.pdb already exists... Skip rebuilding step.' % step
+        else:
+            if exists('rebuild_outlier_%s.pdb' % step):
                 print 'rebuild_outlier_%s.pdb already exists... Skip outlier rebuilding step.' % step
+            elif len(rebuild_res_error) == 0:
+                print 'No erroneous residues... Skip the error residues rebuilding step %s.' % step
+                copy('minimize_%s.pdb' % step, 'rebuild_outlier_%s.pdb' % step)
+            else:
+                rebuild_option.input_pdb = "minimize_%s.pdb" % step
+                rebuild_option.out_pdb = "rebuild_outlier_%s.pdb" % step
+                rebuild_option.rebuild_res_list = rebuild_res_error
+                rebuild_option.log_out = 'rebuild_outlier_%s.out' % step
+                seq_rebuild( rebuild_option )
 
-            if len(rebuild_res_rmsd) != 0 :
+            if option.rebuild_rmsd :
+                print 'rebuild_rmsd=False... Skip the high-RMSD residues rebuilding step %s.' % step
+            	copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
+            elif len(rebuild_res_rmsd) == 0:
+                print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
+                copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
+            else:
                 rebuild_option.input_pdb = "rebuild_outlier_%s.pdb" % step
                 rebuild_option.out_pdb = "rebuild_%s.pdb" % step
                 rebuild_option.rebuild_res_list = rebuild_res_rmsd
                 rebuild_option.native_edensity_cutoff = 0.97
                 rebuild_option.log_out = 'rebuild_rmsd_%s.out' % step
                 seq_rebuild( rebuild_option )
-            else :
-                if option.rebuild_rmsd :
-                    print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
-                else :
-                    print 'rebuild_rmsd=False... Skip the high-RMSD residues rebuilding step %s.' % step
-                copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
 
-        else :
-            print 'rebuild_%s.pdb already exists... Skip rebuilding step.' % step
         print 'Rebuilding %s completed sucessfully.' % step
         ###################################################################
-        if not exists( 'minimize_%s.pdb' % (step + 1) ) :
+        if exists( 'minimize_%s.pdb' % (step + 1) ):
+            print 'minimize_%s.pdb already exists... Skip the minimization step.' % (step + 1)
+        else:
             minimize_option.input_pdb = "rebuild_%s.pdb" % step
             minimize_option.out_pdb = "minimize_%s.pdb" % (step +1)
             minimize_option.log_out = "minimize_%s.out" % (step +1)
             full_struct_slice_and_minimize( minimize_option )
-        else :
-            print 'minimize_%s.pdb already exists... Skip the minimization step.' % (step + 1)
         print 'Minimization %s completed sucessfully.' % (step + 1)
     ###################################################################
 
@@ -207,7 +197,8 @@ def erraser( option ) :
         sys.stdout.close()
     if sys.stderr != sys.__stderr__:
         sys.stderr.close()
-    sys.stdout = stdout
+    
+	sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser end #####################################################
 
@@ -251,11 +242,11 @@ def erraser_single_res( option ) :
 
     regularized_input_pdb = basename(option.input_pdb).replace('.pdb', '_regularized.pdb')
     regularize_pdb(option.input_pdb, regularized_input_pdb)
-    [res_conversion_list, fixed_res_final, cutpoint_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
-    cutpoint_final.sort()
+    [res_conversion_list, fixed_res_final, cutpoint_res_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
+    cutpoint_res_final.sort()
     fixed_res_final.sort()
     option.fixed_res_rs = fixed_res_final
-    option.cutpoint_rs = cutpoint_final
+    option.cutpoint_rs = cutpoint_res_final
     option.rebuild_res = res_num_convert(res_conversion_list, option.rebuild_res_pdb)
     rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
 
@@ -311,30 +302,29 @@ def erraser_single_res( option ) :
         #Scores for other rebuilt models
         for i in xrange(option.num_pose_kept_cluster) :
             rebuilt_pdb = './temp_pdb_res_%d/output_pdb/S_%06d.pdb' % (option.rebuild_res, i)
-            if exists(rebuilt_pdb) :
-                if option.skip_single_res_minimize:
-                    if len(res_sliced) != 0 :
-                        merged_pdb = rebuilt_pdb.replace('.pdb', '_merge.pdb')
-                        sliced2orig_merge_back(native_pdb, rebuilt_pdb, merged_pdb, res_sliced )
-                    final_pdb_list.append([i, merged_pdb])
-                else:
-                    minimize_option.input_pdb = rebuilt_pdb
-                    minimize_option.out_pdb = rebuilt_pdb.replace('.pdb', 'min.pdb')
-                    minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_%d.out' % (option.rebuild_res, i)
-                    erraser_minimize( minimize_option )
-                    score = 0.0
-                    min_out_lines = open(minimize_option.log_out).readlines()
-                    for j in xrange( len(min_out_lines) - 1, -1, -1) :
-                        if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
-                            score = float(min_out_lines[j].split()[-1])
-                            break
-                    if len(res_sliced) != 0 :
-                        sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, rebuilt_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
-                        final_pdb_list.append([score, rebuilt_pdb.replace('.pdb', '_merge.pdb')])
-                    else :
-                        final_pdb_list.append([score, minimize_option.out_pdb])
-            else :
-                break
+            if not exists(rebuilt_pdb):
+				break
+            elif option.skip_single_res_minimize:
+                if len(res_sliced) != 0 :
+                    merged_pdb = rebuilt_pdb.replace('.pdb', '_merge.pdb')
+                    sliced2orig_merge_back(native_pdb, rebuilt_pdb, merged_pdb, res_sliced )
+                final_pdb_list.append([i, merged_pdb])
+            else:
+                minimize_option.input_pdb = rebuilt_pdb
+                minimize_option.out_pdb = rebuilt_pdb.replace('.pdb', 'min.pdb')
+                minimize_option.log_out = './temp_pdb_res_%d/output_pdb/minimize_%d.out' % (option.rebuild_res, i)
+                erraser_minimize( minimize_option )
+                score = 0.0
+                min_out_lines = open(minimize_option.log_out).readlines()
+                for j in xrange( len(min_out_lines) - 1, -1, -1) :
+                    if "current_score =" in min_out_lines[j] or "Total weighted score:" in min_out_lines[j]:
+                        score = float(min_out_lines[j].split()[-1])
+                        break
+                if len(res_sliced) != 0 :
+                    sliced2orig_merge_back( native_pdb, minimize_option.out_pdb, rebuilt_pdb.replace('.pdb', '_merge.pdb'), res_sliced )
+                    final_pdb_list.append([score, rebuilt_pdb.replace('.pdb', '_merge.pdb')])
+                else :
+                    final_pdb_list.append([score, minimize_option.out_pdb])
         final_pdb_list = sorted(final_pdb_list)
 
         #Get (minimized) native score
@@ -427,17 +417,16 @@ def erraser_minimize( option ) :
     ####slicing into smaller pdbs if given in the option####
     fixed_res_final = []
     res_sliced_all = []
-    if len(option.res_slice) != 0 :
-        [res_sliced_all, patched_res] = pdb_slice_with_patching( option.input_pdb, temp_rs, option.res_slice )
-        fixed_res_final += patched_res
-        for res in option.fixed_res_rs :
-            if res in res_sliced_all :
-                fixed_res_final.append( res_sliced_all.index(res) + 1 )
-    else :
+    if len(option.res_slice) == 0 :
         copy(option.input_pdb, temp_rs)
         fixed_res_final = option.fixed_res_rs
+    else:
+        [res_sliced_all, patched_res] = pdb_slice_with_patching( option.input_pdb, temp_rs, option.res_slice )
+        fixed_res_final += patched_res
+        fixed_res_final.extend( [ res_sliced_all.index(res)+1 for res in option.fixed_res_rs if res in res_sliced_all ] )
     option.fixed_res_rs = fixed_res_final
-    ####submit rosetta cmdline##############
+    
+	####submit rosetta cmdline##############
     command = rna_minimize_exe
     command += " -database %s " % database_folder
     command += " -native %s " % temp_rs
@@ -455,6 +444,7 @@ def erraser_minimize( option ) :
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
+    command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
@@ -515,7 +505,6 @@ def full_struct_slice_and_minimize( option ) :
     print 'Starting full_struct_slice_and_minimize...'
     start_time=time.time()
     option.finalize()
-    print "constrain_P Is ", option.constrain_phosphate
 
     #####Set temp folder#######################
     base_dir = os.getcwd()
@@ -731,11 +720,13 @@ def SWA_rebuild_erraser( option ) :
     native_pdb = abspath("%s/native_struct.pdb" % output_pdb_folder)
     copy(option.input_pdb, native_pdb)
     #####################Slice out the rebuild region############
-    cutpoint_final = []
+    cutpoint_res_final = []
     res_sliced_all = []
     native_pdb_final = native_pdb
     rebuild_res_final = option.rebuild_res
-    if option.slice_nearby :
+    if not option.slice_nearby:
+        cutpoint_res_final = option.cutpoint_rs
+    else:
         native_pdb_final = native_pdb.replace('native_struct.pdb', 'native_struct_sliced.pdb')
 
         rebuilding_res = []
@@ -748,17 +739,13 @@ def SWA_rebuild_erraser( option ) :
         res_sliced_all = pdb_slice_with_patching( native_pdb, native_pdb_final, rebuilding_res ) [0]
 
         rebuild_res_final = res_sliced_all.index(option.rebuild_res) + 1
-        for cutpoint in option.cutpoint_rs :
-            if cutpoint in res_sliced_all :
-                cutpoint_final.append( res_sliced_all.index(cutpoint) + 1 )
-    else :
-        cutpoint_final = option.cutpoint_rs
+        cutpoint_res_final = [ res_sliced_all.index(cutpoint) + 1 for cutpoint in option.cutpoint_rs if cutpoint in res_sliced_all ] 
 
     total_res = get_total_res(native_pdb_final)
 
     print "rebuilding_res = %s" % rebuild_res_final
     print "res_sliced = %s" % res_sliced_all
-    print "cutpoint_final = %s" % cutpoint_final
+    print "cutpoint_res_final = %s" % cutpoint_res_final
     print "total_res = %d " % total_res
 
     #######Decide whether to sample syn pyrimidine################
@@ -775,8 +762,8 @@ def SWA_rebuild_erraser( option ) :
     is_chain_break = False
     if rebuild_res_final == 1 or rebuild_res_final == total_res :
         is_chain_break = True
-    else :
-        for cutpoint in cutpoint_final :
+    else:
+        for cutpoint in cutpoint_res_final :
             if rebuild_res_final == cutpoint or rebuild_res_final == cutpoint + 1 :
                 is_chain_break = True
                 break
@@ -799,13 +786,9 @@ def SWA_rebuild_erraser( option ) :
     print "came back from pdb2fasta"
     #########################Common Options######################
     common_cmd = ""
-
     common_cmd += " -database %s " % database_folder
-
     common_cmd += " -VERBOSE %s" % str(option.verbose).lower()
-
     common_cmd += " -fasta %s " % fasta_file
-
     common_cmd += " -input_res "
     for n in range(1,total_res+1) :
         if not (option.ideal_geometry and n == rebuild_res_final) :
@@ -840,9 +823,9 @@ def SWA_rebuild_erraser( option ) :
         common_cmd += " -edensity:mapreso %s " % option.map_reso
         common_cmd += " -edensity:realign no "
 
-    if len(cutpoint_final) != 0 :
+    if len(cutpoint_res_final) != 0 :
         common_cmd += " -cutpoint_open "
-        for cutpoint in cutpoint_final :
+        for cutpoint in cutpoint_res_final :
             common_cmd += '%d ' % cutpoint
 
     if option.fcc2012_new_torsional_potential :
@@ -852,6 +835,8 @@ def SWA_rebuild_erraser( option ) :
 
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+    common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
     if not is_chain_break :
@@ -936,7 +921,11 @@ def SWA_rebuild_erraser( option ) :
     ###################Clustering############
     #Just output the lowest energy decoy instead of clustering if num_pose_kept_cluster = 1
     is_clustering = (option.num_pose_kept_cluster != 1)
-    if is_clustering :
+    if not is_clustering:
+        out_slient_file = "%s/blah.out"  % sampling_folder
+        if exists(out_slient_file) :
+            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True, rna_prot_erraser=option.rna_prot_erraser)
+    else:
         print '\n',"ALMOST DONE...sorting/clustering/extracting output_pdb....", '\n'
         if(exists(cluster_folder)):
             print "warning...cluster_folder:%s already exist...removing it...! " % cluster_folder
@@ -955,9 +944,9 @@ def SWA_rebuild_erraser( option ) :
         if not is_chain_break :
             cluster_args += " -cutpoint_closed %d " % rebuild_res_final
 
-        if len(cutpoint_final) != 0 :
+        if len(cutpoint_res_final) != 0 :
             cluster_args+= " -cutpoint_open "
-            for cutpoint in cutpoint_final :
+            for cutpoint in cutpoint_res_final :
                 cluster_args += '%d ' % cutpoint
 
         cluster_args += " -rmsd_res %d " % rebuild_res_final
@@ -1024,11 +1013,6 @@ def SWA_rebuild_erraser( option ) :
             extract_pdb(precluster_filename, precluster_pdb_folder, option.rosetta_bin, option.rosetta_database, rna_prot_erraser=option.rna_prot_erraser)
         if exists(cluster_filename) :
             extract_pdb(cluster_filename, output_pdb_folder, option.rosetta_bin, option.rosetta_database, rna_prot_erraser=option.rna_prot_erraser)
-
-    else : #Fast outputing
-        out_slient_file = "%s/blah.out"  % sampling_folder
-        if exists(out_slient_file) :
-            extract_pdb(out_slient_file, output_pdb_folder, option.rosetta_bin, option.rosetta_database, extract_first_only = True, rna_prot_erraser=option.rna_prot_erraser)
 
     ##############Merge the sliced region back to starting pdb######
     if option.slice_nearby :

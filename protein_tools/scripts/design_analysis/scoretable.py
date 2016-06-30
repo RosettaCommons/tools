@@ -1,7 +1,15 @@
+#!/usr/bin/env python
+
+try:
+    from Bio.PDB import PDBExceptions
+    from Bio.PDB import PDBParser as parser
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 import sys
 import warnings
-from Bio.PDB import PDBExceptions
-from Bio.PDB import PDBParser as parser
 warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
 
 if sys.version_info < (2, 7):

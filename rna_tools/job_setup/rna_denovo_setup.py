@@ -64,6 +64,8 @@ remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [""] )
 bps_moves = parse_options( argv, "bps_moves", False )
+rosetta_folder = parse_options( argv, "rosetta_folder", "" )
+extension = parse_options( argv, "extension", "" )
 
 system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
@@ -106,10 +108,14 @@ if len( fasta ) > 0 :
             if len(sequence) > 0:
                 cutpoint_open_res_chain[ 0 ].append( full_model_res[ -1 ] )
                 cutpoint_open_res_chain[ 1 ].append( full_model_chain[ -1 ] )
-            for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chain )
+            for fasta_tag in line.split()[1:]:
+                get_resnum_chain( fasta_tag, full_model_res, full_model_chain )
             continue
         sequence += line
 
+if len( full_model_res ) > 0 and len( full_model_res ) < len( sequence )+5:
+    print 'Thought we found a tag supplying model res and chain, but not enough to match sequence ... assuming residue numbering is 1,2,...'
+    full_model_res = []
 if len( full_model_res ) == 0: full_model_res = range( offset+1, offset+len(sequence)+1)
 assert( len( full_model_res ) == len( sequence ) )
 
@@ -202,7 +208,7 @@ for pdb in input_pdbs:
     for i in resnum:
         if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[ full_model_res.index( i )]
-    if pdb_seq != actual_seq:
+    if pdb_seq != actual_seq.lower():
         print pdb_seq
         print actual_seq
         raise ValueError('The sequence in %s does not match input sequence!!' % pdb)
@@ -273,6 +279,9 @@ for resnum,chain in zip(resnum_list,chain_list):
 working_input_res = []
 working_input_chain = []
 for m,chain in zip(input_res,input_chain):
+    if (m,chain) not in zip(working_res,working_chain):
+        # ignore chain
+        if all( map( lambda x: x == '', working_chain ) ): chain = ''
     if (m,chain) not in zip(working_res,working_chain):
         raise ValueError('Input residue %s,%s not in working_res!!' % (m,chain) )
     i = zip(working_res,working_chain).index( (m,chain) )
@@ -462,7 +471,7 @@ if len( cutpoint_open_res_chain[0] ) > 0:
 if len( cutpoint_closed_res_chain[0] ) > 0:
     working_cutpoint_closed = working_res_map( cutpoint_closed_res_chain, working_res, working_chain )
     working_cutpoint_closed = get_rid_of_previously_defined_cutpoints( working_cutpoint_closed, working_res, working_chain )
-    if len( cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
+    if len( working_cutpoint_closed ) > 0:    params_file_outstring += "CUTPOINT_CLOSED  "+make_tag( working_cutpoint_closed )+ "\n"
 
 if len( virtual_anchor_res_chain[0] ) > 0:
     working_virtual_anchor = working_res_map( virtual_anchor_res_chain, working_res, working_chain )
@@ -530,7 +539,13 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
 print
 print "Sample command line: "
 
-command  = rosetta_exe('rna_denovo')
+
+if rosetta_folder == "":
+	rosetta_folder = None
+if extension == "":
+	extension = None
+
+command  = rosetta_exe('rna_denovo', rosetta_folder, extension)
 command += " -nstruct %d -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (nstruct, params_file, fasta_file, tag )
 if no_minimize:
     command += " -minimize_rna false"

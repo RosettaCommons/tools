@@ -6,8 +6,7 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
     if ( input_string.find( ',' ) > -1 ):
         for substring in string.split( input_string, ',' ): get_resnum_chain( substring, resnums, chains )
         return True
-
-    assert( len( input_string ) > 0 )
+    #assert( len( input_string ) > 0 )
     assert( len( resnums ) == len( chains ) )
     ok = True
 

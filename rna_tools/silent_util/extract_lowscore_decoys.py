@@ -58,6 +58,13 @@ if argv.count('-output_virtual'):
     del( argv[pos] )
     output_virtual = 1
 
+rosetta_folder = ""
+if argv.count('-rosetta_folder'):
+	pos = argv.index('-rosetta_folder')
+	rosetta_folder = argv[ pos+1 ]
+	del( argv[pos+1] )
+	del( argv[pos] )
+
 #output_virtual = 1
 #if argv.count('-no_virtual'):
 #    pos = argv.index('-no_virtual')
@@ -78,7 +85,6 @@ try:
     scorecol_defined = 1
 except:
     scorecol = -1
-
 
 REVERSE = ''
 if scorecol > 0:
@@ -118,7 +124,8 @@ if not scorecol_defined:
 
 infiles = argv[1:]
 
-rosetta_folder = expandvars("$ROSETTA")
+if rosetta_folder == "":
+	rosetta_folder = expandvars("$ROSETTA")
 MINI_DIR = rosetta_folder + '/main/source/bin/'
 DB = rosetta_folder + '/main/database/'
 

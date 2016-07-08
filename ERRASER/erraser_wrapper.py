@@ -52,7 +52,7 @@ def erraser( option ) :
     # AMW: OK, the recent method to allow some HETATMs is making CL leak in (for example)
     # So how about we use -ignore_unrecognized_res here? Seems concise.
     if not exists('minimize_0.pdb') :
-        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
+        rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option, option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
     else :
         print 'minimize_0.pdb already exists... Skip the ready_set step.'
 
@@ -250,7 +250,7 @@ def erraser_single_res( option ) :
     option.fixed_res_rs = fixed_res_final
     option.cutpoint_rs = cutpoint_res_final
     option.rebuild_res = res_num_convert(res_conversion_list, option.rebuild_res_pdb)
-    rna_rosetta_ready_set('start.pdb', 'temp.pdb', option.rosetta_bin, option.rosetta_database)
+    rna_rosetta_ready_set('start.pdb', 'temp.pdb', option, option.rosetta_bin, option.rosetta_database)
 
     print 'Starting to rebuild residue %s' % option.rebuild_res_pdb
 
@@ -447,6 +447,7 @@ def erraser_minimize( option ) :
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
     command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    command += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
@@ -1044,6 +1045,7 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     common_cmd += ' -graphics false '
+    common_cmd += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
     # save me from myself
     common_cmd += ' -skip_connect_info true '
 

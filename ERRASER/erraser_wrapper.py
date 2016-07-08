@@ -468,7 +468,7 @@ def erraser_minimize( option ) :
         command += " -edensity:mapreso %s " % option.map_reso
         command += " -edensity:realign no "
 
-    command += ' -graphic false '
+    command += ' -graphics false '
     # unless you want to spend 99% of your time writing 100M lines to file.
     command += ' -skip_connect_info true '
     
@@ -1043,7 +1043,7 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
-    common_cmd += ' -graphic false '
+    common_cmd += ' -graphics false '
     # save me from myself
     common_cmd += ' -skip_connect_info true '
 

@@ -159,7 +159,7 @@ def erraser( option ) :
 
             if option.rebuild_rmsd :
                 print 'rebuild_rmsd=False... Skip the high-RMSD residues rebuilding step %s.' % step
-            	copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
+                copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
             elif len(rebuild_res_rmsd) == 0:
                 print 'No high-RMSD residues... Skip the high-RMSD residues rebuilding step %s.' % step
                 copy('rebuild_outlier_%s.pdb' % step, 'rebuild_%s.pdb' % step)
@@ -198,7 +198,7 @@ def erraser( option ) :
     if sys.stderr != sys.__stderr__:
         sys.stderr.close()
     
-	sys.stdout = stdout
+    sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser end #####################################################
 
@@ -303,7 +303,7 @@ def erraser_single_res( option ) :
         for i in xrange(option.num_pose_kept_cluster) :
             rebuilt_pdb = './temp_pdb_res_%d/output_pdb/S_%06d.pdb' % (option.rebuild_res, i)
             if not exists(rebuilt_pdb):
-				break
+                break
             elif option.skip_single_res_minimize:
                 if len(res_sliced) != 0 :
                     merged_pdb = rebuilt_pdb.replace('.pdb', '_merge.pdb')
@@ -426,7 +426,7 @@ def erraser_minimize( option ) :
         fixed_res_final.extend( [ res_sliced_all.index(res)+1 for res in option.fixed_res_rs if res in res_sliced_all ] )
     option.fixed_res_rs = fixed_res_final
     
-	####submit rosetta cmdline##############
+    ####submit rosetta cmdline##############
     command = rna_minimize_exe
     command += " -database %s " % database_folder
     command += " -native %s " % temp_rs
@@ -589,11 +589,11 @@ def seq_rebuild( option ) :
     temp_dir = '%s/%s/' % (base_dir, basename(option.input_pdb).replace('.pdb', '_seq_rebuild_temp') )
     
     # AMW: I think a lot of people might want to resume mid temp directory
-	if exists(temp_dir) :
+    if exists(temp_dir) :
         print 'Temporary directory %s exists... Use it!' % temp_dir
-	    print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
-	#   remove(temp_dir)
-	#   os.mkdir(temp_dir)
+        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
+    #   remove(temp_dir)
+    #   os.mkdir(temp_dir)
     else :
         print 'Create temporary directory %s...' % temp_dir
         os.mkdir(temp_dir)
@@ -604,18 +604,19 @@ def seq_rebuild( option ) :
 
     copy(option.input_pdb, 'temp.pdb')
 
+    
     sucessful_res = []
     failed_res = []
     SWA_option = deepcopy(option)
     for res in option.rebuild_res_list :
         
-		# A residue has been already processed if its output file exists
-		# but its temp directory does not
-		res_already_processed = exists("seq_rebuild_temp_%d.out" % res) and not exists("temp_pdb_res_%d" % res)
+        # A residue has been already processed if its output file exists
+        # but its temp directory does not
+        res_already_processed = exists("seq_rebuild_temp_%d.out" % res) and not exists("temp_pdb_res_%d" % res)
         if res_already_processed: continue
-		
+        
         if exists("temp_pdb_res_%d" % res):
-			remove("temp_pdb_res_%d" % res)
+            remove("temp_pdb_res_%d" % res)
         
         print 'Starting to rebuild residue %s' % res
         SWA_option.input_pdb = 'temp.pdb'

@@ -1026,7 +1026,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
     """
     Convert regular pdb file to rosetta format.
     Return a list for converting original residues # into new ones,
-    a list of residue convalently bonded to removed HETATM do they can be fixed in further refinement,
+    a list of residue convalently bonded to removed HETATM so they can be fixed in further refinement,
     a list of cutpoints (terminal residues) in the structure,
     and the CRYST1 line in the model.
     """
@@ -1157,7 +1157,9 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
             #print rna_names
             #print protein_res_names
             if not is_current_het or ( res_name in protein_res_names or res_name in rna_names ):
-                atm_no += 1
+                # Can't support atom numbers bigger than 99999 in pdb format.
+                if atm_no < 99999:
+                    atm_no += 1
                 if len(line) < 80 :
                     line = line[:-1]
                     for i in xrange( len(line), 81 ) :

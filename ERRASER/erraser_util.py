@@ -338,7 +338,7 @@ def parse_option_chain_res_list ( argv, tag ) :
 	print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
-def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
+def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
     """
     Call Rosetta to read in a pdb and output the model right away.
     Can be used to ensure the file have the rosetta format for atom name, ordering and phosphate OP1/OP2.
@@ -353,6 +353,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, rosetta_bin = "", rosetta_databa
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
     command += " -ignore_unrecognized_res -inout:skip_connect_info true" # -ignore_waters"
+    command += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
     
     # calebgeniesse: output virtual phosphates here
     command += " -output_virtual true"

@@ -30,6 +30,7 @@ class erraser_option :
         self.log_err = ""
         self.nproc = 0
         self.multiproc_minimize = False
+        self.guarantee_no_dna = False
 
         #erraser options
         self.n_iterate = 1
@@ -96,6 +97,7 @@ class erraser_option :
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
         self.nproc = parse_options( argv, 'nproc', 0 )
         self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
+        self.guarantee_no_dna = parse_options( argv, 'guarantee_no_dna', "False" )
 
 
         #erraser options
@@ -159,6 +161,7 @@ class erraser_option :
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
         self.nproc = parse_options( argv, 'nproc', 0 )
         self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
+        self.guarantee_no_dna = parse_options( argv, 'guarantee_no_dna', "False" )
 
         #erraser_single_res options
         self.n_iterate = parse_options( argv, 'n_iterate', 1 )

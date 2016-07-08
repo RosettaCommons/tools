@@ -9,6 +9,7 @@ import os.path
 import re
 import math
 import time
+import multiprocessing
 
 import imp
 file_path = os.path.split( os.path.abspath(__file__) ) [0]
@@ -1390,20 +1391,34 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                 atom_num += 1
                 out.write('%s%7d%s' %(line[0:4], atom_num, line[11:]) )
             else :
-                if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
-                    if new_pdb_line[21].isspace():
-                        new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
-                    atom_num += 1
-                    out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
-                    res_new_pre = int( new_pdb_line[22:26] )
+                # calebgeniesse: this section is just hacky now now.. should be refactored
 
-                while True:
-                    new_pdb_line = new_pdb_read.readline()
-                    if new_pdb_line == "" :
+                # calebgeniesse: this fails to check that new line has same res as res num
+                #if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
+                #    res_new = int( new_pdb_line[22:26] )
+                #    if res_new == res_num :
+                #        if new_pdb_line[21].isspace():
+                #            new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
+                #        atom_num += 1
+                #        out.write('%s%7d%s%4d%s' % (new_pdb_line[0:4], atom_num, new_pdb_line[11:22], res_num, new_pdb_line[26:]) )
+                #        res_new_pre = int( new_pdb_line[22:26] )
+  
+                # calebgeniesse: read through pdb until res_num is found
+                res_new_pre, res_new = None, None
+                while True :
+                    if res_new:
+                        new_pdb_line = new_pdb_read.readline()
+                    if not new_pdb_line:
+                        break
+                    if res_new_pre and new_pdb_line == "" :
                         break
                     if len(new_pdb_line) > 4 and new_pdb_line[0:4] == 'ATOM' :
                         res_new = int( new_pdb_line[22:26] )
-                        if res_new == res_new_pre :
+                        if res_new == res_num:
+                            res_new_pre = res_new
+                        if res_new_pre is None:
+                            continue
+                        if res_new == res_new_pre:
                             if new_pdb_line[21].isspace():
                                 new_pdb_line = new_pdb_line[:21] + chain + new_pdb_line[22:]    
                             atom_num += 1
@@ -1412,6 +1427,7 @@ def sliced2orig_merge_back( orig_pdb, new_pdb, out_name, res_list ) :
                         else :
                             break
                 is_residue_done = True
+            
     out.close()
     return True
 ####################################

@@ -572,6 +572,16 @@ def full_struct_slice_and_minimize( option ) :
 ##### seq_rebuild start ###############################################
 def seq_rebuild( option ) :
 
+    def rebuild_completed( file ):
+        if not exists( file ):
+            return False
+        with open( file ) as log:
+            for line in log:
+                if line[0:5] == "DONE!":
+                    return True
+                        
+        return False
+
     stdout = sys.stdout
     stderr = sys.stderr
     if option.log_out != "" :
@@ -591,9 +601,6 @@ def seq_rebuild( option ) :
     # AMW: I think a lot of people might want to resume mid temp directory
     if exists(temp_dir) :
         print 'Temporary directory %s exists... Use it!' % temp_dir
-    #   print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
-    #   remove(temp_dir)
-    #   os.mkdir(temp_dir)
     else :
         print 'Create temporary directory %s...' % temp_dir
         os.mkdir(temp_dir)
@@ -602,21 +609,21 @@ def seq_rebuild( option ) :
     #####################################################
     os.chdir(temp_dir)
 
-    copy(option.input_pdb, 'temp.pdb')
+    if not exists( 'temp.pdb' ):
+        copy(option.input_pdb, 'temp.pdb')
 
-    
     sucessful_res = []
     failed_res = []
     SWA_option = deepcopy(option)
     for res in option.rebuild_res_list :
         
-        # A residue has been already processed if its output file exists
-        # but its temp directory does not
-        res_already_processed = exists("seq_rebuild_temp_%d.out" % res) and not exists("temp_pdb_res_%d" % res)
-        if res_already_processed: continue
+        # A residue has been already processed if its log says DONE!
+        if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
         
-        if exists("temp_pdb_res_%d" % res):
-            remove("temp_pdb_res_%d" % res)
+        # If this directory already exists, clear out its contents.
+        if exists( "temp_pdb_res_%d" % res ):
+            remove( "temp_pdb_res_%d" % res )
+            os.mkdir( "temp_pdb_res_%d" % res )
         
         print 'Starting to rebuild residue %s' % res
         SWA_option.input_pdb = 'temp.pdb'

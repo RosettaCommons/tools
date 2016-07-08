@@ -2,6 +2,8 @@ import os.path
 import imp
 from copy import deepcopy
 
+
+
 file_path = os.path.split( os.path.abspath(__file__) ) [0]
 imp.load_source('erraser_util', file_path + '/erraser_util.py')
 imp.load_source('erraser_option', file_path + '/erraser_option.py')
@@ -465,6 +467,9 @@ def erraser_minimize( option ) :
         command += " -edensity:mapfile %s " % option.map_file
         command += " -edensity:mapreso %s " % option.map_reso
         command += " -edensity:realign no "
+
+    command += ' -graphic false '
+    
     print "cmdline: %s" % command
     print "#######Submit the Rosetta Command Line###############"
     subprocess_call(command, sys.stdout, sys.stderr)
@@ -489,6 +494,77 @@ def erraser_minimize( option ) :
 ##### erraser_minimize end   ##########################################
 
 
+
+##### full_struct_slice_and_minimize_async start ##########################
+def full_struct_slice_and_minimize_async( minimize_option ):
+    with minimize_option.lock:
+        copy("before_min.pdb", minimize_option.input_pdb)
+    print "Start minimizing chunk %s..." % minimize_option.chunk_idx
+    print "Chunk %s residues: %s" % (
+        minimize_option.chunk_idx, 
+        minimize_option.res_slice
+    )
+    erraser_minimize( minimize_option )
+        
+    print "Minimization for chunk %s ends sucessfully." % (
+        minimize_option.chunk_idx
+    )
+    return True
+
+
+##### full_struct_slice_and_minimize_postproc start ##########################
+def full_struct_slice_and_minimize_postproc( minimize_option ):
+ 
+    # merge rebuilt residue with temp
+    merge_pdb = minimize_option.out_pdb.replace('.pdb', '_merge.pdb')
+    sliced2orig_merge_back(
+        'after_min.pdb',
+        minimize_option.out_pdb, 
+        merge_pdb,
+        minimize_option.res_slice
+    )
+    copy(merge_pdb, 'after_min.pdb')
+    return True
+
+##### full_struct_slice_and_minimize_multiproc start ##########################
+def full_struct_slice_and_minimize_multiproc( option ):
+
+    ### init multiprocessing
+    mp_pool = multiprocessing.Pool(processes=option.nproc)
+    mp_manager = multiprocessing.Manager()
+    mp_lock = mp_manager.Lock()
+
+    ### setup SWA_opt_async_list 
+    minimize_opt_async_list = []
+    res_slice_list = pdb_slice_into_chunks(option.input_pdb, option.n_chunk)
+    for chunk_idx, res_slice in enumerate(res_slice_list, start = 1):
+        minimize_opt_async = deepcopy(option)
+        minimize_opt_async.chunk_idx = chunk_idx
+        minimize_opt_async.input_pdb = "before_min_%d.pdb" % chunk_idx
+        minimize_opt_async.out_pdb = "after_min_%d.pdb" % chunk_idx
+        minimize_opt_async.res_slice = res_slice
+        minimize_opt_async.log_out = "full_minimize_temp_%s.out" % chunk_idx
+        minimize_opt_async.lock = mp_lock
+        minimize_opt_async_list.append(minimize_opt_async)
+
+    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
+    async_result = mp_pool.map_async(
+        full_struct_slice_and_minimize_async,
+        minimize_opt_async_list
+    )   
+    mp_pool.close()
+    mp_pool.join()
+
+    ### check each run and merge rebuilt residues back into temp.pdb
+    #move('after_min.pdb', option.out_pdb)
+    copy("before_min.pdb", "after_min.pdb")
+    results = map(
+        full_struct_slice_and_minimize_postproc, 
+        minimize_opt_async_list
+    )
+    copy("after_min.pdb", option.out_pdb)
+  
+    return 
 
 
 ##### full_struct_slice_and_minimize start ############################
@@ -533,21 +609,26 @@ def full_struct_slice_and_minimize( option ) :
         print exists('after_min.pdb')
         move('after_min.pdb', option.out_pdb)
     else :
-        print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
-        res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
-        current_chunk = 0
-        for res_slice in res_slice_list :
-            print "Start minimizing chunk %s..." % current_chunk
-            print "Chunk %s residues: %s" % (current_chunk, res_slice)
-            current_chunk += 1
-            minimize_option.input_pdb = "before_min.pdb"
-            minimize_option.out_pdb = "after_min.pdb"
-            minimize_option.res_slice = res_slice
-            minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
-            erraser_minimize( minimize_option )
-            copy('after_min.pdb', 'before_min.pdb')
-            print "Minimization for chunk %s ends sucessfully." % current_chunk
-        move('after_min.pdb', option.out_pdb)
+        if option.nproc > 0 and option.multiproc_minimize is True:
+            print "Input pdb >= 150 residus, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
+            minimize_option.n_chunk = n_chunk
+            full_struct_slice_and_minimize_multiproc(minimize_option)
+        else:
+            print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
+            res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
+            current_chunk = 0
+            for res_slice in res_slice_list :
+                print "Start minimizing chunk %s..." % current_chunk
+                print "Chunk %s residues: %s" % (current_chunk, res_slice)
+                current_chunk += 1
+                minimize_option.input_pdb = "before_min.pdb"
+                minimize_option.out_pdb = "after_min.pdb"
+                minimize_option.res_slice = res_slice
+                minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
+                erraser_minimize( minimize_option )
+                copy('after_min.pdb', 'before_min.pdb')
+                print "Minimization for chunk %s ends sucessfully." % current_chunk
+            move('after_min.pdb', option.out_pdb)
 
     os.chdir(base_dir)
 
@@ -567,20 +648,117 @@ def full_struct_slice_and_minimize( option ) :
 ##### full_struct_slice_and_minimize end   ############################
 
 
+##### asynchronous SWA_rebuild_erraser (asynch process) #######################
+def SWA_rebuild_erraser_async( SWA_option ):
+    with SWA_option.lock:
+        copy('temp.pdb', SWA_option.input_pdb)
+    print 'Starting to rebuild residue %s' % SWA_option.rebuild_res
+    SWA_rebuild_erraser( SWA_option )
+    print 'Job completed for residue %s' % SWA_option.rebuild_res
+    return True
 
+
+##### synchronous SWA_rebuild_erraser (post processing) #######################
+def SWA_rebuild_erraser_postproc( SWA_option ):
+    
+    sucessful_res, failed_res = [], []
+ 
+    print "Processing SWA_rebuild_erraser results for residue: %d" % (
+        SWA_option.rebuild_res
+    )
+
+    try:
+        
+        # look for first existing pdb, try merge first
+        output_pdb_dir = '/'.join([SWA_option.work_dir, 'output_pdb/'])
+        output_pdbs = glob(output_pdb_dir + 'S_00000?_merge.pdb')
+        if not len(output_pdbs):
+            output_pdbs = glob(output_pdb_dir + 'S_00000?.pdb')
+        SWA_option.out_pdb = sorted(output_pdbs).pop(0)
+
+        # merge rebuilt residue with temp
+        merge_pdb = 'temp_%d_merge.pdb' % SWA_option.rebuild_res
+        total_res = get_total_res(SWA_option.out_pdb)
+        sliced2orig_merge_back(
+            'temp.pdb',
+            SWA_option.out_pdb, 
+            merge_pdb ,
+            range(SWA_option.rebuild_res, total_res+1)
+        )
+        copy(merge_pdb, 'temp.pdb')
+
+        # at least one pdb found
+        print "Residue %d is sucessfully rebuilt!" % SWA_option.rebuild_res
+        sucessful_res.append(SWA_option.rebuild_res)
+
+    except Exception as e:
+        # no pdbs found 
+        print "No suitable alternative structure can be sampled."
+        print "Residue %d is not rebuilt!" % SWA_option.rebuild_res
+        failed_res.append(SWA_option.rebuild_res)
+
+    if not SWA_option.verbose and not SWA_option.debug:
+        remove(SWA_option.work_dir)
+        
+    return sucessful_res, failed_res
+
+
+##### multiprocess SWA_rebuild_erraser (multiproc wrapper) ####################
+def SWA_rebuild_erraser_multiproc( SWA_option ):
+
+    ### init multiprocessing
+    mp_pool = multiprocessing.Pool(processes=SWA_option.nproc)
+    mp_manager = multiprocessing.Manager()
+    mp_lock = mp_manager.Lock()
+
+    ### setup SWA_opt_async_list 
+    SWA_opt_async_list = []
+    for res in SWA_option.rebuild_res_list:
+        # A residue has been already processed if its log says DONE!
+        if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
+        
+        # If this directory already exists, clear out its contents.
+        if exists( "temp_pdb_res_%d" % res ):
+            remove( "temp_pdb_res_%d" % res )
+            os.mkdir( "temp_pdb_res_%d" % res )
+            
+        SWA_option_async = deepcopy(SWA_option)
+        SWA_option_async.rebuild_res = res
+        SWA_option_async.input_pdb = 'temp_%d.pdb' % res
+        SWA_option_async.work_dir = "temp_%d_pdb_res_%d" % (res, res)
+        SWA_option_async.log_out = 'seq_rebuild_temp_%s.out' % res
+        SWA_option_async.lock = mp_lock
+        SWA_opt_async_list.append(SWA_option_async)
+
+    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
+    async_result = mp_pool.map_async(
+        SWA_rebuild_erraser_async,
+        SWA_opt_async_list
+    )   
+    mp_pool.close()
+    mp_pool.join()
+
+    ### check each run and merge rebuilt residues back into temp.pdb
+    sucess_res, failed_res = [], []
+    for SWA_opt in SWA_opt_async_list:
+        result = SWA_rebuild_erraser_postproc( SWA_opt )
+        sucess_res.extend(result[0])
+        failed_res.extend(result[1])
+
+    return sucess_res, failed_res
+
+def rebuild_completed( file ):
+    if not exists( file ):
+        return False
+    with open( file ) as log:
+        for line in log:
+            if line[0:5] == "DONE!":
+                return True
+                        
+    return False
 
 ##### seq_rebuild start ###############################################
 def seq_rebuild( option ) :
-
-    def rebuild_completed( file ):
-        if not exists( file ):
-            return False
-        with open( file ) as log:
-            for line in log:
-                if line[0:5] == "DONE!":
-                    return True
-                        
-        return False
 
     stdout = sys.stdout
     stderr = sys.stderr
@@ -612,55 +790,62 @@ def seq_rebuild( option ) :
     if not exists( 'temp.pdb' ):
         copy(option.input_pdb, 'temp.pdb')
 
-    sucessful_res = []
-    failed_res = []
     SWA_option = deepcopy(option)
-    for res in option.rebuild_res_list :
-        
-        # A residue has been already processed if its log says DONE!
-        if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
-        
-        # If this directory already exists, clear out its contents.
-        if exists( "temp_pdb_res_%d" % res ):
-            remove( "temp_pdb_res_%d" % res )
-            os.mkdir( "temp_pdb_res_%d" % res )
-        
-        print 'Starting to rebuild residue %s' % res
-        SWA_option.input_pdb = 'temp.pdb'
-        SWA_option.rebuild_res = res
-        SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
+    
+    sucessful_res = []
+    failed_res = []        
 
-        SWA_rebuild_erraser( SWA_option )
-
-        print 'Job completed for residue %s' % res
+    if option.nproc > 0:                
+        sucessful_res, failed_res = SWA_rebuild_erraser_multiproc( SWA_option )
+    else:
+        for res in option.rebuild_res_list:
+            # A residue has been already processed if its log says DONE!
+            if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
         
-        # check success and copy final pdb
-        rebuilt_pdbs = [
-            './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
-            './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
-        ]
-        rebuilt_pdb_final = ''
-
-        try:
-            # set rebuilt_pdb_final to the first existing pdb from list below
-            rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+            # If this directory already exists, clear out its contents.
+            if exists( "temp_pdb_res_%d" % res ):
+                remove( "temp_pdb_res_%d" % res )
+                os.mkdir( "temp_pdb_res_%d" % res )
             
-            # at least one pdb found
-            print "Residue %d is sucessfully rebuilt!" % res
-            sucessful_res.append(res)
-            copy(rebuilt_pdb_final, 'temp.pdb')
-        except IndexError:
-            # no pdbs found 
-            print "No suitable alternative structure can be sampled."
-            print "Residue %d is not rebuilt!" % res
-            failed_res.append(res)
+            print 'Starting to rebuild residue %s' % res
 
-        if not option.verbose :
-            remove('temp_pdb_res_%d' % res)
+            SWA_option.input_pdb = 'temp.pdb'
+            SWA_option.rebuild_res = res
+            SWA_option.log_out = 'seq_rebuild_temp_%s.out' % res
 
-        print '###################################'
+            SWA_rebuild_erraser( SWA_option )
+
+            print 'Job completed for residue %s' % res
+            
+            # check success and copy final pdb
+            rebuilt_pdbs = [
+                './temp_pdb_res_%d/output_pdb/S_000000_merge.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000000.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000001_merge.pdb' % res,
+                './temp_pdb_res_%d/output_pdb/S_000001.pdb' % res,
+            ]
+            rebuilt_pdb_final = ''
+
+            try:
+                # set rebuilt_pdb_final to the first existing pdb from list below
+                rebuilt_pdb_final = filter(exists, rebuilt_pdbs).pop(0)
+            
+                # at least one pdb found
+                print "Residue %d is sucessfully rebuilt!" % res
+                sucessful_res.append(res)
+                copy(rebuilt_pdb_final, 'temp.pdb')
+            except IndexError:
+                # no pdbs found 
+                print "No suitable alternative structure can be sampled."
+                print "Residue %d is not rebuilt!" % res
+                failed_res.append(res)
+
+            if not option.verbose :
+                remove('temp_pdb_res_%d' % res)
+
+
+
+    print '###################################'
 
     copy('temp.pdb', option.out_pdb)
     os.chdir(base_dir)
@@ -856,6 +1041,7 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    common_cmd += ' -graphic false '
 
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
@@ -941,6 +1127,7 @@ def SWA_rebuild_erraser( option ) :
     ###################Clustering############
     #Just output the lowest energy decoy instead of clustering if num_pose_kept_cluster = 1
     is_clustering = (option.num_pose_kept_cluster != 1)
+
     if not is_clustering:
         out_slient_file = "%s/blah.out"  % sampling_folder
         if exists(out_slient_file) :
@@ -1041,6 +1228,7 @@ def SWA_rebuild_erraser( option ) :
         for pdb_file in pdb_file_list :
             sliced2orig_merge_back( native_pdb, pdb_file, pdb_file.replace('.pdb', '_merge.pdb'), res_sliced_all )
     #############################################################
+
     os.chdir(base_dir)
 
     if not option.verbose :

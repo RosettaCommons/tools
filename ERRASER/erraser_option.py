@@ -28,6 +28,8 @@ class erraser_option :
         self.rosetta_database = ""
         self.log_out = ""
         self.log_err = ""
+        self.nproc = 0
+        self.multiproc_minimize = False
 
         #erraser options
         self.n_iterate = 1
@@ -92,6 +94,9 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
+        self.nproc = parse_options( argv, 'nproc', 0 )
+        self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
+
 
         #erraser options
         self.n_iterate = parse_options( argv, 'n_iterate', 1 )
@@ -152,6 +157,8 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
+        self.nproc = parse_options( argv, 'nproc', 0 )
+        self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
 
         #erraser_single_res options
         self.n_iterate = parse_options( argv, 'n_iterate', 1 )
@@ -192,6 +199,8 @@ class erraser_option :
         self.rosetta_folder = parse_options( argv, 'rosetta_folder', '')
         self.rosetta_bin = parse_options( argv, 'rosetta_bin', '')
         self.rosetta_database = parse_options( argv, 'rosetta_database', '')
+        self.nproc = parse_options( argv, 'nproc', 0 )
+        self.multiproc_minimize = parse_options( argv, 'multiproc_minimize', "False" )
 
         #erraser options
         self.rebuild_res_pdb = parse_options( argv, "rebuild_res", '' )
@@ -265,3 +274,9 @@ class erraser_option :
         if self.rosetta_database != '' :
             self.rosetta_bin = self.rosetta_folder
             self.rosetta_database = self.rosetta_folder
+
+        
+        max_cpu = multiprocessing.cpu_count()
+        if self.nproc > max_cpu:
+            print "Number of processes requested exceeds CPU count (nproc=%d, max_cpu=%d) ... setting nproc to %d" % (self.nproc, max_cpu, max_cpu)
+            self.nproc = max_cpu

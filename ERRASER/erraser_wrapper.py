@@ -591,7 +591,7 @@ def seq_rebuild( option ) :
     # AMW: I think a lot of people might want to resume mid temp directory
     if exists(temp_dir) :
         print 'Temporary directory %s exists... Use it!' % temp_dir
-        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
+    #   print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
     #   remove(temp_dir)
     #   os.mkdir(temp_dir)
     else :

@@ -354,7 +354,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
     command += " -ignore_unrecognized_res -inout:skip_connect_info true" # -ignore_waters"
-    command += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
+    command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
     
     # calebgeniesse: output virtual phosphates here
     command += " -output_virtual true"

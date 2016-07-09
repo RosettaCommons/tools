@@ -447,7 +447,7 @@ def erraser_minimize( option ) :
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -skip_minimize %s " % str(option.skip_minimize).lower()
     command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
-    command += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
+    command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
@@ -573,6 +573,15 @@ def full_struct_slice_and_minimize_multiproc( option ):
 ##### full_struct_slice_and_minimize start ############################
 def full_struct_slice_and_minimize( option ) :
 
+    def done_slice( res ):
+        if not exists( "full_minimize_temp_%d.out" % (res+1) ):
+            return False
+        with open( "full_minimize_temp_%d.out" % (res+1) ) as log:
+            for line in log:
+                if line[0:5] == "DONE!":
+                    return True
+        return False
+
     stdout = sys.stdout
     stderr = sys.stderr
     if option.log_out != "" :
@@ -588,16 +597,18 @@ def full_struct_slice_and_minimize( option ) :
     #####Set temp folder#######################
     base_dir = os.getcwd()
     temp_dir = '%s/%s' % (base_dir, basename(option.input_pdb).replace('.pdb', '_full_minimize_temp') )
+    # AMW: We want to reuse temp folder results... if we see DONE that slice is done.
     if exists(temp_dir) :
-        print 'Temporary directory %s exists... Remove it and create a new folder.' % temp_dir
-        remove(temp_dir)
-        os.mkdir(temp_dir)
+        print 'Temporary directory %s exists... use it!' % temp_dir #Remove it and create a new folder.' % temp_dir
+        #remove(temp_dir)
+        #os.mkdir(temp_dir)
     else :
         print 'Create temporary directory %s...' % temp_dir
         os.mkdir(temp_dir)
     ###########################################
     os.chdir(temp_dir)
-    copy( option.input_pdb, 'before_min.pdb' )
+    if not exists( 'before_min.pdb' ):
+        copy( option.input_pdb, 'before_min.pdb' )
     total_res = get_total_res(option.input_pdb)
     n_chunk = int(total_res / 100.0 + 0.5)
     ############################################
@@ -613,14 +624,19 @@ def full_struct_slice_and_minimize( option ) :
         move('after_min.pdb', option.out_pdb)
     else :
         if option.nproc > 0 and option.multiproc_minimize is True:
-            print "Input pdb >= 150 residus, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
+            print "Input pdb >= 150 residues, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
             minimize_option.n_chunk = n_chunk
             full_struct_slice_and_minimize_multiproc(minimize_option)
         else:
-            print "Input pdb >= 150 residus, slice into %s chunks and minimize each one sequentially." % n_chunk
+            print "Input pdb >= 150 residues, slice into %s chunks and minimize each one sequentially." % n_chunk
             res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
             current_chunk = 0
             for res_slice in res_slice_list :
+                if done_slice( current_chunk ): 
+                    print "Done with slice %s, move on!" % current_chunk
+                    current_chunk += 1
+                    continue
+
                 print "Start minimizing chunk %s..." % current_chunk
                 print "Chunk %s residues: %s" % (current_chunk, res_slice)
                 current_chunk += 1
@@ -1045,7 +1061,7 @@ def SWA_rebuild_erraser( option ) :
     common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
     common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     common_cmd += ' -graphics false '
-    common_cmd += " -in:guarantee_no_dna %s " % str(option.guarantee_no_dna).lower()
+    common_cmd += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
     # save me from myself
     common_cmd += ' -skip_connect_info true '
 

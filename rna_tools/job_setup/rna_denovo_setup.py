@@ -31,6 +31,9 @@ if len(argv) < 3:
     exit()
 
 
+argv_input = []
+for arg in argv: argv_input.append( arg ) # deepcopy
+
 # note -- following has not been converted over entirely to handle input of residues through residue-numbering & chains
 out_script = parse_options( argv, "out_script", "README_FARFAR" )
 nstruct = parse_options(argv, "nstruct", 500)
@@ -82,6 +85,7 @@ def is_even( num ):
 
 def working_res_map( vector, working_res, working_chain = [] ):
     if len( working_res ) == 0: return vector
+    if len( vector ) == 0: return vector
     working_vector = []
     if isinstance( vector[ 0 ], list ): # its a list of residue, then list of chain
         assert( isinstance( vector[ 1 ], list ) )
@@ -142,13 +146,14 @@ for m in remove_pair:
 if len(working_res) == 0:
     working_res = full_model_res
     working_chain = full_model_chain
+
 working_sequence = ''
 working_secstruct = ''
 working_secstruct_general = ''
 #working_res.sort()
 for i in range(len(working_res)):
     m = working_res[ i ]
-    if i > 0 and ( ( m > working_res[ i-1 ] + 1 ) or ( working_chain [ i ] != working_chain[ i-1 ] ) ):
+    if i > 0 and ( ( m > working_res[ i-1 ] + 1 ) or ( len( working_chain ) > 0 and working_chain [ i ] != working_chain[ i-1 ] ) ):
         working_sequence  += ' '
         working_secstruct += ' '
         working_secstruct_general += ' '
@@ -585,4 +590,25 @@ print command
 print "outputting command line to: ", out_script
 with open( out_script, 'w' ) as fid:
     fid.write( command + "\n" )
+
+print
+print
+print "WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!"
+print " This script rna_denovo_setup.py is deprecated.  "
+print " Instead, run your flags straight into the rosetta rna_denovo application: "
+print
+print "    rna_denovo",
+for arg in argv_input[1:]:
+    if arg == '-no_minimize': continue
+    print arg,
+command = ""
+command += " -include_neighbor_base_stacks "
+if no_minimize:
+    command += " -minimize_rna false"
+else:
+    command += " -minimize_rna true"
+print command
+print
+print "WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!"
+
 

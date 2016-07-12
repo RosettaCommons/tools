@@ -12,7 +12,22 @@ Additionally, individual residues can be left as unconstrained (through --releas
 *IMPORTANT* This script assumes the input PDB has been renumbered such that the PDB numbering matches the Pose numbering. *IMPORTANT*
 '''
 
-import Bio.PDB
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    import Bio.PDB
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 from optparse import OptionParser
 import warnings
 from rosettautil.protein import util

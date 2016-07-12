@@ -30,6 +30,7 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem $SOURCE/external/boost_1_55_0/ \
+	-isystem $SOURCE/external/ \
 	-isystem $SOURCE/external/include/ \
 	-isystem $SOURCE/external/dbio/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
@@ -40,6 +41,7 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	-DPTR_MODERN -DPTR_STD -DCXX11 \
 	-DSERIALIZATION \
 	-I$SOURCE/src \
+	-I$SOURCE/external \
 	-I$SOURCE/external/include \
 	-I$SOURCE/src/platform/linux/64/clang/3.5-1ubuntu1 \
 	-I$SOURCE/src/platform/linux/64/clang \

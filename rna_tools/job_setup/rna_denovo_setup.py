@@ -110,10 +110,14 @@ if len( fasta ) > 0 :
             if len(sequence) > 0:
                 cutpoint_open_res_chain[ 0 ].append( full_model_res[ -1 ] )
                 cutpoint_open_res_chain[ 1 ].append( full_model_chain[ -1 ] )
-            for fasta_tag in line.split()[1:]: get_resnum_chain( fasta_tag, full_model_res, full_model_chain )
+            for fasta_tag in line.split()[1:]:
+                get_resnum_chain( fasta_tag, full_model_res, full_model_chain )
             continue
         sequence += line
 
+if len( full_model_res ) > 0 and len( full_model_res ) < len( sequence )+5:
+    print 'Thought we found a tag supplying model res and chain, but not enough to match sequence ... assuming residue numbering is 1,2,...'
+    full_model_res = []
 if len( full_model_res ) == 0: full_model_res = range( offset+1, offset+len(sequence)+1)
 assert( len( full_model_res ) == len( sequence ) )
 
@@ -207,7 +211,7 @@ for pdb in input_pdbs:
     for i in resnum:
         if i in input_res: print('WARNING! Input residue %s exists in two pdb files!!' % i)
         actual_seq += sequence[ full_model_res.index( i )]
-    if pdb_seq != actual_seq:
+    if pdb_seq != actual_seq.lower():
         print pdb_seq
         print actual_seq
         raise ValueError('The sequence in %s does not match input sequence!!' % pdb)
@@ -279,6 +283,9 @@ working_input_res = []
 working_input_chain = []
 for m,chain in zip(input_res,input_chain):
     if (m,chain) not in zip(working_res,working_chain):
+        # ignore chain
+        if all( map( lambda x: x == '', working_chain ) ): chain = ''
+    if (m,chain) not in zip(working_res,working_chain):
         raise ValueError('Input residue %s,%s not in working_res!!' % (m,chain) )
     i = zip(working_res,working_chain).index( (m,chain) )
     working_input_res.append( i+1 )
@@ -345,7 +352,7 @@ if len( data_file ) > 0:
 
 
 assert( is_even( len(obligate_pair) ) )
-if len( obligate_pair[ 0 ] ) > 0:
+if obligate_pair and len( obligate_pair[ 0 ] ) > 0:
     working_res_chain = zip( working_res, working_chain )
     for m in range( len( obligate_pair)/2 ):
         pos1 = obligate_pair[ 2*m ]

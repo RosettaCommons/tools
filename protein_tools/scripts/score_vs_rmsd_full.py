@@ -1,18 +1,33 @@
 #!/usr/bin/env python2.7
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    from Bio import AlignIO
+    from Bio.Align.Applications import ClustalwCommandline as cw
+    from Bio.PDB import PDBExceptions
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 import sys
 import amino_acids
-from Bio.Align.Applications import ClustalwCommandline as cw
 import warnings
 from multiprocessing import Pool
 import argparse
 import os
-from Bio import AlignIO
 import rosettautil.rosetta.rosettaScore_beta as rsb
-from Bio.PDB import PDBExceptions
 from rosettautil.protein import util, pdbStat
 from rosettautil.rosetta import resfile
 import glob
-
 
 #clustalw_exe = r"/sb/apps/clustalw/Linux2/i686/v1.83/clustalw"
 

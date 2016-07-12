@@ -124,6 +124,11 @@ def erraser( option ) :
                 rebuild_res_error.remove(res)
             if res in rebuild_res_rmsd :
                 rebuild_res_rmsd.remove(res)
+
+		#Note what residues are designated for rebuild ahead of time.
+		print "RMSD outlier residues: ", sorted(rebuild_res_rmsd)
+		print "Phenix error residues: ", sorted(rebuild_res_error)
+
         #Remove residues in rebuild_res_rmsd that are overlaped with rebuild_res_error
         for res in rebuild_res_error :
             if res in rebuild_res_rmsd :

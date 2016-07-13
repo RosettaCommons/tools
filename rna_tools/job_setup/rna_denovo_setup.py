@@ -67,6 +67,8 @@ remove_obligate_pair = parse_options( argv, "remove_obligate_pair", [-1] )
 remove_pair = parse_options( argv, "remove_pair", [-1] )
 chain_connection = parse_options( argv, "chain_connection", [""] )
 bps_moves = parse_options( argv, "bps_moves", False )
+rosetta_folder = parse_options( argv, "rosetta_folder", "" )
+extension = parse_options( argv, "extension", "" )
 
 system( 'rm -rf %s' % out_script ) # output file with Rosetta command line -- will be replaced by this script.
 #input_res and cutpoint_closed changes to be auto-generated
@@ -542,7 +544,13 @@ if ( len(native_pdb) > 0 and len( working_res ) > 0):
 print
 print "Sample command line: "
 
-command  = rosetta_exe('rna_denovo')
+
+if rosetta_folder == "":
+	rosetta_folder = None
+if extension == "":
+	extension = None
+
+command  = rosetta_exe('rna_denovo', rosetta_folder, extension)
 command += " -nstruct %d -params_file %s -fasta %s  -out:file:silent %s.out -include_neighbor_base_stacks " % (nstruct, params_file, fasta_file, tag )
 if no_minimize:
     command += " -minimize_rna false"

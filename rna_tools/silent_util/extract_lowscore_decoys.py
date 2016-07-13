@@ -66,6 +66,12 @@ if argv.count('-extra_res_fa'):
         extra_res_fa.append( argv[ pos ] )
         del( argv[ pos ] )
 
+rosetta_folder = ""
+if argv.count('-rosetta_folder'):
+	pos = argv.index('-rosetta_folder')
+	rosetta_folder = argv[ pos+1 ]
+	del( argv[pos+1] )
+	del( argv[pos] )
 NSTRUCT_defined = 0
 try:
     NSTRUCT = int(argv[-1])
@@ -117,7 +123,8 @@ if not scorecol_defined:
 
 infiles = argv[1:]
 
-rosetta_folder = expandvars("$ROSETTA")
+if rosetta_folder == "":
+	rosetta_folder = expandvars("$ROSETTA")
 MINI_DIR = rosetta_folder + '/main/source/bin/'
 DB = rosetta_folder + '/main/database/'
 

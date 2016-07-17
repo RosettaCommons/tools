@@ -175,7 +175,7 @@ def get_total_res(pdbname):
     check_path_exist(netpdbname)
 
     # AMW: be alert to the possibility that ACE/NME residue mergers will require
-	# compensation: Rosetta will think fewer residues than this...
+    # compensation: Rosetta will think fewer residues than this...
     oldresnum = ''
     count = 0;
     for line in open(netpdbname):
@@ -338,7 +338,7 @@ def parse_option_chain_res_list ( argv, tag ) :
         else :
             error_exit("Incorrect input for -%s: instance %s" % (tag, argv[i]) )
     
-	print "%s = %s" % (tag, list_load)
+    print "%s = %s" % (tag, list_load)
     return list_load
 #####################################################
 def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosetta_database = "", rna_prot_erraser = False ) :
@@ -350,7 +350,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
 
     command = rosetta_bin_path("erraser_minimizer", rosetta_bin)
     command += " -database %s" % rosetta_database_path(rosetta_database)
-    command += " -native %s" % input_pdb
+    command += " -s %s" % input_pdb
     command += " -out_pdb %s" % out_name
     if ( rna_prot_erraser ) :
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
@@ -362,6 +362,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
     command += " -output_virtual true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
+	move( input_pdb.replace(".pdb", "_0001.pdb") , out_name )
     print "######Rosetta section completed#############################################"
     return True
 #####################################################
@@ -1264,7 +1265,7 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
         return res_remove
 
     total_res = get_total_res(input_pdb)
-	print "Found %s residues in %s". % (total_res, input_pdb)
+    print "Found %s residues in %s" % (total_res, input_pdb)
     res_list_sliced = []
     sliced_list_final = []
     res_list_unsliced = range(1, total_res + 1)

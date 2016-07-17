@@ -489,8 +489,7 @@ def erraser_minimize( option ) :
     print "#####################################################"
    
     # move jd2 output to temp_rs_min 
-    jd2_out = option.input_pdb
-    jd2_out[-4:] = "_0001.pdb"
+    jd2_out = option.input_pdb.replace('.pdb', '_0001.pdb')
     move( jd2_out, temp_rs_min )
 
     ####Merge final result back to pdb####

@@ -174,6 +174,8 @@ def get_total_res(pdbname):
     netpdbname = pdbname
     check_path_exist(netpdbname)
 
+    # AMW: be alert to the possibility that ACE/NME residue mergers will require
+	# compensation: Rosetta will think fewer residues than this...
     oldresnum = ''
     count = 0;
     for line in open(netpdbname):
@@ -250,7 +252,7 @@ def parse_option_int_list( argv, tag ):
 
         for num in split_string :
             try :
-                    int(num)
+                int(num)
             except :
                 error_exit("Incorrect input for -%s: instance %s" % (tag, input_string) )
 
@@ -659,7 +661,7 @@ def load_pdb_coord(input_pdb) :
 
     return [coord_all, coord_C1]
 ####################################
-def find_nearby_res(input_pdb, input_res, dist_cutoff, is_reload = True):
+def find_nearby_res(input_pdb, input_res, dist_cutoff, reload = True):
     """
     Find nearby residues to the input residues by a distance_cutoff.
     All the residues should be in the same chain with continous numbering starting from 1.
@@ -669,29 +671,29 @@ def find_nearby_res(input_pdb, input_res, dist_cutoff, is_reload = True):
     try :
         coord_all
         coord_C1
-        if is_reload :
+        if reload:
             [coord_all, coord_C1] = load_pdb_coord(input_pdb)
     except :
         [coord_all, coord_C1] = load_pdb_coord(input_pdb)
 
     res_list = []
-    for i in input_res :
+    for i in input_res:
         if not i in range(1, len(coord_all) + 1) :
             error_exit("Input residues outside the range of pdb residues!")
         for j in range(1, len(coord_all) + 1) :
             if (j in input_res or j in res_list) : continue
             dist_C1 = compute_dist( coord_C1[i-1], coord_C1[j-1] )
-            if dist_C1 > dist_cutoff + 8 :
+            if dist_C1 > dist_cutoff + 8:
                 continue
             for coord_target_atom in coord_all[i-1] :
-                is_break = False
+                found_qualifying_atom = False
                 for coord_all_atom in coord_all[j-1] :
                     dist = compute_dist( coord_target_atom, coord_all_atom)
-                    if dist < dist_cutoff :
+                    if dist < dist_cutoff:
                         res_list.append(j)
-                        is_break = True
+                        found_qualifying_atom = True
                         break
-                if is_break :
+                if found_qualifying_atom:
                     break
 
     res_list.sort()
@@ -1262,6 +1264,7 @@ def pdb_slice_into_chunks(input_pdb, n_chunk) :
         return res_remove
 
     total_res = get_total_res(input_pdb)
+	print "Found %s residues in %s". % (total_res, input_pdb)
     res_list_sliced = []
     sliced_list_final = []
     res_list_unsliced = range(1, total_res + 1)

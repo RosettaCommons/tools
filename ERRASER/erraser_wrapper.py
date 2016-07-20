@@ -1063,7 +1063,7 @@ def SWA_rebuild_erraser( option ):
         common_cmd += " -edensity:realign no "
 
     if len(cutpoint_res_final) != 0 :
-        common_cmd += " -cutpoint_open "
+        common_cmd += " -full_model:cutpoint_open "
         for cutpoint in cutpoint_res_final :
             common_cmd += '%d ' % cutpoint
 
@@ -1185,7 +1185,7 @@ def SWA_rebuild_erraser( option ):
             cluster_args += " -cutpoint_closed %d " % rebuild_res_final
 
         if len(cutpoint_res_final) != 0:
-            cluster_args += " -cutpoint_open "
+            cluster_args += " -full_model:cutpoint_open "
             for cutpoint in cutpoint_res_final:
                 cluster_args += '%d ' % cutpoint
 

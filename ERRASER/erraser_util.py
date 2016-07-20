@@ -351,7 +351,6 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
     command = rosetta_bin_path("erraser_minimizer", rosetta_bin)
     command += " -database %s" % rosetta_database_path(rosetta_database)
     command += " -s %s" % input_pdb
-    command += " -out_pdb %s" % out_name
     if ( rna_prot_erraser ) :
         command += " -rna:rna_prot_erraser true -rna:corrected_geo true"
     command += " -ready_set_only true"
@@ -362,7 +361,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
     command += " -output_virtual true"
     print "######Start submitting the Rosetta command for rna_rosetta_ready_set########"
     subprocess_call( command, sys.stdout, sys.stderr )
-	move( input_pdb.replace(".pdb", "_0001.pdb") , out_name )
+    move( input_pdb.replace(".pdb", "_0001.pdb") , out_name )
     print "######Rosetta section completed#############################################"
     return True
 #####################################################

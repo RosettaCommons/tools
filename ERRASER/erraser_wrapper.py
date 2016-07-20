@@ -452,10 +452,10 @@ def erraser_minimize( option ) :
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     command += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
-    command += " -vary_geometry %s " % str(option.vary_geometry).lower()
+    command += " -rna:farna:erraser:vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
-    command += " -skip_minimize %s " % str(option.skip_minimize).lower()
+    command += " -rna:farna:erraser:skip_minimize %s " % str(option.skip_minimize).lower()
     command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
 
@@ -489,7 +489,7 @@ def erraser_minimize( option ) :
     print "#####################################################"
    
     # move jd2 output to temp_rs_min 
-    jd2_out = option.input_pdb.replace('.pdb', '_0001.pdb')
+    jd2_out = temp_rs.replace('.pdb', '_0001.pdb')
     move( jd2_out, temp_rs_min )
 
     ####Merge final result back to pdb####
@@ -660,6 +660,7 @@ def full_struct_slice_and_minimize( option ) :
                 minimize_option.res_slice = res_slice
                 minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
                 erraser_minimize( minimize_option )
+                move('before_min_0001.pdb', 'after_min.pdb')
                 copy('after_min.pdb', 'before_min.pdb')
                 print "Minimization for chunk %s ends sucessfully." % current_chunk
             move('after_min.pdb', option.out_pdb)

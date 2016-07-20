@@ -151,7 +151,7 @@ class SingleAlingmnet:
 	    self.target_tag = "%s%s_thread"%(self.target_pdb_code,self.target_pdb_chain)
 	    query_line = block[1].strip().split()
 	    self.query_tag = query_line[0]
-	    
+
 	    # Sequences can span muliple lines
 	    for i in range (0,len(block) - 2,2):
 		    buff = block[i].strip().split()
@@ -671,21 +671,23 @@ if __name__=="__main__":
             alignment = Alignment()
             alignment.convert(alignment_fn, args.alignment_format, converted_aln, "grishin")
 
-    assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
-    copy_cmd = "cp " + converted_aln + " " + run_dir
-    os.system( copy_cmd )
-    aln_file = open(converted_aln,'r')
-    # Check that target sequence is the first one in the aln file
-    for line in aln_file:
-	buff = line.strip().split()
-	if buff[0] == "##":
-	    print buff
-    	    assert (buff[1] == fasta_fn.split('/')[-1].split('.')[0]), "\
-    The first sequence ID in grishin alignment file must match the fasta file name. \n \
-                   -> You may have to rename or swap the order of sequences in your alignment file."
-
     if (not os.path.exists(run_dir)): os.makedirs(run_dir)
+
+    assert (os.path.exists(converted_aln)), "File %s doesn't exist"%converted_aln
+    os.system( "cp " + converted_aln + " " + run_dir )
     os.chdir(run_dir)
+
+    if args.alignment_format == "clustalw":
+        aln_file = open(converted_aln,'r')
+        # Check that target sequence is the first one in the aln file
+        for line in aln_file:
+            buff = line.strip().split()
+            if buff[0] == "##":
+                print buff
+                assert (buff[1] == fasta_fn.split('/')[-1].split('.')[0]), "\
+		The first sequence ID in grishin alignment file must match the fasta file name. \n \
+					   -> You may have to rename or swap the order of sequences in your alignment file."
+
 
     # special case, using a different script to set up RosettaCM
     if len(args.setup_script.strip()) > 0:

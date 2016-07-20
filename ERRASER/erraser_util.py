@@ -43,7 +43,7 @@ def rosetta_bin_path(exe_file, rosetta_folder = "") :
         exe_folder = rosetta_folder
     check_path_exist(exe_folder)
     # AMW: check for the "no extension" symlink (cmake) first
-    name_extensions = ["", ".linuxgccrelease", ".linuxclangrelease", ".macosgccrelease", ".macosclangrelease",
+    name_extensions = [ ".cxx11.linuxclangrelease", ".linuxgccrelease", ".linuxclangrelease", "", ".macosgccrelease", ".macosclangrelease",
                        "failed_to_find_Rosetta_path"] #this makes a better error message if pathing fails
     exe_path = ""
     for name in name_extensions :

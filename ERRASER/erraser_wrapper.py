@@ -452,7 +452,7 @@ def erraser_minimize( option ) :
 
     command += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
     command += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
-    command += " -rna:farna:erraser:vary_geometry %s " % str(option.vary_geometry).lower()
+    command += " -rna::vary_geometry %s " % str(option.vary_geometry).lower()
     command += " -constrain_P %s " % str(option.constrain_phosphate).lower()
     command += " -attempt_pyrimidine_flip %s " % str(option.attempt_pyrimidine_flip).lower()
     command += " -rna:farna:erraser:skip_minimize %s " % str(option.skip_minimize).lower()

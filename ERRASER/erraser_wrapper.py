@@ -458,6 +458,7 @@ def erraser_minimize( option ) :
     command += " -rna:farna:erraser:skip_minimize %s " % str(option.skip_minimize).lower()
     command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    command += " -out:file:write_pdb_link_records true "
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
@@ -470,7 +471,7 @@ def erraser_minimize( option ) :
         command += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if len(option.fixed_res_rs) != 0 :
-        command += ' -fixed_res '
+        command += ' -rna:farna:erraser:fixed_res '
         for i in option.fixed_res_rs :
             command += '%d ' % i
 
@@ -660,7 +661,8 @@ def full_struct_slice_and_minimize( option ) :
                 minimize_option.res_slice = res_slice
                 minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
                 erraser_minimize( minimize_option )
-                move('before_min_0001.pdb', 'after_min.pdb')
+		# the erraser_minimize function takes care of moving files around for this!
+                #move('before_min_0001.pdb', 'after_min.pdb')
                 copy('after_min.pdb', 'before_min.pdb')
                 print "Minimization for chunk %s ends sucessfully." % current_chunk
             move('after_min.pdb', option.out_pdb)
@@ -1079,6 +1081,7 @@ def SWA_rebuild_erraser( option ):
     common_cmd += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
     # save me from myself
     common_cmd += ' -skip_connect_info true '
+    common_cmd += " -out:file:write_pdb_link_records true "
 
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '

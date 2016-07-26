@@ -356,6 +356,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
     command += " -ready_set_only true"
     command += " -ignore_unrecognized_res -inout:skip_connect_info true" # -ignore_waters"
     command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    command += " -out:file:write_pdb_link_records true "
     
     # calebgeniesse: output virtual phosphates here
     command += " -output_virtual true"
@@ -561,6 +562,8 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False):
             if line[0:3] == 'TER':
                 output.write('\n')
 
+            if line[0:4] == 'LINK':
+                output.write(line)
             if line[0:4] == 'ATOM':
                 resnum = line[21:27]
                 if not resnum == oldresnum:
@@ -604,6 +607,13 @@ def pdb_slice(input_pdb, out_name, segment) :
     old_res = 0
     new_res = 0
     new_atom = 0
+
+    linklines = ( line for line in open(input_pdb) if line[0:4] == 'LINK' )
+    for line in linklines:
+        # if either residue is in kept_res, write it
+        first, second = line.split()[4], line.split()[8]
+        if first in kept_res or second in kept_res:
+            output.write(line)
 
     atomlines = ( line for line in open(input_pdb) if len(line) > 20 and line[0:4] == 'ATOM' ) #generator
     for line in atomlines:
@@ -970,6 +980,8 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 atom_index += 1
             output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:])
             output_pdb.write(output_line)
+        elif header == 'LINK':
+            output_pdb.write(line_orig)
         elif (header != 'MASTER' and header[0:3] != 'END' and header != 'ANISOU') :
             output_pdb.write(line_orig)
 
@@ -1001,6 +1013,8 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
         output.write("%s\n" % cryst1_line)
     for line in open(input_pdb) :
         if len(line) > 2 and (line[0:3] == 'END' or line[0:3] == 'TER') :
+            output.write(line)
+        elif line[0:4] == 'LINK':
             output.write(line)
         elif len(line) > 5 and line[0:6] == 'HETATM' :
             output.write(line)
@@ -1092,6 +1106,8 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
             continue
         if line[0:6] == 'CRYST1' :
             CRYST1_line = line[:-1]
+        elif line[0:4] == 'LINK' :
+            output.write(line)
         elif line[0:6] == 'ATOM  ' or line[0:6] == 'HETATM' :
             res_name = line[17:20]
             if line[0:6] == 'ATOM  ' :

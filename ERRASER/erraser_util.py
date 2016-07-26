@@ -1139,7 +1139,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 # also increment for NC residues.
                 if not is_current_het or ( res_name in protein_res_names or res_name in rna_names ):
                     res_no += 1
-                    orig_res = '%s:%s' % (line[21], line[22:27])
+                    orig_res = '%s:%s:%s' % (line[21], line[22:27], line[71:75])
                     orig_res = orig_res.replace(' ', '')
                     res_conversion_list.append(orig_res)
 

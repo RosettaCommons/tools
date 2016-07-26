@@ -17,7 +17,8 @@ except ImportError:
     sys.exit()
 
 import sys
-from rosettautil.rosetta import rosettaScore
+#from rosettautil.rosetta import rosettaScore
+import rosettautil.rosetta.rosettaScore
 from rosettautil.protein import util
 from rosettautil.util import fileutil
 from optparse import OptionParser

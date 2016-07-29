@@ -418,31 +418,11 @@ def erraser_minimize( option ) :
     #######Folders and files paths###########################
     database_folder = rosetta_database_path(option.rosetta_database)
     rna_minimize_exe = rosetta_bin_path("erraser_minimizer", option.rosetta_bin)
-    temp_rs = option.input_pdb.replace('.pdb', '_temp_rs.pdb')
-    temp_rs_min = option.input_pdb.replace('.pdb', '_temp_rs_min.pdb')
 
-    if exists(temp_rs) :
-        print "Temporary file %s exists... Remove it..." % temp_rs
-        remove(temp_rs)
-    if exists(temp_rs_min) :
-        print "Temporary file %s exists... Remove it..." % temp_rs_min
-        remove(temp_rs_min)
-    ####slicing into smaller pdbs if given in the option####
-    fixed_res_final = []
-    res_sliced_all = []
-    if len(option.res_slice) == 0 :
-        copy(option.input_pdb, temp_rs)
-        fixed_res_final = option.fixed_res_rs
-    else:
-        [res_sliced_all, patched_res] = pdb_slice_with_patching( option.input_pdb, temp_rs, option.res_slice )
-        fixed_res_final += patched_res
-        fixed_res_final.extend( [ res_sliced_all.index(res)+1 for res in option.fixed_res_rs if res in res_sliced_all ] )
-    option.fixed_res_rs = fixed_res_final
-    
     ####submit rosetta cmdline##############
     command = rna_minimize_exe
     command += " -database %s " % database_folder
-    command += " -s %s " % temp_rs
+    command += " -s %s " % option.input_pdb
     command += " -score:weights %s " % option.scoring_file
 
     if option.fcc2012_new_torsional_potential :
@@ -491,15 +471,8 @@ def erraser_minimize( option ) :
    
     # move jd2 output to temp_rs_min 
     jd2_out = temp_rs.replace('.pdb', '_0001.pdb')
-    move( jd2_out, temp_rs_min )
+    move( jd2_out, option.out_pdb )
 
-    ####Merge final result back to pdb####
-    if len(res_sliced_all) != 0 :
-        sliced2orig_merge_back( option.input_pdb, temp_rs_min, option.out_pdb, res_sliced_all )
-        remove( temp_rs_min )
-    else :
-        move(temp_rs_min, option.out_pdb)
-    remove( temp_rs )
     #########################################
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
@@ -511,179 +484,6 @@ def erraser_minimize( option ) :
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_minimize end   ##########################################
-
-
-
-##### full_struct_slice_and_minimize_async start ##########################
-def full_struct_slice_and_minimize_async( minimize_option ):
-    with minimize_option.lock:
-        copy("before_min.pdb", minimize_option.input_pdb)
-    print "Start minimizing chunk %s..." % minimize_option.chunk_idx
-    print "Chunk %s residues: %s" % (
-        minimize_option.chunk_idx, 
-        minimize_option.res_slice
-    )
-    erraser_minimize( minimize_option )
-        
-    print "Minimization for chunk %s ends sucessfully." % (
-        minimize_option.chunk_idx
-    )
-    return True
-
-
-##### full_struct_slice_and_minimize_postproc start ##########################
-def full_struct_slice_and_minimize_postproc( minimize_option ):
- 
-    # merge rebuilt residue with temp
-    merge_pdb = minimize_option.out_pdb.replace('.pdb', '_merge.pdb')
-    sliced2orig_merge_back(
-        'after_min.pdb',
-        minimize_option.out_pdb, 
-        merge_pdb,
-        minimize_option.res_slice
-    )
-    copy(merge_pdb, 'after_min.pdb')
-    return True
-
-##### full_struct_slice_and_minimize_multiproc start ##########################
-def full_struct_slice_and_minimize_multiproc( option ):
-
-    ### init multiprocessing
-    mp_pool = multiprocessing.Pool(processes=option.nproc)
-    mp_manager = multiprocessing.Manager()
-    mp_lock = mp_manager.Lock()
-
-    ### setup SWA_opt_async_list 
-    minimize_opt_async_list = []
-    res_slice_list = pdb_slice_into_chunks(option.input_pdb, option.n_chunk)
-    for chunk_idx, res_slice in enumerate(res_slice_list, start = 1):
-        minimize_opt_async = deepcopy(option)
-        minimize_opt_async.chunk_idx = chunk_idx
-        minimize_opt_async.input_pdb = "before_min_%d.pdb" % chunk_idx
-        minimize_opt_async.out_pdb = "after_min_%d.pdb" % chunk_idx
-        minimize_opt_async.res_slice = res_slice
-        minimize_opt_async.log_out = "full_minimize_temp_%s.out" % chunk_idx
-        minimize_opt_async.lock = mp_lock
-        minimize_opt_async_list.append(minimize_opt_async)
-
-    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
-    async_result = mp_pool.map_async(
-        full_struct_slice_and_minimize_async,
-        minimize_opt_async_list
-    )   
-    mp_pool.close()
-    mp_pool.join()
-
-    ### check each run and merge rebuilt residues back into temp.pdb
-    #move('after_min.pdb', option.out_pdb)
-    copy("before_min.pdb", "after_min.pdb")
-    results = map(
-        full_struct_slice_and_minimize_postproc, 
-        minimize_opt_async_list
-    )
-    copy("after_min.pdb", option.out_pdb)
-  
-    return 
-
-
-##### full_struct_slice_and_minimize start ############################
-def full_struct_slice_and_minimize( option ) :
-
-    def done_slice( res ):
-        if not exists( "full_minimize_temp_%d.out" % (res+1) ):
-            return False
-        with open( "full_minimize_temp_%d.out" % (res+1) ) as log:
-            for line in log:
-                if line[0:5] == "DONE!":
-                    return True
-        return False
-
-    stdout = sys.stdout
-    stderr = sys.stderr
-    if option.log_out != "" :
-        sys.stdout = open(option.log_out, 'w')
-    if option.log_err != "" :
-        sys.stderr = open(option.log_err, 'w')
-
-    print '###################################'
-    print 'Starting full_struct_slice_and_minimize...'
-    start_time=time.time()
-    option.finalize()
-
-    #####Set temp folder#######################
-    base_dir = os.getcwd()
-    temp_dir = '%s/%s' % (base_dir, basename(option.input_pdb).replace('.pdb', '_full_minimize_temp') )
-    # AMW: We want to reuse temp folder results... if we see DONE that slice is done.
-    if exists(temp_dir) :
-        print 'Temporary directory %s exists... use it!' % temp_dir #Remove it and create a new folder.' % temp_dir
-        #remove(temp_dir)
-        #os.mkdir(temp_dir)
-    else :
-        print 'Create temporary directory %s...' % temp_dir
-        os.mkdir(temp_dir)
-    ###########################################
-    os.chdir(temp_dir)
-    if not exists( 'before_min.pdb' ):
-        copy( option.input_pdb, 'before_min.pdb' )
-    total_res = get_total_res(option.input_pdb)
-    n_chunk = int(total_res / 100.0 + 0.5)
-    ############################################
-    minimize_option = deepcopy(option)
-    if n_chunk <= 1 :
-        print "Input pdb < 150 residues, no slicing is required."
-        print "Start minimizing the full pdb..."
-        minimize_option.input_pdb = "before_min.pdb"
-        minimize_option.out_pdb = "after_min.pdb"
-        minimize_option.log_out = 'full_minimize_temp.out'
-        erraser_minimize( minimize_option )
-        print exists('after_min.pdb')
-        move('after_min.pdb', option.out_pdb)
-    else :
-        if option.nproc > 0 and option.multiproc_minimize is True:
-            print "Input pdb >= 150 residues, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
-            minimize_option.n_chunk = n_chunk
-            full_struct_slice_and_minimize_multiproc(minimize_option)
-        else:
-            print "Input pdb >= 150 residues, slice into %s chunks and minimize each one sequentially." % n_chunk
-            res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
-            current_chunk = 0
-            for res_slice in res_slice_list :
-                if done_slice( current_chunk ): 
-                    print "Done with slice %s, move on!" % current_chunk
-                    current_chunk += 1
-                    continue
-
-                print "Start minimizing chunk %s..." % current_chunk
-                print "Chunk %s residues: %s" % (current_chunk, res_slice)
-                current_chunk += 1
-                minimize_option.input_pdb = "before_min.pdb"
-                minimize_option.out_pdb = "after_min.pdb"
-                minimize_option.res_slice = res_slice
-                minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
-                erraser_minimize( minimize_option )
-		# the erraser_minimize function takes care of moving files around for this!
-                #move('before_min_0001.pdb', 'after_min.pdb')
-                copy('after_min.pdb', 'before_min.pdb')
-                print "Minimization for chunk %s ends sucessfully." % current_chunk
-            move('after_min.pdb', option.out_pdb)
-
-    os.chdir(base_dir)
-
-    if not option.kept_temp_folder :
-        remove(temp_dir)
-
-    total_time=time.time()-start_time
-
-    print '\n', "DONE!...Total time taken= %f seconds" % total_time
-    print '###################################'
-    if sys.stdout != sys.__stdout__:
-        sys.stdout.close()
-    if sys.stderr != sys.__stderr__:
-        sys.stderr.close()
-    sys.stdout = stdout
-    sys.stderr = stderr
-##### full_struct_slice_and_minimize end   ############################
-
 
 ##### asynchronous SWA_rebuild_erraser (asynch process) #######################
 def SWA_rebuild_erraser_async( SWA_option ):

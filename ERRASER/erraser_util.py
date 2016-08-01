@@ -297,7 +297,7 @@ def parse_option_chain_res_list ( argv, tag ) :
     ... -tag A10 B20-22...
     Return a list of strings with number expanded:
     ['A10', 'B20', 'B21', 'B22', ... ]
-	AMW: we will have to expand this so that it takes seg ID at the end
+    AMW: we will have to expand this so that it takes seg ID at the end
     """
     print argv
     list_load = []
@@ -562,7 +562,7 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False):
         if len(line) > 20 :
             if line[0:3] == 'TER':
                 output.write('\n')
-			if line[0:4] == 'ATOM':
+            if line[0:4] == 'ATOM':
                 resnum = line[21:27]
                 if not resnum == oldresnum:
                     longname = line[17:20]
@@ -614,7 +614,7 @@ def pdb_slice(input_pdb, out_name, segment) :
     # 1. Determine what atom lines should be output. 
     # 2. Learn old_res <-> kept_res correspondence
     # 3. Output corresponding LINK records.
-	old_kept_res = []
+    old_kept_res = []
     atomlines = ( line for line in open(input_pdb) if len(line) > 20 and line[0:4] == 'ATOM' ) #generator
     for line in atomlines:
         current_res = int(line[22:26])
@@ -629,7 +629,7 @@ def pdb_slice(input_pdb, out_name, segment) :
             new_atom += 1
             output.write('%s%7d%s%4d%s' % (line[0:4], new_atom, line[11:22], new_res, line[26:]) )
     
-	linklines = ( line for line in open(input_pdb) if line[0:4] == 'LINK' )
+    linklines = ( line for line in open(input_pdb) if line[0:4] == 'LINK' )
     for line in linklines:
         # if either residue is in kept_res, write it
         # ^ no that could lead to LINKs to nonexistent res -- AND 

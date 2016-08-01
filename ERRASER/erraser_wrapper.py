@@ -50,6 +50,7 @@ def erraser( option ):
     [res_conversion_list, fixed_res_final, cutpoint_res_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
     # AMW: OK, the recent method to allow some HETATMs is making CL leak in (for example)
     # So how about we use -ignore_unrecognized_res here? Seems concise.
+    # AMW: assess if this is necessary now!
     if not exists('minimize_0.pdb') :
         rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option, option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
     else :
@@ -89,7 +90,7 @@ def erraser( option ):
         minimize_option.input_pdb = "minimize_0.pdb"
         minimize_option.out_pdb = "minimize_1.pdb"
         minimize_option.log_out = "minimize_1.out"
-        full_struct_slice_and_minimize( minimize_option )
+        erraser_minimize( minimize_option ) #full_struct_slice_and_minimize( minimize_option )
     print 'Minimization 1 completed sucessfully.'
     ###################################################################
 
@@ -166,7 +167,7 @@ def erraser( option ):
             minimize_option.input_pdb = "rebuild_%s.pdb" % step
             minimize_option.out_pdb = "minimize_%s.pdb" % (step +1)
             minimize_option.log_out = "minimize_%s.out" % (step +1)
-            full_struct_slice_and_minimize( minimize_option )
+            erraser_minimize( minimize_option ) #full_struct_slice_and_minimize( minimize_option )
         print 'Minimization %s completed sucessfully.' % (step + 1)
     ###################################################################
 
@@ -470,7 +471,7 @@ def erraser_minimize( option ) :
     print "#####################################################"
    
     # move jd2 output to temp_rs_min 
-    jd2_out = temp_rs.replace('.pdb', '_0001.pdb')
+    jd2_out = option.input_pdb.replace('.pdb', '_0001.pdb')
     move( jd2_out, option.out_pdb )
 
     #########################################
@@ -593,6 +594,215 @@ def rebuild_completed( file ):
                 return True
                         
     return False
+
+
+def seq_rebuild_new( option ) :
+    
+    rna_swa_test_exe = rosetta_bin_path("seq_rebuild", option.rosetta_bin )
+    
+    stdout = sys.stdout
+    stderr = sys.stderr
+    if option.log_out != "" :
+        sys.stdout = open(option.log_out, 'w')
+    if option.log_err != "" :
+        sys.stderr = open(option.log_err, 'w')
+
+    print '###################################'
+    print 'Starting seq_rebuild...'
+    start_time=time.time()
+    option.finalize()
+
+    #####Set temp folder#######################
+    base_dir = os.getcwd()
+    temp_dir = '%s/%s/' % (base_dir, basename(option.input_pdb).replace('.pdb', '_seq_rebuild_temp') )
+    
+    # AMW: I think a lot of people might want to resume mid temp directory
+    if exists(temp_dir) :
+        print 'Temporary directory %s exists... Use it!' % temp_dir
+    else :
+        print 'Create temporary directory %s...' % temp_dir
+        os.mkdir(temp_dir)
+
+    print '###################################'
+    #####################################################
+    os.chdir(temp_dir)
+
+    if not exists( 'temp.pdb' ):
+        copy(option.input_pdb, 'temp.pdb')
+
+    SWA_option = deepcopy(option)
+    
+    sucessful_res = []
+    failed_res = []        
+
+    common_cmd= ""
+    common_cmd += "-rebuild_res "
+    for res in option.rebuild_res_list: 
+        if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
+        common_cmd += "%s " % res
+    
+    # other options from SWA_rebuild
+    common_cmd += " -database %s " % database_folder
+    common_cmd += " -VERBOSE %s" % str(option.verbose).lower()
+    common_cmd += " -fasta %s " % fasta_file
+
+    #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
+    #protein case
+    
+    # AMW: handle this in C++ layer, rebuild_res_final before/after is there for each one
+
+    #if option.rna_prot_erraser :
+    #    common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    #else : #RNA only original case
+    common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+
+
+    # AMW: Be alert to the possibility that this shouldn't be NEARLY this many residues
+    common_cmd += " -alignment_res 1-%d " % total_res
+    common_cmd += " -rmsd_res %d " %(total_res)
+    
+    common_cmd += " -native " + native_pdb_final
+    common_cmd += " -score:weights %s " % option.scoring_file
+    
+    #Rescue 2012 defaults 
+    if option.o2prime_legacy_mode is True:
+        common_cmd += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
+    if option.use_2prime_OH_potential is False:
+        common_cmd += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
+
+    if option.map_file != "" :
+        common_cmd += " -edensity:mapfile %s " % option.map_file
+        common_cmd += " -edensity:mapreso %s " % option.map_reso
+        common_cmd += " -edensity:realign no "
+
+    # Handle cutpoint res in C++ too AMW TODO
+    #if len(cutpoint_res_final) != 0 :
+    #    common_cmd += " -full_model:cutpoint_open "
+    #    for cutpoint in cutpoint_res_final :
+    #        common_cmd += '%d ' % cutpoint
+
+    if option.fcc2012_new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential RNA11_based_new "
+
+    common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+    common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    common_cmd += ' -graphics false '
+    common_cmd += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    # save me from myself
+    common_cmd += ' -skip_connect_info true '
+    common_cmd += " -out:file:write_pdb_link_records true "
+
+    ################Sampler Options##################################
+    sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
+    
+    # AMW: if necessary easy to handle this in C++
+    if not is_chain_break :
+        sampling_cmd += '-erraser true '
+        sampling_cmd += '-sampler_extra_epsilon_rotamer true '
+
+    sampling_cmd += " -s %s " % start_pdb
+    sampling_cmd += " -out:file:silent blah.out "
+    sampling_cmd += " -output_virtual true "
+    sampling_cmd += " -rm_virt_phosphate true "
+    sampling_cmd += " -sampler_extra_chi_rotamer true "
+    sampling_cmd += " -cluster::radius %s " % 0.3
+    sampling_cmd += " -centroid_screen true "
+    #sampling_cmd += " -VDW_atr_rep_screen false "
+    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
+    sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
+    sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
+    sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()
+    if native_screen:
+        sampling_cmd += " -rmsd_screen %s " % option.native_screen_RMSD
+    sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
+    sampling_cmd += " -PBP_clustering_at_chain_closure true "
+    sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
+    sampling_cmd += " -allow_virtual_side_chains false"
+    sampling_cmd += " -sampler_perform_phosphate_pack false"
+    sampling_cmd += " -add_virt_root true "
+
+    
+    # AMW: chain break logic MUST be in C++ layer!
+    # That will tell you whether to pass cutpoint_closed.
+
+    specific_cmd = ""
+    specific_cmd += " -sample_res %d " % rebuild_res_final
+    ##################################################################
+    #if not is_chain_break :
+    #
+    #    if option.is_append :
+    #        specific_cmd += " -cutpoint_closed %d " % rebuild_res_final
+    #    else :
+    #        specific_cmd += " -cutpoint_closed %d " % (rebuild_res_final - 1)
+
+
+    ###################Clustering############
+    #Just output the lowest energy decoy instead of clustering if num_pose_kept_cluster = 1
+        
+    #AMW: does clustering really require different cutpoint_closed logic?
+    #if not is_chain_break :
+    #    cluster_args += " -cutpoint_closed %d " % rebuild_res_final
+
+    # AMW TODO: as before, cutpoint_res_final assigned in C++
+    #if len(cutpoint_res_final) != 0:
+    #    cluster_args += " -full_model:cutpoint_open "
+    #    for cutpoint in cutpoint_res_final:
+    #        cluster_args += '%d ' % cutpoint
+
+    # AMW TODO: handle -rmsd_res being C++!"res" because we can't pass two args
+    #cluster_args += " -rmsd_res %d " % rebuild_res_final
+    cluster_args += " -add_lead_zero_to_tag true "
+    cluster_args += " -PBP_clustering_at_chain_closure true "
+
+    # handle this in C++
+    #no_clustering  = " -suite_cluster_radius 0.0 "
+    #no_clustering += " -loop_cluster_radius 0.0 "
+
+
+    with_clustering  = ""
+    with_clustering += " -suite_cluster_radius %s " % option.cluster_RMSD
+    with_clustering += " -loop_cluster_radius 999.99 "
+    with_clustering += " -clusterer_num_pose_kept %d " % option.num_pose_kept_cluster
+
+    #command = (cluster_args + ' ' + common_cmd +  with_clustering +
+    #      " -recreate_silent_struct true -out:file:silent %s" % cluster_filename )
+        
+    command = sampling_cmd + ' ' + specific_cmd + ' ' + common_cmd + cluster_args + with_clustering
+    if option.verbose: print  '\n', command, '\n'
+    subprocess_call( command, 'seq_rebuild.out', 'seq_rebuild.err' )
+    os.chdir( base_dir )
+
+
+
+
+
+    # success reporting may go here
+
+    print '###################################'
+
+    copy('temp.pdb', option.out_pdb)
+    os.chdir(base_dir)
+
+    if not option.kept_temp_folder:
+        remove(temp_dir)
+
+    print "All rebuilding moves completed sucessfully!!!!"
+    print 'sucessful_res: %s' % sucessful_res
+    print 'failed_res: %s' % failed_res
+
+    total_time=time.time()-start_time
+    print '\n', "DONE!...Total time taken= %f seconds" % total_time
+    print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
+    sys.stdout = stdout
+    sys.stderr = stderr
+
 
 ##### seq_rebuild start ###############################################
 def seq_rebuild( option ) :

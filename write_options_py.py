@@ -1,22 +1,22 @@
 #python
 import argparse
 
-print "This script takes a file containing options like so:\
-type name description default\
-Boolean PumpAction use \"the PumpAction mover\" true\
-\
-Everything after the third item is parsed as the description\
-\
-It returns option defs to paste into options_rosetta.py, like so:\
-\
-		Option('', '',\
-			default = '',\
-			desc = ""\
-		),\
-\
-		Option('PumpAction', 'Boolean',\
-			default = 'true',\
-			desc = \"use the PumpAction mover\"\
+print "This script takes a file containing options like so:\n\
+type name description default\n\
+Boolean PumpAction use \"the PumpAction mover\" true\n\
+\n\
+Everything after the third item is parsed as the description\n\
+\n\
+It returns option defs to paste into options_rosetta.py, like so:\n\
+\n\
+		Option('', '',\n\
+			default = '',\n\
+			desc = ""\n\
+		),\n\
+\n\
+		Option('PumpAction', 'Boolean',\n\
+			default = 'true',\n\
+			desc = \"use the PumpAction mover\"\n\
 		),"
 
 parser = argparse.ArgumentParser(description="Write options_rosetta.py contents")

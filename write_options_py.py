@@ -17,7 +17,8 @@ It returns option defs to paste into options_rosetta.py, like so:\n\
 		Option('PumpAction', 'Boolean',\n\
 			default = 'true',\n\
 			desc = \"use the PumpAction mover\"\n\
-		),"
+		),\n\
+###############paste below line into options_rosetta.py########"
 
 parser = argparse.ArgumentParser(description="Write options_rosetta.py contents")
 

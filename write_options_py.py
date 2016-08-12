@@ -52,6 +52,10 @@ for line in open(args.input, 'r'):
     for each in splitline[2:-1]:
         desc = desc + each + " "
     desc = desc.rstrip()
+    desc = desc.rstrip('"')
+    desc = desc.lstrip('"')
+    desc = desc.rstrip("'")
+    desc = desc.lstrip("'")
 
     #print results
     print "		Option('" + name + "', '" + type + "',"

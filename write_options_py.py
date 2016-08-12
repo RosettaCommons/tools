@@ -50,7 +50,7 @@ for line in open(args.input, 'r'):
     #process multiple word desc
     desc = ""
     for each in splitline[2:-1]:
-        desc = desc + " "
+        desc = desc + each + " "
     desc = desc.rstrip()
 
     #print results

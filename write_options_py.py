@@ -57,3 +57,4 @@ for line in open(args.input, 'r'):
     print "		Option('" + name + "', '" + type + "',"
     print "			default = '" + default + "',"
     print "			desc = '" + desc + "'"
+    print "		),"

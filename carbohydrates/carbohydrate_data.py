@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-# :noTabs=true:
+#
 # (c) Copyright Rosetta Commons Member Institutions.
-# (c) This file is part of the Rosetta software suite and is made available
-# (c) under license.
-# (c) The Rosetta software is developed by the contributing members of the
-# (c) Rosetta Commons.
-# (c) For more information, see http://www.rosettacommons.org.
-# (c) Questions about this can be addressed to University of Washington UW
-# (c) TechTransfer, email: license@u.washington.edu.
+# (c) This file is part of the Rosetta software suite and is made available under license.
+# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+# (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+# (c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
 """File:  carbohydrate_data.py
 
@@ -54,14 +51,14 @@ one_letter_sugar_code_dict = {'A' : "Ara", 'D' : "Lyx", 'R' : "Rib",
                               'I' : "Ido", 'M' : "Man", 'T' : "Tal",
                               'C' : "Fru", 'P' : "Psi", 'B' : "Sor",
                               'J' : "Tag", 'F' : "Fuc", 'Q' : "Qui",
-                              'H' : "Rha", 'O' : "Gal", 'Z' : "Glc", 
-                              'U' : "Ido", 'V' : "Gal", 'Y' : "Glc", 
-                              'W' : "Man", 'S' : "Neu", 'a' : "Ara", 
-                              'd' : "Lyx", 'r' : "Rib", 'x' : "Xyl", 
-                              'n' : "All", 'e' : "Alt", 'l' : "Gal", 
-                              'g' : "Glc", 'k' : "Gul", 'i' : "Ido", 
-                              'm' : "Man", 't' : "Tal", 'c' : "Fru", 
-                              'p' : "Psi", 'b' : "Sor", 'j' : "Tag", 
+                              'H' : "Rha", 'O' : "Gal", 'Z' : "Glc",
+                              'U' : "Ido", 'V' : "Gal", 'Y' : "Glc",
+                              'W' : "Man", 'S' : "Neu", 'a' : "Ara",
+                              'd' : "Lyx", 'r' : "Rib", 'x' : "Xyl",
+                              'n' : "All", 'e' : "Alt", 'l' : "Gal",
+                              'g' : "Glc", 'k' : "Gul", 'i' : "Ido",
+                              'm' : "Man", 't' : "Tal", 'c' : "Fru",
+                              'p' : "Psi", 'b' : "Sor", 'j' : "Tag",
                               'f' : "Fuc", 'q' : "Qui", 'h' : "Rha",
                               'o' : "Gal", 'z' : "Glc", 'u' : "Ido",
                               'v' : "Gal", 'y' : "Glc", 'w' : "Man",

@@ -1,10 +1,11 @@
-#!/usr/bin/python
-## (c) Copyright Rosetta Commons Member Institutions.                                                                    
-## (c) This file is part of the Rosetta software suite and is made available under license.                              
-## (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.                             
-## (c) For more information, see http://www.rosettacommons.org. Questions about this can be                              
-## (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.                           
-##                                                                                                                       
+#!/usr/bin/env python
+#
+# (c) Copyright Rosetta Commons Member Institutions.
+# (c) This file is part of the Rosetta software suite and is made available under license.
+# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+# (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+# (c) addressed to University of Washington CoMotion, email: license@uw.edu.
+
 ## Authors: Florian Richter
 
 ################################################################################################
@@ -88,10 +89,10 @@ def get_coordinates(struct):
         if (atom_reading_flag == 1 ) and line[0:4] != 'ATOM':
             atom_reading_flag = 0
             all_coordinates[cur_res] = cur_coordinates
- 
+
         if atom_reading_flag:
             cols = line.split()
-            if cur_res != int(line[23:26]): 
+            if cur_res != int(line[23:26]):
                 if cur_res != -50000:
                     all_coordinates[cur_res] = cur_coordinates
                 cur_res = int(line[23:26])
@@ -121,7 +122,7 @@ class SequenceProfile:
 
         if len( res_coords ) != len( self.wt_pos ):
             print "Error: input structure and wt structure doesn't have the same size"
-            print "res coords:", len (res_coords), "wt_pos", len (self.wt_pos) 
+            print "res coords:", len (res_coords), "wt_pos", len (self.wt_pos)
             sys.exit()
         i = -1
         self.num_sequences = self.num_sequences + 1
@@ -147,7 +148,7 @@ class SequenceProfile:
             if self.mutations.has_key( i ):
                 outstring = outstring + self.wt_pos[i] + str(i+1) + ": "
                 for res in self.mutations[ i ]:
-                    
+
                     freq = float(self.mutations[ i ][res]) / float( self.num_sequences )
                     #outstring = outstring + str( freq ) + " " + res + ",  "
                     outstring = outstring + "%.2f " % freq + res + ",  "
@@ -218,9 +219,9 @@ for struct in FileList:
 
     if len(struct)>1:                             # make sure this is not an empty line
         struct_coords = get_coordinates(struct)
-        
+
         seq_prof.add_struct( struct_coords )
-        
+
         #print mutstring
 
 outstring = seq_prof.get_outstring()

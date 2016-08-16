@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from sys import argv, exit, stderr
 from os.path import exists
 
@@ -34,7 +35,7 @@ def jump_over_missing_density( fasta_fn, pdb_fn, request ):
                 if str(newnum_torsion) in missing_density_rsn_list:
                     newnum_torsion = newnum_torsion + 1
                     continue
-                
+
                 idealized_rsd = line.split()[4]
                 if idealized_rsd != "X":
                     secstr        = line.split()[5]
@@ -52,7 +53,7 @@ def jump_over_missing_density( fasta_fn, pdb_fn, request ):
         stderr.write("ERROR: there's no idealized and relaxed %s_0001_0001.pdb here!\n"  % pdb_fn )
         return 0
         exit()
-    
+
 
     if request == "xyz":
         return pdb_xyz_file

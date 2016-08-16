@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Run the Membrane Protein Framework Unit Tests
 # Author: Rebecca Alford
 # Last Modified: 1/16/14

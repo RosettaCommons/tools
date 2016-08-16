@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # Copyright (c) 2010 Robert L. Campbell
 #
 # A PyMOL script for drawing a CGO plane from the coordinates of three atoms (pk1,pk2,pk3 by default)
@@ -7,7 +7,7 @@
 # (c) This file is part of the Rosetta software suite and is made available under license.
 # (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
 # (c) For more information, see http://www.rosettacommons.org. Questions about this can be
-# (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+# (c) addressed to University of Washington UW CoMotion, email: license@uw.edu.
 #
 # @brief Script to visualize membrane planes in pymol
 # @author JKLeman (julia.koehler1982@gmail.com)
@@ -17,12 +17,12 @@ from pymol import cmd
 
 # Store xyz coordinates
 class XYZCoord():
-	
+
   def __init__(self, x=0, y=0, z=0):
     self.x = x
     self.y = y
     self.z = z
-		
+
   def __str__(self):
     return "(%8.3f, %8.3f, %8.3f)" % (self.x, self.y, self.z)
 
@@ -36,7 +36,7 @@ def subtract( v1, v2 ):
   x = v1.x - v2.x
   y = v1.y - v2.y
   z = v1.z - v2.z
-				
+
   vf = XYZCoord( x, y, z)
   return vf
 
@@ -50,7 +50,7 @@ def add( v1, v2 ):
   x = v1.x + v2.x
   y = v1.y + v2.y
   z = v1.z + v2.z
-				
+
   vf = XYZCoord( x, y, z)
   return vf
 
@@ -64,7 +64,7 @@ def cross( v1, v2 ):
   x = v1.y * v2.z - v1.z * v2.y
   y = v1.z * v2.x - v1.x * v2.z
   z = v1.x * v2.y - v1.y * v2.x
-				
+
   vf = XYZCoord( x, y, z)
   return vf
 
@@ -141,7 +141,7 @@ USAGE
   obj = [
 
     BEGIN, TRIANGLE_STRIP,
-	
+
 #    COLOR, color[0], color[1], color[2],
 	ALPHA, 0.5,
 	COLOR, 0.5, 0.5, 0.5,

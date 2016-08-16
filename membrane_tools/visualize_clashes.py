@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 
 # Script that creates a pymol input script to visualize scores
 # fa_rep and dunbrack scores, but others can be set too 

@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from os import system, chdir, getcwd, path
 from sys import argv, exit, stderr
 from os.path import exists, isdir
@@ -9,12 +10,12 @@ def get_structure_profile_checkpoint( template_fn ):
     ## get PDB2VALL_PATH
     PDB2VALL_PATH = path.abspath(path.dirname(__file__))
     PDB2VALL_PATH = PDB2VALL_PATH[0:PDB2VALL_PATH.rfind("/pdb2vall/")];
-    PDB2VALL_PATH += "/pdb2vall/"   
+    PDB2VALL_PATH += "/pdb2vall/"
     if not PDB2VALL_PATH:
         stderr.write("ERROR: you should specify the path where your packages are first.\n")
         return 0
 
-    # ALL THE SCRIPTS_FN NECESSARY 
+    # ALL THE SCRIPTS_FN NECESSARY
     script_get_depth_data                         = PDB2VALL_PATH + "structure_profile_scripts/make_depthfile.py"
     script_make_sequence_fragments                = PDB2VALL_PATH + "structure_profile_scripts/make_sequence_fragments.pl"
     script_get_single_chain_pdb                   = PDB2VALL_PATH + "pdb_scripts/get_pdb_new.py"
@@ -76,13 +77,13 @@ def get_structure_profile_checkpoint( template_fn ):
 
     chdir( base_dir )
 
-    cmd = "ln -s ./structure_profile_checkpoint/" + sequence_fragments + ".ali.fasta.new.blast.checkpoint ."  
+    cmd = "ln -s ./structure_profile_checkpoint/" + sequence_fragments + ".ali.fasta.new.blast.checkpoint ."
     print cmd + "\n"
     system( cmd )
 
 if __name__ == "__main__":
     if len( argv ) < 2:
-        print 
+        print
         print "USAGE: %s <template_id: eg. 2oxgZ.pdb>" % argv[0]
         print
         print "-"*75

@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from sys import exit, stderr
 from os import popen, system, path
 from os.path import exists

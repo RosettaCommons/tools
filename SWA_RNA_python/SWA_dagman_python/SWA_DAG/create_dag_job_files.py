@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ######################################################################
 from SWA_dagman_python.utility.DAGMAN_util import create_generic_README_SUB
@@ -324,7 +324,7 @@ print "native_alignment_res= ", native_alignment_res
 
 README_SETUP = open( "README_SETUP.py", 'w')
 
-README_SETUP.write( '#!/usr/bin/python\n' )
+README_SETUP.write( '#!/usr/bin/env python\n' )
 README_SETUP.write( 'from os import system\n' )
 README_SETUP.write( 'import string\n\n' )
 

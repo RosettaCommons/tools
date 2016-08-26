@@ -1,0 +1,10 @@
+
+&cntrl
+    imin = 1, maxcyc = 1000,
+    ntx = 1,
+    ntxo = 2,
+    ntwr = 100, ntpr = 100,
+    cut = 999.0,
+    ntb = 0, igb = 8,
+    ntmin = 3, drms = 0.01,
+/

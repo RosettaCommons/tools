@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from sys import argv,exit
 import string,subprocess
@@ -36,14 +36,8 @@ for m in args:
 if len(filenames) == 0: filenames = ['.']
 dir = '.'
 
-clusterdir = abspath(dir).replace('/Users/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/scratch/users/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/work/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/home/%s/' % user_name,'')
-clusterdir = clusterdir.replace('/home1/%s/%s/' % ( xsede_dir_number, xsede_user_name ),'')
-clusterdir = clusterdir.replace('/work/%s/%s/' % (xsede_dir_number, xsede_user_name ),'')
-
-clusterdir = remotedir+clusterdir
+# strip off directory name based on local path.
+clusterdir = remotedir+strip_home_dirname( abspath(dir) )
 
 cluster_prefix = cluster+':'
 if len(cluster) == 0: cluster_prefix = ''

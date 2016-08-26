@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # quick and dirty PDB reader
 
 def read_pdb( filename ):

@@ -7,12 +7,12 @@ from os import popen,system
 from os.path import exists,dirname,basename,abspath
 
 #from rna_conversion import make_rna_rosetta_ready
-from get_sequence import get_sequence
-
+from get_sequence import get_sequence, hetatm_map
 
 MAX_SEQUENCE_LENGTH = 32
 
-nts = ['g','c','u','a','G','C','U','A','z','Z']
+nts = ['g','c','u','a','G','C','U','A']
+ligands = ['z','Z','w']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};
@@ -22,22 +22,41 @@ def ValidationError( string ):
     exit()
 
 def join_sequence( sequence ):
+    """ Remove spacer nucleotides and return sequence """
     sequence_joined = ''
     chainbreak_pos = []
     count = 0
+    in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
-        if c in nts or c in secstruct_chars:
+        if c == '[' and sequence_joined[-1] in ligands: # in a ligand
+            sequence_joined += c
+            in_nonstandard_name = True
+            continue
+        if c == ']' and in_nonstandard_name:
+            sequence_joined += c
+            in_nonstandard_name = False
+            continue
+        if in_nonstandard_name:
+            sequence_joined += c
+            continue
+        if c in ligands:
+            sequence_joined += c
+            count += 1
+            continue
+        if c in nts or c in secstruct_chars or c in ligands:
             sequence_joined += c.lower()
             count += 1
-        elif c in spacers:
+            continue
+        if c in spacers:
             if ( c == 0 ):
                 raise ValidationError( "Cannot start secstruct with spacer!" )
                 return None
             chainbreak_pos.append( count )
-        else:
-            raise ValidationError( "Unrecognized character in sequence: %s" % c  )
-            return None
+            continue
+
+        raise ValidationError( "Unrecognized character in sequence: %s" % c  )
+        return None
     return ( sequence_joined, chainbreak_pos )
 
 def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstruct='', fixed_stems = False, input_res = None ):
@@ -271,8 +290,6 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             chainids[i] = ' '
 
     goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG' }
-
 
     if removeions:  goodnames.remove(' MG')
 
@@ -287,6 +304,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
         if (chain in chainids or ignore_chain):
             line_edit = line
 
+            # some of following is copied out of get_sequence.py -- should not copy code.
             if line[0:3] == 'TER' and False:
                 continue
             elif (line[0:6] == 'HETATM') & (line[17:20]=='MSE'): #Selenomethionine
@@ -301,7 +319,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
 
             #Don't save alternative conformations.
             #if line[16] == 'A': continue
-
+            if len( line ) < 26: continue
             atomnum = line[6:11]
             if line_edit[22] == ' ': resnum = line_edit[23:26]
             else:                    resnum = line_edit[22:26]

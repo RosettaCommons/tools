@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from read_pdb import read_pdb
 from sys import argv

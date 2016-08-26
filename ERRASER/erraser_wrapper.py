@@ -632,6 +632,7 @@ def seq_rebuild_new( option ) :
 
     SWA_option = deepcopy(option)
     
+    total_res = get_total_res(SWA_option.input_pdb)
     sucessful_res = []
     failed_res = []        
 
@@ -642,26 +643,28 @@ def seq_rebuild_new( option ) :
         common_cmd += "%s " % res
     
     # other options from SWA_rebuild
-    common_cmd += " -database %s " % database_folder
+    #common_cmd += " -database %s " % database_folder
     common_cmd += " -VERBOSE %s" % str(option.verbose).lower()
-    common_cmd += " -fasta %s " % fasta_file
+    #common_cmd += " -fasta %s " % fasta_file
 
     #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
     #protein case
     
     # AMW: handle this in C++ layer, rebuild_res_final before/after is there for each one
 
-    #if option.rna_prot_erraser :
-    #    common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
-    #else : #RNA only original case
-    common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+    if option.rna_prot_erraser :
+        common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    else : #RNA only original case
+    	common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
 
 
     # AMW: Be alert to the possibility that this shouldn't be NEARLY this many residues
     common_cmd += " -alignment_res 1-%d " % total_res
+
+    # I think this is correct because it's the virt.
     common_cmd += " -rmsd_res %d " %(total_res)
     
-    common_cmd += " -native " + native_pdb_final
+    common_cmd += " -native " + SWA_option.input_pdb
     common_cmd += " -score:weights %s " % option.scoring_file
     
     #Rescue 2012 defaults 
@@ -676,10 +679,10 @@ def seq_rebuild_new( option ) :
         common_cmd += " -edensity:realign no "
 
     # Handle cutpoint res in C++ too AMW TODO
-    #if len(cutpoint_res_final) != 0 :
-    #    common_cmd += " -full_model:cutpoint_open "
-    #    for cutpoint in cutpoint_res_final :
-    #        common_cmd += '%d ' % cutpoint
+    if len(cutpoint_res_final) != 0 :
+        common_cmd += " -full_model:cutpoint_open "
+        for cutpoint in cutpoint_res_final :
+            common_cmd += '%d ' % cutpoint
 
     if option.fcc2012_new_torsional_potential :
         common_cmd += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
@@ -696,14 +699,9 @@ def seq_rebuild_new( option ) :
     common_cmd += " -out:file:write_pdb_link_records true "
 
     ################Sampler Options##################################
-    sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '
-    
-    # AMW: if necessary easy to handle this in C++
-    if not is_chain_break :
-        sampling_cmd += '-erraser true '
-        sampling_cmd += '-sampler_extra_epsilon_rotamer true '
-
-    sampling_cmd += " -s %s " % start_pdb
+    sampling_cmd = rna_swa_test_exe #+ ' -algorithm rna_sample '
+    sampling_cmd += " -s %s " % SWA_option.input_pdb #start_pdb
+    sampling_cmd += " -fasta fasta "
     sampling_cmd += " -out:file:silent blah.out "
     sampling_cmd += " -output_virtual true "
     sampling_cmd += " -rm_virt_phosphate true "
@@ -711,10 +709,16 @@ def seq_rebuild_new( option ) :
     sampling_cmd += " -cluster::radius %s " % 0.3
     sampling_cmd += " -centroid_screen true "
     #sampling_cmd += " -VDW_atr_rep_screen false "
-    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % allow_syn_pyrimidine
+    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % str(option.allow_syn_pyrimidine).lower()
     sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
     sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
-    sampling_cmd += " -constraint_chi %s " % str(option.constrain_chi).lower()
+    sampling_cmd += " -constrain_chi %s " % str(option.constrain_chi).lower()
+    
+    # This logic also exists in the C++, reconcile
+    native_screen = True
+    if option.native_screen_RMSD > 10.0 :
+        native_screen = False
+    
     if native_screen:
         sampling_cmd += " -rmsd_screen %s " % option.native_screen_RMSD
     sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
@@ -729,7 +733,8 @@ def seq_rebuild_new( option ) :
     # That will tell you whether to pass cutpoint_closed.
 
     specific_cmd = ""
-    specific_cmd += " -sample_res %d " % rebuild_res_final
+    # Don't specify this! seq_rebuild will loop.
+    #specific_cmd += " -sample_res %d " % rebuild_res_final
     ##################################################################
     #if not is_chain_break :
     #
@@ -741,16 +746,18 @@ def seq_rebuild_new( option ) :
 
     ###################Clustering############
     #Just output the lowest energy decoy instead of clustering if num_pose_kept_cluster = 1
+
+    cluster_args = ""
         
     #AMW: does clustering really require different cutpoint_closed logic?
     #if not is_chain_break :
     #    cluster_args += " -cutpoint_closed %d " % rebuild_res_final
 
     # AMW TODO: as before, cutpoint_res_final assigned in C++
-    #if len(cutpoint_res_final) != 0:
-    #    cluster_args += " -full_model:cutpoint_open "
-    #    for cutpoint in cutpoint_res_final:
-    #        cluster_args += '%d ' % cutpoint
+    if len(cutpoint_res_final) != 0:
+        cluster_args += " -full_model:cutpoint_open "
+        for cutpoint in cutpoint_res_final:
+            cluster_args += '%d ' % cutpoint
 
     # AMW TODO: handle -rmsd_res being C++!"res" because we can't pass two args
     #cluster_args += " -rmsd_res %d " % rebuild_res_final

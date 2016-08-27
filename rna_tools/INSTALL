@@ -1,6 +1,5 @@
 # If ROSETTA_TOOLS is set, then use it; else assume $ROSETTA/tools
 if [ -z ${ROSETTA_TOOLS+x} ]; then
-then
   export RNA_TOOLS=$ROSETTA/tools/rna_tools/
 else
   export RNA_TOOLS=$ROSETTA_TOOLS/rna_tools/

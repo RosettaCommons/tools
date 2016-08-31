@@ -12,7 +12,7 @@ from get_sequence import get_sequence, hetatm_map
 MAX_SEQUENCE_LENGTH = 32
 
 nts = ['g','c','u','a','G','C','U','A']
-ligands = ['z','Z','w']
+ligands = ['z','Z','w','X']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};

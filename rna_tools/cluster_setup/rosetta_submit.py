@@ -189,6 +189,8 @@ for line in lines:
         rosetta_folder = expandvars("$ROSETTA")
         EXE = rosetta_folder + '/main/source/bin/'+basename(EXE)
     if not exists( EXE ):
+        EXE += ".macosclangrelease"
+    if not exists( EXE ):
         EXE = EXE.replace( '/home1/','/work1/')
     assert( exists( EXE ) )
 

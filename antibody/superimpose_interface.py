@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# :noTabs=true:
-
+#
 # (c) Copyright Rosetta Commons Member Institutions.
 # (c) This file is part of the Rosetta software suite and is made available under license.
 # (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
 # (c) For more information, see http://www.rosettacommons.org. Questions about this can be
-# (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+# (c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
 ## @file   superimpose_interface.py
 ## @brief  part of antibody.py with PyRosetta dependency, replaces ProFit
@@ -29,9 +27,9 @@ LH_info = {'ref_tmpl': "template.light_heavy.%s.pdb",
                           'H': "template.superimposed.FRH.%s.pdb"},
             'out': "FR.%s.pdb",
 #            contains CDR loops, this fails when superimposition before grafting
-#            'interface': {'L': [34, 36, 38, 43, 44, 46, 87, 89, 98, 100], 
+#            'interface': {'L': [34, 36, 38, 43, 44, 46, 87, 89, 98, 100],
 #                          'H': [35, 37, 39, 44, 45, 47, 91, 93, 103, 105]}
-            'interface': {'L': [36, 38, 43, 44, 46, 87, 98, 100], 
+            'interface': {'L': [36, 38, 43, 44, 46, 87, 98, 100],
                           'H': [37, 39, 44, 45, 47, 91, 93, 103, 105]}
 }
 
@@ -45,7 +43,7 @@ def main(args):
       action="store", default='output/',
       help="Prefix for output files. Should be dir name. Default is ./ string.",
     )
-	
+
     parser.add_option('--decoy',
       action="store", default='0',
       help="Decoy number of grafting run. Default is 0"

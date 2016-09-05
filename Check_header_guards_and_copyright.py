@@ -63,9 +63,19 @@ BOILERPLATE = [  '''// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing
 			'''// (c) This file is part of the Rosetta software suite and is made available under license.''',
 			'''// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.''',
 			'''// (c) For more information, see http://www.rosettacommons.org. Questions about this can be''',
-			'''// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.''',
+			'''// (c) addressed to University of Washington CoMotion, email: license@uw.edu.''',
 		]
 BOILERPLATE_LENGTH = len(BOILERPLATE)
+
+PYBOILERPLATE = [  '''#!/usr/bin/env python''',
+			'''#''',
+			'''# (c) Copyright Rosetta Commons Member Institutions.''',
+			'''# (c) This file is part of the Rosetta software suite and is made available under license.''',
+			'''# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.''',
+			'''# (c) For more information, see http://www.rosettacommons.org. Questions about this can be''',
+			'''# (c) addressed to University of Washington CoMotion, email: license@uw.edu.''',
+		]
+PYBOILERPLATE_LENGTH = len(PYBOILERPLATE)
 
 BannedWords = [
 	"goto",
@@ -78,6 +88,15 @@ def checkHeader(filedata):
 	for hline in BOILERPLATE:
 		if lines[index] != BOILERPLATE[index]:
 			return["The file header does not match the standard header (emacs settings and copyright information):\n  %s\n  %s" % (lines[index], BOILERPLATE[index])]
+		index += 1
+	return []
+
+def checkPyHeader(filedata):
+	index = 0
+	lines = filedata["lines"]
+	for hline in PYBOILERPLATE:
+		if lines[index] != PYBOILERPLATE[index]:
+			return["The file header does not match the standard header (settings and copyright information):\n  %s\n  %s" % (lines[index], PYBOILERPLATE[index])]
 		index += 1
 	return []
 
@@ -140,12 +159,13 @@ def checkGuardsWithNaming(filedata):
 	return []
 
 CodingConventions = [
-		(checkHeader, ["hh"]),
-		(checkHeader, ["cc"]),
-#		(checkBannedWords, ["hh"]),
-#		(checkGuards, ["hh"]),
-#		(checkGuardWithNaming, ["hh"]),
-	]
+        (checkHeader, ["hh"]),
+        (checkHeader, ["cc"]),
+#        (checkPyHeader, ["py"]),
+#        (checkBannedWords, ["hh"]),
+#        (checkGuards, ["hh"]),
+#        (checkGuardWithNaming, ["hh"]),
+    ]
 
 def check_source(root):
 	warnings = []

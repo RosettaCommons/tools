@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ################################################################
 def parse_options( argv, tag, default):

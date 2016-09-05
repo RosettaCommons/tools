@@ -297,6 +297,7 @@ def parse_option_chain_res_list ( argv, tag ) :
     ... -tag A10 B20-22...
     Return a list of strings with number expanded:
     ['A10', 'B20', 'B21', 'B22', ... ]
+    AMW: we will have to expand this so that it takes seg ID at the end
     """
     print argv
     list_load = []
@@ -356,6 +357,7 @@ def rna_rosetta_ready_set( input_pdb, out_name, option, rosetta_bin = "", rosett
     command += " -ready_set_only true"
     command += " -ignore_unrecognized_res -inout:skip_connect_info true" # -ignore_waters"
     command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    command += " -out:file:write_pdb_link_records true "
     
     # calebgeniesse: output virtual phosphates here
     command += " -output_virtual true"
@@ -560,7 +562,6 @@ def pdb2fasta(input_pdb, fasta_out, using_protein = False):
         if len(line) > 20 :
             if line[0:3] == 'TER':
                 output.write('\n')
-
             if line[0:4] == 'ATOM':
                 resnum = line[21:27]
                 if not resnum == oldresnum:
@@ -605,6 +606,15 @@ def pdb_slice(input_pdb, out_name, segment) :
     new_res = 0
     new_atom = 0
 
+    # The algorithm for figuring out what lines need to be output is hard:
+    # the LINK lines are chosen based on resnum match to the input, but
+    # they need to match the output resnum.
+    # A normal PDB would have the LINK lines first, but let's test if that
+    # is actually necessary. I don't think it is.
+    # 1. Determine what atom lines should be output. 
+    # 2. Learn old_res <-> kept_res correspondence
+    # 3. Output corresponding LINK records.
+    old_kept_res = []
     atomlines = ( line for line in open(input_pdb) if len(line) > 20 and line[0:4] == 'ATOM' ) #generator
     for line in atomlines:
         current_res = int(line[22:26])
@@ -612,11 +622,21 @@ def pdb_slice(input_pdb, out_name, segment) :
             old_res += 1
             previous_res = current_res
             if old_res in kept_res :
+                old_kept_res.append( current_res )
                 new_res += 1
 
         if old_res in kept_res :
             new_atom += 1
             output.write('%s%7d%s%4d%s' % (line[0:4], new_atom, line[11:22], new_res, line[26:]) )
+    
+    linklines = ( line for line in open(input_pdb) if line[0:4] == 'LINK' )
+    for line in linklines:
+        # if either residue is in kept_res, write it
+        # ^ no that could lead to LINKs to nonexistent res -- AND 
+        first, second = line.split()[4], line.split()[8]
+        if first in old_kept_res and second in old_kept_res:
+            output.write(line)
+
 
     output.close()
     return kept_res
@@ -970,6 +990,8 @@ def rosetta2phenix_merge_back(orig_pdb, rs_pdb, out_name) :
                 atom_index += 1
             output_line = (line_orig[0:6] + str(atom_index).rjust(5) + line_orig[11:])
             output_pdb.write(output_line)
+        elif header == 'LINK':
+            output_pdb.write(line_orig)
         elif (header != 'MASTER' and header[0:3] != 'END' and header != 'ANISOU') :
             output_pdb.write(line_orig)
 
@@ -1001,6 +1023,8 @@ def rosetta2std_pdb (input_pdb, out_name, cryst1_line = "") :
         output.write("%s\n" % cryst1_line)
     for line in open(input_pdb) :
         if len(line) > 2 and (line[0:3] == 'END' or line[0:3] == 'TER') :
+            output.write(line)
+        elif line[0:4] == 'LINK':
             output.write(line)
         elif len(line) > 5 and line[0:6] == 'HETATM' :
             output.write(line)
@@ -1092,6 +1116,8 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
             continue
         if line[0:6] == 'CRYST1' :
             CRYST1_line = line[:-1]
+        elif line[0:4] == 'LINK' :
+            output.write(line)
         elif line[0:6] == 'ATOM  ' or line[0:6] == 'HETATM' :
             res_name = line[17:20]
             if line[0:6] == 'ATOM  ' :
@@ -1123,7 +1149,7 @@ def pdb2rosetta (input_pdb, out_name, alter_conform = 'A', PO_dist_cutoff = 2.0,
                 # also increment for NC residues.
                 if not is_current_het or ( res_name in protein_res_names or res_name in rna_names ):
                     res_no += 1
-                    orig_res = '%s:%s' % (line[21], line[22:27])
+                    orig_res = '%s:%s:%s' % (line[21], line[22:27], line[71:75])
                     orig_res = orig_res.replace(' ', '')
                     res_conversion_list.append(orig_res)
 

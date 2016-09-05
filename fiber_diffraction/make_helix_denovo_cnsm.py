@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 Helix denovo symmetry definition file generator with restraints on cn symmetry
 Usage: imake_helix_denovo_cnsm.py -p 16.15 -c 5 -n 40 -v 1 -u 2

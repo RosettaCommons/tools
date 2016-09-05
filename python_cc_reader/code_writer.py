@@ -15,7 +15,7 @@ class CodeWriter :
         lines.append( "// (c) This file is part of the Rosetta software suite and is made available under license.\n" )
         lines.append( "// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.\n" )
         lines.append( "// (c) For more information, see http://www.rosettacommons.org. Questions about this can be\n" )
-        lines.append( "// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.\n" )
+        lines.append( "// (c) addressed to University of Washington CoMotion, email: license@uw.edu.\n" )
         return lines
 
     def dstor_for_class( self, cdec ) :
@@ -76,7 +76,7 @@ class CodeWriter :
 	lines.append("};\n")
         lines.append("\n")
         return lines
-    
+
     def mover_creator_header_file_for_class( self, cdec ) :
         creator_name = cdec.name + "Creator"
         lines = self.rosetta_copyright()

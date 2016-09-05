@@ -50,6 +50,7 @@ def erraser( option ):
     [res_conversion_list, fixed_res_final, cutpoint_res_final, CRYST1_line] = pdb2rosetta(regularized_input_pdb, 'start.pdb', using_protein = option.rna_prot_erraser)
     # AMW: OK, the recent method to allow some HETATMs is making CL leak in (for example)
     # So how about we use -ignore_unrecognized_res here? Seems concise.
+    # AMW: assess if this is necessary now!
     if not exists('minimize_0.pdb') :
         rna_rosetta_ready_set('start.pdb', 'minimize_0.pdb', option, option.rosetta_bin, option.rosetta_database, option.rna_prot_erraser)
     else :
@@ -89,7 +90,7 @@ def erraser( option ):
         minimize_option.input_pdb = "minimize_0.pdb"
         minimize_option.out_pdb = "minimize_1.pdb"
         minimize_option.log_out = "minimize_1.out"
-        full_struct_slice_and_minimize( minimize_option )
+        erraser_minimize( minimize_option ) #full_struct_slice_and_minimize( minimize_option )
     print 'Minimization 1 completed sucessfully.'
     ###################################################################
 
@@ -166,7 +167,7 @@ def erraser( option ):
             minimize_option.input_pdb = "rebuild_%s.pdb" % step
             minimize_option.out_pdb = "minimize_%s.pdb" % (step +1)
             minimize_option.log_out = "minimize_%s.out" % (step +1)
-            full_struct_slice_and_minimize( minimize_option )
+            erraser_minimize( minimize_option ) #full_struct_slice_and_minimize( minimize_option )
         print 'Minimization %s completed sucessfully.' % (step + 1)
     ###################################################################
 
@@ -418,31 +419,11 @@ def erraser_minimize( option ) :
     #######Folders and files paths###########################
     database_folder = rosetta_database_path(option.rosetta_database)
     rna_minimize_exe = rosetta_bin_path("erraser_minimizer", option.rosetta_bin)
-    temp_rs = option.input_pdb.replace('.pdb', '_temp_rs.pdb')
-    temp_rs_min = option.input_pdb.replace('.pdb', '_temp_rs_min.pdb')
 
-    if exists(temp_rs) :
-        print "Temporary file %s exists... Remove it..." % temp_rs
-        remove(temp_rs)
-    if exists(temp_rs_min) :
-        print "Temporary file %s exists... Remove it..." % temp_rs_min
-        remove(temp_rs_min)
-    ####slicing into smaller pdbs if given in the option####
-    fixed_res_final = []
-    res_sliced_all = []
-    if len(option.res_slice) == 0 :
-        copy(option.input_pdb, temp_rs)
-        fixed_res_final = option.fixed_res_rs
-    else:
-        [res_sliced_all, patched_res] = pdb_slice_with_patching( option.input_pdb, temp_rs, option.res_slice )
-        fixed_res_final += patched_res
-        fixed_res_final.extend( [ res_sliced_all.index(res)+1 for res in option.fixed_res_rs if res in res_sliced_all ] )
-    option.fixed_res_rs = fixed_res_final
-    
     ####submit rosetta cmdline##############
     command = rna_minimize_exe
     command += " -database %s " % database_folder
-    command += " -s %s " % temp_rs
+    command += " -s %s " % option.input_pdb
     command += " -score:weights %s " % option.scoring_file
 
     if option.fcc2012_new_torsional_potential :
@@ -458,6 +439,7 @@ def erraser_minimize( option ) :
     command += " -rna:farna:erraser:skip_minimize %s " % str(option.skip_minimize).lower()
     command += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
     command += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    command += " -out:file:write_pdb_link_records true "
 
     #Rescue the minimization default before r53221
     command += " -scale_d 100 "
@@ -470,7 +452,7 @@ def erraser_minimize( option ) :
         command += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
 
     if len(option.fixed_res_rs) != 0 :
-        command += ' -fixed_res '
+        command += ' -rna:farna:erraser:fixed_res '
         for i in option.fixed_res_rs :
             command += '%d ' % i
 
@@ -489,16 +471,9 @@ def erraser_minimize( option ) :
     print "#####################################################"
    
     # move jd2 output to temp_rs_min 
-    jd2_out = temp_rs.replace('.pdb', '_0001.pdb')
-    move( jd2_out, temp_rs_min )
+    jd2_out = option.input_pdb.replace('.pdb', '_0001.pdb')
+    move( jd2_out, option.out_pdb )
 
-    ####Merge final result back to pdb####
-    if len(res_sliced_all) != 0 :
-        sliced2orig_merge_back( option.input_pdb, temp_rs_min, option.out_pdb, res_sliced_all )
-        remove( temp_rs_min )
-    else :
-        move(temp_rs_min, option.out_pdb)
-    remove( temp_rs )
     #########################################
     total_time=time.time()-start_time
     print '\n', "DONE!...Total time taken= %f seconds" % total_time
@@ -510,178 +485,6 @@ def erraser_minimize( option ) :
     sys.stdout = stdout
     sys.stderr = stderr
 ##### erraser_minimize end   ##########################################
-
-
-
-##### full_struct_slice_and_minimize_async start ##########################
-def full_struct_slice_and_minimize_async( minimize_option ):
-    with minimize_option.lock:
-        copy("before_min.pdb", minimize_option.input_pdb)
-    print "Start minimizing chunk %s..." % minimize_option.chunk_idx
-    print "Chunk %s residues: %s" % (
-        minimize_option.chunk_idx, 
-        minimize_option.res_slice
-    )
-    erraser_minimize( minimize_option )
-        
-    print "Minimization for chunk %s ends sucessfully." % (
-        minimize_option.chunk_idx
-    )
-    return True
-
-
-##### full_struct_slice_and_minimize_postproc start ##########################
-def full_struct_slice_and_minimize_postproc( minimize_option ):
- 
-    # merge rebuilt residue with temp
-    merge_pdb = minimize_option.out_pdb.replace('.pdb', '_merge.pdb')
-    sliced2orig_merge_back(
-        'after_min.pdb',
-        minimize_option.out_pdb, 
-        merge_pdb,
-        minimize_option.res_slice
-    )
-    copy(merge_pdb, 'after_min.pdb')
-    return True
-
-##### full_struct_slice_and_minimize_multiproc start ##########################
-def full_struct_slice_and_minimize_multiproc( option ):
-
-    ### init multiprocessing
-    mp_pool = multiprocessing.Pool(processes=option.nproc)
-    mp_manager = multiprocessing.Manager()
-    mp_lock = mp_manager.Lock()
-
-    ### setup SWA_opt_async_list 
-    minimize_opt_async_list = []
-    res_slice_list = pdb_slice_into_chunks(option.input_pdb, option.n_chunk)
-    for chunk_idx, res_slice in enumerate(res_slice_list, start = 1):
-        minimize_opt_async = deepcopy(option)
-        minimize_opt_async.chunk_idx = chunk_idx
-        minimize_opt_async.input_pdb = "before_min_%d.pdb" % chunk_idx
-        minimize_opt_async.out_pdb = "after_min_%d.pdb" % chunk_idx
-        minimize_opt_async.res_slice = res_slice
-        minimize_opt_async.log_out = "full_minimize_temp_%s.out" % chunk_idx
-        minimize_opt_async.lock = mp_lock
-        minimize_opt_async_list.append(minimize_opt_async)
-
-    ### lauch pool of asynchronous procs, running SWA_rebuild_erraser_async
-    async_result = mp_pool.map_async(
-        full_struct_slice_and_minimize_async,
-        minimize_opt_async_list
-    )   
-    mp_pool.close()
-    mp_pool.join()
-
-    ### check each run and merge rebuilt residues back into temp.pdb
-    #move('after_min.pdb', option.out_pdb)
-    copy("before_min.pdb", "after_min.pdb")
-    results = map(
-        full_struct_slice_and_minimize_postproc, 
-        minimize_opt_async_list
-    )
-    copy("after_min.pdb", option.out_pdb)
-  
-    return 
-
-
-##### full_struct_slice_and_minimize start ############################
-def full_struct_slice_and_minimize( option ) :
-
-    def done_slice( res ):
-        if not exists( "full_minimize_temp_%d.out" % (res+1) ):
-            return False
-        with open( "full_minimize_temp_%d.out" % (res+1) ) as log:
-            for line in log:
-                if line[0:5] == "DONE!":
-                    return True
-        return False
-
-    stdout = sys.stdout
-    stderr = sys.stderr
-    if option.log_out != "" :
-        sys.stdout = open(option.log_out, 'w')
-    if option.log_err != "" :
-        sys.stderr = open(option.log_err, 'w')
-
-    print '###################################'
-    print 'Starting full_struct_slice_and_minimize...'
-    start_time=time.time()
-    option.finalize()
-
-    #####Set temp folder#######################
-    base_dir = os.getcwd()
-    temp_dir = '%s/%s' % (base_dir, basename(option.input_pdb).replace('.pdb', '_full_minimize_temp') )
-    # AMW: We want to reuse temp folder results... if we see DONE that slice is done.
-    if exists(temp_dir) :
-        print 'Temporary directory %s exists... use it!' % temp_dir #Remove it and create a new folder.' % temp_dir
-        #remove(temp_dir)
-        #os.mkdir(temp_dir)
-    else :
-        print 'Create temporary directory %s...' % temp_dir
-        os.mkdir(temp_dir)
-    ###########################################
-    os.chdir(temp_dir)
-    if not exists( 'before_min.pdb' ):
-        copy( option.input_pdb, 'before_min.pdb' )
-    total_res = get_total_res(option.input_pdb)
-    n_chunk = int(total_res / 100.0 + 0.5)
-    ############################################
-    minimize_option = deepcopy(option)
-    if n_chunk <= 1 :
-        print "Input pdb < 150 residues, no slicing is required."
-        print "Start minimizing the full pdb..."
-        minimize_option.input_pdb = "before_min.pdb"
-        minimize_option.out_pdb = "after_min.pdb"
-        minimize_option.log_out = 'full_minimize_temp.out'
-        erraser_minimize( minimize_option )
-        print exists('after_min.pdb')
-        move('after_min.pdb', option.out_pdb)
-    else :
-        if option.nproc > 0 and option.multiproc_minimize is True:
-            print "Input pdb >= 150 residues, slice into %s chunks and minimize all chunks in parallel (nproc=%d)." % (n_chunk, option.nproc)
-            minimize_option.n_chunk = n_chunk
-            full_struct_slice_and_minimize_multiproc(minimize_option)
-        else:
-            print "Input pdb >= 150 residues, slice into %s chunks and minimize each one sequentially." % n_chunk
-            res_slice_list = pdb_slice_into_chunks(option.input_pdb, n_chunk)
-            current_chunk = 0
-            for res_slice in res_slice_list :
-                if done_slice( current_chunk ): 
-                    print "Done with slice %s, move on!" % current_chunk
-                    current_chunk += 1
-                    continue
-
-                print "Start minimizing chunk %s..." % current_chunk
-                print "Chunk %s residues: %s" % (current_chunk, res_slice)
-                current_chunk += 1
-                minimize_option.input_pdb = "before_min.pdb"
-                minimize_option.out_pdb = "after_min.pdb"
-                minimize_option.res_slice = res_slice
-                minimize_option.log_out = "full_minimize_temp_%s.out" % current_chunk
-                erraser_minimize( minimize_option )
-                move('before_min_0001.pdb', 'after_min.pdb')
-                copy('after_min.pdb', 'before_min.pdb')
-                print "Minimization for chunk %s ends sucessfully." % current_chunk
-            move('after_min.pdb', option.out_pdb)
-
-    os.chdir(base_dir)
-
-    if not option.kept_temp_folder :
-        remove(temp_dir)
-
-    total_time=time.time()-start_time
-
-    print '\n', "DONE!...Total time taken= %f seconds" % total_time
-    print '###################################'
-    if sys.stdout != sys.__stdout__:
-        sys.stdout.close()
-    if sys.stderr != sys.__stderr__:
-        sys.stderr.close()
-    sys.stdout = stdout
-    sys.stderr = stderr
-##### full_struct_slice_and_minimize end   ############################
-
 
 ##### asynchronous SWA_rebuild_erraser (asynch process) #######################
 def SWA_rebuild_erraser_async( SWA_option ):
@@ -791,6 +594,222 @@ def rebuild_completed( file ):
                 return True
                         
     return False
+
+
+def seq_rebuild_new( option ) :
+    
+    rna_swa_test_exe = rosetta_bin_path("seq_rebuild", option.rosetta_bin )
+    
+    stdout = sys.stdout
+    stderr = sys.stderr
+    if option.log_out != "" :
+        sys.stdout = open(option.log_out, 'w')
+    if option.log_err != "" :
+        sys.stderr = open(option.log_err, 'w')
+
+    print '###################################'
+    print 'Starting seq_rebuild...'
+    start_time=time.time()
+    option.finalize()
+
+    #####Set temp folder#######################
+    base_dir = os.getcwd()
+    temp_dir = '%s/%s/' % (base_dir, basename(option.input_pdb).replace('.pdb', '_seq_rebuild_temp') )
+    
+    # AMW: I think a lot of people might want to resume mid temp directory
+    if exists(temp_dir) :
+        print 'Temporary directory %s exists... Use it!' % temp_dir
+    else :
+        print 'Create temporary directory %s...' % temp_dir
+        os.mkdir(temp_dir)
+
+    print '###################################'
+    #####################################################
+    os.chdir(temp_dir)
+
+    if not exists( 'temp.pdb' ):
+        copy(option.input_pdb, 'temp.pdb')
+
+    SWA_option = deepcopy(option)
+    
+    total_res = get_total_res(SWA_option.input_pdb)
+    sucessful_res = []
+    failed_res = []        
+
+    common_cmd= ""
+    common_cmd += "-rebuild_res "
+    for res in option.rebuild_res_list: 
+        if rebuild_completed("seq_rebuild_temp_%d.out" % res): continue
+        common_cmd += "%s " % res
+    
+    # other options from SWA_rebuild
+    #common_cmd += " -database %s " % database_folder
+    common_cmd += " -VERBOSE %s" % str(option.verbose).lower()
+    #common_cmd += " -fasta %s " % fasta_file
+
+    #PHENIX conference -- HACK -- try to specify exactly the jump points. Needed for RNA/protein poses.
+    #protein case
+    
+    # AMW: handle this in C++ layer, rebuild_res_final before/after is there for each one
+
+    if option.rna_prot_erraser :
+        common_cmd += " -jump_point_pairs %d-%d " % ( rebuild_res_final-1, rebuild_res_final+1 )
+    else : #RNA only original case
+    	common_cmd += " -jump_point_pairs NOT_ASSERT_IN_FIXED_RES 1-%d " % total_res
+
+
+    # AMW: Be alert to the possibility that this shouldn't be NEARLY this many residues
+    common_cmd += " -alignment_res 1-%d " % total_res
+
+    # I think this is correct because it's the virt.
+    common_cmd += " -rmsd_res %d " %(total_res)
+    
+    common_cmd += " -native " + SWA_option.input_pdb
+    common_cmd += " -score:weights %s " % option.scoring_file
+    
+    #Rescue 2012 defaults 
+    if option.o2prime_legacy_mode is True:
+        common_cmd += " -stepwise:rna:o2prime_legacy_mode %s " % str(option.o2prime_legacy_mode).lower()
+    if option.use_2prime_OH_potential is False:
+        common_cmd += " -use_2prime_OH_potential %s " % str(option.use_2prime_OH_potential).lower()
+
+    if option.map_file != "" :
+        common_cmd += " -edensity:mapfile %s " % option.map_file
+        common_cmd += " -edensity:mapreso %s " % option.map_reso
+        common_cmd += " -edensity:realign no "
+
+    # Handle cutpoint res in C++ too AMW TODO
+    if len(cutpoint_res_final) != 0 :
+        common_cmd += " -full_model:cutpoint_open "
+        for cutpoint in cutpoint_res_final :
+            common_cmd += '%d ' % cutpoint
+
+    if option.fcc2012_new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential FCC2012_RNA11_based_new "
+    elif option.new_torsional_potential :
+        common_cmd += " -score:rna_torsion_potential RNA11_based_new "
+
+    common_cmd += " -rna::corrected_geo %s " % str(option.corrected_geo).lower()
+    common_cmd += " -rna::rna_prot_erraser %s " % str(option.rna_prot_erraser).lower()
+    common_cmd += " -chemical:enlarge_H_lj %s " % str(option.enlarge_H_lj).lower()
+    common_cmd += ' -graphics false '
+    common_cmd += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
+    # save me from myself
+    common_cmd += ' -skip_connect_info true '
+    common_cmd += " -out:file:write_pdb_link_records true "
+
+    ################Sampler Options##################################
+    sampling_cmd = rna_swa_test_exe #+ ' -algorithm rna_sample '
+    sampling_cmd += " -s %s " % SWA_option.input_pdb #start_pdb
+    sampling_cmd += " -fasta fasta "
+    sampling_cmd += " -out:file:silent blah.out "
+    sampling_cmd += " -output_virtual true "
+    sampling_cmd += " -rm_virt_phosphate true "
+    sampling_cmd += " -sampler_extra_chi_rotamer true "
+    sampling_cmd += " -cluster::radius %s " % 0.3
+    sampling_cmd += " -centroid_screen true "
+    #sampling_cmd += " -VDW_atr_rep_screen false "
+    sampling_cmd += " -sampler_allow_syn_pyrimidine %s " % str(option.allow_syn_pyrimidine).lower()
+    sampling_cmd += " -minimize_and_score_native_pose %s " % str(option.include_native).lower()
+    sampling_cmd += " -native_edensity_score_cutoff %s " % option.native_edensity_cutoff
+    sampling_cmd += " -constrain_chi %s " % str(option.constrain_chi).lower()
+    
+    # This logic also exists in the C++, reconcile
+    native_screen = True
+    if option.native_screen_RMSD > 10.0 :
+        native_screen = False
+    
+    if native_screen:
+        sampling_cmd += " -rmsd_screen %s " % option.native_screen_RMSD
+    sampling_cmd += " -sampler_num_pose_kept %s " % option.num_pose_kept
+    sampling_cmd += " -PBP_clustering_at_chain_closure true "
+    sampling_cmd += " -allow_chain_boundary_jump_partner_right_at_fixed_BP true "
+    sampling_cmd += " -allow_virtual_side_chains false"
+    sampling_cmd += " -sampler_perform_phosphate_pack false"
+    sampling_cmd += " -add_virt_root true "
+
+    
+    # AMW: chain break logic MUST be in C++ layer!
+    # That will tell you whether to pass cutpoint_closed.
+
+    specific_cmd = ""
+    # Don't specify this! seq_rebuild will loop.
+    #specific_cmd += " -sample_res %d " % rebuild_res_final
+    ##################################################################
+    #if not is_chain_break :
+    #
+    #    if option.is_append :
+    #        specific_cmd += " -cutpoint_closed %d " % rebuild_res_final
+    #    else :
+    #        specific_cmd += " -cutpoint_closed %d " % (rebuild_res_final - 1)
+
+
+    ###################Clustering############
+    #Just output the lowest energy decoy instead of clustering if num_pose_kept_cluster = 1
+
+    cluster_args = ""
+        
+    #AMW: does clustering really require different cutpoint_closed logic?
+    #if not is_chain_break :
+    #    cluster_args += " -cutpoint_closed %d " % rebuild_res_final
+
+    # AMW TODO: as before, cutpoint_res_final assigned in C++
+    if len(cutpoint_res_final) != 0:
+        cluster_args += " -full_model:cutpoint_open "
+        for cutpoint in cutpoint_res_final:
+            cluster_args += '%d ' % cutpoint
+
+    # AMW TODO: handle -rmsd_res being C++!"res" because we can't pass two args
+    #cluster_args += " -rmsd_res %d " % rebuild_res_final
+    cluster_args += " -add_lead_zero_to_tag true "
+    cluster_args += " -PBP_clustering_at_chain_closure true "
+
+    # handle this in C++
+    #no_clustering  = " -suite_cluster_radius 0.0 "
+    #no_clustering += " -loop_cluster_radius 0.0 "
+
+
+    with_clustering  = ""
+    with_clustering += " -suite_cluster_radius %s " % option.cluster_RMSD
+    with_clustering += " -loop_cluster_radius 999.99 "
+    with_clustering += " -clusterer_num_pose_kept %d " % option.num_pose_kept_cluster
+
+    #command = (cluster_args + ' ' + common_cmd +  with_clustering +
+    #      " -recreate_silent_struct true -out:file:silent %s" % cluster_filename )
+        
+    command = sampling_cmd + ' ' + specific_cmd + ' ' + common_cmd + cluster_args + with_clustering
+    if option.verbose: print  '\n', command, '\n'
+    subprocess_call( command, 'seq_rebuild.out', 'seq_rebuild.err' )
+    os.chdir( base_dir )
+
+
+
+
+
+    # success reporting may go here
+
+    print '###################################'
+
+    copy('temp.pdb', option.out_pdb)
+    os.chdir(base_dir)
+
+    if not option.kept_temp_folder:
+        remove(temp_dir)
+
+    print "All rebuilding moves completed sucessfully!!!!"
+    print 'sucessful_res: %s' % sucessful_res
+    print 'failed_res: %s' % failed_res
+
+    total_time=time.time()-start_time
+    print '\n', "DONE!...Total time taken= %f seconds" % total_time
+    print '###################################'
+    if sys.stdout != sys.__stdout__:
+        sys.stdout.close()
+    if sys.stderr != sys.__stderr__:
+        sys.stderr.close()
+    sys.stdout = stdout
+    sys.stderr = stderr
+
 
 ##### seq_rebuild start ###############################################
 def seq_rebuild( option ) :
@@ -1079,6 +1098,7 @@ def SWA_rebuild_erraser( option ):
     common_cmd += " -in:guarantee_no_DNA %s " % str(option.guarantee_no_DNA).lower()
     # save me from myself
     common_cmd += ' -skip_connect_info true '
+    common_cmd += " -out:file:write_pdb_link_records true "
 
     ################Sampler Options##################################
     sampling_cmd = rna_swa_test_exe + ' -algorithm rna_sample '

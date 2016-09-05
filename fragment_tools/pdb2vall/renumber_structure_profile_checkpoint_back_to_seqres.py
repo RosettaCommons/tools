@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from sys import argv, exit, stderr
 from os.path import exists
 from numbering_back_to_pdbseqres import numbering_back_to_pdbseqres
@@ -23,12 +24,12 @@ def renumber_structure_profile_checkpoint_back_to_seqres( fasta_fn, structure_pr
                 newrsn = checkpoint_count
                 line_edit = line.strip().split()[1:]
                 #for the reason that some jump over numbering
-                if newrsn > len( fasta_dict.keys()): 
+                if newrsn > len( fasta_dict.keys()):
                     break
                 if fasta_dict[ newrsn ] == line.strip().split()[0]:
                     '''if options.debug:
                         print newrsn, line_edit
-                        print "rsd at %s in seqres_fasta -->" % newrsn, fasta_dict[ newrsn ], line.strip().split()[0], "<-- rsd at %s in checkpoint_file" % newrsn 
+                        print "rsd at %s in seqres_fasta -->" % newrsn, fasta_dict[ newrsn ], line.strip().split()[0], "<-- rsd at %s in checkpoint_file" % newrsn
                         print "fasta_from_seqres %s ;checkpoint %s\n" % ( fasta_dict[ newrsn ], line.strip().split()[0] )'''
                     checkpoint_dict[ newrsn ] = " ".join( "%4.3f" % float(x) for x in line_edit)
                     checkpoint_count += 1

@@ -1,6 +1,15 @@
 #python
 import argparse
 
+#function removes stray " and ' quotes
+def strip_quotes(string_to_strip):
+    string_to_strip = string_to_strip.rstrip('"')
+    string_to_strip = string_to_strip.lstrip('"')
+    string_to_strip = string_to_strip.rstrip("'")
+    string_to_strip = string_to_strip.lstrip("'")
+    return string_to_strip
+
+
 print "This script takes a file containing options like so:\n\
 type name description default\n\
 Boolean PumpAction use \"the PumpAction mover\" true\n\
@@ -46,16 +55,14 @@ for line in open(args.input, 'r'):
     type = splitline[0]
     name = splitline[1]
     default = splitline[-1]
+    default = strip_quotes(default)
 
     #process multiple word desc
     desc = ""
     for each in splitline[2:-1]:
         desc = desc + each + " "
     desc = desc.rstrip()
-    desc = desc.rstrip('"')
-    desc = desc.lstrip('"')
-    desc = desc.rstrip("'")
-    desc = desc.lstrip("'")
+    desc = strip_quotes(desc)
 
     #print results
     print "		Option('" + name + "', '" + type + "',"

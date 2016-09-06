@@ -1,0 +1,22 @@
+Integer ntrials "number of Monte Carlo trials to run" 1000
+Real mc_kt "value of kT for Monte Carlo" 0.6
+Real boltzmann_kt "value of kT for Boltzmann weighted moves" 0.6
+Real mm_bend_weight "weight of mm_bend bond angle energy term" 1.0
+Boolean trajectory "record a trajectory" false
+Boolean trajectory_gz "gzip the trajectory" false
+Integer trajectory_stride "write out a trajectory frame every N steps" 100
+String trajectory_file "name of trajectory file" "traj.pdb"
+String output_fasta "name of FASTA output file" "sequences.fasta"
+String output_stats "name of stats output file" "sequences.stats"
+Boolean ligand_mode "if true, model protein ligand interaction" false
+Boolean initial_repack "start simulation with repack and design step" true
+Boolean min_pack "use min_pack for initial repack and design step" false
+Boolean save_sequences "save all unique sequences" true
+Boolean save_structures "save structures for all unique sequences" false
+Real ligand_prob "probability of making a ligand move" 0.1
+Boolean fix_backbone "do not make any backbone moves" false
+Boolean uniform_backrub "select backrub rotation angle from uniform distribution" false
+Boolean bias_sampling "if true, bias rotamer selection based on energy" true
+Boolean bump_check "if true, use bump check in generating rotamers" true
+Real ligand_weight "weight for residue - ligand interactions" 1.0
+String output_prefix "prefix for output files" ""

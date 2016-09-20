@@ -45,16 +45,16 @@ def cc_stub() :
         "\t%(defaultschemafunc)s( xsd, mover_name(), attlist );\n",
         "}\n",
         "\n",
-        "std::string %(classname)sCreator::keyname() const {\n",
+        "std::string %(creatorname)s::keyname() const {\n",
         "\treturn %(classname)s::mover_name();\n",
         "}\n",
         "\n",
         "protocols::moves::MoverOP\n",
-        "%(classname)sCreator::create_mover() const {\n",
+        "%(creatorname)s::create_mover() const {\n",
         "\treturn protocols::moves::MoverOP( new %(classname)s );\n",
         "}\n",
         "\n",
-        "void %(classname)sCreator::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
+        "void %(creatorname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
         "{\n",
         "\t%(classname)s::provide_xml_schema( xsd );\n",
         "}\n" ]
@@ -178,10 +178,19 @@ def functions_for_file( file_lines, file_name ) :
 def comment_out_function( func, lines ) :
     for ii in xrange( func.line_begin, func.line_end+1 ) :
         lines[ ii ] = "// XRW TEMP " + lines[ ii ]
+    return lines
 
 def add_include_at_bottom_of_includes( lines, include_lines ) :
+
+    beaut = beautifier.Beautifier()
+    beaut.pound_if_setting = "take_neither"
+    for line in lines :
+        beaut.tokenize_line( line )
+    beaut.minimally_parse_file()
+
     last_include_line = -1
     for ii in xrange(len(lines)) :
+        if beaut.line_tokens[ii] and beaut.line_tokens[ii][ 0 ].invisible_by_macro : continue
         if len(lines[ ii ]) > 7 and lines[ ii ][0:8] == "#include" :
             last_include_line = ii
     assert( last_include_line != -1 )
@@ -227,6 +236,7 @@ if __name__ == '__main__':
         print "processing", widget_name, creator_name
 
         creator_hh_fname = defs.classes[ creator_name ].filename
+        creator_cc_fname = creator_hh_fname[ :-2 ] + "cc"
         widget_hh_fname = defs.classes[ widget_name ].filename
         widget_cc_fname = widget_hh_fname[ :-2 ] + "cc"
         #print "files: ", creator_hh_fname, widget_hh_fname, widget_cc_fname
@@ -234,10 +244,15 @@ if __name__ == '__main__':
         widget_hh_lines = open( widget_hh_fname ).readlines()
         widget_cc_lines = open( widget_cc_fname ).readlines()
         creator_hh_lines = open( creator_hh_fname ).readlines()
+        creator_cc_lines = None
+        if ( os.path.isfile( creator_cc_fname ) ) :
+            creator_cc_lines = open( creator_cc_fname ).readlines()
 
         widget_hh_funcs  = functions_for_file( widget_hh_lines, widget_hh_fname )
         widget_cc_funcs  = functions_for_file( widget_cc_lines, widget_cc_fname )
         creator_hh_funcs = functions_for_file( creator_hh_lines, creator_hh_fname )
+        creator_cc_funcs = None
+        if creator_cc_lines : creator_cc_funcs = functions_for_file( creator_cc_lines, creator_cc_fname )
 
         # tasks:
         # 1. comment out everything in creator.hh
@@ -267,8 +282,21 @@ if __name__ == '__main__':
             if func.scope == creator_name :
                 creator_hh_funcs_to_remove.append( func )
 
+        creator_cc_funcs_to_remove = []
+        if creator_cc_funcs :
+            for func in creator_cc_funcs :
+                if func.scope == creator_name :
+                    creator_cc_funcs_to_remove.append( func )
+
+
         to_be_replaced = creator_name.rpartition("::")[2] + "::mover_name"
         replaced_with  = widget_name.rpartition("::")[2] + "::mover_name"
+        for ii,line in enumerate(widget_cc_lines) :
+            if len(line) >= 2 and line[0:2] == "//" : continue
+            widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
+
+        to_be_replaced = "class_name"
+        replaced_with  = "mover_name"
         for ii,line in enumerate(widget_cc_lines) :
             if len(line) >= 2 and line[0:2] == "//" : continue
             widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
@@ -288,18 +316,26 @@ if __name__ == '__main__':
         for func in widget_hh_funcs :
             if func.scope == widget_name and func.privacy == "public" :
                 widget_hh_insertion_line = func.line_end
+
         assert( creator_hh_insertion_line != -1 )
         assert( widget_cc_insertion_line != -1 )
         assert( widget_hh_insertion_line != -1 )
 
         for func in widget_cc_funcs_to_remove :
-            comment_out_function( func, widget_cc_lines )
+            widget_cc_lines = comment_out_function( func, widget_cc_lines )
         for func in widget_hh_funcs_to_remove :
-            comment_out_function( func, widget_hh_lines )
+            widget_hh_lines = comment_out_function( func, widget_hh_lines )
         for func in creator_hh_funcs_to_remove :
-            comment_out_function( func, creator_hh_lines )
+            creator_hh_lines = comment_out_function( func, creator_hh_lines )
+        if creator_cc_funcs :
+            for func in creator_cc_funcs_to_remove :
+                creator_cc_lines = comment_out_function( func, creator_cc_lines )
 
-        cc_replace_dict = { "classname" : widget_name.rpartition( "::" )[ 2 ], "defaultschemafunc" : default_helper_func, "classkey" : class_key }
+        cc_replace_dict = {
+            "classname" : widget_name.rpartition( "::" )[ 2 ],
+            "defaultschemafunc" : default_helper_func,
+            "classkey" : class_key,
+            "creatorname" : creator_name.rpartition( "::" )[ 2 ] }
         cc_newlines = [ line % cc_replace_dict for line in cc_stub() ]
         widget_cc_lines = widget_cc_lines[:(widget_cc_insertion_line+1)] + [ "\n" ] + cc_newlines + [ "\n" ] + widget_cc_lines[(widget_cc_insertion_line+1):]
 
@@ -311,10 +347,12 @@ if __name__ == '__main__':
         cc_includes = ["// XSD XRW Includes\n", "#include <utility/tag/XMLSchemaGeneration.hh>\n"]
         for inc in extra_cc_includes :
             cc_includes.append( "#include <%s>\n" % inc )
+        if creator_cc_lines :
+            cc_includes.append( "#include <%s>\n" % ( creator_hh_fname.partition( "src/" )[2] ) )
         widget_cc_lines = add_include_at_bottom_of_includes( widget_cc_lines, cc_includes )
 
         open( creator_hh_fname, "w" ).writelines( creator_hh_lines )
         open( widget_hh_fname, "w" ).writelines( widget_hh_lines )
         open( widget_cc_fname, "w" ).writelines( widget_cc_lines )
-
+        if creator_cc_lines : open( creator_cc_fname, "w" ).writelines( creator_cc_lines )
         

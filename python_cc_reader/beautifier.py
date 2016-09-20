@@ -149,7 +149,7 @@ class Beautifier :
                                 "FEM_DO_SAFE", "FEM_DOSTEP",
                                 "FORVC", "FORTAGS" ] )
         self.pound_if_setting = "" # can be "take_if" or "take_else" to broadly specify to take one or the other for a file
-                                   # without providing a full-fledged preprocessor directive reader
+                                   # without providing a full-fledged preprocessor directive reader, or "take_neither" to skip everything
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
@@ -419,6 +419,8 @@ class Beautifier :
             elif self.pound_if_setting == "take_else" :
                 #print "Take else, arived at #if:", self.all_lines[-1].strip()
                 self.nested_ifdefs.append( (name, "if", False ) )
+            elif self.pound_if_setting == "take_neither" :
+                self.nested_ifdefs.append( (name, "if", False ) )
             else :
                 # conservative -- don't try to parse or logically evaluate this line
                 # just say "yeah, it's probably true" and if you hit an else later, then
@@ -446,6 +448,8 @@ class Beautifier :
                     elif self.pound_if_setting == "take_else" :
                         #print "Take else, arived at #else:", self.all_lines[-1].strip()
                         self.nested_ifdefs.append( (name, "else", True ) )
+                    elif self.pound_if_setting == "take_neither" :
+                        self.nested_ifdefs.append( (name, "else", False ) )
                     else :
                         #print "conservative -- take both"
                         self.nested_ifdefs.append( (name, "else", True) )

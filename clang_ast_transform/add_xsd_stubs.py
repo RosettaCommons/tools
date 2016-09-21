@@ -123,24 +123,26 @@ def functions_for_file( file_lines, file_name ) :
 
     for tok in beaut.all_tokens :
         if not tok.is_visible : continue
-        #print "tok:", tok.spelling, tok.type, tok.context(), ns_stack
+        #if tok.line_number > 160 and tok.line_number < 280 : print "tok:", tok.spelling, tok.type, tok.line_number, tok.context(), ns_stack
         if tok.type == "namespace" :
             for child in tok.children :
                 if child.type != "namespace-scope" :
-                    #print "namespace child:", child.spelling
                     ns_stack.append( child.spelling )
+                    #print "appending namespace to ns_stack:", ns_stack, child.line_number
             continue
         if tok.type == "class" :
             privacy = "private"
             for child in tok.children :
                 if child.type != "class-scope" and child.spelling != ";" and child.type != "class-inheritance-list" :
-                    #print "class child: ", child.spelling
                     ns_stack.append( child.spelling )
+                    #print "appending class to ns_stack:", ns_stack, child.line_number
+                    break; # only append one name to the ns_stack
             continue
         if tok.type == "namespace-scope" :
             continue
         if tok.context() == "class" and tok.spelling == ";" :
             ns_stack.pop()
+            #print "popping ns_stack:", ns_stack, tok.line_number
             continue
         if tok.context() == "namespace-scope" or tok.context() == "class-scope" :
             if tok.spelling == "typdef" : continue
@@ -173,6 +175,7 @@ def functions_for_file( file_lines, file_name ) :
 
             if tok.context() == "namespace-scope" and tok.parents_last_child() :
                 ns_stack.pop()
+                #print "popping ns_stack:", ns_stack, tok.line_number
     return funcs
 
 def comment_out_function( func, lines ) :
@@ -205,7 +208,7 @@ if __name__ == '__main__':
         p.multiword( "extra_cc_includes" ).cast( lambda x : [ y for y in x.split() ] )
 
     defs = make_serialize_templates.load_definitions( definitions )
-    print "definitions loaded2"
+    print "definitions loaded"
 
     creator_classes = []
     class_keys = []

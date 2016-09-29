@@ -7,7 +7,7 @@ sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../" )
 #print( sys.path )
 import python_cc_reader.code_reader
 
-def class_hh_stub() :
+def mover_hh_stub() :
     return [
         "\tstd::string\n",
         "\tget_name() const override;\n",
@@ -20,13 +20,33 @@ def class_hh_stub() :
         "\tvoid\n",
         "\tprovide_xml_schema( utility::tag::XMLSchemaDefinition & xsd );\n" ]
 
-def creator_hh_stub() :
+
+def filter_hh_stub() :
+    return [
+        "\tstd::string\n",
+        "\tname() const override;\n",
+        "\n",
+        "\tstatic\n",
+        "\tstd::string\n",
+        "\tclass_name();\n",
+        "\n",
+        "\tstatic\n",
+        "\tvoid\n",
+        "\tprovide_xml_schema( utility::tag::XMLSchemaDefinition & xsd );\n" ]
+
+def mover_creator_hh_stub() :
     return [
         "\tprotocols::moves::MoverOP create_mover() const override;\n",
         "\tstd::string keyname() const override;\n",
         "\tvoid provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const override;\n" ]
 
-def cc_stub() :
+def filter_creator_hh_stub() :
+    return [
+        "\tprotocols::filters::FilterOP create_filter() const override;\n",
+        "\tstd::string keyname() const override;\n",
+        "\tvoid provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const override;\n" ]
+
+def mover_cc_stub() :
     return [
         "std::string %(classname)s::get_name() const {\n",
         "\treturn mover_name();\n",
@@ -42,7 +62,7 @@ def cc_stub() :
         "\tusing namespace utility::tag;\n",
         "\tAttributeList attlist; // TO DO: add attributes to this list\n",
         "\t// TO DO: perhaps this is not the right function to call? -- also, delete this comment\n",
-        "\t%(defaultschemafunc)s( xsd, mover_name(), attlist );\n",
+        "\t%(defaultschemafunc)s( xsd, mover_name(), "", attlist );\n",
         "}\n",
         "\n",
         "std::string %(creatorname)s::keyname() const {\n",
@@ -52,6 +72,39 @@ def cc_stub() :
         "protocols::moves::MoverOP\n",
         "%(creatorname)s::create_mover() const {\n",
         "\treturn protocols::moves::MoverOP( new %(classname)s );\n",
+        "}\n",
+        "\n",
+        "void %(creatorname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
+        "{\n",
+        "\t%(classname)s::provide_xml_schema( xsd );\n",
+        "}\n" ]
+
+def filter_cc_stub() :
+    return [
+        "std::string %(classname)s::name() const {\n",
+        "\treturn class_name();\n",
+        "}\n",
+        "\n",
+        "std::string %(classname)s::class_name() {\n",
+        "\treturn \"%(classkey)s\";\n",
+        "}\n",
+        "\n",
+        "void %(classname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd )\n",
+        "{\n",
+        "// TO DO!\n",
+        "\tusing namespace utility::tag;\n",
+        "\tAttributeList attlist; // TO DO: add attributes to this list\n",
+        "\t// TO DO: perhaps this is not the right function to call? -- also, delete this comment\n",
+        "\t%(defaultschemafunc)s( xsd, class_name(), "", attlist );\n",
+        "}\n",
+        "\n",
+        "std::string %(creatorname)s::keyname() const {\n",
+        "\treturn %(classname)s::class_name();\n",
+        "}\n",
+        "\n",
+        "protocols::filters::FilterOP\n",
+        "%(creatorname)s::create_filter() const {\n",
+        "\treturn protocols::filters::FilterOP( new %(classname)s );\n",
         "}\n",
         "\n",
         "void %(creatorname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
@@ -125,6 +178,12 @@ def functions_for_file( file_lines, file_name ) :
         if not tok.is_visible : continue
         #if tok.line_number > 160 and tok.line_number < 280 : print "tok:", tok.spelling, tok.type, tok.line_number, tok.context(), ns_stack
         if tok.type == "namespace" :
+            is_actual_namespace = False
+            for child in tok.children :
+                if child.type == "namespace-scope" :
+                    is_actual_namespace = True
+                    #print child.spelling, child.type
+            if not is_actual_namespace : continue
             for child in tok.children :
                 if child.type != "namespace-scope" :
                     ns_stack.append( child.spelling )
@@ -200,12 +259,40 @@ def add_include_at_bottom_of_includes( lines, include_lines ) :
     lines = lines[:(last_include_line+1)] + include_lines + lines[ (last_include_line+1): ]
     return lines    
 
+def mover_funcnames_to_remove( widget_name ) :
+    widget_func_names_to_remove = []
+    widget_func_names_to_remove.append( widget_name + "::get_name" )
+    widget_func_names_to_remove.append( widget_name + "::class_name" )
+    widget_func_names_to_remove.append( widget_name + "::mover_name" )
+    return widget_func_names_to_remove
+
+def filter_funcnames_to_remove( widget_name ) :
+    widget_func_names_to_remove = []
+    widget_func_names_to_remove.append( widget_name + "::name" )
+    widget_func_names_to_remove.append( widget_name + "::class_name" )
+    #widget_func_names_to_remove.append( widget_name + "::filter_name" )
+    return widget_func_names_to_remove
+
+
 if __name__ == '__main__':
     with blargs.Parser(locals()) as p :
         p.str( "definitions" ).shorthand( "d" ).required().described_as( "The file with the concatenated output of the class names and fields" ).required()
         p.str( "triple_file" ).described_as( "The file with each line being the namespace-scoped list of all the widget creator classes for the Widgets to which XML Schema routines must be added, the string key, and the name-space scoped name of the Mover itself" ).required()
         p.str( "default_helper_func" ).required()
         p.multiword( "extra_cc_includes" ).cast( lambda x : [ y for y in x.split() ] )
+        p.require_one(
+            p.flag("mover"),
+            p.flag("filter")
+        )
+
+    if mover :
+        class_hh_stub = mover_hh_stub
+        creator_hh_stub = mover_creator_hh_stub
+        cc_stub = mover_cc_stub
+    if filter :
+        class_hh_stub = filter_hh_stub
+        creator_hh_stub = filter_creator_hh_stub
+        cc_stub = filter_cc_stub
 
     defs = make_serialize_templates.load_definitions( definitions )
     print "definitions loaded"
@@ -263,9 +350,10 @@ if __name__ == '__main__':
         # 3. add #inclusion to appropriate files
 
         widget_func_names_to_remove = []
-        widget_func_names_to_remove.append( widget_name + "::get_name" )
-        widget_func_names_to_remove.append( widget_name + "::class_name" )
-        widget_func_names_to_remove.append( widget_name + "::mover_name" )
+        if mover :
+            widget_func_names_to_remove = mover_funcnames_to_remove( widget_name )
+        if filter :
+            widget_func_names_to_remove = filter_funcnames_to_remove( widget_name )
 
 
         widget_cc_funcs_to_remove = []
@@ -277,6 +365,7 @@ if __name__ == '__main__':
 
         widget_hh_funcs_to_remove = []
         for func in widget_hh_funcs :
+            #print func.name, widget_func_names_to_remove
             if func.name in widget_func_names_to_remove :
                 widget_hh_funcs_to_remove.append( func )
 
@@ -291,18 +380,31 @@ if __name__ == '__main__':
                 if func.scope == creator_name :
                     creator_cc_funcs_to_remove.append( func )
 
+        if mover :
+            to_be_replaced = creator_name.rpartition("::")[2] + "::mover_name"
+            replaced_with  = widget_name.rpartition("::")[2] + "::mover_name"
+            for ii,line in enumerate(widget_cc_lines) :
+                if len(line) >= 2 and line[0:2] == "//" : continue
+                widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
 
-        to_be_replaced = creator_name.rpartition("::")[2] + "::mover_name"
-        replaced_with  = widget_name.rpartition("::")[2] + "::mover_name"
-        for ii,line in enumerate(widget_cc_lines) :
-            if len(line) >= 2 and line[0:2] == "//" : continue
-            widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
+            to_be_replaced = "class_name"
+            replaced_with  = "mover_name"
+            for ii,line in enumerate(widget_cc_lines) :
+                if len(line) >= 2 and line[0:2] == "//" : continue
+                widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
 
-        to_be_replaced = "class_name"
-        replaced_with  = "mover_name"
-        for ii,line in enumerate(widget_cc_lines) :
-            if len(line) >= 2 and line[0:2] == "//" : continue
-            widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
+        if filter :
+            to_be_replaced = creator_name.rpartition("::")[2] + "::filter_name"
+            replaced_with  = widget_name.rpartition("::")[2] + "::class_name"
+            for ii,line in enumerate(widget_cc_lines) :
+                if len(line) >= 2 and line[0:2] == "//" : continue
+                widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
+
+            #to_be_replaced = "class_name"
+            #replaced_with  = "mover_name"
+            #for ii,line in enumerate(widget_cc_lines) :
+            #    if len(line) >= 2 and line[0:2] == "//" : continue
+            #    widget_cc_lines[ ii ] = line.replace( to_be_replaced, replaced_with )
 
         creator_hh_insertion_line = -1
         widget_cc_insertion_line = -1

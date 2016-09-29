@@ -7,3 +7,4 @@
 *.swp
 rna_tools/bin/*py
 glycam.codes
+*.bak

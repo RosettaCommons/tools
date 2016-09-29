@@ -153,6 +153,7 @@ class Beautifier :
         self.binary_math_symbols = set(["*","-","+","/"])
         self.in_comment_block = False
         self.in_string = False
+        self.in_char_quote = False
         self.in_macro_definition = False
 
     def macro_definitions_say_line_visible( self ) :
@@ -183,6 +184,7 @@ class Beautifier :
         start = -1
         i = 0
         while ( i < len(self.line)) :
+            #print len(self.all_lines), i, self.line[i], start
             if self.line[i] in self.whitespace :
                 if start >= 0 :
                     self.take_token_for_range( start, i )
@@ -327,6 +329,21 @@ class Beautifier :
                         self.in_string = False
                 else :
                     escape_tok = None
+            elif self.in_char_quote :
+                if debug : print "in char quote", tok.spelling, tok.line_number
+                tok.is_inside_string = True
+                if tok.spelling == "\\" :
+                    if escape_tok and tok.start == escape_tok.one_past_end :
+                        escape_tok = None
+                    else :
+                        escape_tok = tok
+                elif tok.spelling == "'":
+                    if escape_tok and tok.start == escape_tok.one_past_end :
+                        escape_tok = None
+                    else :
+                        self.in_char_quote = False
+                else :
+                    escape_tok = None
             elif len(tok.spelling) == 2 and ( tok.spelling == "//" or ( tok.spelling == "/*" and self.macro_definitions_say_line_visible() ) ) :
                 # comment begin
                 tok.is_visible = False
@@ -347,22 +364,26 @@ class Beautifier :
                     self.in_comment_block = True
             elif tok.spelling == '"' :
                 # double check we're not inside the single character " held inside two single quotes
-                if i > 0 and self.this_line_tokens[i-1].spelling == "'" :
-                    i+=1
-                    continue
+                # should now be unreachable if i > 0 and self.this_line_tokens[i-1].spelling == "'" :
+                # should now be unreachable     i+=1
+                # should now be unreachable     continue
                 if debug : print "in string", tok.spelling, tok.line_number
                 tok.is_inside_string = True
                 self.in_string = True
-            elif tok.spelling == "'" and not self.in_string :
-                if single_char :
-                    single_char = False
-                else :
-                    single_char = True
-                if debug : print "in string", tok.spelling, tok.line_number
+            elif tok.spelling == "'" :
+                if debug : print "in char quote", tok.spelling, tok.line_number
                 tok.is_inside_string = True
-            elif single_char :
-                if debug : print "in string", tok.spelling, tok.line_number
-                tok.is_inside_string = True
+                self.in_char_quote = True
+            # elif tok.spelling == "'" and not self.in_string :
+            #     if single_char :
+            #         single_char = False
+            #     else :
+            #         single_char = True
+            #     if debug : print "in string", tok.spelling, tok.line_number
+            #     tok.is_inside_string = True
+            # elif single_char :
+            #     if debug : print "in string", tok.spelling, tok.line_number
+            #     tok.is_inside_string = True
             i += 1
 
         if process_as_macro_line : self.process_macro_line()
@@ -989,6 +1010,10 @@ class Beautifier :
                     if i < len(self.all_tokens) : self.print_entry("exitting process_namespace",i,stack)
                     else : print "exiting process_namespace; all tokens processed"
                 return i
+            if self.all_tokens[i].spelling == ";" :
+                self.set_parent(i,stack)
+                stack.pop()
+                return i+1
             self.set_parent(i,stack)
             i+=1
         # we should not have arrived here

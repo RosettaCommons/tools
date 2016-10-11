@@ -135,7 +135,7 @@ class Beautifier :
         self.reserve_words = set( [ "using", "namespace", "class", "for", "while", "do", \
             "repeat", "public", "private", "protected", "template", "typedef", "typename", \
             "operator", "inline", "explicit", "static", "mutable", "virtual", "friend", \
-            "unsigned", "struct", "union", "try", "catch" ] )
+            "unsigned", "struct", "union", "try", "catch", "override", "default", "delete" ] )
         self.macros_at_zero_indentation = set( [ "#if", "#ifdef", "#ifndef", "#else", "#elif", "#endif" ] )
         self.whitespace = set([" ", "\t", "\n"])
         self.dividers = set([";",":",",","(",")","{","}","=","[","]","<",">","&","|","\\",

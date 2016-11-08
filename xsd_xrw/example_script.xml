@@ -14,9 +14,9 @@
  </SCOREFXNS>
  <FRAGSETS>
   <FRAGMENTS>
-   <vall1 name=thing1 param=something/>
-   <vall2 name=whatever param=soso/>
-   <pdb name=steal/>
+   <vall1 type=vall param=something/>
+   <vall2 type=vall param=soso/>
+   <steal type=pdb fname=somepdb.pdb />
   </FRAGMENTS>
   <fragset1 composed=thing1,whatever,steal/>
   <fragset2 compose=steal/>
@@ -29,9 +29,9 @@
   <ib1 param=1.0 testing=2.0/>
  </INTERFACE_BUILDERS>
  <MOVEMAP_BUILDERS>
-  <mmb1 something=somethignelse/>
-  <mmb2 something=somethignelse/>
-  <mmb3 something=somethignelse/>
+  <mmb1 something=somethingelse/>
+  <mmb2 something=somethingelse/>
+  <mmb3 something=somethingelse/>
  </MOVEMAP_BUILDERS>
  <LIGAND_AREAS>
   <la1 thing=1/>

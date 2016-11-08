@@ -65,7 +65,7 @@ class Tag :
         self.new_tokens_since_parsing = False
 
     def remove_token( self, token ) :
-        print "remove token", token.contents, ",".join( [ x.contents for x in self.tokens ] )
+        #print "remove token", token.contents, ",".join( [ x.contents for x in self.tokens ] )
         self.tokens.remove( token )
         self.new_tokens_since_parsing = True
 
@@ -73,10 +73,10 @@ class Tag :
         # you cannot replace either the first or the last token
         # which you shouldn't need to, because these are the "<" and
         # ">" symbols.
-        print "add token before: ", "".join( [ x.contents for x in self.tokens ] ), pos, token.contents
+        #print "add token before: ", "".join( [ x.contents for x in self.tokens ] ), pos, token.contents
         assert( pos != 0 and pos != len(self.tokens) )
         self.tokens.insert( pos, token )
-        print "add token after: ", "".join( [ x.contents for x in self.tokens ] )
+        #print "add token after: ", "".join( [ x.contents for x in self.tokens ] )
         self.new_tokens_since_parsing = True
 
     def replace_tokens_in_list( self, token_list ) :
@@ -486,7 +486,7 @@ if __name__ == "__main__" :
     #            print "         ", line
     
     tags, element_root = tokens_into_tags( toks )
-    print_element( 0, element_root )
+    #print_element( 0, element_root )
     
     surround_attributes_w_quotes( tags )
     modifications = [ rename_score_functions, rename_fragments_from_frag_reader,
@@ -501,8 +501,9 @@ if __name__ == "__main__" :
     
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
 
-    print "rewritten version:"
-    print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
+    #print "rewritten version:"
+    #print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
+    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ))
 
     #for i,tag in enumerate( tags ) :
     #    print i, "".join( [ x.contents for x in tag.tokens ] )

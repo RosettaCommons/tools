@@ -43,6 +43,8 @@ class XMLToken :
         self.line_end = -1
         self.position_end = -1
         self.contents = ""
+        self.whitespace = False
+        self.deleted = False
     @staticmethod
     def tok_for_single_pos( line_number, position_on_line ) :
         tok = XMLToken()
@@ -218,6 +220,7 @@ def tokenize_lines( lines ) :
                             curr_token = XMLToken()
                         curr_token.line_start = i
                         curr_token.position_start = j
+                        curr_token.whitespace = True
                         in_whitespace = True
                 elif symb == "=" :
                     in_whitespace = False
@@ -267,6 +270,9 @@ def tokenize_lines( lines ) :
     return tokens
 
 def tokens_into_tags( tokens ) :
+    # interpets tokens as XML tags.
+    # marks whitespace tokens between attribute names, the equals sign, and their values
+    # as deleted.
     tags = []
     in_tag = False
     in_attribute = False
@@ -284,11 +290,23 @@ def tokens_into_tags( tokens ) :
                     curr_tag.name = tok.contents
             elif in_attribute :
                 #assert( len( tok.contents ) == 1 )
-                curr_tag.attributes[-1].append( tok )
-                in_attribute = False
+                if tok.whitespace :
+                    tok.deleted = True
+                else :
+                    curr_tag.attributes[-1].append( tok )
+                    in_attribute = False
             elif tok.contents == "=" :
                 in_attribute = True
-                curr_tag.attributes.append( [ tokens[i-1] ] )
+                # now we need to go backwards to find the first non-whitespace token before
+                # the equals sign; mark all of the whitespace tokens in between as deleted.
+                j = i-1
+                while ( j >= 0 ) :
+                    if not tokens[j].whitespace :
+                        curr_tag.attributes.append( [ tokens[j] ] )
+                        break
+                    else :
+                        tokens[j].deleted = True
+                    j -= 1
             elif tok.contents[-1] == ">" :
                 if tok.contents == "/>" :
                     curr_tag.closed = True
@@ -329,41 +347,120 @@ def surround_attributes_w_quotes( tags ) :
                     rhs.contents[0] == rhs.contents[-1] )
             rhs.contents = '"' + rhs.contents + '"'
 
-def rename_score_functions( root ) :
+def replace_element_name_w_name_attribute( element, new_name ) :
+    element.name = new_name
+    for i,tag in enumerate( element.tags ) :
+        old_name = tag.name
+        tag.name = new_name
+        # find the name token and remove it
+        done = False
+        for j,tok in enumerate( tag.tokens ) :
+            if j == 0 : continue
+            for char in tok.contents :
+                if char != " " and char != "\t" and char != "\n" :
+                    tag.remove_token( tok )
+                    done = True
+                    break
+            if done : break
+        #and now add a token for the name
+        name_token = XMLToken()
+        name_token.line_start = tag.tokens[0].line_start
+        name_token.line_end = tag.tokens[0].line_end
+        name_token.position_start = tag.tokens[0].position_start + 1
+        name_token.position_end = tag.tokens[0].position_start + 1 # garbage
+        name_token.contents = new_name if i == 0 else ("/" + new_name )
+        tag.add_token( name_token,  1 )
+        if i == 0 :
+            attr_tokens = [ XMLToken(), XMLToken(), XMLToken(), XMLToken() ]
+            spellings = [ " ", "name", "=", '"' + old_name + '"' ]
+            for j,tok in enumerate( attr_tokens ) :
+                tok.line_start = tok.line_end = name_token.line_start
+                tok.position_start = tok.position_end = name_token.position_start # garbage
+                tok.contents = spellings[j]
+                tag.add_token( tok, 2+j )
+
+def recursively_rename_subelements( root, element_name, new_subelement_name ) :
     for element in root.sub_elements :
-        if element.name == "SCOREFXNS" :
+        if element.name == element_name :
             for sfxn_element in element.sub_elements :
-                for i,sfxn_tag in enumerate( sfxn_element.tags ) :
-                    old_name = sfxn_tag.name
-                    sfxn_tag.name = "ScoreFunction"
-                    # find the name token and remove it
-                    done = False
-                    for j,tok in enumerate( sfxn_tag.tokens ) :
-                        if j == 0 : continue
-                        for char in tok.contents :
-                            if char != " " and char != "\t" and char != "\n" :
-                                sfxn_tag.remove_token( tok )
-                                done = True
-                                break
-                        if done : break
-                    #and now add a token for the name
-                    name_token = XMLToken()
-                    name_token.line_start = sfxn_tag.tokens[0].line_start
-                    name_token.line_end = sfxn_tag.tokens[0].line_end
-                    name_token.position_start = sfxn_tag.tokens[0].position_start + 1
-                    name_token.position_end = sfxn_tag.tokens[0].position_start + 1 # garbage
-                    name_token.contents = "ScoreFunction" if i == 0 else "/ScoreFunction"
-                    sfxn_tag.add_token( name_token,  1 )
-                    sfxn_tag.name = "ScoreFunction"
-                    if i == 0 :
-                        attr_tokens = [ XMLToken(), XMLToken(), XMLToken(), XMLToken() ]
-                        spellings = [ " ", "name", "=", '"' + old_name + '"' ]
-                        for j,tok in enumerate( attr_tokens ) :
-                            tok.line_start = tok.line_end = name_token.line_start
-                            tok.position_start = tok.position_end = name_token.position_start # garbage
-                            tok.contents = spellings[j]
-                            sfxn_tag.add_token( tok, 2+j )
+                replace_element_name_w_name_attribute( sfxn_element, new_subelement_name )
         rename_score_functions( element )
+
+def rename_score_functions( root ) :
+    recursively_rename_subelements( root, "SCOREFXNS", "ScoreFunction" )
+
+def rename_fragments_from_frag_reader( root ) :
+    # for elements beneath a "FRAGSETS" element:
+    # 1. elements beneath FRAGMENTS element gets renamed as
+    # "FragReader" and the old name becomes the "name" attribute.
+    # 2. everything else beneath the "FRAGSETS" element
+    # gets renamed "FragSet" and the old name becomes the name attribute
+    # 3. The FRAGMENTS element must appear as the first child of the
+    # FragSetLoader. It's also required??
+    for element in root.sub_elements :
+        if element.name == "FRAGSETS" :
+            for fragset_element in element.sub_elements :
+                if fragset_element.name == "FRAGMENTS" :
+                    for fragreader_element in fragset_element.sub_elements  :
+                        replace_element_name_w_name_attribute( fragreader_element, "FragReader" )
+                else :
+                    replace_element_name_w_name_attribute( fragset_element, "FragSet" )
+            # TO DO: make sure that FRAGMENTS element becomes first child of the
+            # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
+            # tokens don't change their order!
+        rename_fragments_from_frag_reader( element )
+                
+
+def rename_monte_carlo_elements_from_monte_carlo_loader( root ) :
+    # TO DO!!!
+    # for elements beneath a "MONTECARLOS" element:
+    # the original element name has to become a "name" attribute and
+    # the element has to be given the name "MonteCarlo" instead.
+    recursively_rename_subelements( root, "MONTECARLOS", "MonteCarlo" )
+
+def rename_interface_builders_from_interface_builder_loader( root ) :
+    # TO DO!!
+    # for elements beneath an INTERFACE_BUILDERS element:
+    # the original element name has to become a "name" attribute and
+    # the element has to be given the name "InterfaceBuilder" instead.
+    recursively_rename_subelements( root, "INTERFACE_BUILDERS", "InterfaceBuilder" )
+
+def rename_movemaps_from_movemap_loader( root ) :
+    # TO DO!!
+    # for elements beneath a MOVEMAP_BUILDERS element:
+    # the original element name has to become a "name" attribute and
+    # the element has to be given the name "MoveMapBuilder" instead.
+    recursively_rename_subelements( root, "MOVEMAP_BUILDERS", "MoveMapBuilder" )
+
+def rename_ligand_areas_from_ligand_area_loader( root ) :
+    # TO DO!!
+    # for elements beneath a LIGAND_AREAS element:
+    # the original element name has to become a "name" attribute and
+    # the element has to be given the name "LigandArea" instead.
+    recursively_rename_subelements( root, "LIGAND_AREAS", "LigandArea" )
+
+
+def rename_bridge_chains_mover_to_bridge_chains( root ) :
+    # TO DO!
+    # "BridgeChainsMover" has been eliminated, now only "BridgeChains"
+    # is acceptible.
+    for element in root.sub_elements :
+        if element.name == "BridgeChainsMover" :
+            element.name = "BridgeChains"
+            for i, tag in enumerate( element.tags ) :
+                tag.name = "BridgeChains"
+                done = False
+                for j,tok in enumerate( tag.tokens ) :
+                    if j == 0 : continue
+                    for char in tok.contents :
+                        if char != " " and char != "\t" and char != "\n" :
+                            assert( tok.contents == "BridgeChainsMover" or tok.contents == "/BridgeChainsMover" )
+                            tok.contents = "BridgeChains" if i == 0 else "/BridgeChains"
+                            done = True
+                            break
+                    if done : break
+        rename_bridge_chains_mover_to_bridge_chains( element )
+
 
 def print_element( depth, element ) :
     print "-" * depth, element.name
@@ -392,12 +489,20 @@ if __name__ == "__main__" :
     print_element( 0, element_root )
     
     surround_attributes_w_quotes( tags )
-    rename_score_functions( element_root )
+    modifications = [ rename_score_functions, rename_fragments_from_frag_reader,
+                      rename_monte_carlo_elements_from_monte_carlo_loader,
+                      rename_interface_builders_from_interface_builder_loader,
+                      rename_movemaps_from_movemap_loader,
+                      rename_ligand_areas_from_ligand_area_loader,
+                      rename_bridge_chains_mover_to_bridge_chains ]
+
+    for modfunc in modifications :
+        modfunc( element_root )
     
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
 
     print "rewritten version:"
-    print "".join( [ x.contents for x in new_toks ] )
+    print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
 
     #for i,tag in enumerate( tags ) :
     #    print i, "".join( [ x.contents for x in tag.tokens ] )

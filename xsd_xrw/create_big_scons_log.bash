@@ -9,5 +9,5 @@ if [ "$#" -ne 1 ]; then
 fi
 
 rm -rf build/*
-./scons.py -j$1  > big_scons_log
+./scons.py -j$1  | grep -A 100000000 "scons: Building targets ..." > big_scons_log
 echo "big_scons_log should have your log file"

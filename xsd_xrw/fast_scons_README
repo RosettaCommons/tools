@@ -9,7 +9,12 @@ Step 2: in source/ (the directory in which one normally runs scons), run create_
 
 Step 3: do some code work
 
-Step 4: fast compile with scons_one.bash filename
+Step 4: fast auto compile with scons_one_auto.bash
+- this greps out the modified files from git diff, so you need to have NOT COMMITTED YET
+- I guess we could write a version that handles added files too if you commit before compiling?
+- (see Other step 4 for more instructions)
+
+Other step 4: fast compile with scons_one.bash filename
 - example: scons_one.bash FloppyTail
 - this pulls out all of FloppyTail*cc to compile, AND the library linker commands, and tries to run those (stopping at the first error)
 - example: FloppyTailMover.cc

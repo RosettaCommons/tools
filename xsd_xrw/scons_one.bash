@@ -9,5 +9,5 @@ if [ "$#" -ne 1 ]; then
 fi
 
 echo "going to try this command:"
-grep big_scons_log $1
-grep big_scons_log $1 | source /dev/stdin
+grep $1 big_scons_log
+grep $1 big_scons_log | source /dev/stdin

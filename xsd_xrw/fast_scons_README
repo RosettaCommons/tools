@@ -1,0 +1,17 @@
+Step 1: fresh clone of Rosetta, on the correct branch.
+- if it's not a fresh clone, Step 2 removes the contents of build/ anyway, so I guess it will make it fresh
+- it had better compile correctly or none of the rest of this works
+
+Step 2: in source/ (the directory in which one normally runs scons), run create_big_scons_log.bash #procs
+- #procs is the argument you would use to -j for scons
+- IT WILL REMOVE build/ !! so pay attention
+- this creates a file big_scons_log
+
+Step 3: do some code work
+
+Step 4: fast compile with scons_one.bash filename
+- example: scons_one.bash FloppyTail
+- this pulls out all of FloppyTail*cc to compile, AND the library linker commands, and tries to run those (stopping at the first error)
+- example: FloppyTailMover.cc
+- this pulls ONLY the compilation line for just FloppyTailMover.cc, which is unique
+- (so, you can be a little sloppy in your filenames and it will work, or you can be precise and it will work better)

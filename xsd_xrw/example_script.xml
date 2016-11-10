@@ -1,11 +1,14 @@
-<ROSETTASCRIPTS>
+<dock_design>
  This purpose of this "script" is to show off the aspects of RosettaScripts that are
  changing with the XSD update. Run the rewrite_rosetta_script.py script on this file
  with the following comamnd line:
- > python rewrite_rosetta_script.py --input example_script.xml --output rewritten_script.xml
+ > python rewrite_rosetta_script.py --input example_script.xml --output example_script_rewritten.xml
  and then diff the two files:
- > diff example_script.xml rewritten_script.xml
+ > diff example_script.xml example_script_rewritten.xml
  and you will see what kinds of things changed.
+
+ The first thing that changes is that the root tag needs to be ROSETTASCRIPTS and not dock_design
+
  <SCOREFXNS>
   <talaris2014_cst weights="talaris2014.wts">
    <Set weight=atom_pair value=1.0/>
@@ -43,8 +46,17 @@
   we handle comments ok
   <!-- and here is a block comment, to make sure we get those right too -->
   <BridgeChainsMover name=bcm/>
+  <GeneralizedKIC name=close1 selector=lowest_energy_selector selector_scorefunction=tala closure_attempts=2000 stop_when_n_solutions_found=1 >
+    This next tag has whitespace between the slash and the greater-than sign. What garbage!
+    Taken from genkic_rama_filter
+   <AddFilter type=alpha_aa_rama_check residue=1 rama_cutoff_energy=0.3 / >
+  </GeneralizedKIC>
+
  </MOVERS>
  <PROTOCOLS>
   <Add mover=prm/>
+  Below is a Tag where there is a space between the opening less than sign and the element name
+  Taken from the ideal_proteins demo
+  < Add mover_name=sse1   />
  </PROTOCOLS>
-</ROSETTASCRIPTS>
+</dock_design>

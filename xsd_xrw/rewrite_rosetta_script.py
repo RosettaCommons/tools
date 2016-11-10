@@ -1,41 +1,5 @@
 import blargs
 
-#def add_attribute_quotes( lines ) :
-#    in_tag = False
-#    in_string = False
-#    for line in lines :
-#        tag_begin = 0
-#        cols = line.split()
-#        #newline = line
-#        newcols = []
-#        for col in cols :
-#            if in_tag and not in_string :
-#                parts = col.partition( "=" )
-#                if parts[1] == "=" :
-#                    newpart2 = [ parts[2] ]
-#                    anychange = False
-#                    if parts[2] and parts[2][0] != '"' and parts[2][0] != "'" :
-#                        newparts2 = [ '"' ] #"".join( [ '"' + parts[2] + '"' ] )
-#                        if parts[2][-1] == ">" :
-#                            newparts2.append( parts2[:-1] )
-#                            newparts2.append( '">' )
-#                        else :
-#                            newparts2.append( parts2 )
-#                            newparts2.append( '"' )
-#                        newparts = [ parts[0], parts[1], "".join( newparts2 ) ]
-#                        newline.replace( col, "".join( newparts ) )
-#            elif nat in_tag :
-#                for ii in xrange(len(col)) :
-#                    if col[ii] == "<" and ( ii+3 >= len(col) or col[ii:ii+3] != "<!--" ) :
-#                        in_tag = True
-#            else :
-#                for ii in xrange(len(col)) :
-#                    if col[ii] == '"' :
-#                        if in_string : in_string = False
-#                        else : in_string = True
-#
-
-        
 class XMLToken :
     def __init__( self ) :
         self.line_start = -1
@@ -170,7 +134,8 @@ def tokenize_lines( lines ) :
                 if symb == ">" :
                     in_whitespace = False
                     in_tag = False
-                    if j > 0 and line[ j-1:j+1 ] == "/>" :
+                    end_of_element = j > 0 and line[ j-1:j+1 ] == "/>"
+                    if end_of_element :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 1 else i-1
                             curr_token.position_end = j-2 if j != 1 else len(lines[i-1]) - 1
@@ -190,7 +155,23 @@ def tokenize_lines( lines ) :
                             curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
                             tokens.append( curr_token )
                             curr_token = XMLToken()
-                        tokens.append( XMLToken.tok_for_single_pos( i, j ))
+
+                        # look at the previous two tokens; if the last token was whitespace
+                        # and the one before was "/", then make this token a "/>"
+                        if len(tokens) > 2 and tokens[-1].whitespace and contents_for_token( lines, tokens[-2] ) == "/" :
+                            #print "FOUND IT"
+                            curr_token.line_start = i; curr_token.position_start = tokens[-2].position_start
+                            curr_token.line_end = i; curr_token.position_end = j
+
+                            tokens.pop(); # destroy the last two tokens
+                            tokens.pop();
+
+                            tokens.append( curr_token )
+                            curr_token = XMLToken()
+                        else :
+                            #if len(tokens) > 2 :
+                            #    print "closing; last two? '" + contents_for_token( lines, tokens[-2] ) + "' and '" + contents_for_token( lines, tokens[-1] ) + "'"
+                            tokens.append( XMLToken.tok_for_single_pos( i, j ))
                 elif in_double_quote or in_single_quote:
                     if ( symb == '"' and in_double_quote ) or ( symb == "'" and in_single_quote ) :
                         curr_token.line_end = i
@@ -253,21 +234,38 @@ def tokenize_lines( lines ) :
         tokens.append( curr_token )
 
     for i,tok in enumerate( tokens ) :
-        tok_lines = []
-        for lineno in xrange(tok.line_start, tok.line_end + 1 ) :
-            if lineno == tok.line_start :
-                if lineno == tok.line_end :
-                    tok_lines.append( lines[ lineno ][ tok.position_start:(tok.position_end+1) ] )
-                else :
-                    tok_lines.append( lines[ lineno ][ tok.position_start: ] )
-            elif lineno == tok.line_end :
-                tok_lines.append( lines[ lineno ][ :( tok.position_end + 1 ) ] )
-            else :
-                tok_lines.append( lines[ lineno ] )
-        tok.contents = "".join( tok_lines )
+        tok.contents = contents_for_token( lines, tok )
         #print i, tok.contents
 
+    for tok in tokens :
+        # look for tokens that are "/" + whitespace + ">"
+        # and change them to just be "/>"
+        # because you cannot have whitespace at the close of a tag
+        if len(tok.contents) > 2 and tok.contents[0] == "/" and tok.contents[-1] == ">" :
+            all_whitespace = True
+            for i in xrange(1,len(tok.contents)-1) :
+                if tok.contents[i] == " " or tok.contents[i] == "\n" or tok.contents[i] == "\t" : continue
+                all_whitespace = False
+                break
+            if all_whitespace :
+                tok.contents = "/>"
+
     return tokens
+
+def contents_for_token( lines, tok ) :
+    tok_lines = []
+    for lineno in xrange(tok.line_start, tok.line_end + 1 ) :
+        if lineno == tok.line_start :
+            if lineno == tok.line_end :
+                tok_lines.append( lines[ lineno ][ tok.position_start:(tok.position_end+1) ] )
+            else :
+                tok_lines.append( lines[ lineno ][ tok.position_start: ] )
+        elif lineno == tok.line_end :
+            tok_lines.append( lines[ lineno ][ :( tok.position_end + 1 ) ] )
+        else :
+            tok_lines.append( lines[ lineno ] )
+    return "".join( tok_lines )
+
 
 def tokens_into_tags( tokens ) :
     # interpets tokens as XML tags.
@@ -286,6 +284,9 @@ def tokens_into_tags( tokens ) :
                 if tok.contents[0] == "/" :
                     curr_tag.name = tok.contents[1:]
                     curr_tag.closed = True
+                elif tok.whitespace :
+                    # you cannot have whitespace between the opening "<" and the tag name
+                    tok.deleted = True
                 else :
                     curr_tag.name = tok.contents
             elif in_attribute :
@@ -308,6 +309,7 @@ def tokens_into_tags( tokens ) :
                         tokens[j].deleted = True
                     j -= 1
             elif tok.contents[-1] == ">" :
+
                 if tok.contents == "/>" :
                     curr_tag.closed = True
                 #print i, tok.contents, ", ".join( [ x.contents for x in curr_tag.tokens ] )
@@ -320,17 +322,21 @@ def tokens_into_tags( tokens ) :
 
     elements = []
     root = None
-    for tag in tags :
+    for i,tag in enumerate( tags ) :
+        #print i, tag.name
         if len( elements ) > 0 :
             if elements[-1].name != tag.name :
                 elements.append( Element() )
                 elements[-1].name = tag.name
                 elements[-2].sub_elements.append( elements[-1] )
             elements[-1].tags.append( tag )
+            #print "appending tag", tag.name, "to", elements[-1].name, len(elements[-1].tags)
         else :
             elements.append( Element() )
             elements[-1].tags.append( tag )
+            elements[-1].name = tag.name
             root = elements[-1]
+            #print "appending root tag"
         if tag.closed :
             elements.pop()
     return tags, root
@@ -426,14 +432,12 @@ def rename_interface_builders_from_interface_builder_loader( root ) :
     recursively_rename_subelements( root, "INTERFACE_BUILDERS", "InterfaceBuilder" )
 
 def rename_movemaps_from_movemap_loader( root ) :
-    # TO DO!!
     # for elements beneath a MOVEMAP_BUILDERS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "MoveMapBuilder" instead.
     recursively_rename_subelements( root, "MOVEMAP_BUILDERS", "MoveMapBuilder" )
 
 def rename_ligand_areas_from_ligand_area_loader( root ) :
-    # TO DO!!
     # for elements beneath a LIGAND_AREAS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "LigandArea" instead.
@@ -441,7 +445,6 @@ def rename_ligand_areas_from_ligand_area_loader( root ) :
 
 
 def rename_bridge_chains_mover_to_bridge_chains( root ) :
-    # TO DO!
     # "BridgeChainsMover" has been eliminated, now only "BridgeChains"
     # is acceptible.
     for element in root.sub_elements :
@@ -460,6 +463,18 @@ def rename_bridge_chains_mover_to_bridge_chains( root ) :
                             break
                     if done : break
         rename_bridge_chains_mover_to_bridge_chains( element )
+
+def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
+    # dock_design is no longer an acceptible starting tag for a rosetta script
+    for i,tag in enumerate( root.tags ) :
+        #print "tag:", i, tag.name
+        for j,tok in enumerate( tag.tokens ) :
+            #print "tok:", j, tok.contents
+            if j == 0 : continue
+            if tok.deleted: continue
+            assert( tok.contents == tag.name or tok.contents == "/" + tag.name )
+            tok.contents = "ROSETTASCRIPTS" if i==0 else "/ROSETTASCRIPTS"
+            break
 
 
 def print_element( depth, element ) :
@@ -494,7 +509,8 @@ if __name__ == "__main__" :
                       rename_interface_builders_from_interface_builder_loader,
                       rename_movemaps_from_movemap_loader,
                       rename_ligand_areas_from_ligand_area_loader,
-                      rename_bridge_chains_mover_to_bridge_chains ]
+                      rename_bridge_chains_mover_to_bridge_chains,
+                      rename_dockdesign_to_ROSETTASCRIPTS ]
 
     for modfunc in modifications :
         modfunc( element_root )
@@ -503,7 +519,7 @@ if __name__ == "__main__" :
 
     #print "rewritten version:"
     #print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
-    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ))
+    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n" )
 
     #for i,tag in enumerate( tags ) :
     #    print i, "".join( [ x.contents for x in tag.tokens ] )

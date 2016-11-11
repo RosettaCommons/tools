@@ -24,7 +24,8 @@ from pymol import cmd
 schemes = {'chothia': {'l1': [24, 34], 'l2': [50, 56], 'l3': [89, 97],
                        'h1': [26, 35], 'h2': [50, 56], 'h3': [95, 102]
                        },
-           # 'aho': {},
+           'aho': {'l1': [24, 42], 'l2': [57, 72], 'l3': [107, 138],
+                   'h1': [24, 42], 'h2': [57, 69], 'h3': [107, 138]},
            }
 
 Selection = namedtuple('Selection', ['name', 'selection'])
@@ -106,8 +107,44 @@ def _get_selections(num_scheme):
 
     return sel
 
-def color_cdr(numbering='chothia'):
-    '''I should totally put a useful docstring here'''
+def colorcdrs(numbering='chothia', paratope=False, epitope=False, group=False):
+    '''
+DESCRIPTION
+
+    "colorcdrs" creates named atom selections for framework regions, CDR
+    loops based on a canonical numbering scheme and colors them.
+
+USAGE
+
+    colorcdrs [numbering_scheme [, paratope [, epitope [, group ]]]]
+
+ARGUMENTS
+
+    numbering_scheme = the name of the numbering scheme used by the antibody.
+                       valid options are 'chothia' and 'aho'.
+
+    paratope = boolean?
+
+    epitope = boolean?
+
+    group = boolean?
+
+NOTES
+
+    If no parameters are passed to the "colorcdrs" command, the chothia
+    numbering scheme will be used.
+
+EXAMPLES
+
+    colorcdrs
+    colorcdrs aho
+
+PYMOL API
+
+    cmd.colorcdrs(string numbering='chothia', bool paratope=False,
+                  bool epitope=False, bool group=False)
+
+    '''
 
     selections = _get_selections(numbering)
 
@@ -137,3 +174,4 @@ def color_cdr(numbering='chothia'):
     cmd.zoom(selection='ab')
     # cmd.select(name='doc', selection='resname DOC')
 
+cmd.extend("colorcdrs", colorcdrs)

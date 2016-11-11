@@ -174,4 +174,4 @@ PYMOL API
     cmd.zoom(selection='ab')
     # cmd.select(name='doc', selection='resname DOC')
 
-cmd.extend("colorcdrs", colorcdrs)
+cmd.extend('colorcdrs', colorcdrs)

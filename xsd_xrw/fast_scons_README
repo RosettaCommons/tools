@@ -6,6 +6,7 @@ Step 2: in source/ (the directory in which one normally runs scons), run create_
 - #procs is the argument you would use to -j for scons
 - IT WILL REMOVE build/ !! so pay attention
 - this creates a file big_scons_log
+- If you are running multiple Rosetta installations, assuming they all have the same base XRW branch, you should be able to just COPY big_scons_log from directory to directory instead of generating it from scratch each time.
 
 Step 3: do some code work
 

@@ -8,9 +8,9 @@
 # (c) For more information, see http://www.rosettacommons.org. Questions about this can be
 # (c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
-# @file   colorcdr.py
+# @file   colorcdrs.py
 # @brief  This script can be run within the PyMOL python interpreter to provide
-#         the 'color_cdr' function. The intended use is to run this script
+#         the 'colorcdrs' function. The intended use is to run this script
 #         from a user's ~/.pymolrc
 # @author Brian D. Weitzner (brian.weitzner@gmail.com)
 

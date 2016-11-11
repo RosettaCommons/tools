@@ -107,6 +107,7 @@ def _get_selections(num_scheme):
 
     return sel
 
+
 def colorcdrs(numbering='chothia', paratope=False, epitope=False, group=False):
     '''
 DESCRIPTION

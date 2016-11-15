@@ -1,4 +1,3 @@
-<dock_design>
  This purpose of this "script" is to show off the aspects of RosettaScripts that are
  changing with the XSD update. Run the rewrite_rosetta_script.py script on this file
  with the following comamnd line:
@@ -8,8 +7,11 @@
  and you will see what kinds of things changed.
 
  The first thing that changes is that the root tag needs to be ROSETTASCRIPTS and not dock_design
+ and it has to be the very first thing in the file.
+<dock_design>
 
  <SCOREFXNS>
+  the element name for the score function below will become "SCOREFXN"
   <talaris2014_cst weights="talaris2014.wts">
    <Set weight=atom_pair value=1.0/>
   </talaris2014_cst>
@@ -17,10 +19,12 @@
  </SCOREFXNS>
  <FRAGSETS>
   <FRAGMENTS>
+   the element name for the fragreader below will become "FragReader"
    <vall1 type=vall param=something/>
    <vall2 type=vall param=soso/>
    <steal type=pdb fname=somepdb.pdb />
   </FRAGMENTS>
+  the element name for the fragment set below will become "FragSet"
   <fragset1 composed=thing1,whatever,steal/>
   <fragset2 compose=steal/>
  </FRAGSETS>

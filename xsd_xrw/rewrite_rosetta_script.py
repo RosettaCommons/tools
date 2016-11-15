@@ -61,6 +61,7 @@ class Element :
         self.name = ""
         self.tags = [] # perhaps only a single tag
     def reconstitute_token_list( self, old_tok_list, new_tok_list, tok_pos ) :
+        #print self.name, tok_pos, old_tok_list[ tok_pos ].contents
         assert( len( self.tags ) == 1 or len( self.tags ) == 2 )
 
         # append the old tokens to the new list until we reach the first token
@@ -102,9 +103,9 @@ def tokenize_lines( lines ) :
     curr_token = XMLToken()
     for i,line in enumerate(lines) :
         for j,symb in enumerate( line ) :
-            #print i, j, symb, "in tag", in_tag, "in block comment", in_block_comment, "in quote", in_quote, "in whitespace", in_whitespace
+            #print i, j, symb, "in tag", in_tag, "in block comment", in_block_comment, "in double quote", in_double_quote, "in whitespace", in_whitespace
             if in_block_comment :
-                if symb == ">" and j > 2 and line[j-2:j+1] == "-->" :
+                if symb == ">" and j >= 2 and line[j-2:j+1] == "-->" :
                     assert( not curr_token.uninitialized() )
                     curr_token.line_end = i
                     curr_token.position_end = j
@@ -475,7 +476,13 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
             assert( tok.contents == tag.name or tok.contents == "/" + tag.name )
             tok.contents = "ROSETTASCRIPTS" if i==0 else "/ROSETTASCRIPTS"
             break
+        tag.name = "ROSETTASCRIPTS"
+    root.name = "ROSETTASCRIPTS"
 
+def give_all_generic_montecarlo_filters_an_element_name( root ) :
+    # TO DO!!!
+    # The children of the Filters element that is itself a child of the GenericMonteCarlo
+    # element need to be given the name "Filter"
 
 def print_element( depth, element ) :
     print "-" * depth, element.name
@@ -517,9 +524,19 @@ if __name__ == "__main__" :
     
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
 
+    mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
+
+    lines2 = mostly_rewritten_version.split( "\n" )
+    toks2 = tokenize_lines( lines2 )
+    tags, element_root = tokens_into_tags( toks )
+    root_first_tok = element_root.tags[0].tokens[0]
+    if ( root_first_tok.line_start != 0 or root_first_tok.position_start != 0 ) :
+        lines2 = [ "<ROSETTASCRIPTS>" ] + lines2[:root_first_tok.line_start ] + lines2[root_first_tok.line_start + 1: ]
+
+
     #print "rewritten version:"
     #print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
-    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n" )
+    open( output, "w" ).writelines( [ x + "\n" for x in lines2 ] )
 
     #for i,tag in enumerate( tags ) :
     #    print i, "".join( [ x.contents for x in tag.tokens ] )

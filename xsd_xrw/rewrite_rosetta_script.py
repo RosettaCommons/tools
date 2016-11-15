@@ -476,6 +476,9 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
             tok.contents = "ROSETTASCRIPTS" if i==0 else "/ROSETTASCRIPTS"
             break
 
+def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
+	# RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
+	pass
 
 def print_element( depth, element ) :
     print "-" * depth, element.name

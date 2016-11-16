@@ -532,7 +532,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                     if attr[0].contents == "value" :
                         seed_val = attr[1].contents
                 assert( seed_val is not None and key_val is not None )
-                mover_attributes.append( ( key_val, seed_val ) )
+                mover_attributes.append( ( key_val[1:-1], seed_val ) )
         new_mover_tag_line = [ "<", mover_name ]
         new_mover_tag_line.append( "".join( [ " " + x[0] + "=" + x[1] for x in mover_attributes ] ) )
         new_mover_tag_line.append( "/>" )

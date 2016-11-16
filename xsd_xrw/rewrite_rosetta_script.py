@@ -483,11 +483,35 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
 
+def give_all_stubsets_children_an_element_name( root ):
+    # TO DO!!!
+    # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
+    # need to be given the name "StubSet"
+    pass
+
+def give_all_stubsets_children_an_element_name( root ):
+    # TO DO!!!
+    # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
+    # need to be given the name "StubSet"
+    pass
 
 def give_all_generic_montecarlo_filters_an_element_name( root ) :
     # TO DO!!!
     # The children of the Filters element that is itself a child of the GenericMonteCarlo
     # element need to be given the name "Filter"
+    pass
+
+def give_all_map_hotspot_Jumps_an_element_name( root ) :
+    # TO DO!!!
+    # The children of the Jumps element that is itself a child of the MapHotspot mover
+    # need to be given the name "Jump"
+    pass
+
+def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
+    # TO DO!!!
+    # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover 
+    # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
+    # need to be given the name "HotspotFile"
     pass
 
 def rename_RotamerBoltzmannFilter_threshold_subelements( root ):

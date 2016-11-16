@@ -56,6 +56,16 @@
    <AddFilter type=alpha_aa_rama_check residue=1 rama_cutoff_energy=0.3 / >
   </GeneralizedKIC>
 
+  <ModulatedMover name=scaled_rb type=UnbiasedRigidBodyPerturbNoCenter tempering=h_exchange>
+    Someone thought it would be really cute if they created a subtag that held the attributes of arbitrary movers.
+    Instead, the common subtag should have a bunch of subtags of its own with two attributes "attr" and "value"
+    and these will be composed to create the Tag that will be parsed by the ThermodynamicMover that the
+    ModulatedMover will contain. Look, it's not a good system.
+    <common ref="P.pdb" restrict=1 restrict_trans=20 restrict_rot=90 />
+    <Interp key="rot_mag" curve="exponential"  start=15 end=1/>
+    <Interp key="trans_mag" curve="exponential"  start=1.5 end=0.1/>
+  </ModulatedMover>
+
  </MOVERS>
  <PROTOCOLS>
   <Add mover=prm/>

@@ -10,4 +10,6 @@ fi
 
 echo "going to try this command:"
 grep $1 big_scons_log
-grep $1 big_scons_log | source /dev/stdin
+grep $1 big_scons_log  > temp_scons_stupid_mac_workaround
+source temp_scons_stupid_mac_workaround
+rm temp_scons_stupid_mac_workaround

@@ -1,4 +1,5 @@
 import blargs
+#import copy
 
 class XMLToken :
     def __init__( self ) :
@@ -9,6 +10,7 @@ class XMLToken :
         self.contents = ""
         self.whitespace = False
         self.deleted = False
+        self.index = 0
     @staticmethod
     def tok_for_single_pos( line_number, position_on_line ) :
         tok = XMLToken()
@@ -25,6 +27,7 @@ class Tag :
         self.name = ""
         self.attributes = []
         self.tokens = []
+        self.all_tokens = [] # including "comments"
         self.closed = False
         self.new_tokens_since_parsing = False
 
@@ -236,6 +239,7 @@ def tokenize_lines( lines ) :
 
     for i,tok in enumerate( tokens ) :
         tok.contents = contents_for_token( lines, tok )
+        tok.index = i # save this for the purpose of reconstructing the
         #print i, tok.contents
 
     for tok in tokens :
@@ -479,10 +483,78 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
 
+
 def give_all_generic_montecarlo_filters_an_element_name( root ) :
     # TO DO!!!
     # The children of the Filters element that is itself a child of the GenericMonteCarlo
     # element need to be given the name "Filter"
+    pass
+
+def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
+    # RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
+    pass
+
+def renumber_tokens( tokens ) :
+    for i,tok in enumerate( tokens ) :
+        tok.index = i
+
+def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( root, tokens ) :
+    # The common subtag of the ModulatedMover accepts any attribute as it currently stands
+    # and that is a little redonk.
+    # Take the "type" attribute out of the ModulatedMover, and that will become the new
+    if root.name == "ModulatedMover" :
+        common_element = None
+        mover_attributes = [] # the set of tokens describing this
+        mover_name = None
+        for attr in root.tags[0].attributes :
+            if attr[0].contents == "type" :
+                mover_name = attr[1].contents[1:-1]
+                for i in xrange( attr[0].index, attr[1].index+1 ) :
+                    tokens[i].deleted = True
+                if tokens[attr[1].index+1].whitespace :
+                    tokens[attr[1].index+1].deleted = True
+                break
+        assert( mover_name is not None )
+        for elem in root.sub_elements:
+            if elem.name == "common" :
+                common_element = elem
+                for attr in elem.tags[0].attributes :
+                    mover_attributes.append( ( attr[0].contents, attr[1].contents ) )
+        for elem in root.sub_elements :
+            if elem.name == "Interp" :
+                seed_val = None
+                key_val = None
+                for attr in elem.tags[0].attributes :
+                    if attr[0].contents == "start" :
+                        seed_val = attr[1].contents
+                    if attr[0].contents == "key" :
+                        key_val = attr[1].contents
+                    if attr[0].contents == "value" :
+                        seed_val = attr[1].contents
+                assert( seed_val is not None and key_val is not None )
+                mover_attributes.append( ( key_val, seed_val ) )
+        new_mover_tag_line = [ "<", mover_name ]
+        new_mover_tag_line.append( "".join( [ " " + x[0] + "=" + x[1] for x in mover_attributes ] ) )
+        new_mover_tag_line.append( "/>" )
+        new_mover_tag_line = [ "".join( new_mover_tag_line ) ]
+        new_tokens = tokenize_lines( new_mover_tag_line )
+        tags, new_mover_element = tokens_into_tags( new_tokens )
+
+        first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
+        tokens = tokens[:first_root_subelement_token] + new_tokens + tokens[first_root_subelement_token:]
+        #for tok in tokens : print tok.contents,
+        
+        root.sub_elements.insert( 0, new_mover_element )
+        # now, remove the old common element
+        if common_element :
+            for tag in common_element.tags :
+                for tok in tag.tokens :
+                    tok.deleted = True
+        renumber_tokens( tokens )
+
+    for elem in root.sub_elements :
+        tokens = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( elem, tokens )
+    return tokens
 
 def print_element( depth, element ) :
     print "-" * depth, element.name
@@ -521,7 +593,12 @@ if __name__ == "__main__" :
 
     for modfunc in modifications :
         modfunc( element_root )
-    
+
+    # big modification to the behavior of the ModulatedMover XML structure
+    toks = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( element_root, toks )
+
+    #for tok in toks : print tok.contents,
+
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"

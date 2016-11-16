@@ -483,6 +483,14 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
 
+def rename_report_to_db_children( root ):
+    # TO DO!!!
+    # All children of ReportToDB and TrajectoryReportToDB currently
+    # have name "Feature". They now will have the name of the feature reporter
+    # being parsed from them (which was formerly taken from the "name" attribute ).
+
+
+
 def give_all_stubsets_children_an_element_name( root ):
     # TO DO!!!
     # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
@@ -494,6 +502,18 @@ def give_all_stubsets_children_an_element_name( root ):
     # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
     # need to be given the name "StubSet"
     pass
+
+def give_all_calculator_filter_children_an_element_name( root ):
+    # TO DO!!!
+    #Children of CalculatorFilter will either be called Filter 
+    #(if they have the attribute filter or filter_name ) or 
+    #Value (if they have the attribute value but not one of the other two). 
+    #Subtags without any of these attributes are invalid.
+
+
+def give_all_combined_filter_children_an_element_name( root ):
+    # TO DO!!
+    #All children of CombinedFilter will now be named Filter
 
 def give_all_generic_montecarlo_filters_an_element_name( root ) :
     # TO DO!!!

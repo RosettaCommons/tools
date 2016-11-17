@@ -34,6 +34,19 @@ def filter_hh_stub() :
         "\tvoid\n",
         "\tprovide_xml_schema( utility::tag::XMLSchemaDefinition & xsd );\n" ]
 
+def features_reporter_hh_stub() :
+    return [
+        "\tstd::string\n",
+        "\ttype_name() const override;\n",
+        "\n",
+        "\tstatic\n",
+        "\tstd::string\n",
+        "\tclass_name();\n",
+        "\n",
+        "\tstatic\n",
+        "\tvoid\n",
+        "\tprovide_xml_schema( utility::tag::XMLSchemaDefinition & xsd );\n" ]
+
 def mover_creator_hh_stub() :
     return [
         "\tprotocols::moves::MoverOP create_mover() const override;\n",
@@ -44,6 +57,12 @@ def filter_creator_hh_stub() :
     return [
         "\tprotocols::filters::FilterOP create_filter() const override;\n",
         "\tstd::string keyname() const override;\n",
+        "\tvoid provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const override;\n" ]
+
+def features_reporter_creator_hh_stub() :
+    return [
+        "\tprotocols::features::FeaturesReporterOP create_features_reporter() const override;\n",
+        "\tstd::string type_name() const override;\n",
         "\tvoid provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const override;\n" ]
 
 def mover_cc_stub() :
@@ -105,6 +124,39 @@ def filter_cc_stub() :
         "protocols::filters::FilterOP\n",
         "%(creatorname)s::create_filter() const {\n",
         "\treturn protocols::filters::FilterOP( new %(classname)s );\n",
+        "}\n",
+        "\n",
+        "void %(creatorname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
+        "{\n",
+        "\t%(classname)s::provide_xml_schema( xsd );\n",
+        "}\n" ]
+
+def features_reporter_cc_stub() :
+    return [
+        "std::string %(classname)s::type_name() const {\n",
+        "\treturn class_name();\n",
+        "}\n",
+        "\n",
+        "std::string %(classname)s::class_name() {\n",
+        "\treturn \"%(classkey)s\";\n",
+        "}\n",
+        "\n",
+        "void %(classname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd )\n",
+        "{\n",
+        "// TO DO!\n",
+        "\tusing namespace utility::tag;\n",
+        "\tAttributeList attlist; // TO DO: add attributes to this list\n",
+        "\t// TO DO: perhaps this is not the right function to call? -- also, delete this comment\n",
+        "\t%(defaultschemafunc)s( xsd, class_name(), \"\", attlist );\n",
+        "}\n",
+        "\n",
+        "std::string %(creatorname)s::type_name() const {\n",
+        "\treturn %(classname)s::class_name();\n",
+        "}\n",
+        "\n",
+        "protocols::features::FeaturesReporterOP\n",
+        "%(creatorname)s::create_features_reporter() const {\n",
+        "\treturn protocols::features::FeaturesReporterOP( new %(classname)s );\n",
         "}\n",
         "\n",
         "void %(creatorname)s::provide_xml_schema( utility::tag::XMLSchemaDefinition & xsd ) const\n",
@@ -273,6 +325,12 @@ def filter_funcnames_to_remove( widget_name ) :
     #widget_func_names_to_remove.append( widget_name + "::filter_name" )
     return widget_func_names_to_remove
 
+def features_reporter_funcnames_to_remove( widget_name ) :
+    widget_func_names_to_remove = []
+    widget_func_names_to_remove.append( widget_name + "::type_name" )
+    widget_func_names_to_remove.append( widget_name + "::class_name" )
+    return widget_func_names_to_remove
+
 
 if __name__ == '__main__':
     with blargs.Parser(locals()) as p :
@@ -282,7 +340,8 @@ if __name__ == '__main__':
         p.multiword( "extra_cc_includes" ).cast( lambda x : [ y for y in x.split() ] )
         p.require_one(
             p.flag("mover"),
-            p.flag("filter")
+            p.flag("filter"),
+            p.flag("features_reporter")
         )
 
     if mover :
@@ -293,6 +352,10 @@ if __name__ == '__main__':
         class_hh_stub = filter_hh_stub
         creator_hh_stub = filter_creator_hh_stub
         cc_stub = filter_cc_stub
+    if features_reporter :
+        class_hh_stub = features_reporter_hh_stub
+        creator_hh_stub = features_reporter_creator_hh_stub
+        cc_stub = features_reporter_cc_stub
 
     defs = make_serialize_templates.load_definitions( definitions )
     print "definitions loaded"
@@ -354,6 +417,8 @@ if __name__ == '__main__':
             widget_func_names_to_remove = mover_funcnames_to_remove( widget_name )
         if filter :
             widget_func_names_to_remove = filter_funcnames_to_remove( widget_name )
+        if features_reporter :
+            widget_func_names_to_remove = features_reporter_funcnames_to_remove( widget_name )
 
 
         widget_cc_funcs_to_remove = []
@@ -448,6 +513,8 @@ if __name__ == '__main__':
 
         widget_hh_newlines = [ line % cc_replace_dict for line in class_hh_stub() ]
         widget_hh_lines = widget_hh_lines[:(widget_hh_insertion_line+1)] + ["\n"] + widget_hh_newlines + ["\n"] + widget_hh_lines[(widget_hh_insertion_line+1):]
+        hh_includes = ["// XSD XRW Includes\n", "#include <utility/tag/XMLSchemaGeneration.fwd.hh>\n"]
+        widget_hh_lines = add_include_at_bottom_of_includes( widget_hh_lines, hh_includes );
 
         cc_includes = ["// XSD XRW Includes\n", "#include <utility/tag/XMLSchemaGeneration.hh>\n"]
         for inc in extra_cc_includes :

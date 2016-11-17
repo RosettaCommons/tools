@@ -56,6 +56,11 @@
    <AddFilter type=alpha_aa_rama_check residue=1 rama_cutoff_energy=0.3 / >
   </GeneralizedKIC>
 
+  <ReportToDB name="report_scores" resource_description=scores_db batch_description="Demo DatabaseResourceLocator by reporting symmetric scores">
+    <feature name=ScoreTypeFeatures/>
+    <feature name=StructureScoresFeatures scorefxn=s/>
+  </ReportToDB>
+
   <ModulatedMover name=scaled_rb type=UnbiasedRigidBodyPerturbNoCenter tempering=h_exchange>
     Someone thought it would be really cute if they created a subtag that held the attributes of arbitrary movers.
     Instead, the common subtag should have a bunch of subtags of its own with two attributes "attr" and "value"
@@ -66,7 +71,111 @@
     <Interp key="trans_mag" curve="exponential"  start=1.5 end=0.1/>
   </ModulatedMover>
 
+  <PlacementMinimization name=placement_min>
+   <StubSets>
+    Add stubfile=1l6x.pos1_stubs.pdb/>  removed to save time ###
+    <Add stubfile=1l6x.pos3_stubs.pdb/>
+    <Add stubfile=1l6x.pos4_stubs.pdb/>
+    <WHATEVER stubfile=1l6x.pos5_stubs.pdb/>
+   </StubSets>
+  </PlacementMinimization>
+
+  <GenericMonteCarlo name="GM_design" stopping_condition="stopper"
+                     mover_name="FastDesign" trials="10"
+                     progress_file="MC_progess_design.txt"
+                     bolz_rank="True" recover_low="True" preapply="False" drift="False"
+                     filter_name="sspred" sample_type="low" temperature="0.03">
+
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </GenericMonteCarlo>
+
+  <EvolutionaryDynamics name="GM_design" stopping_condition="stopper"
+			mover_name="FastDesign" trials="10"
+			progress_file="MC_progess_design.txt"
+			bolz_rank="True" recover_low="True" preapply="False" drift="False"
+			filter_name="sspred" sample_type="low" temperature="0.03">
+
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </EvolutionaryDynamics>
+
+  <GenericSimulatedAnnealer name="GM_design" stopping_condition="stopper"
+			    mover_name="FastDesign" trials="10"
+			    progress_file="MC_progess_design.txt"
+			    bolz_rank="True" recover_low="True" preapply="False" drift="False"
+			    filter_name="sspred" sample_type="low" temperature="0.03">
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </GenericSimulatedAnnealer>
+
+  We received no examples of this mover
+  <MapHotspot>
+   <Jumps>
+    <KRISS gonna_make_you="true"/>
+    <KROSS gonna_make_you="true"/>
+    <DADDYMAC gonna_make_you="true"/>
+   </Jumps>
+  </MapHotspot>
+
+  <DockWithHotspotMover name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <ADD file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </DockWithHotspotMover>
+
+
+  <SetupHotspotConstraintsMover name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <ADD file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </SetupHotspotConstraintsMover>
+
+
+  <SetupHotspotConstraintsLoop name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <Subtract file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </SetupHotspotConstraintsLoop>
+
+
  </MOVERS>
+ <FILTERS>
+
+  <CalculatorFilter name="percent_core_SCN" equation="- rescount_coreSCN / (rescount3 + 0.01)" threshold="-0.1" confidence="1" >
+    <VAR name="rescount3" filter="res_count_all"/>
+    <VAR name="rescount_coreSCN" filter="res_count_core_SCN"/>
+    we don't have an example of a tag that has the "value" attribute
+    <DUNNO name="rescount_coreSCN" value="5.0"/>
+  </CalculatorFilter>
+
+  <CombinedValue name=total_ligint_cst confidence=0>
+   <Add filter_name=allcst factor=1 />
+   <Add filter_name=total_score factor=1/>
+   <Add_or_whatever filter_name="interfE" factor=1/>
+  </CombinedValue>
+
+  <RotamerBoltzmannWeight name="rotamer_boltz_core_avg_MBF"  skip_ala_scan="1" no_modified_ddG="1" confidence="0" unbound="0">
+   <Ala setting="15"/>
+  </RotamerBoltzmannWeight>
+
+ </FILTERS>
+
  <PROTOCOLS>
   <Add mover=prm/>
   Below is a Tag where there is a space between the opening less than sign and the element name

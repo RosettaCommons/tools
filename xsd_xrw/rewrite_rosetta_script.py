@@ -358,7 +358,7 @@ def surround_attributes_w_quotes( tags ) :
                     rhs.contents[0] == rhs.contents[-1] )
             rhs.contents = '"' + rhs.contents + '"'
 
-def replace_element_name_w_name_attribute( element, new_name ) :
+def replace_element_name_w_attribute( element, new_name, new_attribute ) :
     element.name = new_name
     for i,tag in enumerate( element.tags ) :
         old_name = tag.name
@@ -367,7 +367,7 @@ def replace_element_name_w_name_attribute( element, new_name ) :
         done = False
         for j,tok in enumerate( tag.tokens ) :
             if j == 0 : continue
-            for char in tok.contents :
+            for char in tok.contents : # skip the "<"
                 if char != " " and char != "\t" and char != "\n" :
                     tag.remove_token( tok )
                     done = True
@@ -383,19 +383,19 @@ def replace_element_name_w_name_attribute( element, new_name ) :
         tag.add_token( name_token,  1 )
         if i == 0 :
             attr_tokens = [ XMLToken(), XMLToken(), XMLToken(), XMLToken() ]
-            spellings = [ " ", "name", "=", '"' + old_name + '"' ]
+            spellings = [ " ", new_attribute, "=", '"' + old_name + '"' ]
             for j,tok in enumerate( attr_tokens ) :
                 tok.line_start = tok.line_end = name_token.line_start
                 tok.position_start = tok.position_end = name_token.position_start # garbage
                 tok.contents = spellings[j]
                 tag.add_token( tok, 2+j )
 
-def recursively_rename_subelements( root, element_name, new_subelement_name ) :
+def recursively_rename_subelements( root, element_name, new_subelement_name, new_attribute_name = "name" ) :
     for element in root.sub_elements :
         if element.name == element_name :
             for sfxn_element in element.sub_elements :
-                replace_element_name_w_name_attribute( sfxn_element, new_subelement_name )
-        rename_score_functions( element )
+                replace_element_name_w_attribute( sfxn_element, new_subelement_name, new_attribute_name )
+        recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
 
 def rename_score_functions( root ) :
     recursively_rename_subelements( root, "SCOREFXNS", "ScoreFunction" )
@@ -413,24 +413,24 @@ def rename_fragments_from_frag_reader( root ) :
             for fragset_element in element.sub_elements :
                 if fragset_element.name == "FRAGMENTS" :
                     for fragreader_element in fragset_element.sub_elements  :
-                        replace_element_name_w_name_attribute( fragreader_element, "FragReader" )
+                        replace_element_name_w_attribute( fragreader_element, "FragReader", "name" )
                 else :
-                    replace_element_name_w_name_attribute( fragset_element, "FragSet" )
-            # TO DO: make sure that FRAGMENTS element becomes first child of the
-            # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
-            # tokens don't change their order!
+                    replace_element_name_w_attribute( fragset_element, "FragSet", "name" )
         rename_fragments_from_frag_reader( element )
-                
+
+def move_fragments_as_first_child_of_fragset( root, tokens ) :
+    # TO DO: make sure that FRAGMENTS element becomes first child of the
+    # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
+    # tokens don't change their order!
+    pass
 
 def rename_monte_carlo_elements_from_monte_carlo_loader( root ) :
-    # TO DO!!!
     # for elements beneath a "MONTECARLOS" element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "MonteCarlo" instead.
     recursively_rename_subelements( root, "MONTECARLOS", "MonteCarlo" )
 
 def rename_interface_builders_from_interface_builder_loader( root ) :
-    # TO DO!!
     # for elements beneath an INTERFACE_BUILDERS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "InterfaceBuilder" instead.
@@ -457,16 +457,11 @@ def rename_bridge_chains_mover_to_bridge_chains( root ) :
             element.name = "BridgeChains"
             for i, tag in enumerate( element.tags ) :
                 tag.name = "BridgeChains"
-                done = False
-                for j,tok in enumerate( tag.tokens ) :
-                    if j == 0 : continue
-                    for char in tok.contents :
-                        if char != " " and char != "\t" and char != "\n" :
-                            assert( tok.contents == "BridgeChainsMover" or tok.contents == "/BridgeChainsMover" )
-                            tok.contents = "BridgeChains" if i == 0 else "/BridgeChains"
-                            done = True
-                            break
-                    if done : break
+                tok = name_token_of_tag( tag )
+                assert( tok )
+                assert( tok.contents == "BridgeChainsMover" or tok.contents == "/BridgeChainsMover" )
+                tok.contents = "BridgeChains" if i == 0 else "/BridgeChains"
+
         rename_bridge_chains_mover_to_bridge_chains( element )
 
 def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
@@ -483,60 +478,157 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
 
-def rename_report_to_db_children( root ):
-    # TO DO!!!
+def rename_report_to_db_children( root, tokens ):
     # All children of ReportToDB and TrajectoryReportToDB currently
     # have name "Feature". They now will have the name of the feature reporter
     # being parsed from them (which was formerly taken from the "name" attribute ).
+    if root.name == "ReportToDB" :
+        for elem in root.sub_elements :
+            new_name = None
+            for i,tag in enumerate( elem.tags ) :
+                if i == 0 :
+                    attr = find_attribute_in_tag( tag, "name" )
+                    assert( attr )
+                    new_name = attr[1].contents[1:-1] # trim the "s
+                    attr[0].deleted = True
+                    attr[1].deleted = True
+                    tokens[attr[0].index+1].deleted = True
+                    if tokens[attr[1].index+1].whitespace :
+                        tokens[attr[1].index+1].deleted = True
+                assert( new_name is not None )
+                tag.name = new_name
+                name_tok = name_token_of_tag( tag )
+                assert( name_tok )
+                name_tok.contents = new_name if i == 0 else ( "/" + new_name )
+            elem.name = new_name
+    for elem in root.sub_elements :
+        rename_report_to_db_children( elem, tokens )
 
+def find_attribute_in_tag( tag, attribute_name ) :
+    for attr in tag.attributes :
+        if attr[0].contents == attribute_name :
+            return attr
+    return None
 
+def name_token_of_tag( tag ) :
+    for j,tok in enumerate( tag.tokens ) :
+        if j == 0 : continue # skip the "<"
+        for char in tok.contents :
+            if char != "" and char != "\t" and char != "\n" :
+                return tok
+    return None
 
 def give_all_stubsets_children_an_element_name( root ):
-    # TO DO!!!
     # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
-    # need to be given the name "StubSet"
-    pass
-
-def give_all_stubsets_children_an_element_name( root ):
-    # TO DO!!!
-    # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
-    # need to be given the name "StubSet"
-    pass
+    # need to be given the name "Add"
+    if root.name == "StubSets" :
+        for elem in root.sub_elements :
+            for i,tag in enumerate( elem.tags ) :
+                name_tok = name_token_of_tag( tag )
+                assert( name_tok )
+                name_tok.contents = "Add" if i == 0 else "/Add"
+                tag.name = "Add"
+            elem.name = "Add"
+    for elem in root.sub_elements :
+        give_all_stubsets_children_an_element_name( elem )
 
 def give_all_calculator_filter_children_an_element_name( root ):
-    # TO DO!!!
-    #Children of CalculatorFilter will either be called Filter 
+    #Children of CalculatorFilter will either be called Var
     #(if they have the attribute filter or filter_name ) or 
     #Value (if they have the attribute value but not one of the other two). 
     #Subtags without any of these attributes are invalid.
-
+    if root.name == "CalculatorFilter" :
+        for elem in root.sub_elements :
+            new_name = None
+            for i,tag in enumerate( elem.tags ) :
+                if i == 0 :
+                    filter_attr = find_attribute_in_tag( tag, "filter" )
+                    filter_name_attr = find_attribute_in_tag( tag, "filter_name" )
+                    value_attr = find_attribute_in_tag( tag, "value" )
+                    if filter_attr or filter_name_attr :
+                        new_name = "Var"
+                    elif value_attr :
+                        new_name = "Value"
+                    else :
+                        # This shouldn't happen -- the input tag should have one of these three
+                        assert( filter_attr or filter_name_attr or value_attr )
+                assert( new_name )
+                name_tok = name_token_of_tag( tag )
+                name_tok.contents = new_name if i == 0 else ( "/" + new_name )
+                tag.name = new_name
+            elem.name = new_name
+    for elem in root.sub_elements :
+        give_all_calculator_filter_children_an_element_name( elem )
 
 def give_all_combined_filter_children_an_element_name( root ):
-    # TO DO!!
-    #All children of CombinedFilter will now be named Filter
+    #All children of CombinedValue will now be named Add
+    if root.name == "CombinedValue" :
+        for elem in root.sub_elements :
+            for i,tag in enumerate( elem.tags ) :
+                name_tok = name_token_of_tag( tag )
+                assert( name_tok )
+                name_tok.contents = "Add" if i == 0 else "/Add"
+                tag.name = "Add"
+            elem.name = "Add"
+    for elem in root.sub_elements :
+        give_all_combined_filter_children_an_element_name( elem )
 
 def give_all_generic_montecarlo_filters_an_element_name( root ) :
-    # TO DO!!!
     # The children of the Filters element that is itself a child of the GenericMonteCarlo
-    # element need to be given the name "Filter"
-    pass
+    # element need to be given the name "AND"
+    # This also applies to the classes that rely on the GenericMonteCarlo's structure:
+    # GenericSimulatedAnnealer and EvolutionaryDynamics
+    if root.name == "GenericMonteCarlo" or root.name == "GenericSimulatedAnnealer" or root.name == "EvolutionaryDynamics" :
+        for elem in root.sub_elements :
+            if elem.name != "Filters" : continue
+            for subelement in elem.sub_elements :
+                for i,tag in enumerate( subelement.tags ):
+                    name_tok = name_token_of_tag( tag )
+                    assert( name_tok )
+                    name_tok.contents = "AND" if i == 0 else "/AND"
+                    tag.name = "AND"
+                subelement.name = "AND"
+    for elem in root.sub_elements :
+        give_all_generic_montecarlo_filters_an_element_name( elem )
 
 def give_all_map_hotspot_Jumps_an_element_name( root ) :
-    # TO DO!!!
     # The children of the Jumps element that is itself a child of the MapHotspot mover
     # need to be given the name "Jump"
-    pass
+    if root.name == "MapHotspot" :
+        for elem in root.sub_elements :
+            if elem.name != "Jumps" : continue
+            for subelement in elem.sub_elements :
+                for i,tag in enumerate( subelement.tags ) :
+                    name_tok = name_token_of_tag( tag )
+                    assert( name_tok )
+                    name_tok.contents = "Jump" if i == 0 else "/Jump"
+                    tag.name = "Jump"
+                subelement.name = "Jump"
+    for elem in root.sub_elements :
+        give_all_map_hotspot_Jumps_an_element_name( elem )
 
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
-    # TO DO!!!
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover 
     # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
     # need to be given the name "HotspotFile"
-    pass
+    if root.name == "DockWithHotspotMover" or root.name == "SetupHotspotConstraintsLoop" or root.name == "SetupHotspotConstraintsMover" :
+        for elem in root.sub_elements :
+            if elem.name != "HotspotFiles" :
+                print "skipping", elem.name
+                continue
+            for subelement in elem.sub_elements :
+                for i,tag in enumerate( subelement.tags ) :
+                    name_tok = name_token_of_tag( tag )
+                    assert( name_tok )
+                    name_tok.contents = "HotspotFile" if i == 0 else "/HotspotFile"
+                    tag.name = "HotspotFile"
+                subelement.name = "HotspotFile"
+    for elem in root.sub_elements :
+        give_all_dock_with_hotspots_HotspotFiles_an_element_name( elem )
 
 def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
     # RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
-    pass
+    recursively_rename_subelements( root, "RotamerBoltzmannWeight", "Threshold", "restype" )
 
 def renumber_tokens( tokens ) :
     for i,tok in enumerate( tokens ) :
@@ -633,10 +725,20 @@ if __name__ == "__main__" :
                       rename_movemaps_from_movemap_loader,
                       rename_ligand_areas_from_ligand_area_loader,
                       rename_bridge_chains_mover_to_bridge_chains,
-                      rename_dockdesign_to_ROSETTASCRIPTS ]
+                      rename_dockdesign_to_ROSETTASCRIPTS,
+                      give_all_stubsets_children_an_element_name,
+                      give_all_calculator_filter_children_an_element_name,
+                      give_all_combined_filter_children_an_element_name,
+                      give_all_generic_montecarlo_filters_an_element_name,
+                      give_all_map_hotspot_Jumps_an_element_name,
+                      give_all_dock_with_hotspots_HotspotFiles_an_element_name,
+                      rename_RotamerBoltzmannFilter_threshold_subelements
+                  ]
 
     for modfunc in modifications :
         modfunc( element_root )
+
+    rename_report_to_db_children( element_root, toks )
 
     # big modification to the behavior of the ModulatedMover XML structure
     toks = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( element_root, toks )

@@ -424,6 +424,11 @@ def move_fragments_as_first_child_of_fragset( root, tokens ) :
     # tokens don't change their order!
     pass
 
+def move_fragments_as_first_child_of_abscript( root, tokens ) :
+    # TO DO
+    # make sure that Fragments is the first sub-element of the Abscript Mover
+    pass
+
 def rename_monte_carlo_elements_from_monte_carlo_loader( root ) :
     # for elements beneath a "MONTECARLOS" element:
     # the original element name has to become a "name" attribute and

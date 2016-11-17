@@ -152,7 +152,7 @@ def tokenize_lines( lines ) :
                         curr_token.position_end = j
                         tokens.append( curr_token )
                         curr_token = XMLToken()
-    
+
                     else :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 0 else i-1
@@ -429,6 +429,7 @@ def move_fragments_as_first_child_of_abscript( root, tokens ) :
     # make sure that Fragments is the first sub-element of the Abscript Mover
     pass
 
+
 def rename_monte_carlo_elements_from_monte_carlo_loader( root ) :
     # for elements beneath a "MONTECARLOS" element:
     # the original element name has to become a "name" attribute and
@@ -612,6 +613,19 @@ def give_all_map_hotspot_Jumps_an_element_name( root ) :
     for elem in root.sub_elements :
         give_all_map_hotspot_Jumps_an_element_name( elem )
 
+def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root ):
+    # TO DO!!!
+    #				<PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
+    #					 <DesignMovers>
+    #						<Add mover_name=srsc/>
+    #						<Add mover_name=des1 coord_cst_std=0.6/>
+    #						<Add mover_name=des3 use_constraints=0/>
+    #					</DesignMovers>
+    #				</PlaceStub>
+    #the tags inside DesignMovers (or, equivalently, NotifyMovers, StubMinimize, or StubSets) DO NOT have a name in parse_my_tag; the schema will call them Add
+    #ALL subelements of PlaceStub and PlaceSimultaneously have this unnamed Add subelement
+    pass
+
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover 
     # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
@@ -684,7 +698,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
         first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
         tokens = tokens[:first_root_subelement_token] + new_tokens + tokens[first_root_subelement_token:]
         #for tok in tokens : print tok.contents,
-        
+
         root.sub_elements.insert( 0, new_mover_element )
         # now, remove the old common element
         if common_element :
@@ -719,10 +733,10 @@ if __name__ == "__main__" :
     #            print "tok: %4d" % i, line
     #        else :
     #            print "         ", line
-    
+
     tags, element_root = tokens_into_tags( toks )
     #print_element( 0, element_root )
-    
+
     surround_attributes_w_quotes( tags )
     modifications = [ rename_score_functions, rename_fragments_from_frag_reader,
                       rename_monte_carlo_elements_from_monte_carlo_loader,

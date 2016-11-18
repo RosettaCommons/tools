@@ -785,9 +785,7 @@ if __name__ == "__main__" :
 
     #for tok in toks : print tok.contents,
 
-    print "RECONSTITUTING"
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
-    print "DONE"
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
 

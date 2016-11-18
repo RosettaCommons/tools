@@ -359,7 +359,9 @@ def tokens_into_tags( tokens ) :
             if elements[-1].name != tag.name :
                 if tag.terminator :
                     print "Input script is not valid XML"
-                    print "terminating tag \"" + name_token_of_tag( tag ).contents + "\" does not match the wrapping tag \"" + elements[-1].name
+                    print "terminating tag \"" + name_token_of_tag( tag ).contents + "\" does not match the wrapping tag \"" + elements[-1].name + "\""
+                    if len(elements) >= 2 and elements[-2].name == tag.name :
+                        print "Perhaps you need to close the", elements[-1].name + " tag?"
                     sys.exit( 1 )
                 elements.append( Element() )
                 elements[-1].name = tag.name

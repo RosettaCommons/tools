@@ -202,7 +202,9 @@ def tokenize_lines( lines ) :
                         curr_token = XMLToken()
                         in_double_quote = False
                         in_single_quote = False
+                        #print "finished reading quote", i, j
                 elif symb == '"' or symb == "'" :
+                    in_whitespace = False
                     if not curr_token.uninitialized() :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
@@ -221,6 +223,7 @@ def tokenize_lines( lines ) :
                             curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
                             tokens.append( curr_token )
                             curr_token = XMLToken()
+                        #print "Starting new non-whitespace token", i, j, symb
                         curr_token.line_start = i
                         curr_token.position_start = j
                         curr_token.whitespace = True
@@ -241,6 +244,7 @@ def tokenize_lines( lines ) :
                         curr_token = XMLToken()
                     in_whitespace = False
                     if curr_token.uninitialized() :
+                        #print "Starting new non-whitespace token", i, j, symb
                         curr_token.line_start = i
                         curr_token.position_start = j
             else :
@@ -556,6 +560,21 @@ def give_all_stubsets_children_an_element_name( root ):
     for elem in root.sub_elements :
         give_all_stubsets_children_an_element_name( elem )
 
+def give_parsed_protocol_children_an_element_name( root ):
+    # The children of the PROTOCOLS and ParsedProtocol element
+    # need to be given the name "Add" -- before, their names were ignored
+    if root.name == "PROTOCOLS" or root.name == "ParsedProtocol" :
+        for elem in root.sub_elements :
+            for i,tag in enumerate( elem.tags ) :
+                name_tok = name_token_of_tag( tag )
+                assert( name_tok )
+                name_tok.contents = "Add" if i == 0 else "/Add"
+                tag.name = "Add"
+            elem.name = "Add"
+    for elem in root.sub_elements :
+        give_parsed_protocol_children_an_element_name( elem )
+
+
 def give_all_calculator_filter_children_an_element_name( root ):
     #Children of CalculatorFilter will either be called Var
     #(if they have the attribute filter or filter_name ) or 
@@ -651,7 +670,7 @@ def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
     if root.name == "DockWithHotspotMover" or root.name == "SetupHotspotConstraintsLoop" or root.name == "SetupHotspotConstraintsMover" :
         for elem in root.sub_elements :
             if elem.name != "HotspotFiles" :
-                print "skipping", elem.name
+                #print "skipping", elem.name
                 continue
             for subelement in elem.sub_elements :
                 for i,tag in enumerate( subelement.tags ) :
@@ -670,6 +689,11 @@ def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
 def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
     # attributes may not begin with a numeral, so the 3mers and 9mers attributes
     # of the HybridizeMover need to be changed to "three_mers" and "nine_mers" respectively
+    pass
+
+def replace_raw_ampersand_w_and( tokens ) :
+    # if there are raw ampersands in the "comments", then they need to be replaced with the
+    # word and
     pass
 
 def renumber_tokens( tokens ) :
@@ -774,7 +798,8 @@ if __name__ == "__main__" :
                       give_all_generic_montecarlo_filters_an_element_name,
                       give_all_map_hotspot_Jumps_an_element_name,
                       give_all_dock_with_hotspots_HotspotFiles_an_element_name,
-                      rename_RotamerBoltzmannFilter_threshold_subelements
+                      rename_RotamerBoltzmannFilter_threshold_subelements,
+                      give_parsed_protocol_children_an_element_name
                   ]
 
     for modfunc in modifications :

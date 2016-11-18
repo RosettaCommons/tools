@@ -1,4 +1,5 @@
 import blargs
+import sys
 #import copy
 
 class XMLToken :
@@ -29,6 +30,7 @@ class Tag :
         self.tokens = []
         self.all_tokens = [] # including "comments"
         self.closed = False
+        self.terminator = False # e.g. </SCOREFXNS>
         self.new_tokens_since_parsing = False
 
     def remove_token( self, token ) :
@@ -58,6 +60,20 @@ class Tag :
                         return token_list
         assert( False )
 
+def find_attribute_in_tag( tag, attribute_name ) :
+    for attr in tag.attributes :
+        if attr[0].contents == attribute_name :
+            return attr
+    return None
+
+def name_token_of_tag( tag ) :
+    for j,tok in enumerate( tag.tokens ) :
+        if j == 0 : continue # skip the "<"
+        for char in tok.contents :
+            if char != "" and char != "\t" and char != "\n" :
+                return tok
+    return None
+
 class Element :
     def __init__( self ) :
         self.sub_elements = []
@@ -83,6 +99,7 @@ class Element :
                                 for sub_element in self.sub_elements :
                                     tok_pos, new_tok_list = sub_element.reconstitute_token_list( old_tok_list, new_tok_list, tok_pos )
                             if which_tag + 1 == len( self.tags ) :
+                                #print "returning", tok_pos
                                 return tok_pos, new_tok_list
                             else :
                                 break
@@ -90,6 +107,7 @@ class Element :
                     assert( which_tag + 1 < len( self.tags ) )
                     break
                 else :
+                    #print self.name, "skipping", tok_pos,"\"" + old_tok_list[i].contents + "\" looking for \"" + tag_first_tok.contents + "\""
                     new_tok_list.append( old_tok_list[ i ] )
 
         unreachable = False
@@ -289,6 +307,14 @@ def tokens_into_tags( tokens ) :
                 if tok.contents[0] == "/" :
                     curr_tag.name = tok.contents[1:]
                     curr_tag.closed = True
+                    # March backwards and look to see if
+                    # the first non-whitespace token behind this "/" is a "<"
+                    j = i-1
+                    while j >= 0 :
+                        if not tokens[j].whitespace :
+                            if tokens[j].contents == "<" :
+                                curr_tag.terminator = True
+                            break
                 elif tok.whitespace :
                     # you cannot have whitespace between the opening "<" and the tag name
                     tok.deleted = True
@@ -331,6 +357,10 @@ def tokens_into_tags( tokens ) :
         #print i, tag.name
         if len( elements ) > 0 :
             if elements[-1].name != tag.name :
+                if tag.terminator :
+                    print "Input script is not valid XML"
+                    print "terminating tag \"" + name_token_of_tag( tag ).contents + "\" does not match the wrapping tag \"" + elements[-1].name
+                    sys.exit( 1 )
                 elements.append( Element() )
                 elements[-1].name = tag.name
                 elements[-2].sub_elements.append( elements[-1] )
@@ -510,20 +540,6 @@ def rename_report_to_db_children( root, tokens ):
     for elem in root.sub_elements :
         rename_report_to_db_children( elem, tokens )
 
-def find_attribute_in_tag( tag, attribute_name ) :
-    for attr in tag.attributes :
-        if attr[0].contents == attribute_name :
-            return attr
-    return None
-
-def name_token_of_tag( tag ) :
-    for j,tok in enumerate( tag.tokens ) :
-        if j == 0 : continue # skip the "<"
-        for char in tok.contents :
-            if char != "" and char != "\t" and char != "\n" :
-                return tok
-    return None
-
 def give_all_stubsets_children_an_element_name( root ):
     # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
     # need to be given the name "Add"
@@ -649,6 +665,11 @@ def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
     # RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
     recursively_rename_subelements( root, "RotamerBoltzmannWeight", "Threshold", "restype" )
 
+def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
+    # attributes may not begin with a numeral, so the 3mers and 9mers attributes
+    # of the HybridizeMover need to be changed to "three_mers" and "nine_mers" respectively
+    pass
+
 def renumber_tokens( tokens ) :
     for i,tok in enumerate( tokens ) :
         tok.index = i
@@ -764,7 +785,9 @@ if __name__ == "__main__" :
 
     #for tok in toks : print tok.contents,
 
+    print "RECONSTITUTING"
     dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
+    print "DONE"
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
 

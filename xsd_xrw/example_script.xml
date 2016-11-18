@@ -17,6 +17,42 @@
   </talaris2014_cst>
   <softrep weights="softrep_design.wts"/>
  </SCOREFXNS>
+ <TASK_OPERATIONS>
+   <OperateOnCertainResidues name="restrict_target">
+     test comment here
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target2">
+     test comment here
+     <RestrictToRepackingRLT/>
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target3">
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target4">
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+   </OperateOnCertainResidues>
+
+   this one shouldn't get swapped
+   <OperateOnCertainResidues name="restrict_target5">
+     <ChainIs chain="A"/>
+     <RestrictToRepackingRLT/>
+   </OperateOnCertainResidues>
+
+ </TASK_OPERATIONS>
  <FRAGSETS>
   <FRAGMENTS>
    the element name for the fragreader below will become "FragReader"

@@ -454,6 +454,60 @@ def rename_fragments_from_frag_reader( root ) :
                     replace_element_name_w_attribute( fragset_element, "FragSet", "name" )
         rename_fragments_from_frag_reader( element )
 
+def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
+    # the first tag beneath the OperateOnCertainResidues task operation needs
+    # to be the ResFilter and the second tag has to be the ResLvlTaskOperation
+    # The valid ResFilters as of Nov 18 2016 are:
+    # AllResFilter
+    # AnyResFilter
+    # ChainIs
+    # ChainIsnt
+    # NoResFilter
+    # ProteinCore
+    # ResidueHasProperty
+    # ResidueIndexIs
+    # ResidueIndexIsnt
+    # ResidueLacksProperty
+    # ResidueName3Is
+    # ResidueName3Isnt
+    # ResiduePDBInfoHasLabel
+    # ResidueType
+
+    if root.name == "OperateOnCertainResidues" :
+        assert( len( root.sub_elements) == 2 )
+        res_filters = set( [ "AllResFilter",
+            "AnyResFilter",
+            "ChainIs",
+            "ChainIsnt",
+            "NoResFilter",
+            "ProteinCore",
+            "ResidueHasProperty",
+            "ResidueIndexIs",
+            "ResidueIndexIsnt",
+            "ResidueLacksProperty",
+            "ResidueName3Is",
+            "ResidueName3Isnt",
+            "ResiduePDBInfoHasLabel",
+            "ResidueType" ] )
+        if root.sub_elements[0].name not in res_filters :
+            # print 0, root.sub_elements[0].tags[0].tokens[0].index 
+            # print root.sub_elements[1].tags[0].tokens[0].index, ( root.sub_elements[1].tags[-1].tokens[-1].index + 1 )
+            # print (root.sub_elements[0].tags[-1].tokens[-1].index+1), root.sub_elements[1].tags[0].tokens[0].index
+            # print root.sub_elements[0].tags[0].tokens[0].index, ( root.sub_elements[0].tags[-1].tokens[-1].index + 1 )
+            # print (root.sub_elements[1].tags[-1].tokens[-1].index+1), "end"
+            # print
+            tokens = tokens[ : root.sub_elements[0].tags[0].tokens[0].index ] + \
+                tokens[ root.sub_elements[1].tags[0].tokens[0].index:( root.sub_elements[1].tags[-1].tokens[-1].index + 1 ) ] + \
+                tokens[ (root.sub_elements[0].tags[-1].tokens[-1].index+1):root.sub_elements[1].tags[0].tokens[0].index ] + \
+                tokens[ root.sub_elements[0].tags[0].tokens[0].index:( root.sub_elements[0].tags[-1].tokens[-1].index + 1 ) ] + \
+                tokens[ (root.sub_elements[1].tags[-1].tokens[-1].index+1): ]
+            root.sub_elements = [ root.sub_elements[1], root.sub_elements[0] ]
+            renumber_tokens( tokens )
+    
+    for elem in root.sub_elements :
+        tokens = move_res_filter_as_first_child_of_OperateOnCertainResidues( elem, tokens )
+    return tokens
+
 def move_fragments_as_first_child_of_fragset( root, tokens ) :
     # TO DO: make sure that FRAGMENTS element becomes first child of the
     # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
@@ -580,6 +634,7 @@ def give_all_calculator_filter_children_an_element_name( root ):
     #(if they have the attribute filter or filter_name ) or 
     #Value (if they have the attribute value but not one of the other two). 
     #Subtags without any of these attributes are invalid.
+    # test 720 not working properly!
     if root.name == "CalculatorFilter" :
         for elem in root.sub_elements :
             new_name = None
@@ -809,6 +864,7 @@ if __name__ == "__main__" :
 
     # big modification to the behavior of the ModulatedMover XML structure
     toks = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( element_root, toks )
+    toks = move_res_filter_as_first_child_of_OperateOnCertainResidues( element_root, toks )
 
     #for tok in toks : print tok.contents,
 

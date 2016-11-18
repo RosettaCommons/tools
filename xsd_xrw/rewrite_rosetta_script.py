@@ -455,41 +455,32 @@ def rename_fragments_from_frag_reader( root ) :
         rename_fragments_from_frag_reader( element )
 
 def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
-    # the first tag beneath the OperateOnCertainResidues task operation needs
-    # to be the ResFilter and the second tag has to be the ResLvlTaskOperation
-    # The valid ResFilters as of Nov 18 2016 are:
-    # AllResFilter
-    # AnyResFilter
-    # ChainIs
-    # ChainIsnt
-    # NoResFilter
-    # ProteinCore
-    # ResidueHasProperty
-    # ResidueIndexIs
-    # ResidueIndexIsnt
-    # ResidueLacksProperty
-    # ResidueName3Is
-    # ResidueName3Isnt
-    # ResiduePDBInfoHasLabel
-    # ResidueType
+    # the first tag beneath the OperateOnCertainResidues (OperateOnResidueSubset) task operation needs
+    # to be the ResFilter (ResidueSelector) and the second tag has to be the ResLvlTaskOperation
+    # The valid ResLvlTaskOperations as of Nov 18 2016 are:
 
-    if root.name == "OperateOnCertainResidues" :
-        assert( len( root.sub_elements) == 2 )
-        res_filters = set( [ "AllResFilter",
-            "AnyResFilter",
-            "ChainIs",
-            "ChainIsnt",
-            "NoResFilter",
-            "ProteinCore",
-            "ResidueHasProperty",
-            "ResidueIndexIs",
-            "ResidueIndexIsnt",
-            "ResidueLacksProperty",
-            "ResidueName3Is",
-            "ResidueName3Isnt",
-            "ResiduePDBInfoHasLabel",
-            "ResidueType" ] )
-        if root.sub_elements[0].name not in res_filters :
+    # AddBehaviorRLT
+    # DisallowIfNonnativeRLT
+    # ExtraChiCutoffRLT
+    # ExtraRotamersGenericRLT
+    # IncludeCurrentRLT
+    # PreserveCBetaRLT
+    # PreventRepackingRLT
+    # RestrictAbsentCanonicalAASRLT
+    # RestrictToRepackingRLT
+
+    if root.name == "OperateOnCertainResidues" or root.name == "OperateOnResidueSubset" :
+        assert( len( root.sub_elements) == 2 or len( root.sub_elements) == 1 )
+        res_lvl_task_operations = set( [ "AddBehaviorRLT",
+                                         "DisallowIfNonnativeRLT",
+                                         "ExtraChiCutoffRLT",
+                                         "ExtraRotamersGenericRLT",
+                                         "IncludeCurrentRLT",
+                                         "PreserveCBetaRLT",
+                                         "PreventRepackingRLT",
+                                         "RestrictAbsentCanonicalAASRLT",
+                                         "RestrictToRepackingRLT" ] )
+        if len( root.sub_elements ) == 2 and root.sub_elements[0].name in res_lvl_task_operations :
             # print 0, root.sub_elements[0].tags[0].tokens[0].index 
             # print root.sub_elements[1].tags[0].tokens[0].index, ( root.sub_elements[1].tags[-1].tokens[-1].index + 1 )
             # print (root.sub_elements[0].tags[-1].tokens[-1].index+1), root.sub_elements[1].tags[0].tokens[0].index
@@ -742,9 +733,19 @@ def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
     recursively_rename_subelements( root, "RotamerBoltzmannWeight", "Threshold", "restype" )
 
 def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
+    # TO DO
     # attributes may not begin with a numeral, so the 3mers and 9mers attributes
     # of the HybridizeMover need to be changed to "three_mers" and "nine_mers" respectively
-    pass
+    if root.name == "Hybridize" :
+        for elem in root.sub_elements :
+            if elem.name != "Fragments" : continue
+            for attr in elem.tags[0].attributes :
+                if attr[0].contents == "3mers" :
+                    attr[0].contents = "three_mers"
+                if attr[0].contents == "9mers" :
+                    attr[0].contents = "nine_mers"
+    for elem in root.sub_elements :
+        rename_3mer_and_9mer_attributes_of_HybridizeMover( elem )
 
 def replace_raw_ampersand_w_and( tokens ) :
     # if there are raw ampersands in the "comments", then they need to be replaced with the
@@ -854,7 +855,8 @@ if __name__ == "__main__" :
                       give_all_map_hotspot_Jumps_an_element_name,
                       give_all_dock_with_hotspots_HotspotFiles_an_element_name,
                       rename_RotamerBoltzmannFilter_threshold_subelements,
-                      give_parsed_protocol_children_an_element_name
+                      give_parsed_protocol_children_an_element_name,
+                      rename_3mer_and_9mer_attributes_of_HybridizeMover
                   ]
 
     for modfunc in modifications :

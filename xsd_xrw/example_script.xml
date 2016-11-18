@@ -189,6 +189,13 @@
    </HotspotFiles>
   </SetupHotspotConstraintsLoop>
 
+  <Hybridize name="hybridize" stage1_scorefxn="stage1" stage2_scorefxn="stage2" fa_cst_file="CB_cst" fa_scorefxn="fullatom" batch="1" stage1_increase_cycles="2.0" stage2_increase_cycles="1.0" linmin_only="0" skip_long_min="1">
+    <Fragments 3mers="t000_.200.3mers.gz" 9mers="t000_.200.9mers.gz"/>
+    <Template pdb="4cz8.pdb" weight="1" cst_file="CB_cst" symmdef="4cz8.symm"/>
+    <Template pdb="4czb.pdb" weight="1" cst_file="CB_cst" symmdef="4czb.symm"/>
+    <Template pdb="5bz3.pdb" weight="1" cst_file="CB_cst" symmdef="5bz3.symm"/>
+  </Hybridize>
+
 
  </MOVERS>
  <FILTERS>

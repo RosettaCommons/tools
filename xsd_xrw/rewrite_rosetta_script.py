@@ -2,6 +2,9 @@ import blargs
 import sys
 #import copy
 
+debug = False
+
+
 class XMLToken :
     def __init__( self ) :
         self.line_start = -1
@@ -12,13 +15,15 @@ class XMLToken :
         self.whitespace = False
         self.deleted = False
         self.index = 0
+        self.in_tag = False
     @staticmethod
-    def tok_for_single_pos( line_number, position_on_line ) :
+    def tok_for_single_pos( line_number, position_on_line, in_tag ) :
         tok = XMLToken()
         tok.line_start = line_number
         tok.line_end = line_number
         tok.position_start = position_on_line
         tok.position_end = position_on_line
+        tok.in_tag = in_tag
         return tok
     def uninitialized( self ) :
         return self.line_start == -1
@@ -28,7 +33,6 @@ class Tag :
         self.name = ""
         self.attributes = []
         self.tokens = []
-        self.all_tokens = [] # including "comments"
         self.closed = False
         self.terminator = False # e.g. </SCOREFXNS>
         self.new_tokens_since_parsing = False
@@ -89,6 +93,7 @@ class Element :
             tag_first_tok = self.tags[ which_tag ].tokens[0]
             for i in xrange( tok_pos, len( old_tok_list ) ) :
                 if old_tok_list[ i ] is tag_first_tok :
+                    if debug : print "Found token: ", tag_first_tok.contents, "for", self.tags[which_tag].name
                     new_tok_list.extend( self.tags[ which_tag ].tokens )
                     tag_last_tok = self.tags[ which_tag ].tokens[-1]
                     for j in xrange( i+1, len( old_tok_list ) ) :
@@ -99,7 +104,7 @@ class Element :
                                 for sub_element in self.sub_elements :
                                     tok_pos, new_tok_list = sub_element.reconstitute_token_list( old_tok_list, new_tok_list, tok_pos )
                             if which_tag + 1 == len( self.tags ) :
-                                #print "returning", tok_pos
+                                if debug : print "returning", tok_pos
                                 return tok_pos, new_tok_list
                             else :
                                 break
@@ -107,7 +112,7 @@ class Element :
                     assert( which_tag + 1 < len( self.tags ) )
                     break
                 else :
-                    #print self.name, "skipping", tok_pos,"\"" + old_tok_list[i].contents + "\" looking for \"" + tag_first_tok.contents + "\""
+                    if debug : print self.name, "skipping", tok_pos,"\"" + old_tok_list[i].contents + "\" looking for \"" + tag_first_tok.contents + "\""
                     new_tok_list.append( old_tok_list[ i ] )
 
         unreachable = False
@@ -130,6 +135,7 @@ def tokenize_lines( lines ) :
                     assert( not curr_token.uninitialized() )
                     curr_token.line_end = i
                     curr_token.position_end = j
+                    curr_token.in_tag = in_tag
                     tokens.append( curr_token )
                     curr_token = XMLToken()
                     in_block_comment = False
@@ -139,42 +145,46 @@ def tokenize_lines( lines ) :
                     if not curr_token.uninitialized() :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
                     in_block_comment = True
                     curr_token.line_start = i
                     curr_token.position_start = j
                 else :
-                    in_tag = True
                     if not curr_token.uninitialized() :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
-                    tokens.append( XMLToken.tok_for_single_pos( i, j ))
+                    in_tag = True
+                    curr_token.in_tag = in_tag
+                    tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
             elif in_tag :
                 if symb == ">" :
                     in_whitespace = False
-                    in_tag = False
                     end_of_element = j > 0 and line[ j-1:j+1 ] == "/>"
                     if end_of_element :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 1 else i-1
                             curr_token.position_end = j-2 if j != 1 else len(lines[i-1]) - 1
                             if curr_token.position_end >= curr_token.position_start :
+                                curr_token.in_tag = in_tag
                                 tokens.append( curr_token )
                             curr_token = XMLToken()
                         curr_token.line_start = i
                         curr_token.position_start = j-1
                         curr_token.line_end = i
                         curr_token.position_end = j
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
-
                     else :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 0 else i-1
                             curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
+                            curr_token.in_tag = in_tag
                             tokens.append( curr_token )
                             curr_token = XMLToken()
 
@@ -188,16 +198,21 @@ def tokenize_lines( lines ) :
                             tokens.pop(); # destroy the last two tokens
                             tokens.pop();
 
+                            curr_token.in_tag = in_tag
                             tokens.append( curr_token )
                             curr_token = XMLToken()
                         else :
                             #if len(tokens) > 2 :
                             #    print "closing; last two? '" + contents_for_token( lines, tokens[-2] ) + "' and '" + contents_for_token( lines, tokens[-1] ) + "'"
-                            tokens.append( XMLToken.tok_for_single_pos( i, j ))
+                            curr_token.in_tag = in_tag
+                            tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
+                    in_tag = False
+
                 elif in_double_quote or in_single_quote:
                     if ( symb == '"' and in_double_quote ) or ( symb == "'" and in_single_quote ) :
                         curr_token.line_end = i
                         curr_token.position_end = j
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
                         in_double_quote = False
@@ -208,6 +223,7 @@ def tokenize_lines( lines ) :
                     if not curr_token.uninitialized() :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
                     if symb == '"' : in_double_quote = True
@@ -221,6 +237,7 @@ def tokenize_lines( lines ) :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 0 else i-1
                             curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
+                            curr_token.in_tag = in_tag
                             tokens.append( curr_token )
                             curr_token = XMLToken()
                         #print "Starting new non-whitespace token", i, j, symb
@@ -233,13 +250,16 @@ def tokenize_lines( lines ) :
                     if not curr_token.uninitialized() :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
-                    tokens.append( XMLToken.tok_for_single_pos( i, j ))
+                    curr_token.in_tag = in_tag
+                    tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
                 else :
                     if in_whitespace :
                         curr_token.line_end = i if j != 0 else i-1
                         curr_token.position_end = j-1 if j != 0 else len(lines[i-1])-1
+                        curr_token.in_tag = in_tag
                         tokens.append( curr_token )
                         curr_token = XMLToken()
                     in_whitespace = False
@@ -257,6 +277,7 @@ def tokenize_lines( lines ) :
     if not curr_token.uninitialized() :
         curr_token.line_end = len( lines ) - 1
         curr_token.position_end = len( lines[-1] ) - 1
+        curr_token.in_tag = in_tag
         tokens.append( curr_token )
 
     for i,tok in enumerate( tokens ) :
@@ -347,7 +368,7 @@ def tokens_into_tags( tokens ) :
 
                 if tok.contents == "/>" :
                     curr_tag.closed = True
-                #print i, tok.contents, ", ".join( [ x.contents for x in curr_tag.tokens ] )
+                if debug : print i, tok.contents, ", ".join( [ x.contents for x in curr_tag.tokens ] )
                 tags.append( curr_tag )
                 curr_tag = Tag()
                 in_tag = False
@@ -358,7 +379,7 @@ def tokens_into_tags( tokens ) :
     elements = []
     root = None
     for i,tag in enumerate( tags ) :
-        #print i, tag.name
+        if debug : print i, tag.name
         if len( elements ) > 0 :
             if elements[-1].name != tag.name :
                 if tag.terminator :
@@ -453,6 +474,55 @@ def rename_fragments_from_frag_reader( root ) :
                 else :
                     replace_element_name_w_attribute( fragset_element, "FragSet", "name" )
         rename_fragments_from_frag_reader( element )
+
+def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
+    if root.name == "ROSETTASCRIPTS" :
+        output_index = -1
+        for i,elem in enumerate( root.sub_elements ) :
+            if elem.name == "OUTPUT" :
+                output_index = i
+                break
+        if output_index != -1 and output_index + 1 != len( root.sub_elements ) :
+            out_elem = root.sub_elements[ output_index ]
+            last_elem = root.sub_elements[ -1 ]
+            prev_last = root.sub_elements[output_index-1].tags[-1].tokens[-1].index if output_index != 0 else root.tags[0].tokens[-1].index
+            out_first = out_elem.tags[0].tokens[0].index
+            out_last  = out_elem.tags[-1].tokens[-1].index
+            next_first = root.sub_elements[output_index+1].tags[0].tokens[0].index
+            next_last = root.sub_elements[output_index+1].tags[-1].tokens[-1].index
+            #last_first = last_elem.tags[0].tokens[0].index
+            #last_last  = last_elem.tags[-1].tokens[-1].index
+            assert( len(root.tags) == 2 )
+            root_first = root.tags[1].tokens[0].index
+            print "OUTPUT REORDER:", prev_last+1, out_last+1, root_first
+            print 0, out_first            
+            print next_first, next_last+1 
+            print out_last+1, next_first  
+            print out_first, out_last+1   
+            print next_last+1, "END"        
+            #tokens = tokens[:prev_last+1] + tokens[(out_last+1):(root_first)] + tokens[prev_last+1:(out_last+1)] + tokens[(root_first):]
+            tokens = tokens[ : out_first            ] + \
+                     tokens[next_first: next_last+1 ] + \
+                     tokens[out_last+1: next_first  ] + \
+                     tokens[out_first: out_last+1   ] + \
+                     tokens[next_last+1:            ]
+
+            print "old subelement order:"
+            for elem in root.sub_elements :
+                print elem.name
+            root.sub_elements.remove( out_elem )
+            root.sub_elements.append( out_elem )
+
+            print "new subelement order:"
+            for elem in root.sub_elements :
+                print elem.name
+            
+            renumber_tokens( tokens )
+
+    for elem in root.sub_elements :
+        tokens = move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( elem, tokens )
+
+    return tokens
 
 def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
     # the first tag beneath the OperateOnCertainResidues (OperateOnResidueSubset) task operation needs
@@ -814,6 +884,13 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
         tokens = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( elem, tokens )
     return tokens
 
+def turn_wild_ampersands_into_and( tokens ) :
+    for tok in tokens:
+        if tok.in_tag : continue
+        print "comment:", tok.contents
+        tok.contents = tok.contents.replace( "&&", "AND" )
+        tok.contents = tok.contents.replace( "&", "and" )
+
 def print_element( depth, element ) :
     print "-" * depth, element.name
     for child in element.sub_elements :
@@ -838,6 +915,7 @@ if __name__ == "__main__" :
     #            print "         ", line
 
     tags, element_root = tokens_into_tags( toks )
+    turn_wild_ampersands_into_and( toks )
     #print_element( 0, element_root )
 
     surround_attributes_w_quotes( tags )
@@ -870,21 +948,32 @@ if __name__ == "__main__" :
 
     #for tok in toks : print tok.contents,
 
-    dummy, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
+    last_tok_index, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
+    new_toks.extend( toks[last_tok_index:])
+    print "How many tokens at the end?", last_tok_index, len( toks )
+    print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
 
-    lines2 = mostly_rewritten_version.split( "\n" )
+    lines2 = [ x + "\n" for x in mostly_rewritten_version.split( "\n" ) ]
     toks2 = tokenize_lines( lines2 )
-    tags, element_root = tokens_into_tags( toks )
+    tags, element_root = tokens_into_tags( toks2 )
     root_first_tok = element_root.tags[0].tokens[0]
     if ( root_first_tok.line_start != 0 or root_first_tok.position_start != 0 ) :
         lines2 = [ "<ROSETTASCRIPTS>" ] + lines2[:root_first_tok.line_start ] + lines2[root_first_tok.line_start + 1: ]
 
+    #debug = True
+
+    toks3 = tokenize_lines( lines2 )
+    tags, element_root = tokens_into_tags( toks3 )
+    toks3 = move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( element_root, toks3 )
+    last_tok_index, new_toks = element_root.reconstitute_token_list( toks3, [], 0 )
+    new_toks.extend( toks3[last_tok_index:])
 
     #print "rewritten version:"
-    #print "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
-    open( output, "w" ).writelines( [ x + "\n" for x in lines2 ] )
+    #print 
+    #open( output, "w" ).writelines( [ x + "\n" for x in lines2 ] )
+    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) )
 
     #for i,tag in enumerate( tags ) :
     #    print i, "".join( [ x.contents for x in tag.tokens ] )

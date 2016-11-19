@@ -173,6 +173,8 @@
    </HotspotFiles>
   </DockWithHotspotMover>
 
+  Oh no! A wild & has appeared! Ampersand can't be just hanging out in XML.
+  What about logic for if ( x is 20 && y is 30 ) ?
 
   <SetupHotspotConstraintsMover name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
    <HotspotFiles>
@@ -219,6 +221,7 @@
 
  </FILTERS>
 
+ <OUTPUT sfxn="test"/>
  <PROTOCOLS>
   <Add mover=prm/>
   Below is a Tag where there is a space between the opening less than sign and the element name

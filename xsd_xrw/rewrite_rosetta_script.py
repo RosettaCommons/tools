@@ -569,6 +569,14 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
         tokens = move_res_filter_as_first_child_of_OperateOnCertainResidues( elem, tokens )
     return tokens
 
+
+def rename_scoring_grid_subelements( root, tokens ) :
+    # TO DO
+    # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
+    # such that the current subelement name is set to the name attribute and 
+    # the current grid_type attribute is the new element name
+
+
 def move_fragments_as_first_child_of_fragset( root, tokens ) :
     # TO DO: make sure that FRAGMENTS element becomes first child of the
     # FRAGSET element?? Shit, the reconstitute_token_list function assumes that

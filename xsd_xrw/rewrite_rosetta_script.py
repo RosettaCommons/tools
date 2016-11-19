@@ -571,11 +571,24 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
 
 
 def rename_scoring_grid_subelements( root, tokens ) :
-    pass
-    # TO DO
     # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
     # such that the current subelement name is set to the name attribute and 
     # the current grid_type attribute is the new element name
+    if root.name == "SCORINGGRIDS" :
+        for elem in root.sub_elements :
+            oldname = elem.name
+            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" ) 
+            oldtype = old_attr[1].contents[1:-1]
+            print oldtype, oldname
+            delete_attribute_from_tag( old_attr, tokens )
+            for i,tag in enumerate( elem.tags ) :
+                name_tok = name_token_of_tag( tag )
+                name_tok.contents = oldtype if i == 0 else ("/"+oldtype)
+                tag.name = oldtype
+            elem.name = oldtype
+    for elem in root.sub_elements :
+        tokens = rename_scoring_grid_subelements( elem, tokens )
+    return tokens
 
 
 def move_fragments_as_first_child_of_fragset( root, tokens ) :
@@ -645,6 +658,14 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
 
+def delete_attribute_from_tag( attr, tokens ) :
+    attr[0].deleted = True
+    attr[1].deleted = True
+    tokens[attr[0].index+1].deleted = True
+    if tokens[attr[1].index+1].whitespace :
+        tokens[attr[1].index+1].deleted = True
+
+
 def rename_report_to_db_children( root, tokens ):
     # All children of ReportToDB and TrajectoryReportToDB currently
     # have name "Feature". They now will have the name of the feature reporter
@@ -657,11 +678,7 @@ def rename_report_to_db_children( root, tokens ):
                     attr = find_attribute_in_tag( tag, "name" )
                     assert( attr )
                     new_name = attr[1].contents[1:-1] # trim the "s
-                    attr[0].deleted = True
-                    attr[1].deleted = True
-                    tokens[attr[0].index+1].deleted = True
-                    if tokens[attr[1].index+1].whitespace :
-                        tokens[attr[1].index+1].deleted = True
+                    delete_attribute_from_tag( attr, tokens )
                 assert( new_name is not None )
                 tag.name = new_name
                 name_tok = name_token_of_tag( tag )
@@ -817,7 +834,6 @@ def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
     recursively_rename_subelements( root, "RotamerBoltzmannWeight", "Threshold", "restype" )
 
 def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
-    # TO DO
     # attributes may not begin with a numeral, so the 3mers and 9mers attributes
     # of the HybridizeMover need to be changed to "three_mers" and "nine_mers" respectively
     if root.name == "Hybridize" :
@@ -973,6 +989,7 @@ if __name__ == "__main__" :
     # big modification to the behavior of the ModulatedMover XML structure
     toks = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( element_root, toks )
     toks = move_res_filter_as_first_child_of_OperateOnCertainResidues( element_root, toks )
+    toks = rename_scoring_grid_subelements( element_root, toks )
 
     #for tok in toks : print tok.contents,
 

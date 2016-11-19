@@ -53,6 +53,11 @@
    </OperateOnCertainResidues>
 
  </TASK_OPERATIONS>
+
+  <SCORINGGRIDS ligand_chain="X" width="15">
+    <classic grid_type="ClassicGrid" weight="1.0"/>
+  </SCORINGGRIDS>
+
  <FRAGSETS>
   <FRAGMENTS>
    the element name for the fragreader below will become "FragReader"
@@ -64,22 +69,27 @@
   <fragset1 composed=thing1,whatever,steal/>
   <fragset2 compose=steal/>
  </FRAGSETS>
+
  <MONTECARLOS>
   <mc1 scorefxn=talaris2014_cst/>
   <mc2 scorefxn=softrep/>
  </MONTECARLOS>
+
  <INTERFACE_BUILDERS>
   <ib1 param=1.0 testing=2.0/>
  </INTERFACE_BUILDERS>
+
  <MOVEMAP_BUILDERS>
   <mmb1 something=somethingelse/>
   <mmb2 something=somethingelse/>
   <mmb3 something=somethingelse/>
  </MOVEMAP_BUILDERS>
+
  <LIGAND_AREAS>
   <la1 thing=1/>
   <la2 thing=2/>
  </LIGAND_AREAS>
+
  <MOVERS>
   <PackRotamersMover name = prm resfile = whatever.resfile />
   Here is a comment to make sure that

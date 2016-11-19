@@ -450,8 +450,9 @@ def replace_element_name_w_attribute( element, new_name, new_attribute ) :
 def recursively_rename_subelements( root, element_name, new_subelement_name, new_attribute_name = "name" ) :
     for element in root.sub_elements :
         if element.name == element_name :
-            for sfxn_element in element.sub_elements :
-                replace_element_name_w_attribute( sfxn_element, new_subelement_name, new_attribute_name )
+            for sub_element in element.sub_elements :
+                if sub_element.name == new_subelement_name : continue # Assume this doesn't need rewriting
+                replace_element_name_w_attribute( sub_element, new_subelement_name, new_attribute_name )
         recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
 
 def rename_score_functions( root ) :

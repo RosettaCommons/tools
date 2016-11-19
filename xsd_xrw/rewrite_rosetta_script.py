@@ -494,12 +494,12 @@ def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
             #last_last  = last_elem.tags[-1].tokens[-1].index
             assert( len(root.tags) == 2 )
             root_first = root.tags[1].tokens[0].index
-            print "OUTPUT REORDER:", prev_last+1, out_last+1, root_first
-            print 0, out_first            
-            print next_first, next_last+1 
-            print out_last+1, next_first  
-            print out_first, out_last+1   
-            print next_last+1, "END"        
+            #print "OUTPUT REORDER:", prev_last+1, out_last+1, root_first
+            #print 0, out_first            
+            #print next_first, next_last+1 
+            #print out_last+1, next_first  
+            #print out_first, out_last+1   
+            #print next_last+1, "END"        
             #tokens = tokens[:prev_last+1] + tokens[(out_last+1):(root_first)] + tokens[prev_last+1:(out_last+1)] + tokens[(root_first):]
             tokens = tokens[ : out_first            ] + \
                      tokens[next_first: next_last+1 ] + \
@@ -507,15 +507,15 @@ def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
                      tokens[out_first: out_last+1   ] + \
                      tokens[next_last+1:            ]
 
-            print "old subelement order:"
-            for elem in root.sub_elements :
-                print elem.name
+            #print "old subelement order:"
+            #for elem in root.sub_elements :
+            #    print elem.name
             root.sub_elements.remove( out_elem )
             root.sub_elements.append( out_elem )
 
-            print "new subelement order:"
-            for elem in root.sub_elements :
-                print elem.name
+            #print "new subelement order:"
+            #for elem in root.sub_elements :
+            #    print elem.name
             
             renumber_tokens( tokens )
 
@@ -623,6 +623,7 @@ def rename_bridge_chains_mover_to_bridge_chains( root ) :
 
 def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
     # dock_design is no longer an acceptible starting tag for a rosetta script
+    if root.name != "dock_design" : return
     for i,tag in enumerate( root.tags ) :
         #print "tag:", i, tag.name
         for j,tok in enumerate( tag.tokens ) :
@@ -887,7 +888,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
 def turn_wild_ampersands_into_and( tokens ) :
     for tok in tokens:
         if tok.in_tag : continue
-        print "comment:", tok.contents
+        #print "comment:", tok.contents
         tok.contents = tok.contents.replace( "&&", "AND" )
         tok.contents = tok.contents.replace( "&", "and" )
 
@@ -950,8 +951,8 @@ if __name__ == "__main__" :
 
     last_tok_index, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
     new_toks.extend( toks[last_tok_index:])
-    print "How many tokens at the end?", last_tok_index, len( toks )
-    print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
+    #print "How many tokens at the end?", last_tok_index, len( toks )
+    #print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
 

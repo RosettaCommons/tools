@@ -960,7 +960,7 @@ if __name__ == "__main__" :
     toks2 = tokenize_lines( lines2 )
     tags, element_root = tokens_into_tags( toks2 )
     root_first_tok = element_root.tags[0].tokens[0]
-    if ( root_first_tok.line_start != 0 or root_first_tok.position_start != 0 ) :
+    if ( (root_first_tok.line_start != 0 or root_first_tok.position_start != 0 ) and element_root.name == "ROSETTASCRIPTS" ) :
         lines2 = [ "<ROSETTASCRIPTS>" ] + lines2[:root_first_tok.line_start ] + lines2[root_first_tok.line_start + 1: ]
 
     #debug = True

@@ -873,8 +873,20 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
         new_tokens = tokenize_lines( new_mover_tag_line )
         tags, new_mover_element = tokens_into_tags( new_tokens )
 
-        first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
-        tokens = tokens[:first_root_subelement_token] + new_tokens + tokens[first_root_subelement_token:]
+        if root.sub_elements :
+            first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
+            tokens = tokens[:first_root_subelement_token] + new_tokens + tokens[first_root_subelement_token:]
+        elif len(root.tags)== 2 :
+            old_space_token =  tokens[root.tags[0].tokens[-1].index+1]
+            new_space_token = XMLToken()
+            new_space_token.contents = old_space_token.contents + "  "
+            
+            tokens = tokens[:root.tags[0].tokens[-1].index+1] + \
+                     [ new_space_token ] + \
+                     new_tokens + \
+                     [ old_space_token ] + \
+                     tokens[root.tags[1].tokens[0].index:]
+            
         #for tok in tokens : print tok.contents,
 
         root.sub_elements.insert( 0, new_mover_element )

@@ -571,6 +571,7 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
 
 
 def rename_scoring_grid_subelements( root, tokens ) :
+    pass
     # TO DO
     # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
     # such that the current subelement name is set to the name attribute and 

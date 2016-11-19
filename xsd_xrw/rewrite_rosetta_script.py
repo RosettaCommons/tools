@@ -481,7 +481,7 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
                                          "RestrictAbsentCanonicalAASRLT",
                                          "RestrictToRepackingRLT" ] )
         if len( root.sub_elements ) == 2 and root.sub_elements[0].name in res_lvl_task_operations :
-            # print 0, root.sub_elements[0].tags[0].tokens[0].index 
+            # print 0, root.sub_elements[0].tags[0].tokens[0].index
             # print root.sub_elements[1].tags[0].tokens[0].index, ( root.sub_elements[1].tags[-1].tokens[-1].index + 1 )
             # print (root.sub_elements[0].tags[-1].tokens[-1].index+1), root.sub_elements[1].tags[0].tokens[0].index
             # print root.sub_elements[0].tags[0].tokens[0].index, ( root.sub_elements[0].tags[-1].tokens[-1].index + 1 )
@@ -494,7 +494,7 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
                 tokens[ (root.sub_elements[1].tags[-1].tokens[-1].index+1): ]
             root.sub_elements = [ root.sub_elements[1], root.sub_elements[0] ]
             renumber_tokens( tokens )
-    
+
     for elem in root.sub_elements :
         tokens = move_res_filter_as_first_child_of_OperateOnCertainResidues( elem, tokens )
     return tokens
@@ -622,8 +622,8 @@ def give_parsed_protocol_children_an_element_name( root ):
 
 def give_all_calculator_filter_children_an_element_name( root ):
     #Children of CalculatorFilter will either be called Var
-    #(if they have the attribute filter or filter_name ) or 
-    #Value (if they have the attribute value but not one of the other two). 
+    #(if they have the attribute filter or filter_name ) or
+    #Value (if they have the attribute value but not one of the other two).
     #Subtags without any of these attributes are invalid.
     # test 720 not working properly!
     if root.name == "CalculatorFilter" :
@@ -709,8 +709,12 @@ def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( ro
     #ALL subelements of PlaceStub and PlaceSimultaneously have this unnamed Add subelement
     pass
 
+def remove_all_comments_containing_ampersands_or_angle_brackets( root ):
+    #outside of <>, remove any &, <, or > characters - probably by replacing with +, [, and ], or whatever
+    pass
+
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
-    # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover 
+    # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover
     # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
     # need to be given the name "HotspotFile"
     if root.name == "DockWithHotspotMover" or root.name == "SetupHotspotConstraintsLoop" or root.name == "SetupHotspotConstraintsMover" :

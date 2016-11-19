@@ -886,6 +886,8 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                      new_tokens + \
                      [ old_space_token ] + \
                      tokens[root.tags[1].tokens[0].index:]
+        else :
+            assert( false ) # oh for fucks sake, please edit this so that ModulatedMover has a distinct closing tag ( "</ModulatedMover>" )
             
         #for tok in tokens : print tok.contents,
 

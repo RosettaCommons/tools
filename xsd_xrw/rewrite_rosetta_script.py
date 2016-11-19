@@ -577,10 +577,11 @@ def rename_scoring_grid_subelements( root, tokens ) :
     # the current grid_type attribute is the new element name
     if root.name == "SCORINGGRIDS" :
         for elem in root.sub_elements :
-            oldname = elem.name
             old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" ) 
+            if not old_attr : continue
+            oldname = elem.name
             oldtype = old_attr[1].contents[1:-1]
-            print oldtype, oldname
+            #print oldtype, oldname
             delete_attribute_from_tag( old_attr, tokens )
             for i,tag in enumerate( elem.tags ) :
                 name_tok = name_token_of_tag( tag )

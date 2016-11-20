@@ -496,11 +496,11 @@ def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
             assert( len(root.tags) == 2 )
             root_first = root.tags[1].tokens[0].index
             #print "OUTPUT REORDER:", prev_last+1, out_last+1, root_first
-            #print 0, out_first            
-            #print next_first, next_last+1 
-            #print out_last+1, next_first  
-            #print out_first, out_last+1   
-            #print next_last+1, "END"        
+            #print 0, out_first
+            #print next_first, next_last+1
+            #print out_last+1, next_first
+            #print out_first, out_last+1
+            #print next_last+1, "END"
             #tokens = tokens[:prev_last+1] + tokens[(out_last+1):(root_first)] + tokens[prev_last+1:(out_last+1)] + tokens[(root_first):]
             tokens = tokens[ : out_first            ] + \
                      tokens[next_first: next_last+1 ] + \
@@ -517,7 +517,7 @@ def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
             #print "new subelement order:"
             #for elem in root.sub_elements :
             #    print elem.name
-            
+
             renumber_tokens( tokens )
 
     for elem in root.sub_elements :
@@ -573,12 +573,12 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
 
 def rename_scoring_grid_subelements( root, tokens ) :
     # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
-    # such that the current subelement name is set to the name attribute and 
+    # such that the current subelement name is set to the name attribute and
     # the current grid_type attribute is the new element name
     if root.name == "SCORINGGRIDS" :
         for elem in root.sub_elements :
             oldname = elem.name
-            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" ) 
+            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" )
             oldtype = old_attr[1].contents[1:-1]
             print oldtype, oldname
             delete_attribute_from_tag( old_attr, tokens )
@@ -795,7 +795,7 @@ def give_all_map_hotspot_Jumps_an_element_name( root ) :
         give_all_map_hotspot_Jumps_an_element_name( elem )
 
 def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root ):
-    # TO DO!!!
+    #XRW TODO TO DO!!!
     #				<PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
     #					 <DesignMovers>
     #						<Add mover_name=srsc/>
@@ -809,7 +809,14 @@ def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( ro
 
 def remove_all_comments_containing_ampersands_or_angle_brackets( root ):
     #outside of <>, remove any &, <, or > characters - probably by replacing with +, [, and ], or whatever
+    #XRW TODO TO DO
     pass
+
+def do_not_add_whitespace_to_the_end( root ):
+    #I'm sure this is the wrong way to communicate this but it seems apropos.
+    #testing on rewritten XMLs, and things that are not XML, suggests that the rewriter is adding empty lines to the end of files.
+    #re-re-written XML = rewritten XML + two blank lines
+    #rewritten XML seems to have extra blank lines at the end, too
 
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover
@@ -906,7 +913,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
             old_space_token =  tokens[root.tags[0].tokens[-1].index+1]
             new_space_token = XMLToken()
             new_space_token.contents = old_space_token.contents + "  "
-            
+
             tokens = tokens[:root.tags[0].tokens[-1].index+1] + \
                      [ new_space_token ] + \
                      new_tokens + \
@@ -914,7 +921,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                      tokens[root.tags[1].tokens[0].index:]
         else :
             assert( false ) # oh for fucks sake, please edit this so that ModulatedMover has a distinct closing tag ( "</ModulatedMover>" )
-            
+
         #for tok in tokens : print tok.contents,
 
         root.sub_elements.insert( 0, new_mover_element )
@@ -1017,7 +1024,7 @@ if __name__ == "__main__" :
     new_toks.extend( toks3[last_tok_index:])
 
     #print "rewritten version:"
-    #print 
+    #print
     #open( output, "w" ).writelines( [ x + "\n" for x in lines2 ] )
     open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) )
 

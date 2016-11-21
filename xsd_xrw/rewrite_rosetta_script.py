@@ -452,6 +452,7 @@ def recursively_rename_subelements( root, element_name, new_subelement_name, new
         if element.name == element_name :
             for sub_element in element.sub_elements :
                 if sub_element.name == new_subelement_name : continue # Assume this doesn't need rewriting
+                if sub_element.name == "xi:include" : continue # skip these
                 replace_element_name_w_attribute( sub_element, new_subelement_name, new_attribute_name )
         recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
 
@@ -471,8 +472,10 @@ def rename_fragments_from_frag_reader( root ) :
             for fragset_element in element.sub_elements :
                 if fragset_element.name == "FRAGMENTS" :
                     for fragreader_element in fragset_element.sub_elements  :
+                        if fragreader_element.name == "xi:include" : continue
                         replace_element_name_w_attribute( fragreader_element, "FragReader", "name" )
                 else :
+                    if fragset_element.name == "xi:include" : continue
                     replace_element_name_w_attribute( fragset_element, "FragSet", "name" )
         rename_fragments_from_frag_reader( element )
 
@@ -690,34 +693,49 @@ def rename_report_to_db_children( root, tokens ):
     for elem in root.sub_elements :
         rename_report_to_db_children( elem, tokens )
 
-def give_all_stubsets_children_an_element_name( root ):
-    # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
-    # need to be given the name "Add"
-    if root.name == "StubSets" :
+def recursively_give_all_subelements_a_consistent_name( root, target_element_name, new_subelement_name ) :
+    if root.name == target_element_name :
         for elem in root.sub_elements :
+            if elem.name == "xi:include" : continue
             for i,tag in enumerate( elem.tags ) :
                 name_tok = name_token_of_tag( tag )
                 assert( name_tok )
-                name_tok.contents = "Add" if i == 0 else "/Add"
-                tag.name = "Add"
-            elem.name = "Add"
+                name_tok.contents = new_subelement_name if i == 0 else ( "/" + new_subelement_name )
+                tag.name = new_subelement_name
+            elem.name = new_subelement_name
     for elem in root.sub_elements :
-        give_all_stubsets_children_an_element_name( elem )
+        recursively_give_all_subelements_a_consistent_name( elem, target_element_name, new_subelement_name )
+
+def recursively_give_all_subelements_of_subelements_a_consistent_name( root, target_element_name, target_subelement_name, new_subsubelement_name ) :
+    if root.name == target_element_name :
+        for elem in root.sub_elements :
+            if elem.name == target_subelement_name :
+                for subelement in elem.sub_elements :
+                    if subelement.name == "xi:include" : continue
+                    for i,tag in enumerate( subelement.tags ) :
+                        name_tok = name_token_of_tag( tag )
+                        assert( name_tok )
+                        name_tok.contents = new_subsubelement_name if i == 0 else ( "/" + new_subsubelement_name )
+                        tag.name = new_subsubelement_name
+                    subelement.name = new_subsubelement_name
+    for elem in root.sub_elements :
+        recursively_give_all_subelements_of_subelements_a_consistent_name( elem, target_element_name, target_subelement_name, new_subsubelement_name )
+
+def give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name( root ) :
+    # the names of the Filters subelements of the GreedyOptMutationMover were never looked
+    # at previously by the C++, but the wiki says that the name should be "AND", so go with "AND"
+    recursively_give_all_subelements_of_subelements_a_consistent_name( root, "GreedyOptMutationMover", "Filters", "AND" )
+
+def give_all_stubsets_children_an_element_name( root ):
+    # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
+    # need to be given the name "Add"
+    recursively_give_all_subelements_a_consistent_name( root, "StubSets", "Add" )
 
 def give_parsed_protocol_children_an_element_name( root ):
     # The children of the PROTOCOLS and ParsedProtocol element
     # need to be given the name "Add" -- before, their names were ignored
-    if root.name == "PROTOCOLS" or root.name == "ParsedProtocol" :
-        for elem in root.sub_elements :
-            for i,tag in enumerate( elem.tags ) :
-                name_tok = name_token_of_tag( tag )
-                assert( name_tok )
-                name_tok.contents = "Add" if i == 0 else "/Add"
-                tag.name = "Add"
-            elem.name = "Add"
-    for elem in root.sub_elements :
-        give_parsed_protocol_children_an_element_name( elem )
-
+    recursively_give_all_subelements_a_consistent_name( root, "PROTOCOLS", "Add" )
+    recursively_give_all_subelements_a_consistent_name( root, "ParsedProtocol", "Add" )
 
 def give_all_calculator_filter_children_an_element_name( root ):
     #Children of CalculatorFilter will either be called Var
@@ -750,16 +768,7 @@ def give_all_calculator_filter_children_an_element_name( root ):
 
 def give_all_combined_filter_children_an_element_name( root ):
     #All children of CombinedValue will now be named Add
-    if root.name == "CombinedValue" :
-        for elem in root.sub_elements :
-            for i,tag in enumerate( elem.tags ) :
-                name_tok = name_token_of_tag( tag )
-                assert( name_tok )
-                name_tok.contents = "Add" if i == 0 else "/Add"
-                tag.name = "Add"
-            elem.name = "Add"
-    for elem in root.sub_elements :
-        give_all_combined_filter_children_an_element_name( elem )
+    recursively_give_all_subelements_a_consistent_name( root, "CombinedValue", "Add" )
 
 def give_all_generic_montecarlo_filters_an_element_name( root ) :
     # The children of the Filters element that is itself a child of the GenericMonteCarlo
@@ -965,7 +974,8 @@ if __name__ == "__main__" :
     #print_element( 0, element_root )
 
     surround_attributes_w_quotes( tags )
-    modifications = [ rename_score_functions, rename_fragments_from_frag_reader,
+    modifications = [ rename_score_functions,
+                      rename_fragments_from_frag_reader,
                       rename_monte_carlo_elements_from_monte_carlo_loader,
                       rename_interface_builders_from_interface_builder_loader,
                       rename_movemaps_from_movemap_loader,
@@ -980,7 +990,8 @@ if __name__ == "__main__" :
                       give_all_dock_with_hotspots_HotspotFiles_an_element_name,
                       rename_RotamerBoltzmannFilter_threshold_subelements,
                       give_parsed_protocol_children_an_element_name,
-                      rename_3mer_and_9mer_attributes_of_HybridizeMover
+                      rename_3mer_and_9mer_attributes_of_HybridizeMover,
+                      give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name
                   ]
 
     for modfunc in modifications :
@@ -1000,9 +1011,10 @@ if __name__ == "__main__" :
     #print "How many tokens at the end?", last_tok_index, len( toks )
     #print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
 
-    mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) + "\n"
+    mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
 
-    lines2 = [ x + "\n" for x in mostly_rewritten_version.split( "\n" ) ]
+    lines2 = [ x + "\n" for x in mostly_rewritten_version.split( "\n" ) ][:-1] #avoid the last newline, but don't get rid of all empty lines
+
     toks2 = tokenize_lines( lines2 )
     tags, element_root = tokens_into_tags( toks2 )
     root_first_tok = element_root.tags[0].tokens[0]

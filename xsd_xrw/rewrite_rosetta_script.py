@@ -796,13 +796,13 @@ def give_all_map_hotspot_Jumps_an_element_name( root ) :
 
 def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root ):
     #XRW TODO TO DO!!!
-    #				<PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
-    #					 <DesignMovers>
-    #						<Add mover_name=srsc/>
-    #						<Add mover_name=des1 coord_cst_std=0.6/>
-    #						<Add mover_name=des3 use_constraints=0/>
-    #					</DesignMovers>
-    #				</PlaceStub>
+    #                <PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
+    #                     <DesignMovers>
+    #                        <Add mover_name=srsc/>
+    #                        <Add mover_name=des1 coord_cst_std=0.6/>
+    #                        <Add mover_name=des3 use_constraints=0/>
+    #                    </DesignMovers>
+    #                </PlaceStub>
     #the tags inside DesignMovers (or, equivalently, NotifyMovers, StubMinimize, or StubSets) DO NOT have a name in parse_my_tag; the schema will call them Add
     #ALL subelements of PlaceStub and PlaceSimultaneously have this unnamed Add subelement
     pass
@@ -817,6 +817,7 @@ def do_not_add_whitespace_to_the_end( root ):
     #testing on rewritten XMLs, and things that are not XML, suggests that the rewriter is adding empty lines to the end of files.
     #re-re-written XML = rewritten XML + two blank lines
     #rewritten XML seems to have extra blank lines at the end, too
+    pass
 
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover

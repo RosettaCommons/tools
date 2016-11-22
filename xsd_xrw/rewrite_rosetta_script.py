@@ -377,7 +377,7 @@ def tokens_into_tags( tokens ) :
             curr_tag.tokens.append( tok )
 
     elements = []
-    root = None
+    roots = []
     for i,tag in enumerate( tags ) :
         if debug : print i, tag.name
         if len( elements ) > 0 :
@@ -404,11 +404,11 @@ def tokens_into_tags( tokens ) :
             elements.append( Element() )
             elements[-1].tags.append( tag )
             elements[-1].name = tag.name
-            root = elements[-1]
+            roots.append( elements[-1] )
             #print "appending root tag"
         if tag.closed :
             elements.pop()
-    return tags, root
+    return tags, roots
 
 # ok -- take a set of tags, and edit them so that the rhs of each attribute statement
 # is surrounded by quotes
@@ -663,7 +663,7 @@ def rename_bridge_chains_mover_to_bridge_chains( root, tokens ) :
 
 def rename_dockdesign_to_ROSETTASCRIPTS( root, tokens ) :
     # dock_design is no longer an acceptible starting tag for a rosetta script
-    if root.name != "dock_design" : return
+    if root.name != "dock_design" : return tokens
     for i,tag in enumerate( root.tags ) :
         #print "tag:", i, tag.name
         for j,tok in enumerate( tag.tokens ) :
@@ -985,7 +985,13 @@ def move_ROSETTASCRIPTS_tags_to_very_beginning_and_end_of_file( lines2 ) :
     # root with ROSETTASCRIPTS at the top, then we'll ignore the tokens and just modify the lines themselves.
 
     toks2 = tokenize_lines( lines2 )
-    tags, element_root = tokens_into_tags( toks2 )
+    tags, element_roots = tokens_into_tags( toks2 )
+    if len( element_roots ) != 1 :
+        # if there are multiple roots, then this file is likely xi:included from
+        # some other script -- possibly inside a multiple-pose-mover, e.g.
+        return lines2
+
+    element_root = element_roots[0]
     root_first_tok = element_root.tags[0].tokens[0]
     root_last_tok = element_root.tags[-1].tokens[-1]
     if element_root.name == "ROSETTASCRIPTS" :
@@ -1002,6 +1008,18 @@ def move_ROSETTASCRIPTS_tags_to_very_beginning_and_end_of_file( lines2 ) :
                          [ "".join( [ x.contents for x in toks2[ (root_last_tok.index+1): ] ] ) ] + \
                          [ "</ROSETTASCRIPTS>\n" ]
     return lines2
+
+def rebuild_token_list_from_roots( element_roots, toks ) :
+    new_toks = []
+    last_tok_index = 0
+    for element_root in element_roots :
+        last_tok_index, new_toks =  element_root.reconstitute_token_list( toks, new_toks, last_tok_index )
+    new_toks.extend( toks[last_tok_index:])
+
+    #print "How many tokens at the end?", last_tok_index, len( toks )
+    #print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
+
+    return new_toks
 
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
@@ -1021,9 +1039,8 @@ if __name__ == "__main__" :
     #        else :
     #            print "         ", line
 
-    tags, element_root = tokens_into_tags( toks )
+    tags, element_roots = tokens_into_tags( toks )
     turn_wild_ampersands_into_and( toks )
-    #print_element( 0, element_root )
 
     surround_attributes_w_quotes( tags )
     modifications = [ rename_score_functions,
@@ -1050,13 +1067,14 @@ if __name__ == "__main__" :
                       rename_scoring_grid_subelements
                   ]
 
-    for modfunc in modifications :
-        toks = modfunc( element_root, toks )
+    for element_root in element_roots :
+        for modfunc in modifications :
+            toks = modfunc( element_root, toks )
+            if not toks :
+                print "Bug in rewrite_rosetta_script.py: \"None\" returned by", modfunc.__name__
+                sys.exit(1)
 
-    last_tok_index, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
-    new_toks.extend( toks[last_tok_index:])
-    #print "How many tokens at the end?", last_tok_index, len( toks )
-    #print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
+    new_toks = rebuild_token_list_from_roots( element_roots, toks )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
     #print mostly_rewritten_version
@@ -1068,10 +1086,10 @@ if __name__ == "__main__" :
     #debug = True
 
     toks3 = tokenize_lines( lines2 )
-    tags, element_root = tokens_into_tags( toks3 )
-    toks3 = move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( element_root, toks3 )
-    last_tok_index, new_toks = element_root.reconstitute_token_list( toks3, [], 0 )
-    new_toks.extend( toks3[last_tok_index:])
+    tags, element_roots = tokens_into_tags( toks3 )
+    if len( element_roots ) == 1 :
+        toks3 = move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( element_roots[0], toks3 )
+        new_toks = rebuild_token_list_from_roots( element_roots, toks3 )
 
     #print "rewritten version:"
     #print

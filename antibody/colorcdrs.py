@@ -25,8 +25,20 @@ schemes = {'chothia': {'l1': [24, 34], 'l2': [50, 56], 'l3': [89, 97],
                        'h1': [26, 35], 'h2': [50, 56], 'h3': [95, 102]
                        },
            'aho': {'l1': [24, 42], 'l2': [57, 72], 'l3': [107, 138],
-                   'h1': [24, 42], 'h2': [57, 69], 'h3': [107, 138]},
+                   'h1': [24, 42], 'h2': [57, 69], 'h3': [107, 138]
+                   },
            }
+
+Color = namedtuple('Color', ['color', 'selection'])
+# Color mapping
+colors = [Color('green', 'antigen'),
+          Color('yellow', 'light'),
+          Color('blue', 'heavy'),
+          Color('brightorange', 'cdrl'),
+          Color('cyan', 'cdrh'),
+          Color('greencyan', 'h3'),
+          Color('orange', 'l3'),
+          ]
 
 Selection = namedtuple('Selection', ['name', 'selection'])
 
@@ -159,13 +171,8 @@ PYMOL API
 
     cmd.bg_color(color='white')
 
-    cmd.color('green', selection='antigen')
-    cmd.color('yellow', selection='light')
-    cmd.color('blue', selection='heavy')
-    cmd.color('brightorange', selection='cdrl')
-    cmd.color('cyan', selection='cdrh')
-    cmd.color('greencyan', selection='h3')
-    cmd.color('orange', selection='l3')
+    for c in colors:
+        cmd.color(c.color, c.selection)
 
     cmd.disable(name='framework')
     cmd.disable(name='stem')

@@ -177,6 +177,51 @@ def parse_sequence( node, parentname ):
 
     return '', main_doc, tag_lines, doc_lines
 
+def parse_all( node, parentname ):
+    print "PARSING ALL for ", parentname
+
+    main_doc = ''
+    tag_lines = []
+    doc_lines = []
+
+    for subelem in node:
+        if subelem.tag == '{http://www.w3.org/2001/XMLSchema}choice':
+            sc = parse_choice(subelem , parentname)
+            if sc is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = sc
+            tag_lines.extend( subtag_lines )
+
+            if len(subdoc_lines) != 0:
+                if subtagname:
+                    doc_lines.append('')
+                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                doc_lines.extend(subdoc_lines)
+        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
+            se = parse_subelement(subelem , parentname)
+            if se is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = se
+            tag_lines.extend( subtag_lines )
+
+            if len(subdoc_lines) != 0:
+                if subtagname:
+                    doc_lines.append('')
+                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                doc_lines.extend(subdoc_lines)
+        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
+            sg = parse_group( subelem, parentname )
+            if sg is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = sg
+            tag_lines.extend( subtag_lines )
+            doc_lines.extend( subdoc_lines )
+        else:
+            print "Error parsing subtag of ALL for ", parentname, '::', subelem.tag
+            continue
+
+    return '', main_doc, tag_lines, doc_lines
+
 def parse_group( node, parentname ):
     #print "PARSING GROUP for ", parentname
 
@@ -241,6 +286,10 @@ def parse_complextype( name, parentname, node ):
             sg = parse_group(gc, desig)
             if sg is not None:
                 subtags.append( sg )
+        elif gc.tag == '{http://www.w3.org/2001/XMLSchema}all':
+            sa = parse_all(gc, desig)
+            if sa is not None:
+                subtags.append( sa )
         else:
             print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
             pass

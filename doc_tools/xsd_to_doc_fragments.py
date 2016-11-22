@@ -23,50 +23,103 @@ def get_annotation(node, name1, name2=None):
         return ''
     return node[0].text
 
-def process( name, node, outfilename ):
 
+def parse_choice( subtag, parentname ):
+    if 'minOccurs' in subtag.attrib and subtag.attrib['minOccurs'] == '0':
+        optional = True
+    else:
+        optional = False
+
+    return None
+
+def parse_complextype( name, parentname, node ):
     main_doc = ''
     attributes = []
+    subtags = []
 
     for gc in node:
         if gc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
             main_doc = get_annotation( gc, name )
         elif gc.tag == '{http://www.w3.org/2001/XMLSchema}attribute':
             if 'name' not in gc.attrib:
-                print "Error parsing attribute for entry", name
+                if parentname is not None:
+                    print "Error parsing attribute for entry", name, 'on', parentname
+                else:
+                    print "Error parsing attribute for entry", name
                 continue
             attrib = dict( gc.attrib )
             for ggc in gc:
                 if ggc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
                     attrib['docstring'] = get_annotation( ggc, gc.attrib['name'], name )
             attributes.append( attrib )
+        elif gc.tag == '{http://www.w3.org/2001/XMLSchema}choice':
+            st = parse_choice(gc, name)
+            if st is not None:
+                subtags.append( st )
         else:
-            print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
+            #print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
+            pass
+
+    # Format the tags:
+
+    tag_lines = []
+    main_line = '<'+name
+    #Pull the name subentry out front, if it exists
+    for nameattrib in [a for a in attributes if a['name']=='name']:
+        main_line += " "+nameattrib['name']+'="(' + alias_type(nameattrib['type']) + ')"'
+    for attrib in attributes:
+        if attrib['name'] == "name":
+            continue
+        main_line += " "+attrib['name']+'="(' + alias_type(attrib['type'])
+        if 'default' in attrib:
+          main_line += "; " + attrib['default']
+        main_line += ')"'
+    if len(subtags) == 0:
+        main_line += ' />'
+    tag_lines.append(main_line)
+
+    for subtagname, submain_doc, subtag_lines, subdoc_lines in subtags:
+        tag_lines.extend( '    ' + line for line in subtag_lines )
+    if len(subtags) != 0 :
+        tag_lines.append( '</'+name+'>' )
+
+    #Format the documentation entries
+
+    doc_lines = []
+    for attrib in attributes:
+        # Skip entry for name
+        if attrib['name'] == 'name': continue
+        if 'docstring' in attrib and len(attrib['docstring']) != 0:
+            doc_lines.append( '-   ' + attrib['name'] + ": " + attrib['docstring'].strip() )
+
+    for subtagname, submain_doc, subtag_lines, subdoc_lines in subtags:
+        if len(doc_lines) == 0:
+            continue
+        doc_lines.append('')
+
+        doc_lines.append('For subtag ' + subtagname + ": " + submain_doc)
+        doc_lines.extend(subdoc_lines)
+
+    return name, main_doc, tag_lines, doc_lines
+
+def process( name, node, outfilename ):
+
+    main_doc = ''
+    attributes = []
+    subtags = []
+
+    if node.tag != '{http://www.w3.org/2001/XMLSchema}complexType':
+        print "Error: expected complex type."
+        return
+
+    _, main_doc, tag_lines, doc_lines = parse_complextype( name, None, node )
 
     with codecs.open(outfilename, 'w',encoding='utf8' ) as f:
         f.write( main_doc.strip() + '\n\n')
         f.write( '```\n' )
-        f.write( '<' + name )
-        # Reorder the types
-        for nameattrib in [a for a in attributes if a['name']=='name']:
-            f.write(" "+nameattrib['name']+"=(" + alias_type(nameattrib['type']) + ')' )
-        for attrib in attributes:
-            if attrib['name'] == name:
-                continue
-            f.write(" "+attrib['name']+"=(" + alias_type(attrib['type']) )
-            if 'default' in attrib:
-              f.write( "; " + attrib['default'] )
-            f.write( ')' )
-        f.write( ' /> \n' )
-
-        f.write( '```\n\n' )
-
-        for attrib in attributes:
-            # Skip entry for name
-            if attrib['name'] == 'name': continue
-            if 'docstring' in attrib and len(attrib['docstring']) != 0:
-                f.write( '-   ' + attrib['name'] + ": " + attrib['docstring'].strip() + "\n" )
-
+        f.write( '\n'.join(tag_lines) )
+        f.write( '\n```\n\n' )
+        f.write( '\n'.join(doc_lines) )
         f.write( '\n' )
 
 def main( xsdfile, outdir ):

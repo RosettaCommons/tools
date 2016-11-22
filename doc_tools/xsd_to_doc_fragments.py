@@ -4,9 +4,14 @@ import sys, os
 import xml.etree.ElementTree as ET
 import codecs
 
-TYPE_ALIASES={ 'xs:string':'string', }
+TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
 SECTIONS = [ 'mover', ] # ['loop_definer', 'residue_selector', 'scoring_grid', 'task_operation', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_lvl_task_op', 'res_filter', 'mover', 'constraint_generator', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_selector', 'pose_property_reporter', 'filter', 'features_reporter', 'envclaim', 'scriptcm']
 
+COMMON_TYPES={
+
+}
+
+ALL_ENTRIES = {}
 
 def alias_type( typename ):
     if typename in TYPE_ALIASES:
@@ -23,19 +28,117 @@ def get_annotation(node, name1, name2=None):
         return ''
     return node[0].text
 
+def parse_subelement( subelem, parentname ):
 
-def parse_choice( subtag, parentname ):
-    if 'minOccurs' in subtag.attrib and subtag.attrib['minOccurs'] == '0':
+    main_doc = ''
+    tag_lines = []
+    doc_lines = []
+
+    if 'name' not in subelem.attrib:
+        print 'Error: missing name when parsing subtag for ', parentname
+    name = subelem.attrib['name']
+
+    if len(subelem) >=2:
+        print "Error: can't parse type for", name, "in", parentname
+        return None
+
+    if len( subelem ) == 0:
+        if 'type' not in subelem.attrib:
+            print "Error: can't parse type entry for", name, "in", parentname
+            return None
+        typename = subelem.attrib['type']
+        if typename in COMMON_TYPES:
+            subtag_line, subdoc_line = COMMON_TYPES[ typename ]
+            tag_lines.append( subtag_line )
+            doc_lines.append( subdoc_line )
+
+            return '', main_doc, tag_lines, doc_lines
+
+        # Parse complex type in ALL_ENTRIES
+        if typename not in ALL_ENTRIES:
+            print "Error: can't parse type of ", typename, " for", name, "in", parentname
+            return None
+        ctype = ALL_ENTRIES[typename]
+    elif len( subelem ) == 1:
+        ctype = subelem[0]
+
+    if ctype.tag != '{http://www.w3.org/2001/XMLSchema}complexType':
+        print "Error getting type for", name, "in", parentname
+        return None
+    subtagname, submain_doc, subtag_lines, subdoc_lines = parse_complextype( name, parentname, ctype )
+    tag_lines.extend( subtag_lines )
+
+    if len(subdoc_lines) != 0:
+        if subtagname:
+            doc_lines.append('')
+            doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+            doc_lines.append('')
+        doc_lines.extend(subdoc_lines)
+
+    return '', main_doc, tag_lines, doc_lines
+
+def parse_choice( node, parentname ):
+    if 'minOccurs' in node.attrib and node.attrib['minOccurs'] == '0':
         optional = True
     else:
         optional = False
 
-    return None
+    main_doc = ''
+    tag_lines = []
+    doc_lines = []
+
+    for subelem in node:
+        if subelem.tag != '{http://www.w3.org/2001/XMLSchema}element':
+            print "Error parsing subtags for ", parentname, '::', node[0].tag
+            continue
+
+        subtagname, submain_doc, subtag_lines, subdoc_lines = parse_subelement( subelem, parentname )
+        tag_lines.extend( subtag_lines )
+        doc_lines.extend( subdoc_lines )
+
+    return '', main_doc, tag_lines, doc_lines
+
+def parse_sequence( node, parentname ):
+    main_doc = ''
+    tag_lines = []
+    doc_lines = []
+
+    print "PARSING SEQUENCE for ", parentname
+
+    for subelem in node:
+        if subelem.tag == '{http://www.w3.org/2001/XMLSchema}choice':
+            subtagname, submain_doc, subtag_lines, subdoc_lines = parse_choice(subelem , parentname)
+            tag_lines.extend( subtag_lines )
+
+            if len(subdoc_lines) != 0:
+                if subtagname:
+                    doc_lines.append('')
+                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('')
+                doc_lines.extend(subdoc_lines)
+        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
+            subtagname, submain_doc, subtag_lines, subdoc_lines = parse_subelement(subelem , parentname)
+            tag_lines.extend( subtag_lines )
+
+            if len(subdoc_lines) != 0:
+                if subtagname:
+                    doc_lines.append('')
+                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('')
+                doc_lines.extend(subdoc_lines)
+
+    return '', main_doc, tag_lines, doc_lines
 
 def parse_complextype( name, parentname, node ):
     main_doc = ''
     attributes = []
     subtags = []
+
+    if parentname is not None:
+        desig = parentname + '::' + name
+    else:
+        desig = name
+
 
     for gc in node:
         if gc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
@@ -50,14 +153,18 @@ def parse_complextype( name, parentname, node ):
             attrib = dict( gc.attrib )
             for ggc in gc:
                 if ggc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
-                    attrib['docstring'] = get_annotation( ggc, gc.attrib['name'], name )
+                    attrib['docstring'] = get_annotation( ggc, gc.attrib['name'], desig )
             attributes.append( attrib )
         elif gc.tag == '{http://www.w3.org/2001/XMLSchema}choice':
-            st = parse_choice(gc, name)
+            st = parse_choice(gc, desig)
+            if st is not None:
+                subtags.append( st )
+        elif gc.tag == '{http://www.w3.org/2001/XMLSchema}sequence':
+            st = parse_sequence(gc, desig)
             if st is not None:
                 subtags.append( st )
         else:
-            #print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
+            print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
             pass
 
     # Format the tags:
@@ -76,6 +183,8 @@ def parse_complextype( name, parentname, node ):
         main_line += ')"'
     if len(subtags) == 0:
         main_line += ' />'
+    else:
+        main_line += ' >'
     tag_lines.append(main_line)
 
     for subtagname, submain_doc, subtag_lines, subdoc_lines in subtags:
@@ -97,7 +206,9 @@ def parse_complextype( name, parentname, node ):
             continue
         doc_lines.append('')
 
-        doc_lines.append('For subtag ' + subtagname + ": " + submain_doc)
+        if subtagname:
+            doc_lines.append('For subtag ' + subtagname + ": " + submain_doc)
+            doc_lines.append('')
         doc_lines.extend(subdoc_lines)
 
     return name, main_doc, tag_lines, doc_lines
@@ -138,6 +249,9 @@ def main( xsdfile, outdir ):
             continue
 
         entries[ child.attrib['name'] ] = child
+
+    global ALL_ENTRIES
+    ALL_ENTRIES = entries
 
     for section in SECTIONS:
         if section not in entries:

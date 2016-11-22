@@ -6,7 +6,7 @@ import codecs
 
 TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
 # SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
-SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter']
+SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group']
 # Nonce groups:
 # ['loop_definer', 'scoring_grid', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
 
@@ -24,7 +24,11 @@ COMMON_TYPES={ # typename:(pseudoname,docstring)
 'pose_selector':('Pose Selectors Tag','Any of the [[Pose Selectors|RosettaScripts-MultiplePoseMover#pose-selectors]]'),
 'pose_property_reporter':('Pose Property Reporter Tag','Any of the [[Pose Property Reporters|RosettaScripts-MultiplePoseMover#pose-property-reporters]]'),
 'scoring_grid':('Scoring Grid Tag','Any of the [[ScoringGrids|RosettaScripts#scoringgrids]]'),
-#'rdf_function':('RDF function Tag','Any of the [[RDF Functions|ComputeLigandRDF]]'),
+'rdf_function':('RDF function Tag','Any of the [[RDF Functions|ComputeLigandRDF]]'),
+
+'denovo_perturber':('Perturber Tag','Any of the [[CompoundPerturbers|BuildDeNovoBackboneMover]]'), # Nonce, but added because of recursion
+'compound_architect_pairing_group':('CompoundArchitect pairings Tags','Any of the [[CompoundArchitects|BuildDeNovoBackboneMover]]'), # Nonce, but added because of recursion
+'denovo_architect':('DenovoArchitect pairings Tags','Any of the [[DenovoArchitects|BuildDeNovoBackboneMover]]'), # Nonce, but added because of recursion
 }
 
 ALL_ENTRIES = {}
@@ -236,17 +240,21 @@ def parse_group( node, parentname ):
         docline = '"' + pseudoname + '": ' + docline.strip()
         return '', '', [ tagline, ], ['',docline,]
 
-    # We error out for now, because groups should probably be common, rather than specific
-    print "ERROR: Don't know anything about group name '"+ref+"' from", parentname
-    return None
-
     if ref not in ALL_ENTRIES:
         print "Error: can't parse group ", typename, " for in", parentname
         return None
-    ctype = ALL_ENTRIES[typename]
-    if ctype.tag == '{http://www.w3.org/2001/XMLSchema}group':
-        print "ERROR: This needs to get finished"
+    ctype = ALL_ENTRIES[ref]
+    if ctype.tag != '{http://www.w3.org/2001/XMLSchema}group' or len(ctype) != 1:
+        print "Error: issue parsing group", ref, 'in', parentname
         return None
+    ctype = ctype[0]
+    if ctype.tag != '{http://www.w3.org/2001/XMLSchema}choice':
+        print 'Error: issue parsing group', ref, 'in', parentname
+    print '... putting group', ref, 'in-line for', parentname
+    sc = parse_choice( ctype, parentname )
+    if sc is None:
+        return None
+    return sc
 
 def parse_complextype( name, parentname, node ):
     main_doc = ''

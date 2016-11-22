@@ -117,6 +117,16 @@
     <Interp key="trans_mag" curve="exponential"  start=1.5 end=0.1/>
   </ModulatedMover>
 
+  Here are some more examples; this one has no subelements
+  <ModulatedMover name=scaled_rb type=RigidBodyPerturbNoCenter tempering=h_exchange/>
+
+  This one has no common subelement, but it does have two Interp subelements
+  <ModulatedMover name=scaled_rb type=RigidBodyMover tempering=h_exchange>
+    <Interp key="rot_mag" curve="exponential" start=1 end=5/>
+    <Interp key="trans_mag" curve="exponential" start=0.25 end=1/>
+  </ModulatedMover>
+
+
   <PlacementMinimization name=placement_min>
    <StubSets>
     Add stubfile=1l6x.pos1_stubs.pdb/>  removed to save time ###

@@ -391,6 +391,13 @@ def tokens_into_tags( tokens ) :
                 elements.append( Element() )
                 elements[-1].name = tag.name
                 elements[-2].sub_elements.append( elements[-1] )
+            if len(elements[-1].tags) >= 2 :
+                # too many tags for a single element!
+                print "Input script is not valid XML"
+                print "This is the third tag in a row for \"" + elements[-1].name + "\" found on line", \
+                    str( name_token_of_tag( tag ).line_start+1 ) + "; there should only ever be two. Did" + \
+                    " you forget to close one of these tags?"
+                sys.exit(1)
             elements[-1].tags.append( tag )
             #print "appending tag", tag.name, "to", elements[-1].name, len(elements[-1].tags)
         else :
@@ -805,48 +812,28 @@ def give_all_map_hotspot_Jumps_an_element_name( root ) :
         give_all_map_hotspot_Jumps_an_element_name( elem )
 
 def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root ):
-    #XRW TODO TO DO!!!
-    #                <PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
-    #                     <DesignMovers>
-    #                        <Add mover_name=srsc/>
-    #                        <Add mover_name=des1 coord_cst_std=0.6/>
-    #                        <Add mover_name=des3 use_constraints=0/>
-    #                    </DesignMovers>
-    #                </PlaceStub>
+    #  <PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
+    #       <DesignMovers>
+    #          <Add mover_name=srsc/>
+    #          <Add mover_name=des1 coord_cst_std=0.6/>
+    #          <Add mover_name=des3 use_constraints=0/>
+    #      </DesignMovers>
+    #  </PlaceStub>
     #the tags inside DesignMovers (or, equivalently, NotifyMovers, StubMinimize, or StubSets) DO NOT have a name in parse_my_tag; the schema will call them Add
     #ALL subelements of PlaceStub and PlaceSimultaneously have this unnamed Add subelement
-    pass
-
-def remove_all_comments_containing_ampersands_or_angle_brackets( root ):
-    #outside of <>, remove any &, <, or > characters - probably by replacing with +, [, and ], or whatever
-    #XRW TODO TO DO
-    pass
-
-def do_not_add_whitespace_to_the_end( root ):
-    #I'm sure this is the wrong way to communicate this but it seems apropos.
-    #testing on rewritten XMLs, and things that are not XML, suggests that the rewriter is adding empty lines to the end of files.
-    #re-re-written XML = rewritten XML + two blank lines
-    #rewritten XML seems to have extra blank lines at the end, too
-    pass
+    outer = [ "PlaceStub", "PlaceSimultaneously" ]
+    inner = [ "DesignMovers", "NotifyMovers", "StubMinimize", "StubSets" ]
+    for element_name in outer :
+        for subelement_name in inner :
+            recursively_give_all_subelements_of_subelements_a_consistent_name( root, element_name, subelement_name, "Add" )
 
 def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover
     # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
     # need to be given the name "HotspotFile"
-    if root.name == "DockWithHotspotMover" or root.name == "SetupHotspotConstraintsLoop" or root.name == "SetupHotspotConstraintsMover" :
-        for elem in root.sub_elements :
-            if elem.name != "HotspotFiles" :
-                #print "skipping", elem.name
-                continue
-            for subelement in elem.sub_elements :
-                for i,tag in enumerate( subelement.tags ) :
-                    name_tok = name_token_of_tag( tag )
-                    assert( name_tok )
-                    name_tok.contents = "HotspotFile" if i == 0 else "/HotspotFile"
-                    tag.name = "HotspotFile"
-                subelement.name = "HotspotFile"
-    for elem in root.sub_elements :
-        give_all_dock_with_hotspots_HotspotFiles_an_element_name( elem )
+    grandparent_names = [ "DockWithHotspotMover", "SetupHotspotConstraintsLoop", "SetupHotspotConstraintsMover" ]
+    for name in grandparent_names :
+        recursively_give_all_subelements_of_subelements_a_consistent_name( root, name, "HotspotFiles", "HotspotFile" )
 
 def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
     # RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
@@ -912,7 +899,11 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 mover_attributes.append( ( key_val[1:-1], seed_val ) )
         new_mover_tag_line = [ "<", mover_name ]
         new_mover_tag_line.append( "".join( [ " " + x[0] + "=" + x[1] for x in mover_attributes ] ) )
-        new_mover_tag_line.append( "/>" )
+        new_mover_tag_line.append( "/>") 
+        if not common_element :
+            new_mover_tag_line.append( "\n" )
+        if root.sub_elements :
+            new_mover_tag_line.append( tokens[ root.sub_elements[0].tags[0].tokens[0].index-1 ].contents.rpartition("\n")[2] )
         new_mover_tag_line = [ "".join( new_mover_tag_line ) ]
         new_tokens = tokenize_lines( new_mover_tag_line )
         tags, new_mover_element = tokens_into_tags( new_tokens )
@@ -920,6 +911,14 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
         if root.sub_elements :
             first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
             tokens = tokens[:first_root_subelement_token] + new_tokens + tokens[first_root_subelement_token:]
+            root.sub_elements.insert( 0, new_mover_element )
+            # now, remove the old common element
+            if common_element :
+                for tag in common_element.tags :
+                    for tok in tag.tokens :
+                        tok.deleted = True
+                if tokens[ common_element.tags[-1].tokens[-1].index + 1 ].whitespace :
+                    tokens[ common_element.tags[-1].tokens[-1].index + 1 ].deleted = True
         elif len(root.tags)== 2 :
             old_space_token =  tokens[root.tags[0].tokens[-1].index+1]
             new_space_token = XMLToken()
@@ -930,17 +929,44 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                      new_tokens + \
                      [ old_space_token ] + \
                      tokens[root.tags[1].tokens[0].index:]
+            root.sub_elements.insert( 0, new_mover_element )
+            # now, remove the old common element
+            if common_element :
+                for tag in common_element.tags :
+                    for tok in tag.tokens :
+                        tok.deleted = True
         else :
-            assert( false ) # oh for fucks sake, please edit this so that ModulatedMover has a distinct closing tag ( "</ModulatedMover>" )
+            # ok -- I guess I'll rpartition the token proceeding
+            # the root's first token, to get an indentation level
+            indendation = ""
+            root_first_tok_index = root.tags[0].tokens[0].index
+            root_last_tok_index  = root.tags[0].tokens[-1].index
+            if root_first_tok_index != 0 :
+                indentation = tokens[ root_first_tok_index - 1 ].contents.rpartition( "\n" )[2]
+            new_text = [ "\n", indentation, "  <", mover_name, "/>\n", indentation, "</ModulatedMover>" ]
+            new_tokens = tokenize_lines( "".join( new_text ) )
+            mover_tag = Tag()
+            mover_tag.name = mover_name
+            mover_tag.tokens = new_tokens[1:4]
+            mover_tag.closed = True
+            mover_element = Element()
+            mover_element.name = mover_name
+            mover_element.tags.append( mover_tag )
+            mm_tag = Tag()
+            mm_tag.name = "ModulatedMover"
+            mm_tag.closed = True
+            mm_tag.terminator = True
+            mm_tag.tokens = new_tokens[ 5:8 ]
+            root.sub_elements.append( mover_element )
+            root.tags.append( mm_tag )
+            assert( tokens[ root_last_tok_index ].contents == "/>" )
+            tokens[ root_last_tok_index ].contents = ">"
+            tokens = tokens[ :(root_last_tok_index+1) ] + \
+                     new_tokens + \
+                     tokens[(root_last_tok_index+1) : ]
 
         #for tok in tokens : print tok.contents,
 
-        root.sub_elements.insert( 0, new_mover_element )
-        # now, remove the old common element
-        if common_element :
-            for tag in common_element.tags :
-                for tok in tag.tokens :
-                    tok.deleted = True
         renumber_tokens( tokens )
 
     for elem in root.sub_elements :
@@ -1020,6 +1046,7 @@ if __name__ == "__main__" :
     #print "\n".join( [ ( "remainder:" + x.contents ) for x in toks[ last_tok_index: ] ] )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
+    #print mostly_rewritten_version
 
     lines2 = [ x + "\n" for x in mostly_rewritten_version.split( "\n" ) ][:-1] #avoid the last newline, but don't get rid of all empty lines
 

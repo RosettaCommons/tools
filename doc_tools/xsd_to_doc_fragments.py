@@ -7,9 +7,13 @@ import codecs
 TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
 SECTIONS = [ 'mover', ] # ['loop_definer', 'residue_selector', 'scoring_grid', 'task_operation', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_lvl_task_op', 'res_filter', 'mover', 'constraint_generator', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_selector', 'pose_property_reporter', 'filter', 'features_reporter', 'envclaim', 'scriptcm']
 
-COMMON_TYPES={ # typename:docstring
-'rosetta_scripts_parser_ROSETTASCRIPTS_type':'A full [[RosettaScripts]] protocol, as a subtag',
+COMMON_TYPES={ # typename:(pseudoname,docstring)
+'rosetta_scripts_parser_ROSETTASCRIPTS_type':('ROSETTASCRIPTS','A full [[RosettaScripts]] protocol, as a subtag'),
 
+'features_reporter':('Features Reporter', 'Any of the [[FeatureReporters]]'),
+'constraint_generator':('Constraint Generator','Any of the [[ConstraintGenerators]]'),
+'pose_selector':('Pose Selectors','Any of the [[Pose Selectors|RosettaScripts-MultiplePoseMover#pose-selectors]]'),
+'rdf_function':('RDF funciton','Any of the [[RDF Functions|ComputeLigandRDF]]'),
 }
 
 ALL_ENTRIES = {}
@@ -51,7 +55,7 @@ def parse_subelement( subelem, parentname ):
         typename = subelem.attrib['type']
         if typename in COMMON_TYPES:
             #print 'DOING COMMON', typename , ' in ', parentname, name
-            subdoc_line = COMMON_TYPES[ typename ]
+            subtag_info, subdoc_line = COMMON_TYPES[ typename ]
             tag_lines.append( '<' + name + ' ... />' )
             doc_lines.append( 'Subtag ' + name +' : ' + subdoc_line.strip() )
             return '', main_doc, tag_lines, doc_lines
@@ -67,7 +71,10 @@ def parse_subelement( subelem, parentname ):
     if ctype.tag != '{http://www.w3.org/2001/XMLSchema}complexType':
         print "Error getting type for", name, "in", parentname
         return None
-    subtagname, submain_doc, subtag_lines, subdoc_lines = parse_complextype( name, parentname, ctype )
+    sct = parse_complextype( name, parentname, ctype )
+    if sct is None:
+        return None
+    subtagname, submain_doc, subtag_lines, subdoc_lines = sct
     tag_lines.extend( subtag_lines )
 
     if len(subdoc_lines) != 0:
@@ -96,7 +103,10 @@ def parse_choice( node, parentname ):
             print "Error parsing subtags for ", parentname, '::', node[0].tag
             continue
 
-        subtagname, submain_doc, subtag_lines, subdoc_lines = parse_subelement( subelem, parentname )
+        se = parse_subelement( subelem, parentname )
+        if se is None:
+            continue
+        subtagname, submain_doc, subtag_lines, subdoc_lines = se
         tag_lines.extend( subtag_lines )
         doc_lines.extend( subdoc_lines )
 
@@ -111,7 +121,10 @@ def parse_sequence( node, parentname ):
 
     for subelem in node:
         if subelem.tag == '{http://www.w3.org/2001/XMLSchema}choice':
-            subtagname, submain_doc, subtag_lines, subdoc_lines = parse_choice(subelem , parentname)
+            sc = parse_choice(subelem , parentname)
+            if sc is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = sc
             tag_lines.extend( subtag_lines )
 
             if len(subdoc_lines) != 0:
@@ -121,7 +134,10 @@ def parse_sequence( node, parentname ):
                     doc_lines.append('')
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
-            subtagname, submain_doc, subtag_lines, subdoc_lines = parse_subelement(subelem , parentname)
+            se = parse_subelement(subelem , parentname)
+            if se is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = se
             tag_lines.extend( subtag_lines )
 
             if len(subdoc_lines) != 0:
@@ -132,6 +148,32 @@ def parse_sequence( node, parentname ):
                 doc_lines.extend(subdoc_lines)
 
     return '', main_doc, tag_lines, doc_lines
+
+def parse_group( node, parentname ):
+    #print "PARSING GROUP for ", parentname
+
+    if 'ref' not in node.attrib:
+        print "Error parsing group element for ", parentname
+        return None
+
+    ref = node.attrib['ref']
+    if ref in COMMON_TYPES:
+        pseudoname, docline = COMMON_TYPES[ref]
+        tagline = '<' + pseudoname + ' ... />'
+        docline = '"' + pseudoname + '": ' + docline.strip()
+        return '', '', [ tagline, ], [docline,]
+
+    # We error out for now, because groups should probably be common, rather than specific
+    print "ERROR: Don't know anything about group name '"+ref+"' from", parentname
+    return None
+
+    if ref not in ALL_ENTRIES:
+        print "Error: can't parse group ", typename, " for in", parentname
+        return None
+    ctype = ALL_ENTRIES[typename]
+    if ctype.tag == '{http://www.w3.org/2001/XMLSchema}group':
+        print "ERROR: This needs to get finished"
+        return None
 
 def parse_complextype( name, parentname, node ):
     main_doc = ''
@@ -167,6 +209,10 @@ def parse_complextype( name, parentname, node ):
             st = parse_sequence(gc, desig)
             if st is not None:
                 subtags.append( st )
+        elif gc.tag == '{http://www.w3.org/2001/XMLSchema}group':
+            sg = parse_group(gc, desig)
+            if sg is not None:
+                subtags.append( sg )
         else:
             print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
             pass
@@ -206,7 +252,7 @@ def parse_complextype( name, parentname, node ):
             doc_lines.append( '-   ' + attrib['name'] + ": " + attrib['docstring'].strip() )
 
     for subtagname, submain_doc, subtag_lines, subdoc_lines in subtags:
-        if len(doc_lines) == 0:
+        if len(subdoc_lines) == 0:
             continue
         doc_lines.append('')
 

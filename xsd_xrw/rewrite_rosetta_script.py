@@ -455,18 +455,19 @@ def replace_element_name_w_attribute( element, new_name, new_attribute ) :
                 tag.add_token( tok, 2+j )
 
 def recursively_rename_subelements( root, element_name, new_subelement_name, new_attribute_name = "name" ) :
+    if root.name == element_name :
+        for sub_element in root.sub_elements :
+            if sub_element.name == new_subelement_name : continue # Assume this doesn't need rewriting
+            if sub_element.name == "xi:include" : continue # skip these
+            replace_element_name_w_attribute( sub_element, new_subelement_name, new_attribute_name )
     for element in root.sub_elements :
-        if element.name == element_name :
-            for sub_element in element.sub_elements :
-                if sub_element.name == new_subelement_name : continue # Assume this doesn't need rewriting
-                if sub_element.name == "xi:include" : continue # skip these
-                replace_element_name_w_attribute( sub_element, new_subelement_name, new_attribute_name )
         recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
 
-def rename_score_functions( root ) :
+def rename_score_functions( root, tokens ) :
     recursively_rename_subelements( root, "SCOREFXNS", "ScoreFunction" )
+    return tokens
 
-def rename_fragments_from_frag_reader( root ) :
+def rename_fragments_from_frag_reader( root, tokens ) :
     # for elements beneath a "FRAGSETS" element:
     # 1. elements beneath FRAGMENTS element gets renamed as
     # "FragReader" and the old name becomes the "name" attribute.
@@ -484,7 +485,8 @@ def rename_fragments_from_frag_reader( root ) :
                 else :
                     if fragset_element.name == "xi:include" : continue
                     replace_element_name_w_attribute( fragset_element, "FragSet", "name" )
-        rename_fragments_from_frag_reader( element )
+        rename_fragments_from_frag_reader( element, tokens )
+    return tokens
 
 def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
     if root.name == "ROSETTASCRIPTS" :
@@ -607,40 +609,43 @@ def move_fragments_as_first_child_of_fragset( root, tokens ) :
     # TO DO: make sure that FRAGMENTS element becomes first child of the
     # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
     # tokens don't change their order!
-    pass
+    return tokens
 
 def move_fragments_as_first_child_of_abscript( root, tokens ) :
     # TO DO
     # make sure that Fragments is the first sub-element of the Abscript Mover
-    pass
+    return tokens
 
-
-def rename_monte_carlo_elements_from_monte_carlo_loader( root ) :
+def rename_monte_carlo_elements_from_monte_carlo_loader( root, tokens ) :
     # for elements beneath a "MONTECARLOS" element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "MonteCarlo" instead.
     recursively_rename_subelements( root, "MONTECARLOS", "MonteCarlo" )
+    return tokens
 
-def rename_interface_builders_from_interface_builder_loader( root ) :
+def rename_interface_builders_from_interface_builder_loader( root, tokens ) :
     # for elements beneath an INTERFACE_BUILDERS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "InterfaceBuilder" instead.
     recursively_rename_subelements( root, "INTERFACE_BUILDERS", "InterfaceBuilder" )
+    return tokens
 
-def rename_movemaps_from_movemap_loader( root ) :
+def rename_movemaps_from_movemap_loader( root, tokens ) :
     # for elements beneath a MOVEMAP_BUILDERS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "MoveMapBuilder" instead.
     recursively_rename_subelements( root, "MOVEMAP_BUILDERS", "MoveMapBuilder" )
+    return tokens
 
-def rename_ligand_areas_from_ligand_area_loader( root ) :
+def rename_ligand_areas_from_ligand_area_loader( root, tokens ) :
     # for elements beneath a LIGAND_AREAS element:
     # the original element name has to become a "name" attribute and
     # the element has to be given the name "LigandArea" instead.
     recursively_rename_subelements( root, "LIGAND_AREAS", "LigandArea" )
+    return tokens
 
 
-def rename_bridge_chains_mover_to_bridge_chains( root ) :
+def rename_bridge_chains_mover_to_bridge_chains( root, tokens ) :
     # "BridgeChainsMover" has been eliminated, now only "BridgeChains"
     # is acceptible.
     for element in root.sub_elements :
@@ -653,9 +658,10 @@ def rename_bridge_chains_mover_to_bridge_chains( root ) :
                 assert( tok.contents == "BridgeChainsMover" or tok.contents == "/BridgeChainsMover" )
                 tok.contents = "BridgeChains" if i == 0 else "/BridgeChains"
 
-        rename_bridge_chains_mover_to_bridge_chains( element )
+        rename_bridge_chains_mover_to_bridge_chains( element, tokens )
+    return tokens
 
-def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
+def rename_dockdesign_to_ROSETTASCRIPTS( root, tokens ) :
     # dock_design is no longer an acceptible starting tag for a rosetta script
     if root.name != "dock_design" : return
     for i,tag in enumerate( root.tags ) :
@@ -669,6 +675,7 @@ def rename_dockdesign_to_ROSETTASCRIPTS( root ) :
             break
         tag.name = "ROSETTASCRIPTS"
     root.name = "ROSETTASCRIPTS"
+    return tokens
 
 def delete_attribute_from_tag( attr, tokens ) :
     attr[0].deleted = True
@@ -676,7 +683,6 @@ def delete_attribute_from_tag( attr, tokens ) :
     tokens[attr[0].index+1].deleted = True
     if tokens[attr[1].index+1].whitespace :
         tokens[attr[1].index+1].deleted = True
-
 
 def rename_report_to_db_children( root, tokens ):
     # All children of ReportToDB and TrajectoryReportToDB currently
@@ -699,6 +705,7 @@ def rename_report_to_db_children( root, tokens ):
             elem.name = new_name
     for elem in root.sub_elements :
         rename_report_to_db_children( elem, tokens )
+    return tokens
 
 def recursively_give_all_subelements_a_consistent_name( root, target_element_name, new_subelement_name ) :
     if root.name == target_element_name :
@@ -728,23 +735,26 @@ def recursively_give_all_subelements_of_subelements_a_consistent_name( root, tar
     for elem in root.sub_elements :
         recursively_give_all_subelements_of_subelements_a_consistent_name( elem, target_element_name, target_subelement_name, new_subsubelement_name )
 
-def give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name( root ) :
+def give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name( root, tokens ) :
     # the names of the Filters subelements of the GreedyOptMutationMover were never looked
     # at previously by the C++, but the wiki says that the name should be "AND", so go with "AND"
     recursively_give_all_subelements_of_subelements_a_consistent_name( root, "GreedyOptMutationMover", "Filters", "AND" )
+    return tokens
 
-def give_all_stubsets_children_an_element_name( root ):
+def give_all_stubsets_children_an_element_name( root, tokens ):
     # The children of the StubSets element, that is itself a subelement of mulitple different Movers,
     # need to be given the name "Add"
     recursively_give_all_subelements_a_consistent_name( root, "StubSets", "Add" )
+    return tokens
 
-def give_parsed_protocol_children_an_element_name( root ):
+def give_parsed_protocol_children_an_element_name( root, tokens ):
     # The children of the PROTOCOLS and ParsedProtocol element
     # need to be given the name "Add" -- before, their names were ignored
     recursively_give_all_subelements_a_consistent_name( root, "PROTOCOLS", "Add" )
     recursively_give_all_subelements_a_consistent_name( root, "ParsedProtocol", "Add" )
+    return tokens
 
-def give_all_calculator_filter_children_an_element_name( root ):
+def give_all_calculator_filter_children_an_element_name( root, tokens ):
     #Children of CalculatorFilter will either be called Var
     #(if they have the attribute filter or filter_name ) or
     #Value (if they have the attribute value but not one of the other two).
@@ -771,47 +781,32 @@ def give_all_calculator_filter_children_an_element_name( root ):
                 tag.name = new_name
             elem.name = new_name
     for elem in root.sub_elements :
-        give_all_calculator_filter_children_an_element_name( elem )
+        give_all_calculator_filter_children_an_element_name( elem, tokens )
+    return tokens
 
-def give_all_combined_filter_children_an_element_name( root ):
+def give_all_combined_filter_children_an_element_name( root, tokens ):
     #All children of CombinedValue will now be named Add
     recursively_give_all_subelements_a_consistent_name( root, "CombinedValue", "Add" )
+    return tokens
 
-def give_all_generic_montecarlo_filters_an_element_name( root ) :
+def give_all_generic_montecarlo_filters_an_element_name( root, tokens ) :
     # The children of the Filters element that is itself a child of the GenericMonteCarlo
     # element need to be given the name "AND"
     # This also applies to the classes that rely on the GenericMonteCarlo's structure:
     # GenericSimulatedAnnealer and EvolutionaryDynamics
-    if root.name == "GenericMonteCarlo" or root.name == "GenericSimulatedAnnealer" or root.name == "EvolutionaryDynamics" :
-        for elem in root.sub_elements :
-            if elem.name != "Filters" : continue
-            for subelement in elem.sub_elements :
-                for i,tag in enumerate( subelement.tags ):
-                    name_tok = name_token_of_tag( tag )
-                    assert( name_tok )
-                    name_tok.contents = "AND" if i == 0 else "/AND"
-                    tag.name = "AND"
-                subelement.name = "AND"
-    for elem in root.sub_elements :
-        give_all_generic_montecarlo_filters_an_element_name( elem )
+    element_names = [ "GenericMonteCarlo", "GenericSimulatedAnnealer", "EvolutionaryDynamics" ]
+    for element_name in element_names :
+        recursively_give_all_subelements_of_subelements_a_consistent_name( root, element_name, "Filters", "AND" )
+    return tokens
 
-def give_all_map_hotspot_Jumps_an_element_name( root ) :
+def give_all_map_hotspot_Jumps_an_element_name( root, tokens ) :
     # The children of the Jumps element that is itself a child of the MapHotspot mover
     # need to be given the name "Jump"
-    if root.name == "MapHotspot" :
-        for elem in root.sub_elements :
-            if elem.name != "Jumps" : continue
-            for subelement in elem.sub_elements :
-                for i,tag in enumerate( subelement.tags ) :
-                    name_tok = name_token_of_tag( tag )
-                    assert( name_tok )
-                    name_tok.contents = "Jump" if i == 0 else "/Jump"
-                    tag.name = "Jump"
-                subelement.name = "Jump"
-    for elem in root.sub_elements :
-        give_all_map_hotspot_Jumps_an_element_name( elem )
 
-def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root ):
+    recursively_give_all_subelements_of_subelements_a_consistent_name( root, "MapHotspot", "Jumps", "Jump" )
+    return tokens
+
+def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( root, tokens ):
     #  <PlaceStub name=place_phe stubfile=native_phe_stub.pdb add_constraints=1 final_filter=hbond_ddg minimize_rb=1 hurry=1>
     #       <DesignMovers>
     #          <Add mover_name=srsc/>
@@ -826,20 +821,23 @@ def give_all__PlaceStub_or_PlaceSimultaneously__sub_subelements_the_name_Add( ro
     for element_name in outer :
         for subelement_name in inner :
             recursively_give_all_subelements_of_subelements_a_consistent_name( root, element_name, subelement_name, "Add" )
+    return tokens
 
-def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root ) :
+def give_all_dock_with_hotspots_HotspotFiles_an_element_name( root, tokens ) :
     # The children of the HotspotFiles element that is itself a child of the DockWithHotspotMover
     # element ( and some others: SetupHotspotConstraintsLoopsMover, SetupHotspotConstraintsMover )
     # need to be given the name "HotspotFile"
     grandparent_names = [ "DockWithHotspotMover", "SetupHotspotConstraintsLoop", "SetupHotspotConstraintsMover" ]
     for name in grandparent_names :
         recursively_give_all_subelements_of_subelements_a_consistent_name( root, name, "HotspotFiles", "HotspotFile" )
+    return tokens
 
-def rename_RotamerBoltzmannFilter_threshold_subelements( root ):
+def rename_RotamerBoltzmannFilter_threshold_subelements( root, tokens ):
     # RotamerBoltzmannWeights subtags get renamed Threshold and old name becomes "restype"
     recursively_rename_subelements( root, "RotamerBoltzmannWeight", "Threshold", "restype" )
+    return tokens
 
-def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
+def rename_3mer_and_9mer_attributes_of_HybridizeMover( root, tokens ):
     # attributes may not begin with a numeral, so the 3mers and 9mers attributes
     # of the HybridizeMover need to be changed to "three_mers" and "nine_mers" respectively
     if root.name == "Hybridize" :
@@ -851,12 +849,8 @@ def rename_3mer_and_9mer_attributes_of_HybridizeMover( root ):
                 if attr[0].contents == "9mers" :
                     attr[0].contents = "nine_mers"
     for elem in root.sub_elements :
-        rename_3mer_and_9mer_attributes_of_HybridizeMover( elem )
-
-def replace_raw_ampersand_w_and( tokens ) :
-    # if there are raw ampersands in the "comments", then they need to be replaced with the
-    # word and
-    pass
+        rename_3mer_and_9mer_attributes_of_HybridizeMover( elem, tokens )
+    return tokens
 
 def renumber_tokens( tokens ) :
     for i,tok in enumerate( tokens ) :
@@ -985,6 +979,30 @@ def print_element( depth, element ) :
     for child in element.sub_elements :
         print_element( depth + 1, child )
 
+def move_ROSETTASCRIPTS_tags_to_very_beginning_and_end_of_file( lines2 ) :
+    # OK: in this pass, we're going to make sure that ROSETTASCRIPTS is the very first and very last thing in the file.
+    # we're going to parse the rewritten lines again, and if the structure of the output element tree has a single
+    # root with ROSETTASCRIPTS at the top, then we'll ignore the tokens and just modify the lines themselves.
+
+    toks2 = tokenize_lines( lines2 )
+    tags, element_root = tokens_into_tags( toks2 )
+    root_first_tok = element_root.tags[0].tokens[0]
+    root_last_tok = element_root.tags[-1].tokens[-1]
+    if element_root.name == "ROSETTASCRIPTS" :
+        if root_first_tok.line_start != 0 or root_first_tok.position_start != 0 :
+            lines2 = [ "<ROSETTASCRIPTS>" ] + lines2[:root_first_tok.line_start ] + lines2[root_first_tok.line_start + 1: ]
+        if root_last_tok.line_end != len( lines2 )-1 or root_last_tok.position_end != len( lines2[-1] ) - 1 :
+            any_non_whitespace_tokens = False
+            for tok in toks2[ (root_last_tok.index+1): ] :
+                if not tok.whitespace :
+                    any_non_whitespace_tokens = True
+                    break
+            if any_non_whitespace_tokens :
+                lines2 = lines2[:root_last_tok.line_start] + \
+                         [ "".join( [ x.contents for x in toks2[ (root_last_tok.index+1): ] ] ) ] + \
+                         [ "</ROSETTASCRIPTS>\n" ]
+    return lines2
+
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.str( "input" )
@@ -1025,20 +1043,15 @@ if __name__ == "__main__" :
                       rename_RotamerBoltzmannFilter_threshold_subelements,
                       give_parsed_protocol_children_an_element_name,
                       rename_3mer_and_9mer_attributes_of_HybridizeMover,
-                      give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name
+                      give_all_filters_subelements_of_GreedyOptMutationMover_an_element_name,
+                      rename_report_to_db_children,
+                      turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags,
+                      move_res_filter_as_first_child_of_OperateOnCertainResidues,
+                      rename_scoring_grid_subelements
                   ]
 
     for modfunc in modifications :
-        modfunc( element_root )
-
-    rename_report_to_db_children( element_root, toks )
-
-    # big modification to the behavior of the ModulatedMover XML structure
-    toks = turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( element_root, toks )
-    toks = move_res_filter_as_first_child_of_OperateOnCertainResidues( element_root, toks )
-    toks = rename_scoring_grid_subelements( element_root, toks )
-
-    #for tok in toks : print tok.contents,
+        toks = modfunc( element_root, toks )
 
     last_tok_index, new_toks =  element_root.reconstitute_token_list( toks, [], 0 )
     new_toks.extend( toks[last_tok_index:])
@@ -1050,11 +1063,7 @@ if __name__ == "__main__" :
 
     lines2 = [ x + "\n" for x in mostly_rewritten_version.split( "\n" ) ][:-1] #avoid the last newline, but don't get rid of all empty lines
 
-    toks2 = tokenize_lines( lines2 )
-    tags, element_root = tokens_into_tags( toks2 )
-    root_first_tok = element_root.tags[0].tokens[0]
-    if ( (root_first_tok.line_start != 0 or root_first_tok.position_start != 0 ) and element_root.name == "ROSETTASCRIPTS" ) :
-        lines2 = [ "<ROSETTASCRIPTS>" ] + lines2[:root_first_tok.line_start ] + lines2[root_first_tok.line_start + 1: ]
+    lines2 = move_ROSETTASCRIPTS_tags_to_very_beginning_and_end_of_file( lines2 )
 
     #debug = True
 

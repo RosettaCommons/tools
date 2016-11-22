@@ -249,3 +249,4 @@
   < Add mover_name=sse1   />
  </PROTOCOLS>
 </dock_design>
+Also, nothing should be outisde of the very last tag, so this will be moved inside the dock_design (ROSETTASCRIPTS actually) tag.

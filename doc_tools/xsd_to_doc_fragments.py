@@ -5,15 +5,25 @@ import xml.etree.ElementTree as ET
 import codecs
 
 TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
-SECTIONS = [ 'mover', ] # ['loop_definer', 'residue_selector', 'scoring_grid', 'task_operation', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_lvl_task_op', 'res_filter', 'mover', 'constraint_generator', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_selector', 'pose_property_reporter', 'filter', 'features_reporter', 'envclaim', 'scriptcm']
+# SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
+SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter']
+# Nonce groups:
+# ['loop_definer', 'scoring_grid', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_filter', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
 
 COMMON_TYPES={ # typename:(pseudoname,docstring)
 'rosetta_scripts_parser_ROSETTASCRIPTS_type':('ROSETTASCRIPTS','A full [[RosettaScripts]] protocol, as a subtag'),
 
-'features_reporter':('Features Reporter', 'Any of the [[FeatureReporters]]'),
-'constraint_generator':('Constraint Generator','Any of the [[ConstraintGenerators]]'),
-'pose_selector':('Pose Selectors','Any of the [[Pose Selectors|RosettaScripts-MultiplePoseMover#pose-selectors]]'),
-'rdf_function':('RDF funciton','Any of the [[RDF Functions|ComputeLigandRDF]]'),
+'mover':('Mover Tag','Any of the [[RosettaScripts Mover|Movers-RosettaScripts]] tags'),
+'filter':('Filter Tag','Any of the [[RosettaScripts Filters|Filters-RosettaScripts]] tags'),
+'task_operation':('TaskOperation Tag','Any of the [[RosettaScripts TaskOperation|TaskOperations-RosettaScripts]] tags'),
+'residue_selector':('Residue Selector Tag','Any of the [[ResidueSelectors]]'),
+'res_lvl_task_op':('ResidueLevelTaskOperation Tag','Any of the [[Residue Level TaskOperations]]'),
+'features_reporter':('Features Reporter Tag', 'Any of the [[FeatureReporters]]'),
+'constraint_generator':('Constraint Generator Tag','Any of the [[ConstraintGenerators]]'),
+'pose_selector':('Pose Selectors Tag','Any of the [[Pose Selectors|RosettaScripts-MultiplePoseMover#pose-selectors]]'),
+'pose_property_reporter':('Pose Property Reporter Tag','Any of the [[Pose Property Reporters|RosettaScripts-MultiplePoseMover#pose-property-reporters]]'),
+'scoring_grid':('Scoring Grid Tag','Any of the [[ScoringGrids|RosettaScripts#scoringgrids]]'),
+#'rdf_function':('RDF function Tag','Any of the [[RDF Functions|ComputeLigandRDF]]'),
 }
 
 ALL_ENTRIES = {}

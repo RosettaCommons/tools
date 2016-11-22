@@ -178,7 +178,7 @@ def parse_sequence( node, parentname ):
     return '', main_doc, tag_lines, doc_lines
 
 def parse_all( node, parentname ):
-    print "PARSING ALL for ", parentname
+    #print "PARSING ALL for ", parentname
 
     main_doc = ''
     tag_lines = []

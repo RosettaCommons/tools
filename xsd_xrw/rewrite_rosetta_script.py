@@ -298,6 +298,9 @@ def tokenize_lines( lines ) :
             if all_whitespace :
                 tok.contents = "/>"
 
+    #for tok in tokens :
+    #    print "token", tok.index, "\"" + tok.contents + "\""
+
     return tokens
 
 def contents_for_token( lines, tok ) :
@@ -409,6 +412,11 @@ def tokens_into_tags( tokens ) :
         if tag.closed :
             elements.pop()
     return tags, roots
+
+# def print_element_tree( root, depth=0 ) :
+#     print ( " "*depth + root.name )
+#     for elem in root.sub_elements :
+#         print_element_tree( elem, depth+1 )
 
 # ok -- take a set of tags, and edit them so that the rhs of each attribute statement
 # is surrounded by quotes
@@ -582,14 +590,10 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
         tokens = move_res_filter_as_first_child_of_OperateOnCertainResidues( elem, tokens )
     return tokens
 
-
-def rename_scoring_grid_subelements( root, tokens ) :
-    # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
-    # such that the current subelement name is set to the name attribute and
-    # the current grid_type attribute is the new element name
-    if root.name == "SCORINGGRIDS" :
+def recursively_rename_subelements_from_former_attribute( root, element_name, tag_w_name, tokens ) :
+    if root.name == element_name :
         for elem in root.sub_elements :
-            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" ) 
+            old_attr = find_attribute_in_tag( elem.tags[0], tag_w_name ) 
             if not old_attr : continue
             oldname = elem.name
             oldtype = old_attr[1].contents[1:-1]
@@ -600,9 +604,22 @@ def rename_scoring_grid_subelements( root, tokens ) :
                 name_tok.contents = oldtype if i == 0 else ("/"+oldtype)
                 tag.name = oldtype
             elem.name = oldtype
+
     for elem in root.sub_elements :
-        tokens = rename_scoring_grid_subelements( elem, tokens )
+        tokens = recursively_rename_subelements_from_former_attribute( elem, element_name, tag_w_name, tokens )
     return tokens
+
+def rename_scoring_grid_subelements( root, tokens ) :
+    # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
+    # such that the current subelement name is set to the name attribute and
+    # the current grid_type attribute is the new element name
+    return recursively_rename_subelements_from_former_attribute( root, "SCORINGGRIDS", "grid_type", tokens ) 
+
+def rename_RDF_subtags_of_ComputeLigandRDF( root, tokens ) :
+    # the subtags of the ComputeLigandRDF used to be named "RDF", but now
+    # they should become the name of the RDF function that had previously been
+    # stored in the "name" attribute
+    return recursively_rename_subelements_from_former_attribute( root, "ComputeLigandRDF", "name", tokens ) 
 
 
 def move_fragments_as_first_child_of_fragset( root, tokens ) :
@@ -681,8 +698,8 @@ def delete_attribute_from_tag( attr, tokens ) :
     attr[0].deleted = True
     attr[1].deleted = True
     tokens[attr[0].index+1].deleted = True
-    if tokens[attr[1].index+1].whitespace :
-        tokens[attr[1].index+1].deleted = True
+    if tokens[attr[0].index-1].whitespace :
+        tokens[attr[0].index-1].deleted = True
 
 def rename_report_to_db_children( root, tokens ):
     # All children of ReportToDB and TrajectoryReportToDB currently
@@ -899,8 +916,11 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
         if root.sub_elements :
             new_mover_tag_line.append( tokens[ root.sub_elements[0].tags[0].tokens[0].index-1 ].contents.rpartition("\n")[2] )
         new_mover_tag_line = [ "".join( new_mover_tag_line ) ]
+
         new_tokens = tokenize_lines( new_mover_tag_line )
-        tags, new_mover_element = tokens_into_tags( new_tokens )
+        tags, new_mover_elements = tokens_into_tags( new_tokens )
+        assert( len( new_mover_elements ) == 1 )
+        new_mover_element = new_mover_elements[0]
 
         if root.sub_elements :
             first_root_subelement_token = root.sub_elements[0].tags[0].tokens[0].index
@@ -929,6 +949,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 for tag in common_element.tags :
                     for tok in tag.tokens :
                         tok.deleted = True
+
         else :
             # ok -- I guess I'll rpartition the token proceeding
             # the root's first token, to get an indentation level
@@ -1064,9 +1085,11 @@ if __name__ == "__main__" :
                       rename_report_to_db_children,
                       turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags,
                       move_res_filter_as_first_child_of_OperateOnCertainResidues,
-                      rename_scoring_grid_subelements
+                      rename_scoring_grid_subelements,
+                      rename_RDF_subtags_of_ComputeLigandRDF
                   ]
 
+    #print "how many roots?", len( element_roots )
     for element_root in element_roots :
         for modfunc in modifications :
             toks = modfunc( element_root, toks )

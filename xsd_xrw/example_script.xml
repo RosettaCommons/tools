@@ -218,6 +218,15 @@
     <Template pdb="5bz3.pdb" weight="1" cst_file="CB_cst" symmdef="5bz3.symm"/>
   </Hybridize>
 
+  <ComputeLigandRDF name="rdf_compute_interface" ligand_chain="X" mode="interface">
+    <RDF name="RDFEtableFunction" scorefxn="hard_rep"/>
+    <RDF name="RDFElecFunction" scorefxn="hard_rep"/>
+    <RDF name="RDFHbondFunction"/>
+    <RDF name="RDFBinaryHbondFunction"/>
+    <RDF name="RDFOrbitalFunction"/>
+    <RDF name="RDFBinaryOrbitalFunction"/>
+  </ComputeLigandRDF>
+
 
  </MOVERS>
  <FILTERS>

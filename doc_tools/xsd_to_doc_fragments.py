@@ -7,7 +7,8 @@ import codecs
 TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
 SECTIONS = [ 'mover', ] # ['loop_definer', 'residue_selector', 'scoring_grid', 'task_operation', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_lvl_task_op', 'res_filter', 'mover', 'constraint_generator', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_selector', 'pose_property_reporter', 'filter', 'features_reporter', 'envclaim', 'scriptcm']
 
-COMMON_TYPES={
+COMMON_TYPES={ # typename:docstring
+'rosetta_scripts_parser_ROSETTASCRIPTS_type':'A full [[RosettaScripts]] protocol, as a subtag',
 
 }
 
@@ -29,6 +30,7 @@ def get_annotation(node, name1, name2=None):
     return node[0].text
 
 def parse_subelement( subelem, parentname ):
+    #print "PARSING ELEMENT for ", parentname
 
     main_doc = ''
     tag_lines = []
@@ -48,10 +50,10 @@ def parse_subelement( subelem, parentname ):
             return None
         typename = subelem.attrib['type']
         if typename in COMMON_TYPES:
-            subtag_line, subdoc_line = COMMON_TYPES[ typename ]
-            tag_lines.append( subtag_line )
-            doc_lines.append( subdoc_line )
-
+            #print 'DOING COMMON', typename , ' in ', parentname, name
+            subdoc_line = COMMON_TYPES[ typename ]
+            tag_lines.append( '<' + name + ' ... />' )
+            doc_lines.append( 'Subtag ' + name +' : ' + subdoc_line.strip() )
             return '', main_doc, tag_lines, doc_lines
 
         # Parse complex type in ALL_ENTRIES
@@ -78,6 +80,8 @@ def parse_subelement( subelem, parentname ):
     return '', main_doc, tag_lines, doc_lines
 
 def parse_choice( node, parentname ):
+    #print "PARSING CHOICE for ", parentname
+
     if 'minOccurs' in node.attrib and node.attrib['minOccurs'] == '0':
         optional = True
     else:
@@ -99,11 +103,11 @@ def parse_choice( node, parentname ):
     return '', main_doc, tag_lines, doc_lines
 
 def parse_sequence( node, parentname ):
+    #print "PARSING SEQUENCE for ", parentname
+
     main_doc = ''
     tag_lines = []
     doc_lines = []
-
-    print "PARSING SEQUENCE for ", parentname
 
     for subelem in node:
         if subelem.tag == '{http://www.w3.org/2001/XMLSchema}choice':

@@ -6,9 +6,9 @@ import codecs
 
 TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
 # SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
-SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter']
+SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter']
 # Nonce groups:
-# ['loop_definer', 'scoring_grid', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'res_filter', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
+# ['loop_definer', 'scoring_grid', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
 
 COMMON_TYPES={ # typename:(pseudoname,docstring)
 'rosetta_scripts_parser_ROSETTASCRIPTS_type':('ROSETTASCRIPTS','A full [[RosettaScripts]] protocol, as a subtag'),
@@ -18,6 +18,7 @@ COMMON_TYPES={ # typename:(pseudoname,docstring)
 'task_operation':('TaskOperation Tag','Any of the [[RosettaScripts TaskOperation|TaskOperations-RosettaScripts]] tags'),
 'residue_selector':('Residue Selector Tag','Any of the [[ResidueSelectors]]'),
 'res_lvl_task_op':('ResidueLevelTaskOperation Tag','Any of the [[Residue Level TaskOperations]]'),
+'res_filter':('ResFilter Tag','Any of the [[ResFilters|OperateOnCertainResiduesOperation#ResFilters]]'),
 'features_reporter':('Features Reporter Tag', 'Any of the [[FeatureReporters]]'),
 'constraint_generator':('Constraint Generator Tag','Any of the [[ConstraintGenerators]]'),
 'pose_selector':('Pose Selectors Tag','Any of the [[Pose Selectors|RosettaScripts-MultiplePoseMover#pose-selectors]]'),
@@ -109,16 +110,24 @@ def parse_choice( node, parentname ):
     doc_lines = []
 
     for subelem in node:
-        if subelem.tag != '{http://www.w3.org/2001/XMLSchema}element':
-            print "Error parsing subtags for ", parentname, '::', node[0].tag
+        if subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
+            se = parse_subelement( subelem, parentname )
+            if se is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = se
+            tag_lines.extend( subtag_lines )
+            doc_lines.extend( subdoc_lines )
+        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
+            sg = parse_group( subelem, parentname )
+            if sg is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = sg
+            tag_lines.extend( subtag_lines )
+            doc_lines.extend( subdoc_lines )
+        else:
+            print "Error parsing subtag of choice for ", parentname, '::', subelem.tag
             continue
 
-        se = parse_subelement( subelem, parentname )
-        if se is None:
-            continue
-        subtagname, submain_doc, subtag_lines, subdoc_lines = se
-        tag_lines.extend( subtag_lines )
-        doc_lines.extend( subdoc_lines )
 
     return '', main_doc, tag_lines, doc_lines
 
@@ -141,7 +150,6 @@ def parse_sequence( node, parentname ):
                 if subtagname:
                     doc_lines.append('')
                     doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
-                    doc_lines.append('')
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
             se = parse_subelement(subelem , parentname)
@@ -154,8 +162,18 @@ def parse_sequence( node, parentname ):
                 if subtagname:
                     doc_lines.append('')
                     doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
-                    doc_lines.append('')
                 doc_lines.extend(subdoc_lines)
+        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
+            sg = parse_group( subelem, parentname )
+            if sg is None:
+                continue
+            subtagname, submain_doc, subtag_lines, subdoc_lines = sg
+            tag_lines.extend( subtag_lines )
+            doc_lines.extend( subdoc_lines )
+        else:
+            print "Error parsing subtag of sequence for ", parentname, '::', subelem.tag
+            continue
+
 
     return '', main_doc, tag_lines, doc_lines
 
@@ -171,7 +189,7 @@ def parse_group( node, parentname ):
         pseudoname, docline = COMMON_TYPES[ref]
         tagline = '<' + pseudoname + ' ... />'
         docline = '"' + pseudoname + '": ' + docline.strip()
-        return '', '', [ tagline, ], [docline,]
+        return '', '', [ tagline, ], ['',docline,]
 
     # We error out for now, because groups should probably be common, rather than specific
     print "ERROR: Don't know anything about group name '"+ref+"' from", parentname

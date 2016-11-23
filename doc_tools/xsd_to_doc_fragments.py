@@ -317,14 +317,14 @@ def parse_complextype( name, parentname, node ):
     main_line = '<'+name
     #Pull the name subentry out front, if it exists
     for nameattrib in [a for a in attributes if a['name']=='name']:
-        main_line += " "+nameattrib['name']+'="(' + alias_type(nameattrib['type']) + ')"'
+        main_line += " "+nameattrib['name']+'="(&' + alias_type(nameattrib['type']) + ';)"' #Assume there's no default
     for attrib in attributes:
         if attrib['name'] == "name":
             continue
-        attrib_text = attrib['name']+'="(' + alias_type(attrib['type'])
+        attrib_text = attrib['name']+'="('
         if 'default' in attrib:
-          attrib_text += "; " + attrib['default']
-        attrib_text += ')"'
+          attrib_text += attrib['default'] + ' '
+        attrib_text += '&' + alias_type(attrib['type']) + ';)"'
         if len(main_line) + len(attrib_text) > 79: # Online Gollum has ~80 char window.
             tag_lines.append(main_line)
             main_line = "       " # 8 spaces, once the extra one gets added.

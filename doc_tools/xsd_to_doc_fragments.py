@@ -13,7 +13,7 @@ import sys, os
 import xml.etree.ElementTree as ET
 import codecs
 
-TYPE_ALIASES={ 'xs:string':'string', 'rosetta_bool':'bool' }
+TYPE_ALIASES={ 'xs:string':'string', 'xs:integer':'integer', 'xs:decimal':'real', 'rosetta_bool':'bool' }
 # SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
 SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group']
 # Nonce groups:

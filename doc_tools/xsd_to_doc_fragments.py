@@ -104,7 +104,7 @@ def parse_subelement( subelem, parentname ):
     if len(subdoc_lines) != 0:
         if subtagname:
             doc_lines.append('')
-            doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+            doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc.strip() )
             doc_lines.append('')
         doc_lines.extend(subdoc_lines)
 
@@ -162,7 +162,7 @@ def parse_sequence( node, parentname ):
             if len(subdoc_lines) != 0:
                 if subtagname:
                     doc_lines.append('')
-                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc.strip() )
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
             se = parse_subelement(subelem , parentname)
@@ -174,7 +174,7 @@ def parse_sequence( node, parentname ):
             if len(subdoc_lines) != 0:
                 if subtagname:
                     doc_lines.append('')
-                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc.strip() )
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
             sg = parse_group( subelem, parentname )
@@ -208,7 +208,7 @@ def parse_all( node, parentname ):
             if len(subdoc_lines) != 0:
                 if subtagname:
                     doc_lines.append('')
-                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc.strip() )
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
             se = parse_subelement(subelem , parentname)
@@ -220,7 +220,7 @@ def parse_all( node, parentname ):
             if len(subdoc_lines) != 0:
                 if subtagname:
                     doc_lines.append('')
-                    doc_lines.append('For subtag ' + subtagname + ": " + submain_doc.strip() )
+                    doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc.strip() )
                 doc_lines.extend(subdoc_lines)
         elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
             sg = parse_group( subelem, parentname )
@@ -343,7 +343,7 @@ def parse_complextype( name, parentname, node ):
         # Skip entry for name
         if attrib['name'] == 'name': continue
         if 'docstring' in attrib and len(attrib['docstring']) != 0:
-            doc_lines.append( '-   ' + attrib['name'] + ": " + attrib['docstring'].strip() )
+            doc_lines.append( '-   **' + attrib['name'] + "**: " + attrib['docstring'].strip() )
 
     for subtagname, submain_doc, subtag_lines, subdoc_lines in subtags:
         if len(subdoc_lines) == 0:
@@ -351,7 +351,7 @@ def parse_complextype( name, parentname, node ):
         doc_lines.append('')
 
         if subtagname:
-            doc_lines.append('For subtag ' + subtagname + ": " + submain_doc)
+            doc_lines.append('Subtag ' + subtagname + ":   " + submain_doc)
             doc_lines.append('')
         doc_lines.extend(subdoc_lines)
 

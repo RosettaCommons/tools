@@ -110,42 +110,10 @@ def parse_subelement( subelem, parentname ):
 
     return '', main_doc, tag_lines, doc_lines
 
-def parse_choice( node, parentname ):
-    #print "PARSING CHOICE for ", parentname
+def parse_multi( node, parentname ):
+    nodetype = node.tag.split('}')[-1]
 
-    if 'minOccurs' in node.attrib and node.attrib['minOccurs'] == '0':
-        optional = True
-    else:
-        optional = False
-
-    main_doc = ''
-    tag_lines = []
-    doc_lines = []
-
-    for subelem in node:
-        if subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
-            se = parse_subelement( subelem, parentname )
-            if se is None:
-                continue
-            subtagname, submain_doc, subtag_lines, subdoc_lines = se
-            tag_lines.extend( subtag_lines )
-            doc_lines.extend( subdoc_lines )
-        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
-            sg = parse_group( subelem, parentname )
-            if sg is None:
-                continue
-            subtagname, submain_doc, subtag_lines, subdoc_lines = sg
-            tag_lines.extend( subtag_lines )
-            doc_lines.extend( subdoc_lines )
-        else:
-            print "Error parsing subtag of choice for ", parentname, '::', subelem.tag
-            continue
-
-
-    return '', main_doc, tag_lines, doc_lines
-
-def parse_sequence( node, parentname ):
-    #print "PARSING SEQUENCE for ", parentname
+    #print "PARSING", nodetype.upper(), " for ", parentname
 
     main_doc = ''
     tag_lines = []
@@ -184,56 +152,18 @@ def parse_sequence( node, parentname ):
             tag_lines.extend( subtag_lines )
             doc_lines.extend( subdoc_lines )
         else:
-            print "Error parsing subtag of sequence for ", parentname, '::', subelem.tag
+            print "Error parsing subtag of", nodetype, "for", parentname, '::', subelem.tag
             continue
 
 
     return '', main_doc, tag_lines, doc_lines
 
-def parse_all( node, parentname ):
-    #print "PARSING ALL for ", parentname
-
-    main_doc = ''
-    tag_lines = []
-    doc_lines = []
-
-    for subelem in node:
-        if subelem.tag == '{http://www.w3.org/2001/XMLSchema}choice':
-            sc = parse_choice(subelem , parentname)
-            if sc is None:
-                continue
-            subtagname, submain_doc, subtag_lines, subdoc_lines = sc
-            tag_lines.extend( subtag_lines )
-
-            if len(subdoc_lines) != 0:
-                if subtagname:
-                    doc_lines.append('')
-                    doc_lines.append('Subtag **' + subtagname + "**:   " + submain_doc.strip() )
-                doc_lines.extend(subdoc_lines)
-        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}element':
-            se = parse_subelement(subelem , parentname)
-            if se is None:
-                continue
-            subtagname, submain_doc, subtag_lines, subdoc_lines = se
-            tag_lines.extend( subtag_lines )
-
-            if len(subdoc_lines) != 0:
-                if subtagname:
-                    doc_lines.append('')
-                    doc_lines.append('Subtag **' + subtagname + "**:   " + submain_doc.strip() )
-                doc_lines.extend(subdoc_lines)
-        elif subelem.tag == '{http://www.w3.org/2001/XMLSchema}group':
-            sg = parse_group( subelem, parentname )
-            if sg is None:
-                continue
-            subtagname, submain_doc, subtag_lines, subdoc_lines = sg
-            tag_lines.extend( subtag_lines )
-            doc_lines.extend( subdoc_lines )
-        else:
-            print "Error parsing subtag of ALL for ", parentname, '::', subelem.tag
-            continue
-
-    return '', main_doc, tag_lines, doc_lines
+# These used to be separate, but when all said and done I realized they're identical in how we treat the documentation
+# I keep the functions separate, in case we want to break them apart at some other time, but for now we'll alias
+# them to the same function
+parse_choice = parse_multi
+parse_sequence = parse_multi
+parse_all = parse_multi
 
 def parse_group( node, parentname ):
     #print "PARSING GROUP for ", parentname

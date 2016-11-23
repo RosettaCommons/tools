@@ -287,9 +287,13 @@ def parse_complextype( name, parentname, node ):
                     print "Error parsing attribute for entry", name
                 continue
             attrib = dict( gc.attrib )
+            docstring = ''
+            if 'use' in gc.attrib and gc.attrib['use'] == 'required':
+                docstring += '(REQUIRED) '
             for ggc in gc:
                 if ggc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
-                    attrib['docstring'] = get_annotation( ggc, gc.attrib['name'], desig )
+                    docstring += get_annotation( ggc, gc.attrib['name'], desig ).strip()
+            attrib['docstring'] = docstring
             attributes.append( attrib )
         elif gc.tag == '{http://www.w3.org/2001/XMLSchema}choice':
             st = parse_choice(gc, desig)
@@ -379,7 +383,7 @@ def process( name, node, outfilename ):
         f.write( '\n---\n' )
 
         f.write( main_doc.strip() + '\n\n')
-        f.write( '```\n' )
+        f.write( '```xml\n' )
         f.write( '\n'.join(tag_lines) )
         f.write( '\n```\n\n' )
         f.write( '\n'.join(doc_lines) )

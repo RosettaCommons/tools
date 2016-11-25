@@ -8,7 +8,6 @@ except ImportError:
     # if this script is in the Rosetta/tools/xsd_xrw/ directory
     # blargs is in the ../external/ directory. Add that to the path. and re-import
     blargs_path = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'external')
-    print blargs_path
     sys.path.append(blargs_path)
     import blargs
 

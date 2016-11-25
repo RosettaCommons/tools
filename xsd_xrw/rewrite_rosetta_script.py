@@ -1,5 +1,17 @@
-import blargs
-import sys
+#!/usr/bin/env python
+
+import sys, os
+
+try:
+    import blargs
+except ImportError:
+    # if this script is in the Rosetta/tools/xsd_xrw/ directory
+    # blargs is in the ../external/ directory. Add that to the path. and re-import
+    blargs_path = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'external')
+    print blargs_path
+    sys.path.append(blargs_path)
+    import blargs
+
 #import copy
 
 debug = False
@@ -589,7 +601,7 @@ def rename_scoring_grid_subelements( root, tokens ) :
     # the current grid_type attribute is the new element name
     if root.name == "SCORINGGRIDS" :
         for elem in root.sub_elements :
-            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" ) 
+            old_attr = find_attribute_in_tag( elem.tags[0], "grid_type" )
             if not old_attr : continue
             oldname = elem.name
             oldtype = old_attr[1].contents[1:-1]
@@ -893,7 +905,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 mover_attributes.append( ( key_val[1:-1], seed_val ) )
         new_mover_tag_line = [ "<", mover_name ]
         new_mover_tag_line.append( "".join( [ " " + x[0] + "=" + x[1] for x in mover_attributes ] ) )
-        new_mover_tag_line.append( "/>") 
+        new_mover_tag_line.append( "/>")
         if not common_element :
             new_mover_tag_line.append( "\n" )
         if root.sub_elements :

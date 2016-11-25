@@ -1034,8 +1034,8 @@ def rebuild_token_list_from_roots( element_roots, toks ) :
 
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
-        p.str( "input" )
-        p.str( "output" )
+        p.str( "input" ).required()
+        p.str( "output" ).required()
 
     lines = open( input ).readlines()
     #newlines = add_attribute_quotes( lines )

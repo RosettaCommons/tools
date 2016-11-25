@@ -364,7 +364,10 @@ def main( xsdfile, outdir ):
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
+        print
         print "ERROR: Usage: ./create_rosetta_scripts_docs.py <xsd file> <directory to write docs to>"
+        print
+        print __doc__
         sys.exit()
 
     main(sys.argv[1], sys.argv[2])

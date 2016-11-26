@@ -462,6 +462,22 @@ def replace_element_name_w_attribute( element, new_name, new_attribute ) :
                 tok.contents = spellings[j]
                 tag.add_token( tok, 2+j )
 
+def swap_element_name_w_attribute( sub_element, old_attribute_name, new_attribute_name ) :
+    old_name = sub_element.name
+    for i,tag in enumerate( sub_element.tags ) :
+        if i == 0 :
+            attr = find_attribute_in_tag( tag, old_attribute_name )
+            if not attr : return
+            attr[0].contents = new_attribute_name
+            old_attr_val = attr[1].contents[1:-1]
+            attr[1].contents = '"' + old_name + '"'
+        tag.name = old_attr_val
+        name_tok = name_token_of_tag( tag )
+        name_tok.contents = old_attr_val if i == 0 else ( "/" + old_attr_val )
+    sub_element.name = old_attr_val
+        
+
+
 def recursively_rename_subelements( root, element_name, new_subelement_name, new_attribute_name = "name" ) :
     if root.name == element_name :
         for sub_element in root.sub_elements :
@@ -470,6 +486,16 @@ def recursively_rename_subelements( root, element_name, new_subelement_name, new
             replace_element_name_w_attribute( sub_element, new_subelement_name, new_attribute_name )
     for element in root.sub_elements :
         recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
+
+def recursively_swap_attribute_and_element_name( root, element_name, old_attribute_name, new_attribute_name = "name" ) :
+    if root.name == element_name :
+        for sub_element in root.sub_elements :
+            if sub_element.name == "xi:include" : continue
+            swap_element_name_w_attribute( sub_element, old_attribute_name, new_attribute_name )
+
+    for element in root.sub_elements :
+        recursively_swap_attribute_and_element_name( element, element_name, old_attribute_name, new_attribute_name )
+    
 
 def rename_score_functions( root, tokens ) :
     recursively_rename_subelements( root, "SCOREFXNS", "ScoreFunction" )
@@ -613,7 +639,8 @@ def rename_scoring_grid_subelements( root, tokens ) :
     # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
     # such that the current subelement name is set to the name attribute and
     # the current grid_type attribute is the new element name
-    return recursively_rename_subelements_from_former_attribute( root, "SCORINGGRIDS", "grid_type", tokens ) 
+    recursively_swap_attribute_and_element_name( root, "SCORINGGRIDS", "grid_type", "grid_name" ) 
+    return tokens
 
 def rename_RDF_subtags_of_ComputeLigandRDF( root, tokens ) :
     # the subtags of the ComputeLigandRDF used to be named "RDF", but now

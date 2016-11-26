@@ -1,13 +1,31 @@
 #!/usr/bin/env python2.7
 
+import sys, os
+if sys.version_info < (2, 7):
+    raise Exception("You must use python2.7 to run this")
+
+import warnings
+import argparse
+import collections
+from multiprocessing import Pool
+warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
+
 try:
     import rosettautil
 except ImportError:
     # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
     # rosettautil is in the ../ directory. Add that to the path. and re-import
-    import sys, os
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import rosettautil
+
+from rosettautil.protein import util, pdbStat
+
+try:
+    from rosettautil.protein import amino_acids
+except ImportError:
+    #Okay, do we have one in the same directory as this script?
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    import amino_acids
 
 try:
     from Bio.PDB import PDBExceptions
@@ -16,16 +34,6 @@ except ImportError:
     sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
     sys.exit()
 
-import sys
-import warnings
-import argparse
-import collections
-from multiprocessing import Pool
-from rosettautil.protein import util, pdbStat, amino_acids
-warnings.simplefilter('ignore', PDBExceptions.PDBConstructionWarning)
-
-if sys.version_info < (2, 7):
-    raise Exception("You must use python2.7 to run this")
 
 # usage
 usage = "%prog [options] *pdbs"

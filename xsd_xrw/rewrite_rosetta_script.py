@@ -1,5 +1,16 @@
-import blargs
-import sys
+#!/usr/bin/env python
+
+import sys, os
+
+try:
+    import blargs
+except ImportError:
+    # if this script is in the Rosetta/tools/xsd_xrw/ directory
+    # blargs is in the ../external/ directory. Add that to the path. and re-import
+    blargs_path = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'external')
+    sys.path.append(blargs_path)
+    import blargs
+
 #import copy
 
 debug = False
@@ -475,7 +486,7 @@ def swap_element_name_w_attribute( sub_element, old_attribute_name, new_attribut
         name_tok = name_token_of_tag( tag )
         name_tok.contents = old_attr_val if i == 0 else ( "/" + old_attr_val )
     sub_element.name = old_attr_val
-        
+
 
 
 def recursively_rename_subelements( root, element_name, new_subelement_name, new_attribute_name = "name" ) :
@@ -495,7 +506,7 @@ def recursively_swap_attribute_and_element_name( root, element_name, old_attribu
 
     for element in root.sub_elements :
         recursively_swap_attribute_and_element_name( element, element_name, old_attribute_name, new_attribute_name )
-    
+
 
 def rename_score_functions( root, tokens ) :
     recursively_rename_subelements( root, "SCOREFXNS", "ScoreFunction" )
@@ -619,7 +630,7 @@ def move_res_filter_as_first_child_of_OperateOnCertainResidues( root, tokens ) :
 def recursively_rename_subelements_from_former_attribute( root, element_name, tag_w_name, tokens ) :
     if root.name == element_name :
         for elem in root.sub_elements :
-            old_attr = find_attribute_in_tag( elem.tags[0], tag_w_name ) 
+            old_attr = find_attribute_in_tag( elem.tags[0], tag_w_name )
             if not old_attr : continue
             oldname = elem.name
             oldtype = old_attr[1].contents[1:-1]
@@ -639,14 +650,14 @@ def rename_scoring_grid_subelements( root, tokens ) :
     # The SCORINGGRIDS element of the ROSETTASCRIPTS block needs to have its subelements renamed
     # such that the current subelement name is set to the name attribute and
     # the current grid_type attribute is the new element name
-    recursively_swap_attribute_and_element_name( root, "SCORINGGRIDS", "grid_type", "grid_name" ) 
+    recursively_swap_attribute_and_element_name( root, "SCORINGGRIDS", "grid_type", "grid_name" )
     return tokens
 
 def rename_RDF_subtags_of_ComputeLigandRDF( root, tokens ) :
     # the subtags of the ComputeLigandRDF used to be named "RDF", but now
     # they should become the name of the RDF function that had previously been
     # stored in the "name" attribute
-    return recursively_rename_subelements_from_former_attribute( root, "ComputeLigandRDF", "name", tokens ) 
+    return recursively_rename_subelements_from_former_attribute( root, "ComputeLigandRDF", "name", tokens )
 
 
 def move_fragments_as_first_child_of_fragset( root, tokens ) :
@@ -937,7 +948,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 mover_attributes.append( ( key_val[1:-1], seed_val ) )
         new_mover_tag_line = [ "<", mover_name ]
         new_mover_tag_line.append( "".join( [ " " + x[0] + "=" + x[1] for x in mover_attributes ] ) )
-        new_mover_tag_line.append( "/>") 
+        new_mover_tag_line.append( "/>")
         if not common_element :
             new_mover_tag_line.append( "\n" )
         if root.sub_elements :
@@ -1071,8 +1082,8 @@ def rebuild_token_list_from_roots( element_roots, toks ) :
 
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
-        p.str( "input" )
-        p.str( "output" )
+        p.str( "input" ).required()
+        p.str( "output" ).required()
 
     lines = open( input ).readlines()
     #newlines = add_attribute_quotes( lines )

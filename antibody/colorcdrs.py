@@ -84,7 +84,8 @@ def _get_selections(num_scheme, dis=5.0):
     sel.append(Selection('ab', 'chain L or chain H'))
     sel.append(Selection('antigen', 'not ab'))
 
-    for letter in ['H', 'L']:
+    chains = ['H', 'L']
+    for letter in chains:
         c = chain(letter)
         sel.append(Selection(c, 'chain {}'.format(letter)))
         grp['{}_group'.format(c)] = [c]
@@ -128,7 +129,7 @@ def _get_selections(num_scheme, dis=5.0):
     # Chain group with CDRs
     r = ' or '
     s = scheme.keys()
-    for letter in ['H', 'L']:
+    for letter in chains:
         cdrs = [x for x in s if x.startswith(letter)]
         c = chain(letter)
 

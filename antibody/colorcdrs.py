@@ -34,8 +34,10 @@ schemes = {'chothia': {'L1': [24, 34], 'L2': [50, 56], 'L3': [89, 97],
                    },
            }
 
+# kink residues are listed here for each numbering scheme here
+# residue numbers are stored as strings to accomodate for insertion codes
 kink_info = {'chothia': {'kinkplus': ['94', '100A-103'],
-                         'kinkhbond': ['94','101']
+                         'kinkhbond': ['94', '101']
                          },
              'aho':     {'kinkplus': ['108', '115-139'],
                          'kinkhbond': ['108', '137']
@@ -160,21 +162,13 @@ def _get_selections(num_scheme, dis=5.0):
     sel.append(Selection('epitope_cdrs', r.join([x + '_epitope' for x in s])))
     sel.append(Selection('paratope', around.format('epitope', dis, 'antigen')))
 
-    # Alternate selection strings for heavy and light frameworks are below.
-    # I am not entirely sure how these differ from those above and what
-    # advantage, if any, they provide
-    # select lightframework, light and (resi 4-6 or resi 10-23 or resi \
-    # 35-38 or resi 45-49 or resi 57-66 or resi 71-88 or resi 98-105)
-    # select heavyframework, heavy and (resi 4-6 or resi 10-25 or resi \
-    # 36-39 or resi 46-49 or resi 66-94 or resi 103-110)
-
     sel.append(Selection('framework', 'light_framework or heavy_framework'))
     sel.append(Selection('stem', 'light_stem or heavy_stem'))
 
-    for kink_sel in kink_info[num_scheme]:
-        sel.append(Selection(kink_sel, 'heavy and resi {}'.format('+'.join(kink_nums[kink_sel]))))
-
-    grp['H3_kink'] = ['kinkplus', 'kinkhbond']
+    # selections for the H3 kink
+    for k, res in kink_nums.iteritems():
+        sel.append(Selection(k, 'heavy and resi {}'.format('+'.join(res))))
+    grp['H3_kink'] = kink_nums.keys()
 
     return sel, grp
 
@@ -221,7 +215,7 @@ PYMOL API
     for s in selections:
         cmd.select(s.name, s.selection)
 
-    for group, names in sorted(groups.items(), key=lambda x: x[0].lower()):
+    for group, names in sorted(groups.iteritems(), key=lambda x: x[0].lower()):
         for name in names:
             cmd.group(group, name)
 

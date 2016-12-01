@@ -85,9 +85,9 @@ def _get_selections(num_scheme, dis=5.0):
     sel.append(Selection('antigen', 'not ab'))
 
     for letter in ['H', 'L']:
-        ch = chain(letter)
-        sel.append(Selection(ch, 'chain {}'.format(letter)))
-        grp['{}_group'.format(ch)] = [ch]
+        c = chain(letter)
+        sel.append(Selection(c, 'chain {}'.format(letter)))
+        grp['{}_group'.format(c)] = [c]
 
     # cdr selections
     # default to chothia if necessary
@@ -126,31 +126,28 @@ def _get_selections(num_scheme, dis=5.0):
                                        '{}_stem'.format(cdr)
                                        ]
     # Chain group with CDRs
+    r = ' or '
+    s = scheme.keys()
     for letter in ['H', 'L']:
-        cdrs = [x for x in scheme.keys() if x.startswith(letter)]
-        ch = chain(letter)
+        cdrs = [x for x in s if x.startswith(letter)]
+        c = chain(letter)
 
-        sel.append(Selection('{}_cdrs'.format(ch),
-                             '{} or {} or {}'.format(*cdrs)))
+        sel.append(Selection('{}_cdrs'.format(c), r.join(cdrs)))
 
-        sel.append(Selection('{}_framework'.format(ch),
-                             '{0} and not {0}_cdrs'.format(ch)))
+        sel.append(Selection('{}_framework'.format(c),
+                             '{0} and not {0}_cdrs'.format(c)))
 
-        sel.append(Selection('{}_stem'.format(ch),
-                             '{}_stem or {}_stem or {}_stem'.format(*cdrs)))
+        sel.append(Selection('{}_stem'.format(c),
+                             r.join([x + '_stem' for x in cdrs])))
 
-        grp['{}_group'.format(ch)].extend(['{}_cdrs'.format(ch),
-                                           '{}_framework'.format(ch),
-                                           '{}_stem'.format(ch)
+        grp['{}_group'.format(c)].extend(['{}_cdrs'.format(c),
+                                           '{}_framework'.format(c),
+                                           '{}_stem'.format(c)
                                            ])
 
-    sel.append(Selection('cdrs', ' or '.join(scheme.keys())))
-
+    sel.append(Selection('cdrs', r.join(s)))
     sel.append(Selection('epitope', around.format('ab', dis, 'ab')))
-
-    sel.append(Selection('epitope_cdrs', ' or '.join(
-        ['{}_epitope'.format(cdr) for cdr in scheme.keys()])))
-
+    sel.append(Selection('epitope_cdrs', r.join([x + '_epitope' for x in s])))
     sel.append(Selection('paratope', around.format('epitope', dis, 'antigen')))
 
     # Alternate selection strings for heavy and light frameworks are below.

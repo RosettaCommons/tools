@@ -34,32 +34,22 @@ schemes = {'chothia': {'L1': [24, 34], 'L2': [50, 56], 'L3': [89, 97],
                    },
            }
 
+
 Color = namedtuple('Color', ['color', 'selection'])
-Selection = namedtuple('Selection', ['name', 'selection'])
-GroupedSelection = namedtuple('GroupedSelection', ['group', 'name',
-                                                   'selection'])
-
-
 # Color mapping
-
-colors_a = [
-
-    Color('green', 'antigen'),
-    Color('sand', 'light'),
-    Color('lightteal', 'heavy'),
-    Color('magenta', 'epitope'),
-
-    Color('yellow',  'L1'),
-    Color('orange',  'L2'),
-    Color('salmon',  'L3'),
-    Color('yellow',  'L4'),
-
-    Color('cyan',    'H1'),
-    Color('slate',   'H2'),
-    Color('magenta', 'H3'),
-    Color('cyan',    'H4'),
-
-        ]
+colors_a = [Color('green', 'antigen'),
+            Color('sand', 'light'),
+            Color('lightteal', 'heavy'),
+            Color('magenta', 'epitope'),
+            Color('yellow', 'L1'),
+            Color('orange', 'L2'),
+            Color('salmon', 'L3'),
+            Color('yellow', 'L4'),
+            Color('cyan', 'H1'),
+            Color('slate', 'H2'),
+            Color('magenta', 'H3'),
+            Color('cyan', 'H4'),
+            ]
 
 colors_b = [Color('green', 'antigen'),
             Color('yellow', 'light'),
@@ -69,6 +59,11 @@ colors_b = [Color('green', 'antigen'),
             Color('greencyan', 'H3'),
             Color('orange', 'L3'),
             ]
+
+# Custom types used to simplify calls to the PyMOL API
+Selection = namedtuple('Selection', ['name', 'selection'])
+GroupedSelection = namedtuple('GroupedSelection', ['group', 'name',
+                                                   'selection'])
 
 
 def _get_selections(num_scheme, neighbor_dis=5.0):

@@ -142,9 +142,9 @@ def _get_selections(num_scheme, dis=5.0):
                              r.join([x + '_stem' for x in cdrs])))
 
         grp['{}_group'.format(c)].extend(['{}_cdrs'.format(c),
-                                           '{}_framework'.format(c),
-                                           '{}_stem'.format(c)
-                                           ])
+                                          '{}_framework'.format(c),
+                                          '{}_stem'.format(c)
+                                          ])
 
     sel.append(Selection('cdrs', r.join(s)))
     sel.append(Selection('epitope', around.format('ab', dis, 'ab')))

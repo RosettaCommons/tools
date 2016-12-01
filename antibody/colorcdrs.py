@@ -194,7 +194,7 @@ def _get_selections(num_scheme, neighbor_dis=5.0):
 
 def colorcdrs(numbering='chothia', group=True, neighbor_distance=5.0,
               classic_coloring=False):
-    '''
+    """
 DESCRIPTION
 
     "colorcdrs" creates named atom selections for framework regions, CDR
@@ -231,7 +231,7 @@ PYMOL API
     cmd.colorcdrs(string numbering='chothia', bool group=True,
                  float neighbor_distance=5.0, bool classic_coloring=False)
 
-    '''
+    """
 
     selections = _get_selections(numbering, neighbor_distance)
 

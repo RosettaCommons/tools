@@ -34,8 +34,16 @@ schemes = {'chothia': {'L1': [24, 34], 'L2': [50, 56], 'L3': [89, 97],
                    },
            }
 
+kink_info = {'chothia': {'kinkplus': ['94', '100A-103'],
+                         'kinkhbond': ['94','101']
+                         },
+             'aho':     {'kinkplus': ['108', '115-139'],
+                         'kinkhbond': ['108', '137']
+                         }
+             }
 
 Color = namedtuple('Color', ['color', 'selection'])
+
 # Color mapping
 colors = [Color('green', 'antigen'),
           Color('sand', 'light'),
@@ -99,6 +107,7 @@ def _get_selections(num_scheme, dis=5.0):
         num_scheme = 'chothia'
 
     scheme = schemes[num_scheme]
+    kink_nums = kink_info[num_scheme]
 
     # The actual selections happen here.
     # The order of selections matter, as we select based on previous selections
@@ -162,12 +171,10 @@ def _get_selections(num_scheme, dis=5.0):
     sel.append(Selection('framework', 'light_framework or heavy_framework'))
     sel.append(Selection('stem', 'light_stem or heavy_stem'))
 
-    # TODO: right now this maps to chothia numbering only. Fix that.
-    if num_scheme == 'chothia':
-        sel.append(Selection('kinkplus', 'heavy and resi 94+100A-103'))
-        sel.append(Selection('kinkhbond', 'heavy and resi 94+101'))
+    for kink_sel in kink_info[num_scheme]:
+        sel.append(Selection(kink_sel, 'heavy and resi {}'.format('+'.join(kink_nums[kink_sel]))))
 
-        grp['H3_kink'] = ['kinkplus', 'kinkhbond']
+    grp['H3_kink'] = ['kinkplus', 'kinkhbond']
 
     return sel, grp
 
@@ -188,11 +195,9 @@ ARGUMENTS
     numbering_scheme = the name of the numbering scheme used by the antibody.
                        valid options are 'chothia' and 'aho'.
 
-    group = Should we group the selections?
+    carboon = Hide lines, show cartoon as loops
 
     neighbor_distance = Distance to measure neighbor/interface residues
-
-    classic_coloring = Use the classic coloring scheme (colors less elements)
 
 NOTES
 
@@ -237,5 +242,6 @@ PYMOL API
 
     # cmd.hide(representation='everything', selection='not ab')
     cmd.zoom(selection='ab')
+    cmd.center(selection='cdrs')
 
 cmd.extend('colorcdrs', colorcdrs)

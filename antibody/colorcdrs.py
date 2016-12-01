@@ -22,17 +22,22 @@ from pymol import cmd
 
 
 # different numbering schemes should be added here.
-schemes = {'chothia': {'L1': [24, 34], 'L2': [50, 56], 'L3': [89, 97], 'L4': [66, 71],
-                       'H1': [26, 35], 'H2': [50, 56], 'H3': [95, 102], 'H4': [71, 78]
+schemes = {'chothia': {'L1': [24, 34], 'L2': [50, 56], 'L3': [89, 97],
+                       'L4': [66, 71],
+                       'H1': [26, 35], 'H2': [50, 56], 'H3': [95, 102],
+                       'H4': [71, 78]
                        },
-           'aho': {'L1': [24, 42], 'L2': [57, 72], 'L3': [107, 138], 'L4':[82, 89],
-                   'H1': [24, 42], 'H2': [57, 69], 'H3': [107, 138], 'H4':[82, 89]
+           'aho': {'L1': [24, 42], 'L2': [57, 72], 'L3': [107, 138],
+                   'L4': [82, 89],
+                   'H1': [24, 42], 'H2': [57, 69], 'H3': [107, 138],
+                   'H4': [82, 89]
                    },
            }
 
 Color = namedtuple('Color', ['color', 'selection'])
 Selection = namedtuple('Selection', ['name', 'selection'])
-GroupedSelection = namedtuple('GroupedSelection', ['group', 'name', 'selection'])
+GroupedSelection = namedtuple('GroupedSelection', ['group', 'name',
+                                                   'selection'])
 
 
 # Color mapping
@@ -57,19 +62,18 @@ colors_a = [
         ]
 
 colors_b = [Color('green', 'antigen'),
-          Color('yellow', 'light'),
-          Color('blue', 'heavy'),
-          Color('brightorange', 'cdrL'),
-          Color('cyan', 'cdrH'),
-          Color('greencyan', 'H3'),
-          Color('orange', 'L3'),
-          ]
+            Color('yellow', 'light'),
+            Color('blue', 'heavy'),
+            Color('brightorange', 'cdrL'),
+            Color('cyan', 'cdrH'),
+            Color('greencyan', 'H3'),
+            Color('orange', 'L3'),
+            ]
 
 
 def _get_selections(num_scheme, neighbor_dis=5.0):
-    """
-
-    Function to get a list of Selections and GroupedSelections for the antibody/antigen complex.
+    """Function to get a list of Selections and GroupedSelections for the
+    antibody/antigen complex.
 
     :param num_scheme: dict
     :param neighbor_dis: int
@@ -96,7 +100,8 @@ def _get_selections(num_scheme, neighbor_dis=5.0):
     sel.append(Selection('antigen', 'not ab'))
 
     for letter in ['H', 'L']:
-        sel.append(GroupedSelection('{}_group'.format(chain(letter)),chain(letter), 'chain {}'.format(letter)))
+        sel.append(GroupedSelection('{}_group'.format(chain(letter)),
+                                    chain(letter), 'chain {}'.format(letter)))
 
     # cdr selections
     # default to chothia if necessary
@@ -108,51 +113,63 @@ def _get_selections(num_scheme, neighbor_dis=5.0):
 
     scheme = schemes[num_scheme]
 
-
-
     # The actual selections happen here.
-    #  The order of selections matter, as we select based on previous selections!
+    # The order of selections matter, as we select based on previous selections
     for cdr, range in sorted(scheme.iteritems()):
         # select the CDR loop
         print(cdr)
         sel.append(GroupedSelection('{}_group'.format(cdr), cdr,
-                                    '{} and resi {}-{}'.format(chain(cdr), *range)))
-
+                                    '{} and resi {}-{}'.format(chain(cdr),
+                                                               *range)))
 
         # CDR Epitope
-        sel.append(GroupedSelection('{}_group'.format(cdr), '{}_epitope'.format(cdr),
-                                    'br. ({} around {}) and not ab'.format(cdr, neighbor_dis)))
+        sel.append(GroupedSelection('{}_group'.format(cdr),
+                                    '{}_epitope'.format(cdr),
+                                    'br. ({} around {}) and not '
+                                    'ab'.format(cdr, neighbor_dis)))
 
         # CDR Frame
-        sel.append(GroupedSelection('{}_group'.format(cdr), '{}_frame'.format(cdr),
-                                    'br. ({} around {}) and not antigen'.format(cdr, neighbor_dis)))
+        sel.append(GroupedSelection('{}_group'.format(cdr),
+                                    '{}_frame'.format(cdr),
+                                    'br. ({} around {}) and not '
+                                    'antigen'.format(cdr, neighbor_dis)))
 
         # select the CDR loop stem residues
-        sel.append(GroupedSelection('{}_group'.format(cdr), '{}_stem'.format(cdr),
-                                '{} and (resi {}-{} or resi {}-{})'.format(chain(cdr), *stem_res_no(range))))
+        sel.append(GroupedSelection('{}_group'.format(cdr),
+                                    '{}_stem'.format(cdr),
+                                    '{} and (resi {}-{} or resi '
+                                    '{}-{})'.format(chain(cdr),
+                                                    *stem_res_no(range))))
 
-    #Chain group with CDRs
+    # Chain group with CDRs
     for letter in ['H', 'L']:
         cdrs = [x for x in scheme.keys() if x.startswith(letter)]
 
-        sel.append(GroupedSelection('{}_group'.format(chain(letter)), '{}_cdrs'.format(chain(letter)),
+        sel.append(GroupedSelection('{}_group'.format(chain(letter)),
+                                    '{}_cdrs'.format(chain(letter)),
                                     '{} or {} or {}'.format(*cdrs)))
 
-        sel.append(GroupedSelection('{}_group'.format(chain(letter)),'{}_framework'.format(chain(letter)),
-                             '{} and not {}_cdrs'.format(chain(letter), chain(letter))))
+        sel.append(GroupedSelection('{}_group'.format(chain(letter)),
+                                    '{}_framework'.format(chain(letter)),
+                                    '{} and not '
+                                    '{}_cdrs'.format(chain(letter),
+                                                     chain(letter))))
 
-        sel.append(GroupedSelection('{}_group'.format(chain(letter)), '{}_stem'.format(chain(letter)),
-                                '{}_stem or {}_stem or {}_stem'.format(*cdrs)))
-
+        sel.append(GroupedSelection('{}_group'.format(chain(letter)),
+                                    '{}_stem'.format(chain(letter)),
+                                    '{}_stem or {}_stem or '
+                                    '{}_stem'.format(*cdrs)))
 
     sel.append(Selection('cdrs', ' or '.join(scheme.keys())))
 
-    sel.append(Selection('epitope', 'br. (ab around {}) and not ab'.format(neighbor_dis)))
+    sel.append(Selection('epitope', 'br. (ab around {}) and not '
+                         'ab'.format(neighbor_dis)))
 
-    sel.append(Selection('epitope_cdrs', ' or '.join(['{}_epitope'.format(cdr) for cdr in scheme.keys()])))
+    sel.append(Selection('epitope_cdrs', ' or '.join(
+        ['{}_epitope'.format(cdr) for cdr in scheme.keys()])))
 
-    sel.append(Selection('paratope', 'br. (epitope around {}) and not antigen'.format(neighbor_dis)))
-
+    sel.append(Selection('paratope', 'br. (epitope around {}) and '
+                         'not antigen'.format(neighbor_dis)))
 
     # Alternate selection strings for heavy and light frameworks are below.
     # I am not entirely sure how these differ from those above and what
@@ -167,13 +184,16 @@ def _get_selections(num_scheme, neighbor_dis=5.0):
 
     # TODO: right now this maps to chothia numbering only. Fix that.
     if num_scheme == 'chothia':
-        sel.append(GroupedSelection('H3_kink', 'kinkplus', 'heavy and resi 94+100A-103'))
-        sel.append(GroupedSelection('H3_kink', 'kinkhbond', 'heavy and resi 94+101'))
+        sel.append(GroupedSelection('H3_kink', 'kinkplus',
+                                    'heavy and resi 94+100A-103'))
+        sel.append(GroupedSelection('H3_kink', 'kinkhbond',
+                                    'heavy and resi 94+101'))
 
     return sel
 
 
-def colorcdrs(numbering='chothia', group = True, neighbor_distance=5.0, classic_coloring=False):
+def colorcdrs(numbering='chothia', group=True, neighbor_distance=5.0,
+              classic_coloring=False):
     '''
 DESCRIPTION
 
@@ -182,7 +202,8 @@ DESCRIPTION
 
 USAGE
 
-    colorcdrs [numbering_scheme [, group [, neighbor_distance [, classic_coloring ]]]]
+    colorcdrs [numbering_scheme [, group [, neighbor_distance
+              [, classic_coloring ]]]]
 
 ARGUMENTS
 
@@ -224,23 +245,22 @@ PYMOL API
 
     sele = '(all)'
 
-    #cmd.hide(representation='lines', selection=sele)
-    #cmd.show(representation='cartoon', selection=sele)
-    #cmd.cartoon(type='loop', selection=sele)
+    # cmd.hide(representation='lines', selection=sele)
+    # cmd.show(representation='cartoon', selection=sele)
+    # cmd.cartoon(type='loop', selection=sele)
 
     if classic_coloring:
         colors = colors_b
     else:
         colors = colors_a
 
-
     for c in colors:
         cmd.color(c.color, c.selection)
 
-    #cmd.disable(name='framework')
-    #cmd.disable(name='stem')
+    # cmd.disable(name='framework')
+    # cmd.disable(name='stem')
 
-    #cmd.hide(representation='everything', selection='not ab')
+    # cmd.hide(representation='everything', selection='not ab')
     cmd.center(selection='epitope paratope')
     # cmd.select(name='doc', selection='resname DOC')
 

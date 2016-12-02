@@ -23,7 +23,7 @@ class XMLToken :
         self.line_end = -1
         self.position_end = -1
         self.contents = ""
-        self.whitespace = False
+        self.whitespace = False #only true inside of tags; content outside of tags is ignored
         self.deleted = False
         self.index = 0
         self.in_tag = False
@@ -38,6 +38,12 @@ class XMLToken :
         return tok
     def uninitialized( self ) :
         return self.line_start == -1
+    def is_whitespace( self ) :
+        if self.in_tag : return self.whitespace
+        for x in self.contents :
+            if x != "\n" and x != " " and x != "\t" :
+                return False
+        return True
 
 class Tag :
     def __init__( self ) :
@@ -140,7 +146,8 @@ def tokenize_lines( lines ) :
     curr_token = XMLToken()
     for i,line in enumerate(lines) :
         for j,symb in enumerate( line ) :
-            #print i, j, symb, "in tag", in_tag, "in block comment", in_block_comment, "in double quote", in_double_quote, "in whitespace", in_whitespace
+            #print symb,
+            #print i, j, symb, "is_newline?", symb=="\n", "in tag", in_tag, "in block comment", in_block_comment, "in double quote", in_double_quote, "in whitespace", in_whitespace
             if in_block_comment :
                 if symb == ">" and j >= 2 and line[j-2:j+1] == "-->" :
                     assert( not curr_token.uninitialized() )
@@ -150,37 +157,27 @@ def tokenize_lines( lines ) :
                     tokens.append( curr_token )
                     curr_token = XMLToken()
                     in_block_comment = False
-            elif symb == "<" :
-                in_whitespace = False
-                if j+3 < len(line) and line[j:j+4] == "<!--" :
-                    if not curr_token.uninitialized() :
-                        curr_token.line_end = i if j != 0 else i-1
-                        curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
-                        curr_token.in_tag = in_tag
-                        tokens.append( curr_token )
-                        curr_token = XMLToken()
-                    in_block_comment = True
-                    curr_token.line_start = i
-                    curr_token.position_start = j
-                else :
-                    if not curr_token.uninitialized() :
-                        curr_token.line_end = i if j != 0 else i-1
-                        curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
-                        curr_token.in_tag = in_tag
-                        tokens.append( curr_token )
-                        curr_token = XMLToken()
-                    in_tag = True
-                    curr_token.in_tag = in_tag
-                    tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
             elif in_tag :
-                if symb == ">" :
+                if in_double_quote or in_single_quote:
+                    if ( symb == '"' and in_double_quote ) or ( symb == "'" and in_single_quote ) :
+                        curr_token.line_end = i
+                        curr_token.position_end = j
+                        curr_token.in_tag = in_tag
+                        tokens.append( curr_token )
+                        curr_token = XMLToken()
+                        in_double_quote = False
+                        in_single_quote = False
+                        #print "finished reading quote", i, j, symb
+                elif symb == ">" :
                     in_whitespace = False
                     end_of_element = j > 0 and line[ j-1:j+1 ] == "/>"
                     if end_of_element :
                         if not curr_token.uninitialized() :
                             curr_token.line_end = i if j != 1 else i-1
                             curr_token.position_end = j-2 if j != 1 else len(lines[i-1]) - 1
-                            if curr_token.position_end >= curr_token.position_start :
+                            if curr_token.line_start < curr_token.line_end or ( curr_token.line_start == curr_token.line_end and curr_token.position_end >= curr_token.position_start ) :
+                                #print "adding token before end of element", curr_token.line_start, curr_token.line_end,
+                                #print curr_token.position_start, curr_token.position_end
                                 curr_token.in_tag = in_tag
                                 tokens.append( curr_token )
                             curr_token = XMLToken()
@@ -219,16 +216,6 @@ def tokenize_lines( lines ) :
                             tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
                     in_tag = False
 
-                elif in_double_quote or in_single_quote:
-                    if ( symb == '"' and in_double_quote ) or ( symb == "'" and in_single_quote ) :
-                        curr_token.line_end = i
-                        curr_token.position_end = j
-                        curr_token.in_tag = in_tag
-                        tokens.append( curr_token )
-                        curr_token = XMLToken()
-                        in_double_quote = False
-                        in_single_quote = False
-                        #print "finished reading quote", i, j
                 elif symb == '"' or symb == "'" :
                     in_whitespace = False
                     if not curr_token.uninitialized() :
@@ -241,6 +228,7 @@ def tokenize_lines( lines ) :
                     else           : in_single_quote = True
                     curr_token.line_start = i
                     curr_token.position_start = j
+                    #print "started reading quote", i, j, symb
                 elif symb == " " or symb == "\t" or symb == "\n" :
                     if in_whitespace :
                         pass
@@ -278,6 +266,28 @@ def tokenize_lines( lines ) :
                         #print "Starting new non-whitespace token", i, j, symb
                         curr_token.line_start = i
                         curr_token.position_start = j
+            elif symb == "<" :
+                in_whitespace = False
+                if j+3 < len(line) and line[j:j+4] == "<!--" :
+                    if not curr_token.uninitialized() :
+                        curr_token.line_end = i if j != 0 else i-1
+                        curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
+                        curr_token.in_tag = in_tag
+                        tokens.append( curr_token )
+                        curr_token = XMLToken()
+                    in_block_comment = True
+                    curr_token.line_start = i
+                    curr_token.position_start = j
+                else :
+                    if not curr_token.uninitialized() :
+                        curr_token.line_end = i if j != 0 else i-1
+                        curr_token.position_end = j-1 if j != 0 else len(lines[i-1]) - 1
+                        curr_token.in_tag = in_tag
+                        tokens.append( curr_token )
+                        curr_token = XMLToken()
+                    in_tag = True
+                    curr_token.in_tag = in_tag
+                    tokens.append( XMLToken.tok_for_single_pos( i, j, in_tag ))
             else :
                 # outside of a tag; just nab all the text and put it into a single token
                 # until we get to something interesting
@@ -310,7 +320,7 @@ def tokenize_lines( lines ) :
                 tok.contents = "/>"
 
     #for tok in tokens :
-    #    print "token", tok.index, "\"" + tok.contents + "\""
+    #    print "token", tok.index, tok.whitespace, "\"" + tok.contents + "\""
 
     return tokens
 
@@ -339,7 +349,7 @@ def tokens_into_tags( tokens ) :
 
     curr_tag = Tag()
     for i,tok in enumerate( tokens ) :
-
+        #print "("+str(i), tok.contents+")"
         if in_tag :
             curr_tag.tokens.append( tok )
             if curr_tag.name == "" :
@@ -350,18 +360,18 @@ def tokens_into_tags( tokens ) :
                     # the first non-whitespace token behind this "/" is a "<"
                     j = i-1
                     while j >= 0 :
-                        if not tokens[j].whitespace :
+                        if not tokens[j].is_whitespace() :
                             if tokens[j].contents == "<" :
                                 curr_tag.terminator = True
                             break
-                elif tok.whitespace :
+                elif tok.is_whitespace() :
                     # you cannot have whitespace between the opening "<" and the tag name
                     tok.deleted = True
                 else :
                     curr_tag.name = tok.contents
             elif in_attribute :
                 #assert( len( tok.contents ) == 1 )
-                if tok.whitespace :
+                if tok.is_whitespace() :
                     tok.deleted = True
                 else :
                     curr_tag.attributes[-1].append( tok )
@@ -372,12 +382,14 @@ def tokens_into_tags( tokens ) :
                 # the equals sign; mark all of the whitespace tokens in between as deleted.
                 j = i-1
                 while ( j >= 0 ) :
-                    if not tokens[j].whitespace :
+                    if not tokens[j].is_whitespace() :
                         curr_tag.attributes.append( [ tokens[j] ] )
                         break
                     else :
                         tokens[j].deleted = True
                     j -= 1
+            elif tok.contents == "" :
+                print "Whoa, how did we end up here?", tok.index
             elif tok.contents[-1] == ">" :
 
                 if tok.contents == "/>" :
@@ -437,6 +449,7 @@ def surround_attributes_w_quotes( tags ) :
             rhs = attr[1]
             if rhs.contents[0] == '"' and rhs.contents[-1] == '"' : continue
             if rhs.contents[0] == "'" and rhs.contents[-1] == "'" : continue
+            #print rhs.contents
             assert (( rhs.contents[0] != '"' and rhs.contents[0] != "'" ) or
                     rhs.contents[0] == rhs.contents[-1] )
             rhs.contents = '"' + rhs.contents + '"'
@@ -736,7 +749,7 @@ def delete_attribute_from_tag( attr, tokens ) :
     attr[0].deleted = True
     attr[1].deleted = True
     tokens[attr[0].index+1].deleted = True
-    if tokens[attr[0].index-1].whitespace :
+    if tokens[attr[0].index-1].is_whitespace() :
         tokens[attr[0].index-1].deleted = True
 
 def rename_report_to_db_children( root, tokens ):
@@ -924,7 +937,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 mover_name = attr[1].contents[1:-1]
                 for i in xrange( attr[0].index, attr[1].index+1 ) :
                     tokens[i].deleted = True
-                if tokens[attr[1].index+1].whitespace :
+                if tokens[attr[1].index+1].is_whitespace() :
                     tokens[attr[1].index+1].deleted = True
                 break
         assert( mover_name is not None )
@@ -969,7 +982,7 @@ def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( 
                 for tag in common_element.tags :
                     for tok in tag.tokens :
                         tok.deleted = True
-                if tokens[ common_element.tags[-1].tokens[-1].index + 1 ].whitespace :
+                if tokens[ common_element.tags[-1].tokens[-1].index + 1 ].is_whitespace() :
                     tokens[ common_element.tags[-1].tokens[-1].index + 1 ].deleted = True
         elif len(root.tags)== 2 :
             old_space_token =  tokens[root.tags[0].tokens[-1].index+1]
@@ -1059,7 +1072,7 @@ def move_ROSETTASCRIPTS_tags_to_very_beginning_and_end_of_file( lines2 ) :
         if root_last_tok.line_end != len( lines2 )-1 or root_last_tok.position_end != len( lines2[-1] ) - 1 :
             any_non_whitespace_tokens = False
             for tok in toks2[ (root_last_tok.index+1): ] :
-                if not tok.whitespace :
+                if not tok.is_whitespace() :
                     any_non_whitespace_tokens = True
                     break
             if any_non_whitespace_tokens :
@@ -1080,15 +1093,10 @@ def rebuild_token_list_from_roots( element_roots, toks ) :
 
     return new_toks
 
-if __name__ == "__main__" :
-    with blargs.Parser(locals()) as p :
-        p.str( "input" ).required()
-        p.str( "output" ).required()
+def rewrite_xml_rosetta_script_lines( lines ) :
 
-    lines = open( input ).readlines()
-    #newlines = add_attribute_quotes( lines )
-    #open( output, "w" ).writelines( newlines )
     toks = tokenize_lines( lines )
+
     #for i,tok in enumerate( toks ) :
     #    for j,line in enumerate(tok.contents) :
     #        if len(tok.contents) == 1 :
@@ -1097,6 +1105,7 @@ if __name__ == "__main__" :
     #            print "tok: %4d" % i, line
     #        else :
     #            print "         ", line
+
 
     tags, element_roots = tokens_into_tags( toks )
     turn_wild_ampersands_into_and( toks )
@@ -1135,6 +1144,7 @@ if __name__ == "__main__" :
                 print "Bug in rewrite_rosetta_script.py: \"None\" returned by", modfunc.__name__
                 sys.exit(1)
 
+    #debug = True
     new_toks = rebuild_token_list_from_roots( element_roots, toks )
 
     mostly_rewritten_version = "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
@@ -1152,10 +1162,14 @@ if __name__ == "__main__" :
         toks3 = move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( element_roots[0], toks3 )
         new_toks = rebuild_token_list_from_roots( element_roots, toks3 )
 
-    #print "rewritten version:"
-    #print
-    #open( output, "w" ).writelines( [ x + "\n" for x in lines2 ] )
-    open( output, "w" ).write( "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] ) )
+    return "".join( [ (x.contents if not x.deleted else "") for x in new_toks ] )
 
-    #for i,tag in enumerate( tags ) :
-    #    print i, "".join( [ x.contents for x in tag.tokens ] )
+if __name__ == "__main__" :
+    with blargs.Parser(locals()) as p :
+        p.str( "input" ).required()
+        p.str( "output" ).required()
+
+    lines = open( input ).readlines()
+    new_version = rewrite_xml_rosetta_script_lines( lines )
+    open( output, "w" ).write( new_version )
+

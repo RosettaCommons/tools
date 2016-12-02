@@ -38,36 +38,38 @@ while (<F>) {
 	next if (/^#/);
 	my @cols = split(/\s+/,$_);
 	my $tmpphicol;
-	for (my $i=0; $i<=$#cols-3; $i++) {
-		next if ($cols[$i] !~ /^\-?\d{1,3}\.\d{3}$/);
-		next if ($cols[$i+1] !~ /^\-?\d{1,3}\.\d{3}$/);
-		next if ($cols[$i+2] !~ /^\-?\d{1,3}\.\d{3}$/);
-		my $phi = eval($cols[$i]);
-		my $psi = eval($cols[$i+1]);
-		my $omega = eval($cols[$i+2]);
-		if ($phi <= 180 && $phi >= -180 && $psi <= 180 && $psi >= -180 && $omega <= 180 && $omega >= -180) {
-			$tmpphicol = $i;
-			if (!defined $phicol) {
-				$phicol = $tmpphicol;
-				print "Assumming torsions start from column ".($i+1)."\n";
+	if (!defined $phicol) {
+		for (my $i=0; $i<=$#cols-3; $i++) {
+			next if ($cols[$i] !~ /^\-?\d{1,3}\.\d{3}$/);
+			next if ($cols[$i+1] !~ /^\-?\d{1,3}\.\d{3}$/);
+			next if ($cols[$i+2] !~ /^\-?\d{1,3}\.\d{3}$/);
+			my $phi = eval($cols[$i]);
+			my $psi = eval($cols[$i+1]);
+			my $omega = eval($cols[$i+2]);
+			if ($phi <= 180 && $phi >= -180 && $psi <= 180 && $psi >= -180 && $omega <= 180 && $omega >= -180) {
+				$tmpphicol = $i;
+				if (!defined $phicol) {
+					$phicol = $tmpphicol;
+					print "Assumming torsions start from column ".($i+1)."\n";
+				}
+				last;
 			}
-			last;
+			if ((defined $phicol && $tmpphicol != $phicol) || !defined $tmpphicol) {
+				close(NF);
+				close(F);
+				unlink($torsions_vall);
+				die "ERROR! there was an issue when trying to determine the torsions columns from $vall\n";
+			}
 		}
-		if ((defined $phicol && $tmpphicol != $phicol) || !defined $tmpphicol) {
+		if (!defined $phicol) {
 			close(NF);
 			close(F);
 			unlink($torsions_vall);
 			die "ERROR! there was an issue when trying to determine the torsions columns from $vall\n";
 		}
 	}
-	if (!defined $phicol) {
-		close(NF);
-		close(F);
-		unlink($torsions_vall);
-		die "ERROR! there was an issue when trying to determine the torsions columns from $vall\n";
-	}
 	$vallline++;
-	$vall{"$cols[0] $cols[1] $cols[2] $cols[3]"} = { line => $vallline, phi => $cols[$phicol], psi => $cols[$phicol+1],  omega => $cols[$phicol+2] };
+	$vall{"$cols[0] $cols[1] $cols[2] $cols[3]"} = { line => $vallline, aa => $cols[1], ss => $cols[2], phi => $cols[$phicol], psi => $cols[$phicol+1],  omega => $cols[$phicol+2] };
 }
 close(F);
 
@@ -83,7 +85,7 @@ if ($opts{create_torsions_vall}) {
 	while (<F>) {
 		next if (/^#/);
 		my @cols = split(/\s+/,$_);
-		print NF $cols[$phicol]." ".$cols[$phicol+1]." ".$cols[$phicol+2]."\n";
+		print NF $cols[1]." ".$cols[2]." ".$cols[$phicol]." ".$cols[$phicol+1]." ".$cols[$phicol+2]."\n";
 	}
 	close(F);
 	close(NF);
@@ -136,7 +138,7 @@ foreach my $frag (@ARGV) {
 				if ($output_torsions) {
 					print NF "0 $fragsize\n";
 					foreach my $f (@frag) {
-						printf NF "$f->{phi} %9.3f %9.3f\n", $f->{psi}, $f->{omega};
+						printf NF "$f->{aa} $f->{ss} $f->{phi} %9.3f %9.3f\n", $f->{psi}, $f->{omega};
 					}
 				} else {
 					print NF "$vallline $fragsize\n";
@@ -203,32 +205,6 @@ sub getCommandLineOptions {
 
 __END__
 
-
-
-torsions only vall example:
-
-0.000 133.529 -176.999
--156.125 166.203 176.182
--142.134 158.100 -176.901
--123.727 136.074 174.838
--166.604 152.765 179.364
-
-
-
-minimal fragment file example:
-
-# index 1 4126307 0 vall.jul19.2011
-501503 3
-216727 3
-53997 3
-20075 3
-37488 3
-
-86454 3
-245566 3
-339837 3
-186988 3
-224551 3
 
 
 

@@ -16,7 +16,7 @@ def is_clustalw_line(line):
     if line.strip().split()[1].find("X") != -1: return False
     return True
 
-class SingleAlingmnet:
+class SingleAlignment:
     def __init__(self):
         self.query_sequence = ""
 
@@ -153,7 +153,7 @@ class SingleAlingmnet:
 	    self.query_tag = query_line[0]
 
 	    # Sequences can span muliple lines
-	    for i in range (0,len(block) - 2,2):
+	    for i in range (0,len(block) - 1,2):
 		    buff = block[i].strip().split()
 		    self.target_aln_seq += buff[1]
 
@@ -203,7 +203,7 @@ class Alignment:
 
             if line[:2] == "--":
                 single_aln_lines.append(line)
-                aln = SingleAlingmnet()
+                aln = SingleAlignment()
                 aln.read_grishin(single_aln_lines)
                 self.alignments.append(aln)
                 aln_block = False
@@ -217,7 +217,7 @@ class Alignment:
         for line in lines:
             if line[:3] == "No ":
                 if aln_block:
-                    aln = SingleAlingmnet()
+                    aln = SingleAlignment()
                     aln.read_hhsearch(single_aln_lines)
                     self.alignments.append(aln)
 
@@ -229,7 +229,7 @@ class Alignment:
             if aln_block:
                 single_aln_lines.append(line)
 
-        aln = SingleAlingmnet()
+        aln = SingleAlignment()
         aln.read_hhsearch(single_aln_lines)
         self.alignments.append(aln)
         return
@@ -259,7 +259,7 @@ class Alignment:
                     block_line_count += 1
                     if block_line_count == i_aln + 1 or block_line_count > n_alignments:
                         single_aln_lines.append(line)
-            aln = SingleAlingmnet()
+            aln = SingleAlignment()
             aln.read_clustalw(single_aln_lines)
             self.alignments.append(aln)
         return
@@ -277,7 +277,7 @@ class Alignment:
             # add query
             for iline in range(aln_line_numbers[0], aln_line_numbers[1]):
                 single_aln_lines.append(lines[iline])
-            aln = SingleAlingmnet()
+            aln = SingleAlignment()
             aln.read_fasta(single_aln_lines)
             self.alignments.append(aln)
         return
@@ -304,7 +304,7 @@ class Alignment:
                 if is_query:
                     query_line = alignment_line
                 else:
-                    single_aln = SingleAlingmnet()
+                    single_aln = SingleAlignment()
 
                     single_aln.query_tag = query_tag
 
@@ -420,19 +420,14 @@ def write_flags(flag_fn, fasta_fn, xml_fn, silent_fn):
     flag_file.write("# i/o\n")
     flag_file.write("-in:file:fasta %s\n"%fasta_fn)
     flag_file.write("-nstruct 20\n")
-    #flag_file.write("-out:file:silent %s\n"%silent_fn)
-    flag_file.write("-parser:protocol %s\n"%xml_fn)
-    flag_file.write("-out:file:silent_struct_type binary\n\n")
+    flag_file.write("-parser:protocol %s\n\n"%xml_fn)
 
     flag_file.write("# relax options\n")
-    flag_file.write("-default_max_cycles 200\n")
-    flag_file.write("-relax:min_type lbfgs_armijo_nonmonotone\n")
-    flag_file.write("-relax:dual_space\n")
+    flag_file.write("-relax:dualspace\n")
     flag_file.write("-relax:jump_move true\n")
-    flag_file.write("-score:weights talaris2013.wts\n")
-    flag_file.write("-use_bicubic_interpolation\n")
+    flag_file.write("-default_max_cycles 200\n")
+    flag_file.write("-beta_cart\n")
     flag_file.write("-hybridize:stage1_probability 1.0\n")
-    flag_file.write("-sog_upper_bound 15\n\n")
 
 def write_xml(fn, template_filenames):
     xml_file=open(fn,'w')
@@ -440,32 +435,28 @@ def write_xml(fn, template_filenames):
     xml_file.write("    <TASKOPERATIONS>\n")
     xml_file.write("    </TASKOPERATIONS>\n")
     xml_file.write("    <SCOREFXNS>\n")
-    xml_file.write("        <stage1 weights=score3 symmetric=0>\n")
-    xml_file.write("            <Reweight scoretype=atom_pair_constraint weight=0.5/>\n")
-    xml_file.write("        </stage1>\n")
-    xml_file.write("        <stage2 weights=score4_smooth_cart symmetric=0>\n")
-    xml_file.write("            <Reweight scoretype=atom_pair_constraint weight=0.5/>\n")
-    xml_file.write("        </stage2>\n")
-    xml_file.write("        <fullatom weights=talaris2013_cart symmetric=0>\n")
-    xml_file.write("            <Reweight scoretype=atom_pair_constraint weight=0.5/>\n")
-    xml_file.write("        </fullatom>\n")
+    xml_file.write("        <ScoreFunction name=\"stage1\" weights=\"score3\" symmetric=\"0\">\n")
+    xml_file.write("            <Reweight scoretype=\"atom_pair_constraint\" weight=\"0.1\"/>\n")
+    xml_file.write("        </ScoreFunction>\n")
+    xml_file.write("        <ScoreFunction name=\"stage2\" weights=\"score4_smooth_cart\" symmetric=\"0\">\n")
+    xml_file.write("            <Reweight scoretype=\"atom_pair_constraint\" weight=\"0.1\"/>\n")
+    xml_file.write("        </ScoreFunction>\n")
+    xml_file.write("        <ScoreFunction name=\"fullatom\" weights=\"beta_cart\" symmetric=\"0\">\n")
+    xml_file.write("            <Reweight scoretype=\"atom_pair_constraint\" weight=\"0.1\"/>\n")
+    xml_file.write("        </ScoreFunction>\n")
     xml_file.write("    </SCOREFXNS>\n")
     xml_file.write("    <FILTERS>\n")
     xml_file.write("    </FILTERS>\n")
     xml_file.write("    <MOVERS>\n")
-    xml_file.write("        <Hybridize name=hybridize stage1_scorefxn=stage1 stage2_scorefxn=stage2 fa_scorefxn=fullatom batch=1 stage1_increase_cycles=1.0 stage2_increase_cycles=1.0 linmin_only=1>\n")
-    #xml_file.write("            <Fragments 3mers=\"t000_.200.3mers.gz\" 9mers=\"t000_.200.9mers.gz\"/>\n")
-    weight = 1.0
+    xml_file.write("        <Hybridize name=\"hybridize\" stage1_scorefxn=\"stage1\" stage2_scorefxn=\"stage2\" fa_scorefxn=\"fullatom\" batch=\"1\" stage1_increase_cycles=\"1.0\" stage2_increase_cycles=\"1.0\">\n")
     for tmpl in template_filenames:
-        xml_file.write("            <Template pdb=\"%s\" cst_file=\"AUTO\" weight=%8.3f />\n"%(tmpl,weight))
-        if not args.equal_weight:
-            weight *= 0.8
+        xml_file.write("            <Template pdb=\"%s\" cst_file=\"AUTO\" weight=\"1.0\" />\n"%(tmpl))
     xml_file.write("        </Hybridize>\n")
     xml_file.write("    </MOVERS>\n")
     xml_file.write("    <APPLY_TO_POSE>\n")
     xml_file.write("    </APPLY_TO_POSE>\n")
     xml_file.write("    <PROTOCOLS>\n")
-    xml_file.write("        <Add mover=hybridize/>\n")
+    xml_file.write("        <Add mover=\"hybridize\"/>\n")
     xml_file.write("    </PROTOCOLS>\n")
     xml_file.write("</ROSETTASCRIPTS>\n")
     xml_file.close()
@@ -546,7 +537,6 @@ if __name__=="__main__":
     parser.add_argument('--run', action="store_true", default=False, help="run the modeling process")
     parser.add_argument('--keep_files', action="store_true", default=False, help="keep intermediate files")
     parser.add_argument('--run_dir', action="store", default="rosetta_cm", help="running dir")
-    parser.add_argument('--equal_weight', action="store_true", default=False, help="Use the same weight for all alignments")
     parser.add_argument('--use_dna', action="store_true", default=False, help="Add DNA from template to target")
     parser.add_argument('--verbose', action="store_true", default=False, help="print extra info")
     args = parser.parse_args()
@@ -579,7 +569,7 @@ if __name__=="__main__":
     curr_dir = os.getcwd()
     if (not args.keep_files):
         tempdir = tempfile.mkdtemp()
-        if args.verbose: print "Switching to director: %s"%tempdir
+        if args.verbose: print "Switching to directory: %s"%tempdir
         os.chdir(tempdir)
 
     # get alignment
@@ -612,7 +602,7 @@ if __name__=="__main__":
             if buff[0] == "##":
                 print buff
                 assert (buff[1] == fasta_fn.split('/')[-1].split('.')[0]), "\
-		The first sequence ID in grishin alignment file must match the fasta file name. \n \
+		The first sequence ID in a clustalw alignment file must match the fasta file name. \n \
 					   -> You may have to rename or swap the order of sequences in your alignment file."
 
 

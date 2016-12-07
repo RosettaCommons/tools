@@ -6,6 +6,7 @@ import tempfile
 import argparse
 import shutil
 import glob
+import math
 
 def is_clustalw_line(line):
     nstring = len(line.strip().split())
@@ -533,8 +534,8 @@ if __name__=="__main__":
     parser.add_argument('--compiler', action="store", default="gcc", help="compiler name in rosetta executable")
     parser.add_argument('--compiling_mode', action="store", default="release", help="compiling mode name in rosetta executable")
     parser.add_argument('--setup_script', action="store", default="", help="setup.pl path")
-    parser.add_argument('-j', action="store",type=int, default=1, help="number of processors")
     parser.add_argument('--run', action="store_true", default=False, help="run the modeling process")
+    parser.add_argument('-j', action="store",type=int, default=1, help="number of processors (requires GNU parallel in path!)")
     parser.add_argument('--keep_files', action="store_true", default=False, help="keep intermediate files")
     parser.add_argument('--run_dir', action="store", default="rosetta_cm", help="running dir")
     parser.add_argument('--use_dna', action="store_true", default=False, help="Add DNA from template to target")
@@ -542,10 +543,12 @@ if __name__=="__main__":
     args = parser.parse_args()
     rosetta_bin = os.path.expanduser(args.rosetta_bin)
     rosetta_db = os.path.abspath("%s/../../database"%rosetta_bin)
-    if args.j > 1:
-        if args.build != 'mpi':
-            print "Add \"--build mpi\" for multiple processors"
-            sys.exit(-1)
+
+	# fpd use parallel
+    #if args.j > 1:
+        #if args.build != 'mpi':
+            #print "Add \"--build mpi\" for multiple processors"
+            #sys.exit(-1)
 
     rosetta_exe_ext = "%s.%s%s%s"%(args.build, args.platform, args.compiler, args.compiling_mode)
 
@@ -649,11 +652,11 @@ if __name__=="__main__":
         write_xml(xml_fn, thread_fullnames)
 
         # run hybridization
-        exe_name="%s/rosetta_scripts.%s"%(args.rosetta_bin, rosetta_exe_ext)
+        exe_name="%s/rosetta_scripts.%s"%(os.path.expanduser(args.rosetta_bin), rosetta_exe_ext)
         if args.j == 1:
-            command="%s @%s -database %s -nstruct 10"%(exe_name, flag_fn, rosetta_db)
+            command="%s @%s -database %s -nstruct 20"%(exe_name, flag_fn, rosetta_db)
         else:
-            command="mpirun -np %d %s @%s -database %s -nstruct 10"%(args.j, exe_name, flag_fn, rosetta_db)
+            command="parallel -j %d %s @%s -database %s -nstruct %d -out::suffix _{} ::: {1..%d}"%(args.j, exe_name, flag_fn, rosetta_db, math.ceil(20/args.j), args.j)
 
         if not args.run:
             print "Run command: %s"%command

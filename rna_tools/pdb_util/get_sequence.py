@@ -15,8 +15,20 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
               ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
               'ROS': 'Z[ROS]','HOH':'w[HOH]', 'H2U': 'X[H2U]',
-              'PSU': 'X[PSU]', '5MU': 'X[5MU]'
+              'PSU': 'X[PSU]', '5MU': 'X[5MU]', 'FME': 'X[FME]'
               }
+
+from subprocess import Popen, PIPE
+import os
+grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" % os.environ[ "ROSETTA" ] ], stdout=PIPE )
+awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
+grep.stdout.close()
+tlcs, err = awk.communicate()
+print tlcs
+for tlc in tlcs.split('\n'):
+    longer_names[tlc] = "X[%s]" % tlc
+print longer_names
+
 
 def get_sequences( pdbname, removechain = 0 ):
 

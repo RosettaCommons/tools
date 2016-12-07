@@ -24,11 +24,8 @@ grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_typ
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()
-print tlcs
 for tlc in tlcs.split('\n'):
     longer_names[tlc] = "X[%s]" % tlc
-print longer_names
-
 
 def get_sequences( pdbname, removechain = 0 ):
 

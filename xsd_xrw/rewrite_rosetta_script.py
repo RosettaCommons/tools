@@ -924,6 +924,55 @@ def renumber_tokens( tokens ) :
     for i,tok in enumerate( tokens ) :
         tok.index = i
 
+def convert_strings_to_tag_tokens( tok_strings ) :
+    tag_toks = []
+    for tok_str in tok_strings :
+        tok = XMLToken()
+        tok.contents = tok_str
+        tok.in_tag = True
+        tag_toks.append( tok )
+    return tag_toks
+
+def fix_MetropolisHastings( root, tokens ) :
+    # If a subtag of the MetropolisHastings tag is not named either "Add" or "AddNew", then
+    # imbed it within a new AddNew element
+    # If there is an attribute named "sampling_weight" for that tag, then it must become
+    # an attribute of the new AddNew element
+    if root.name == "MetropolisHastings" :
+        orig_sub_elements = list( root.sub_elements )
+        for i, subelem in enumerate( orig_sub_elements ) :
+            if subelem.name == "Add" or subelem.name == "AddNew" : continue
+            print "Creating AddNew element for", subelem.name
+            sampweight_attr = find_attribute_in_tag( subelem.tags[0], "sampling_weight" )
+            first_tag_strings = [ "<", "AddNew" ]
+            if sampweight_attr :
+                first_tag_strings += [ x.contents for x in tokens[ sampweight_attr[0].index-1: sampweight_attr[1].index+1 ] ]
+                for j in xrange(sampweight_attr[0].index-1,sampweight_attr[1].index+1) :
+                    tokens[j].deleted = True
+            first_tag_strings.append( ">" )
+            first_tag_toks = convert_strings_to_tag_tokens( first_tag_strings )
+            second_tag_toks = convert_strings_to_tag_tokens( [ "<", "/AddNew", ">" ] )
+            first_tag = Tag()
+            second_tag = Tag()
+            add_new_element = Element()
+            add_new_element.name = first_tag.name = second_tag.name = "AddNew"
+            first_tag.tokens = first_tag_toks
+            second_tag.tokens = second_tag_toks
+            second_tag.closed = True
+            second_tag.terminator = True
+            add_new_element.tags = [ first_tag, second_tag ]
+            add_new_element.sub_elements.append( subelem )
+            root.sub_elements = root.sub_elements[:i] + [ add_new_element ] + root.sub_elements[i+1:]
+            tokens = tokens[:subelem.tags[0].tokens[0].index] + first_tag_toks + \
+                     tokens[subelem.tags[0].tokens[0].index:subelem.tags[-1].tokens[-1].index+1] + \
+                     second_tag_toks + \
+                     tokens[ subelem.tags[-1].tokens[-1].index+1: ]
+            renumber_tokens( tokens )
+    for subelem in root.sub_elements :
+        tokens = fix_MetropolisHastings( subelem, tokens )
+    return tokens
+            
+            
 def fix_LayerDesign( root, tokens ) :
     # If a subtag of the LayerDesign tag isn't "core", "boundary", "surface", "Nterm" , "Cterm" or "CombinedTasks"
     # then it needs to be nested in a new tag, "TaskLayer", and its children named
@@ -940,18 +989,8 @@ def fix_LayerDesign( root, tokens ) :
             # the tokens need to become tags
             first_tag_tok_strings =  [ "<", "TaskLayer", ">" ]
             second_tag_tok_strings = [  "<", "/TaskLayer", ">" ]
-            first_tag_toks = []
-            second_tag_toks = []
-            for tok_str in first_tag_tok_strings :
-                tok = XMLToken()
-                tok.contents = tok_str
-                tok.in_tag = True
-                first_tag_toks.append( tok )
-            for tok_str in second_tag_tok_strings :
-                tok = XMLToken()
-                tok.contents = tok_str
-                tok.in_tag = True
-                second_tag_toks.append( tok )
+            first_tag_toks = convert_strings_to_tag_tokens( first_tag_tok_strings )
+            second_tag_toks = convert_strings_to_tag_tokens( second_tag_tok_strings )
 
             # We need to put whitespace ahead of the TaskLayer tag.
 
@@ -1272,6 +1311,7 @@ def rewrite_xml_rosetta_script_lines( lines ) :
     surround_attributes_w_quotes( tags )
     modifications = [ rename_score_functions,
                       fix_LayerDesign,
+                      fix_MetropolisHastings,
                       rename_fragments_from_frag_reader,
                       rename_monte_carlo_elements_from_monte_carlo_loader,
                       rename_interface_builders_from_interface_builder_loader,

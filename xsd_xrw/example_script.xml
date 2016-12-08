@@ -256,6 +256,27 @@
     <PDBTrajectoryRecorder/>
   </MetropolisHastings>
 
+
+    <AbscriptMover name="abinitio" cycles=2 >
+      <!-- Abscript mover has special macros for defining the usual ab initio fragment movers, since there's three -->
+      <!-- and they're very stereotyped. You could use the <Stage> tag syntax to do it, but it's a pain. -->
+      <Fragments large_frags="frags/1d3z.frags9.dat.gz" small_frags="frags/1d3z.frags3.dat.gz" />
+      <!-- Add the mover "jumps" (fragment jumps) to stages I through IVb (i.e. all of them) -->
+      <Stage ids="I-IVb" >
+        <Mover name="jumps" />
+      </Stage>
+    </AbscriptMover>
+
+    <AbscriptMover name="abinitio" cycles=2 >
+      <!-- Abscript mover has special macros for defining the usual ab initio fragment movers, since there's three -->
+      <!-- and they're very stereotyped. You could use the <Stage> tag syntax to do it, but it's a pain. -->
+      <fragments large_frags="frags/1d3z.frags9.dat.gz" small_frags="frags/1d3z.frags3.dat.gz" />
+      <!-- Add the mover "jumps" (fragment jumps) to stages I through IVb (i.e. all of them) -->
+      <Stage ids="I-IVb" >
+        <Mover name="jumps" />
+      </Stage>
+    </AbscriptMover>
+
  </MOVERS>
  <FILTERS>
 

@@ -511,6 +511,17 @@ def recursively_rename_subelements( root, element_name, new_subelement_name, new
     for element in root.sub_elements :
         recursively_rename_subelements( element, element_name, new_subelement_name, new_attribute_name )
 
+def recursively_rename_particular_subelements( root, element_name, old_subelement_name, new_subelement_name ) :
+    if root.name == element_name :
+        for sub_element in root.sub_elements :
+            if sub_element.name != old_subelement_name : continue
+            for i,tag in enumerate( sub_element.tags ) :
+                name_tok = name_token_of_tag( tag )
+                name_tok.contents = new_subelement_name if i == 0 else ( "/" + new_subelement_name )
+    for element in root.sub_elements :
+        recursively_rename_particular_subelements( element, element_name, old_subelement_name, new_subelement_name )
+
+
 def recursively_swap_attribute_and_element_name( root, element_name, old_attribute_name, new_attribute_name = "name" ) :
     if root.name == element_name :
         for sub_element in root.sub_elements :
@@ -677,11 +688,17 @@ def move_fragments_as_first_child_of_fragset( root, tokens ) :
     # TO DO: make sure that FRAGMENTS element becomes first child of the
     # FRAGSET element?? Shit, the reconstitute_token_list function assumes that
     # tokens don't change their order!
+    # WAIT The FragmentReader data loader is never registered with the DataLoaderFactory
+    # forget this function for now.
     return tokens
 
-def move_fragments_as_first_child_of_abscript( root, tokens ) :
-    # TO DO
-    # make sure that Fragments is the first sub-element of the Abscript Mover
+#def move_fragments_as_first_child_of_abscript( root, tokens ) :
+#    # TO DO
+#    # make sure that Fragments is the first sub-element of the Abscript Mover
+#    return tokens
+
+def rename_fragments_subelements_of_AbscriptMover_to_Fragments( root, tokens ) :
+    recursively_rename_particular_subelements( root, "AbscriptMover", "fragments", "Fragments" )
     return tokens
 
 def rename_monte_carlo_elements_from_monte_carlo_loader( root, tokens ) :
@@ -942,7 +959,7 @@ def fix_MetropolisHastings( root, tokens ) :
         orig_sub_elements = list( root.sub_elements )
         for i, subelem in enumerate( orig_sub_elements ) :
             if subelem.name == "Add" or subelem.name == "AddNew" : continue
-            print "Creating AddNew element for", subelem.name
+            #print "Creating AddNew element for", subelem.name
             sampweight_attr = find_attribute_in_tag( subelem.tags[0], "sampling_weight" )
             first_tag_strings = [ "<", "AddNew" ]
             if sampweight_attr :
@@ -1333,7 +1350,8 @@ def rewrite_xml_rosetta_script_lines( lines ) :
                       turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags,
                       move_res_filter_as_first_child_of_OperateOnCertainResidues,
                       rename_scoring_grid_subelements,
-                      rename_RDF_subtags_of_ComputeLigandRDF
+                      rename_RDF_subtags_of_ComputeLigandRDF,
+                      rename_fragments_subelements_of_AbscriptMover_to_Fragments
                   ]
 
     #print "how many roots?", len( element_roots )

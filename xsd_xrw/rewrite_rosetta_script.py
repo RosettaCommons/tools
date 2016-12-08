@@ -971,7 +971,6 @@ def fix_LayerDesign( root, tokens ) :
             fixed_leading_tag_ws_indentation = False
             if subelem.sub_elements :
                 for subsubelem in subelem.sub_elements :
-                    if subsubelem not in ss_names : continue
                     prev_tok = tokens[ subsubelem.tags[0].tokens[0].index - 1 ]
                     if prev_tok.in_tag : continue
                     leading_tag_prev_tok_cols = prev_tok.contents.rpartition( "\n" )

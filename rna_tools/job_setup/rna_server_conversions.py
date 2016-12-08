@@ -12,10 +12,12 @@ from get_sequence import get_sequence, hetatm_map
 MAX_SEQUENCE_LENGTH = 32
 
 nts = ['g','c','u','a','G','C','U','A']
-ligands = ['z','Z','w']
+ligands = ['z','Z','w','X']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};
+aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y' ]
+
 
 def ValidationError( string ):
     print string
@@ -44,7 +46,7 @@ def join_sequence( sequence ):
             sequence_joined += c
             count += 1
             continue
-        if c in nts or c in secstruct_chars or c in ligands:
+        if c in nts or c in secstruct_chars or c in ligands or c in aas:
             sequence_joined += c.lower()
             count += 1
             continue

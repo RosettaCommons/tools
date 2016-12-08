@@ -1043,7 +1043,7 @@ def fix_LayerDesign( root, tokens ) :
                                 if ch != " " and ch != "\t" :
                                     all_whitespace = False
                             if all_whitespace :
-                                prev_tok.contents = prev_ws_cols[0] + prev_ws_cols[1] + leading_tag_prev_tok_cols[2]
+                                prev_ws_tok.contents = prev_ws_cols[0] + prev_ws_cols[1] + leading_tag_prev_tok_cols[2]
                                 fixed_closing_tag_indentation = True
                     if not fixed_closing_tag_indentation :
                         prev_ws_tok.contents += "  " # just indent the closing tag two spaces

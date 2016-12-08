@@ -966,7 +966,26 @@ def fix_LayerDesign( root, tokens ) :
             lead_ws_tok.contents = "\n" + ws
             trailing_ws_tok = XMLToken()
             trailing_ws_tok.contents = "\n" + ws
-            ws_tok.contents = ws_tok.contents + " " # indent the TaskOperation one level more
+
+            # let's look for the indentation of the subtags of the task-op tag;
+            fixed_leading_tag_ws_indentation = False
+            if subelem.sub_elements :
+                for subsubelem in subelem.sub_elements :
+                    if subsubelem not in ss_names : continue
+                    prev_tok = tokens[ subsubelem.tags[0].tokens[0].index - 1 ]
+                    if prev_tok.in_tag : continue
+                    leading_tag_prev_tok_cols = prev_tok.contents.rpartition( "\n" )
+                    if leading_tag_prev_tok_cols[2] == "" : continue
+                    all_whitespace = True
+                    for ch in leading_tag_prev_tok_cols[-1] :
+                        if ch != " " and ch != "\t" :
+                            all_whitespace = False
+                    if not all_whitespace : continue
+                    ws_tok.contents = ws_cols[0] + ws_cols[1] + leading_tag_prev_tok_cols[2]
+                    fixed_leading_tag_ws_indentation = True
+                    break
+            if not fixed_leading_tag_ws_indentation :
+                ws_tok.contents = ws_tok.contents + "  " # indent the TaskOperation two spaces
 
             first_tag = Tag()
             second_tag = Tag()
@@ -989,6 +1008,8 @@ def fix_LayerDesign( root, tokens ) :
                     task_layer_element.sub_elements.append( subsubelem )
                 else :
                     any_sub_sub_elems_belonging_to_taskop = True
+                    prev_tok = tokens[ subsubelem.tags[0].tokens[0].index - 1 ]
+                    prev_tok.contents += "  "; # add two spaces of indentation to this tag
             if not any_sub_sub_elems_belonging_to_taskop :
                 if len( subelem.tags ) == 2 :
                     # ok, delete the tokens of the second tag
@@ -1009,7 +1030,26 @@ def fix_LayerDesign( root, tokens ) :
                     assert( end_tok.contents == ">" )
                     end_tok.contents = "/>"
                     subelem.closed = True
-            # ok, now update the tokens
+            else :
+                #indent the closing tag
+                assert( len(subelem.tags ) == 2 )
+                fixed_closing_tag_indentation = False
+                prev_ws_tok = tokens[ subelem.tags[1].tokens[0].index - 1 ]
+                if not prev_ws_tok.in_tag :
+                    if fixed_leading_tag_ws_indentation :
+                        prev_ws_cols = prev_ws_tok.contents.rpartition("\n")
+                        if prev_ws_cols[2] != "" :
+                            all_whitespace = True
+                            for ch in prev_ws_cols[2] :
+                                if ch != " " and ch != "\t" :
+                                    all_whitespace = False
+                            if all_whitespace :
+                                prev_tok.contents = prev_ws_cols[0] + prev_ws_cols[1] + leading_tag_prev_tok_cols[2]
+                                fixed_closing_tag_indentation = True
+                    if not fixed_closing_tag_indentation :
+                        prev_ws_tok.contents += "  " # just indent the closing tag two spaces
+
+            # ok, now update the tokens list
             temptokens = tokens[ : subelem.tags[0].tokens[0].index-1 ] + \
                          [ lead_ws_tok ] + \
                          first_tag_toks + \
@@ -1021,9 +1061,10 @@ def fix_LayerDesign( root, tokens ) :
                     temptokens += tokens[ subsubelem.tags[0].tokens[0].index : subsubelem.tags[-1].tokens[-1].index+1 ]
 
             # append these tokens even though they may have been deleted
-            if not tokens[ subelem.tags[1].tokens[0].index-1 ].in_tag :
-                temptokens.append( tokens[ subelem.tags[1].tokens[0].index-1 ] )
-            temptokens += tokens[ subelem.tags[1].tokens[0].index : subelem.tags[1].tokens[-1].index+1 ]
+            if len( subelem.tags ) == 2 :
+                if not tokens[ subelem.tags[1].tokens[0].index-1 ].in_tag :
+                    temptokens.append( tokens[ subelem.tags[1].tokens[0].index-1 ] )
+                temptokens += tokens[ subelem.tags[1].tokens[0].index : subelem.tags[1].tokens[-1].index+1 ]
 
             for i,subsubelem in enumerate( task_layer_element.sub_elements ) :
                 if i == 0 : continue

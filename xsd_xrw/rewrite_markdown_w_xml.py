@@ -66,8 +66,8 @@ def find_xml_blocks_in_lines( lines ) :
                 if line.find( "&" ) != -1 :
                     found_ampersand = True
 
-    #for pair in xml_blocks_begin_and_end :
-    #    print "begin and end:", pair[0], pair[1]
+    for pair in all_blocks :
+        print "begin and end:", pair[0], pair[1]
 
     return real_blocks, faux_blocks, all_blocks
 
@@ -140,7 +140,7 @@ def rewrite_xml_blocks_in_lines( lines, xml_blocks ) :
             block = xml_blocks[ count_xml_block ]
             #print block
             xml_lines = lines[ block[0]:(block[1]+1) ]
-            #print xml_lines
+            print xml_lines
             new_content = rewrite_rosetta_script.rewrite_xml_rosetta_script_lines( xml_lines )
             newlines.append( new_content )
 
@@ -158,6 +158,6 @@ if __name__ == "__main__" :
     xml_blocks, faux_blocks, all_blocks = find_xml_blocks_in_lines( lines )
     newlines = wrap_faux_xml_attributes_in_quotes( lines, faux_blocks )
     #for line in newlines : print line,
-    # TEMP newlines = rewrite_xml_blocks_in_lines( lines, xml_blocks )
+    newlines = rewrite_xml_blocks_in_lines( lines, xml_blocks )
     newlines = rewrite_xml_blocks_in_lines( newlines, faux_blocks )
     open( input_file, "w" ).writelines( newlines )

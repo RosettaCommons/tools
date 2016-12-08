@@ -158,7 +158,7 @@ def _get_selections(num_scheme, dis=5.0):
                                           ])
 
     sel.append(Selection('cdrs', r.join(s)))
-    sel.append(Selection('epitope', around.format('ab', dis, 'ab')))
+    sel.append(Selection('epitope', around.format('ab', dis, 'ab and not water')))
     sel.append(Selection('epitope_cdrs', r.join([x + '_epitope' for x in s])))
     sel.append(Selection('paratope', around.format('epitope', dis, 'antigen')))
 

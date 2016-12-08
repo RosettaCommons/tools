@@ -42,7 +42,7 @@ sort -R  allpdbs.l > allpdbs.random.l
 
 Next we turn our PDB target paths into Rosetta commands.  You can do this with rectangle edit in emacs (c-space for mark, c-x r t for rectangle insert), or sed.
 
-From 
+From
 /home/smlewis/whole_PDB_as_PDBgz/is/pdb1iso.ent.gz
 /home/smlewis/whole_PDB_as_PDBgz/is/pdb4is9.ent.gz
 /home/smlewis/whole_PDB_as_PDBgz/is/pdb4ist.ent.gz
@@ -70,6 +70,10 @@ Let me suggest you use the options file in the PDB_diagnostic integration test a
 I tend to get on the order of 20 GB of log files when running this experiment, but the vast majority of those logs are certain output lines repeated many, many times inside (code) loops caused by (chemical) ring structures that the reading-in machinery has difficulty with.  You'll want to grep out some of these uninformative lines from the raw logs to speed later processing and slash the memory cap needed for the last step.  At a minimum, I suggest (note subdirs comes from JD0)
 
 cat subdirs/*/log | grep -v "missing heavyatom" | grep -v " atoms at position " > slimlog
+
+or (note -h to grep when using find)
+
+find subdirs -name "log" | xargs grep -vh "missing....
 
 Continue cutting slimlog as necessary to make the file size reasonable by removing repeated uninformative log lines; use your best judgment.
 

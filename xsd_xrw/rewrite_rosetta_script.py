@@ -924,6 +924,125 @@ def renumber_tokens( tokens ) :
     for i,tok in enumerate( tokens ) :
         tok.index = i
 
+def fix_LayerDesign( root, tokens ) :
+    # If a subtag of the LayerDesign tag isn't "core", "boundary", "surface", "Nterm" , "Cterm" or "CombinedTasks"
+    # then it needs to be nested in a new tag, "TaskLayer", and its children named
+    # "all", "Helix", "HelixCapping", "HelixStart", "Loop", and "Strand" need to become children
+    # of the TaskLayer element
+    if root.name == "LayerDesign" :
+        ok_subtag_names = set([ "core", "boundary", "surface", "Nterm" , "Cterm", "CombinedTasks", "TaskLayer" ])
+        ss_names = set(["all", "Helix", "HelixCapping", "HelixStart", "Loop", "Strand" ])
+        original_subelements = list( root.sub_elements )
+        for i,subelem in enumerate( original_subelements ) :
+            if subelem.name in ok_subtag_names : continue
+            #ok, we need a new element named <TaskLayer>
+            # it needs tokens
+            # the tokens need to become tags
+            first_tag_tok_strings =  [ "<", "TaskLayer", ">" ]
+            second_tag_tok_strings = [  "<", "/TaskLayer", ">" ]
+            first_tag_toks = []
+            second_tag_toks = []
+            for tok_str in first_tag_tok_strings :
+                tok = XMLToken()
+                tok.contents = tok_str
+                tok.in_tag = True
+                first_tag_toks.append( tok )
+            for tok_str in second_tag_tok_strings :
+                tok = XMLToken()
+                tok.contents = tok_str
+                tok.in_tag = True
+                second_tag_toks.append( tok )
+
+            # We need to put whitespace ahead of the TaskLayer tag.
+
+            # the token preceding the first token of the TaskOperation's first (possibly only) tag
+            # which is presumably a "comment"
+            ws_tok = tokens[ subelem.tags[0].tokens[0].index - 1 ]
+            assert( not ws_tok.in_tag ) # this isn't guaranteed, but I'm writing the code under the assumption that it is
+            ws_cols = ws_tok.contents.rpartition( "\n" )
+            assert( ws_cols[2] != "" )
+            ws = ws_cols[2]
+            lead_ws_tok = XMLToken()
+            lead_ws_tok.contents = "\n" + ws
+            trailing_ws_tok = XMLToken()
+            trailing_ws_tok.contents = "\n" + ws
+            ws_tok.contents = ws_tok.contents + " " # indent the TaskOperation one level more
+
+            first_tag = Tag()
+            second_tag = Tag()
+            first_tag.name = second_tag.name = "TaskLayer"
+            first_tag.tokens = first_tag_toks
+            second_tag.tokens = second_tag_toks
+            second_tag.closed = True
+            second_tag.terminator = True
+            task_layer_element = Element()
+            task_layer_element.name = "TaskLayer"
+            task_layer_element.tags = [ first_tag, second_tag ]
+            task_layer_element.sub_elements.append( subelem )
+            root.sub_elements = root.sub_elements[:i] + [ task_layer_element ] + root.sub_elements[i+1:]
+            
+            any_sub_sub_elems_belonging_to_taskop = False
+            orig_sub_elements = list( subelem.sub_elements )
+            for subsubelem in orig_sub_elements :
+                if subsubelem.name in ss_names :
+                    subelem.sub_elements.remove( subsubelem )
+                    task_layer_element.sub_elements.append( subsubelem )
+                else :
+                    any_sub_sub_elems_belonging_to_taskop = True
+            if not any_sub_sub_elems_belonging_to_taskop :
+                if len( subelem.tags ) == 2 :
+                    # ok, delete the tokens of the second tag
+                    # delete the whitespace tag proceeding it
+                    # and close the first tag
+                    for tok in subelem.tags[1].tokens :
+                        tok.deleted = True
+                    prev_tok = tokens[ subelem.tags[1].tokens[0].index - 1 ]
+                    if not prev_tok.in_tag :
+                        pt_cols = prev_tok.contents.rpartition( "\n" )
+                        all_ws = True
+                        for ch in pt_cols[2] :
+                            if ch != " " and ch != "\t" :
+                                all_ws = False
+                        if all_ws :
+                            prev_tok.contents = pt_cols[0]
+                    end_tok = subelem.tags[0].tokens[-1]
+                    assert( end_tok.contents == ">" )
+                    end_tok.contents = "/>"
+                    subelem.closed = True
+            # ok, now update the tokens
+            temptokens = tokens[ : subelem.tags[0].tokens[0].index-1 ] + \
+                         [ lead_ws_tok ] + \
+                         first_tag_toks + \
+                         tokens[ subelem.tags[0].tokens[0].index-1 : subelem.tags[0].tokens[-1].index+1 ];
+            if any_sub_sub_elems_belonging_to_taskop :
+                for subsubelem in subelem.sub_elements :
+                    if not tokens[ subsubelem.tags[0].tokens[0].index-1 ].in_tag :
+                        temptokens.append( tokens[ subsubelem.tags[0].tokens[0].index-1 ] )
+                    temptokens += tokens[ subsubelem.tags[0].tokens[0].index : subsubelem.tags[-1].tokens[-1].index+1 ]
+
+            # append these tokens even though they may have been deleted
+            if not tokens[ subelem.tags[1].tokens[0].index-1 ].in_tag :
+                temptokens.append( tokens[ subelem.tags[1].tokens[0].index-1 ] )
+            temptokens += tokens[ subelem.tags[1].tokens[0].index : subelem.tags[1].tokens[-1].index+1 ]
+
+            for i,subsubelem in enumerate( task_layer_element.sub_elements ) :
+                if i == 0 : continue
+                if not tokens[ subsubelem.tags[0].tokens[0].index-1 ].in_tag :
+                    temptokens.append( tokens[ subsubelem.tags[0].tokens[0].index-1 ] )
+                temptokens += tokens[ subsubelem.tags[0].tokens[0].index : subsubelem.tags[-1].tokens[-1].index+1 ]
+            temptokens.append( trailing_ws_tok )
+            temptokens += second_tag_toks
+            temptokens += tokens[ subelem.tags[-1].tokens[-1].index+1: ]
+            tokens = temptokens
+            renumber_tokens( tokens )
+    for elem in root.sub_elements :
+        tokens = fix_LayerDesign( elem, tokens )
+    return tokens
+                
+                     
+                    
+            
+
 def turn_attributes_of_common_subtag_of_ModulatedMover_into_individual_subtags( root, tokens ) :
     # The common subtag of the ModulatedMover accepts any attribute as it currently stands
     # and that is a little redonk.
@@ -1112,6 +1231,7 @@ def rewrite_xml_rosetta_script_lines( lines ) :
 
     surround_attributes_w_quotes( tags )
     modifications = [ rename_score_functions,
+                      fix_LayerDesign,
                       rename_fragments_from_frag_reader,
                       rename_monte_carlo_elements_from_monte_carlo_loader,
                       rename_interface_builders_from_interface_builder_loader,

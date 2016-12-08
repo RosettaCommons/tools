@@ -52,6 +52,27 @@
      <RestrictToRepackingRLT/>
    </OperateOnCertainResidues>
 
+   Layer design; sigh. What a monster
+    <LayerDesign name="layer_all" layer="all" use_sidechain_neighbors="True" pore_radius="2.0" verbose="true" >
+      <NoRepackDisulfides name="disulf" >
+          <all aa="c" specification="fixed" operation="omit" />
+      </NoRepackDisulfides>
+      <OperateOnResidueSubset name="hotspot_onlyrepack_layerdesignOmit" selector="hotspots" >
+        <PreventRepackingRLT/>
+        <all specification="fixed" operation="omit" />
+      </OperateOnResidueSubset>
+      <ReadResfile name="resfile_layerdesignOmit" filename="./input_fix.resfile" >
+        <all specification="fixed" operation="omit" />
+      </ReadResfile>
+      <core>
+          <all append="M" />
+      </core>
+      <boundary>
+          <all append="M" />
+      </boundary>
+    </LayerDesign>
+
+
  </TASK_OPERATIONS>
 
   <SCORINGGRIDS ligand_chain="X" width="15">

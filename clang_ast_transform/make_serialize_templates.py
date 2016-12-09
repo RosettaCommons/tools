@@ -930,7 +930,7 @@ class Unit:
         if self.contains_polymorphic_class and self.find_serialization_force_dynamic_init( self.hh )[0] == -1 :
             stub = ["\n"]
             stub.append( "#ifdef    SERIALIZATION\n" )
-            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("source/src/")[2].replace( "/", "_" )[:-3] )
             stub.append( "#endif // SERIALIZATION\n\n" )
             self.hh.insertStub( self.hh.contents.rfind("\n#endif"), "".join(stub), False )
 
@@ -1013,7 +1013,7 @@ class Unit:
         if self.contains_polymorphic_class and self.find_serialization_register_dynamic_init( self.cc )[0] == -1 :
             stub = []
             stub.append( "\n#ifdef    SERIALIZATION\n" )
-            stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("source/src/")[2].replace( "/", "_" )[:-3] )
             stub.append( "#endif // SERIALIZATION\n" )
             self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
 

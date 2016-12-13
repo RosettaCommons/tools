@@ -140,7 +140,7 @@ if DO_MPI:
 command_lines_explicit = []
 
 if save_logs:
-    outfile_general = '$(Process).out'
+    outfile_general = '$(Process).log'
     errfile_general = '$(Process).err'
 else:
     outfile_general = '/dev/null'

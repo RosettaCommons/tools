@@ -8,7 +8,7 @@ from parse_options import parse_options
 
 use_subset = False
 [subset_residues,subset_chains] = parse_options( argv, "subset", [[0],['A']] )
-segment_residues = parse_options( argv, "segment", [-1] )
+segment_residues = parse_options( argv, "segments", [-1] )
 if len( segment_residues ) > 0:
     assert( len( subset_residues ) == 0 )
     assert( 2 * (len(segment_residues)/2) == len(segment_residues ) ) # check even

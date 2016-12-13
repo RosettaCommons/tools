@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ## @file   ss_pred_converter.py
 #  @brief  Converts various secondary structure profile formats to a PsiPred-SS2 file

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from sys import argv,exit
 from os import popen, system
@@ -58,16 +58,25 @@ if argv.count('-output_virtual'):
     del( argv[pos] )
     output_virtual = 1
 
-#output_virtual = 1
-#if argv.count('-no_virtual'):
-#    pos = argv.index('-no_virtual')
-#    del( argv[pos] )
-#    output_virtual = 0
+extra_res_fa = []
+if argv.count('-extra_res_fa'):
+    pos = argv.index('-extra_res_fa')
+    del( argv[pos] )
+    while pos < len( argv ) and argv[ pos ][0] != '-':
+        extra_res_fa.append( argv[ pos ] )
+        del( argv[ pos ] )
+
+rosetta_folder = ""
+if argv.count('-rosetta_folder'):
+	pos = argv.index('-rosetta_folder')
+	rosetta_folder = argv[ pos+1 ]
+	del( argv[pos+1] )
+	del( argv[pos] )
 NSTRUCT_defined = 0
 try:
     NSTRUCT = int(argv[-1])
     del(argv[-1])
-    NSTRUCT_defined = 1 
+    NSTRUCT_defined = 1
 except:
     NSTRUCT = 2
 
@@ -78,7 +87,6 @@ try:
     scorecol_defined = 1
 except:
     scorecol = -1
-
 
 REVERSE = ''
 if scorecol > 0:
@@ -103,7 +111,7 @@ if not scorecol_defined:
         scorecol_name = scorecol_name_split[0]
         try:
             match_score = float(scorecol_name_split[-1])
-            match_score_defined = 1 
+            match_score_defined = 1
             if not REVERSE:
                 REVERSE = ''
             if not NSTRUCT_defined:
@@ -113,12 +121,10 @@ if not scorecol_defined:
     if scorecol_name_defined:
         del( argv[-1] )
 
-       
-
-
 infiles = argv[1:]
 
-rosetta_folder = expandvars("$ROSETTA")
+if rosetta_folder == "":
+	rosetta_folder = expandvars("$ROSETTA")
 MINI_DIR = rosetta_folder + '/main/source/bin/'
 DB = rosetta_folder + '/main/database/'
 
@@ -195,7 +201,7 @@ for infile in infiles:
     if match_score_defined:
         score_plus_lines = filter( lambda x: float(x[0]) == match_score, score_plus_lines)
     lines = map( lambda x:x[-1], score_plus_lines[:NSTRUCT] )
-    
+
     templist_name = 'temp.%s.list'% basename(infile)
 
     fid = open(templist_name,'w')
@@ -279,9 +285,6 @@ for infile in infiles:
 
     # Hey this could be a new mini RNA file
     if rna and not old_rosetta:
-        #MINI_EXE = HOMEDIR+'/src/mini/bin/rna_extract.linuxgccrelease'
-        #if not exists( MINI_EXE ):
-        #    MINI_EXE = HOMEDIR+'/src/mini/bin/rna_extract.macosgccrelease'
 
         command = '%s -database %s -in::file::silent %s -tags %s  -extract' % \
                   ( MINI_EXE, DB, outfilename, string.join( tags ) )
@@ -309,6 +312,9 @@ for infile in infiles:
         command = '%s -in:file:silent  %s  -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
                   ( MINI_EXE, outfilename, string.join( tags ), DB )
         if output_virtual: command += " -output_virtual "
+        if len( extra_res_fa ) > 0:
+            command += " -extra_res_fa "
+            for m in extra_res_fa: command += " "+m
 
         if (scoretags.count('vdw')): command += ' -out:file:residue_type_set centroid '
     

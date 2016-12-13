@@ -1,4 +1,4 @@
-import operator 
+import operator
 from rosettautil.util import fileutil
 import sqlite3
 
@@ -39,7 +39,7 @@ class PoseScoreRecord:
 
     def get_score(self,name):
         return self.score[name]
-    
+
     def get_tag(self):
         return self.tag
 
@@ -61,19 +61,19 @@ class SilentScoreTable:
 
     def __len__(self):
         return len(self.records)
-        
+
     def add_file(self,path,ignore_ref=True):
         infile = fileutil.universal_open(path,'r')
         header=[]
         for line in infile:
+            line = line.split()
             if len(line)== 0:
                 continue
-            line = line.split()
             if line[0] == "SCORES": #this is an atom tree diff file
                 tag = line[1]
                 if ignore_ref and tag[0:5] =="%REF%":
                     continue
-                    
+
                 record = PoseScoreRecord(tag)
                 record.set_file(path)
                 scorefields = line[2:len(line)]
@@ -84,7 +84,7 @@ class SilentScoreTable:
                 except ValueError:
                     print "theres some problem with this score line, possible corruption, skipping line"
                     continue
-                #elif 
+                #elif
             elif line[0] == "SCORE:": #this is a normal silent file
                 if line[1] == "score" and len(header) == 0: #this is the header
                     header = line[1:len(line)] #stick the scoreterms in the header
@@ -99,7 +99,7 @@ class SilentScoreTable:
 				record.add_score(term,score)
                     self.records[tag] = record
         infile.close()
-        
+
     def tag_exists(self,tag):
         return tag in self.records
 
@@ -117,7 +117,7 @@ class SilentScoreTable:
             except KeyError:
                 print "no",scoreterm,"in",tag,"returning 0"
                 yield (tag,0)
-    
+
     def sorted_score_generator(self,scoreterm):
         scores = []
         for score_tuple in self.score_generator(scoreterm):
@@ -128,8 +128,8 @@ class SilentScoreTable:
 
     def get_file_from_tag(self,tag):
         return self.records[tag].get_file()
-                
-        
+
+
 class ScoreTable:
     def __init__(self,path):
         infile = fileutil.universal_open(path,'r')
@@ -205,12 +205,12 @@ class ScoreTableMap:
 class DataBaseScoreTable:
     def __init__(self,path):
 	self.connection = sqlite3.connect(path)
-    
+
     def get_score(self,tag,term):
 	cursor = self.connection.cursor()
 	command = "SELECT structures.tag, string_real_data.data_value FROM structures LEFT JOIN string_real_data ON structures.struct_id=string_real_data.struct_id WHERE string_real_data.data_key=? and structures.tag=?"
 	params = (term,tag)
-    
+
 	cursor.execute(command,params)
 	score = cursor.next()
 	cursor.close()
@@ -228,4 +228,4 @@ class DataBaseScoreTable:
 	for tag,value in cursor:
 	    yield (tag,value)
 	cursor.close()
-    
+

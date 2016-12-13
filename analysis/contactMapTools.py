@@ -1,15 +1,12 @@
-#!/usr/bin/env python2.7
-# coding=utf-8
-# (c) Copyright Rosetta Commons Member Institutions.
-# (c) This file is part of the Rosetta software suite and is made available
-# (c) under license.
-# (c) The Rosetta software is developed by the contributing members of the
-# (c) Rosetta Commons.
-# (c) For more information, see http://www.rosettacommons.org.
-# (c) Questions about this can be addressed to University of Washington UW
-# (c) TechTransfer, email: license@u.washington.edu.
+#!/usr/bin/env python
 #
-# @brief    utility for performing several tasks with contactMaps 
+# (c) Copyright Rosetta Commons Member Institutions.
+# (c) This file is part of the Rosetta software suite and is made available under license.
+# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+# (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+# (c) addressed to University of Washington CoMotion, email: license@uw.edu.
+#
+# @brief    utility for performing several tasks with contactMaps
 # @detail
 # @author   Joerg Schaarschmidt (schaarscjoe@medizin.uni-leipzig.de)
 # @version  1.0
@@ -38,7 +35,7 @@ def main():
 	parser_combine.add_argument('-l','--filelist',help="list of contact map files to combine in plain text format", type=argparse.FileType('r'))
 	parser_combine.add_argument('-f', '--fraction', help="print the fraction of models with the contact instead of the model count ",action="store_true", default=False)
 	parser_combine.set_defaults(func=combine)
-	
+
 	# create the parser for the "compare" command
 	parser_compare = subparsers.add_parser('compare',description="%(prog)s compares the contact map of a structure or set of structures to the contact map of a single reference structure.")
 	parser_compare.add_argument('native_file', help="reference map of a single structure to which the second map will be compared")
@@ -57,7 +54,7 @@ def main():
 	parser_roc.add_argument('-p','--pdbid', default="", help="optional PDB-ID or tag to add as additional column")
 	parser_roc.set_defaults(func=roc_curve_analysis)
 
-	
+
 	# create the parser for the "renumber" command
 	parser_renumber = subparsers.add_parser('renumber',description="Renumber the row and/or column names of a contact map (default matrix format) NOTE: input files will be modified !!!")
 	parser_renumber.add_argument('input_files', nargs='+', help="Files to be renumbered")
@@ -65,12 +62,12 @@ def main():
 	parser_renumber.add_argument('-s','--start', metavar='START(,COL_START)',required=True, help="New Start of Residue numbers in format <start> e.g. '15' or separate for rows and columns <rowstart>,<colstart> e.g '1,27'")
 	parser_renumber.add_argument('-o', '--offset' , default='0', help="Start renumbering at entry i of row names and j of col names (format like -s option [i] or [i,j])")
 	parser_renumber.set_defaults(func=renumber)
-	
+
 	parser_convert = subparsers.add_parser('convert',description="Convert Residue names in three (3) or one (1) letter code NOTE: input files will be modified !!!")
 	parser_convert.add_argument('input_files', nargs='+', help="Files to be Converted")
 	parser_convert.add_argument('-a', '--aacode',dest='aacode', type=int, default=1, help="Output Residue names in three (3) or one (1) letter code")
 	parser_convert.set_defaults(func=convert)
-	
+
 	# parse the args and call whatever function was selected
 	options = parser.parse_args()
 	options.func(options)
@@ -95,9 +92,9 @@ def convert_aa_names(matrix, aacode):
 		class cdict(dict):
 			def __missing__(self, key):
 				return key
-		
+
 		# dictionary for three to one-letter code conversion
-		
+
 		aa3to1=cdict(ALA='A', CYS='C', ASP='D', GLU='E', PHE='F', GLY='G',
 			HIS='H', ILE='I', LYS='K', LEU='L', MET='M', ASN='N', PRO='P',
 			GLN='Q', ARG='R', SER='S', THR='T', VAL='V', TRP='W', TYR='Y')
@@ -152,7 +149,7 @@ def print_map(matrix, header, filename=''):
 
 # Read in contact map
 def read_contact_map_file(filename , castInt = False):
-	# Initialize contact matrix 
+	# Initialize contact matrix
 	matrix=[]
 	models=0
 	comments = ''
@@ -193,7 +190,7 @@ def convert_to_fraction(matrix, models):
 # @brief    combines multiple contact map files
 # @detail   combines multiple contact map files(only matrix format) by adding up
 #           the contact counts and prints out a combined map to STDOUT
-def combine(options):	
+def combine(options):
 	# Initialize variables
 	first_file = ''
 	# Retrieve filenme of first file to process
@@ -215,7 +212,7 @@ def combine(options):
 		matrix=convert_to_fraction(matrix, models)
 
 	matrix = convert_aa_names(matrix, options.aacode)
-	
+
 	# Print the combined map
 	header='# Number of Models: {}'.format(models)
 	print_map(matrix, header, options.outfile)
@@ -229,7 +226,7 @@ def combine(options):
 #           differences of the two maps including a summary
 #           optionally a roc curve for the cutoff value can be generated
 def compare(options):
-	
+
 	# Initialize variables
 	matrix, models, comments = read_contact_map_file(options.native_file, True)
 	matrix_mod, models, comments = read_contact_map_file(options.model_file, True)
@@ -254,7 +251,7 @@ def compare(options):
 				else:
 					matrix[row][col] = +0.5 # false positive -> 0.5
 					nfalsepos += 1
-				
+
 			else:
 				# Compare nagative entry to reference structure  and assign value accordingly
 				if (matrix[row][col] == 1):
@@ -263,7 +260,7 @@ def compare(options):
 				else:
 					matrix[row][col] = -1.0 # true negative -> -1
 					ntrueneg+=1
-	
+
 	matrix = convert_aa_names(matrix, options.aacode)
 
 	# Generate header with statistics
@@ -275,7 +272,7 @@ def compare(options):
 	header += '# Number of false positives  (0.5) : {:6d} ({:3.1f}%)\n'.format(nfalsepos, float(nfalsepos)/float(npoints)*100.0)
 	header += '# Number of true negatives  (-1.0) : {:6d} ({:3.1f}%)\n'.format(ntrueneg, float(ntrueneg)/float(npoints)*100.0)
 	header += '# Number of false negatives (-0.5) : {:6d} ({:3.1f}%)\n'.format(nfalseneg, float(nfalseneg)/float(npoints)*100.0)
-	
+
 	# Print out comparison map
 	global float_digits
 	float_digits = 1
@@ -289,15 +286,15 @@ def compare(options):
 #           parameters for ROC analysis based on frequency of the contact in the
 #           set of models
 def roc_curve_analysis(options):
-	
+
 	matrix, models, comments = read_contact_map_file(options.native_file, True)
 	matrix_mod, models, comments = read_contact_map_file(options.model_file, True)
-	
+
 	# Set PDB-ID string
 	pdbid="\n"
 	if options.pdbid != "":
 		pdbid = '\t'+ options.pdbid + "\n"
-	
+
 	# set Header string
 	header ='cutoff\t'  # cutoff Value
 	header+='co_perc\t' # cutoff Value (percentage)
@@ -318,7 +315,7 @@ def roc_curve_analysis(options):
 	if options.pdbid != "":
 		header+='\tpdb'
 	header +='\n'
-	
+
 	# Get the highest contact count of the model map and scale cutoffs accordingly
 	max_val =float( max((max(x[1:], key=float) for x in matrix_mod[1:]), key=float))
 	if max_val > 1:
@@ -326,13 +323,13 @@ def roc_curve_analysis(options):
 	else:
 		max_val=1
 	cutoffs = [x / 100.0 * float(max_val) for x in range(0,101)]
-	
+
 	#Set up parameters for the area under curve calculation
 	trueposrate=0.0
 	falseposrate=0.0
 	auc=0.0
 	output_string=""
-	
+
 	# Calculate parameters for every cutoff value
 	for cutoff in cutoffs :
 		nrow=0
@@ -341,7 +338,7 @@ def roc_curve_analysis(options):
 		nfalsepos=0
 		ntrueneg= 0
 		nfalseneg= 0
-		
+
 		# Loop over the fields in the contact matrices
 		for row in range(1,min(len(matrix), len(matrix_mod))):
 			for col in range(1,min(len(matrix[1]), len(matrix_mod[1]))):
@@ -363,7 +360,7 @@ def roc_curve_analysis(options):
 						nfalseneg+=1 # false negative
 					else:
 						ntrueneg+=1 # true negative
-		
+
 		# Calculate statistical parameters for the current cutoff and add them to the output
 		output_string+='{}\t{:3.2f}\t{}\t{}\t{}\t{}'.format(cutoff, float(cutoff)/max_val,ntruepos,nfalsepos,ntrueneg,nfalseneg)
 		# true positive rate
@@ -425,11 +422,11 @@ def renumber(options):
 	# Initialize Variables
 	row_start, col_start = parse_option_string(options.start)
 	row_offset, col_offset = parse_option_string(options.offset)
-	
+
 	# Loop over input files
 	for curr_file in options.input_files :
 		matrix, models, comments = read_contact_map_file(curr_file)
-		
+
 		# Process header row if specified
 		if options.pos == 'col' or options.pos == 'both' :
 			col_pos = col_start
@@ -443,7 +440,7 @@ def renumber(options):
 				if residue_id >= col_offset:
 					matrix[0][col] = residue_name+str(col_pos)
 					col_pos+=1
-				
+
 		# Process header column if specified
 		if options.pos == 'row' or options.pos == 'both' :
 			row_pos = row_start
@@ -456,10 +453,10 @@ def renumber(options):
 				if residue_id >= row_offset:
 					matrix[row][0] = residue_name+str(row_pos)
 					row_pos+=1
-				
-		
+
+
 		matrix = convert_aa_names(matrix, options.aacode)
-		
+
 		# Print the renumbered file
 		header='# Number of Models: {}'.format(models)
 		if comments != '':
@@ -472,17 +469,17 @@ def renumber(options):
 # @detail   Converts the default three-letter amino acid code to one letter code
 #           and vice versa
 def convert(options):
-	
+
 	# Loop over input files
 	for curr_file in options.input_files :
 		matrix, models, comments = read_contact_map_file(curr_file)
 		# Set default aa conversion for convert subcommand to 1
 		if options.aacode == 0:
 			options.aacode = 1
-		
+
 		# Rename Residues
 		matrix = convert_aa_names(matrix, options.aacode)
-		
+
 		# Print the modified file
 		header='# Number of Models: {}'.format(models)
 		if comments != '':

@@ -15,6 +15,7 @@ if ( @ARGV < 1 ) {
 }
 
 %threetoone=("ALA",A,"CYS",C,"ASP",D,"GLU",E,"PHE",F,"GLY",G,"HIS",H,"ILE",I,"LYS",K,"LEU",L,"MET",M,"ASN",N,"PRO",P,"GLN",Q,"ARG",R,"SER",S,"THR",T,"VAL",V,"TRP",W,"TYR",Y);
+#%threetoone=("ALA",A,"CYS",C,"ASP",D,"GLU",E,"PHE",F,"GLY",G,"HIS",H,"ILE",I,"LYS",K,"LEU",L,"MET",M,"ASN",N,"PRO",P,"GLN",Q,"ARG",R,"SER",S,"THR",T,"VAL",V,"TRP",W,"TYR",Y,"TYS",Y,"MSE",M,"TPO",Y, "PTR",T,"SEP",S,"CSD",C,"MLY",K);
 
 $l1std=11;
 $l2std=7;
@@ -89,6 +90,22 @@ sub readpdbfile{
 		$y = substr($line,38,8);
 		$z = substr($line,46,8);
 
+		if($residue eq "TYS"){
+			$residue = "TYR";
+		}elsif($residue eq "MSE"){
+			$residue = "MET";
+		}elsif($residue eq "TPO"){
+			$residue = "TYR";
+		}elsif($residue eq "PTR"){
+			$residue = "THR";
+		}elsif($residue eq "SEP"){
+			$residue = "SER";
+		}elsif($residue eq "CSD"){
+			$residue = "CYS";
+		}elsif($residue eq "MLY"){
+			$residue = "LYS";
+		}
+
 		if($identifier =~ "ATOM" and $atom =~ "CA"){
 			if($chain eq $lightchain){
 				$lightseq=$lightseq.$threetoone{$residue}unless(   ($old_residueno eq $residueno) and ($old_alt_loc ne $alt_loc)  and ($old_insert_code eq $insert_code)  );
@@ -128,32 +145,52 @@ sub readpdbfile{
 sub findcdrs{
 	#*********L1***************************
 	# C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY)
-	$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WYM|WYY)/;
+	#$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WYM|WYY)/;
+	$var = $lightseq_first =~/C[A-Z]{1,17}(WYL|WLQ|WFQ|WYQ|WYH|WVQ|WVR|WWQ|WVK|WYR|WLL|WFL|WVF|WIQ|WYR|WNQ|WHL|WHQ|WYM|WYY|WYE|WYV|WSL|WHR)/;	# NEW
 	if($var){
 		$temp=$&;
 		$lenl1=length ($temp)-4;
 		$l1=substr($temp,1,$lenl1);
 	}
+
+	if($pdbfile =~ /2vh5/){
+		$lenl1 = 11;
+		$l1 = "RASQSISSYLN";
+	}
 	#************************************
 
 	#***********L3********************
 	# C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)
-	$var = $lightseq_second =~/C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)/;
+	#$var = $lightseq_second =~/C[A-Z]{1,15}(F|V|S)G[A-Z](G|Y)/;
+	$var = $lightseq_second =~/C[A-Z]{1,17}(F|V|S)G[A-Z](A|G|Y)/;	# NEW
 	if($var){
 		$temp=$&;
 		$lenl3=length ($temp)-5;
 		$l3=substr($temp,1,$lenl3);
 
 	}
-	if($pdbfile eq "1xiw"){
+	if($pdbfile =~ /1xiw/){	# NEW
 		$lenl3 = 9;
 		$l3 = "QQGNTLPWT";
+	}elsif($pdbfile =~ /5f7e/){
+		$lenl3 = 5;
+		$l3 = "QQYEF";
+	}elsif($pdbfile =~ /2vh5/){
+		$lenl3 = 9;
+		$l3 = "QQSVMIPMT";
+	}elsif($pdbfile =~ /5cck/){
+		$lenl3 = 10;
+		$l3 = "CSYANYDKLI";
+	}elsif($pdbfile =~ /4lsv/||$pdbfile =~ /4jpv/){
+		$lenl3 = 5;
+		$l3 = "QVYEF";
 	}
 	#****************************
 
 	#**************H1************
 	# C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|G)(Q|K|H|E|L|R)
-	$var = $heavyseq_first =~/C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)/; 
+	#$var = $heavyseq_first =~/C[A-Z]{1,16}(W)(I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C)(Q|K|H|E|L|R)/; 
+	$var = $heavyseq_first =~/C[A-Z]{1,18}(W)(W|I|V|F|Y|A|M|L|N|G)(R|K|Q|V|N|C|W)(Q|K|H|E|L|R|S|V)/; 	# NEW
 	if($var){
 		$temp=$&;
 		$lenh1=length ($temp)-8;
@@ -164,7 +201,8 @@ sub findcdrs{
 	$var = 0;
 
 	#***********H3****************
-	if($pdbfile eq "1tqb"){
+	#if($pdbfile eq "1tqb"){
+	if($pdbfile =~ /1tqb/ || $pdbfile =~ /1tqc/ || $pdbfile =~ /1tpx/){	# NEW
 		$var = $heavyseq_second =~/FTRGTDYWGQG/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
 		if($var){
 			$temp=$&;
@@ -173,9 +211,32 @@ sub findcdrs{
 			$h1 = "GYTFTNYGMN";
 			$lenh1 = 10;
 		}
+	}elsif($pdbfile =~ /4k3d/){	# NEW
+			$h3 = "VHQETKKYQSCPDGYRERSDCSNRPACGTSDCCRVSVFGNCLTTLPVSYSYTYNYEWHVDV";
+			$lenh3 = 61;
+	}elsif($pdbfile =~ /4k3e/){	# NEW
+			$h3 = "VHQETRKTCSDGYIAVDSCGRGQSDGCVNDCNSCYYGWRNCRRQPAIHSYEFHVDA";
+			$lenh3 = 56;
+	}elsif($pdbfile =~ /5c0n/){	# NEW
+			$h3 = "PDNDGTSGYLSGFGL";
+			$lenh3 = 15;
+	}elsif($pdbfile =~ /2vh5/){	# NEW
+		$var = $heavyseq_second =~/VARGRFFDYWGQG/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
+		if($var){
+			$temp=$&;
+			$lenh3=length ($temp)-7;
+			$h3=substr($temp,3,$lenh3);
+			$h1 = "GFTFSTFSMN";
+			$lenh1 = 10;
+		}
 	}else{
 		# C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|G|R)
-		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C)[A-Z](S|Q|G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
+
+		if($pdbfile =~ /5c0n/){
+			print "$heavyseq_second\n";
+		}
+
+		$var = $heavyseq_second =~/C[A-Z]{1,33}(W)(G|A|C|S)[A-Z](S|Q|G|R)/; # for 1ghf:"WAQG", for 3se8:"WCQG", for 3mug,3u1s,3u2s:more than 27
 		if($var){
 			$temp=$&;
 			$lenh3=length ($temp)-7;
@@ -202,19 +263,19 @@ sub findcdrs{
 
 	$h1start = index($heavyseq,$h1);
 	$h1end=$h1start+$lenh1-1;
-	$h3start= index($heavyseq,$h3);
+	$h3start= rindex($heavyseq,$h3);
 	$h3end=$h3start+$lenh3-1;
 
 	$h2start=$h1end+15;
 	$h2end=$h3start-33;
 
-	if($pdbfile eq "1MFE"){
+	if($pdbfile =~ /1MFE/){
 		$h2start = $h1end + 15 - 1;
-	}elsif($pdbfile eq "1MRD" || $pdbfile eq "1MRF"){
+	}elsif($pdbfile =~ /1MRD/ || $pdbfile =~ /1MRF/){
 		$h2end = $h3start - 33 + 3;
-	}elsif($pdbfile eq "2X7L"){
+	}elsif($pdbfile =~ /2X7L/){
 		$h2end = $h3start - 33 + 2;
-	}elsif($pdbfile eq "3MNW"){
+	}elsif($pdbfile =~ /3MNW/){
 		$h2start = $h1end + 15 - 2;
 	}
 
@@ -283,6 +344,9 @@ sub renumbercdrs{
 }
 
 sub assignnumbering{
+	$newnumberfrl1[17]="6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[18]="5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[19]="4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[20]="3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[21]="2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[22]="1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
@@ -290,6 +354,10 @@ sub assignnumbering{
 	$newnumberfrl1[24]="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[25]="-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 	$newnumberfrl1[26]="-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[27]="-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[28]="-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[29]="-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
+	$newnumberfrl1[30]="-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
 
 	if($frl1 =~ /[LMVI][A-Z][QE][A-Z]{9}G[A-Z]{4}[LVIMF][STN]C/){
 		$newnumberfrl1[20]="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23";
@@ -346,6 +414,8 @@ sub assignnumbering{
 	
 	$newnumberfrl4="98,99,100,101,102,103,104,105,106,107,108,109";
 	
+	$newnumberfrh1[19]="7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
+	$newnumberfrh1[20]="6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[21]="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[22]="4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";
 	$newnumberfrh1[23]="3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25";

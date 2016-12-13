@@ -63,9 +63,19 @@ BOILERPLATE = [  '''// -*- mode:c++;tab-width:2;indent-tabs-mode:t;show-trailing
 			'''// (c) This file is part of the Rosetta software suite and is made available under license.''',
 			'''// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.''',
 			'''// (c) For more information, see http://www.rosettacommons.org. Questions about this can be''',
-			'''// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.''',
+			'''// (c) addressed to University of Washington CoMotion, email: license@uw.edu.''',
 		]
 BOILERPLATE_LENGTH = len(BOILERPLATE)
+
+PYBOILERPLATE = [  '''#!/usr/bin/env python''',
+			'''#''',
+			'''# (c) Copyright Rosetta Commons Member Institutions.''',
+			'''# (c) This file is part of the Rosetta software suite and is made available under license.''',
+			'''# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.''',
+			'''# (c) For more information, see http://www.rosettacommons.org. Questions about this can be''',
+			'''# (c) addressed to University of Washington CoMotion, email: license@uw.edu.''',
+		]
+PYBOILERPLATE_LENGTH = len(PYBOILERPLATE)
 
 BannedWords = [
 	"goto",
@@ -81,6 +91,15 @@ def checkHeader(filedata):
 		index += 1
 	return []
 
+def checkPyHeader(filedata):
+	index = 0
+	lines = filedata["lines"]
+	for hline in PYBOILERPLATE:
+		if lines[index] != PYBOILERPLATE[index]:
+			return["The file header does not match the standard header (settings and copyright information):\n  %s\n  %s" % (lines[index], PYBOILERPLATE[index])]
+		index += 1
+	return []
+
 def checkBannedWords(filedata):
 	warnings = []
 	words = filedata["words"]
@@ -92,11 +111,17 @@ def checkBannedWords(filedata):
 def checkGuards(filedata):
 	prune(filedata)
 	lines = filedata["prunedlines"]
+        if len(lines) == 0:
+            #No parsed lines means a trivial header that doesn't need includes (e.g. documentation only)
+            return []
 	idx = 0
 	for l in lines:
 		if l and not(l.startswith("#include")):
 			break
 		idx += 1
+        if idx >= len(lines):
+            #A "meta" include - only has include lines,. The sub includes should have their own include guards.
+            return []
 	if not(lines[idx].startswith("#ifndef") and lines[-1].startswith("#endif")):
 		return ["Missing inclusion guards."]
 	return []
@@ -134,11 +159,13 @@ def checkGuardsWithNaming(filedata):
 	return []
 
 CodingConventions = [
-		(checkHeader, ["hh"]),
-		(checkBannedWords, ["hh"]),
-		(checkGuards, ["hh"]),
-#		(checkGuardWithNaming, ["hh"]),
-	]
+        (checkHeader, ["hh"]),
+        (checkHeader, ["cc"]),
+#        (checkPyHeader, ["py"]),
+#        (checkBannedWords, ["hh"]),
+#        (checkGuards, ["hh"]),
+#        (checkGuardWithNaming, ["hh"]),
+    ]
 
 def check_source(root):
 	warnings = []

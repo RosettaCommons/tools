@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 ## Written and improved over the years by Phil, Rhiju, Olli and Mike
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ######################################################################
 from SWA_dagman_python.utility.SWA_util import *
@@ -225,7 +225,7 @@ for motif in motif_list:
 
 		README_SETUP = open( "README_SETUP.py", 'w')
 
-		README_SETUP.write( '#!/usr/bin/python\n' )
+		README_SETUP.write( '#!/usr/bin/env python\n' )
 		README_SETUP.write( 'from os import system\n' )
 		README_SETUP.write( 'import string\n\n' )
 		README_SETUP.write( 'command=\"%s\"\n' %(SWA_rna_minimize_command	) )

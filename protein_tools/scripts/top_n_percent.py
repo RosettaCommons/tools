@@ -1,4 +1,13 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
 
 from optparse import OptionParser
 from rosettautil.rosetta import rosettaScore
@@ -47,6 +56,6 @@ elif options.mode =="pdb" or options.mode=="PDB":
     for i in range(structs_to_print):
         (tag,score) = file_scores[i]
         print tag,score
-        
+
 else:
     parser.error("you must specify either 'pdb' or 'silent' with the --mode flag")

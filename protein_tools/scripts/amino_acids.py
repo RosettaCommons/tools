@@ -1,9 +1,11 @@
-## (c) Copyright Rosetta Commons Member Institutions.
-## (c) This file is part of the Rosetta software suite and is made available under license.
-## (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
-## (c) For more information, see http://www.rosettacommons.org. Questions about this can be
-## (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
-##
+#!/usr/bin/env python
+#
+# (c) Copyright Rosetta Commons Member Institutions.
+# (c) This file is part of the Rosetta software suite and is made available under license.
+# (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
+# (c) For more information, see http://www.rosettacommons.org. Questions about this can be
+# (c) addressed to University of Washington CoMotion, email: license@uw.edu.
+
 ## Authors: Mike Tyka
 #Authors: Phil Bradley, Rhiju Das, Mike Tyka
 
@@ -268,6 +270,7 @@ modres={
 'CYQ':'CYS',                    ##  CYQ CYS
 'CYR':'CYS',                    ##  CYR CYS
 'CYS':'CYS',                    ##  CYS CYS
+'CYX':'CYS',                    ##  CYX CYS  Not an official code, but used by some programs as disulfide residues
 'CZ2':'CYS',                    ##  CZ2 CYS  S-(DIHYDROXYARSINO)CYSTEINE
 'CZZ':'CYS',                    ##  CZZ CYS  THIARSAHYDROXY-CYSTEINE
 'DA2':'ARG',                    ##  DA2 ARG  MODIFIED ARGININE
@@ -349,7 +352,10 @@ modres={
 'HHK':'ALA',                    ##  HHK ALA  (2S)-2,8-DIAMINOOCTANOIC ACID
 'HIA':'HIS',                    ##  HIA HIS  L-HISTIDINE AMIDE
 'HIC':'HIS',                    ##  HIC HIS  4-METHYL-HISTIDINE
-'HIP':'HIS',                    ##  HIP HIS  ND1-PHOSPHONOHISTIDINE
+'HID':'HIS',                    ##  HID HIS  Not an official code, but used by some programs as delta-protonated histidine
+'HIE':'HIS',                    ##  HIE HIS  Not an official code, but used by some programs as epsilon-protonated histidine
+# The backbone check in clean_pdb.py will take care of "official" usage of HID and HIE residues
+'HIP':'HIS',                    ##  HIP HIS  ND1-PHOSPHONOHISTIDINE, also non-officially as protonated histidine
 'HIQ':'HIS',                    ##  HIQ HIS  MODIFIED HISTIDINE
 'HIS':'HIS',                    ##  HIS HIS
 'HLU':'LEU',                    ##  HLU LEU  BETA-HYDROXYLEUCINE

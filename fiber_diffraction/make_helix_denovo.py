@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 Helix denovo symmetry definition file generator
 Usage example: make_helix_denovo.py -p 3.0 -n 40 -v 5 -u 27 
@@ -212,9 +212,9 @@ if '__main__' == __name__:
     option_parser_class = optparse.OptionParser
     parser = option_parser_class( usage = usage, version='0.1' )
 
-    parser.add_option("-p", "--pitch", dest="pitch", default = None,
+    parser.add_option("-p", "--rise", dest="rise", default = None,
                       type = 'float',
-                      help="Helical pitch [OBLIGATORY]")
+                      help="Helical axial rise [OBLIGATORY]")
     parser.add_option("-u", "--unit", dest="unit", default =None,
                       type = 'float',
                       help="Unit rise, subunit axial transition")
@@ -229,7 +229,7 @@ if '__main__' == __name__:
     parser.add_option("-r", "--virtuals", dest="virtuals_name", default = "virtuals",
                       help="virtuals residues in PDB format")
     options, args = parser.parse_args()
-    helixer = Helixer(options.pitch, options.nsub, options.vturns, options.unit, options.name, options.virtuals_name)
+    helixer = Helixer(options.rise, options.nsub, options.vturns, options.unit, options.name, options.virtuals_name)
     #Executing pipeline
     helixer.execute()
     helixer.write()

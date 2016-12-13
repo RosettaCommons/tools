@@ -2,7 +2,7 @@
 ;; (c) This file is part of the Rosetta software suite and is made available under license.
 ;; (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
 ;; (c) For more information, see http://www.rosettacommons.org. Questions about this can be
-;; (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+;; (c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
 ;; @file rosetta_tests/emacs_init.el
 ;; @author Matthew O'Meara (mattjomeara@gmail.com)
@@ -45,8 +45,9 @@
 (ido-mode t)
 (setq ido-enable-flex-matching t)
 
+; This function is broken on large python files like options_rosetta.py or pilot_apps.src.settings.all - it's a known bug https://github.com/bbatsov/prelude/issues/703).  Enable per-file with M-x which-function-mode, or turn this on here at your own risk and remember to disable it for large python files.
 ; put the current function in the bottom buffer
-(which-function-mode t)
+;(which-function-mode t)
 
 ; C-c o takes you from the cc file to hh file and visa versa
 (add-hook 'c-mode-common-hook
@@ -79,3 +80,25 @@
 ; upon saving.
 ; Uncomment to use.
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+; This function, and the below key redefinition, enable beautification of the current
+; buffer by pressing the "F7" key
+(defun rosetta-beautify (buffer-to-beautify)
+  "Run the Rosetta beautification python script on the current file"
+  (interactive)
+  (if (eq (buffer-local-value 'major-mode buffer-to-beautify) 'c++-mode)
+      ;Check to see if current buffer needs to be saved
+      (progn
+	(save-some-buffers nil (lambda () (eq (get-buffer (buffer-name)) buffer-to-beautify)))
+	(if (not (buffer-modified-p buffer-to-beautify))
+	    (progn
+	      (with-current-buffer buffer-to-beautify (message (shell-command-to-string (concat "python ~/Rosetta/tools/python_cc_reader/beautifier.py --overwrite --filename " buffer-file-name))))
+	      (with-current-buffer buffer-to-beautify (revert-buffer t t t))
+	    )
+	    (message "%s" (propertize "Not beautifying: buffer not saved" 'face '(:foreground "blue")))
+	)
+      )
+      (message "%s" (propertize "Not beautifying: not currently in a c++-mode buffer" 'face '(:foreground "blue")))
+      )
+)
+(global-set-key [(f7)] (lambda () (interactive) (rosetta-beautify (current-buffer))))

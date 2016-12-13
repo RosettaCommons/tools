@@ -1,4 +1,14 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
 from optparse import OptionParser
 from rosettautil.rosetta import rosettaScore
 from rosettautil.util import fileutil
@@ -43,7 +53,7 @@ elif options.silent_list != "":
             if x_tag != y_tag:
                 sys.exit("tags aren't equal, something is very wrong")
             data.append( (x_tag,x_point[1],y_point[1]) )
-    
+
 if options.pdb_list != "":
     pdb_list = fileutil.universal_open(options.pdb_list,"rU")
     for pdb in pdb_list:

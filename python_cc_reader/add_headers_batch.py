@@ -1,4 +1,5 @@
-#!/usr/bin/python2.6
+#!/usr/bin/env python
+
 import sys
 sys.path.append("/Users/brian/SVN/mini_tools")
 from python_cc_reader import add_headers

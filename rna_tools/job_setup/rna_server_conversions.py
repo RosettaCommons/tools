@@ -7,37 +7,58 @@ from os import popen,system
 from os.path import exists,dirname,basename,abspath
 
 #from rna_conversion import make_rna_rosetta_ready
-from get_sequence import get_sequence
-
+from get_sequence import get_sequence, hetatm_map
 
 MAX_SEQUENCE_LENGTH = 32
 
-nts = ['g','c','u','a','G','C','U','A','z','Z']
+nts = ['g','c','u','a','G','C','U','A']
+ligands = ['z','Z','w','X']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
-complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};
+complement = {'a':['u', 'X[OMU]', 'X[PSU]', 'X[5MU]'], 'u':['a','g', 'X[OMG]'], 'c':['g'], 'g':['c','X[5MC]', 'X[OMC]', 'u', 'X[OMU]', 'X[PSU]', 'X[5MU]']};
+aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y' ]
+
 
 def ValidationError( string ):
     print string
     exit()
 
 def join_sequence( sequence ):
+    """ Remove spacer nucleotides and return sequence """
     sequence_joined = ''
     chainbreak_pos = []
     count = 0
+    in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
-        if c in nts or c in secstruct_chars:
+        if c == '[' and sequence_joined[-1] in ligands: # in a ligand
+            sequence_joined += c
+            in_nonstandard_name = True
+            continue
+        if c == ']' and in_nonstandard_name:
+            sequence_joined += c
+            in_nonstandard_name = False
+            continue
+        if in_nonstandard_name:
+            sequence_joined += c
+            continue
+        if c in ligands:
+            sequence_joined += c
+            count += 1
+            continue
+        if c in nts or c in secstruct_chars or c in ligands or c in aas:
             sequence_joined += c.lower()
             count += 1
-        elif c in spacers:
+            continue
+        if c in spacers:
             if ( c == 0 ):
                 raise ValidationError( "Cannot start secstruct with spacer!" )
                 return None
             chainbreak_pos.append( count )
-        else:
-            raise ValidationError( "Unrecognized character in sequence: %s" % c  )
-            return None
+            continue
+
+        raise ValidationError( "Unrecognized character in sequence: %s" % c  )
+        return None
     return ( sequence_joined, chainbreak_pos )
 
 def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstruct='', fixed_stems = False, input_res = None ):
@@ -92,7 +113,6 @@ def prepare_fasta_and_params_file_from_sequence_and_secstruct( sequence, secstru
 
     return ( fasta_file_outstring, params_file_outstring )
 
-
 def output_stems( stems, fixed_stems = False, input_res = None ):
     outstring = ''
     for stem_res in stems:
@@ -124,6 +144,27 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
     pair_map = {}
     all_pairs = []
 
+    # THIS, not the sequence itself, should be equal in size to the secstruct etc.
+    fasta_entities = []
+    i = 0
+    while i < len(sequence_for_fasta):
+        if sequence_for_fasta[i] in spacers: continue
+        if i == len(sequence_for_fasta) - 1 or sequence_for_fasta[i+1] != '[':
+            # simple case
+            fasta_entities.append(sequence_for_fasta[i])
+        else:
+            entity = sequence_for_fasta[i]
+            i += 1
+            while sequence_for_fasta[i] != ']':
+                entity += sequence_for_fasta[i]
+                i += 1
+            entity += ']'
+            fasta_entities.append(entity)
+
+        i += 1
+    #print fasta_entities
+
+
     for i in range( len(line) ):
         if line[i] in spacers: continue
         count += 1
@@ -137,8 +178,9 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             pair_map[ res1 ] = res2
             pair_map[ res2 ] = res1
             all_pairs.append( [res1,res2] )
-            if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
-                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
+            if fasta_entities[ res2-1 ] in complement.keys() and len( fasta_entities ) > 0 and not ( fasta_entities[res1-1] in complement[ fasta_entities[res2-1] ] ):
+                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (fasta_entities[res1-1],res1,fasta_entities[res2-1],res2) )
+    #print pair_map
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
@@ -272,20 +314,21 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             chainids[i] = ' '
 
     goodnames = ['  A','  C','  G','  U',' rA',' rC',' rG',' rU',' MG', ' IC',' IG']
-    hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'  U', 'PSU':'  U', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP' }
-
 
     if removeions:  goodnames.remove(' MG')
 
+    outputted_atoms = []
 
     for line in lines:
         if len(line)>5 and line[:6]=='ENDMDL':
             num_model += 1
             if num_model > max_model:  break #Its an NMR model.
         if len(line) <= 21:  continue
-        if (line[21] in chainids or ignore_chain):
+        chain = line[21]
+        if (chain in chainids or ignore_chain):
             line_edit = line
 
+            # some of following is copied out of get_sequence.py -- should not copy code.
             if line[0:3] == 'TER' and False:
                 continue
             elif (line[0:6] == 'HETATM') & (line[17:20]=='MSE'): #Selenomethionine
@@ -299,12 +342,14 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
             #Don't save alternative conformations.
-            if line[16] == 'A':
-                continue;
+            #if line[16] == 'A': continue
+            if len( line ) < 26: continue
+            atomnum = line[6:11]
+            if line_edit[22] == ' ': resnum = line_edit[23:26]
+            else:                    resnum = line_edit[22:26]
+            if ( chain, resnum, atomnum ) in outputted_atoms: continue # already found once
 
             if line_edit[0:4] == 'ATOM':
-                if line_edit[22] == ' ': resnum = line_edit[23:26]
-                else:                    resnum = line_edit[22:26]
                 if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
                     longname = line_edit[17:20]
                     if longname == 'GTP':
@@ -384,6 +429,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                     line_edit = line_edit.replace('  U', ' rU')
 
                 outstring += line_edit
+                outputted_atoms.append( (chain,resnum,atomnum) )
 
     #fastaid.write('\n')
 

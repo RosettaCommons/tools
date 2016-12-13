@@ -1,16 +1,23 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 #author: Jordan Willis
-from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB.Polypeptide import three_to_one
+
+try:
+    from Bio.PDB.PDBParser import PDBParser
+    from Bio.PDB.Polypeptide import three_to_one
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 import sys
 import glob
 
 def usage():
     print "Pulls fasta file of a specific chain up to a specified output file"
     print "python get_fasta_from_pdb_by_chain.py <pdb> <chain> <output>"
-    
-    
+
+
 #import warnings
 
 #def fxn():
@@ -46,8 +53,11 @@ def get_three_letter(pdb, chain_id):
 def get_one_letter(list_of_three):
     fasta_one=[]
     for x in list_of_three:
-       x=three_to_one(x)
-       fasta_one.append(x)
+	if x == "S56" or x == "TES":
+		x="N"
+	else:
+		x=three_to_one(x)
+	fasta_one.append(x)
     return fasta_one
 
 
@@ -59,7 +69,7 @@ def output_to_file(one_letter, file):
 
 
 #for file in open(sys.argv[1]).readlines():
-    
+
 handle = open(sys.argv[1])
 struct = parser.get_structure("random",handle)
 three_letter = get_three_letter(struct, sys.argv[2])

@@ -1,8 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import string
 from os.path import exists,basename
 from parse_tag import parse_tag
+
+
+hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'H2U', 'PSU':'PSU', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP' }
 
 longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
@@ -12,7 +15,19 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               ' rA': 'a', ' rC': 'c', ' rG': 'g', ' rU': 'u',
               '  A': 'a', '  C': 'c', '  G': 'g', '  U': 'u',
               ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
+              'ROS': 'Z[ROS]','HOH':'w[HOH]', 'H2U': 'X[H2U]',
+              'PSU': 'X[PSU]', '5MU': 'X[5MU]', 'FME': 'X[FME]',
+			  'U33': 'X[U33]', '  I': 'X[INO]'
               }
+
+from subprocess import Popen, PIPE
+import os
+grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" % os.environ[ "ROSETTA" ] ], stdout=PIPE )
+awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
+grep.stdout.close()
+tlcs, err = awk.communicate()
+for tlc in tlcs.split('\n'):
+    longer_names[tlc] = "X[%s]" % tlc
 
 def get_sequences( pdbname, removechain = 0 ):
 
@@ -46,8 +61,13 @@ def get_sequences( pdbname, removechain = 0 ):
             if len(line_edit)>75:
                 if (line_edit[76:78] == 'SE'):
                     line_edit = line_edit[0:76]+' S'+line_edit[78:]
+        elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys()):
+            line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
-        if line_edit[0:4] == 'ATOM':
+        if (line[0:6] == 'HETATM') & (line[17:20] in longer_names.keys() ):
+            line_edit = 'ATOM  '+line[6:]
+
+        if line_edit[0:4] == 'ATOM' or line_edit[0:6]=='HETATM':
             resnum = line_edit[22:26].replace( ' ', '' )
             chain = line_edit[21]
 
@@ -105,14 +125,13 @@ def get_sequences_for_res( pdbname, input_res, removechain = 0 ):
     return subsequences
 
 if __name__=='__main__':
-    
+
     import argparse
 
     parser = argparse.ArgumentParser(description='Get sequence from pdb.')
     parser.add_argument('pdbname', help='pdbfile to get sequence from')
     parser.add_argument('--removechain', action='store_true')
     args=parser.parse_args()
-    
+
     ( sequences, all_chains, all_resnums ) = get_sequences( args.pdbname, removechain = args.removechain )
     print string.join(sequences, '')
-    

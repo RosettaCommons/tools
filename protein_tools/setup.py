@@ -27,6 +27,7 @@ setup(
                 'rosettautil.util'
                 ],
     scripts = [
+		'scripts/get_per_residue_energies.py',
                 'scripts/best_models.py',
                 'scripts/amino_acids.py',
 		'scripts/clean_pdb.py',

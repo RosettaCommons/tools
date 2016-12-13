@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Really simple function to create blank .cc, .hh, and .fwd.hh files
 # -- rhiju, june 2013
 
@@ -10,7 +10,7 @@ from os.path import *
 
 def Help():
     print argv[0], " <full_class_name>"
-    print "Example of a full_class_name could be protocols/sample_stream/SampleStream.cc"
+    print "Example of a full_class_name could be protocols/sample_stream/SampleStream"
     print "Must run this from a directory within rosetta/main..."
     exit( 0 )
 
@@ -18,7 +18,7 @@ args = argv
 FORCE = 0
 
 for i in range(len(argv)):
-    if argv[i] == '-f':
+    if argv[i] == '-f' or argv[i]=='-force' or argv[i]=='--force':
         FORCE = 1
         del( argv[i] )
 
@@ -64,7 +64,7 @@ def write_shared_header( fid, file_name ):
     fid.write( '// (c) This file is part of the Rosetta software suite and is made available under license.\n')
     fid.write( '// (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.\n')
     fid.write( '// (c) For more information, see http://www.rosettacommons.org. Questions about this can be\n')
-    fid.write( '// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.\n')
+    fid.write( '// (c) addressed to University of Washington CoMotion, email: license@uw.edu.\n')
     fid.write( '\n')
     fid.write( '/// @file %s\n' % file_name)
     fid.write( '/// @brief \n' )

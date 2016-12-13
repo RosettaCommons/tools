@@ -127,6 +127,9 @@ sub readpdbfile{
 
 	close(PDBFILE);
 	open(PDBFILE,$filename)||die();
+
+	$pdbfile =~ s/pdb_tmp\///;
+
 	open(CHOTHIAPDB,">pdb$pdbfile\_chothia.pdb");
 
 	$line=<PDBFILE>;

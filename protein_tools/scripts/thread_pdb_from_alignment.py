@@ -1,13 +1,37 @@
-#!/usr/bin/env python2.5
-from Bio import AlignIO
-import Bio.PDB
+#!/usr/bin/env python
+
 from optparse import OptionParser
-import sys
+import os, sys
 import array
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import rosettautil
+
 from rosettautil.protein import util
 from rosettautil.protein import alignment
 from rosettautil.protein import pdbStat
 from rosettautil.util import fileutil
+
+try:
+    from rosettautil.protein import amino_acids
+except ImportError:
+    #Okay, do we have one in the same directory as this script?
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    import amino_acids
+
+try:
+    import Bio.PDB
+    from Bio import AlignIO
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 
 
 def list_to_generator(list):
@@ -32,14 +56,14 @@ alignment_file.close()
 template_struct = util.load_pdb(args[1])
 
 #if len(alignment_data)  != 2:
-#    sys.exit("alignment file must have exactly 2 sequences!") 
+#    sys.exit("alignment file must have exactly 2 sequences!")
 
 #find all the gaps, get numeric IDs from the string tags in the alignment file
 try:
     template_gaps = alignment.find_gaps(alignment_data,options.template)
 except LookupError:
     sys.exit("could not find "+options.template+" in alignment file")
-try:    
+try:
     target_gaps = alignment.find_gaps(alignment_data,options.target)
 except LookupError:
     sys.exit("could not find "+options.target+" in alignment file")
@@ -60,13 +84,13 @@ gapped_template = pdbStat.find_gaps(template_struct,template_sequence,options.ch
 #if you have an alignment gap thats larger than 1 aa, this script won't work
 for gap in target_gaps:
     if abs(gap[1]-gap[0]) > 1:
-		print "WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. " 
+		print "WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. "
 		print "We cannot completely thread this protein in an automatic way, "
 		print "manual inspection and adjustment of loop files will be required."
 
 #we need to make a new structure, then a new model, then a new chain, then we fill the chain with residues, and atoms
 output_structure_builder = Bio.PDB.StructureBuilder.StructureBuilder()
-output_structure_builder.init_structure(args[2]) 
+output_structure_builder.init_structure(args[2])
 output_structure_builder.init_model(1) #there is only one model
 output_structure_builder.init_chain(options.chain) #there is only one chain, same ID as the template
 output_structure_builder.init_seg("")
@@ -109,9 +133,11 @@ for align_resn, temp_resn,gap_temp_resn in zip(alignment_data[target_id],alignme
         template_residues.next() #pull a residue out of the pdb and throw it away
         continue
     elif align_resn != '-' and temp_resn != '-': #we're aligned, copy backbone from old pdb to new, if the sidechain is identical, copy that too
-        align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
-        temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
-        current_res = template_residues.next() #pull the next residue out of the pdb file 
+        align_name3 = amino_acids.one_letter_names[align_resn]
+        #align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
+        temp_name3 = amino_acids.one_letter_names[temp_resn]
+        #temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
+        current_res = template_residues.next() #pull the next residue out of the pdb file
         if(current_res.get_resname() != temp_name3):  #if the current residue from the pdb isnt the same type as the current from the template, something's broken
             print current_res.get_resname(),temp_name3
             sys.exit("Residue mismatch between alignment and PDB, check that PDB sequence and alignment sequence are identical")

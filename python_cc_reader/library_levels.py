@@ -34,10 +34,10 @@ def levels_for_library( library_prefix ) :
    library_sublibs = {}
    sorted_src_projects = sorted( projects[ "src" ] )
    for lib in sorted_src_projects :
-       #print lib
+       print lib
        if lib.find( library_prefix ) != -1 :
            level = int( lib.rpartition(".")[2] )
-           #print lib, level
+           print lib, level
            if level not in library_sublibs :
                library_sublibs[level] = []
            library_sublibs[level].append( lib )

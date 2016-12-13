@@ -1,10 +1,26 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    import Bio.PDB
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 from optparse import OptionParser
 from rosettautil.protein import util
 from rosettautil.protein import pdbStat
 from rosettautil.rosetta import rosettaScore
 from rosettautil.util import fileutil
-import Bio.PDB
 
 
 def make_table(name_score_rmsd,out_name):
@@ -40,9 +56,9 @@ for decoy_file in args:
     tag = decoy_file.split("/").pop().split(".")[0]
     decoy = util.load_pdb(decoy_file.rstrip())
     score_table = rosettaScore.ScoreTable(decoy_file)
-    rms =  pdbStat.calculate_rms(native,decoy,options.ca,options.residues,"",options.chain)
+    rms =  pdbStat.calculate_rms(native,decoy,'ca',options.residues,"",options.chain,False,False)
     score = score_table.get_score(0,options.term) #0 is the pose energy
     score_rmsd.append( (rms,score) )
     name_score_rmsd.append( (decoy_file,rms,score) )
-    
+
 make_table(name_score_rmsd,options.table)

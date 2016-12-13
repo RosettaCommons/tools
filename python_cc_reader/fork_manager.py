@@ -24,7 +24,7 @@ class ForkManager:
                     self.jobs.remove(p)
                     if self.error_callback : self.error_callback( self, p )
 
-            if len(self.jobs) >= self.max_n_jobs : time.sleep(.5)
+            if len(self.jobs) >= self.max_n_jobs : time.sleep(.1)
 
         sys.stdout.flush()
         pid = os.fork()

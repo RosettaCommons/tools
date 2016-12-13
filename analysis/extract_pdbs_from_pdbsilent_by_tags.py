@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #extract_pdbs_from_pdbsilent_by_tags.py
 
 import sys

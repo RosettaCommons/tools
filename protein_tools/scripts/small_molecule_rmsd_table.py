@@ -1,6 +1,21 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 
-import Bio.PDB
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    import sys, os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    import rosettautil
+
+try:
+    import Bio.PDB
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 from rosettautil.protein import pdbStat
 #from rosettautil.rosetta import rosettaScore
 from rosettautil.util import fileutil
@@ -15,12 +30,12 @@ def calculate_centroid(residue_atom_coords):
 	for i in range(len(residue_atom_coords)):
 		atom_total += residue_atom_coords[i]
 #		print atom_total
-		number_atoms += 1	
+		number_atoms += 1
 #	centroid = [x_total / len(residue_atom_coords),z_total / len(residue_atom_coords),z_total / len(residue_atom_coords)]
 	centroid = [0.0,0.0,0.0]
 	centroid = atom_total/number_atoms
 #	print centroid
-	return centroid 
+	return centroid
 
 
 def calculate_rms(model_1_atoms,model_2_atoms):
@@ -31,7 +46,7 @@ def calculate_rms(model_1_atoms,model_2_atoms):
 		for j in [0,1,2]:
 			distance_2+=(model_1_atoms[i][j]-model_2_atoms[i][j])**2
 		d_2_sum += distance_2
-	return math.sqrt(d_2_sum / len(model_1_atoms))    
+	return math.sqrt(d_2_sum / len(model_1_atoms))
 
 #first we need to extract the atom coordinates of the option-defined res_name for model1 and model2
 
@@ -65,7 +80,7 @@ for model_file in args:
 	model  = pdbStat.load_pdb(model_file)
 #	print model_file
 	atoms = model.get_atoms()
-	residue_atom_coords = [] 
+	residue_atom_coords = []
 	number = model_file.split('_')[3].split('.')[0]
 	number_list.append(number)
 	for atom in atoms:
@@ -104,6 +119,6 @@ for i in range(0,x-1):
 				model_2_atoms = list_model_coord[j]
 				rms = calculate_rms(model_1_atoms,model_2_atoms)
 			print str(rms),
-	print 	
+	print
 
 

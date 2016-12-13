@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 Helix denovo symmetry definition file generator with restraints on cn symmetry
 Usage: imake_helix_denovo_cnsm.py -p 16.15 -c 5 -n 40 -v 1 -u 2
@@ -270,9 +270,9 @@ if '__main__' == __name__:
     option_parser_class = optparse.OptionParser
     parser = option_parser_class( usage = usage, version='0.1' )
 
-    parser.add_option("-p", "--pitch", dest="pitch", default = None,
+    parser.add_option("-p", "--rise", dest="rise", default = None,
                       type = 'float',
-                      help="Helical pitch [OBLIGATORY]")
+                      help="Helical axial rise [OBLIGATORY]")
     parser.add_option("-c", "--cn_symm", dest="cn_symm", default = None,
                       type = 'int',
                       help="CN symmtery [OBLIGATORY]")
@@ -290,7 +290,7 @@ if '__main__' == __name__:
     parser.add_option("-r", "--virtuals", dest="virtuals_name", default = "virtuals",
                       help="virtuals residues in PDB format")
     options, args = parser.parse_args()
-    helixer = Helixer(options.pitch, options.cn_symm, options.nsub, options.vturns, options.unit, options.name, options.virtuals_name)
+    helixer = Helixer(options.rise, options.cn_symm, options.nsub, options.vturns, options.unit, options.name, options.virtuals_name)
     #Executing pipeline
     helixer.execute()
     helixer.write()

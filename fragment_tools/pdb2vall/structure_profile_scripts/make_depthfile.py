@@ -1,10 +1,11 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from sys import argv, exit, stderr
 from os import system, getcwd, chdir, path
 from os.path import exists
 import ConfigParser
 
-## 111206 fixed a bug where the picker doesn't read the results from multiple chains - 
+## 111206 fixed a bug where the picker doesn't read the results from multiple chains -
 ##        modify that into running program with multiple chains, and parse the single chain results out.
 
 ## GET PDB AND RUN DEPTH
@@ -71,7 +72,7 @@ if not exists( wholechain_results ):
     print 'running DEPTH'
     cmd_depth = DEPTH + ' -thread ' + DEPTH_THREADS + ' -i %s.pdb -o %s.depth' % ( pdbname+pdbchain, pdbname+pdbchain )
     system( cmd_depth )
-    
+
 if exists( singlechain_results ):
     chdir( basedir )
     system("ln -s ./%s/%s ." %( pdbname+pdbchain, singlechain_results ))

@@ -2,7 +2,7 @@
 
 
 from os import system,popen
-from os.path import exists,dirname,basename,expanduser,abspath
+from os.path import dirname,basename,expanduser,abspath
 from sys import exit, argv
 import string
 from time import sleep

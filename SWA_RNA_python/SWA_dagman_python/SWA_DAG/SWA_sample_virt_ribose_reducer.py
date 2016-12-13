@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sys import argv,exit
+from sys import argv
 import sys
 import traceback
 from glob import glob
@@ -66,16 +66,25 @@ if( exists(reducer_outfile) ): #FEB 09, 2012
 
 ########################################################################################################################
 
+### check for valid non_empty_silent_file
+if ( not Is_valid_non_empty_silent_file( START_silent_file ) ):
+	
+	### EARLY EXIT if valid_empty_silent_file ... 
+	if ( Is_valid_empty_silent_file( START_silent_file ) ):
+		print "START_silent_file (%s) is a valid_empty_silent_file!" % (START_silent_file)
+		with open( reducer_outfile , 'w' ) as REDUCER_OUTFILE:
+			REDUCER_OUTFILE.write( "empty cluster silent_file since all input_silent_file are empty." )
+		print_title_text("Exit " + python_command)
+		sys.exit(0)
+
+	else:
+		error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
+	
+########################################################################################################################
+
 num_column_name_line=0
 #count=0 ##Commented out on Feb 08, 2012
 
-if( not Is_valid_non_empty_silent_file(START_silent_file) ):
-	#if( Is_valid_empty_silent_file(START_silent_file) ):
-	#	print "START_silent_file (%s) is a not a valid_non_empty_silent_file, but is a valid_empty_silent_file!" % (START_silent_file)
-	#	exit(1)
-	error_exit_with_message("START_silent_file (%s) is not a valid_non_empty_silent_file!" %( START_silent_file ) )
-	
-		
 data = safe_open(START_silent_file, mode='r', Is_master=False)
 SEQUENCE_LINE = data.readline()
 COLUMN_NAME_LINE = data.readline()

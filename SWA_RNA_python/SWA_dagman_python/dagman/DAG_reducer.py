@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from os import system,chdir
-from os.path import exists,dirname
-from sys import argv
+from os.path import dirname
+from sys import argv,exit
 from time import sleep
 import os
 ######################################################################
@@ -14,13 +14,15 @@ from SWA_dagman_python.dagman.DAG_general_util import get_job_info, check_if_job
 
 ######################################################################
 
-print 'Enter: ', list_to_string(argv)
+wrapper_command = list_to_string(argv)
+print 'Enter: ', wrapper_command
+
 
 if(len(argv)<2): error_exit_with_message("len(argv)<2")
 
 job_script_file = argv[ 1 ]
 
-lines = safe_open(job_script_file, mode='r').readlines()  
+lines = safe_open(job_script_file, mode='r').readlines()
 
 command=""
 reducer_job_name=""
@@ -87,9 +89,13 @@ print "job_name=%s" %(reducer_job_name)
 print "log_foldername=%s" %(log_foldername)
 print "num_mapper_jobs=%d" %(num_mapper_jobs)
 print "-----------------------------------------------------------------------------------------"
-	
+
 ##############################Check that all the mapper jobs are finish#################################
 
+#if (num_mapper_jobs == 0):
+#	print "EARLY EXIT: num_mapper_jobs=%d " % (num_mapper_jobs)
+#	print_title_text("Exit: " + wrapper_command) #Early exit
+#	exit(0)
 
 count=0
 any_mapper_still_running=True
@@ -98,7 +104,7 @@ while any_mapper_still_running:
 
 	print "waiting for mapper jobs to finish, count= %d" %(count)
 	sys.stdout.flush()
-	sys.stderr.flush()	
+	sys.stderr.flush()
 
 	#NEED to prevent the reducer from being stuck in a infinite while loop if a error occur at the master node or another slave node...
   ###OK IN LSF mode, this is taken care of by bkill!
@@ -114,7 +120,7 @@ while any_mapper_still_running:
 		mapper_job_info = get_job_info(log_foldername, mapper_job_name)
 
 		mapper_job_info_list.append(mapper_job_info)
-	
+
 	job_is_done = check_if_job_in_done( mapper_job_info_list )
 
 	any_mapper_still_running= (job_is_done==False)

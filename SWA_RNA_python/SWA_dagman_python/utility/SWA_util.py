@@ -17,7 +17,8 @@ import traceback
 from glob import glob
 import string
 from os import system
-from os.path import basename, dirname, exists, expanduser, abspath
+from os.path import basename, dirname, expanduser, abspath
+from os.path import exists as os_path_exists
 from time import sleep
 import popen2
 import copy
@@ -33,6 +34,18 @@ from PATHS import get_rosetta_EXE_specified_no_graphic_string, PATH_exists, is_r
 #######################################################
 
 
+####################################################################################
+
+def exists( filename ):
+	### This overload is important for preventing false negatives
+	attempt = 0
+	while attempt < 2:
+		status = os_path_exists( filename )
+		if status:  break
+		attempt += 1
+	return status
+
+####################################################################################
 
 def submit_subprocess_allow_retry(command, Is_master=False):
 
@@ -46,7 +59,10 @@ def submit_subprocess_allow_retry(command, Is_master=False):
 		if(n==num_try_max):
 			submit_subprocess(command, Is_master)
 		else:
+			#retcode = subprocess.call(command + ' 2> submit_subprocess_retry_err.txt', shell=True)
 			retcode = system(command + ' 2> submit_subprocess_retry_err.txt')
+			retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 			if(retcode==0):
 				break
 			else:
@@ -70,8 +86,10 @@ def submit_subprocess(command, Is_master=False):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-#	retcode = subprocess.call(command , shell=True) #This is not avialable in python 2.3.4 (current Biox's python version) might have to make shell false on BIOX??
+	#retcode = subprocess.call(command , shell=True) #This is not avialable in python 2.3.4 (current Biox's python version) might have to make shell false on BIOX??
 	retcode = system(command)
+	retcode = retcode % 256 # exit values greater than 255 return an exit code modulo 256 (added Feb. 23, 2015)
+
 
 	error_check(retcode, command, Is_master)
 	sys.stdout.flush()
@@ -391,7 +409,7 @@ def check_valid_VDW_rep_screen_info_list(VDW_rep_screen_info_list):
 	if( len(VDW_rep_screen_info_list[0])== 0): return
 
     ################################################################
-	### VDW_rep_screen_info_list no longer requires additional arguments, 
+	### VDW_rep_screen_info_list no longer requires additional arguments,
 	### user only needs to provide a pdb or a list of pdbs
 	###
 	if( len( VDW_rep_screen_info_list ) == 1 ): return True
@@ -416,23 +434,35 @@ def Is_valid_empty_silent_file(silent_file, verbose=True):
 
 	prefix_reason_string="silent_file (%s) is not a valid_empty_silent_file." %(silent_file)
 
-	if(exists(silent_file)==False):
-		if(verbose): print "%s REASON: silent_file doesn't exist!" %(prefix_reason_string)
+	if ( not exists(silent_file) ):
+		if (verbose): 
+			print "%s REASON: silent_file doesn't exist!" % (prefix_reason_string)
 		return False
 
 	data = safe_open(silent_file, 'r', Is_master=False)
-
-	if( len( data ) < 1 ):
-		if(verbose): print "%s REASON: empty silent_file num_lines < 1!" %(prefix_reason_string)
-		return False
-
-	for line in data:
-		### EXCEPTIONS HERE
-		if( "empty cluster silent_file since all input_silent_file are empty." in line ):	return True
-
+	data_lines = data.readlines()
 	data.close()
 
-	return False
+	if ( len(data_lines) < 1 ):
+		if (verbose): 
+			print "%s REASON: empty silent_file num_lines < 1!" % (prefix_reason_string)
+		return False
+
+	first_line = data_lines[0]
+	if (verbose):
+			print "first_line= ", first_line
+
+	### EXCEPTIONS HERE
+	valid_exceptions = [
+		"empty cluster silent_file since all input_silent_file are empty.",
+		"empty filtered silent_file since no non-empty sampler silent_file.",
+		"Empty filterer_outfile. No struct_pair passed screen.",
+		"empty cluster silent_file since at least one of the two input_silent_file is empty.",
+		"empty cluster silent_file since at least of the two input_silent_file is empty."
+	]
+
+	return ( any ( exception in first_line for exception in valid_exceptions ) )
+		
 
 ####################################################################
 def Is_valid_non_empty_silent_file(silent_file, verbose=True):

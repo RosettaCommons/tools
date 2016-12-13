@@ -300,8 +300,10 @@ for infile in infiles:
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
         else:
-            pass # will default to fa_standard, which holds rna residue types now.
             #command += " -out:file:residue_type_set rna "
+            # will default to fa_standard, which holds rna residue types now.
+            #command += " -chemical:patch_selectors VIRTUAL_RNA_RESIDUE VIRTUAL_PHOSPHATE VIRTUAL_RIBOSE "
+            pass
 
         if output_virtual: command += " -output_virtual "
 
@@ -315,8 +317,8 @@ for infile in infiles:
             for m in extra_res_fa: command += " "+m
 
         if (scoretags.count('vdw')): command += ' -out:file:residue_type_set centroid '
-
-
+    
+    
     print(command)
     system(command)
 

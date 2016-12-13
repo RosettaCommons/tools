@@ -101,7 +101,7 @@ def kill_all_queued_jobs_with_prefix(job_prefix, verbose=True):
 			command+=' %s' %(job_ID)
 
 			if(verbose): print command
-			submit_subprocess( command )
+			submit_subprocess_allow_retry( command )
 
 	if(num_job_killed==0):
 		print "WARNING: num_job_killed=0 for job_prefix (%s)" %(job_prefix)

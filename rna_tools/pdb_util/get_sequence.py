@@ -17,7 +17,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
               'ROS': 'Z[ROS]','HOH':'w[HOH]', 'H2U': 'X[H2U]',
               'PSU': 'X[PSU]', '5MU': 'X[5MU]', 'FME': 'X[FME]',
-			  'U33': 'X[U33]', '  I': 'X[INO]'
+	      'U33': 'X[U33]', '  I': 'X[INO]', 'BRU': 'X[5BU]',
               }
 
 from subprocess import Popen, PIPE

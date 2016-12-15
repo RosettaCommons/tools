@@ -343,6 +343,8 @@ def main( xsdfile, outdir ):
     global ALL_ENTRIES
     ALL_ENTRIES = entries
 
+    # We do this odd two-stage pass to deal with name conflicts on case-insensitive filesystems
+    to_process = {}
     for section in SECTIONS:
         if section not in entries:
             print "ERROR: can't find section for", section, " in XSD."
@@ -361,7 +363,19 @@ def main( xsdfile, outdir ):
             if entry_type not in entries:
                 print "ERROR: can't find definition for", entry_type
                 continue
-            process( entry_name, entries[entry_type], outdir + '/' + entry_type + '.md' )
+            to_process.setdefault( entry_type.lower(), [] ).append( (entry_type, entry_name) )
+
+    for key in to_process:
+        to_process[key].sort()
+        if len( to_process[key] ) > 1:
+            print "Case sensitivity conflict between: ", ' '.join( et for et, en in to_process[key] )
+        for ii, (entry_type, entry_name) in enumerate( to_process[key] ):
+            if ii == 0:
+                outname = outdir + '/' + entry_type + '.md'
+            else:
+                outname = outdir + '/' + entry_type + "_" + str(ii) + '.md' # Do we need a better way of disambiguating this?
+            process( entry_name, entries[entry_type], outname )
+
 
 if __name__ == "__main__":
 

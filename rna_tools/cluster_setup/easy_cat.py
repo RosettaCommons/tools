@@ -37,6 +37,9 @@ for outfile in outfiles:
         if len( globfiles ) == 0: globfiles = glob( outfile + '/*out'  )
         #print globfiles
 
+        # Remove any "checkpoint" files from stepwise checkpointing
+        globfiles = filter( lambda x: "S_" not in x and "_checkpoint" not in x, globfiles )
+
         # make sure to order 0,1,2,... 10, 11, 12, ... 100, 101, ...
         globfiles_with_length = map( lambda x: [len(x),x], globfiles )
         globfiles_with_length.sort()

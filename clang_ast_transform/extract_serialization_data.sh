@@ -40,6 +40,7 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	-DNDEBUG \
 	-DPTR_MODERN -DPTR_STD -DCXX11 \
 	-DSERIALIZATION \
+	-Wno-inconsistent-missing-override \
 	-I$SOURCE/src \
 	-I$SOURCE/external \
 	-I$SOURCE/external/include \

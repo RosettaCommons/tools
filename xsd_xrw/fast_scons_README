@@ -1,0 +1,25 @@
+Step 1: fresh clone of Rosetta, on the correct branch.
+- if it's not a fresh clone, Step 2 removes the contents of build/ anyway, so I guess it will make it fresh
+- it had better compile correctly or none of the rest of this works
+
+Step 2: in source/ (the directory in which one normally runs scons), run create_big_scons_log.bash #procs
+- #procs is the argument you would use to -j for scons
+- IT WILL REMOVE build/ !! so pay attention
+- this creates a file big_scons_log
+- If you are running multiple Rosetta installations, assuming they all have the same base XRW branch, you should be able to just COPY big_scons_log from directory to directory instead of generating it from scratch each time.
+
+Step 3: do some code work
+
+Step 4: fast auto compile with scons_one_auto.bash
+- this greps out the modified files from git diff, so you need to have NOT COMMITTED YET
+- I guess we could write a version that handles added files too if you commit before compiling?
+- This will create and delete a temporary file temp_scons_stupid_mac_workaround; I assume you do not have a file by that name already.
+- (see Other step 4 for more instructions)
+
+Other step 4: fast compile with scons_one.bash filename
+- example: scons_one.bash FloppyTail
+- this pulls out all of FloppyTail*cc to compile, AND the library linker commands, and tries to run those (stopping at the first error)
+- example: FloppyTailMover.cc
+- this pulls ONLY the compilation line for just FloppyTailMover.cc, which is unique
+- (so, you can be a little sloppy in your filenames and it will work, or you can be precise and it will work better)
+- This will create and delete a temporary file temp_scons_stupid_mac_workaround; I assume you do not have a file by that name already.

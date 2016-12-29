@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from optparse import OptionParser
 from sys import exit, stderr, stdout
 from os import popen, system, path
@@ -8,7 +9,7 @@ from glob import glob
 from amino_acids import longer_names
 from renumber_structure_profile_checkpoint_back_to_seqres import renumber_structure_profile_checkpoint_back_to_seqres
 from parse_dssp_results import parse_dssp_results
-from jump_over_missing_density import jump_over_missing_density 
+from jump_over_missing_density import jump_over_missing_density
 from numbering_back_to_pdbseqres import numbering_back_to_pdbseqres
 import ConfigParser
 
@@ -44,7 +45,7 @@ PDB2VALL_PATH = path.abspath(path.dirname(__file__)) + "/"
 config = ConfigParser.RawConfigParser(allow_no_value=True)
 config.read(PDB2VALL_PATH + "pdb2vall.cfg")
 
-## EXTERNAL PROGRAMS PATHES 
+## EXTERNAL PROGRAMS PATHES
 if not PDB2VALL_PATH:
     stderr.write("ERROR: you should specify the path where your packages are first.\n"); exit()
 
@@ -53,7 +54,7 @@ script_get_structure_profile_checkpoint = PDB2VALL_PATH + "structure_profile_scr
 relax_sequence_file = PDB2VALL_PATH + "relax_seqeuence_file.txt"
 
 ## ROSETTA APP
-ROSETTA_PATH = PDB2VALL_PATH + "../../../"; 
+ROSETTA_PATH = PDB2VALL_PATH + "../../../";
 if config.get('pdb2vall', 'rosetta_path'):
     ROSETTA_PATH = config.get('pdb2vall', 'rosetta_path')
 if not ROSETTA_PATH.endswith(path.sep):
@@ -82,10 +83,10 @@ missing_den_list = tmp_results[ "missing_density_rsn_list" ]
 
 ## Dictionary used
 fasta_dict                 = tmp_results[ "seq_from_pdbseqres_Dict" ]
-seq_checkpoint_dict        = {}  ## 
+seq_checkpoint_dict        = {}  ##
 strpro_checkpoint_dict     = {}  ## from renumber_structure_profile_checkpoint_back_to_seqres
-secstr_dict                = {}  ## from idealized rosetta output "xxxx_0001_0001.pdb"; the numbering is according to the missing density regions, recorded in disorder_dict. 
-idealized_pdb_xyz_dict     = {}  ## from idealized rosetta output "xxxx_0001_0001.pdb"; the numbering is according to the missing density regions, recorded in disorder_dict. 
+secstr_dict                = {}  ## from idealized rosetta output "xxxx_0001_0001.pdb"; the numbering is according to the missing density regions, recorded in disorder_dict.
+idealized_pdb_xyz_dict     = {}  ## from idealized rosetta output "xxxx_0001_0001.pdb"; the numbering is according to the missing density regions, recorded in disorder_dict.
 idealized_pdb_torsion_dict = {}  ## from idealized rosetta output "xxxx_0001_0001.pdb"; the numbering is according to the missing density regions, recorded in disorder_dict.
 
 
@@ -192,17 +193,17 @@ else:
             xcord = line[30:38].strip()
             ycord = line[38:46].strip()
             zcord = line[46:54].strip()
-            idealized_pdb_xyz_dict[ rsn ] = [ xcord, ycord, zcord ] 
+            idealized_pdb_xyz_dict[ rsn ] = [ xcord, ycord, zcord ]
         else:
             stderr.write("ERROR: pdb2vall.py: for position %s of %s.pdb, xyz rsd from idealized pdb doesn't match the fasta from seqres\n" %( rsn, pdb )); exit()
 
     if options.debug:
         for index in idealized_pdb_xyz_dict.keys():
-            print index, idealized_pdb_xyz_dict[ index ] 
+            print index, idealized_pdb_xyz_dict[ index ]
 
     ## TORSIONS FROM IDEALIZED PDB
     idealized_pdb_torsion_lines = jump_over_missing_density( fasta_output_fn, fasta_output_fn[:5], "torsion")
-    for line in idealized_pdb_torsion_lines: 
+    for line in idealized_pdb_torsion_lines:
         rsn = int( line.split()[0] )
         rsd = line.split()[1]
         secstr = line.split()[2]
@@ -215,7 +216,7 @@ else:
             psi   = line.split()[4]
             omega = line.split()[5]
 
-            idealized_pdb_torsion_dict[ rsn ] = [ phi, psi, omega ] 
+            idealized_pdb_torsion_dict[ rsn ] = [ phi, psi, omega ]
             secstr_dict[ rsn ]                = secstr
 
             ## CHECK WHETHER THE IDEALIZED_PHI, PSI IS SIMILAR TO DSSP_PHI, PSI - should I?
@@ -226,13 +227,13 @@ else:
 
     if options.debug:
         for index in idealized_pdb_xyz_dict.keys():
-            print index, idealized_pdb_xyz_dict[ index ] 
+            print index, idealized_pdb_xyz_dict[ index ]
 
 print "-"*75
 print "pdb2vall.py is trying to combine %s.vall from:" % pdb
 print "     1. fasta_dict               (from pdb_seqres.txt)"
 print "     2. sectr_dict               (from dssp in rosetta idealizer)"
-print "     3. idealized_pdb_xyz_dict"  
+print "     3. idealized_pdb_xyz_dict"
 print "     4. idealized_torsion_dict"
 print "     5. dssp_Dict"
 print "     6. seq_pro_checkpoint_dict"
@@ -265,4 +266,4 @@ for rsn in fasta_dict.keys():
             vall_out.write("%s\n"  %( seq_checkpoint_dict[ rsn ]))
 vall_out.close()
 print "pdb2vall.py is done making %s.vall" % pdb
-                
+

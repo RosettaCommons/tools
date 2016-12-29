@@ -846,8 +846,8 @@ class Unit:
             for bc in decl.base_class_names :
                 if bc not in base_classes_to_ignore :
                     arc_gets_named = True
-    
-        print "arc_gets_named", arc_gets_named, decl.has_vars, decl.base_class_names 
+
+        print "arc_gets_named", arc_gets_named, decl.has_vars, decl.base_class_names
 
         stub = []
         stub.append("\n#ifdef    SERIALIZATION\n\n")
@@ -860,7 +860,7 @@ class Unit:
         stub.append("void\n")
         stub.append("%s::save( Archive &%s ) const {" % ( decl.name, " arc" if arc_gets_named else "" ) )
         vars_stub = self.makeVarsArStub( decl, decl.membvars, "save" )
-        if vars_stub : 
+        if vars_stub :
             stub.append( "\n" )
             stub.append(self.indent( vars_stub, 1 ))
         stub.append("}\n\n")
@@ -881,10 +881,10 @@ class Unit:
 
             stub.append("%s::load( Archive &%s ) {" % ( decl.name, " arc" if arc_gets_named else "" ))
             vars_stub = self.makeVarsArStub( decl, decl.membvars, "load" )
-            if vars_stub : 
+            if vars_stub :
                 stub.append( "\n" )
                 stub.append(self.indent( vars_stub, 1 ))
-    
+
             stub.append("}\n\n")
 
         if decl.need_load_construct:
@@ -930,7 +930,7 @@ class Unit:
         if self.contains_polymorphic_class and self.find_serialization_force_dynamic_init( self.hh )[0] == -1 :
             stub = ["\n"]
             stub.append( "#ifdef    SERIALIZATION\n" )
-            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "CEREAL_FORCE_DYNAMIC_INIT( %s )\n" % self.hh.filename.partition("source/src/")[2].replace( "/", "_" )[:-3] )
             stub.append( "#endif // SERIALIZATION\n\n" )
             self.hh.insertStub( self.hh.contents.rfind("\n#endif"), "".join(stub), False )
 
@@ -1013,7 +1013,7 @@ class Unit:
         if self.contains_polymorphic_class and self.find_serialization_register_dynamic_init( self.cc )[0] == -1 :
             stub = []
             stub.append( "\n#ifdef    SERIALIZATION\n" )
-            stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("main/source/src/")[2].replace( "/", "_" )[:-3] )
+            stub.append( "CEREAL_REGISTER_DYNAMIC_INIT( %s )\n"% self.hh.filename.partition("source/src/")[2].replace( "/", "_" )[:-3] )
             stub.append( "#endif // SERIALIZATION\n" )
             self.cc.insertStub( len(self.cc.contents), "".join(stub), False )
 
@@ -1030,7 +1030,7 @@ class Unit:
 // (c) This file is part of the Rosetta software suite and is made available under license.
 // (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
 // (c) For more information, see http://www.rosettacommons.org. Questions about this can be
-// (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+// (c) addressed to University of Washington UW CoMotion, email: license@uw.edu.
 
 /// @file   %s
 /// @brief  Auto-generated serialization template functions
@@ -1097,7 +1097,7 @@ class Unit:
 
             # we're clear to delete the #endif..#ifdef block
             buff.deleteRange( start, end + len("\n#ifdef    SERIALIZATION"), False )
-            counter = start                
+            counter = start
 
 
 class AllDefinitions :
@@ -1108,7 +1108,7 @@ class AllDefinitions :
     def reparse_headers( self, target_units ) :
         for header in target_units :
             path_to_clang_ast_transform = "".join(os.path.realpath(__file__).rpartition( "clang_ast_transform" )[0:2])
-            
+
             command = "bash " + path_to_clang_ast_transform + "/extract_serialization_data.sh " + header
             print command
             os.system( command )

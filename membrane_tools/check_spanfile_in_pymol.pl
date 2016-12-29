@@ -1,10 +1,10 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #(c) Copyright Rosetta Commons Member Institutions.
 #(c) This file is part of the Rosetta software suite and is made available under license.
 #(c) The Rosetta software is developed by the contributing members of the Rosetta Commons.
 #(c) For more information, see http://www.rosettacommons.org. Questions about this can be
-#(c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.
+#(c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
 # author: JKLeman (julia.koehler1982@gmail.com)
 
@@ -45,18 +45,18 @@ while ( $in = <IN> ){
 	@in = split /\s+/, $in;
 
 	# original format
-	if ( $lc > 4 && $in !~ /^\w/ ) {
+	if ( $lc > 4 && $in !~ /^[A-Za-z_]/ ) {
 
-		print "1st\n";
+		print "original format\n";
 		
 		# get start / end residues
 		push @start, $in[0];
 		push @end, $in[1];
-	}
+	} 
 	# format with chain and insertion code
-	elsif ( $lc > 4 && $in =~ /^\w/ ) {
+	elsif ( $lc > 4 && $in =~ /^[A-Za-z_]/ ) {
 
-		print "2nd\n";
+		print "format with chain and insertion code\n";
 
 		# get chain: first character in string
 		push @chain, substr( $in[0], 0, 1 );
@@ -80,11 +80,11 @@ foreach $r ( 1..$nres ){
 	if ( $r >= $start[$i] and $r <= $end[$i] ){
 		
 		# original format
-		if ( $#chain == 0 ) {
+		if ( scalar(@chain) == 0 ) {
 			print OUT "color ".$color_tm.", resi $r\n";
 		}
 		# format with chain
-		if ( $#chain > 0 ) {
+		if ( scalar(@chain) > 0 ) {
 			print OUT "color ".$color_tm.", resi $r and chain $chain[$i]\n";
 		}
 

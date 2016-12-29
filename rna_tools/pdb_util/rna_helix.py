@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 import argparse
 import tempfile
 import subprocess
@@ -37,7 +37,11 @@ if args.dump: cmdline += '-dump '
 if args.put_intra_into_total: cmdline += '-put_intra_into_total '
 
 print 'Rosetta cmdline:', cmdline
-subprocess.check_call(cmdline.split())
+out, err = subprocess.Popen(cmdline.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
+if err and len(err):
+	print out
+	print err 
+assert( not err or not len(err) )
 
 output_file = args.o
 # slightly weird

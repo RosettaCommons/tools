@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from os import system
-from os.path import exists
 from sys import argv
 from time import sleep
 ######################################################################

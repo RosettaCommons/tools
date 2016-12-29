@@ -1,4 +1,4 @@
-step#!/usr/bin/python
+step#!/usr/bin/env python
 
 import string
 from sys import argv

@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 Helix denovo symmetry definition file generator
 Usage example: make_helix_denovo.py -p 3.0 -n 40 -v 5 -u 27 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os import system,popen
 from os.path import exists,dirname,basename,expanduser
@@ -172,7 +172,10 @@ def get_segment_string_list(res_list, cutpoint_open_list=[]):
 
 
 		if(found_end==True):
-			segment_list.append("%d-%d" %(start_res, curr_seq_num) )
+			if (start_res == curr_seq_num):
+				segment_list.append("%d" %(curr_seq_num) )
+			else:
+				segment_list.append("%d-%d" %(start_res, curr_seq_num) )
 			found_start=False
 			found_end=False
 

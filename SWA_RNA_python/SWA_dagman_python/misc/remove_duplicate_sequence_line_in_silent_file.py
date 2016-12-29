@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #from scipy import savetxt,loadtxt, array
 from sys import argv,exit

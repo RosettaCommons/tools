@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import string
 from sys import argv
@@ -31,13 +31,12 @@ if(len(input_silent_file.split())!=1):
 #input_silent_file='%s_sample.cluster.out' %(dir_prev.lower())  ###AGAIN this is hard coded
 
 #CHECK if the input silent_file is empty###############
-first_line = popen_and_readlines('head -n 1 '+ input_silent_file, Is_master=False, tag=("head_1_" + input_silent_file.replace('/','_') + '_' + condor_submit_file.replace('/','_') ) )[0]
+#first_line = popen_and_readlines('head -n 1 '+ input_silent_file, Is_master=False, tag=("head_1_" + input_silent_file.replace('/','_') + '_' + condor_submit_file.replace('/','_') ) )[0]
+#print "first_line= ", first_line
+#if ( "empty cluster silent_file since all input_silent_file are empty." in first_line ):
+if ( Is_valid_empty_silent_file( input_silent_file ) ):
 
-print "first_line= ", first_line
-
-if( first_line.count("empty cluster silent_file since all input_silent_file are empty.")!=0):
-
-	print "EARLY EXIT: input_silent_file %s contain no silent structs " %(input_silent_file)
+	print "EARLY EXIT: input_silent_file %s contain no silent structs " % (input_silent_file)
 
 	update_CONDOR_file_with_actual_job_queue_num(condor_submit_file, 0)
 	print_title_text("Exit: " + python_command) #Early exit

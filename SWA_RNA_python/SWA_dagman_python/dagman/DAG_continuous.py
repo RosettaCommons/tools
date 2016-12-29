@@ -2,7 +2,7 @@
 
 from sys import argv,exit,stdout
 import string
-from os.path import basename,exists
+from os.path import basename
 from time import sleep
 ######################################################################
 

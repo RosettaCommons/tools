@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os import system,popen
 from os.path import exists,dirname,basename,expanduser,abspath

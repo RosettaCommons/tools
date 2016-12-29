@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 ######################################################################
@@ -654,7 +654,8 @@ def get_user_input_pdb_info_list(input_pdbs, input_silent_file_list, input_res_f
 
 				if ( exists( input_pdb )==False ): error_exit_with_message("exists( %s )==False" %(input_pdb) )
 
-				input_pdb_sequence = popen( "pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
+				#input_pdb_sequence = popen( "pdb2fasta.py %s "  %(input_pdb) ).readlines()[1][:-1]
+				input_pdb_sequence = popen( "get_sequence.py %s "  %(input_pdb) ).readlines()[0][:-1]
 				input_seq_length = len( input_pdb_sequence )
 
 				starting_sequence = ""
@@ -1035,11 +1036,19 @@ def	create_samplerer_dag_job_file(job_specific_common_args, job_specific_samplin
 				job_specific_filterer_args += ' -combine_helical_silent_file true  '
 				job_specific_sampling_args += ' -combine_helical_silent_file true  '
 
+			elif (filterer_mode=="combine_long_loop_allow_previous_clash"):
+
+				#### filtering for previous clashes is causing problems in native
+				#### rmsd_screen runs -- specifically, 5P_j55a_group_I_intron
+				#### CHANGE turn off filter_for_previous_clash -- will revert if causes problems
+				#### - Caleb April 10, 2015      
+				job_specific_filterer_args += ' -filter_for_previous_clash false  '
+				job_specific_sampling_args += ' -combine_long_loop_mode true '
+
 			elif (filterer_mode=="combine_long_loop_clash"):
 
 				job_specific_filterer_args += ' -filter_for_previous_clash true  '
 				job_specific_sampling_args += ' -combine_long_loop_mode true '
-
 
 			elif (filterer_mode=="combine_long_loop_contact"):
 

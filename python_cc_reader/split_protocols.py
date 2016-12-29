@@ -17,7 +17,7 @@ def get_letter_index(character):
 		"j" : 9,
 	}
 	return char_dict[character]
-	
+
 def get_index_letter(index):
 	index_dict = {
 		0 : "a",
@@ -36,15 +36,16 @@ def get_index_letter(index):
 def get_header():
 	 	header = "# -*- mode:python;indent-tabs-mode:nil;show-trailing-whitespace:t; -*-\n\
 #\n\
-# Project settings for rosetta sources\n\
 # (c) Copyright Rosetta Commons Member Institutions.\n\
 # (c) This file is part of the Rosetta software suite and is made available under license.\n\
 # (c) The Rosetta software is developed by the contributing members of the Rosetta Commons.\n\
 # (c) For more information, see http://www.rosettacommons.org. Questions about this can be\n\
-# (c) addressed to University of Washington UW TechTransfer, email: license@u.washington.edu.\n\
+# (c) addressed to University of Washington UW CoMotion, email: license@uw.edu.\n\
+
+# Project settings for rosetta sources\n\
 \n"
 		return header
-	
+
 def setup_map_subset(source_map,top_level_namespace_set):
 	new_source_map = {}
 	for key in source_map:
@@ -71,7 +72,7 @@ def pprint_object_as_statement(object,name,outfile):
 	pp.pprint(object)
 
 def get_upstream_subprojects(level_index,library_levels):
-	subprojects = [ 
+	subprojects = [
 		"core.5",
 		"core.4",
 		"core.3",
@@ -96,7 +97,7 @@ def get_upstream_subprojects(level_index,library_levels):
 		else:
 			for sub_index in range(sublevel_count):
 				subprojects.insert(0, "protocols_"+str(get_index_letter(sub_index))+"."+str(index))
-		
+
 	return subprojects
 
 
@@ -104,9 +105,9 @@ if __name__ == "__main__":
 	parser = OptionParser()
 	parser.add_option("--make_src_settings_for_level",dest="level_to_make",help="Make a src.settings file for the desired protocols level",default="")
 	(options, args) = parser.parse_args()
-	
+
 	#parsed_level_name = options.level_to_make.split(".")
-	
+
 	library_levels = protocols_levels()
 
 	library_names = [
@@ -141,27 +142,27 @@ if __name__ == "__main__":
 			minor_library_level = major_library_level[0]
 			print minor_library_level
 			name_string = "."+str(name[0])
-	
+
 		protocols_src_settings_map = {}
 		execfile("protocols.src.settings", protocols_src_settings_map)
-	
-	
+
+
 		source_file_subset = setup_map_subset(protocols_src_settings_map["sources"],minor_library_level)
 		inverse_source_file_subset = setup_map_inverse_subset(protocols_src_settings_map["sources"],minor_library_level)
-	
+
 		#pp.pprint(source_file_subset)
 		outfile = open("protocols"+name_string+".src.settings",'w')
 		pp = pprint.PrettyPrinter(indent=1,stream=outfile)
 		outfile.write(get_header())
 		pprint_object_as_statement(source_file_subset,"sources",outfile)
 		outfile.write("\n")
-	
+
 		pprint_object_as_statement(protocols_src_settings_map["include_path"],"include_path",outfile)
 		pprint_object_as_statement(protocols_src_settings_map["library_path"],"library_path",outfile)
 		pprint_object_as_statement(protocols_src_settings_map["libraries"],"libraries",outfile)
 		pprint_object_as_statement(get_upstream_subprojects(int(name[0]),library_levels),"subprojects",outfile)
 		outfile.close()
-	
+
 		shutil.move("protocols.src.settings","protocols.src.settings.old")
 		outfile_orig = open("protocols.src.settings",'w')
 		pp = pprint.PrettyPrinter(indent=1,stream=outfile_orig)
@@ -173,5 +174,5 @@ if __name__ == "__main__":
 		pprint_object_as_statement(protocols_src_settings_map["library_path"],"library_path",outfile_orig)
 		pprint_object_as_statement(protocols_src_settings_map["libraries"],"libraries",outfile_orig)
 		pprint_object_as_statement(protocols_src_settings_map["subprojects"],"subprojects",outfile_orig)
-	
+
 		outfile_orig.close()

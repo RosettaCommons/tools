@@ -64,10 +64,12 @@ if argv.count( '-development' )>0:
 
 # set name of queue to submit jobs to
 queue = 'normal'
+user_input_queue = False
 if '-queue' in argv:
     idx = argv.index('-queue')
     argv.pop(idx)
     queue = argv.pop(idx)
+    user_input_queue = True
 elif development is True:
     queue = 'development'
 elif hostname in ['comet']:
@@ -246,11 +248,9 @@ for line in lines:
 
             # sbatch (no mpi)
             queue2 = queue
-            if hostname in ['comet']:
-                queue2 = 'shared'
-                # queue = 'compute'  # this is what calebgeniesse had -- might be right.
-            if hostname in ['sherlock']:
-                queue2 = 'owners'
+            if not user_input_queue:
+                if hostname in ['comet']:    queue2 = 'shared'
+                if hostname in ['sherlock']: queue2 = 'owners'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )

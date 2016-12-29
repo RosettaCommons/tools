@@ -408,11 +408,16 @@ def torsion_volume(seq1, seq2='', aform_torsion_range=2 * math.pi / 3):
 
     len1 = seq_len(seq1)
     len2 = seq_len(seq2)
+    if len1 == 0:
+        print 'No phase space volume applied'
+        return 1.0
     min_len = min(len1, len2)
     diff_len = abs(len1 - len2)
     if min_len == 0:  # One-strand
+        print "applying phase space volume for single strand with length ", diff_len
         return (2 * pi) ** (6 * diff_len - 5) * (2 ** diff_len)
     else:
+        print "applying phase space volume for two strand with helix length ", min_len, " and dangle length ", diff_len
         volume = aform_torsion_range ** (12 * min_len - 10)
         volume *= (2 * pi) ** (6 * diff_len) * (2 ** diff_len)
         return volume

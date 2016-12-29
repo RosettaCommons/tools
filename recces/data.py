@@ -55,7 +55,7 @@ class SingleSimulation(BaseMinFunc):
 
     def __init__(self, data_folder, orig_weight=None,
                  use_existing_norm_factor=True, down_sampling_ratio=None,
-                 bootstrap=False, legacy_output=False):
+                 bootstrap=False, legacy_output=False, name=None):
         """Create a SingleSimulation object.
 
         Parameters
@@ -72,7 +72,13 @@ class SingleSimulation(BaseMinFunc):
         """
         # TODO: Folder name should correspond to the sequence here.
         # Can be made more general.
-        self.name = os.path.basename(data_folder)
+        if name == None:
+            dir_name = os.path.basename(os.path.abspath(data_folder))
+            if not ( re.match( '[acguACGU][_[acguACGU]]*', dir_name ) == None ):
+                self.name = dir_name
+            else: self.name = ''
+        else:
+            self.name = name
         self.curr_weight = (np.array(orig_weight) if orig_weight is not None
                             else np.ones(N_SCORE_TERMS))
 
@@ -217,7 +223,6 @@ class SingleHistSimulation(BaseMinFunc):
                       folder should correspond to the sequence being simulated.
         """
         self.name = os.path.basename(data_folder)
-
         # Scores for Hist bins.
         # Assumes all the hist_scores.gz files are the same
         hist_scores = util.load_1d_bin_gz(

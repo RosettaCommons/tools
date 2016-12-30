@@ -9,6 +9,8 @@ import warnings
 import numpy as np
 import scipy.optimize
 
+# ( 0.0019872041 kcal/mol/K) * ( 273.15 + 37 ) = .616331351615
+KT_IN_KCAL = 0.61633135471  # 37 Celsius
 
 # Canonical AUCG RNA bases and their base-pair-partners
 CANONICAL_RNA_BP = {'a': 'u', 'g': 'c', 'u': 'a', 'c': 'g'}
@@ -284,6 +286,7 @@ def weight_evaluate(folder, hist_score):
 
     def get_hist(filename):
         hist = load_1d_bin_gz(filename, dtype=np.uint64)
+        #print filename, len( hist )
         return np.column_stack((scores, hist))
 
     working_dir = os.getcwd()
@@ -343,6 +346,7 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
     # Simple heuristic for the init weight based on avg. energy
     E1 = np.sum(hist1[:, 0] * hist1[:, 1]) / sum1
     E2 = np.sum(hist2[:, 0] * hist2[:, 1]) / sum2
+    #print E1, E2
     delta_start = (beta2 - beta1) * (E1 + E2) / 2
     search_width = 5
     delta_range = (delta_start - search_width), (delta_start + search_width)
@@ -421,3 +425,44 @@ def torsion_volume(seq1, seq2='', aform_torsion_range=2 * math.pi / 3):
         volume = aform_torsion_range ** (12 * min_len - 10)
         volume *= (2 * pi) ** (6 * diff_len) * (2 ** diff_len)
         return volume
+
+def compute_rigid_body_volume_ratio( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
+    """Compute phase space volume of a sequence.
+
+    Parameters
+    ----------
+    RMSD_cutoff : in Angstroms.
+    xyz_file : file with x, y, z coordinate of atoms in object.
+
+    Returns
+    -------
+    Phase space volume ratio of trapping the object from 1 M standard state into
+     translations and orientations with RMSD less than RMSD_cutoff.
+    """
+    """
+    Output is in kcal/mol, and assumes concentration of 1.0 M.
+    """
+    lines  = open( xyz_file ).readlines();
+    xyz = []
+    for line in lines:
+        xyz.append( [float(x) for x in line.split()] )
+    N = len( xyz )
+    xyz = np.array( xyz )
+    xyz -= np.sum( xyz, axis=0 )/N
+    Imatrix = np.dot( xyz.transpose(), xyz)
+    eigs = np.linalg.eig( Imatrix ) # moments of inertia
+    Ixyz = eigs[0]
+    molar = (1.0e27 / 6.022e23); # units of /A^3
+
+    # entropy loss on going from 1 M concentration to 6D translations and orientations defined by rmsd_cutoff.
+    ref_energy =  np.log( (1.0/molar) * pow(float(N),1.5) * pow(float(RMSD_cutoff),6) * np.pi /48.0 / np.sqrt(Ixyz[0]+Ixyz[1]) / np.sqrt(Ixyz[0]+Ixyz[2]) / np.sqrt(Ixyz[1]+Ixyz[2]) );
+    ref_vol = np.exp( ref_energy )  # what's used by RECCES calcs.
+    return ref_vol
+
+def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
+    """
+    Give RMSD_cutoff in Angstroms.
+    Output is in kcal/mol, and assumes concentration of 1.0 M.
+    """
+    return -KT_IN_KCAL * np.log( compute_rigid_body_volume_ratio( RMSD_cutoff, xyz_file ) )
+

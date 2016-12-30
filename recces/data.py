@@ -3,15 +3,13 @@ from collections import defaultdict
 import glob
 import os
 import re
-
+import string
 import numpy as np
 from scipy.misc import logsumexp
 
 import util
 
 N_SCORE_TERMS = 10
-# KT_IN_KCAL = 0.593
-KT_IN_KCAL = 0.61633135471  # 37 Celcius
 
 # WHAM parameters
 # TODO: This assumes the energy mostly falls in -100 to 800 RU. Should be
@@ -74,7 +72,11 @@ class SingleSimulation(BaseMinFunc):
         # Can be made more general.
         if name == None:
             dir_name = os.path.basename(os.path.abspath(data_folder))
-            if not ( re.match( '[acguACGU][_[acguACGU]]*', dir_name ) == None ):
+            if dir_name == 'ST':
+                dir_name = os.path.basename( os.path.dirname( os.path.abspath(data_folder)) )
+                dir_name = string.join( dir_name.split( '_' )[:2], '_')
+            if not ( re.match( '[acguACGU][acguACGU]*[_acguACGU]*', dir_name ) == None ):
+                print 'Inferring sequence from directory name: ', dir_name
                 self.name = dir_name
             else: self.name = ''
         else:
@@ -125,8 +127,16 @@ class SingleSimulation(BaseMinFunc):
 
         dos_raw = np.sum(histograms, axis=0) / normalization
         seq = self.name.split('_')
+
         torsion_volume = util.torsion_volume(*seq)
+        # almost ready for this: just need to store rmsd_cutoff somewhere on disk.
+        xyzfile = data_folder + "/xyz.txt"
+        if ( os.path.isfile( xyzfile ) ):
+             print "You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term."
+             #torsion_volume *= compute_rigid_body_volume_ratio( rmsd_cutoff, xyzfile )
+
         normalization *= np.sum(dos_raw) / torsion_volume
+        # print "TORSION_VOL ", torsion_volume # useful debug
 
         full_data = np.vstack(raw_data)
         energy = full_data[:, 1]
@@ -137,6 +147,8 @@ class SingleSimulation(BaseMinFunc):
         if legacy_output:
             self._score_terms = full_data[:, 2:] / self.curr_weight
         else:
+            # this provides a check on weight order:
+            # print full_data[1,:2], np.sum( full_data[1,2:] * self.curr_weight )
             self._score_terms = full_data[:, 2:]
 
         self._update_free_energy_and_deriv()

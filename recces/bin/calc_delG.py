@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from recces.data import SingleSimulation,  N_SCORE_TERMS
 from recces.util import KT_IN_KCAL

@@ -52,7 +52,7 @@ class SingleSimulation(BaseMinFunc):
     """
 
     def __init__(self, data_folder, orig_weight=None,
-                 use_existing_norm_factor=True, down_sampling_ratio=None,
+                 use_existing_norm_factor=False, down_sampling_ratio=None,
                  bootstrap=False, legacy_output=False, name=None):
         """Create a SingleSimulation object.
 
@@ -70,17 +70,8 @@ class SingleSimulation(BaseMinFunc):
         """
         # TODO: Folder name should correspond to the sequence here.
         # Can be made more general.
-        if name == None:
-            dir_name = os.path.basename(os.path.abspath(data_folder))
-            if dir_name == 'ST':
-                dir_name = os.path.basename( os.path.dirname( os.path.abspath(data_folder)) )
-                dir_name = string.join( dir_name.split( '_' )[:2], '_')
-            if not ( re.match( '[acguACGU][acguACGU]*[_acguACGU]*', dir_name ) == None ):
-                print 'Inferring sequence from directory name: ', dir_name
-                self.name = dir_name
-            else: self.name = ''
-        else:
-            self.name = name
+        self.name = name
+        if name == None: self.name = get_name_from_folder( data_folder )
         self.curr_weight = (np.array(orig_weight) if orig_weight is not None
                             else np.ones(N_SCORE_TERMS))
 
@@ -107,8 +98,11 @@ class SingleSimulation(BaseMinFunc):
         if use_existing_norm_factor and os.path.isfile(normalization_file):
             normalization = np.load(normalization_file)
         else:
+            # data[0]: # times at frame; data[1]: energy of frame; and data[2...]: individual score terms.
+            # histograms has size (N_temperatures, N_energy_bins)
             histograms = [self._energy2hist(data[:, 1], data[:, 0])
                           for data in raw_data]
+            # normalization has size (N_energy_bins)
             normalization, _ = _wham(histograms, kt_list)
             np.save(normalization_file, normalization)
 
@@ -124,31 +118,59 @@ class SingleSimulation(BaseMinFunc):
             del data
         histograms = [self._energy2hist(data[:, 1], data[:, 0])
                       for data in raw_data]
+        self._histograms = histograms
 
+        # Best guess for DOS at given energy:
+        #
+        #    DOS( E ) = Sum_T [ wt( E, T ) * ( obs. frequency at each temperature) * exp( +E/k T ) * Z(T)] / Sum_T[ wt( E, T ) ]
+        #
+        # Where exp( E/kT) 'back-corrects' the boltzmann factor, and wt(E,T) weight the different temperatures based on
+        #   their statistics. There's also a factor z( T ) = -log F(T). that corrects for phase space volume at a given temperature.
+        #   hopefully so that the simulation with the strongest statistics at given E has highest weight.
+        #
+        # Remarkably, the maximum-likelihood solution is achieved by the following weights:
+        #
+        #      wt( energy,temperature ) = n_sample( T ) * Z( T )  * exp( - E/ k T )
+        #
+        # Here, z( T ) = exp( F(T) ) gives the free energy at a particular temperature,
+        #  and is fit self-consistently during WHAM.  [ by iterating with the relation Z(T) = Sum_E DOS( E )  exp( -E/kT) ]
+        #
+        # So that the weighted sum ends up simply involving the *counts* provided by the simulation
+        #
+        #    DOS( E ) = Sum_T[ COUNTS(E, T) ] / Sum_T[ wt( E, T ) ]
+        #
+        # normalization( E ) is the denominator Sum_T[ wt( E, T ) ].
+        #
         dos_raw = np.sum(histograms, axis=0) / normalization
-        seq = self.name.split('_')
 
+        # note: recently updated so that np.sum( dos_raw ) = 1.0 quite early on.
+        normalization *= np.sum(dos_raw)
+
+        seq = self.name.split('_')
         torsion_volume = util.torsion_volume(*seq)
-        # almost ready for this: just need to store rmsd_cutoff somewhere on disk.
         xyzfile = data_folder + "/xyz.txt"
         if ( os.path.isfile( xyzfile ) ):
-             print "You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term."
-             #torsion_volume *= compute_rigid_body_volume_ratio( rmsd_cutoff, xyzfile )
+            # almost ready for this: just need to store rmsd_cutoff somewhere on disk.
+            print "You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term."
+            #torsion_volume *= compute_rigid_body_volume_ratio( rmsd_cutoff, xyzfile )
+        normalization *= ( 1.0 / torsion_volume )
 
-        normalization *= np.sum(dos_raw) / torsion_volume
-        # print "TORSION_VOL ", torsion_volume # useful debug
 
+        # amazing Fang tricks.
         full_data = np.vstack(raw_data)
         energy = full_data[:, 1]
         normalization_idx = self._energy2binidx(energy)
         data_weight = full_data[:, 0] / normalization[normalization_idx]
+
         self._energy0 = energy
         self._data_weight = data_weight
         if legacy_output:
             self._score_terms = full_data[:, 2:] / self.curr_weight
         else:
             # this provides a check on weight order:
-            # print full_data[1,:2], np.sum( full_data[1,2:] * self.curr_weight )
+            #for i in range(3): print full_data[i,:2], np.sum( full_data[i,2:] * self.curr_weight )
+            # spit out mean values of each score-term:
+            #print np.sum( full_data[:,2:] * self.curr_weight, axis = 0 )/np.size( full_data, axis = 0 )
             self._score_terms = full_data[:, 2:]
 
         self._update_free_energy_and_deriv()
@@ -166,6 +188,14 @@ class SingleSimulation(BaseMinFunc):
     @property
     def deriv(self):
         return self._deriv
+
+    @property
+    def avg_energy(self):
+        return self._avg_energy
+
+    @property
+    def entropy(self):
+        return self._entropy
 
     def get_ST_weights(self, kt_list):
         """Get optimized Simulated Tempering weights for a list of kT.
@@ -203,6 +233,9 @@ class SingleSimulation(BaseMinFunc):
         self._value = free_energy
         self._deriv = deriv
 
+        self._avg_energy  = np.sum( self._data_weight * new_energy * np.exp( -new_energy + free_energy ) )
+        self._entropy = -free_energy + self._avg_energy
+
     def _get_curr_energy(self):
         # score_weight_diff = self.curr_weight - self._orig_weight
         # energy = self._energy0 + self._score_terms.dot(score_weight_diff)
@@ -234,7 +267,7 @@ class SingleHistSimulation(BaseMinFunc):
         data_folder : Folder name where the data is stored. The name of the
                       folder should correspond to the sequence being simulated.
         """
-        self.name = os.path.basename(data_folder)
+        self.name = get_name_from_folder(data_folder)
         # Scores for Hist bins.
         # Assumes all the hist_scores.gz files are the same
         hist_scores = util.load_1d_bin_gz(
@@ -256,7 +289,7 @@ class SingleHistSimulation(BaseMinFunc):
         torsion_volume = util.torsion_volume(*seq)
         normalization = sum(dos_raw) / torsion_volume
         self._dos = dos_raw / normalization
-        self._dos_scores = hist_scores
+        self._dos_scores = hist_scores # energies (x-axis of histogram)
 
     def get_free_energy(self, kt=1):
         """Free energy of the system.
@@ -269,6 +302,7 @@ class SingleHistSimulation(BaseMinFunc):
         -------
         Computed free energy.
         """
+        # self._dos_scores are energies of each bin (x-axis of histogram)
         return -kt * logsumexp(-self._dos_scores / kt, b=self._dos)
 
     @property
@@ -540,11 +574,17 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
 
     hist_sum = np.sum(histograms, axis=0)
     n_sample_per_hist = np.sum(histograms, axis=1)
+    #print "hist_sum", hist_sum
+    #print "n_sample_per_hist", n_sample_per_hist
+    #print np.sum( n_sample_per_hist)
 
     exp_f_list = np.ones_like(kt_list)
     boltzmann_factor = np.exp(
         -np.tile(energies, (len(kt_list), 1)).T / kt_list)
-    bin_size = energies[1] - energies[0]
+    # bin_size actually drops out below and beyond. could even set it to 1.0
+    bin_size = 1.0 # energies[1] - energies[0]
+    #print "average energies", np.sum(histograms*energies,axis=1)/n_sample_per_hist
+    #print "average boltzmann_factor", np.sum(histograms*np.exp( - energies ),axis=1)/n_sample_per_hist
 
     while True:
         exp_f_list_old = exp_f_list
@@ -552,11 +592,18 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
                                 boltzmann_factor, axis=1)
 
         dos_raw = hist_sum / weight_per_bin  # Density of states
+        # break degeneracy -- any overall increase in dos_raw can be compensated by decrease in exp_f_list;
+        # so let's use convention that integral( dos_raw ) = 1.0.  -- rhiju, jan. 2017
+        dos_raw = dos_raw/ np.sum( dos_raw * bin_size )
         exp_f_list = 1.0 / np.sum(dos_raw * bin_size * boltzmann_factor.T,
                                   axis=1)
         diff = (np.abs(exp_f_list - exp_f_list_old) /
                 (exp_f_list + exp_f_list_old))
         if np.all(diff <= WHAM_CONVERGE_LIMIT):
+            # useful stuff ...
+            # best_fit = np.tile(dos_raw, (len(kt_list),1)).T * (n_sample_per_hist * bin_size * exp_f_list * boltzmann_factor)
+            # print "delG (1 kT) [WHAM]", -logsumexp(-energies, b=dos_raw), " sum dos_raw", np.sum(dos_raw), "  bin_size", bin_size, " sum exp(f) ", np.sum(exp_f_list)
+            # print sorted( zip( kt_list, kt_list * np.log( exp_f_list ) ) ) # should be delG at each temperature actually
             return weight_per_bin, dos_raw
 
 
@@ -617,3 +664,13 @@ def _get_file_names(folder_name, fn_suffix):
     folder_pattern = re.sub(r'(?<!\[)\]', '[]]', folder_pattern)
     full_pattern = os.path.join(folder_pattern, "*%s" % fn_suffix)
     return glob.glob(full_pattern)
+
+def get_name_from_folder( data_folder ):
+    dir_name = os.path.basename(os.path.abspath(data_folder))
+    if len( dir_name ) > 1 and dir_name[:2] == 'ST':
+        dir_name = os.path.basename( os.path.dirname( os.path.abspath(data_folder)) )
+    dir_name = string.join( dir_name.split( '_' )[:2], '_')
+    if not ( re.match( '[acguACGU][acguACGU]*[_acguACGU]*', dir_name ) == None ):
+        print 'Inferring sequence from directory name: ', dir_name
+        return dir_name
+    return ''

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from recces.util import weight_evaluate
 (temps, wts) = weight_evaluate('./', 'prerun_hist_scores.gz')

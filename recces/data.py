@@ -45,6 +45,11 @@ class BaseMinFunc(object):
         """Reweight the parameter with the new_weight."""
         raise NotImplementedError
 
+    @abstractmethod
+    def value(self):
+        """Return free energy."""
+        raise NotImplementedError
+
 
 class SingleSimulation(BaseMinFunc):
     """API for data in a single Turner-rule style simulation
@@ -120,27 +125,7 @@ class SingleSimulation(BaseMinFunc):
                       for data in raw_data]
         self._histograms = histograms
 
-        # Best guess for DOS at given energy:
-        #
-        #    DOS( E ) = Sum_T [ wt( E, T ) * ( obs. frequency at each temperature) * exp( +E/k T ) * Z(T)] / Sum_T[ wt( E, T ) ]
-        #
-        # Where exp( E/kT) 'back-corrects' the boltzmann factor, and wt(E,T) weight the different temperatures based on
-        #   their statistics. There's also a factor z( T ) = -log F(T). that corrects for phase space volume at a given temperature.
-        #   hopefully so that the simulation with the strongest statistics at given E has highest weight.
-        #
-        # Remarkably, the maximum-likelihood solution is achieved by the following weights:
-        #
-        #      wt( energy,temperature ) = n_sample( T ) * Z( T )  * exp( - E/ k T )
-        #
-        # Here, z( T ) = exp( F(T) ) gives the free energy at a particular temperature,
-        #  and is fit self-consistently during WHAM.  [ by iterating with the relation Z(T) = Sum_E DOS( E )  exp( -E/kT) ]
-        #
-        # So that the weighted sum ends up simply involving the *counts* provided by the simulation
-        #
-        #    DOS( E ) = Sum_T[ COUNTS(E, T) ] / Sum_T[ wt( E, T ) ]
-        #
-        # normalization( E ) is the denominator Sum_T[ wt( E, T ) ].
-        #
+        # What is normalization? Its a bit WHAM-specific. See notes below on _wham
         dos_raw = np.sum(histograms, axis=0) / normalization
 
         # note: recently updated so that np.sum( dos_raw ) = 1.0 quite early on.
@@ -160,6 +145,7 @@ class SingleSimulation(BaseMinFunc):
         full_data = np.vstack(raw_data)
         energy = full_data[:, 1]
         normalization_idx = self._energy2binidx(energy)
+        if np.min( normalization_idx ) == 0: raise ValueError( 'Found energy below MIN_ENERGY' )
         data_weight = full_data[:, 0] / normalization[normalization_idx]
 
         self._energy0 = energy
@@ -569,23 +555,54 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
     """Weighted Histogram Analysis Method (WHAM).
     Returns the the normalization factor for each energy bin,
     and the full density of states (DoS).
+
+    Parameters
+    ----------
+    histograms : histograms of energies at the different temperatures
+    kt_list    : temperatures simulated
+    energies   : energies simulated (histogram bin centers)
+
+    Returns
+    -------
+    weight_per_bin : a.k.a., normalization, can be used for efficient reweighting
+    dos_raw        : WHAM density of states, normalized so that sum is 1.0
+
+    Notes
+    -------
+    Best guess for DOS at given energy:
+
+       DOS( E ) = Sum_T [ wt( E, T ) * ( obs. frequency at each temperature) * exp( +E/k T ) * Z(T)] / Sum_T[ wt( E, T ) ]
+
+    Where exp( E/kT) 'back-corrects' the boltzmann factor, and wt(E,T) weight the different temperatures based on
+      their statistics. There's also a factor z( T ) = -log F(T). that corrects for phase space volume at a given temperature.
+      hopefully so that the simulation with the strongest statistics at given E has highest weight.
+
+    Remarkably, the maximum-likelihood solution is achieved by the following weights:
+
+         wt( energy,temperature ) = n_sample( T ) * Z( T )  * exp( - E/ k T )
+
+    Here, z( T ) = exp( F(T) ) gives the free energy at a particular temperature,
+     and is fit self-consistently during WHAM.  [ by iterating with the relation Z(T) = Sum_E DOS( E )  exp( -E/kT) ]
+
+    So that the weighted sum ends up simply involving the *counts* provided by the simulation
+
+       DOS( E ) = Sum_T[ COUNTS(E, T) ] / Sum_T[ wt( E, T ) ]
+
+    normalization( E ) is the denominator Sum_T[ wt( E, T ) ].
+
     """
     kt_list = np.asarray(kt_list)
 
     hist_sum = np.sum(histograms, axis=0)
     n_sample_per_hist = np.sum(histograms, axis=1)
-    #print "hist_sum", hist_sum
-    #print "n_sample_per_hist", n_sample_per_hist
-    #print np.sum( n_sample_per_hist)
 
     exp_f_list = np.ones_like(kt_list)
     boltzmann_factor = np.exp(
         -np.tile(energies, (len(kt_list), 1)).T / kt_list)
     # bin_size actually drops out below and beyond. could even set it to 1.0
     bin_size = 1.0 # energies[1] - energies[0]
-    #print "average energies", np.sum(histograms*energies,axis=1)/n_sample_per_hist
-    #print "average boltzmann_factor", np.sum(histograms*np.exp( - energies ),axis=1)/n_sample_per_hist
 
+    # iteration
     while True:
         exp_f_list_old = exp_f_list
         weight_per_bin = np.sum(n_sample_per_hist * bin_size * exp_f_list *

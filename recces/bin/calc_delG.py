@@ -58,7 +58,8 @@ if ( args.weight_sets != None ):
     # WARNING! Not tested.
     # following function from cooper:
     # Establish the list of weights to be applied:
-    f = open( dirname( abspath( argv[0] ) ) + '/weight_sets.txt','r+')
+    weight_sets_file = args.weight_sets
+    f = open( weight_sets_file,'r+')
     A = []
     for line in f:
         A+=[line]
@@ -70,13 +71,14 @@ if ( args.weight_sets != None ):
     # WARNING! Not tested.
     # from cooper
     # curr_wt = [0.73, 0.1, 0.0071, 0, 4.26, 2.46, 0.25, 0, 1.54, 4.54]
-    reorder = [ 1, 2, 3, 7, 10, 5, 4, 9, 8, 6] # verified by looking at score_type output list and score_type order in turner.wts
+    reorder = range(1,11)
+    #reorder = [ 1, 2, 3, 7, 10, 5, 4, 9, 8, 6] # verified by looking at score_type output list and score_type order in turner.wts
     vals = []
     print "Computing average over other weights..."
-    for weight in weight_list[0:1000:20]:
+    for weight in weight_list[0:1000:100]:
         if len(weight) == 11:
             sim.reweight( [float(weight[i]) for i in reorder ] )
-            print "deltaG(corr): ", sim.value * KT_IN_KCAL
+            print sim.value * KT_IN_KCAL
             vals.append( sim.value * KT_IN_KCAL)
         else:
             continue

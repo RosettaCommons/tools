@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sys import argv,exit
-from os import system,getcwd,popen
+from os import system,getcwd,popen,devnull
 from os.path import basename,dirname,expanduser,exists,expandvars
 import string
 
@@ -95,13 +95,22 @@ condor_file = 'condorMINI'
 qsub_file = 'qsubMINI'
 sbatch_file = 'sbatchMINI'
 
+if queue_cmd == 'qsub' or queue_cmd == 'sbatch':
+    bsub_file = devnull
+    condor_file = devnull
+if queue_cmd == 'qsub': sbatch_file = devnull
+if queue_cmd == 'sbatch': qsub_file = devnull
+
 # MPI based systems require separate submission files for each command.
 queue_file_MPI = queue_cmd + 'MPI'
-queue_file_MPI_ONEBATCH = queue_cmd+'MPI_ONEBATCH'
+queue_file_MPI_ONEBATCH = queue_cmd+'MPI_ONEBATCH' # testing on stampede?
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
 all_commands_file = 'all_commands.sh'
 if hostname in ["stampede", "sherlock", "comet"]:
-    qsub_file_MPI_ONEBATCH = "job.batch"
+    queue_file_MPI_ONEBATCH = "job.batch"
+if hostname == 'sherlock':
+    queue_file_MPI_ONEBATCH = devnull
+    job_file_MPI_ONEBATCH = devnull
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
@@ -129,7 +138,7 @@ QSUB_SUBMIT_CMD = ('qsub.sh' if sum([exists('%s/qsub.sh'%p) for p in PATH_LIST])
 SBATCH_SUBMIT_CMD = 'sbatch'
 
 qsub_file_dir = 'qsub_files/'
-if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
+if queue_cmd == 'qsub' and not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
 if queue_cmd == 'sbatch':
     sbatch_file_dir = 'sbatch_files/'
@@ -225,24 +234,25 @@ for line in lines:
         command += command_line_explicit
         fid.write( command + '\n')
 
-        # qsub
-        pbs_outfile = '/dev/null'
-        pbs_errfile = '/dev/null'
-        qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
-        fid_qsub_submit_file = open( qsub_submit_file, 'w' )
-        fid_qsub_submit_file.write( '#!/bin/bash\n'  )
-        fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
-        fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
-        fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
-        fid_qsub_submit_file.write('#PBS -m n\n') # no mail
-        fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
-        #fid_qsub_submit_file.write('#PBS -l mem=500Mb\n'  )
-        fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
-        fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
-        fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
-        fid_qsub_submit_file.close()
+        if queue_cmd == 'qsub':
+            # qsub
+            pbs_outfile = '/dev/null'
+            pbs_errfile = '/dev/null'
+            qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
+            fid_qsub_submit_file = open( qsub_submit_file, 'w' )
+            fid_qsub_submit_file.write( '#!/bin/bash\n'  )
+            fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
+            fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
+            fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
+            fid_qsub_submit_file.write('#PBS -m n\n') # no mail
+            fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
+            #fid_qsub_submit_file.write('#PBS -l mem=500Mb\n'  )
+            fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
+            fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
+            fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
+            fid_qsub_submit_file.close()
 
-        fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
+            fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
 
         if queue_cmd == 'sbatch':
 

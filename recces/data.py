@@ -293,6 +293,7 @@ class SingleHistSimulation(BaseMinFunc):
             hist_counts = np.sum(all_sub_hists, axis=0)
             hist_list.append(hist_counts)
             kt_list.append(kt)
+        #util.print_hists( hist_list, WHAM_ENERGIES )
 
         _, dos_raw = _wham(hist_list, kt_list, hist_scores)
         seq = self.name.split('_')

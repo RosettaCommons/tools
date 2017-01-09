@@ -300,11 +300,6 @@ def weight_evaluate(folder, hist_score):
     kT_list = data_list[1]
     name_list = data_list[0]
     hist_list = map(get_hist, name_list)
-    #for i in range( len( hist_list[0] ) ):
-    #    print hist_list[0][i,0],
-    #    for j in range( len( hist_list ) ):
-    #        print hist_list[j][i,1],
-    #    print
 
     weight_list = [0]
 
@@ -473,3 +468,13 @@ def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
     """
     return -KT_IN_KCAL * np.log( compute_rigid_body_volume_ratio( RMSD_cutoff, xyz_file ) )
 
+def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
+    fid = open( filename, 'w' )
+    for i in range( len( energies ) ):
+        fid.write( '%f ' % energies[i] )
+        for j in range( len( hist_list ) ):
+            fid.write( '%f ' % hist_list[j][i] )
+        fid.write( '\n' )
+    fid.close()
+    print "Created: ", filename
+    return

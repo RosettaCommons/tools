@@ -300,7 +300,7 @@ def weight_evaluate(folder, hist_score):
     kT_list = data_list[1]
     name_list = data_list[0]
     hist_list = map(get_hist, name_list)
-
+    print_hist_list( hist_list )
     weight_list = [0]
 
     for hist1, kT1, hist2, kT2 in itertools.izip(
@@ -468,7 +468,11 @@ def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
     """
     return -KT_IN_KCAL * np.log( compute_rigid_body_volume_ratio( RMSD_cutoff, xyz_file ) )
 
+
 def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
+    """
+    print out histogram matrix; accept input from SingleSimulation
+    """
     fid = open( filename, 'w' )
     for i in range( len( energies ) ):
         fid.write( '%f ' % energies[i] )
@@ -477,4 +481,12 @@ def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
         fid.write( '\n' )
     fid.close()
     print "Created: ", filename
+    return
+
+
+def print_hist_list( hist_list ):
+    """
+    print out histogram matrix; accept input from weight_evaluate
+    """
+    print_hists( [ x[:,1] for x in hist_list ], hist_list[0][:,0] )
     return

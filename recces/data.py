@@ -108,7 +108,7 @@ class SingleSimulation(BaseMinFunc):
         kt_to_fn = _get_kt_to_file_names(data_folder, ".bin.gz")
         raw_data = []
         kt_list = []
-        for kt, file_list in kt_to_fn.iteritems():
+        for kt, file_list in sorted(kt_to_fn.items()):
             raw_data.append(
                 np.vstack(util.load_2d_bin_gz(fn) for fn in file_list))
             kt_list.append(kt)
@@ -131,6 +131,7 @@ class SingleSimulation(BaseMinFunc):
             # histograms has size (N_temperatures, N_energy_bins)
             histograms = [self._energy2hist(data[:, 1], data[:, 0])
                           for data in raw_data]
+            util.print_hists( histograms, WHAM_ENERGIES )
             # normalization has size (N_energy_bins)
             normalization, _ = _wham(histograms, kt_list)
             np.save(normalization_file, normalization)
@@ -287,7 +288,7 @@ class SingleHistSimulation(BaseMinFunc):
         kt_to_fn = _get_kt_to_file_names(data_folder, '.hist.gz')
         hist_list = []
         kt_list = []
-        for kt, fn_list in kt_to_fn.iteritems():
+        for kt, fn_list in sorted(kt_to_fn.items()):
             all_sub_hists = [util.load_1d_bin_gz(fn, dtype=np.uint64)
                              for fn in fn_list]
             hist_counts = np.sum(all_sub_hists, axis=0)

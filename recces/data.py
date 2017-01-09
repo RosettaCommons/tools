@@ -9,11 +9,34 @@ from scipy.misc import logsumexp
 
 import util
 
-N_SCORE_TERMS = 10
+'''
+RECCES (reweighting of energy-function collection with conformational ensemble sampling in Rosetta)
+Python analysis scripts
 
+Originally created by: Fang-Chieh Chou, Das lab, Stanford University.
+
+TODO: The post-processing of the energies from Rosetta are carried out in this script,
+       but its very easy to get tripped up with settings. A big help would be if Rosetta
+       outputs to disk a JSON file (e.g., "run_info.json") with:
+
+        1. The sequence simulated (e.g., ccc_gg), which is otherwise guessed by the python script.
+        2. score_types & weights (in output order)
+        3. Jumps & torsions that are moved (TorsionID's would be acceptable) and the angle_ranges (or rmsd_cutoff for jump)
+        4. For runs that move base pair jump(s), output of xyz.txt
+        5. Histogram information: histogram_min, histogram_max, histogram_bin_size
+
+And here in the python scripts, we'd want to create a RunInfo class and simple reader in a separate .py file.
+
+TODO: Its a little confusing below to have SingleHistogramSimulation (which reads in .hist.gz files) &
+        SingleSimulation (which reads in .bin.gz files). Unify into one flow, with use of histograms set by a flag?
+
+-- rhiju, jan. 2017
+
+'''
+N_SCORE_TERMS = 10 # should *not* be hard coded, but read in from JSON
 # WHAM parameters
 # TODO: This assumes the energy mostly falls in -100 to 800 RU. Should be
-# able to use a general automatic way to figure out the bin ranges.
+# able to use a general automatic way to figure out the bin ranges, or at least read in from JSON
 BIN_SIZE = 0.1
 MIN_ENERGY = -100.05
 MAX_ENERGY = 800.05
@@ -74,7 +97,8 @@ class SingleSimulation(BaseMinFunc):
         legacy_output : For analyzing deprecated old output format.
         """
         # TODO: Folder name should correspond to the sequence here.
-        # Can be made more general.
+        # Can be made more general -- see note above on plan for reading a
+        #  a run_info.json file output by Rosetta.
         self.name = name
         if name == None: self.name = get_name_from_folder( data_folder )
         self.curr_weight = (np.array(orig_weight) if orig_weight is not None

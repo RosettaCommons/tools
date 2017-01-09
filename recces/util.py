@@ -300,6 +300,12 @@ def weight_evaluate(folder, hist_score):
     kT_list = data_list[1]
     name_list = data_list[0]
     hist_list = map(get_hist, name_list)
+    #for i in range( len( hist_list[0] ) ):
+    #    print hist_list[0][i,0],
+    #    for j in range( len( hist_list ) ):
+    #        print hist_list[j][i,1],
+    #    print
+
     weight_list = [0]
 
     for hist1, kT1, hist2, kT2 in itertools.izip(
@@ -346,11 +352,12 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
     # Simple heuristic for the init weight based on avg. energy
     E1 = np.sum(hist1[:, 0] * hist1[:, 1]) / sum1
     E2 = np.sum(hist2[:, 0] * hist2[:, 1]) / sum2
-    #print E1, E2
+    #print "kt1", kt1, "<E1>", E1, "-- kt2", kt2, "<E2>",E2
     delta_start = (beta2 - beta1) * (E1 + E2) / 2
     search_width = 5
     delta_range = (delta_start - search_width), (delta_start + search_width)
 
+    # TODO -- following fails sometimes due to some kind of numerical issue ("ValueError: f(a) and f(b) must have different signs" -- either put in a fix (smoothing?) or at least tell user what to do.
     delta_final = scipy.optimize.brentq(
         target_func, delta_range[0], delta_range[1])
     acpt_rate = get_acpt_rate(delta_final, log_prob_base1, hist1, sum1)

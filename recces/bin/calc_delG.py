@@ -38,7 +38,6 @@ if not args.no_kcal_mol: print "(kcal/mol)",
 print ':',val
 #if ( sim.value < 0.0 ):
 #    print "with -1 correction, kcal/mol:", -KT_IN_KCAL * log( exp( -sim.value ) - 1 )
-print
 
 if args.print_delH:
     val = sim.avg_energy
@@ -51,7 +50,7 @@ if args.print_delH:
     print "RECCES -TdeltaS",
     if not args.no_kcal_mol: print "(kcal/mol)",
     print ':',val
-    print
+print
 
 
 if ( args.weight_sets != None ):

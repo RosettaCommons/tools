@@ -357,7 +357,7 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
         target_func, delta_range[0], delta_range[1])
     acpt_rate = get_acpt_rate(delta_final, log_prob_base1, hist1, sum1)
     if acpt_rate < 0.1:
-        warnings.warn(" Acceptance rate (%s) lower than 0.1" % acpt_rate)
+        warnings.warn(" Acceptance rate (%s) lower than 0.1 for %f to %f temperature transition" % (acpt_rate,kt1,kt2) )
     return delta_final
 
 

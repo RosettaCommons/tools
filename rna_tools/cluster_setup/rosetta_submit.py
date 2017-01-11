@@ -28,6 +28,7 @@ if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostna
 if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
 if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
+if hostname_tag.find( 'biox3' ) > -1: hostname = 'biox3'
 
 queue_cmd = 'qsub'
 if hostname in ["stampede", "sherlock", "comet"]:
@@ -469,7 +470,7 @@ if hostname == 'ade':
     print '>bash ', all_commands_file
     print
 
-if len( hostname ) == 0:
+if queue_cmd == 'qsub':
     print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',qsub_file
     print

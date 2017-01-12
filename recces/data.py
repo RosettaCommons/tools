@@ -270,7 +270,7 @@ class SingleHistSimulation(BaseMinFunc):
     """Histogram based simulation data. For computing free energies.
     Cannot be minimized.
     """
-    def __init__(self, data_folder):
+    def __init__(self, data_folder, name=None):
         """Create a SingleHistSimulation object.
 
         Parameters
@@ -278,7 +278,8 @@ class SingleHistSimulation(BaseMinFunc):
         data_folder : Folder name where the data is stored. The name of the
                       folder should correspond to the sequence being simulated.
         """
-        self.name = get_name_from_folder(data_folder)
+        self.name = name
+        if name == None: self.name = get_name_from_folder( data_folder )
         # Scores for Hist bins.
         # Assumes all the hist_scores.gz files are the same
         hist_scores = util.load_1d_bin_gz(

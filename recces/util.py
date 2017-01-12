@@ -291,7 +291,8 @@ def weight_evaluate(folder, hist_score):
 
     working_dir = os.getcwd()
     os.chdir(folder)
-    file_list = glob.glob('*.hist.gz')
+    # use prefix of hist_scores_file
+    file_list = glob.glob( hist_score.split('_')[0] + '*.hist.gz')
     data_list = [
         [name, float(name.split('_')[-1].replace('.hist.gz', ''))]
         for name in file_list]
@@ -340,7 +341,7 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
         return np.sum(np.exp(log_prob) * hist[:, 1]) / sum_hist
 
     def target_func(delta):
-        acpt_rate1 = get_acpt_rate(delta, log_prob_base1, hist1, sum1)
+        acpt_rate1 = get_acpt_rate( delta, log_prob_base1, hist1, sum1)
         acpt_rate2 = get_acpt_rate(-delta, log_prob_base2, hist2, sum2)
         return acpt_rate1 - acpt_rate2
 
@@ -353,11 +354,16 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
     delta_range = (delta_start - search_width), (delta_start + search_width)
 
     # TODO -- following fails sometimes due to some kind of numerical issue ("ValueError: f(a) and f(b) must have different signs" -- either put in a fix (smoothing?) or at least tell user what to do.
-    delta_final = scipy.optimize.brentq(
-        target_func, delta_range[0], delta_range[1])
+    try:
+        # find scale-factor that will make accept rates in the two directions equal (brentq finds root)
+        delta_final = scipy.optimize.brentq(
+            target_func, delta_range[0], delta_range[1])
+    except ValueError:
+        print "Problem with %f to %f -- need to fill in intermediate temperatures" % (kt1,kt2)
+        raise( ValueError )
     acpt_rate = get_acpt_rate(delta_final, log_prob_base1, hist1, sum1)
     if acpt_rate < 0.1:
-        warnings.warn(" Acceptance rate (%s) lower than 0.1 for %f to %f temperature transition" % (acpt_rate,kt1,kt2) )
+        warnings.warn(" Acceptance rate (%s) lower than 0.1 for %f to %f temperature transition -- fill in intermediate temperature" % (acpt_rate,kt1,kt2) )
     return delta_final
 
 

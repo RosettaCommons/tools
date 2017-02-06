@@ -7,6 +7,7 @@ import string
 
 def Help():
     print argv[0]+' <text file with rosetta command> <outdir> <# jobs>  [# hours]'
+    print '  give outdir as 0 and # jobs as 1 to not create separate outdirs.'
     exit()
 
 if len( argv ) < 4:
@@ -178,7 +179,10 @@ for line in lines:
             command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    if command_line.find( '-csa_bank_size' ) > -1:
+    make_outdirs = False
+    if outdir == '0':
+        assert( n_jobs == 1 )
+    elif command_line.find( '-csa_bank_size' ) > -1:
         print "Detected CSA mode"
     else:
         command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
@@ -186,6 +190,7 @@ for line in lines:
         command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
         command_line = command_line.replace( '-o ', '-o '+dir)
+        make_outdirs = True
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
     command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
     command_line = command_line.replace( 'macosgcc', 'linuxgcc')
@@ -224,8 +229,10 @@ for line in lines:
 
 
     for i in range( n_jobs ):
-        dir_actual = dir.replace( '$(Process)', '%d' % i)
-        system( 'mkdir -p '+ dirname(dir_actual) )
+        if make_outdirs:
+            dir_actual = dir.replace( '$(Process)', '%d' % i)
+            system( 'mkdir -p '+ dirname(dir_actual) )
+        dir_actual = './'
 
         outfile = outfile_general.replace( '$(Process)', '%d' % i )
         errfile = errfile_general.replace( '$(Process)', '%d' % i )

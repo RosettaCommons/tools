@@ -15,7 +15,7 @@ nts = ['g','c','u','a','G','C','U','A']
 ligands = ['z','Z','w','X']
 secstruct_chars = ['(',')','[',']','{','}','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
-complement = {'a':['u'], 'u':['a','g'], 'c':['g'], 'g':['c','u']};
+complement = {'a':['u', 'X[OMU]', 'X[PSU]', 'X[5MU]'], 'u':['a','g', 'X[OMG]'], 'c':['g'], 'g':['c','X[5MC]', 'X[OMC]', 'u', 'X[OMU]', 'X[PSU]', 'X[5MU]']};
 aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y' ]
 
 
@@ -144,6 +144,27 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
     pair_map = {}
     all_pairs = []
 
+    # THIS, not the sequence itself, should be equal in size to the secstruct etc.
+    fasta_entities = []
+    i = 0
+    while i < len(sequence_for_fasta):
+        if sequence_for_fasta[i] in spacers: continue
+        if i == len(sequence_for_fasta) - 1 or sequence_for_fasta[i+1] != '[':
+            # simple case
+            fasta_entities.append(sequence_for_fasta[i])
+        else:
+            entity = sequence_for_fasta[i]
+            i += 1
+            while sequence_for_fasta[i] != ']':
+                entity += sequence_for_fasta[i]
+                i += 1
+            entity += ']'
+            fasta_entities.append(entity)
+
+        i += 1
+    #print fasta_entities
+
+
     for i in range( len(line) ):
         if line[i] in spacers: continue
         count += 1
@@ -157,8 +178,9 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             pair_map[ res1 ] = res2
             pair_map[ res2 ] = res1
             all_pairs.append( [res1,res2] )
-            if len( sequence_for_fasta ) > 0 and not ( sequence_for_fasta[res1-1] in complement[ sequence_for_fasta[res2-1] ] ):
-                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (sequence_for_fasta[res1-1],res1,sequence_for_fasta[res2-1],res2) )
+            if fasta_entities[ res2-1 ] in complement.keys() and len( fasta_entities ) > 0 and not ( fasta_entities[res1-1] in complement[ fasta_entities[res2-1] ] ):
+                raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (fasta_entities[res1-1],res1,fasta_entities[res2-1],res2) )
+    #print pair_map
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
@@ -271,7 +293,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 
 # accepts a pdb file name, returns a string with pdb entries -- or None if there is an error.
-def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], no_renumber = False, removeions = False, old_rna = False ):
+def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids = [], new_chainids = [], no_renumber = False, removeions = False, old_rna = False ):
 
     #fastaid = stderr
     num_model = 0
@@ -387,6 +409,9 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                             newnum + line_edit[26:]
                 if removechain:
                     line_edit = line_edit[0:21]+'  '+line_edit[23:]
+
+                if len(new_chainids):
+                    line_edit = line_edit[0:21]+new_chainids[count-1]+line_edit[23:]
 
                 line_edit = line_edit.replace('2HO*', "HO2'")
                 line_edit = line_edit.replace('5HO*', "HO5'")

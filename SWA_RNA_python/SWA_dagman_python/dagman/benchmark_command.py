@@ -14,7 +14,7 @@ import traceback
 from glob import glob
 import string
 import os
-from os.path import basename, dirname, exists, expanduser
+from os.path import basename, dirname, expanduser
 from time import sleep
 ######################################################################
 

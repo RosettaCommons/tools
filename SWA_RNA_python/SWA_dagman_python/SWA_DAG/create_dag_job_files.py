@@ -89,6 +89,12 @@ allow_combine_DS_regions=parse_options( argv, "allow_combine_DS_regions", "False
 
 no_bulge = parse_options( argv, "no_bulge", "False")
 
+OLLM_allow_previous_clash=parse_options(argv, "OLLM_allow_previous_clash", "False")
+
+tether_jump = parse_options( argv, "tether_jump", "True")
+
+VDW_rep_optimize_memory_usage = parse_options( argv, "VDW_rep_optimize_memory_usage", "False")
+
 #################################################################################
 VDW_rep_screen_info_list=parse_options(argv, "VDW_rep_screen_info", [""])
 
@@ -406,6 +412,8 @@ if(len(VDW_rep_screen_info_list) > 0):
 if(single_stranded_loop_mode):
 	README_SETUP.write( "command+= '-optimize_long_loop_mode True '\n\n" )
 	README_SETUP.write( "command+= '-OLLM_chain_closure_only True '\n\n" )
+	if OLLM_allow_previous_clash:
+		README_SETUP.write( "command+= '-OLLM_allow_previous_clash True '\n\n" )
 else:
 	README_SETUP.write( "command+= '-analytic_etable_evaluation False '\n\n" ) 
 
@@ -428,6 +436,12 @@ if(is_release_mode()==False): #Not yet RELEASED!
 if ( not no_bulge ): README_SETUP.write( "command+= '-sample_virt_ribose_in_sep_DAG %s '\n\n" %(sample_virt_ribose_in_sep_DAG) )
 
 if ( no_bulge ): README_SETUP.write( "command+= '-floating_base False -allow_bulge_at_chainbreak false ' \n\n" )
+
+if ( not tether_jump ):
+	README_SETUP.write( "command+= '-tether_jump false ' \n\n" )
+
+if ( VDW_rep_optimize_memory_usage ):
+	README_SETUP.write( "command+= '-VDW_rep_optimize_memory_usage true ' \n\n" )
 
 README_SETUP.write( "command+= '>LOG_SWA_rna_build_dagman.out '\n\n" )
 

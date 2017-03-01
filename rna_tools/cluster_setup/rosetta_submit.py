@@ -64,10 +64,12 @@ if argv.count( '-development' )>0:
 
 # set name of queue to submit jobs to
 queue = 'normal'
+user_input_queue = False
 if '-queue' in argv:
     idx = argv.index('-queue')
     argv.pop(idx)
     queue = argv.pop(idx)
+    user_input_queue = True
 elif development is True:
     queue = 'development'
 elif hostname in ['comet']:
@@ -140,7 +142,7 @@ if DO_MPI:
 command_lines_explicit = []
 
 if save_logs:
-    outfile_general = '$(Process).out'
+    outfile_general = '$(Process).log'
     errfile_general = '$(Process).err'
 else:
     outfile_general = '/dev/null'
@@ -188,6 +190,8 @@ for line in lines:
     if not exists( EXE ):
         rosetta_folder = expandvars("$ROSETTA")
         EXE = rosetta_folder + '/main/source/bin/'+basename(EXE)
+    if not exists( EXE ):
+        EXE += ".linuxclangrelease"
     if not exists( EXE ):
         EXE += ".macosclangrelease"
     if not exists( EXE ):
@@ -244,10 +248,9 @@ for line in lines:
 
             # sbatch (no mpi)
             queue2 = queue
-            if hostname in ['comet']:
-                queue2 = 'shared'
-            if hostname in ['sherlock']:
-                queue2 = 'owners'
+            if not user_input_queue:
+                if hostname in ['comet']:    queue2 = 'shared'
+                if hostname in ['sherlock']: queue2 = 'owners'
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
@@ -325,6 +328,14 @@ if DO_MPI:
             fid_queue_submit_file_MPI = open( queue_submit_file_MPI, 'w' )
             fid_queue_submit_file_MPI.write( '#!/bin/bash\n' )
             job_name = (basename(CWD)).replace( '/', '_' )
+
+            # logic from calebgeniess -- may be deprecated
+            #queue = 'normal'
+            #if hostname in ['comet']:
+            #    queue = 'compute'
+            #if development:
+            #    queue = 'development'
+            #fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
             fid_queue_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
@@ -370,6 +381,40 @@ if DO_MPI:
             fid_queue_MPI.write( 'qsub %s\n' % queue_submit_file_MPI )
 
     # single batch. does not appear to work...
+    # from calebgeniesse -- may need to revisit
+    # if hostname in ["stampede", "sherlock", "comet"]:
+    #     fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash\n' )
+    #     job_name = (basename(CWD)).replace( '/', '_' )
+    #     fid_qsub_MPI_ONEBATCH.write( '#SBATCH -J %s\n' % job_name )
+    #     fid_qsub_MPI_ONEBATCH.write( '#SBATCH -o %s.o%%j\n' % job_name )
+    #     queue = 'normal'
+    #     if hostname in ['comet']:
+    #         queue = 'compute'
+    #     if development:
+    #         queue = 'development'
+    #     fid_qsub_MPI_ONEBATCH.write( '#SBATCH -p %s\n' % queue)
+    #     if development:
+    #         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t 00:10:00\n' )
+    #     else:
+    #         fid_qsub_MPI_ONEBATCH.write( '#SBATCH -t %d:00:00\n' % nhours )
+    #     #fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
+    #     #fid_qsub_MPI_ONEBATCH.write( '#SBATCH --mail-type=ALL\n' )
+    #     fid_qsub_MPI_ONEBATCH.write( '#SBATCH -n %d\n' % tot_jobs )
+    #     fid_qsub_MPI_ONEBATCH.write( '#SBATCH -N %d\n' % tot_nodes )
+    #     if account: fid_qsub_MPI_ONEBATCH.write( '#SBATCH -A %s\n' % account )
+    #     #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
+    #     #fid_qsub_MPI_ONEBATCH.write( 'echo $SLURM_JOB_CPUS_PER_NODE > ncpus_per_node.txt\n' )
+    #     fid_qsub_MPI_ONEBATCH.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n'
+    #                                  % (job_file_MPI_ONEBATCH, hostname) )
+    # else:
+    #     fid_qsub_MPI_ONEBATCH.write( '#!/bin/bash 	 \n')
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -V 	#Inherit the submission environment\n')
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -cwd 	# Start job in submission directory\n')
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -N %s 	# Job Name\n' % (CWD + '/' + outdir).replace( '/', '_' ) )
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -j y 	# Combine stderr and stdout\n')
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -o $JOB_NAME.o$JOB_ID 	# Name of the output file\n')
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -pe %dway %d 	# Requests X (=12) tasks/node, Y (=12) cores total (Y must be multiples of 12, set X to 12 for lonestar)\n' % (tasks_per_node_MPI, N_MPIJOBS_ONEBATCH) )
+    #     fid_qsub_MPI_ONEBATCH.write( '#$ -q normal 	# Queue name normal\n')
     if not hostname in ["stampede", "sherlock", "comet"]:
         fid_queue_MPI_ONEBATCH.write( '#!/bin/bash    \n')
         fid_queue_MPI_ONEBATCH.write( '#$ -V     #Inherit the submission environment\n')
@@ -433,3 +478,4 @@ if DO_MPI:
 
     print 'Created MPI submission files ',queue_file_MPI,' with ',tot_nodes, ' batches queued. To run, type: '
     print '>source ',queue_file_MPI
+

@@ -48,7 +48,7 @@ class CodeQualityScanner:
                 elif r[0] == p :  # process ended but with error, special case we will have to wait for all process to terminate and call system exit.
                     self.jobs.remove( (p,readpipe) )
                     for p,readpipe in self.jobs:
-                        try : 
+                        try :
                             os.waitpid(p, 0)
                         except OSError :
                             print "pid", p, "was not found; assuming it exited with status 0."
@@ -143,6 +143,7 @@ class CodeQualityScanner:
             "-I%s"%(rosetta_source_basedir + "src/platform/macos"),
             "-I%s"%(rosetta_source_basedir + "external"),
             "-I%s"%(rosetta_source_basedir + "external/boost_1_46_1"),
+            "-I%s"%(rosetta_source_basedir + "external"),
             "-I%s"%(rosetta_source_basedir + "external/include"),
             "-I%s"%(rosetta_source_basedir + "external/dbio"),
             "-I%s"%("/usr/lib/clang/2.9/include")

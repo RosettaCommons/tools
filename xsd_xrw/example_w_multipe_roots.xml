@@ -1,0 +1,22 @@
+  <SCOREFXNS>
+    <scorefxn weights="whatever.wts"/>
+    <scorefxn_cst weights="whatever2.wts">
+      <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+      <Reweight scoretype="atom_pair_constraint" weight="1.0"/>
+      <Reweight scoretype="angle_constraint" weight="1.0"/>
+      <Reweight scoretype="dihedral_constraint" weight="1.0"/>
+      <Reweight scoretype="res_type_constraint" weight="1.0"/>
+    </scorefxn_cst>
+  </SCOREFXNS>
+
+  <TASKOPERATIONS>
+    <InitializeFromCommandline name=cli/>
+    <ReadResfile name="resfile"/>
+    <ExtraRotamersGeneric name=ex
+      ex1="yes" ex2="yes" extrachi_cutoff=0/>
+  </TASKOPERATIONS>
+
+  <MOVERS>
+    <ConstraintSetMover name=cst cst_fa_file="whatever.cst"/>
+  </MOVERS>
+

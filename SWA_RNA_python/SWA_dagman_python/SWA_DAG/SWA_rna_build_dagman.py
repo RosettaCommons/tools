@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ######################################################################
 from SWA_rna_build_dagman_util import *
@@ -54,6 +54,7 @@ floating_base=parse_options( argv, "floating_base", "True" ) #change to true on 
 
 analytic_etable_evaluation = parse_options( argv, "analytic_etable_evaluation", "True" )
 
+OLLM_allow_previous_clash = parse_options (argv, "OLLM_allow_previous_clash", "False")
 optimize_long_loop_mode = parse_options (argv, "optimize_long_loop_mode", "False")
 # optimize_long_loop_mode:
 #   This is used in Sripakdeevong et al. 2011 PNAS
@@ -777,8 +778,11 @@ for L in range( 2, num_elements+1 ): #from 2 to num_elements
 					print "region i=%d j=%d, Is_combine_long_loop_chain_closure_step= %s" %(i,j,Is_combine_long_loop_chain_closure_step)
 
 					####CHANGE to filter for clash instead of contact at Closure closure step even if OLLM_chain_closure_only==False Nov 13, 2010
-					if (OLLM_chain_closure_only or Is_combine_long_loop_chain_closure_step):
-						filterer_mode="combine_long_loop_clash"
+					if OLLM_chain_closure_only or Is_combine_long_loop_chain_closure_step:
+						if OLLM_allow_previous_clash:
+							filterer_mode="combine_long_loop_allow_previous_clash"
+						else:
+							filterer_mode="combine_long_loop_clash"
 					else:
 						filterer_mode="combine_long_loop_contact"
 

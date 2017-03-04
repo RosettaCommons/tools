@@ -1,15 +1,37 @@
 #!/usr/bin/env python
 
-from Bio import AlignIO
-import Bio.PDB
 from optparse import OptionParser
-import sys
+import os, sys
 import array
+
+try:
+    import rosettautil
+except ImportError:
+    # if this script is in the Rosetta/tools/protein_tools/scripts/ directory
+    # rosettautil is in the ../ directory. Add that to the path. and re-import
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import rosettautil
+
 from rosettautil.protein import util
 from rosettautil.protein import alignment
 from rosettautil.protein import pdbStat
-from rosettautil.protein import amino_acids
 from rosettautil.util import fileutil
+
+try:
+    from rosettautil.protein import amino_acids
+except ImportError:
+    #Okay, do we have one in the same directory as this script?
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    import amino_acids
+
+try:
+    import Bio.PDB
+    from Bio import AlignIO
+except ImportError:
+    import sys
+    sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
+    sys.exit()
+
 
 
 def list_to_generator(list):

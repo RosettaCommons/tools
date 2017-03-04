@@ -6,13 +6,14 @@ from sys import argv
 
 #Might as well do a cross-check here that Rosetta exists.
 
-try:
-    rosetta_folder = os.environ["ROSETTA"]
-except KeyError:
-    print "You need to define ROSETTA as an environment variable, e.g., put "
-    print " export ROSETTA='/Users/rhiju/src/rosetta/' "
-    print "in your .bashrc or .bash_profile script."
+#try:
+#    rosetta_folder = os.environ["ROSETTA"]
+#except KeyError:
+#    print "You need to define ROSETTA as an environment variable, e.g., put "
+#    print " export ROSETTA='/Users/rhiju/src/rosetta/' "
+#    print "in your .bashrc or .bash_profile script."
 
+if not os.access('/path/to/folder', os.W_OK): exit( 0 )
 
 CWD = getcwd()
 chdir( dirname( argv[0] ) )

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from sys import argv
 from os.path import abspath
@@ -10,7 +10,8 @@ for file in argv[1:]:
 
     new_lines = []
     for line in lines:
-        if line.find( 'static basic::Tracer' ) > -1:
+        if line.find( 'static basic::Tracer' ) > -1 or \
+           line.find( 'static THREAD_LOCAL basic::Tracer' ) > -1:
 
             pos = line.find( 'Tracer' )
             pos_start = pos

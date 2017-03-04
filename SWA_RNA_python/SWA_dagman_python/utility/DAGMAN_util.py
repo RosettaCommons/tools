@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ###########################
 
@@ -30,7 +30,7 @@ def create_generic_README_SUB(num_slave_nodes):
 
 	README_SUB = open( "README_SUB.py", 'w')
 
-	README_SUB.write( '#!/usr/bin/python\n' )
+	README_SUB.write( '#!/usr/bin/env python\n' )
 	README_SUB.write( 'from os import system\n' )
 	README_SUB.write( 'from os.path import exists\n' )
 	README_SUB.write( 'from os.path import abspath\n' )

@@ -9,29 +9,39 @@ Works on:
 mkdir clang && cd clang
 
 # Get clang sources
-svn co -r 206320 http://llvm.org/svn/llvm-project/llvm/trunk llvm
+git clone http://llvm.org/git/llvm.git llvm
 cd llvm/tools
-svn co -r 206320 http://llvm.org/svn/llvm-project/cfe/trunk clang
+git checkout release_37
+# svn co -r 206320 http://llvm.org/svn/llvm-project/cfe/trunk clang
+git clone http://llvm.org/git/clang.git clang
 cd clang/tools
-svn co -r 206320 http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
+git checkout release_37
+git clone http://llvm.org/git/clang-tools-extra.git extra
 cd extra
-ln -s /data/rosetta/tools/clang_ast_transform/rosetta-refactor-tool/
+git checkout release_37
+ln -s ../../../../../../rosetta-refactor-tool/
 echo 'add_subdirectory(rosetta-refactor-tool)' >> CMakeLists.txt
-cd ../../../../../llvm/projects/
-svn co -r 206320 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
-cd ../..
+cd 
 
 # Configure and build
 mkdir build 
 cd build
 ../llvm/configure 
+
+# And then execute one of the two following commands
 cmake -DCMAKE_BUILD_TYPE=Release ../llvm/
+# OR if you'd prefer building with ninja
+cmake -DCMAKE_BUILD_TYPE=Release ../llvm/ -G Ninja
+
+# And then execute one of the two following commands
 make -j 8
+# OR if you're using ninja
+ninja
+# (Ninja doesn't need to be told to use all the CPUs available)
 
 </commands>
 
-luki@rosetta:~/clang/build$ ls -l bin/rosetta-refactor-tool 
--rwxr-xr-x 1 luki lugosoft 13614708 Apr 15 12:56 bin/rosetta-refactor-tool
+This will build two executables of note for you in the bin directory:
+rosetta-refactor-tool, and
+serialization_validator
 
-luki@rosetta:~/clang/build$ file bin/rosetta-refactor-tool 
-bin/rosetta-refactor-tool: ELF 64-bit LSB  executable, x86-64, version 1 (GNU/Linux), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=c8ad0c579767dfffd19f2c3521db3b07fc6d6854, not stripped

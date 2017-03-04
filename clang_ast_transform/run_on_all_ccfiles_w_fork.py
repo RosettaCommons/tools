@@ -1,13 +1,17 @@
-import fork_manager
-import blargs
+import re
+import sys, os
 import subprocess
 
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../external" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc_reader" )
+
+import blargs
+
+import fork_manager
 from test_compile import *
 from code_utilities import *
 from inclusion_equivalence_sets import *
 
-import re
-import sys
 
 # this class keeps track of which process -- represented by pid -- is responsible for
 # which job.  It handles the two callbacks from the ForkManager
@@ -35,7 +39,7 @@ class JobManager :
 
 def run_job(executable, job):
 	 # print "Running %s on %s" % (executable, job)
-	 command_list = [ executable, "src/" + job ]
+	 command_list = executable.split(); command_list.append(  "src/" + job )
 	 return subprocess.call( command_list ) == 0
 	
 if __name__ == "__main__" :
@@ -44,12 +48,9 @@ if __name__ == "__main__" :
       p.str( "executable" ).shorthand("e").required()
       
    # includes = { 'test.hh': '' }
-   includes = scan_compilable_files()
-
-   re_hh_header  = re.compile("\S*\.cc$")
-   all_files = includes.keys()
-   hh_headers = regex_subset( all_files, re_hh_header )
-   jobs = hh_headers
+   os.chdir( "src" )
+   jobs = compiled_cc_files()
+   os.chdir( ".." )
 
    # print "%d files, running with %d jobs..." % ( len(jobs), num_cpu )
 
@@ -67,5 +68,8 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   print jm.jobs
-   print jm.failed_jobs
+   if ( jm.jobs ) : print jm.jobs
+   if ( jm.failed_jobs ) : print jm.failed_jobs
+
+   if ( jm.jobs or jm.failed_jobs ) : sys.exit(1)
+   else : sys.exit( 0 )

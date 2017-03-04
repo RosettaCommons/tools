@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os import system,popen
 from os.path import exists,dirname,basename,expanduser,abspath
@@ -170,12 +170,14 @@ def get_rosetta_EXE(EXE_name, no_graphic=NO_GRAPHIC):   #EXE=get_rosetta_EXE("pa
 	if( PATH_exists(exe_folder)==False):  error_exit_with_message("Cannot find exe_folder: %s " %(exe_folder) )
 
 	LINUX_EXE = "%s%s.linuxgccrelease" %(exe_folder, EXE_name)
+	LINUX_EXE2 = "%s%s.linuxclangrelease" %(exe_folder, EXE_name)
 
 	MACOS_EXE = "%s%s.macosgccrelease" %(exe_folder, EXE_name)
 
 	possible_EXE_count=0
 
 	if(PATH_exists(LINUX_EXE)): possible_EXE_count+=1
+	if(PATH_exists(LINUX_EXE2)): possible_EXE_count+=1
 
 	if(PATH_exists(MACOS_EXE)): possible_EXE_count+=1
 
@@ -188,6 +190,11 @@ def get_rosetta_EXE(EXE_name, no_graphic=NO_GRAPHIC):   #EXE=get_rosetta_EXE("pa
 		else:
 			print "LINUX_EXE (%s) doesn't exist!" %(LINUX_EXE)
 
+		if(PATH_exists(LINUX_EXE2)):
+			print "LINUX_EXE2 (%s) exist!" %(LINUX_EXE2)
+		else:
+			print "LINUX_EXE2 (%s) doesn't exist!" %(LINUX_EXE2)
+
 		if(PATH_exists(MACOS_EXE)):
 			print "MACOS_EXE (%s) exist!" %(MACOS_EXE)
 		else:
@@ -197,6 +204,7 @@ def get_rosetta_EXE(EXE_name, no_graphic=NO_GRAPHIC):   #EXE=get_rosetta_EXE("pa
 		error_exit_with_message("possible_EXE_count=(%s)=!=1 for EXE_name (%s)" %(possible_EXE_count, EXE_name))
 
 	if(PATH_exists(LINUX_EXE)):  return LINUX_EXE
+	if(PATH_exists(LINUX_EXE2)):  return LINUX_EXE2
 
 	if(PATH_exists(MACOS_EXE)):  return MACOS_EXE
 

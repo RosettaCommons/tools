@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #coding: utf8 
 
 note = '	author: Chris King 4/2011 (dr.chris.king@gmail.com)\n\

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os.path import expanduser,expandvars,basename
 import subprocess
@@ -14,7 +14,7 @@ xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
 def cluster_check( cluster_in ):
-    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet' ];
+    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet', 'sherlock','sherlock_scratch' ];
 
     cluster = cluster_in
     if cluster not in clusterlist:
@@ -75,6 +75,14 @@ def cluster_check( cluster_in ):
         cluster = '%s@biox3.stanford.edu' % biox3_user_name
         cluster_dir = '/scratch/users/%s/' % biox3_user_name
 
+    if cluster == 'sherlock':
+        cluster = '%s@sherlock.stanford.edu' % biox3_user_name
+        cluster_dir = '/home/%s/' % biox3_user_name
+
+    if cluster == 'sherlock_scratch':
+        cluster = '%s@sherlock.stanford.edu' % biox3_user_name
+        cluster_dir = '/scratch/users/%s/' % biox3_user_name
+
     if cluster == 'ade_scratch':
         cluster = 'ade.stanford.edu'
         cluster_dir = '/scr/%s/' % user_name
@@ -101,3 +109,13 @@ def cluster_check( cluster_in ):
 
     return (cluster,cluster_dir)
 
+
+def strip_home_dirname( clusterdir ):
+    clusterdir = clusterdir.replace('/Users/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('Dropbox/','')
+    clusterdir = clusterdir.replace('/scratch/users/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/work/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/home/%s/' % user_name,'')
+    clusterdir = clusterdir.replace('/home1/%s/%s/' % ( xsede_dir_number, xsede_user_name ),'')
+    clusterdir = clusterdir.replace('/work/%s/%s/' % (xsede_dir_number, xsede_user_name ),'')
+    return clusterdir

@@ -1,11 +1,12 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
+
 from os import system, path
 from sys import argv, exit, stderr
 from optparse import OptionParser
-#from get_fulllength_fasta import get_fulllength_fasta 
+#from get_fulllength_fasta import get_fulllength_fasta
 
-''' In this script, we are going to parse out the lines of dssp_phi dssp_psi dssp_sa 
-    from the results of dssp2threestateSS.pl.''' 
+''' In this script, we are going to parse out the lines of dssp_phi dssp_psi dssp_sa
+    from the results of dssp2threestateSS.pl.'''
 
 
 def parse_dssp_results( pdb_fn, arg_fasta_dict ):
@@ -51,7 +52,7 @@ def parse_dssp_results( pdb_fn, arg_fasta_dict ):
                             #print newrsn, dssp_sa, dssp_phi, dssp_psi
 
                             dssp_Dict[ newrsn ] = [dssp_sa, dssp_phi, dssp_psi]
-                            
+
                             count += 1
                             line = dssp_results.readline()
                         else:
@@ -64,7 +65,7 @@ def parse_dssp_results( pdb_fn, arg_fasta_dict ):
 
     return dssp_Dict
 
-        
+
 if __name__ == "__main__":
     parser = OptionParser()
 

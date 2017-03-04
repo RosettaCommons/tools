@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 ## @file prep_membrane.py
 ##
 ## @brief Make membrane resource xml script

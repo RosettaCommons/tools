@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ######################################################################
 from SWA_dagman_python.utility.SWA_util import *

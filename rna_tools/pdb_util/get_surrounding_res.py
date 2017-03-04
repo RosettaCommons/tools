@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ##########################################################
 
@@ -10,19 +10,22 @@ from read_pdb import read_pdb
 
 ##########################################################
 
-def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False ):
+def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False, keep_res=[] ):
 	
 	### Parse sample_res_list as a string
 	sample_res_list, sample_chain_list = parse_tag( sample_res_list ) 
-
+        
 	### Read PDB file
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 
 	### Find surrounding residues if radius != None
 	if radius:
 
-		keep_res_list = []
-		keep_res_chain_list = []
+
+                if not keep_res is None:
+                        keep_res_list, keep_res_chain_list = parse_tag( keep_res )
+                else:
+                        keep_res_list, keep_res_chain_list = [], []
 
 		for surr_rsd_idx, surr_rsd in enumerate(residues):
 			is_surrounding_res = False		
@@ -288,10 +291,10 @@ def get_ellipsoid_envelope_res( pdbfile, sample_res_list=[], radius=None, verbos
 
 ##########################################################
 
-def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None, verbose=False, csv=False, ellipsoid_envelope_mode=False ):
+def get_surrounding_res_tag( pdbfile, sample_res_list=[], radius=None, verbose=False, csv=False, ellipsoid_envelope_mode=False, keep_res=None ):
 
 	if not ellipsoid_envelope_mode:
-		( surrounding_res_list, surrounding_res_chain_list ) = get_surrounding_res( pdbfile, sample_res_list=sample_res_list, radius=radius, verbose=verbose )
+		( surrounding_res_list, surrounding_res_chain_list ) = get_surrounding_res( pdbfile, sample_res_list=sample_res_list, radius=radius, verbose=verbose, keep_res=keep_res )
 	else:
 		( surrounding_res_list, surrounding_res_chain_list ) = get_ellipsoid_envelope_res( pdbfile, sample_res_list=sample_res_list, radius=radius, verbose=verbose )
 

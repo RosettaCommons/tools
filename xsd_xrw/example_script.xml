@@ -1,0 +1,310 @@
+ This purpose of this "script" is to show off the aspects of RosettaScripts that are
+ changing with the XSD update. Run the rewrite_rosetta_script.py script on this file
+ with the following comamnd line:
+ > python rewrite_rosetta_script.py --input example_script.xml --output example_script_rewritten.xml
+ and then diff the two files:
+ > diff example_script.xml example_script_rewritten.xml
+ and you will see what kinds of things changed.
+
+ The first thing that changes is that the root tag needs to be ROSETTASCRIPTS and not dock_design
+ and it has to be the very first thing in the file.
+<dock_design>
+
+ <SCOREFXNS>
+  the element name for the score function below will become "SCOREFXN"
+  <talaris2014_cst weights="talaris2014.wts">
+   <Set weight=atom_pair value=1.0/>
+  </talaris2014_cst>
+  <softrep weights="softrep_design.wts"/>
+ </SCOREFXNS>
+ <TASK_OPERATIONS>
+   <OperateOnCertainResidues name="restrict_target">
+     test comment here
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target2">
+     test comment here
+     <RestrictToRepackingRLT/>
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target3">
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+     oh and this one too
+   </OperateOnCertainResidues>
+
+   <OperateOnCertainResidues name="restrict_target4">
+     <RestrictToRepackingRLT/>
+     test comment there
+     <ChainIs chain="A"/>
+   </OperateOnCertainResidues>
+
+   this one shouldn't get swapped
+   <OperateOnCertainResidues name="restrict_target5">
+     <ChainIs chain="A"/>
+     <RestrictToRepackingRLT/>
+   </OperateOnCertainResidues>
+
+   Layer design; sigh. What a monster
+    <LayerDesign name="layer_all" layer="all" use_sidechain_neighbors="True" pore_radius="2.0" verbose="true" >
+      <NoRepackDisulfides name="disulf" >
+          <all aa="c" specification="fixed" operation="omit" />
+      </NoRepackDisulfides>
+      <OperateOnResidueSubset name="hotspot_onlyrepack_layerdesignOmit" selector="hotspots" >
+        <PreventRepackingRLT/>
+        <all specification="fixed" operation="omit" />
+      </OperateOnResidueSubset>
+      <ReadResfile name="resfile_layerdesignOmit" filename="./input_fix.resfile" >
+        <all specification="fixed" operation="omit" />
+      </ReadResfile>
+      <core>
+          <all append="M" />
+      </core>
+      <boundary>
+          <all append="M" />
+      </boundary>
+    </LayerDesign>
+
+
+ </TASK_OPERATIONS>
+
+  <SCORINGGRIDS ligand_chain="X" width="15">
+    <classic grid_type="ClassicGrid" weight="1.0"/>
+  </SCORINGGRIDS>
+
+ <FRAGSETS>
+  <FRAGMENTS>
+   the element name for the fragreader below will become "FragReader"
+   <vall1 type=vall param=something/>
+   <vall2 type=vall param=soso/>
+   <steal type=pdb fname=somepdb.pdb />
+  </FRAGMENTS>
+  the element name for the fragment set below will become "FragSet"
+  <fragset1 composed=thing1,whatever,steal/>
+  <fragset2 compose=steal/>
+ </FRAGSETS>
+
+ <MONTECARLOS>
+  <mc1 scorefxn=talaris2014_cst/>
+  <mc2 scorefxn=softrep/>
+ </MONTECARLOS>
+
+ <INTERFACE_BUILDERS>
+  <ib1 param=1.0 testing=2.0/>
+ </INTERFACE_BUILDERS>
+
+ <MOVEMAP_BUILDERS>
+  <mmb1 something=somethingelse/>
+  <mmb2 something=somethingelse/>
+  <mmb3 something=somethingelse/>
+ </MOVEMAP_BUILDERS>
+
+ <LIGAND_AREAS>
+  <la1 thing=1/>
+  <la2 thing=2/>
+ </LIGAND_AREAS>
+
+ <MOVERS>
+  <PackRotamersMover name = prm resfile = whatever.resfile />
+  Here is a comment to make sure that
+  we handle comments ok
+  <!-- and here is a block comment, to make sure we get those right too -->
+  <BridgeChainsMover name=bcm/>
+  <GeneralizedKIC name=close1 selector=lowest_energy_selector selector_scorefunction=tala closure_attempts=2000 stop_when_n_solutions_found=1 >
+    This next tag has whitespace between the slash and the greater-than sign. What garbage!
+    Taken from genkic_rama_filter
+   <AddFilter type=alpha_aa_rama_check residue=1 rama_cutoff_energy=0.3 / >
+  </GeneralizedKIC>
+
+  <ReportToDB name="report_scores" resource_description=scores_db batch_description="Demo DatabaseResourceLocator by reporting symmetric scores">
+    <feature name=ScoreTypeFeatures/>
+    <feature name=StructureScoresFeatures scorefxn=s/>
+  </ReportToDB>
+
+  <ModulatedMover name=scaled_rb type=UnbiasedRigidBodyPerturbNoCenter tempering=h_exchange>
+    Someone thought it would be really cute if they created a subtag that held the attributes of arbitrary movers.
+    Instead, the common subtag should have a bunch of subtags of its own with two attributes "attr" and "value"
+    and these will be composed to create the Tag that will be parsed by the ThermodynamicMover that the
+    ModulatedMover will contain. Look, it's not a good system.
+    <common ref="P.pdb" restrict=1 restrict_trans=20 restrict_rot=90 />
+    <Interp key="rot_mag" curve="exponential"  start=15 end=1/>
+    <Interp key="trans_mag" curve="exponential"  start=1.5 end=0.1/>
+  </ModulatedMover>
+
+  Here are some more examples; this one has no subelements
+  <ModulatedMover name=scaled_rb type=RigidBodyPerturbNoCenter tempering=h_exchange/>
+
+  This one has no common subelement, but it does have two Interp subelements
+  <ModulatedMover name=scaled_rb type=RigidBodyMover tempering=h_exchange>
+    <Interp key="rot_mag" curve="exponential" start=1 end=5/>
+    <Interp key="trans_mag" curve="exponential" start=0.25 end=1/>
+  </ModulatedMover>
+
+
+  <PlacementMinimization name=placement_min>
+   <StubSets>
+    Add stubfile=1l6x.pos1_stubs.pdb/>  removed to save time ###
+    <Add stubfile=1l6x.pos3_stubs.pdb/>
+    <Add stubfile=1l6x.pos4_stubs.pdb/>
+    <WHATEVER stubfile=1l6x.pos5_stubs.pdb/>
+   </StubSets>
+  </PlacementMinimization>
+
+  <GenericMonteCarlo name="GM_design" stopping_condition="stopper"
+                     mover_name="FastDesign" trials="10"
+                     progress_file="MC_progess_design.txt"
+                     bolz_rank="True" recover_low="True" preapply="False" drift="False"
+                     filter_name="sspred" sample_type="low" temperature="0.03">
+
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </GenericMonteCarlo>
+
+  <EvolutionaryDynamics name="GM_design" stopping_condition="stopper"
+			mover_name="FastDesign" trials="10"
+			progress_file="MC_progess_design.txt"
+			bolz_rank="True" recover_low="True" preapply="False" drift="False"
+			filter_name="sspred" sample_type="low" temperature="0.03">
+
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </EvolutionaryDynamics>
+
+  <GenericSimulatedAnnealer name="GM_design" stopping_condition="stopper"
+			    mover_name="FastDesign" trials="10"
+			    progress_file="MC_progess_design.txt"
+			    bolz_rank="True" recover_low="True" preapply="False" drift="False"
+			    filter_name="sspred" sample_type="low" temperature="0.03">
+   <Filters>
+     # The element names were never read! They should all be "AND" after the rewrite
+    <AND filter_name="interfE" sample_type="low" temperature="1"/>
+    <OR filter_name="H_ShapeC" sample_type="high" temperature="0.1"/>
+    <NOT filter_name="Lig_ShapeC" sample_type="high" temperature="0.1"/>
+   </Filters>
+  </GenericSimulatedAnnealer>
+
+  We received no examples of this mover
+  <MapHotspot>
+   <Jumps>
+    <KRISS gonna_make_you="true"/>
+    <KROSS gonna_make_you="true"/>
+    <DADDYMAC gonna_make_you="true"/>
+   </Jumps>
+  </MapHotspot>
+
+  <DockWithHotspotMover name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <ADD file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </DockWithHotspotMover>
+
+  Oh no! A wild & has appeared! Ampersand can't be just hanging out in XML.
+  What about logic for if ( x is 20 && y is 30 ) ?
+
+  <SetupHotspotConstraintsMover name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <ADD file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </SetupHotspotConstraintsMover>
+
+
+  <SetupHotspotConstraintsLoop name="hotspotdock" hotspot_score_weight="10" centroidscore_filter="0" hotspotcst_filter="300">
+   <HotspotFiles>
+    <Add file_name="hotspot1.pdb" cb_force="1.0"/>
+    <Subtract file_name="hotspot2.pdb" cb_force="1.0"/>
+   </HotspotFiles>
+  </SetupHotspotConstraintsLoop>
+
+  <Hybridize name="hybridize" stage1_scorefxn="stage1" stage2_scorefxn="stage2" fa_cst_file="CB_cst" fa_scorefxn="fullatom" batch="1" stage1_increase_cycles="2.0" stage2_increase_cycles="1.0" linmin_only="0" skip_long_min="1">
+    <Fragments 3mers="t000_.200.3mers.gz" 9mers="t000_.200.9mers.gz"/>
+    <Template pdb="4cz8.pdb" weight="1" cst_file="CB_cst" symmdef="4cz8.symm"/>
+    <Template pdb="4czb.pdb" weight="1" cst_file="CB_cst" symmdef="4czb.symm"/>
+    <Template pdb="5bz3.pdb" weight="1" cst_file="CB_cst" symmdef="5bz3.symm"/>
+  </Hybridize>
+
+  <ComputeLigandRDF name="rdf_compute_interface" ligand_chain="X" mode="interface">
+    <RDF name="RDFEtableFunction" scorefxn="hard_rep"/>
+    <RDF name="RDFElecFunction" scorefxn="hard_rep"/>
+    <RDF name="RDFHbondFunction"/>
+    <RDF name="RDFBinaryHbondFunction"/>
+    <RDF name="RDFOrbitalFunction"/>
+    <RDF name="RDFBinaryOrbitalFunction"/>
+  </ComputeLigandRDF>
+
+  <MetropolisHastings name=metropolis_hastings scorefxn=score12_mh trials=500>
+    <Backrub sampling_weight=0.5/>
+    <Small sampling_weight=0.1/>
+    <Shear sampling_weight=0.1/>
+    <Sidechain sampling_weight=0.3 task_operations=rtrp,preserve_cb prob_uniform=0.1 prob_withinrot=0.2/>
+    <PDBTrajectoryRecorder/>
+  </MetropolisHastings>
+
+
+    <AbscriptMover name="abinitio" cycles=2 >
+      <!-- Abscript mover has special macros for defining the usual ab initio fragment movers, since there's three -->
+      <!-- and they're very stereotyped. You could use the <Stage> tag syntax to do it, but it's a pain. -->
+      <Fragments large_frags="frags/1d3z.frags9.dat.gz" small_frags="frags/1d3z.frags3.dat.gz" />
+      <!-- Add the mover "jumps" (fragment jumps) to stages I through IVb (i.e. all of them) -->
+      <Stage ids="I-IVb" >
+        <Mover name="jumps" />
+      </Stage>
+    </AbscriptMover>
+
+    <AbscriptMover name="abinitio" cycles=2 >
+      <!-- Abscript mover has special macros for defining the usual ab initio fragment movers, since there's three -->
+      <!-- and they're very stereotyped. You could use the <Stage> tag syntax to do it, but it's a pain. -->
+      <fragments large_frags="frags/1d3z.frags9.dat.gz" small_frags="frags/1d3z.frags3.dat.gz" />
+      <!-- Add the mover "jumps" (fragment jumps) to stages I through IVb (i.e. all of them) -->
+      <Stage ids="I-IVb" >
+        <Mover name="jumps" />
+      </Stage>
+    </AbscriptMover>
+
+ </MOVERS>
+ <FILTERS>
+
+  <CalculatorFilter name="percent_core_SCN" equation="- rescount_coreSCN / (rescount3 + 0.01)" threshold="-0.1" confidence="1" >
+    <VAR name="rescount3" filter="res_count_all"/>
+    <VAR name="rescount_coreSCN" filter="res_count_core_SCN"/>
+    we don't have an example of a tag that has the "value" attribute
+    <DUNNO name="rescount_coreSCN" value="5.0"/>
+  </CalculatorFilter>
+
+  <CombinedValue name=total_ligint_cst confidence=0>
+   <Add filter_name=allcst factor=1 />
+   <Add filter_name=total_score factor=1/>
+   <Add_or_whatever filter_name="interfE" factor=1/>
+  </CombinedValue>
+
+  <RotamerBoltzmannWeight name="rotamer_boltz_core_avg_MBF"  skip_ala_scan="1" no_modified_ddG="1" confidence="0" unbound="0">
+   <Ala setting="15"/>
+  </RotamerBoltzmannWeight>
+
+ </FILTERS>
+
+ <OUTPUT sfxn="test"/>
+ <PROTOCOLS>
+  <Add mover=prm/>
+  Below is a Tag where there is a space between the opening less than sign and the element name
+  Taken from the ideal_proteins demo
+  < Add mover_name=sse1   />
+ </PROTOCOLS>
+</dock_design>
+Also, nothing should be outisde of the very last tag, so this will be moved inside the dock_design (ROSETTASCRIPTS actually) tag.

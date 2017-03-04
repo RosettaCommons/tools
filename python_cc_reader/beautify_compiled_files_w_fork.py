@@ -89,8 +89,11 @@ def files_in_test_to_beautify() :
 def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if"  ) :
 
     all_files = files_to_beautify()
+    return beautify_files_in_parallel( all_files, overwrite, num_cpu, pound_if_setting )
 
-    print "Preparing to run beautifier on", len(all_files), "files"
+
+def beautify_files_in_parallel( file_list, overwrite, num_cpu, pound_if_setting = "take_if" ) :
+    print "Preparing to run beautifier on", len(file_list), "files"
 
     fbm = FileBeautifierManager()
     fm = fork_manager.ForkManager( num_cpu )
@@ -101,7 +104,7 @@ def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if" 
     if pound_if_setting :
         opts.pound_if_setting = pound_if_setting
 
-    for fname in all_files :
+    for fname in file_list :
         pid = fm.mfork()
         if pid == 0 :
             # print "beautifying", fname

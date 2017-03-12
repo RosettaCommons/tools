@@ -185,6 +185,7 @@ for line in lines:
         command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
         command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
+        command_line = command_line.replace( '-output_histogram_file ', '-output_histogram_file '+dir)
         command_line = command_line.replace( '-o ', '-o '+dir)
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
     command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
@@ -456,7 +457,7 @@ if DO_MPI:
     fid_queue_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
-if len( hostname ) == 0:
+if len( hostname ) == 0 and bsub_file != '/dev/null':
     print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source',bsub_file
     print

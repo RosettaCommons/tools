@@ -463,8 +463,11 @@ def compute_rigid_body_volume_ratio( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
     molar = (1.0e27 / 6.022e23); # units of /A^3
 
     # entropy loss on going from 1 M concentration to 6D translations and orientations defined by rmsd_cutoff.
+
+    # this was original code -- it was *not* correct.
     ref_energy =  np.log( (1.0/molar) * pow(float(N),1.5) * pow(float(RMSD_cutoff),6) * np.pi /48.0 / np.sqrt(Ixyz[0]+Ixyz[1]) / np.sqrt(Ixyz[0]+Ixyz[2]) / np.sqrt(Ixyz[1]+Ixyz[2]) );
     ref_vol = np.exp( ref_energy )  # what's used by RECCES calcs.
+
     return ref_vol
 
 def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):

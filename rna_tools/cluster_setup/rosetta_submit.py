@@ -10,15 +10,21 @@ def Help():
     print '  give outdir as 0 and # jobs as 1 to not create separate outdirs.'
     exit()
 
-if len( argv ) < 4:
+if len( argv ) < 2:
     Help()
 
 infile = argv[1]
-outdir = argv[2]
+
+try:
+    outdir = argv[2]
+except:
+    outdir = '0'
+
 try:
     n_jobs = int( argv[3] )
 except:
-    print 'NEED TO SUPPLY NUMBER OF JOBS'
+    n_jobs = 1
+    if outdir != '0': print 'NEED TO SUPPLY NUMBER OF JOBS'
 
 DO_MPI = False # May need to reactivate for XSEDE.
 

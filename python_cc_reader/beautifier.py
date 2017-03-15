@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 import blargs
 
@@ -99,7 +100,7 @@ class Token :
         self.parent = parent
         parent.children.append( self )
     def equivalent( self, other ) :
-        if self.spelling != other.spelling : 
+        if self.spelling != other.spelling :
             if not ( self.spelling == "\t" or self.spelling == "\\t" and other.spelling == "\t" or self.spelling == "\\t" ) :
                 return False
         elif self.type != other.type : return False
@@ -709,7 +710,7 @@ class Beautifier :
                 paren_depth += 1
             elif self.all_tokens[i].spelling == ")" :
                 paren_depth -= 1
-                    
+
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_simple_statement", stack )
@@ -1191,7 +1192,7 @@ class Beautifier :
             i+=1
         #whoops!
         self.handle_read_all_tokens_error("process_read_to_end_rcb",stack)
-            
+
 
     def process_enum(self,i,stack) :
         if debug : self.print_entry("process_enum",i,stack)
@@ -1878,7 +1879,7 @@ class Beautifier :
                         # if the grandparent is the top-level node, go ahead and stop recursing
                         if parent is not grandparent.children[-1] :
                             # we've found a node where the parent is not the last child of it's parent;
-                            # we may stop                            
+                            # we may stop
                             break
                         else :
                             parent = grandparent
@@ -1886,7 +1887,7 @@ class Beautifier :
 
                     comments_new_parent = grandparent
                     prev_child = parent
-                        
+
         return last_visible_ind, comments_new_parent, prev_child
 
     def move_line_upwards_and_after( self, tok, tok_before, last_visible_ind, comments_new_parent, prev_child ) :
@@ -1921,7 +1922,7 @@ class Beautifier :
         self.adjust_parentage_of_comments_after( orig_line, last_visible_ind+1, comments_new_parent, prev_child )
 
         # now adjust the parentage of all tokens on lines between the moving line and the destination line
-        # the only thing between them 
+        # the only thing between them
         #print "now adjust the parentage of all tokens on lines between the moving line and the destination line"
         #print "comments_new_parent:", comments_new_parent.spelling
         #print "prev_child:", "None" if not prev_child else prev_child.spelling
@@ -1933,9 +1934,9 @@ class Beautifier :
             #print "new_child_ind_plus_one:", new_child_ind_plus_one
             if new_child_ind_plus_one != 0 :
                 prev_child = comments_new_parent.children[ new_child_ind_plus_one - 1 ]
-        
+
         self.delete_empty_lines_between( tok_before.line_number, orig_line_number )
-        
+
 
     def find_rcb_child( self, tok ) :
         # search through the children on tok and look for the right-curly-brace child
@@ -2004,7 +2005,7 @@ class Beautifier :
             if if_rcb.line_number != tok.line_number and if_lcb.line_number != if_rcb.line_number and not self.intervening_macro_tokens( if_rcb, tok ) :
                 # ok -- move the "else" up to behind the rcb
                 last_visible_ind, comments_new_parent, prev_child = self.get_parent_for_eol_comments_for_else( tok, last_desc, tok.line_number )
-                # print "last_visible_ind", last_visible_ind, "comments_new_parent", comments_new_parent.spelling, comments_new_parent.type, "prev_child", prev_child.spelling if prev_child else "None" 
+                # print "last_visible_ind", last_visible_ind, "comments_new_parent", comments_new_parent.spelling, comments_new_parent.type, "prev_child", prev_child.spelling if prev_child else "None"
                 self.move_line_upwards_and_after( tok, if_rcb, last_visible_ind, comments_new_parent, prev_child )
                 # print "comments new parent children:'%s'" % "', '".join( [ x.spelling for x in comments_new_parent.children ] )
 
@@ -2304,7 +2305,7 @@ class Beautifier :
         i_other = other.find_next_visible_token( i_other )
         return i_this, i_other
 
-    def equiv_if_both_empty_or_if_neither_empty_and_equiv( self, other, i_this, i_other, stack ) :        
+    def equiv_if_both_empty_or_if_neither_empty_and_equiv( self, other, i_this, i_other, stack ) :
         if debug_equiv: self.enter_equiv( other, "equiv_if_both_empty_or_if_neither_empty_and_equiv", i_this, i_other, stack )
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
         if tok_this.type == "empty-statement" or tok_other == "empty-statement" :
@@ -2431,7 +2432,7 @@ class Beautifier :
         i_this, i_other = self.two_next_visible( other, i_this, i_other )
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
 
-        # print "leaving do_while_equiv", i_this, i_other, 
+        # print "leaving do_while_equiv", i_this, i_other,
         if tok_this.spelling == ";" and tok_other.spelling == ";" :
             # print "returning true"
             stack.pop()
@@ -2618,7 +2619,7 @@ class Beautifier :
                 stack.pop("last child" + tok_this.spelling + " " + tok_other.spelling )
                 if tok_this.equivalent( tok_other ) : return True, i_this+1, i_other+1
                 else : return False, i_this, i_other
-            
+
             if not tok_this.equivalent( tok_other ) : stack.pop(); return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
@@ -2761,7 +2762,7 @@ class Beautifier :
             if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other        
+        return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
     def function_equiv( self, other, i_this, i_other, stack ) :
         if debug_equiv: self.enter_equiv( other, "function_equiv", i_this, i_other, stack )
@@ -2789,7 +2790,7 @@ class Beautifier :
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
         stack.pop()
-        return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other        
+        return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
     def try_equiv( self, other, i_this, i_other, stack ) :
         if debug_equiv: self.enter_equiv( other, "try_equiv", i_this, i_other, stack )
@@ -2840,7 +2841,7 @@ class Beautifier :
         return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
 
-    def statement_equiv( self, other, i_this, i_other, stack ) : 
+    def statement_equiv( self, other, i_this, i_other, stack ) :
         if debug_equiv: self.enter_equiv( other, "statement_equiv", i_this, i_other, stack )
         stack.append( "statement_equiv" )
         tok_this = self.all_tokens[ i_this ]
@@ -2848,9 +2849,9 @@ class Beautifier :
             retval = self.for_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "if" :
             retval = self.if_equiv( other, i_this, i_other, stack )
-        elif tok_this.type == "do-while" :            
+        elif tok_this.type == "do-while" :
             retval = self.do_while_equiv( other, i_this, i_other, stack )
-        elif tok_this.type == "while" :            
+        elif tok_this.type == "while" :
             retval = self.while_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "namespace" :
             retval = self.namespace_equiv( other, i_this, i_other, stack )
@@ -2886,7 +2887,7 @@ class Beautifier :
 
     def enter_equiv( self, other, fname, i_this, i_other, stack ) :
         print "%sentering" % (" "*len(stack)), fname, i_this, i_other,
-        print "%s %d " % ( self.all_tokens[i_this].spelling, self.all_tokens[i_this].line_number+1 ) if i_this < len(self.all_tokens) else "None", 
+        print "%s %d " % ( self.all_tokens[i_this].spelling, self.all_tokens[i_this].line_number+1 ) if i_this < len(self.all_tokens) else "None",
         print "%s %d " % ( other.all_tokens[i_other].spelling, other.all_tokens[i_other].line_number+1 ) if i_other < len(other.all_tokens) else "None"
 
     def equivalent( self, other ) :
@@ -2919,7 +2920,7 @@ class Beautifier :
 
     #def equivalent( self, other ) :
         # recurse through the tree
-        
+
 def canonical_set_of_macros_to_test() :
     return [ [],
              [ "USE_MPI" ],
@@ -2932,8 +2933,8 @@ def canonical_set_of_macros_to_test() :
              [ "_WIN32" ],
              [ "MAC" ],
              [ "WIN_PYROSETTA" ] ]
-             
-             
+
+
 
 def beautify_file( filename, overwrite, opts = None ) :
 
@@ -3016,11 +3017,11 @@ def beautify_file( filename, overwrite, opts = None ) :
                 b2.tokenize_line( line )
             b1.minimally_parse_file()
             b2.minimally_parse_file()
-            equiv, t1, t2 = b1.equivalent( b2 ) 
-            if not equiv : 
+            equiv, t1, t2 = b1.equivalent( b2 )
+            if not equiv :
                 all_good = False
                 print "MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename
-                
+
         if all_good :
             open( filename, "w" ).writelines( beaut.new_lines )
             #pass
@@ -3041,8 +3042,8 @@ class SmartStack :
     def pop( self, msg = "" ) :
         str = self.stack.pop()
         if self.debug : print " "*len(self.stack) + "popped", str, msg
-        
-        
+
+
 
 class BeautifierOpts :
     def __init__( self ) :

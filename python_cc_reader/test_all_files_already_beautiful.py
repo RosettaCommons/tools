@@ -33,6 +33,7 @@ if __name__ == "__main__" :
         for fname in fbm.files_that_failed :
             print "File", fname, "could not be beautified"
         ok = False
+        print "One of the most likely reasons your file doesn't compile is that you have used a macro (e.g. TS_ASSERT) but have not followed it with a semicolon"
 
     git_status_cmd = [ "git", "ls-files", "-m" ]
     modified_files = subprocess.Popen(git_status_cmd, stdout=subprocess.PIPE).communicate()[0]

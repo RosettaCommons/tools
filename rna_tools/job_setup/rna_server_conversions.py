@@ -338,7 +338,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if len(line_edit)>75:
                     if (line_edit[76:78] == 'SE'):
                         line_edit = line_edit[0:76]+' S'+line_edit[78:]
-            elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys()):
+            elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys() ):
                 line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
             #Don't save alternative conformations.
@@ -349,41 +349,17 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             else:                    resnum = line_edit[22:26]
             if ( chain, resnum, atomnum ) in outputted_atoms: continue # already found once
 
+            # converts to plain ol' RNA residues
+            rosetta_ready_names = { 'GTP':'  G', 'G  ':'  G', ' DG':'  G', ' DC':'  C', ' DA':'  A', ' DU':'  U',
+                                    'A  ':'  A', 'C  ':'  C', 'U  ':'  U', 'GUA':'  G',
+                                    'ADE':'  A', 'CYT':'  C', 'URA':'  U', 'URI':'  U',
+                                    ' rA':'  A', ' rC':'  C', ' rU':'  U', ' rG':'  G', '  I':'  G' }
+
             if line_edit[0:4] == 'ATOM':
-                if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
+                if not resnum == oldresnum:
                     longname = line_edit[17:20]
-                    if longname == 'GTP':
-                        longname = '  G'
-                    elif longname == 'G  ':
-                        longname =   '  G'
-                    elif longname == ' DG':
-                        longname =   '  G'
-                    elif longname == 'A  ':
-                        longname =   '  A'
-                    elif longname == 'C  ':
-                        longname =   '  C'
-                    elif longname == 'U  ':
-                        longname =   '  U'
-                    elif longname == 'GUA':
-                        longname = '  G'
-                    elif longname == 'ADE':
-                        longname = '  A'
-                    elif longname == 'CYT':
-                        longname = '  C'
-                    elif longname == 'URA':
-                        longname = '  U'
-                    elif longname == 'URI':
-                        longname = '  U'
-                    elif longname == ' rA':
-                        longname =   '  A'
-                    elif longname == ' rC':
-                        longname =   '  C'
-                    elif longname == ' rU':
-                        longname =   '  U'
-                    elif longname == ' rG':
-                        longname =   '  G'
-                    elif longname == '  I':
-                        longname =   '  G'
+                    if longname in rosetta_ready_names.keys():
+                        longname = rosetta_ready_names[ longname ]
                     else:
                         if longname not in goodnames:    continue
 
@@ -400,6 +376,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 oldresnum = resnum
 
                 if not longname in goodnames:
+                    print "Skipping: ", longname
                     continue
 
                 newnum = '%4d' % count

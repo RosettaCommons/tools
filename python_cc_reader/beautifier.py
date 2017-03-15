@@ -16,10 +16,10 @@ import blargs
 
 
 debug = False
-# debug = True
+#debug = True
 
 debug_equiv = False
-# debug_equiv = True
+#debug_equiv = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -71,6 +71,12 @@ token_types = [ "top-level",
                 "template",
                 "template-arg-list",
                 "empty-statement" ]
+
+white_listed_macros = set([
+    "OPT_1GRP_KEY",
+    "CEREAL_FORCE_DYNAMIC_INIT",
+    "CEREAL_REGISTER_DYNAMIC_INIT",
+])
 
 class Token :
     def __init__( self ) :
@@ -588,6 +594,8 @@ class Beautifier :
             return self.process_statement(i,stack)
         elif i_spelling == "enum" :
             return self.process_enum(i,stack)
+        elif i_spelling in white_listed_macros :
+            return self.process_simple_statement(i,stack)
         elif stack[-1].type == "namespace-scope" or stack[-1].type == "class-scope" :
             return self.process_function_preamble_or_variable(i,stack)
         else :
@@ -599,7 +607,7 @@ class Beautifier :
         stack[-1].children.append( self.all_tokens[i] )
 
     def handle_read_all_tokens_error( self, function_name, stack ) :
-        print "ERROR: Ran out of tokens in function", function_name
+        print "ERROR: Ran out of tokens in function", function_name, "in file", self.filename
         self.print_depth_stack( stack )
         sys.exit(1)
 
@@ -656,12 +664,34 @@ class Beautifier :
             i+=1
         self.handle_read_all_tokens_error( "process_template", stack )
 
+    def var_in_class_dec_initializer( self, stack ) :
+        # print "stack[-1].type", stack[-1].type
+        # print "stack[-2].type", stack[-2].type
+        # print "stack[-3].type", stack[-3].type
+        # print "stack[-4].type", stack[-4].type
+        return len(stack) >= 4 and \
+            stack[-1].type == "statement" and \
+            stack[-2].type == "function-scope" and \
+            stack[-3].type == "function" and \
+            stack[-4].type == "class-scope"
+
+
     def process_simple_statement(self,i,stack) :
         if debug : self.print_entry("process_simple_statement",i,stack)
 
-        paren_depth = 0
-        if self.all_tokens[i].spelling == "(" and not self.all_tokens[i].is_inside_string :
-            paren_depth += 1
+        open_brackets = set( [ "{", "[", "(" ] )
+        close_brackets = set( [ "}", "]", ")" ] )
+        closing_bracket_for_opener = { "{" : "}", "[" : "]", "(" : ")" }
+        bracket_stack = []
+
+        if self.all_tokens[i].spelling in open_brackets and not self.all_tokens[i].is_inside_string :
+            bracket_stack.append( self.all_tokens[i].spelling )
+
+        macro_without_ending_semicolon = False
+        if self.all_tokens[i].spelling in white_listed_macros :
+            if debug : print "Encountered white-listed macro", self.all_tokens[i].spelling
+            macro_without_ending_semicolon = True
+            encountered_first_lparen = False
 
         self.set_parent(i,stack,"statement")
         stack.append(self.all_tokens[i])
@@ -680,7 +710,7 @@ class Beautifier :
         while i < len(self.all_tokens) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 pass
-            elif self.all_tokens[i].spelling == ";" and paren_depth == 0 :
+            elif self.all_tokens[i].spelling == ";" and len(bracket_stack) == 0 :
                 # print "statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] )
                 self.set_parent(i,stack)
                 stack.pop()
@@ -706,10 +736,35 @@ class Beautifier :
                     continue
             elif self.all_tokens[i].spelling == "?" :
                 n_question_marks += 1
-            elif self.all_tokens[i].spelling == "(" :
-                paren_depth += 1
-            elif self.all_tokens[i].spelling == ")" :
-                paren_depth -= 1
+            elif self.all_tokens[i].spelling in open_brackets :
+                bracket_stack.append( self.all_tokens[i].spelling )
+                if macro_without_ending_semicolon and not encountered_first_lparen and self.all_tokens[i].spelling == "(" :
+                    encountered_first_lparen = True
+            elif self.all_tokens[i].spelling in close_brackets :
+                if len(bracket_stack) == 0 :
+                    # Perhaps this is a constant declared in a class?
+                    if self.var_in_class_dec_initializer( stack ) and self.all_tokens[i].spelling == "}" :
+                        if debug : self.print_entry("simple statement has turned out to be a variable!",i,stack )
+                        # OK! -- then we found what we were looking for and can quit
+                        self.set_parent(i,stack)
+                        stack.pop()
+                        return i
+
+
+                    print "Closing bracket '"+self.all_tokens[i].spelling+"' found that does not match an opening bracket in", self.filename
+                    sys.exit(1)
+                if closing_bracket_for_opener[ bracket_stack[-1] ] != self.all_tokens[i].spelling :
+                    print "Closing bracket does not match opening bracket in", self.filename
+                    print "opener:", bracket_stack[-1]
+                    print "closer:", self.all_tokens[i].spelling
+                    print "expected:", closing_bracket_for_opener[ bracket_stack[-1] ]
+                    #assert( closing_bracket_for_opener[ bracket_stack[-1] ] == self.all_tokens[i].spelling  )
+                    sys.exit(1)
+                bracket_stack.pop()
+                if len(bracket_stack) == 0 and macro_without_ending_semicolon and encountered_first_lparen :
+                    self.set_parent(i,stack)
+                    stack.pop()
+                    return i+1
 
             self.set_parent(i,stack)
             i+=1
@@ -1488,7 +1543,7 @@ class Beautifier :
             i+=1
         if i == len(line_toks) :
             # whoa!
-            print "Failed to find tok:", tok.spelling, "on line", tok.line_number
+            print "Failed to find tok:", tok.spelling, "on line", tok.line_number, "in file", self.filename
             sys.exit(1)
         while i < len(line_toks) :
             line_toks[i].start = line_toks[i].start+1
@@ -2467,16 +2522,24 @@ class Beautifier :
         if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
         while i_this < len(self.all_tokens) and i_other < len(self.all_tokens) :
-            tok_this, tok_other = self.two_toks( other, i_this, i_other )
-            if tok_this.type == "namespace-scope" or tok_other == "namespace-scope" :
-                if tok_this.type != tok_other.type :
+            tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if tok_this2.type == "namespace-scope" or tok_other2 == "namespace-scope" :
+                if tok_this2.type != tok_other2.type :
                     return False, i_this, i_other
                 else :
                     stack.append( "namespace_equiv" )
                     retval = self.statement_equiv( other, i_this, i_other, stack )
                     stack.pop()
                     return retval
-            if not tok_this.equivalent( tok_other ) :
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
+                if debug_equiv: print " "*len(stack) + "leaving snamespace_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
+                    if debug_equiv: print "returning true"
+                    return True, i_this, i_other
+                else :
+                    if debug_equiv: print "returning false"
+                    return False, i_this, i_other
+            if not tok_this2.equivalent( tok_other2 ) :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 

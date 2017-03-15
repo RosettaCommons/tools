@@ -18,7 +18,7 @@ debug = False
 #debug = True
 
 debug_equiv = False
-# debug_equiv = True
+#debug_equiv = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -2521,16 +2521,24 @@ class Beautifier :
         if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
         while i_this < len(self.all_tokens) and i_other < len(self.all_tokens) :
-            tok_this, tok_other = self.two_toks( other, i_this, i_other )
-            if tok_this.type == "namespace-scope" or tok_other == "namespace-scope" :
-                if tok_this.type != tok_other.type :
+            tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if tok_this2.type == "namespace-scope" or tok_other2 == "namespace-scope" :
+                if tok_this2.type != tok_other2.type :
                     return False, i_this, i_other
                 else :
                     stack.append( "namespace_equiv" )
                     retval = self.statement_equiv( other, i_this, i_other, stack )
                     stack.pop()
                     return retval
-            if not tok_this.equivalent( tok_other ) :
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
+                if debug_equiv: print " "*len(stack) + "leaving snamespace_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
+                    if debug_equiv: print "returning true"
+                    return True, i_this, i_other
+                else :
+                    if debug_equiv: print "returning false"
+                    return False, i_this, i_other
+            if not tok_this2.equivalent( tok_other2 ) :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 

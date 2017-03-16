@@ -73,6 +73,7 @@ token_types = [ "top-level",
 
 white_listed_macros = set([
     "OPT_1GRP_KEY",
+    "ASSERT_ONLY",
     "CEREAL_FORCE_DYNAMIC_INIT",
     "CEREAL_REGISTER_DYNAMIC_INIT",
 ])

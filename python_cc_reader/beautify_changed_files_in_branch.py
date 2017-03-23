@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from beautify_compiled_files_w_fork import *
 import subprocess, sys
 try:
@@ -13,11 +15,15 @@ except ImportError:
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.int( "num_cpu" ).shorthand("j").default(1)
-        p.str( "pound_if_setting" ).default("take_if") # can be take_if or take_else
-        p.flag( "dry_run" ) # only attempt to beautify without changing the files
+        p.str( "pound_if_setting" ).default("take_if").described_as( "Can be take_if or take_else.")
+        p.flag( "dry_run" ).described_as( "Only attempt to beautify without changing the files.")
+        p.str( "ref_branch" ).default("origin/master").described_as( "Which branch to use for 'master' when calculating changes." )
 
-    closest_master_command = [ "git", "merge-base", "master", "HEAD" ]
+    closest_master_command = [ "git", "merge-base", ref_branch, "HEAD" ]
     rev_to_diff_against = subprocess.Popen(closest_master_command, stdout=subprocess.PIPE).communicate()[0].strip()
+    if ( rev_to_diff_against == '' ): # If, for some reason, the branch doesn't exist
+        sys.stderr.write( "ERROR: Branch '" + ref_branch + "' doesn't seem to be a valid branch in this repository - not beautifying.\n" )
+        sys.exit(-1)
     #print "rev to diff: " + rev_to_diff_against
     bash_command = [ "git", "diff", "--relative", "--name-only", rev_to_diff_against, "HEAD" ]
     file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]

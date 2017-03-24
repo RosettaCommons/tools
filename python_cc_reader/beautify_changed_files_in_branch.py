@@ -25,10 +25,11 @@ if __name__ == "__main__" :
         sys.stderr.write( "ERROR: Branch '" + ref_branch + "' doesn't seem to be a valid branch in this repository - not beautifying.\n" )
         sys.exit(-1)
     #print "rev to diff: " + rev_to_diff_against
-    bash_command = [ "git", "diff", "--relative", "--name-only", rev_to_diff_against, "HEAD" ]
+    bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
     file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]
-    file_list = file_list.splitlines()
-    file_list = [ x for x in file_list if x[-3:]==".hh" or x[-3:]==".cc" ]
+    file_list = [ x.split(None,1) for x in file_list.splitlines() ]
+    # Files with status of D have been deleted, and don't need beautification.
+    file_list = [ x for s, x in file_list if (x[-3:]==".hh" or x[-3:]==".cc") and s != 'D' ]
     # print file_list
     # sys.exit(0)
 

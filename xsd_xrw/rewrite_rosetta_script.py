@@ -571,23 +571,23 @@ def move_OUTPUT_as_last_child_of_ROSETTASCRIPTS( root, tokens ) :
             out_first = out_elem.tags[0].tokens[0].index
             out_last  = out_elem.tags[-1].tokens[-1].index
             next_first = root.sub_elements[output_index+1].tags[0].tokens[0].index
-            next_last = root.sub_elements[output_index+1].tags[-1].tokens[-1].index
+            last_last = root.sub_elements[-1].tags[-1].tokens[-1].index
             #last_first = last_elem.tags[0].tokens[0].index
             #last_last  = last_elem.tags[-1].tokens[-1].index
             assert( len(root.tags) == 2 )
             root_first = root.tags[1].tokens[0].index
             #print "OUTPUT REORDER:", prev_last+1, out_last+1, root_first
-            #print 0, out_first
-            #print next_first, next_last+1
-            #print out_last+1, next_first
-            #print out_first, out_last+1
-            #print next_last+1, "END"
-            #tokens = tokens[:prev_last+1] + tokens[(out_last+1):(root_first)] + tokens[prev_last+1:(out_last+1)] + tokens[(root_first):]
+            #print "1", 0, out_first, tokens[0].contents, tokens[out_first].contents
+            #print "2", next_first, last_last+1, tokens[next_first].contents, tokens[last_last+1].contents
+            #print "3", out_last+1, next_first, tokens[out_last+1].contents, tokens[next_first].contents
+            #print "4", out_first, out_last+1, tokens[out_first].contents, tokens[out_last+1].contents
+            #print "5", last_last+1, "END", tokens[last_last+1].contents, "END"
+
             tokens = tokens[ : out_first            ] + \
-                     tokens[next_first: next_last+1 ] + \
+                     tokens[next_first: last_last+1 ] + \
                      tokens[out_last+1: next_first  ] + \
                      tokens[out_first: out_last+1   ] + \
-                     tokens[next_last+1:            ]
+                     tokens[last_last+1:            ]
 
             #print "old subelement order:"
             #for elem in root.sub_elements :

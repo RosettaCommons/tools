@@ -27,10 +27,12 @@ if __name__ == "__main__" :
     #print "rev to diff: " + rev_to_diff_against
     bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
     file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]
+    print "Initial list\n", file_list
     file_list = [ x.split(None,1) for x in file_list.splitlines() ]
     # Files with status of D have been deleted, and don't need beautification.
     file_list = [ x for s, x in file_list if (x[-3:]==".hh" or x[-3:]==".cc") and s != 'D' ]
-    # print file_list
+    file_list = [ x for x in file_list if x.find("/ui/") == -1 and ( len(x) < 3 or x[:3] != "ui/") and x.find( "code_templates/" ) == -1  ]
+    print file_list
     # sys.exit(0)
 
     fbm = beautify_files_in_parallel( file_list, not dry_run, num_cpu, pound_if_setting )

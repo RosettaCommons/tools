@@ -261,6 +261,7 @@ for line in lines:
             if not user_input_queue:
                 if hostname in ['comet']:    queue2 = 'shared'
                 if hostname in ['sherlock']: queue2 = 'owners'
+
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
@@ -345,7 +346,8 @@ if DO_MPI:
             #    queue = 'compute'
             #if development:
             #    queue = 'development'
-            #fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
+            if hostname in ['sherlock']:
+                queue='owners'
             fid_queue_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)

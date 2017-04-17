@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 from recces.data import SingleSimulation, SingleHistSimulation, N_SCORE_TERMS
 from recces.util import KT_IN_KCAL
 from math import log,exp
@@ -25,7 +24,7 @@ curr_wt = [0.73, 0.1, 0.0071,      0, 4.26, 2.46, 0.25,      0, 1.54, 4.54]
 if args.incorrect_wt_order: curr_wt = [0.73, 0.1, 0.0071, 0.25, 4.54, 4.26, 0.0001, 1.54, 0.0001, 2.46 ]
 
 if args.use_hist:
-    sim = SingleHistSimulation('./')
+    sim = SingleHistSimulation('./',name=args.seq)
     val = sim.get_free_energy()
 else:
     sim = SingleSimulation('./', curr_wt, name=args.seq)

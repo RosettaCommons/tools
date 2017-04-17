@@ -3,40 +3,19 @@ from collections import defaultdict
 import glob
 import os
 import re
-import string
+
 import numpy as np
 from scipy.misc import logsumexp
 
-import util
+import turner_util_new as util
 
-'''
-RECCES (reweighting of energy-function collection with conformational ensemble sampling in Rosetta)
-Python analysis scripts
+N_SCORE_TERMS = 10
+# KT_IN_KCAL = 0.593
+KT_IN_KCAL = 0.61633135471  # 37 Celcius
 
-Originally created by: Fang-Chieh Chou, Das lab, Stanford University.
-
-TODO: The post-processing of the energies from Rosetta are carried out in this script,
-       but its very easy to get tripped up with settings. A big help would be if Rosetta
-       outputs to disk a JSON file (e.g., "run_info.json") with:
-
-        1. The sequence simulated (e.g., ccc_gg), which is otherwise guessed by the python script.
-        2. score_types & weights (in output order)
-        3. Jumps & torsions that are moved (TorsionID's would be acceptable) and the angle_ranges (or rmsd_cutoff for jump)
-        4. For runs that move base pair jump(s), output of xyz.txt
-        5. Histogram information: histogram_min, histogram_max, histogram_bin_size
-
-And here in the python scripts, we'd want to create a RunInfo class and simple reader in a separate .py file.
-
-TODO: Its a little confusing below to have SingleHistogramSimulation (which reads in .hist.gz files) &
-        SingleSimulation (which reads in .bin.gz files). Unify into one flow, with use of histograms set by a flag?
-
--- rhiju, jan. 2017
-
-'''
-N_SCORE_TERMS = 10 # should *not* be hard coded, but read in from JSON
 # WHAM parameters
 # TODO: This assumes the energy mostly falls in -100 to 800 RU. Should be
-# able to use a general automatic way to figure out the bin ranges, or at least read in from JSON
+# able to use a general automatic way to figure out the bin ranges.
 BIN_SIZE = 0.1
 MIN_ENERGY = -100.05
 MAX_ENERGY = 800.05
@@ -68,11 +47,6 @@ class BaseMinFunc(object):
         """Reweight the parameter with the new_weight."""
         raise NotImplementedError
 
-    @abstractmethod
-    def value(self):
-        """Return free energy."""
-        raise NotImplementedError
-
 
 class SingleSimulation(BaseMinFunc):
     """API for data in a single Turner-rule style simulation
@@ -80,8 +54,8 @@ class SingleSimulation(BaseMinFunc):
     """
 
     def __init__(self, data_folder, orig_weight=None,
-                 use_existing_norm_factor=False, down_sampling_ratio=None,
-                 bootstrap=False, legacy_output=False, name=None):
+                 use_existing_norm_factor=True, down_sampling_ratio=None,
+                 bootstrap=False, legacy_output=False):
         """Create a SingleSimulation object.
 
         Parameters
@@ -97,10 +71,8 @@ class SingleSimulation(BaseMinFunc):
         legacy_output : For analyzing deprecated old output format.
         """
         # TODO: Folder name should correspond to the sequence here.
-        # Can be made more general -- see note above on plan for reading a
-        #  a run_info.json file output by Rosetta.
-        self.name = name
-        if name == None: self.name = get_name_from_folder( data_folder )
+        # Can be made more general.
+        self.name = os.path.basename(data_folder)
         self.curr_weight = (np.array(orig_weight) if orig_weight is not None
                             else np.ones(N_SCORE_TERMS))
 
@@ -108,7 +80,7 @@ class SingleSimulation(BaseMinFunc):
         kt_to_fn = _get_kt_to_file_names(data_folder, ".bin.gz")
         raw_data = []
         kt_list = []
-        for kt, file_list in sorted(kt_to_fn.items()):
+        for kt, file_list in kt_to_fn.iteritems():
             raw_data.append(
                 np.vstack(util.load_2d_bin_gz(fn) for fn in file_list))
             kt_list.append(kt)
@@ -127,12 +99,8 @@ class SingleSimulation(BaseMinFunc):
         if use_existing_norm_factor and os.path.isfile(normalization_file):
             normalization = np.load(normalization_file)
         else:
-            # data[0]: # times at frame; data[1]: energy of frame; and data[2...]: individual score terms.
-            # histograms has size (N_temperatures, N_energy_bins)
             histograms = [self._energy2hist(data[:, 1], data[:, 0])
                           for data in raw_data]
-            util.print_hists( histograms, WHAM_ENERGIES )
-            # normalization has size (N_energy_bins)
             normalization, _ = _wham(histograms, kt_list)
             np.save(normalization_file, normalization)
 
@@ -148,40 +116,22 @@ class SingleSimulation(BaseMinFunc):
             del data
         histograms = [self._energy2hist(data[:, 1], data[:, 0])
                       for data in raw_data]
-        self._histograms = histograms
 
-        # What is normalization? Its a bit WHAM-specific. See notes below on _wham
         dos_raw = np.sum(histograms, axis=0) / normalization
-
-        # note: recently updated so that np.sum( dos_raw ) = 1.0 quite early on.
-        normalization *= np.sum(dos_raw)
-
         seq = self.name.split('_')
         torsion_volume = util.torsion_volume(*seq)
-        xyzfile = data_folder + "/xyz.txt"
-        if ( os.path.isfile( xyzfile ) ):
-            # almost ready for this: just need to store rmsd_cutoff somewhere on disk.
-            print "You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term."
-            #torsion_volume *= compute_rigid_body_volume_ratio( rmsd_cutoff, xyzfile )
-        normalization *= ( 1.0 / torsion_volume )
+        normalization *= np.sum(dos_raw) / torsion_volume
+        print "TORSION_VOL ", torsion_volume
 
-
-        # amazing Fang tricks.
         full_data = np.vstack(raw_data)
         energy = full_data[:, 1]
         normalization_idx = self._energy2binidx(energy)
-        if np.min( normalization_idx ) == 0: raise ValueError( 'Found energy below MIN_ENERGY' )
         data_weight = full_data[:, 0] / normalization[normalization_idx]
-
         self._energy0 = energy
         self._data_weight = data_weight
         if legacy_output:
             self._score_terms = full_data[:, 2:] / self.curr_weight
         else:
-            # this provides a check on weight order:
-            #for i in range(3): print full_data[i,:2], np.sum( full_data[i,2:] * self.curr_weight )
-            # spit out mean values of each score-term:
-            #print np.sum( full_data[:,2:] * self.curr_weight, axis = 0 )/np.size( full_data, axis = 0 )
             self._score_terms = full_data[:, 2:]
 
         self._update_free_energy_and_deriv()
@@ -199,14 +149,6 @@ class SingleSimulation(BaseMinFunc):
     @property
     def deriv(self):
         return self._deriv
-
-    @property
-    def avg_energy(self):
-        return self._avg_energy
-
-    @property
-    def entropy(self):
-        return self._entropy
 
     def get_ST_weights(self, kt_list):
         """Get optimized Simulated Tempering weights for a list of kT.
@@ -244,9 +186,6 @@ class SingleSimulation(BaseMinFunc):
         self._value = free_energy
         self._deriv = deriv
 
-        self._avg_energy  = np.sum( self._data_weight * new_energy * np.exp( -new_energy + free_energy ) )
-        self._entropy = -free_energy + self._avg_energy
-
     def _get_curr_energy(self):
         # score_weight_diff = self.curr_weight - self._orig_weight
         # energy = self._energy0 + self._score_terms.dot(score_weight_diff)
@@ -270,7 +209,7 @@ class SingleHistSimulation(BaseMinFunc):
     """Histogram based simulation data. For computing free energies.
     Cannot be minimized.
     """
-    def __init__(self, data_folder, name=None):
+    def __init__(self, data_folder):
         """Create a SingleHistSimulation object.
 
         Parameters
@@ -278,8 +217,8 @@ class SingleHistSimulation(BaseMinFunc):
         data_folder : Folder name where the data is stored. The name of the
                       folder should correspond to the sequence being simulated.
         """
-        self.name = name
-        if name == None: self.name = get_name_from_folder( data_folder )
+        self.name = os.path.basename(data_folder)
+
         # Scores for Hist bins.
         # Assumes all the hist_scores.gz files are the same
         hist_scores = util.load_1d_bin_gz(
@@ -289,20 +228,19 @@ class SingleHistSimulation(BaseMinFunc):
         kt_to_fn = _get_kt_to_file_names(data_folder, '.hist.gz')
         hist_list = []
         kt_list = []
-        for kt, fn_list in sorted(kt_to_fn.items()):
+        for kt, fn_list in kt_to_fn.iteritems():
             all_sub_hists = [util.load_1d_bin_gz(fn, dtype=np.uint64)
                              for fn in fn_list]
             hist_counts = np.sum(all_sub_hists, axis=0)
             hist_list.append(hist_counts)
             kt_list.append(kt)
-        #util.print_hists( hist_list, WHAM_ENERGIES )
 
         _, dos_raw = _wham(hist_list, kt_list, hist_scores)
         seq = self.name.split('_')
         torsion_volume = util.torsion_volume(*seq)
         normalization = sum(dos_raw) / torsion_volume
         self._dos = dos_raw / normalization
-        self._dos_scores = hist_scores # energies (x-axis of histogram)
+        self._dos_scores = hist_scores
 
     def get_free_energy(self, kt=1):
         """Free energy of the system.
@@ -315,7 +253,6 @@ class SingleHistSimulation(BaseMinFunc):
         -------
         Computed free energy.
         """
-        # self._dos_scores are energies of each bin (x-axis of histogram)
         return -kt * logsumexp(-self._dos_scores / kt, b=self._dos)
 
     @property
@@ -582,41 +519,6 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
     """Weighted Histogram Analysis Method (WHAM).
     Returns the the normalization factor for each energy bin,
     and the full density of states (DoS).
-
-    Parameters
-    ----------
-    histograms : histograms of energies at the different temperatures
-    kt_list    : temperatures simulated
-    energies   : energies simulated (histogram bin centers)
-
-    Returns
-    -------
-    weight_per_bin : a.k.a., normalization, can be used for efficient reweighting
-    dos_raw        : WHAM density of states, normalized so that sum is 1.0
-
-    Notes
-    -------
-    Best guess for DOS at given energy:
-
-       DOS( E ) = Sum_T [ wt( E, T ) * ( obs. frequency at each temperature) * exp( +E/k T ) * Z(T)] / Sum_T[ wt( E, T ) ]
-
-    Where exp( E/kT) 'back-corrects' the boltzmann factor, and wt(E,T) weight the different temperatures based on
-      their statistics. There's also a factor z( T ) = -log F(T). that corrects for phase space volume at a given temperature.
-      hopefully so that the simulation with the strongest statistics at given E has highest weight.
-
-    Remarkably, the maximum-likelihood solution is achieved by the following weights:
-
-         wt( energy,temperature ) = n_sample( T ) * Z( T )  * exp( - E/ k T )
-
-    Here, z( T ) = exp( F(T) ) gives the free energy at a particular temperature,
-     and is fit self-consistently during WHAM.  [ by iterating with the relation Z(T) = Sum_E DOS( E )  exp( -E/kT) ]
-
-    So that the weighted sum ends up simply involving the *counts* provided by the simulation
-
-       DOS( E ) = Sum_T[ COUNTS(E, T) ] / Sum_T[ wt( E, T ) ]
-
-    normalization( E ) is the denominator Sum_T[ wt( E, T ) ].
-
     """
     kt_list = np.asarray(kt_list)
 
@@ -626,28 +528,19 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
     exp_f_list = np.ones_like(kt_list)
     boltzmann_factor = np.exp(
         -np.tile(energies, (len(kt_list), 1)).T / kt_list)
-    # bin_size actually drops out below and beyond. could even set it to 1.0
-    bin_size = 1.0 # energies[1] - energies[0]
+    bin_size = energies[1] - energies[0]
 
-    # iteration
     while True:
         exp_f_list_old = exp_f_list
         weight_per_bin = np.sum(n_sample_per_hist * bin_size * exp_f_list *
                                 boltzmann_factor, axis=1)
 
         dos_raw = hist_sum / weight_per_bin  # Density of states
-        # break degeneracy -- any overall increase in dos_raw can be compensated by decrease in exp_f_list;
-        # so let's use convention that integral( dos_raw ) = 1.0.  -- rhiju, jan. 2017
-        dos_raw = dos_raw/ np.sum( dos_raw * bin_size )
         exp_f_list = 1.0 / np.sum(dos_raw * bin_size * boltzmann_factor.T,
                                   axis=1)
         diff = (np.abs(exp_f_list - exp_f_list_old) /
                 (exp_f_list + exp_f_list_old))
         if np.all(diff <= WHAM_CONVERGE_LIMIT):
-            # useful stuff ...
-            # best_fit = np.tile(dos_raw, (len(kt_list),1)).T * (n_sample_per_hist * bin_size * exp_f_list * boltzmann_factor)
-            # print "delG (1 kT) [WHAM]", -logsumexp(-energies, b=dos_raw), " sum dos_raw", np.sum(dos_raw), "  bin_size", bin_size, " sum exp(f) ", np.sum(exp_f_list)
-            # print sorted( zip( kt_list, kt_list * np.log( exp_f_list ) ) ) # should be delG at each temperature actually
             return weight_per_bin, dos_raw
 
 
@@ -708,13 +601,3 @@ def _get_file_names(folder_name, fn_suffix):
     folder_pattern = re.sub(r'(?<!\[)\]', '[]]', folder_pattern)
     full_pattern = os.path.join(folder_pattern, "*%s" % fn_suffix)
     return glob.glob(full_pattern)
-
-def get_name_from_folder( data_folder ):
-    dir_name = os.path.basename(os.path.abspath(data_folder))
-    if len( dir_name ) > 1 and dir_name[:2] == 'ST':
-        dir_name = os.path.basename( os.path.dirname( os.path.abspath(data_folder)) )
-    dir_name = string.join( dir_name.split( '_' )[:2], '_')
-    if not ( re.match( '[acguACGU][acguACGU]*[_acguACGU]*', dir_name ) == None ):
-        print 'Inferring sequence from directory name: ', dir_name
-        return dir_name
-    return ''

@@ -7,17 +7,24 @@ import string
 
 def Help():
     print argv[0]+' <text file with rosetta command> <outdir> <# jobs>  [# hours]'
+    print '  give outdir as 0 and # jobs as 1 to not create separate outdirs.'
     exit()
 
-if len( argv ) < 4:
+if len( argv ) < 2:
     Help()
 
 infile = argv[1]
-outdir = argv[2]
+
+try:
+    outdir = argv[2]
+except:
+    outdir = '0'
+
 try:
     n_jobs = int( argv[3] )
 except:
-    print 'NEED TO SUPPLY NUMBER OF JOBS'
+    n_jobs = 1
+    if outdir != '0': print 'NEED TO SUPPLY NUMBER OF JOBS'
 
 DO_MPI = False # May need to reactivate for XSEDE.
 
@@ -28,6 +35,7 @@ if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostna
 if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
 if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
+if hostname_tag.find( 'biox3' ) > -1: hostname = 'biox3'
 
 queue_cmd = 'qsub'
 if hostname in ["stampede", "sherlock", "comet"]:
@@ -177,14 +185,19 @@ for line in lines:
             command_line = string.join( cols )
 
     dir = outdir + '/$(Process)/'
-    if command_line.find( '-csa_bank_size' ) > -1:
+    make_outdirs = False
+    if outdir == '0':
+        assert( n_jobs == 1 )
+    elif command_line.find( '-csa_bank_size' ) > -1:
         print "Detected CSA mode"
     else:
         command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
         command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
+        command_line = command_line.replace( '-output_histogram_file ', '-output_histogram_file '+dir)
         command_line = command_line.replace( '-o ', '-o '+dir)
+        make_outdirs = True
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
     command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
     command_line = command_line.replace( 'macosgcc', 'linuxgcc')
@@ -223,8 +236,10 @@ for line in lines:
 
 
     for i in range( n_jobs ):
-        dir_actual = dir.replace( '$(Process)', '%d' % i)
-        system( 'mkdir -p '+ dirname(dir_actual) )
+        if make_outdirs:
+            dir_actual = dir.replace( '$(Process)', '%d' % i)
+            system( 'mkdir -p '+ dirname(dir_actual) )
+        dir_actual = './'
 
         outfile = outfile_general.replace( '$(Process)', '%d' % i )
         errfile = errfile_general.replace( '$(Process)', '%d' % i )
@@ -457,7 +472,7 @@ if DO_MPI:
     fid_queue_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
-if len( hostname ) == 0:
+if len( hostname ) == 0 and bsub_file != '/dev/null':
     print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source',bsub_file
     print
@@ -471,7 +486,7 @@ if hostname == 'ade':
     print '>bash ', all_commands_file
     print
 
-if len( hostname ) == 0:
+if queue_cmd == 'qsub':
     print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',qsub_file
     print

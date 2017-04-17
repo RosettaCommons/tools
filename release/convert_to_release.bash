@@ -124,6 +124,12 @@ cp devel.src.settings.release devel.src.settings
 cp pilot_apps.src.settings.release pilot_apps.src.settings.all
 #git commit -am "weekly release: overwrite *.src.settings with release versions"
 
+
+# removing ui files
+#cd $ROSETTA/main/source/ide && rm update_ui_project.py || true
+cd $ROSETTA/main/source/src && git rm -rf ui || true
+
+
 cd $ROSETTA/main/source/src/apps
 pwd
 git rm -r pilot

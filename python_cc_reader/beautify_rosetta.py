@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import beautify_compiled_files_w_fork
 import blargs
 import os, sys
@@ -13,12 +14,21 @@ import os, sys
 #
 # By default the beautifier does not overwrite the original files, but instead,
 # writes out a .beaut file representing the beautified version of your file.
-# Use the --overwrite flag to have this script write the beautified output 
+# Use the --overwrite flag to have this script write the beautified output
 # on top of the original file.
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.int( "num_cpu" ).shorthand("j").default(1)
         p.flag( "overwrite")
+
+    if not overwrite :
+        print "WARNING: In the absence of the --overwrite flag, this script will not change"
+        print "any of your source files. It will instead write the beautified output to new"
+        print ".beaut files for you to review. Also note: you should not commit these .beaut"
+        print "files to git! To actually beautify your source files, run this script with"
+        print "the --overwrite flag"
+
+
     os.chdir( "src" )
     print "Beautifying src/"
     fbm_src = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )
@@ -39,4 +49,4 @@ if __name__ == "__main__" :
             print "Files in test/ that could not be beautified:"
             for fname in fbm_test.files_that_failed :
                 print "File", fname, "could not be beautified"
-    
+

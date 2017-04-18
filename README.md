@@ -11,8 +11,13 @@ A Collection of useful python modules that are used by many scripts here.
 ## Installation:
 
 
-The library depends on Biopython, which can be downloaded from http://www.biopython.org
-To use the graphics package, you will also need to install matplotlib from http://matplotlib.sourceforge.net
+The library depends on Biopython
+To use the graphics package, you will also need to install matplotlib
+
+```
+pip install biopython --user
+pip install matplotlib --user
+```
 
 The library is divided into 3 packages:
 

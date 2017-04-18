@@ -13,7 +13,7 @@ from sys import argv
 #    print " export ROSETTA='/Users/rhiju/src/rosetta/' "
 #    print "in your .bashrc or .bash_profile script."
 
-if not os.access('/path/to/folder', os.W_OK): exit( 0 )
+#if not os.access('/path/to/folder', os.W_OK): exit( 0 )
 
 CWD = getcwd()
 chdir( dirname( argv[0] ) )

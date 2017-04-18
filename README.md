@@ -8,7 +8,7 @@ Protein Tools
 
 A Collection of useful python modules that are used by many scripts here. 
 
-##Installation:
+## Installation:
 
 
 The library depends on Biopython, which can be downloaded from http://www.biopython.org
@@ -23,19 +23,19 @@ protein - Classes and functions for manipulation protein structural data (requir
 to install this package type:
 
 
-###Typical Install
+### Typical Install
 ```
 cd protein_tools
 python setup.py install
 ```
 
-###Mac Install
+### Mac Install
 ```
 cd protein_tools
 python setup.py install --user
 ```
 
-###Custom Install
+### Custom Install
 ```
 cd protein_tools
 python setup.py install --install-scripts=/script/install/directory

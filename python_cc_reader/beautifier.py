@@ -72,7 +72,14 @@ token_types = [ "top-level",
                 "empty-statement" ]
 
 white_listed_macros = set([
+    "OPT_KEY",
     "OPT_1GRP_KEY",
+    "OPT_2GRP_KEY",
+    "OPT_3GRP_KEY",
+    "EXTERN_OPT_KEY",
+    "EXTERN_OPT_1GRP_KEY",
+    "EXTERN_OPT_2GRP_KEY",
+    "EXTERN_OPT_3GRP_KEY",
     "ASSERT_ONLY",
     "CEREAL_FORCE_DYNAMIC_INIT",
     "CEREAL_REGISTER_DYNAMIC_INIT",

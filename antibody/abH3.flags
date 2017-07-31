@@ -24,3 +24,6 @@
 -loops:ramp_rama
 -loops:refine_outer_cycles 5
 
+#These enable the kink constraints.  Increase the weight if you want tighter kink constraints.
+-antibody:constrain_cter
+-constraints:cst_weight 1.0

@@ -50,5 +50,6 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	-I$SOURCE/src/platform/linux \
 	-I$SOURCE/external/boost_1_55_0 \
 	-I$SOURCE/external/dbio \
+	-I$SOURCE/external/libxml2/include/ \
 	-I/usr/include \
 	-I/usr/local/include > $FILE.def

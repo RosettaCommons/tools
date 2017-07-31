@@ -19,6 +19,15 @@ if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
         p.int( "num_cpu" ).shorthand("j").default(1)
         p.flag( "overwrite")
+
+    if not overwrite :
+        print "WARNING: In the absence of the --overwrite flag, this script will not change"
+        print "any of your source files. It will instead write the beautified output to new"
+        print ".beaut files for you to review. Also note: you should not commit these .beaut"
+        print "files to git! To actually beautify your source files, run this script with"
+        print "the --overwrite flag"
+
+
     os.chdir( "src" )
     print "Beautifying src/"
     fbm_src = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )

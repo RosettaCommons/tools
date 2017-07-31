@@ -86,11 +86,19 @@ def files_in_test_to_beautify() :
     all_files = [ x.replace( '../test/', '' ) for x in compiled_cxxtest_hh_files() ]
     return all_files
 
-def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if"  ) :
+def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if", quiet=False  ) :
 
     all_files = files_to_beautify()
+    return beautify_files_in_parallel( all_files, overwrite, num_cpu, pound_if_setting, quiet )
 
-    print "Preparing to run beautifier on", len(all_files), "files"
+
+def beautify_files_in_parallel( file_list, overwrite, num_cpu, pound_if_setting = "take_if", quiet=False ) :
+
+    if not quiet :
+        if overwrite :
+            print "Preparing to run beautifier on", len(file_list), "files"
+        else :
+            print "Preparing a dry run of the beautifier on", len(file_list), "files; look for beautified output of X.cc in X.cc.beaut"
 
     fbm = FileBeautifierManager()
     fm = fork_manager.ForkManager( num_cpu )
@@ -101,7 +109,7 @@ def beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting = "take_if" 
     if pound_if_setting :
         opts.pound_if_setting = pound_if_setting
 
-    for fname in all_files :
+    for fname in file_list :
         pid = fm.mfork()
         if pid == 0 :
             # print "beautifying", fname
@@ -127,5 +135,11 @@ if __name__ == "__main__" :
         p.str( "pound_if_setting" ).default("take_if") # can be take_if or take_else
         p.flag("overwrite")
 
+    if not overwrite :
+        print "WARNING: In the absence of the --overwrite flag, this script will not change"
+        print "any of your source files. It will instead write the beautified output to new"
+        print ".beaut files for you to review. Also note: you should not commit these .beaut"
+        print "files to git! To actually beautify your source files, run this script with"
+        print "the --overwrite flag"
     fbm = beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting )
     exit_following_beautification( fbm )

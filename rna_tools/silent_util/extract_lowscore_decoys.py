@@ -241,12 +241,14 @@ for infile in infiles:
     # Centroid readout?
     MINI_EXE = MINI_DIR+'extract_pdbs'
     if not exists( MINI_EXE):
+        MINI_EXE = MINI_DIR+'extract_pdbs.default.linuxclangrelease'
+    if not exists( MINI_EXE):
         MINI_EXE = MINI_DIR+'extract_pdbs.linuxgccrelease'
     if not exists( MINI_EXE):
         MINI_EXE = MINI_DIR+'/extract_pdbs.macosgccrelease'
         assert( exists( MINI_EXE ) )
 
-    command = '%s -in:file:silent  %s   -in:file:tags %s -database %s -out:file:residue_type_set centroid ' % \
+    command = '%s -in:file:silent  %s   -in:file:tags %s -load_PDB_components -database %s -out:file:residue_type_set centroid ' % \
                   ( MINI_EXE, outfilename, string.join( tags ), DB )
 
     # This section (rosetta++) is really old and probably could be removed
@@ -286,7 +288,7 @@ for infile in infiles:
     # Hey this could be a new mini RNA file
     if rna and not old_rosetta:
 
-        command = '%s -database %s -in::file::silent %s -tags %s  -extract' % \
+        command = '%s -database %s -load_PDB_components -in::file::silent %s -tags %s  -extract' % \
                   ( MINI_EXE, DB, outfilename, string.join( tags ) )
 
         if binary_silentfile:
@@ -294,7 +296,7 @@ for infile in infiles:
         else:
             silent_struct_type = 'rna'
 
-        command = '%s -database %s -in:file:silent %s -in:file:tags %s -in:file:silent_struct_type %s  ' % \
+        command = '%s -database %s -load_PDB_components -in:file:silent %s -in:file:tags %s -in:file:silent_struct_type %s  ' % \
                   ( MINI_EXE, DB,outfilename, string.join( tags ), silent_struct_type )
 
         if coarse:
@@ -309,7 +311,7 @@ for infile in infiles:
 
     elif ( binary_silentfile ):
 
-        command = '%s -in:file:silent  %s  -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
+        command = '%s -in:file:silent  %s -load_PDB_components -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
                   ( MINI_EXE, outfilename, string.join( tags ), DB )
         if output_virtual: command += " -output_virtual "
         if len( extra_res_fa ) > 0:

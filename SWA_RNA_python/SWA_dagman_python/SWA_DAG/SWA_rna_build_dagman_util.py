@@ -660,9 +660,9 @@ def get_user_input_pdb_info_list(input_pdbs, input_silent_file_list, input_res_f
 
 				starting_sequence = ""
 				input_res_particular = []
-				for i in range( count, count+input_seq_length ):
-					starting_sequence += sequence[ input_res_full[ i ] - 1  ]
-					input_res_particular.append( input_res_full[ i ] )
+				for res_idx in input_res_full:
+					starting_sequence += sequence[ res_idx - 1 ]
+					input_res_particular.append( res_idx )
 
 				if (starting_sequence != input_pdb_sequence) :
 					error_exit_with_message('start_sequence =%s does not equal input_pdb_sequence=%s ' % (starting_sequence, input_pdb_sequence))

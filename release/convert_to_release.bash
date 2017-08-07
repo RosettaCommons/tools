@@ -163,6 +163,11 @@ cd $ROSETTA/main/source/tools/build/
 sed 's/mode    = "debug"/mode    = "release"/' basic.options > basic.options.release
 mv -f basic.options.release basic.options
 
+# Enable path info scraping for released builds
+cd $ROSETTA/main/source/tools/build/
+cp site.settings.release site.settings
+
+
 cd $ROSETTA/main/tests/integration/
 pwd
 #git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out

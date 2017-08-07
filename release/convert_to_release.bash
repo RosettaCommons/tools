@@ -158,6 +158,11 @@ cd $ROSETTA/main/cmake/build/
 sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' build.settings.cmake > basic.settings.cmake.release
 mv -f basic.settings.cmake.release basic.settings.cmake
 
+# Make the default build mode be release
+cd $ROSETTA/main/source/tools/build/
+sed 's/mode    = "debug"/mode    = "release"/' basic.options > basic.options.release
+mv -f basic.options.release basic.options
+
 cd $ROSETTA/main/tests/integration/
 pwd
 #git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out

@@ -150,6 +150,14 @@ cd $ROSETTA/main/source/test/devel
 ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r
 #git commit -m "weekly release: removing unit test devel"
 
+# Remove Werror, etc from build settings
+cd $ROSETTA/main/source/tools/build/
+sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' basic.settings > basic.settings.release
+mv -f basic.settings.release basic.settings
+cd $ROSETTA/main/cmake/build/
+sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' build.settings.cmake > basic.settings.cmake.release
+mv -f basic.settings.cmake.release basic.settings.cmake
+
 cd $ROSETTA/main/tests/integration/
 pwd
 #git rm -r tests/loop_creation tests/inverse_rotamer_remodel tests/splice_in tests/splice_out

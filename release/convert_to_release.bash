@@ -130,10 +130,12 @@ cp pilot_apps.src.settings.release pilot_apps.src.settings.all
 cd $ROSETTA/main/source/src && git rm -rf ui || true
 
 
-cd $ROSETTA/main/source/src/apps
-pwd
-git rm -r pilot
-#git commit -m "weekly release: removing pilot apps"
+# Remove all of the pilot directories.
+cd $ROSETTA/main/
+find . -name pilot -type d -exec rm -r {} +
+cd $ROSETTA/demos/
+find . -name pilot -type d -exec rm -r {} +
+#documentation and tools don't have pilot dirs, skip to speed things up.
 
 # unneeded since Tim moved the documentation out; scheduled to be replaced with code that generates the static html wikimanual
 # cd $ROSETTA/main/source/doc

@@ -21,7 +21,9 @@ do
     do
 echo $directory $executable
 
-	if grep -q $executable ../../source/src/apps.src.settings
+	# Want to avoid situation where pilot executable name is a sub-string of a released executable name
+	# But don't want to miss "full" directory apps
+	if grep -q '["/]'$executable'"' ../../source/src/apps.src.settings
 	then
 	#if the executable is in the released build system, it's probably okay
 	    echo $executable "found in apps.src.settings" $directory "may be ok"

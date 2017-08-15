@@ -130,10 +130,12 @@ cp pilot_apps.src.settings.release pilot_apps.src.settings.all
 cd $ROSETTA/main/source/src && git rm -rf ui || true
 
 
-cd $ROSETTA/main/source/src/apps
-pwd
-git rm -r pilot
-#git commit -m "weekly release: removing pilot apps"
+# Remove all of the pilot directories.
+cd $ROSETTA/main/
+find . -name pilot -type d -exec rm -r {} +
+cd $ROSETTA/demos/
+find . -name pilot -type d -exec rm -r {} +
+#documentation and tools don't have pilot dirs, skip to speed things up.
 
 # unneeded since Tim moved the documentation out; scheduled to be replaced with code that generates the static html wikimanual
 # cd $ROSETTA/main/source/doc
@@ -149,6 +151,24 @@ cp devel.test.settings.release devel.test.settings
 cd $ROSETTA/main/source/test/devel
 ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r
 #git commit -m "weekly release: removing unit test devel"
+
+# Remove Werror, etc from build settings
+cd $ROSETTA/main/source/tools/build/
+sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' basic.settings > basic.settings.release
+mv -f basic.settings.release basic.settings
+cd $ROSETTA/main/cmake/build/
+sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' build.settings.cmake > basic.settings.cmake.release
+mv -f basic.settings.cmake.release basic.settings.cmake
+
+# Make the default build mode be release
+cd $ROSETTA/main/source/tools/build/
+sed 's/mode    = "debug"/mode    = "release"/' basic.options > basic.options.release
+mv -f basic.options.release basic.options
+
+# Enable path info scraping for released builds
+cd $ROSETTA/main/source/tools/build/
+cp site.settings.release site.settings
+
 
 cd $ROSETTA/main/tests/integration/
 pwd

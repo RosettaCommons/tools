@@ -156,7 +156,8 @@ ls | grep -vE "devel.cxxtest.hh" | xargs git rm -r
 cd $ROSETTA/main/source/tools/build/
 sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' basic.settings > basic.settings.release
 mv -f basic.settings.release basic.settings
-cd $ROSETTA/main/cmake/build/
+
+cd $ROSETTA/main/source/cmake/build/
 sed 's/^\(.*REMOVE FOR RELEASE\)/#\1/' build.settings.cmake > basic.settings.cmake.release
 mv -f basic.settings.cmake.release basic.settings.cmake
 

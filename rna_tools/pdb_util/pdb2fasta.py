@@ -12,10 +12,11 @@ if argv.count('-nochain'):
 pdbnames = argv[1:]
 
 for pdbname in pdbnames:
-    (sequences,chains,resnums) = get_sequences( pdbname, removechain )
+    (sequences,chains,resnums,segids) = get_sequences( pdbname, removechain )
     fastaid = stdout
     for i in range( len( sequences ) ):
-        fastaid.write( '>%s %s\n' % (basename(pdbname), make_tag_with_dashes(resnums[i], chains[i]) ) )
+        if len(sequences[i]) == 0: continue
+        fastaid.write( '>%s %s\n' % (basename(pdbname), make_tag_with_dashes(resnums[i], chains[i], segids[i]) ) )
         fastaid.write( sequences[i] )
         fastaid.write( '\n' )
         fastaid.write( '\n' )

@@ -83,6 +83,7 @@ white_listed_macros = set([
     "ASSERT_ONLY",
     "CEREAL_FORCE_DYNAMIC_INIT",
     "CEREAL_REGISTER_DYNAMIC_INIT",
+    "CEREAL_REGISTER_TYPE",
 ])
 
 class Token :
@@ -2994,8 +2995,8 @@ class Beautifier :
 def canonical_set_of_macros_to_test() :
     return [ [],
              [ "USE_MPI" ],
-             [ "CXX11" ],
-             [ "CXX11", "MULTI_THREADED" ],
+             [ "USE_MPI", "SERIALIZATION" ],
+             [ "MULTI_THREADED" ],
              [ "USE_OPENMP" ],
              [ "BOINC_GRAPHICS" ],
              [ "WINDOWS" ],

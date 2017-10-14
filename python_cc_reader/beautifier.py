@@ -84,6 +84,7 @@ white_listed_macros = set([
     "CEREAL_FORCE_DYNAMIC_INIT",
     "CEREAL_REGISTER_DYNAMIC_INIT",
     "CEREAL_REGISTER_TYPE",
+    "SPECIAL_COP_SERIALIZATION_HANDLING",
 ])
 
 class Token :

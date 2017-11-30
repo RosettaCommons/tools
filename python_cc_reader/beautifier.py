@@ -688,9 +688,11 @@ class Beautifier :
     def process_simple_statement(self,i,stack) :
         if debug : self.print_entry("process_simple_statement",i,stack)
 
-        open_brackets = set( [ "{", "[", "(" ] )
-        close_brackets = set( [ "}", "]", ")" ] )
-        closing_bracket_for_opener = { "{" : "}", "[" : "]", "(" : ")" }
+        open_scope = "{"
+        close_scope = "}"
+        open_brackets = set( [ "[", "(" ] )
+        close_brackets = set( [ "]", ")" ] )
+        closing_bracket_for_opener = { "[" : "]", "(" : ")" }
         bracket_stack = []
 
         if self.all_tokens[i].spelling in open_brackets and not self.all_tokens[i].is_inside_string :
@@ -745,6 +747,9 @@ class Beautifier :
                     continue
             elif self.all_tokens[i].spelling == "?" :
                 n_question_marks += 1
+            elif self.all_tokens[i].spelling == open_scope :
+                i = self.process_scope(i,stack)
+                continue
             elif self.all_tokens[i].spelling in open_brackets :
                 bracket_stack.append( self.all_tokens[i].spelling )
                 if macro_without_ending_semicolon and not encountered_first_lparen and self.all_tokens[i].spelling == "(" :
@@ -790,6 +795,9 @@ class Beautifier :
         i = self.find_next_visible_token( class_token.index+1 )
         return self.all_tokens[i].spelling
 
+    def function_is_constructor( self, functionname, classname ) :
+        #print "function is constructor? ", functionname, classname
+        return functionname == classname
 
     def process_function_preamble_or_variable(self,i,stack) :
         # print "process_function_preamble_or_variable", i, depth
@@ -841,12 +849,33 @@ class Beautifier :
                     # this might be constructor, we don't know
                     # this might also be some namespace qualifier on a return type
                     if i+1 < len(self.all_tokens) and self.all_tokens[i+1].spelling == ":" :
-                        classname = self.all_tokens[i-1].spelling
+                        if self.all_tokens[i-1].spelling == ">" :
+                            # The class is templated, so we have to look backwards past the template arguments
+                            # to figure out its name so we can figure out if this is a constructor definition.
+                            #print "found a '<'; searching backwards for a '<'"
+                            j = i-2
+                            count_gts = 1
+                            while j > 0 :
+                                #print "looking at", j, self.all_tokens[j].spelling, count_gts
+                                if not self.all_tokens[j].is_visible :
+                                    pass
+                                elif self.all_tokens[j].spelling == "<" :
+                                    count_gts -= 1
+                                    if count_gts == 0 :
+                                        break
+                                elif self.all_tokens[j].spelling == ">" :
+                                    count_gts += 1
+                                j -= 1
+                            classname = self.all_tokens[j-1].spelling
+                        else :
+                            classname = self.all_tokens[i-1].spelling
+                        #print "classname:", classname
+
             elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" :
                 found_parens = True
                 funcname = self.all_tokens[i-1].spelling
                 if funcname != "operator" :
-                    if funcname == classname :
+                    if self.function_is_constructor( funcname, classname ) :
                         is_ctor = True
                     arglist = "started"
                     self.set_parent(i,stack,"function-decl-argument-list")
@@ -1007,7 +1036,7 @@ class Beautifier :
             i+=1
         j = self.find_next_visible_token(i,stack)
         while j < len( self.all_tokens ):
-            print "next visible: is it a catch?", j, self.all_tokens[j].spelling
+            #print "next visible: is it a catch?", j, self.all_tokens[j].spelling
             if self.all_tokens[j].spelling == "catch" :
                 for k in xrange(i,j) :
                     self.set_parent(k,stack)

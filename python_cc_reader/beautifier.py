@@ -18,7 +18,7 @@ debug = False
 #debug = True
 
 debug_equiv = False
-#debug_equiv = True
+debug_equiv = True
 
 token_types = [ "top-level",
                 "namespace",
@@ -67,6 +67,7 @@ token_types = [ "top-level",
                 "block-comment",
                 "statement",
                 "substatement",
+                "substatement-scope", # new for lambda functions
                 "template",
                 "template-arg-list",
                 "empty-statement" ]
@@ -160,7 +161,7 @@ class Beautifier :
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope",
                                  "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope",
-                                 "function-scope", "try-scope", "catch-scope", "scope" ] )
+                                 "function-scope", "try-scope", "catch-scope", "scope", "substatement-scope" ] )
         self.for_types = set( [ "for", "BOOST_FOREACH", "foreach", "foreach_", "boost_foreach", "FEM_DO",
                                 "FEM_DO_SAFE", "FEM_DOSTEP",
                                 "FORVC", "FORTAGS" ] )
@@ -748,8 +749,15 @@ class Beautifier :
             elif self.all_tokens[i].spelling == "?" :
                 n_question_marks += 1
             elif self.all_tokens[i].spelling == open_scope :
+                if debug : self.print_entry( "found open scope inside simple statement", i, stack )
                 i = self.process_scope(i,stack)
+                if debug : self.print_entry( "finished dealing with open scope inside simple statement", i, stack )
                 continue
+            elif self.all_tokens[i].spelling == close_scope :
+                # we came to the end of a "scope" but we didn't find a semi-colon; ergo, we have a list-initialization
+                # pop the simple-statement off te stack and return i pointed at the "}"
+                stack.pop()
+                return i
             elif self.all_tokens[i].spelling in open_brackets :
                 bracket_stack.append( self.all_tokens[i].spelling )
                 if macro_without_ending_semicolon and not encountered_first_lparen and self.all_tokens[i].spelling == "(" :
@@ -2841,7 +2849,46 @@ class Beautifier :
                 else :
                     if debug_equiv: print "returning false"
                     return False, i_this, i_other
+            if tok_this2.type in self.scope_types :
+                still_good, i_this, i_other = self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
+                if not still_good:
+                    print "not still good from scope within simple_statement_equiv"
+                    return still_good, i_this, i_other
             if not tok_this2.equivalent( tok_other2 ) :
+                if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        #print "simple_statement_equiv should not have reached here", i_this, i_other
+        return True, i_this, i_other
+
+    def substatement_equiv( self, other, i_this, i_other, stack ) :
+        if debug_equiv: self.enter_equiv( other, "substatement_equiv", i_this, i_other, stack )
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+
+        #if tok_other.type == "empty-statement" : return self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
+
+        #if tok_other.type in self.scope_types :
+        #    return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
+
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+
+        while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
+            tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
+                #print "Finished substatement_equiv:", tok_ths2.spelling, tok_this2.parent.spelling, tok_other2.spelling,  tok_other2.parent.spelling
+                if debug_equiv: print " "*len(stack) + "leaving substatement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
+                    if debug_equiv: print "returning true"
+                    return True, i_this, i_other
+                else :
+                    if debug_equiv: print "returning false"
+                    return False, i_this, i_other
+            if tok_this2.type in self.scope_types :
+                still_good, i_this, i_other = self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
+                if not still_good:
+                    return still_good, i_this, i_other
+            elif not tok_this2.equivalent( tok_other2 ) :
                 if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
@@ -2977,6 +3024,8 @@ class Beautifier :
             retval = self.empty_statement_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "statement" :
             retval = self.simple_statement_equiv( other, i_this, i_other, stack )
+        elif tok_this.type == "substatement" :
+            retval = self.substatement_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "template" :
             retval = self.template_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "function" :

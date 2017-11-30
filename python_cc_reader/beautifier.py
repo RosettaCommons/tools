@@ -1000,18 +1000,23 @@ class Beautifier :
         while i < len(self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
-            elif self.all_tokens[i].spelling == "catch" :
-                i = self.process_catch(i,stack)
-                found_catch = True
-                continue
-            elif found_catch :
-                stack.pop() # remove try
-                return i
             elif self.all_tokens[i].spelling == "{" :
                 i = self.process_statement(i,stack)
-                continue
+                break
             self.set_parent(i,stack)
             i+=1
+        j = self.find_next_visible_token(i,stack)
+        while j < len( self.all_tokens ):
+            print "next visible: is it a catch?", j, self.all_tokens[j].spelling
+            if self.all_tokens[j].spelling == "catch" :
+                for k in xrange(i,j) :
+                    self.set_parent(k,stack)
+                i = self.process_catch(j,stack)
+                j = self.find_next_visible_token(i,stack)
+                continue
+            else :
+                stack.pop() # remove try
+                return i
 
         self.handle_read_all_tokens_error( "process_try", stack )
     def process_catch( self, i, stack ) :

@@ -616,7 +616,7 @@ class Beautifier :
             return self.process_simple_statement(i,stack)
 
     def set_parent( self, i, stack, token_type = "substatement" ) :
-        if debug : print " " * len(stack), " set parent of ", i, stack[-1].index, self.all_tokens[i].spelling, stack[-1].spelling
+        #if debug : print " " * len(stack), " set parent of ", i, stack[-1].index, self.all_tokens[i].spelling, stack[-1].spelling
         self.all_tokens[i].type   = token_type
         self.all_tokens[i].parent = stack[-1]
         stack[-1].children.append( self.all_tokens[i] )
@@ -675,6 +675,12 @@ class Beautifier :
                     stack.pop() #pop template
                     if debug : self.print_entry("exitting process_template",i,stack)
                     return i+1
+            elif self.all_tokens[i].spelling == ";" and template_depth == 0 :
+                # perhaps we'll never find the template params
+                assert( template_params == "not-begun" )
+                self.set_parent(i,stack)
+                stack.pop() # pop template
+                return i+1
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_template", stack )
@@ -889,7 +895,7 @@ class Beautifier :
         classname = ""
         if stack[-1].type == "class-scope" :
             classname = self.current_classname( i, stack )
-            if debug: print "class name!", classname
+            #if debug: print "class name!", classname
         arglist = "not-begun"
         is_ctor = False
         found_init_list = False
@@ -1209,11 +1215,16 @@ class Beautifier :
         self.set_parent(i,stack,"class")
         stack.append(self.all_tokens[i])
         i+=1
-
+        template_bracket_count = 0
+        
         while i < len( self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
-            elif self.all_tokens[i].spelling == "[" :
+            elif self.all_tokens[i].spelling == "<" :
+                template_bracket_count += 1
+            elif self.all_tokens[i].spelling == ">" :
+                template_bracket_count -= 1
+            elif template_bracket_count == 0 and self.all_tokens[i].spelling == "[" :
                 # ok -- maybe we're looking at an array declaration; this happens with structs
                 # where you say struct structname varname[] = {};
                 found_square_brackets = True
@@ -1625,6 +1636,19 @@ class Beautifier :
             # this statement has run on to a second line
             #print "indentation for statement scope line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
             if first_token.spelling == "}" and first_token.is_visible and not first_token.is_inside_string :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            else :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+        elif first_token.context() == "template" :
+            #print "indentation for template line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            # this statement has run on to a second line
+            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+        elif first_token.context() == "template-arg-list" :
+            #print "indentation for template-arg-list line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            # this statement has run on to a second line
+            if first_token.is_visible and first_token.spelling == ">" and first_token.parent.children[-1] is first_token :
+                # the terminating > in a list of template arguments, should indent to
+                # the same level as the parent.
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
@@ -2902,7 +2926,7 @@ class Beautifier :
             #print "scope equiv while loop", i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this, i_other )
 
-        print "Ran out of tokens in scope_equiv"
+        # print "Ran out of tokens in scope_equiv" -- this isn't an error condition!
         stack.pop()
         return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 

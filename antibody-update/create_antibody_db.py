@@ -22,6 +22,78 @@ import re
 import os
 import bz2
 
+def create_blast_db():
+    """
+    Using info files, extract sequences per length and setup blast databases.
+    """
+    return
+
+def extract_info():
+    """
+    Several quality filters need info files. 
+    Generate these from the structures + SAbDab summary file.
+    """
+    return
+
+def parse_sabdab_summary(file_name):
+    """
+    SAbDab produces a rather unique summary file. 
+    This function reads that file into a dict with the key being the
+    4-letter PDB code.
+    """
+    # dict[pdb] = {col1 : value, col2: value, ...}
+    sabdab_dict = {}
+
+    with open(file_name, "r") as f:
+        # first line is the header, or all the keys in our sub-dict
+        header = f.readline().strip().split("\t")
+        # next lines are data
+        for line in f.readlines():
+            split_line = line.strip().split("\t")
+            td = {} # temporary dict of key value pairs for one pdb
+            for k,v in zip(header[1:], split_line[1:]):
+                # pdb id is first, so we skip that for now
+                td[k] = v
+            # add temporary dict to sabdab dict at the pdb id
+            sabdab_dict[split_line[0]] = td
+
+    return sabdab_dict
+
+def truncate_antibody_pdbs():
+    """
+    We only use the Fv as a template, so this function loads each pdb
+    and deletes excess chains/residues. We define the Fv, under the
+    Chothia numbering scheme as H1-H112 and L1-L109.
+    """
+    # read SAbDab info for chain identities
+    sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
+    # iterate over PDBs in antibody_database and truncate accordingly
+    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+    for pdb in unique_pdbs:
+        # try reading bzipped pdb, then regular pdb
+        pdb_text = ""
+        try:
+            with open("antibody_database/" + pdb + ".pdb.bz2", "r") as f:
+                pdb_text = bz2.decompress(f.readlines())
+        except IOError:
+            try:
+                with open("antibody_database/" + pdb + ".pdb", "r") as f:
+                    pdb_text = f.readlines()
+            except IOError:
+                sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+        # should have pdb_text now
+        if len(pdb_text) == 0: sys.exit("Nothing parsed for PDB {} !".format(pdb))
+        # great success lets extract the correct chains, sometimes "NA"
+        hchain = sabdab_dict[pdb]["Hchain"]
+        lchain = sabdab_dict[pdb]["Lchain"]
+        # keep writing here
+
+
+    # chains are at position 21 in PDBs
+    print unique_pdbs
+    # resnums are at 22-26
+    return
+
 def download_antibody_pdbs():
     """
     Function queries SAbDab for the latest list of non-redundant,
@@ -59,6 +131,10 @@ def download_antibody_pdbs():
     summary_url = summary_re.findall(webpage_html, re.MULTILINE) # should only find two
     summary_url = summary_url[0].split(" download")[0][8:-1] # drop unnecessary chars
 
+    # make info and antibody_database directories if not present
+    if not os.path.isdir("info"): os.mkdir("info")
+    if not os.path.isdir("antibody_database"): os.mkdir("antibody_database")
+
     # download summary file, always overwrite
     with open("info/sabdab_summary.tsv", "w") as f:
         u = urllib2.urlopen(urllib2.Request(url_base + summary_url))
@@ -83,5 +159,6 @@ def create_antibody_db():
 if __name__ == "__main__":
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
-    create_antibody_db()
+    #create_antibody_db()
+    truncate_antibody_pdbs()
 

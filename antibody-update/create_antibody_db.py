@@ -21,6 +21,7 @@ import urllib2
 import re
 import os
 import bz2
+import sys
 
 def create_blast_db():
     """
@@ -59,39 +60,103 @@ def parse_sabdab_summary(file_name):
 
     return sabdab_dict
 
+def truncate_chain(pdb_text, chain, resnum, newchain):
+    """
+    Read PDB line by line and return all lines for a chain,
+    with a resnum less than or equal to the input.
+    This has to be permissive for insertion codes.
+    This will return only a single truncated chain.
+    This function can update chain to newchain.
+    """
+    trunc_text = ""
+    for line in pdb_text.split("\n"):
+        if line.startswith("ATOM") and line[21] == chain and int(line[22:26]) <= resnum:
+            trunc_text += line[:21] + newchain + line[22:]
+            trunc_text += "\n"
+    return trunc_text
+
 def truncate_antibody_pdbs():
     """
     We only use the Fv as a template, so this function loads each pdb
     and deletes excess chains/residues. We define the Fv, under the
     Chothia numbering scheme as H1-H112 and L1-L109.
     """
+    # count warnings
+    warn_pdbs = []
+
+    # count delete files (without sabdab info)
+    remove_pdbs = []
+
     # read SAbDab info for chain identities
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
+
     # iterate over PDBs in antibody_database and truncate accordingly
     unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+
     for pdb in unique_pdbs:
         # try reading bzipped pdb, then regular pdb
+        print "Truncating " + pdb + "..."
         pdb_text = ""
         try:
-            with open("antibody_database/" + pdb + ".pdb.bz2", "r") as f:
-                pdb_text = bz2.decompress(f.readlines())
+            with open("antibody_database/" + pdb + ".pdb.bz2", "rb") as f:
+                pdb_text = bz2.decompress(f.read())
         except IOError:
             try:
                 with open("antibody_database/" + pdb + ".pdb", "r") as f:
-                    pdb_text = f.readlines()
+                    pdb_text = f.read() # want string not list
             except IOError:
                 sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+
         # should have pdb_text now
         if len(pdb_text) == 0: sys.exit("Nothing parsed for PDB {} !".format(pdb))
-        # great success lets extract the correct chains, sometimes "NA"
+
+        # test if pdb is in sabdab summary file, if not skip and delete PDB from db
+        try: 
+            sabdab_dict[pdb]
+        except KeyError:
+            remove_pdbs.append(pdb)
+            print pdb + " not in sabdab summary file, removing ..."
+            try: 
+                os.remove("antibody_database/" + pdb + ".pdb.bz2")
+            except OSError:
+                os.remove("antibody_database/" + pdb + ".pdb")
+            continue
+
         hchain = sabdab_dict[pdb]["Hchain"]
+        hchain_text = ""
         lchain = sabdab_dict[pdb]["Lchain"]
-        # keep writing here
+        lchain_text = ""
 
+        if not hchain == "NA": 
+            hchain_text = truncate_chain(pdb_text, hchain, 112, "H")
+            if len(hchain_text) == 0:
+                # could not find heavy chain -- do not overwrite, but warn!
+                warn_pdbs.append(pdb) 
+                print "Warning, could not find " + hchain + " chain for " + pdb + " !"
+                print "It was not reported to be NA, so the file may have been altered!"
+                continue
 
-    # chains are at position 21 in PDBs
-    print unique_pdbs
-    # resnums are at 22-26
+        if not lchain == "NA": 
+            lchain_text = truncate_chain(pdb_text, lchain, 109, "L")
+            if len(lchain_text) == 0:
+                # could not find heavy chain -- do not overwrite, but warn!
+                warn_pdbs.append(pdb) 
+                print "Warning, could not find " + lchain + " chain for " + pdb + " !"
+                print "It was not reported to be NA, so the file may have been altered!"
+                continue
+
+        # now overwrite -- dangerous becuase if chains are altered second trunc
+        # would delete the original pdb, so check if chains are found at all
+        with open("antibody_database/" + pdb+".pdb.bz2", "wb") as f:
+            f.write(bz2.compress(hchain_text + lchain_text))
+
+    for pdb in remove_pdbs:
+        print "Deleted " + pdb + " from database due to missing sabdab info!"
+
+    if len(warn_pdbs) > 0:
+        print "Finished truncating, with {} warnings.".format(len(warn_pdbs))
+        #sys.exit("Exiting prematurely due to warnings.")
+
     return
 
 def download_antibody_pdbs():
@@ -141,12 +206,16 @@ def download_antibody_pdbs():
         f.write(u.read())
 
     # download PDBs, check for *.pdb or *.pdb.bz before writing
+    print "Found {} pdbs, beginning download.".format(len(pdb_urls))
+    counter = 0
     for pdb in pdb_urls:
+        counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
         fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])
         if not (os.path.isfile(fpath) or os.path.isfile(fpath_bz)):
             with open(fpath_bz, "w") as f:
-                print "Downloading " +  pdb[-8:-4] + "..."
+                print "Downloading {}... {}/{}".format(pdb[-8:-4], counter, len(pdb_urls))
+                # won't timeout if no internet, so ...
                 u = urllib2.urlopen(urllib2.Request(url_base + pdb))
                 f.write(bz2.compress(u.read()))
     
@@ -159,6 +228,8 @@ def create_antibody_db():
 if __name__ == "__main__":
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
-    #create_antibody_db()
+    if not os.getcwd().partition("tools/")[2] == "antibody-update": 
+        sys.exit("script needs to be run in tools/antibody-update!")
+    create_antibody_db()
     truncate_antibody_pdbs()
 

@@ -29,11 +29,138 @@ def create_blast_db():
     """
     return
 
-def extract_info():
+def dict_to_file(fn, header, info_dict):
+    """
+    Very specific function to write dict of dicts to file.
+    Keys for first dict are pdbs.
+    Keys for second dict are column names.
+    """
+    with open(fn, "w") as f:
+        # write header
+        f.write("# " + ' '.join(header) + "\n")
+        for pdb in info_dict.keys():
+            for column in header:
+                f.write(" {}".format(info_dict[pdb][column]))
+            f.write("\n")
+    return
+
+def write_info_files():
     """
     Several quality filters need info files. 
     Generate these from the structures + SAbDab summary file.
     """
+    # loop over all PDBs in the database and match them to SAbDab records
+    sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
+
+    # iterate over PDBs in antibody_database and truncate accordingly
+    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+
+    # dicts of info to store
+    infos = {'antibody': {},
+                'cdr': {},
+                'frh': {},
+                'frl': {},
+                'frlh': {}}
+
+    # different info files store different info...
+    # use SAbDab headers for lazy matching
+    headers = {'antibody': ['pdb', 'resolution', 'date', 'light_ctype', 'h1', 'h2', 'h3', 'l1', 'l2', 'l3', 'frh', 'frl'],
+                'cdr': ['pdb', 'resolution', 'date', 'light_ctype', 'h1', 'h2', 'h3', 'l1', 'l2', 'l3', 'h1_len', 'h2_len', 'h3_len', 'l1_len', 'l2_len', 'l3_len'],
+                'frh': ['pdb', 'resolution', 'heavy_len', 'frh_len', 'frh'],
+                'frl': ['pdb', 'resolution', 'light_len', 'frl_len', 'frl'],
+                'frlh': ['pdb', 'light_heavy_len', 'light_heavy']}
+
+    # residue ranges for cdrs
+    cdr_ranges = {'h1': [26, 35], 
+                    'h2': [50, 65], 
+                    'h3': [95, 102], 
+                    'l1': [24, 34], 
+                    'l2': [50, 56], 
+                    'l3': [89, 97]}
+
+    fr_ranges = {'frh' : [10, 25, 36, 39, 46, 49, 66, 94, 103, 109],
+                 'frl' : [10, 23, 35, 39, 46, 49, 57, 66, 71, 88, 98, 104]}
+
+    for pdb in unique_pdbs:
+        print "extracting info from " + pdb + "..."
+        # store features under column names for each pdb (easy matching)
+        features = {}
+        features['pdb'] = pdb
+        # easy features from summary file
+        features['resolution'] = sabdab_dict[pdb]['resolution']
+        features['date'] = sabdab_dict[pdb]['date']
+        features['light_ctype'] = sabdab_dict[pdb]['light_ctype']
+        # ok now more challenging features such as frh/frl/cdr sequences
+        # these come from the structure
+        try:
+            with open("antibody_database/" + pdb + ".pdb.bz2", "rb") as f:
+                pdb_text = bz2.decompress(f.read())
+        except IOError:
+            try:
+                with open("antibody_database/" + pdb + ".pdb", "r") as f:
+                    pdb_text = f.read() # want string not list
+            except IOError:
+                sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+
+        # let's get the different regions
+        # we use "standard" Rosetta definitions -- I think these are kabat
+        features["h1"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h1"])
+        features["h2"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h2"])
+        features["h3"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h3"])
+
+        # frh is a little more annoying (have to go between cdrs...)
+        features["frh"] = get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][0:2])
+        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][2:4])
+        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][4:6])
+        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][6:8])
+        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][8:10])
+
+        # get lengths
+        features["h1_len"] = len(features["h1"])
+        features["h2_len"] = len(features["h2"])
+        features["h3_len"] = len(features["h3"])
+        features["frh_len"] = len(features["frh"])
+        # not 100% sure about the custom length here...
+        features["heavy_len"] = len(get_sequence_from_pdb(pdb_text, "H", [7, 109]))
+
+        # repeat for light chain
+        features["l1"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l1"])
+        features["l2"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l2"])
+        features["l3"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l3"])
+
+        # frh is a little more annoying (have to go between cdrs...)
+        features["frl"] = get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][0:2])
+        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][2:4])
+        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][4:6])
+        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][6:8])
+        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][8:10])
+        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][10:12])
+
+        # get lengths
+        features["l1_len"] = len(features["l1"])
+        features["l2_len"] = len(features["l2"])
+        features["l3_len"] = len(features["l3"])
+        features["frl_len"] = len(features["frl"])
+        # not 100% sure about the custom length here...
+        features["light_len"] = len(get_sequence_from_pdb(pdb_text, "L", [5, 104]))
+
+        # get light/heavy paired seq
+        features["light_heavy"] = get_sequence_from_pdb(pdb_text, "L", [5, 104])
+        features["light_heavy"] += get_sequence_from_pdb(pdb_text, "H", [7, 109])
+        features["light_heavy_len"] = len(features["light_heavy"])
+
+        # store data
+        for key in infos.keys():
+            td = {} # temporary dict
+            for column in headers[key]:
+                td[column] = features[column]
+            infos[key][pdb] = td
+
+    # done looping over PDBs
+    # write different dicts to files
+    for key in infos.keys():
+        dict_to_file("info/{}.info".format(key), headers[key], infos[key])
+
     return
 
 def parse_sabdab_summary(file_name):
@@ -59,6 +186,38 @@ def parse_sabdab_summary(file_name):
             sabdab_dict[split_line[0]] = td
 
     return sabdab_dict
+
+def get_sequence_from_pdb(pdb_text, chain, res_range):
+    """ Given pdb text, chain, and resnum range, return sequence. """
+    seq = ""
+    # dict to convert three residue code to one -- probably exists elsewhere...
+    aa3to1 = {  'ALA':'A',
+                'CYS':'C',
+                'ASP':'D',
+                'GLU':'E',
+                'PHE':'F',
+                'GLY':'G',
+                'HIS':'H',
+                'ILE':'I',
+                'LYS':'K',
+                'LEU':'L',
+                'MET':'M',
+                'ASN':'N',
+                'PRO':'P',
+                'GLN':'Q',
+                'ARG':'R',
+                'SER':'S',
+                'THR':'T',
+                'VAL':'V',
+                'TRP':'W',
+                'TYR':'Y'}
+    for line in pdb_text.split("\n"):
+        if line.startswith("ATOM") and line[12:16].strip() == "CA": # only CA matters
+            cres = int(line[22:26])
+            if line[21] == chain and cres >= res_range[0] and cres <= res_range[1]:
+                seq += aa3to1[line[17:20]]
+
+    return seq
 
 def truncate_chain(pdb_text, chain, resnum, newchain):
     """
@@ -230,6 +389,7 @@ if __name__ == "__main__":
     # or risk creation of dirs/files elsewhere
     if not os.getcwd().partition("tools/")[2] == "antibody-update": 
         sys.exit("script needs to be run in tools/antibody-update!")
-    create_antibody_db()
-    truncate_antibody_pdbs()
+    #create_antibody_db()
+    #truncate_antibody_pdbs()
+    write_info_files()
 

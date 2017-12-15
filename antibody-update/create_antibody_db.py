@@ -40,7 +40,10 @@ def dict_to_file(fn, header, info_dict):
         f.write("# " + ' '.join(header) + "\n")
         for pdb in info_dict.keys():
             for column in header:
-                f.write(" {}".format(info_dict[pdb][column]))
+                if info_dict[pdb][column] == "":
+                    f.write(" none")
+                else:
+                    f.write(" {}".format(info_dict[pdb][column]))
             f.write("\n")
     return
 
@@ -149,12 +152,39 @@ def write_info_files():
         features["light_heavy"] += get_sequence_from_pdb(pdb_text, "H", [7, 109])
         features["light_heavy_len"] = len(features["light_heavy"])
 
-        # store data
-        for key in infos.keys():
-            td = {} # temporary dict
-            for column in headers[key]:
+        # store data, but how to handle "" ?
+        # set up antibody_info
+        td = {}
+        for column in headers["antibody"]:
+            td[column] = features[column]
+        infos["antibody"][pdb] = td
+
+        # set up cdr_info
+        td = {}
+        for column in headers["cdr"]:
+            td[column] = features[column]
+        infos["cdr"][pdb] = td
+
+        # set up frh_info, only if there is an FRH
+        if features["frh_len"] > 0:
+            td = {}
+            for column in headers["frh"]:
                 td[column] = features[column]
-            infos[key][pdb] = td
+            infos["frh"][pdb] = td
+
+        # set up frl_info, only if there is an FRH
+        if features["frl_len"] > 0:
+            td = {}
+            for column in headers["frl"]:
+                td[column] = features[column]
+            infos["frl"][pdb] = td
+
+        # set up frlh_info, only if there are both chains
+        if features["frh_len"] > 0 and features["frl_len"] > 0:
+            td = {}
+            for column in headers["frlh"]:
+                td[column] = features[column]
+            infos["frlh"][pdb] = td
 
     # done looping over PDBs
     # write different dicts to files

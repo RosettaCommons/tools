@@ -22,12 +22,92 @@ import re
 import os
 import bz2
 import sys
+from collections import defaultdict
+from subprocess import call
+
+def compare_orientations():
+    """
+    Necessary for multitemplate grafting.
+    Use Nick's pilot app (or PyRosetta) to compute LHOCs and write to file.
+    """
+    return
+
+def tuple_list_to_fasta(tl, fn):
+    """
+    Take a list of pdb, sequence pairs and output a single fasta file.
+    Input tuple must be (pdb, seq)
+    """
+    with open(fn, "w") as f:
+        for pair in tl:
+            f.write(">" + pair[0] + "\n")
+            f.write(pair[1] + "\n")
+    return
 
 def create_blast_db():
     """
     Using info files, extract sequences per length and setup blast databases.
+    We need one database per CDR and length pair, as well as:
+    FRH, FRL, light_heavy (rename to orientation) databases.
     """
+
+    cdr_info = file_to_dict("info/cdr.info")
+
+    # convert to dict of dicts set up as d[CDR][Length] = [(pdb, "fasta string"),...]
+    converted_dict = { "h1":defaultdict(list), 
+                        "h2":defaultdict(list), 
+                        "h3":defaultdict(list), 
+                        "l1":defaultdict(list), 
+                        "l2":defaultdict(list), 
+                        "l3":defaultdict(list)}
+
+    for pdb in cdr_info.keys():
+        for cdr in converted_dict.keys():
+            try:
+                length = cdr_info[pdb][cdr+"_len"]
+                converted_dict[cdr][length].append((pdb, cdr_info[pdb][cdr]))
+            except KeyError: # length unmatched
+                continue
+    
+    if not os.path.isdir("blast_database"): os.mkdir("blast_database")
+
+    for cdr in converted_dict.keys():
+        for length in converted_dict[cdr].keys():
+            tuple_list_to_fasta(converted_dict[cdr][length], "blast_database/database.{}.{}".format(cdr.upper(),length))
+    
+            call(["makeblastdb", 
+                    "-in", "blast_database/database.{}.{}".format(cdr.upper(),length),
+                    "-dbtype", "prot", 
+                    "-title", "database.{}.{}".format(cdr.upper(),length), 
+                    "-out", "blast_database/database.{}.{}".format(cdr.upper(),length)])
+
+    # next code for the FRH/FRL/orientation databases
     return
+
+def file_to_dict(fn):
+    """
+    Very specific function reads output of func below.
+    Relies on a header "# pdb col1 col2 ...".
+    Parses into dict[pdb] = [col1: val1, col2: val2]
+    """
+
+    d = {}
+
+    with open(fn, "r") as f:
+
+        header = f.readline()
+        if not header.startswith("#"): sys.exit("Invalid file: {}!".format(fn))
+        header = header.strip().split()[2:]
+
+        for line in f.readlines():
+
+            sl = line.split()
+            pdb = sl[0]
+            d[pdb] = {}
+
+            for col,val in zip(header,sl[1:]):
+                d[pdb][col] = val
+
+    return d
 
 def dict_to_file(fn, header, info_dict):
     """
@@ -39,12 +119,14 @@ def dict_to_file(fn, header, info_dict):
         # write header
         f.write("# " + ' '.join(header) + "\n")
         for pdb in info_dict.keys():
+            line = ""
             for column in header:
                 if info_dict[pdb][column] == "":
-                    f.write(" none")
+                    line += " none"
                 else:
-                    f.write(" {}".format(info_dict[pdb][column]))
-            f.write("\n")
+                    line += " {}".format(info_dict[pdb][column])
+
+            f.write(line.strip() + "\n")
     return
 
 def write_info_files():
@@ -421,5 +503,6 @@ if __name__ == "__main__":
         sys.exit("script needs to be run in tools/antibody-update!")
     #create_antibody_db()
     #truncate_antibody_pdbs()
-    write_info_files()
+    #write_info_files()
+    create_blast_db()
 

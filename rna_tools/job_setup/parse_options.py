@@ -1,34 +1,44 @@
 #!/usr/bin/env python
 import string
 
-def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:1-4 or A1-4 or 1-4
+def get_resnum_chain( input_string, resnums, chains, segids ): # could be of the form A:1-4 or A1-4 or 1-4
 
     if ( input_string.find( ',' ) > -1 ):
-        for substring in string.split( input_string, ',' ): get_resnum_chain( substring, resnums, chains )
+        for substring in string.split( input_string, ',' ): get_resnum_chain( substring, resnums, chains, segids )
         return True
     #assert( len( input_string ) > 0 )
+    #if len(segids) == 0: segids = ['    ' for _ in resnums]
     assert( len( resnums ) == len( chains ) )
+    assert( len( resnums ) == len( segids ) )
     ok = True
 
     int_string = input_string
     chain = ''
+    segid = '    '
 
     # extract chain info, if present.
     # colon is clear indicator of chain
-    colon_pos = input_string.find( ':' )
-    if colon_pos > -1:
-        chain = input_string[:colon_pos]
-        int_string = input_string[ colon_pos+1 : ]
-    else: # look for non-numeric characters
-        pos = 0
-        while pos < len( input_string ):
-            try:
-                if ( input_string[pos] != '-' ): blah = int( input_string[ pos ] )
-                break
-            except:
-                chain += input_string[ pos ]
-            pos = pos + 1
-        int_string = input_string[ pos: ]
+    if input_string.count(':') == 2:
+        first = input_string.find( ':' )
+        chain = input_string[:first]
+        second = input_string[ colon_pos+1 : ].find(':')
+        segid = input_string[ colon_pos+1 : second ]
+        int_string = input_string[second+1 : ]
+    else:
+        colon_pos = input_string.find( ':' )
+        if colon_pos > -1:
+            chain = input_string[:colon_pos]
+            int_string = input_string[ colon_pos+1 : ]
+        else: # look for non-numeric characters
+            pos = 0
+            while pos < len( input_string ):
+                try:
+                    if ( input_string[pos] != '-' ): blah = int( input_string[ pos ] )
+                    break
+                except:
+                    chain += input_string[ pos ]
+                pos = pos + 1
+            int_string = input_string[ pos: ]
 
     ints = []
     if len( int_string ) == 0 and len( chain ) == 1: # special case, get the whole chain.
@@ -39,8 +49,9 @@ def get_resnum_chain( input_string, resnums, chains ): # could be of the form A:
         for i in range( len( ints ) ):
             resnums.append( ints[i] )
             chains.append( chain )
-
+            segids.append( segid )
     assert( len( resnums ) == len( chains ) )
+    assert( len( resnums ) == len( segids ) )
     return ok
 
 
@@ -82,12 +93,12 @@ def parse_options( argv, tag, default):
     value = default
 
     if isinstance( default, list ): value = []
-    RESNUM_CHAIN = isinstance( default, list ) and len( default ) == 2 and \
+    RESNUM_CHAIN_SEGID = isinstance( default, list ) and len( default ) == 3 and \
                    isinstance( default[0], list ) and \
                    isinstance( default[0][0], int ) and \
                    isinstance( default[1], list ) and \
                    isinstance( default[1][0], str )
-    if RESNUM_CHAIN: value = [ [], [] ]; # need two lists.
+    if RESNUM_CHAIN_SEGID: value = [ [], [], [] ]; # need three lists.
 
     if argv.count( "-"+tag ):
 
@@ -105,8 +116,8 @@ def parse_options( argv, tag, default):
                     if not ok_int_string: break
                 elif isinstance( default[0], float ):
                     value.append( float( argv[ pos ] ) )
-                elif RESNUM_CHAIN:
-                    ok = get_resnum_chain( argv[pos], value[0],value[1] )
+                elif RESNUM_CHAIN_SEGID:
+                    ok = get_resnum_chain( argv[pos], value[0],value[1],value[2] )
                     if not ok: break
                 else:
                     value.append( argv[ pos ] )

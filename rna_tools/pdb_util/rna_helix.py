@@ -50,8 +50,9 @@ output_file = args.o
 if args.resnum is not None:
     resnums = []
     chains  = []
-    for i in args.resnum:  get_resnum_chain(i, resnums, chains )
-    renumber_pdb([temp.name], resnums, chains)
+    segids = []
+    for i in args.resnum:  get_resnum_chain(i, resnums, chains, segids )
+    renumber_pdb([temp.name], resnums, chains, segids)
 
 temp.close()
 shutil.move(temp.name, output_file)

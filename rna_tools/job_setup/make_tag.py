@@ -43,7 +43,7 @@ def make_tag_with_dashes( int_vector, char_vector = 0, segid_vector = 0 ):
     return tag
 
 
-def make_tag_with_conventional_numbering( int_vector, resnums, chains ):
+def make_tag_with_conventional_numbering( int_vector, resnums, chains, segids ):
     tag_resnums = []
     tag_chains  = []
     tag_segids  = []

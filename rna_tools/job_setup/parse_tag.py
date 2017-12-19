@@ -33,6 +33,7 @@ def parse_tag( tag, alpha_sort=False ):
     segid_vector = []
     
     xchar = ''
+    xsegid = '    '
 
     tag = tag.replace(',',' ')
     tag = tag.replace(';',' ')

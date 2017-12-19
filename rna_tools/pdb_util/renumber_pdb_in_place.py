@@ -4,7 +4,7 @@ from sys import argv
 from os import system
 from parse_options import parse_options, get_resnum_chain
 
-def renumber_pdb(pdbnames, new_numbers, chains = [], retain_atom_num = 0):
+def renumber_pdb(pdbnames, new_numbers, chains = [], segids = [], retain_atom_num = 0):
 
     for pdbname in pdbnames:
         lines = open(pdbname,'r').readlines()
@@ -32,17 +32,28 @@ def renumber_pdb(pdbnames, new_numbers, chains = [], retain_atom_num = 0):
                 if ( count <= len( new_numbers ) ):
                     newnum = '%4d' % new_numbers[ count-1 ]
                     if len( chains ) > 0:  newchain = chains[ count - 1]
+                    if len( segids ) > 0:  newsegid = segids[ count - 1]
                     if newchain == '': newchain = line_edit[ 22 ]
+                    if newsegid == '': newsegid = line_edit[ 72:76 ]
                 else:
                     if len( new_numbers) > 0:
                         print 'WARNING! residue number %d is greater than length of input numbering %d' % (count, len( new_numbers) )
                     newnum = '%4d' % count
                     newchain = oldchain
+                    newsegid = oldsegid
+
+                if len(newsegid) == 1:
+                    newsegid = newsegid+'   '
+                elif len(newsegid) == 2:
+                    newsegid = newsegid+'  '
+                elif len(newsegid) == 3:
+                    newsegid = newsegid+' '
+
                 if retain_atom_num:
                     line_edit = '%s%s%s' % (line_edit[0:22], newnum, line_edit[26:] )
                 else:
                     #print 'replace: ', line_edit[22:26],'->',newnum
-                    line_edit = '%s%5d%s%s%s%s' % (line_edit[0:6],atomnum,line[11:21],newchain, newnum, line_edit[26:] )
+                    line_edit = '%s%5d%s%s%s%s%s%s' % (line_edit[0:6],atomnum,line[11:21],newchain, newnum, line_edit[26:72], newsegid, line_edit[76:] )
 
 
                 outid.write(line_edit)
@@ -62,7 +73,8 @@ if __name__ == '__main__':
     pdbnames = []
     new_numbers = []
     chains = []
+    segids = []
     for i in range(1, len( argv ) ):
-        if argv[i].find( '.pdb' )>0 or not get_resnum_chain( argv[i], new_numbers, chains ):
+        if argv[i].find( '.pdb' )>0 or not get_resnum_chain( argv[i], new_numbers, chains, segids ):
             pdbnames.append( argv[i] )
-    renumber_pdb(pdbnames, new_numbers, chains, retain_atom_num)
+    renumber_pdb(pdbnames, new_numbers, chains, segids, retain_atom_num)

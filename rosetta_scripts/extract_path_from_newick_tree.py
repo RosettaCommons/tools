@@ -11,9 +11,6 @@ if len( sys.argv ) != 3:
     print "Example:"
     print "python extract_path_from_pewick_tree.py JR_105_1 '((((JR_113_1)JR_107_1,(JR_114_1)JR_108_1)JR_54_1,((JR_111_1)JR_101_1,(JR_112_1)JR_102_1)JR_77_1,(JR_105_1)JR_97_1)input_source_1)all'"
 
-def test( leaf, tree ):
-    return leaf
-
 def get_lineage( leaf, tree ):
     scope = 0
     next_scope = 0

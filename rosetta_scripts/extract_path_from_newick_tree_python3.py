@@ -24,7 +24,7 @@ def get_lineage( leaf, tree ):
             scope += 1
         elif elements[ i ] == ")":
             scope -= 1
-            if scope == next_scope:
+            if scope == next_scope and scope != 0:
                 print ( elements[ i+1 ] )
                 next_scope = scope - 1
         elif elements[ i ] == leaf:

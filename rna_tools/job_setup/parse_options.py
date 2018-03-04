@@ -21,9 +21,9 @@ def get_resnum_chain( input_string, resnums, chains, segids ): # could be of the
     if input_string.count(':') == 2:
         first = input_string.find( ':' )
         chain = input_string[:first]
-        second = input_string[ colon_pos+1 : ].find(':')
-        segid = input_string[ colon_pos+1 : second ]
-        int_string = input_string[second+1 : ]
+        second = first+2+input_string[ first+2 : ].find(':')
+        segid = input_string[ first+1 : second ]
+        int_string = input_string[second+1: ]
     else:
         colon_pos = input_string.find( ':' )
         if colon_pos > -1:

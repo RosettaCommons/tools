@@ -25,6 +25,7 @@ def renumber_pdb(pdbnames, new_numbers, chains = [], segids = [], retain_atom_nu
                 atomnum += 1
                 oldchain = line_edit[21]
                 resnum = line_edit[23:26]
+                oldsegid = line_edit[72:76]
                 if not resnum == oldresnum:
                     count = count + 1
                     oldresnum = resnum

@@ -13,7 +13,7 @@ MAX_SEQUENCE_LENGTH = 32
 
 nts = ['g','c','u','a','G','C','U','A']
 ligands = ['z','Z','w','X']
-secstruct_chars = ['(',')','[',']','{','}','.']
+secstruct_chars = ['(',')','[',']','{','}','<','>','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u', 'X[OMU]', 'X[PSU]', 'X[5MU]'], 'u':['a','g', 'X[OMG]'], 'c':['g'], 'g':['c','X[5MC]', 'X[OMC]', 'u', 'X[OMU]', 'X[PSU]', 'X[5MU]']};
 aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y' ]
@@ -31,7 +31,7 @@ def join_sequence( sequence ):
     in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
-        if c == '[' and sequence_joined[-1] in ligands: # in a ligand
+        if c == '[' and len(sequence_joined) > 0 and sequence_joined[-1] in ligands: # in a ligand
             sequence_joined += c
             in_nonstandard_name = True
             continue

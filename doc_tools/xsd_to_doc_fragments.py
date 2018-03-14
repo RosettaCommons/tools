@@ -15,10 +15,19 @@ import codecs
 
 TYPE_ALIASES={ 'xs:string':'string', 'xs:integer':'integer', 'xs:decimal':'real', 'rosetta_bool':'bool' }
 # SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
-SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group', 'jump_selector' ]
+SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group', 'jump_selector', 'loop_definer' ]
 # Nonce groups:
-# ['loop_definer', 'scoring_grid', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
+# ['loop_definer', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
 
+# These are the high-level groups with uniform subentries that aren't encapsulated by an xs:group -- This actually works with the SECTIONS parsing machinery.
+SECTIONS += [ 'movemap_factory_loader_MOVE_MAP_FACTORIES_type', 'sfxn_loader_SCOREFXNS_type', 'interface_builder_INTERFACE_BUILDERS_type', 'ligand_area_builder_LIGAND_AREAS_type', 'move_map_builder_MOVEMAP_BUILDERS_type', ]
+
+#'database_session_loader_DATABASE_SESSIONS_type', monte_carlo_loader_MONTECARLOS_type, rosetta_scripts_parser_IMPORT_type, rosetta_scripts_parser_OUTPUT_type
+
+# SINGLE_TYPES are high-level groups where the tag is defined in-type. We load these directly
+SINGLE_TYPES = [ ('rosetta_scripts_parser_OUTPUT_type','OUTPUT'), ("rosetta_scripts_parser_IMPORT_type","IMPORT"), ("database_session_loader_DATABASE_SESSIONS_type","DATABASE_SESSIONS"), ('monte_carlo_loader_MONTECARLOS_type',"MONTECARLOS"), ]
+
+# These are type definitions to eliminate circular dependencies in documentation
 COMMON_TYPES={ # typename:(pseudoname,docstring)
 'rosetta_scripts_parser_ROSETTASCRIPTS_type':('ROSETTASCRIPTS','A full [[RosettaScripts]] protocol, as a subtag'),
 
@@ -345,17 +354,24 @@ def main( xsdfile, outdir ):
     ALL_ENTRIES = entries
 
     # We do this odd two-stage pass to deal with name conflicts on case-insensitive filesystems
-    to_process = {}
+    to_process = {} # dictionary of lower-cased name:(xsd_type_name, display_name)
     for section in SECTIONS:
         if section not in entries:
             print "ERROR: can't find section for", section, " in XSD."
             continue
         sec_entry = entries[ section ]
-        if len(sec_entry) != 1 or sec_entry[0].tag != '{http://www.w3.org/2001/XMLSchema}choice':
+        sec_choice = None
+        for se in sec_entry:
+            if se.tag != '{http://www.w3.org/2001/XMLSchema}choice':
+                continue
+            if sec_choice is not None:
+                print "ERROR: malformed entry for section", section
+                continue
+            sec_choice = se
+        if sec_choice is None:
             print "ERROR: malformed entry for section", section
             continue
-        sec_entry = sec_entry[0]
-        for child in sec_entry:
+        for child in sec_choice:
             if 'type' not in child.attrib or 'name' not in child.attrib:
                 print "ERROR: malformed entry in section", section
                 continue
@@ -365,6 +381,9 @@ def main( xsdfile, outdir ):
                 print "ERROR: can't find definition for", entry_type
                 continue
             to_process.setdefault( entry_type.lower(), [] ).append( (entry_type, entry_name) )
+
+    for single_type in SINGLE_TYPES:
+        to_process.setdefault( single_type[0].lower(), [] ).append( single_type )
 
     for key in to_process:
         to_process[key].sort()

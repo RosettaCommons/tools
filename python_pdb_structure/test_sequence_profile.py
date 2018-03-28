@@ -40,7 +40,7 @@ def compute_seqprof_for_two_lists( listfile1, listfile2, depth_level_upper_limit
     if depth_level_upper_limits : # if not specified, use the defaults
         seqprofs1.upper_boundaries = depth_level_upper_limits
         seqprofs2.upper_boundaries = depth_level_upper_limits
-    for i in xrange( len( listfile1 ) ):
+    for i in range( len( listfile1 ) ):
         pdbfile1 = add_pdb_ext( listfile1[ i ] )
         pdbfile2 = add_pdb_ext( listfile2[ i ] )
         pdb1 = pdbstructure_from_file( pdbfile1 )
@@ -59,11 +59,11 @@ if __name__ == "__main__" :
         seqprofs1, seqprofs2 = compute_seqprof_for_two_lists( listfile1, listfile2, depth_level_upper_limits )
         seqproflines1 = seqprofs1.write_output()
         seqproflines2 = seqprofs2.write_output()
-        print "Profile 1:"
+        print("Profile 1:")
         for line in seqproflines1 :
-            print line,
-        print "Profile 2:"
+            print(line, end=' ')
+        print("Profile 2:")
         for line in seqproflines2 :
-            print line,
+            print(line, end=' ')
         print_depth_cross_entropies( seqprofs1, seqprofs2 )
         

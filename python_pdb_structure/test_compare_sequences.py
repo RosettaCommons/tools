@@ -6,7 +6,7 @@ import amino_acids as aas
 # $1 == bench set
 
 if len(sys.argv) < 2 :
-    print "ERROR: benchmark set directory name must be specified."
+    print("ERROR: benchmark set directory name must be specified.")
     sys.exit(1)
 
 bench_set = sys.argv[1]
@@ -51,47 +51,47 @@ for pdb,seqrec in seq_comps :
     tot_n_int += id_n_int
     tot_n_bur += id_n_bur
 
-print "Total recovered", tot_rec/tot_n, "(", tot_rec, "/", tot_n,  ")"
-print "Exposed recovery", tot_rec_exp/tot_n_exp, "(", tot_rec_exp , "/", tot_n_exp ,  ")"
-print "Intermediate recovered", tot_rec_int/tot_n_int, "(", tot_rec_int , "/", tot_n_int ,  ")"
-print "Buried recovered", tot_rec_bur/tot_n_bur, "(", tot_rec_bur , "/", tot_n_bur ,  ")"
+print("Total recovered", tot_rec/tot_n, "(", tot_rec, "/", tot_n,  ")")
+print("Exposed recovery", tot_rec_exp/tot_n_exp, "(", tot_rec_exp , "/", tot_n_exp ,  ")")
+print("Intermediate recovered", tot_rec_int/tot_n_int, "(", tot_rec_int , "/", tot_n_int ,  ")")
+print("Buried recovered", tot_rec_bur/tot_n_bur, "(", tot_rec_bur , "/", tot_n_bur ,  ")")
 
 first_pdb,first_seqcomp = seq_comps[0]
 rev_first_pdb,rev_first_seqcomp = rev_comps[0]
-print "AA ",
+print("AA ", end=' ')
 for name in first_seqcomp.depth_classifier.depth_names :
-    print name + " " * (23 -len(name)),
-print "TOT"
+    print(name + " " * (23 -len(name)), end=' ')
+print("TOT")
 for aa in aas.amino_acids :
-    print aas.one_letter_names[aa],
-    for d in xrange(first_seqcomp.depth_classifier.n_levels() ) :
+    print(aas.one_letter_names[aa], end=' ')
+    for d in range(first_seqcomp.depth_classifier.n_levels() ) :
         count_rec = 0
         count_tot = 0
         for pdb,seqrec in seq_comps :
             count_rec += seqrec.aa_depth_recrates[d][aa][0]
             count_tot += seqrec.aa_depth_recrates[d][aa][1]
-        print "( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot ),
+        print("( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot ), end=' ')
     count_rec = 0
     count_tot = 0
     for pdb,seqrec in seq_comps :
         count_rec += seqrec.total_aa_recrates[aa][0]
         count_tot += seqrec.total_aa_recrates[aa][1]
-    print "( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot )
+    print("( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot ))
 
-print
-print "Design composition"
+print()
+print("Design composition")
 for aa in aas.amino_acids :
-    print aas.one_letter_names[ aa ],
-    for d in xrange( rev_first_seqcomp.depth_classifier.n_levels() ) :
+    print(aas.one_letter_names[ aa ], end=' ')
+    for d in range( rev_first_seqcomp.depth_classifier.n_levels() ) :
         count_rec = 0
         count_tot = 0
         for pdb,seqrec in rev_comps :
             count_rec += seqrec.aa_depth_recrates[d][aa][0]
             count_tot += seqrec.aa_depth_recrates[d][aa][1]
-        print "( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot), count_rec, count_tot ),
+        print("( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot), count_rec, count_tot ), end=' ')
     count_rec = 0
     count_tot = 0
     for pdb,seqrec in rev_comps :
         count_rec += seqrec.total_aa_recrates[aa][0]
         count_tot += seqrec.total_aa_recrates[aa][1]
-    print "( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot )
+    print("( %5.3f, %5d, %5d )" % ( float(count_rec)/float(count_tot) , count_rec, count_tot ))

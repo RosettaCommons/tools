@@ -15,7 +15,7 @@ class SeqComp :
         self.test_pos_map = {}
         self.depth_classifier = DepthClassifier()
         self.aa_depth_recrates = []
-        for d in xrange(self.depth_classifier.n_levels()) :
+        for d in range(self.depth_classifier.n_levels()) :
             self.aa_depth_recrates.append( {} )
             for aa in aas.amino_acids :
                 self.aa_depth_recrates[ d ][ aa ] = [ 0, 0 ] # ordered pair: n recovered, n total
@@ -44,7 +44,7 @@ class SeqComp :
     def rec_rate_for_nneighb_range( self, nneighbs_low, nneighbs_high ) :
         count = 0
         ncorrect = 0
-        for chres in self.test_pos_map.keys():
+        for chres in list(self.test_pos_map.keys()):
             posdata = self.test_pos_map[ chres ]
             if posdata[0] <= nneighbs_high and posdata[0] >= nneighbs_low :
                 count += 1
@@ -127,10 +127,10 @@ def compare_all_pdbs( bench_set, verbose=True, swap_nats_and_designs=False ) :
         recovery_list.append( (pdb, seq_comp) )
 
         if verbose:
-            print pdb, seq_comp.nrecd, seq_comp.npos, seq_comp.rec_rate
+            print(pdb, seq_comp.nrecd, seq_comp.npos, seq_comp.rec_rate)
             avg += seq_comp.rec_rate
             count += 1
 
     if verbose:
-        print "average rec rate:",avg/count
+        print("average rec rate:",avg/count)
     return recovery_list

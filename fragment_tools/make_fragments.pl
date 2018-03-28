@@ -30,33 +30,33 @@ $| = 1; # disable stdout buffering
 #    ./csblast             https://github.com/cangermueller/csblast
 
 # ROSETTA
-my $FRAGMENT_PICKER = "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
-my $FRAGMENT_PICKER_NUM_CPUS = 8;    # number of processors to use
-my $ROSETTA_DATABASE = "$Bin/../../main/database"; # rosetta database
-my $VALL = "$Bin/vall.jul19.2011"; # template database
+my $FRAGMENT_PICKER = $ENV{"FRAGMENT_PICKER"} || "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
+my $FRAGMENT_PICKER_NUM_CPUS = int($ENV{"FRAGMENT_PICKER_NUM_CPUS"}) || 8;    # number of processors to use
+my $ROSETTA_DATABASE = $ENV{"ROSETTA_DATABASE"} || "$Bin/../../main/database"; # rosetta database
+my $VALL = $ENV{"VALL"} || "$Bin/vall.jul19.2011"; # template database
 
 # BLAST path (Requires non-blast+ NCBI version)
-my $BLAST_DIR = "$Bin/blast";
-my $BLAST_NUM_CPUS = 8;    # number of processors to use (blastpgp -a option)
+my $BLAST_DIR = $ENV{"BLAST_DIR"} || "$Bin/blast";
+my $BLAST_NUM_CPUS = int($ENV{"BLAST_NUM_CPUS"}) || 8;    # number of processors to use (blastpgp -a option)
 
 # NR database path
-my $NR = "$Bin/databases/nr";
+my $NR = $ENV{"NR"} || "$Bin/databases/nr";
 
 # spine-x/sparks (for phi, psi, and solvent accessibility predictions)
-my $SPARKS = "$Bin/sparks-x/bin/buildinp_query.sh";
+my $SPARKS = $ENV{"SPARKS"} || "$Bin/sparks-x/bin/buildinp_query.sh";
 
 # PSIPRED (for secondary structure prediction)
-my $PSIPRED_DIR = "$Bin/psipred";
-my $PSIPRED_USE_weights_dat4 = 0;    # set to 0 if using psipred version 3.2+
+my $PSIPRED_DIR = $ENV{"PSIPRED_DIR"} || "$Bin/psipred";
+my $PSIPRED_USE_weights_dat4 = int($ENV{"PSIPRED_USE_weights_dat4"}) || 0;    # set to 0 if using psipred version 3.2+
 
 # CSBLAST/CSBUILD (for de-novo sequence profile generation)
-my $CSBLAST_DIR = "$Bin/csblast";
+my $CSBLAST_DIR = $ENV{"CSBLAST_DIR"} || "$Bin/csblast";
 
 # pfilt filtered NR database used for PSIPRED (see PSIPRED readme)
 # $NR will be used if empty
-my $PFILTNR = "$Bin/databases/nr_pfilt";
+my $PFILTNR = $ENV{"PFILTNR"} || "$Bin/databases/nr_pfilt";
 
-my $INTERNET_HOST = "localhost";
+my $INTERNET_HOST = $ENV{"INTERNET_HOST"} || "localhost";
 
 ### EXTRA OPTIONAL FEATURES ###################################################
 ###############################################################################
@@ -65,17 +65,17 @@ my $INTERNET_HOST = "localhost";
 # your cluster. The script should take any command as the argument(s).
 # If the script does not exist, jobs will run serially.
 # Requires: http://search.cpan.org/CPAN/authors/id/D/DL/DLUX/Parallel-ForkManager-0.7.5.tar.gz
-my $SLAVE_LAUNCHER = "";
-my $SLAVE_LAUNCHER_MAX_JOBS = 40;    # depends on your available machines/cpus
+my $SLAVE_LAUNCHER = $ENV{"SLAVE_LAUNCHER"} || "";
+my $SLAVE_LAUNCHER_MAX_JOBS = int($ENV{"SLAVE_LAUNCHER_MAX_JOBS"}) || 40;    # depends on your available machines/cpus
 ## for SLAVE_LAUNCHER parallel jobs
-my $SLAVE_MAX_WAIT     = 96 * 60 * 60;
-my $SLAVE_MAX_ATTEMPTS = 2;
+my $SLAVE_MAX_WAIT     = int($ENV{"SLAVE_MAX_WAIT"}) || 96 * 60 * 60;
+my $SLAVE_MAX_ATTEMPTS = int($ENV{"SLAVE_MAX_ATTEMPTS"}) || 2;
 
 # pdb2vall.py script for adding specific PDBs to the vall (-add_pdbs_to_vall)
 #  --no_structure_profile option is added to reduce the run time
 # This feature is not supported yet in the Rosetta release
-my $PDB2VALL = "$Bin/pdb2vall/pdb2vall.py --no_structure_profile";
-my $PDB2VALL_IGNORE_ERRORS = 1;    # ignore pdb2vall jobs that fail
+my $PDB2VALL = $ENV{"PDB2VALL"} || "$Bin/pdb2vall/pdb2vall.py --no_structure_profile";
+my $PDB2VALL_IGNORE_ERRORS = int($ENV{"PDB2VALL_IGNORE_ERRORS"}) || 1;    # ignore pdb2vall jobs that fail
 
 # The following can be ignored unless you want to use the secondary structure prediction
 # quota system with Psipred, SAM, and Porter. The porter should be in psipred_ss2 format
@@ -83,19 +83,19 @@ my $PDB2VALL_IGNORE_ERRORS = 1;    # ignore pdb2vall jobs that fail
 
 # SAM install path
 # http://compbio.soe.ucsc.edu/sam2src/
-my $SAM_DIR = "";
+my $SAM_DIR = $ENV{"SAM_DIR"} || "";
 
 # SAM predict-2nd install path
 # Secondary structure prediction software using SAM sequence alignment
 # http://users.soe.ucsc.edu/~karplus/predict-2nd/
-my $SAM_PREDICT_2ND_DIR = "";
+my $SAM_PREDICT_2ND_DIR = $ENV{"SAM_PREDICT_2ND_DIR"} || "";
 
 # PORTER (secondary structure prediction software)
 # http://distill.ucd.ie/porter/
-my $PORTER = "";
+my $PORTER = $ENV{"PORTER"} || "";
 
-my $INSTALL_DEPENDENCIES = "standard"; # "overwrite";
-my $INSTALL_DEPENDENCIES_DATABASE = "nr"; # "uniref50" # "uniref90"
+my $INSTALL_DEPENDENCIES = $ENV{"INSTALL_DEPENDENCIES"} || "standard"; # "overwrite";
+my $INSTALL_DEPENDENCIES_DATABASE = $ENV{"INSTALL_DEPENDENCIES_DATABASE"} || "nr"; # "uniref50" # "uniref90"
 
 ### YOU CAN IGNORE THE REST ###################################################
 ###############################################################################

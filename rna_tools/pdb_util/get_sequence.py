@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import string
 from os.path import exists,basename
 from parse_tag import parse_tag
@@ -26,7 +27,7 @@ grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_typ
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()
-for tlc in tlcs.split('\n'):
+for tlc in tlcs.decode('iso-8859-15').split('\n'):
     longer_names[tlc] = "X[%s]" % tlc
 
 def get_sequences( pdbname, removechain = 0 ):
@@ -89,7 +90,7 @@ def get_sequences( pdbname, removechain = 0 ):
         if (not (resnum == oldresnum and chain == oldchain )):#and segid == oldsegid ) ):
             count = count + 1
             longname = line_edit[17:20]
-            if longer_names.has_key(longname):
+            if longname in longer_names.keys():
                 sequence +=  longer_names[longname]
             else:
                 sequence +=  'X'
@@ -145,4 +146,4 @@ if __name__=='__main__':
     args=parser.parse_args()
 
     ( sequences, all_chains, all_resnums, all_segids ) = get_sequences( args.pdbname, removechain = args.removechain )
-    print string.join(sequences, '')
+    print(''.join(sequences))

@@ -47,7 +47,6 @@ def make_tag_with_conventional_numbering( int_vector, resnums, chains, segids ):
     tag_resnums = []
     tag_chains  = []
     tag_segids  = []
-    print len(int_vector), len(resnums), len(chains), len(segids)
     for m in int_vector:
         tag_resnums.append( resnums[ m - 1 ] )
         tag_chains.append(  chains [ m - 1 ] )

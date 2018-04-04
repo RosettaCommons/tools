@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 from sys import argv
 from os import system
 from parse_options import parse_options, get_resnum_chain
@@ -38,7 +38,7 @@ def renumber_pdb(pdbnames, new_numbers, chains = [], segids = [], retain_atom_nu
                     if newsegid == '': newsegid = line_edit[ 72:76 ]
                 else:
                     if len( new_numbers) > 0:
-                        print 'WARNING! residue number %d is greater than length of input numbering %d' % (count, len( new_numbers) )
+                        print('WARNING! residue number %d is greater than length of input numbering %d' % (count, len( new_numbers) ))
                     newnum = '%4d' % count
                     newchain = oldchain
                     newsegid = oldsegid
@@ -59,7 +59,7 @@ def renumber_pdb(pdbnames, new_numbers, chains = [], segids = [], retain_atom_nu
 
                 outid.write(line_edit)
 
-        if ( count < len( new_numbers) ): print 'WARNING! number of residues %d is less than length of input numbering %d' % (count, len( new_numbers) )
+        if ( count < len( new_numbers) ): print('WARNING! number of residues %d is less than length of input numbering %d' % (count, len( new_numbers) ))
 
         outid.close()
 

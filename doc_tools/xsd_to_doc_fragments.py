@@ -15,7 +15,7 @@ import codecs
 
 TYPE_ALIASES={ 'xs:string':'string', 'xs:integer':'integer', 'xs:decimal':'real', 'rosetta_bool':'bool' }
 # SECTIONS are actually the top level groups (xs:group) entries in the XSD (though not the nonce ones).
-SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group', 'jump_selector', 'loop_definer' ]
+SECTIONS = [ 'mover', 'filter', 'task_operation', 'residue_selector', 'simple_metric', 'res_lvl_task_op', 'res_filter', 'constraint_generator', 'features_reporter', 'pose_selector', 'scoring_grid', 'pose_property_reporter', 'denovo_perturber', 'compound_architect_pairing_group', 'jump_selector', 'loop_definer' ]
 # Nonce groups:
 # ['loop_definer', 'layer_design_ss_layer', 'layer_design_ss_layer_or_taskop', 'denovo_architect', 'compound_architect_pairing_group', 'denovo_perturber', 'denovo_folder', 'rdf_function', 'pose_property_reporter', 'envclaim', 'scriptcm']
 
@@ -35,6 +35,7 @@ COMMON_TYPES={ # typename:(pseudoname,docstring)
 'filter':('Filter Tag','Any of the [[RosettaScripts Filters|Filters-RosettaScripts]] tags'),
 'task_operation':('TaskOperation Tag','Any of the [[RosettaScripts TaskOperation|TaskOperations-RosettaScripts]] tags'),
 'residue_selector':('Residue Selector Tag','Any of the [[ResidueSelectors]]'),
+'simple_metric':('Simple Metric Tag', 'Any of the [[SimpleMetrics]]'),
 'jump_selector':('Jump Selector Tag','Any of the [[JumpSelectors]]'),
 'res_lvl_task_op':('ResidueLevelTaskOperation Tag','Any of the [[Residue Level TaskOperations]]'),
 'res_filter':('ResFilter Tag','Any of the [[ResFilters|OperateOnCertainResiduesOperation#ResFilters]]'),

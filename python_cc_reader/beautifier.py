@@ -3218,6 +3218,8 @@ def beautify_file( filename, overwrite, opts = None ) :
     orig_beaut=None
 
     orig_lines = open( filename ).readlines()
+    if ( any( [ line.endswith('\r\n') for line in orig_lines ] ) ):
+       print("WARNING: file %s contains DOS-style line endings. This may cause the beautifier to fail."%filename)
     for macro_set in macro_sets :
 
         if orig_beaut :

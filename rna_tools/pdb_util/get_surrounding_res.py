@@ -14,7 +14,7 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 	
 	### Parse sample_res_list as a string
 	sample_res_list, sample_chain_list = parse_tag( sample_res_list ) 
-        
+	
 	### Read PDB file
 	( coords, pdb_lines, sequence, chains, residues ) = read_pdb( pdbfile )
 
@@ -22,10 +22,10 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 	if radius:
 
 
-                if not keep_res is None:
-                        keep_res_list, keep_res_chain_list = parse_tag( keep_res )
-                else:
-                        keep_res_list, keep_res_chain_list = [], []
+		if not keep_res is None:
+			keep_res_list, keep_res_chain_list = parse_tag( keep_res )
+		else:
+			keep_res_list, keep_res_chain_list = [], []
 
 		for surr_rsd_idx, surr_rsd in enumerate(residues):
 			is_surrounding_res = False		
@@ -43,7 +43,7 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 
 						distance = sqrt( sum( power( subtract( surr_atom_xyz, sample_atom_xyz ) , 2 ) ) )
 						if ( power( distance, 2 ) < power( float(radius), 2 ) ):
-							if verbose:	print "res "+str(chains[surr_rsd_idx])+':'+str(surr_rsd)+" is a surrounding res, distance() = ", distance
+							if verbose:	print("res "+str(chains[surr_rsd_idx])+':'+str(surr_rsd)+" is a surrounding res, distance() = ", distance)
 							keep_res_list.append( surr_rsd )
 							keep_res_chain_list.append( chains[surr_rsd_idx] )
 							is_surrounding_res = True
@@ -52,11 +52,11 @@ def get_surrounding_res( pdbfile, sample_res_list=[], radius=None, verbose=False
 		if not len( keep_res_list ):
 
 			if not len( sample_res_list ):
-				if verbose:	print 'WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius
-				if verbose:	print 'Must supply sample_res to find residues within the given radius.' 
+				if verbose:	print('WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius)
+				if verbose:	print('Must supply sample_res to find residues within the given radius.' )
 			else:
-				if verbose:	print 'WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius
-				if verbose:	print 'Try an expanded radius.'
+				if verbose:	print('WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius)
+				if verbose:	print('Try an expanded radius.')
 		
 	### All residues are surrounding if radius == None
 	else:	
@@ -93,12 +93,12 @@ def get_ellipsoid_envelope_res( pdbfile, sample_res_list=[], radius=None, verbos
 	'''
 	five_prime_boundary  = sample_res_list[0] - 1
 	three_prime_boundary = sample_res_list[-1] + 1
-	num_loop_res         = three_prime_boundary - five_prime_boundary
+	num_loop_res	 = three_prime_boundary - five_prime_boundary
 
 	if verbose:
-		print 'five_prime_boundary  = '+str(five_prime_boundary)
-		print 'three_prime_boundary = '+str(three_prime_boundary)
-		print 'num_loop_res		    = '+str(num_loop_res)
+		print('five_prime_boundary  = '+str(five_prime_boundary))
+		print('three_prime_boundary = '+str(three_prime_boundary))
+		print('num_loop_res		    = '+str(num_loop_res))
 
 	############ PORT TO PYTHON
 	five_prime_foci  = pose.residue( five_prime_boundary ).xyz( " O3'" )
@@ -118,10 +118,10 @@ def get_ellipsoid_envelope_res( pdbfile, sample_res_list=[], radius=None, verbos
 	major_diameter = max_loop_length + expand_radius
 
 	if verbose:
-		print "foci_sep_dist   = "+str(foci_sep_dist)
-		print "major_diameter  = "+str(major_diameter)
-		print "max_loop_length = "+str(max_loop_length)
-		print "expand_radius   = "+str(expand_radius)
+		print("foci_sep_dist   = "+str(foci_sep_dist))
+		print("major_diameter  = "+str(major_diameter))
+		print("max_loop_length = "+str(max_loop_length))
+		print("expand_radius   = "+str(expand_radius))
 
 
 
@@ -253,7 +253,7 @@ def get_ellipsoid_envelope_res( pdbfile, sample_res_list=[], radius=None, verbos
 
 						distance = sqrt( sum( power( subtract( surr_atom_xyz, sample_atom_xyz ) , 2 ) ) )
 						if ( power( distance, 2 ) < power( float(radius), 2 ) ):
-							if verbose:	print "res "+str(chains[surr_rsd_idx])+':'+str(surr_rsd)+" is a surrounding res, distance() = ", distance
+							if verbose:	print("res "+str(chains[surr_rsd_idx])+':'+str(surr_rsd)+" is a surrounding res, distance() = ", distance)
 							keep_res_list.append( surr_rsd )
 							keep_res_chain_list.append( chains[surr_rsd_idx] )
 							is_surrounding_res = True
@@ -262,11 +262,11 @@ def get_ellipsoid_envelope_res( pdbfile, sample_res_list=[], radius=None, verbos
 		if not len( keep_res_list ):
 
 			if not len( sample_res_list ):
-				if verbose:	print 'WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius
-				if verbose:	print 'Must supply sample_res to find residues within the given radius.' 
+				if verbose:	print('WARNING: len(sample_res_list) == ', len(sample_res_list), ' but radius == ', radius)
+				if verbose:	print('Must supply sample_res to find residues within the given radius.' )
 			else:
-				if verbose:	print 'WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius
-				if verbose:	print 'Try an expanded radius.'
+				if verbose:	print('WARNING: len(keep_res_list) == ', len(surrounding_res_list), ' for radius == ', radius)
+				if verbose:	print('Try an expanded radius.')
 		
 	### All residues are surrounding if radius == None
 	else:	
@@ -328,6 +328,6 @@ if __name__=='__main__':
 		surrounding_residues, surrounding_chains = parse_tag( surrounding_res_tag )
 		surrounding_res_tag = string.join( [ str(x) for x in surrounding_residues ], ' ' )
 
-	if args.verbose:	print '\nSurrounding Residues: ', surrounding_res_tag#.replace(' ',',')
-	else:				print surrounding_res_tag
+	if args.verbose:	print('\nSurrounding Residues: ', surrounding_res_tag)#.replace(' ',',')
+	else:				print(surrounding_res_tag)
 	

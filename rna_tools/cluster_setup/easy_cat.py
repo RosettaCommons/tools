@@ -17,14 +17,14 @@ for outfile in outfiles:
         subdirs = [o for o in listdir(d) if isdir(join(d,o))]
         for subdir in subdirs:
             chdir( subdir )
-            print subdir
+            print(subdir)
             system( 'easy_cat.py %s' % outfile )
-            print
+            print()
             chdir( CWD )
         continue
     if (outfile[-4:] == '.out' ):
         #Old style, user specified a bunch of outfiles.
-        tag = string.join( string.split( outfile,'_' )[:-2] , '_')
+        tag = "_".join(outfile.split('_')[:-2])
         if tag not in which_files_to_cat.keys():
             which_files_to_cat[tag] = []
         which_files_to_cat[tag].append( outfile )
@@ -41,9 +41,9 @@ for outfile in outfiles:
         globfiles = filter( lambda x: "S_" not in x and "_checkpoint" not in x, globfiles )
 
         # make sure to order 0,1,2,... 10, 11, 12, ... 100, 101, ...
-        globfiles_with_length = map( lambda x: [len(x),x], globfiles )
+        globfiles_with_length = list(map( lambda x: [len(x),x], globfiles ))
         globfiles_with_length.sort()
-        globfiles = map( lambda x:x[-1], globfiles_with_length )
+        globfiles = list(map( lambda x:x[-1], globfiles_with_length ))
 
         for file in globfiles:
             tag = basename( file ).replace('.out','')
@@ -56,9 +56,9 @@ for tag in which_files_to_cat.keys():
     #if (len( which_files_to_cat[tag] ) == 1) : continue
 
     cat_file = tag+".out"
-    print "Catting into: ",cat_file,
+    print("Catting into: ",cat_file, end='')
     command = 'python %s/cat_outfiles.py %s >  %s ' % \
-              (scripts_path, string.join( which_files_to_cat[tag] ) ,
+              (scripts_path, " ".join( which_files_to_cat[tag] ) ,
                cat_file )
     system( command )
 
@@ -69,7 +69,7 @@ for tag in which_files_to_cat.keys():
     fid_txt.close()
 
     lines = popen( 'grep SCORE '+cat_file).readlines()
-    print '... from %d primary files. Found %d  decoys.' % (len( which_files_to_cat[tag] ),len(lines)-1)
+    print('... from %d primary files. Found %d  decoys.' % (len( which_files_to_cat[tag] ),len(lines)-1))
 
     fid_sc = open( cat_file.replace('.out','.sc'),'w' )
     for line in lines:

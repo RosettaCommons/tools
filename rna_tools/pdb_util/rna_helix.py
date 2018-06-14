@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 import tempfile
 import subprocess
@@ -36,11 +37,11 @@ if len( args.silent ) > 0: cmdline += '-out:file:silent %s ' % args.silent
 if args.dump: cmdline += '-dump '
 if args.put_intra_into_total: cmdline += '-put_intra_into_total '
 
-print 'Rosetta cmdline:', cmdline
+print('Rosetta cmdline:', cmdline)
 out, err = subprocess.Popen(cmdline.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
 if err and len(err):
-	print out
-	print err 
+	print(out)
+	print(err)
 assert( not err or not len(err) )
 
 output_file = args.o

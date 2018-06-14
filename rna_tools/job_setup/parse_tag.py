@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import string
 
 ####################################################################
@@ -105,5 +106,5 @@ if __name__=='__main__':
     args=parser.parse_args()
 
     if isinstance( args.tag, list ): args.tag = string.join( args.tag, ' ' )
-    print parse_tag( args.tag, alpha_sort=args.alpha_sort )
+    print(parse_tag( args.tag, alpha_sort=args.alpha_sort ))
 

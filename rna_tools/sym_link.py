@@ -32,7 +32,7 @@ for dirpath, dirnames, filenames in os.walk('./'):
             file2 = './bin/' + f
             try:
                 os.symlink(file1, file2)
-            except OSError, e:
+            except OSError as e:
                 if e.errno == errno.EEXIST:
                     os.remove(file2)
                     os.symlink(file1, file2)

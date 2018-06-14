@@ -4,7 +4,7 @@ import string
 def get_resnum_chain( input_string, resnums, chains, segids ): # could be of the form A:1-4 or A1-4 or 1-4
 
     if ( input_string.find( ',' ) > -1 ):
-        for substring in string.split( input_string, ',' ): get_resnum_chain( substring, resnums, chains, segids )
+        for substring in input_string.split(','): get_resnum_chain( substring, resnums, chains, segids )
         return True
     #assert( len( input_string ) > 0 )
     #if len(segids) == 0: segids = ['    ' for _ in resnums]

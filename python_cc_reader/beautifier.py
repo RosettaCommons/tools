@@ -67,16 +67,26 @@ token_types = [ "top-level",
                 "ctor-initializer-list",
                 "block-comment",
                 "statement",
+                "statement-scope", # new for lambda functions that are defined within statements
                 "substatement",
                 "template",
                 "template-arg-list",
                 "empty-statement" ]
 
 white_listed_macros = set([
+    "OPT_KEY",
     "OPT_1GRP_KEY",
+    "OPT_2GRP_KEY",
+    "OPT_3GRP_KEY",
+    "EXTERN_OPT_KEY",
+    "EXTERN_OPT_1GRP_KEY",
+    "EXTERN_OPT_2GRP_KEY",
+    "EXTERN_OPT_3GRP_KEY",
     "ASSERT_ONLY",
     "CEREAL_FORCE_DYNAMIC_INIT",
     "CEREAL_REGISTER_DYNAMIC_INIT",
+    "CEREAL_REGISTER_TYPE",
+    "SPECIAL_COP_SERIALIZATION_HANDLING",
 ])
 
 class Token :
@@ -152,7 +162,7 @@ class Beautifier :
         self.scope_types = set( ["namespace-scope", "for-scope", "do-while-scope", "if-scope",
                                  "else-scope", "while-scope", "switch-scope",
                                  "case-block-scope", "class-scope", "struct-scope", "union-scope",
-                                 "function-scope", "try-scope", "catch-scope", "scope" ] )
+                                 "function-scope", "try-scope", "catch-scope", "scope", "statement-scope" ] )
         self.for_types = set( [ "for", "BOOST_FOREACH", "foreach", "foreach_", "boost_foreach", "FEM_DO",
                                 "FEM_DO_SAFE", "FEM_DOSTEP",
                                 "FORVC", "FORTAGS" ] )
@@ -205,6 +215,10 @@ class Beautifier :
                 if start >= 0 :
                     self.take_token_for_range( start, i )
                 if i+1 < len(self.line) and self.line[i] == "\\" and self.line[i+1] == "t" :
+                    self.take_token_for_range( i, i+2 )
+                    start = -1
+                    i+=2
+                elif i+1 < len(self.line) and ( self.line[i] == "<" or self.line[i] == ">" ) and self.line[i+1] == self.line[i] :
                     self.take_token_for_range( i, i+2 )
                     start = -1
                     i+=2
@@ -603,6 +617,7 @@ class Beautifier :
             return self.process_simple_statement(i,stack)
 
     def set_parent( self, i, stack, token_type = "substatement" ) :
+        #if debug : print " " * len(stack), " set parent of ", i, stack[-1].index, self.all_tokens[i].spelling, stack[-1].spelling
         self.all_tokens[i].type   = token_type
         self.all_tokens[i].parent = stack[-1]
         stack[-1].children.append( self.all_tokens[i] )
@@ -661,6 +676,12 @@ class Beautifier :
                     stack.pop() #pop template
                     if debug : self.print_entry("exitting process_template",i,stack)
                     return i+1
+            elif self.all_tokens[i].spelling == ";" and template_depth == 0 :
+                # perhaps we'll never find the template params
+                assert( template_params == "not-begun" )
+                self.set_parent(i,stack)
+                stack.pop() # pop template
+                return i+1
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_template", stack )
@@ -676,17 +697,82 @@ class Beautifier :
             stack[-3].type == "function" and \
             stack[-4].type == "class-scope"
 
+    def check_lambda_compatability( self, token_list ) :
+        if not self.could_be_lambda( token_list ) and len( token_list ) != 0 :
+            del token_list[:]
+
+    def could_be_lambda( self, token_list ) :
+        if len(token_list) == 0 : return False
+        seen_lparen = False
+        last_was_minus = False
+        seen_arrow = False
+        seen_throw = False
+        seen_throw_lparen = False
+        template_depth = 0; # how many "<"s have we seen?
+        for tok_ind in xrange( len(token_list) ) :
+            tok = token_list[ tok_ind ]
+            if tok_ind == 0 :
+                if tok != "[" : return False
+            elif tok_ind == 1 :
+                if tok == "{" : return True
+                if tok != "(" : return False
+                seen_lparen = True
+            elif last_was_minus and tok != ">" :
+                return False
+            elif last_was_minus and tok == ">" :
+                if seen_arrow : return False
+                seen_arrow = True
+            elif tok == "(" :
+                if seen_lparen :
+                    if not seen_throw or ( seen_throw and seen_throw_lparen ) :
+                        return False
+                    seen_throw_lparen = True
+                else :
+                    seen_lparen = True
+            elif tok == "-" :
+                if seen_lparen and template_depth == 0 :
+                    last_was_minus = True
+                else :
+                    return False
+            elif seen_lparen and not seen_arrow :
+                if tok == "throw" :
+                    if seen_throw or seen_nothrow: return False
+                    seen_throw = True
+                elif tok == "nothrow" :
+                    if seen_nothrow or seen_throw: return False
+                    seen_nothrow = True
+            #elif tok == "{" :
+            #    # at this point; tok_ind should point to the last element in the list
+            #    return True
+            elif seen_arrow :
+                # this could be a return type and I don't want to figure out if it is, so, let's assume it is
+                # if we see a "<" treat it like the start of a template parameter
+                if tok == "<" :
+                    template_depth += 1
+                if tok == ">" :
+                    if template_depth > 0 : template_depth -= 1
+                elif tok == "," :
+                    if template_depth == 0 : return False
+            else :
+                # basically any other thing that we find prevents this from being a lambda
+                return False
+        return True
 
     def process_simple_statement(self,i,stack) :
         if debug : self.print_entry("process_simple_statement",i,stack)
 
-        open_brackets = set( [ "{", "[", "(" ] )
-        close_brackets = set( [ "}", "]", ")" ] )
-        closing_bracket_for_opener = { "{" : "}", "[" : "]", "(" : ")" }
+        open_scope = "{"
+        close_scope = "}"
+        open_brackets = set( [ "[", "(", "{" ] )
+        close_brackets = set( [ "]", ")", "}" ] )
+        closing_bracket_for_opener = { "[" : "]", "(" : ")", "{" : "}" }
         bracket_stack = []
+        lambda_detection_stack = [ [] ] # what symbols have we found consistent with a lambda function declaration given our current bracket stack?
 
         if self.all_tokens[i].spelling in open_brackets and not self.all_tokens[i].is_inside_string :
             bracket_stack.append( self.all_tokens[i].spelling )
+            lambda_detection_stack[-1].append( self.all_tokens[i].spelling )
+            lambda_detection_stack.append( [] )
 
         macro_without_ending_semicolon = False
         if self.all_tokens[i].spelling in white_listed_macros :
@@ -709,9 +795,17 @@ class Beautifier :
         last = i
         n_question_marks = 0
         while i < len(self.all_tokens) :
+
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
-                pass
-            elif self.all_tokens[i].spelling == ";" and len(bracket_stack) == 0 :
+                self.set_parent(i,stack)
+                i+=1
+                continue
+
+            lambda_detection_stack[-1].append( self.all_tokens[i].spelling )
+            #print self.all_tokens[i].spelling, len( lambda_detection_stack )
+            self.check_lambda_compatability( lambda_detection_stack[-1] )
+
+            if self.all_tokens[i].spelling == ";" and len(bracket_stack) == 0 :
                 # print "statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] )
                 self.set_parent(i,stack)
                 stack.pop()
@@ -737,8 +831,15 @@ class Beautifier :
                     continue
             elif self.all_tokens[i].spelling == "?" :
                 n_question_marks += 1
+            elif self.all_tokens[i].spelling == open_scope and self.could_be_lambda( lambda_detection_stack[-1] ) :
+                if debug : self.print_entry( "found open scope inside simple statement", i, stack )
+                i = self.process_scope(i,stack)
+                if debug : self.print_entry( "finished dealing with open scope inside simple statement", i, stack )
+                del lambda_detection_stack[-1][:] # empty out the list of the last entry in the lambda-detection stack
+                continue
             elif self.all_tokens[i].spelling in open_brackets :
                 bracket_stack.append( self.all_tokens[i].spelling )
+                lambda_detection_stack.append( [ ] )
                 if macro_without_ending_semicolon and not encountered_first_lparen and self.all_tokens[i].spelling == "(" :
                     encountered_first_lparen = True
             elif self.all_tokens[i].spelling in close_brackets :
@@ -750,8 +851,6 @@ class Beautifier :
                         self.set_parent(i,stack)
                         stack.pop()
                         return i
-
-
                     print "Closing bracket '"+self.all_tokens[i].spelling+"' found that does not match an opening bracket in", self.filename
                     sys.exit(1)
                 if closing_bracket_for_opener[ bracket_stack[-1] ] != self.all_tokens[i].spelling :
@@ -762,6 +861,7 @@ class Beautifier :
                     #assert( closing_bracket_for_opener[ bracket_stack[-1] ] == self.all_tokens[i].spelling  )
                     sys.exit(1)
                 bracket_stack.pop()
+                lambda_detection_stack.pop()
                 if len(bracket_stack) == 0 and macro_without_ending_semicolon and encountered_first_lparen :
                     self.set_parent(i,stack)
                     stack.pop()
@@ -782,6 +882,9 @@ class Beautifier :
         i = self.find_next_visible_token( class_token.index+1 )
         return self.all_tokens[i].spelling
 
+    def function_is_constructor( self, functionname, classname ) :
+        #print "function is constructor? ", functionname, classname
+        return functionname == classname
 
     def process_function_preamble_or_variable(self,i,stack) :
         # print "process_function_preamble_or_variable", i, depth
@@ -793,7 +896,7 @@ class Beautifier :
         classname = ""
         if stack[-1].type == "class-scope" :
             classname = self.current_classname( i, stack )
-            if debug: print "class name!", classname
+            #if debug: print "class name!", classname
         arglist = "not-begun"
         is_ctor = False
         found_init_list = False
@@ -833,12 +936,33 @@ class Beautifier :
                     # this might be constructor, we don't know
                     # this might also be some namespace qualifier on a return type
                     if i+1 < len(self.all_tokens) and self.all_tokens[i+1].spelling == ":" :
-                        classname = self.all_tokens[i-1].spelling
+                        if self.all_tokens[i-1].spelling == ">" :
+                            # The class is templated, so we have to look backwards past the template arguments
+                            # to figure out its name so we can figure out if this is a constructor definition.
+                            #print "found a '<'; searching backwards for a '<'"
+                            j = i-2
+                            count_gts = 1
+                            while j > 0 :
+                                #print "looking at", j, self.all_tokens[j].spelling, count_gts
+                                if not self.all_tokens[j].is_visible :
+                                    pass
+                                elif self.all_tokens[j].spelling == "<" :
+                                    count_gts -= 1
+                                    if count_gts == 0 :
+                                        break
+                                elif self.all_tokens[j].spelling == ">" :
+                                    count_gts += 1
+                                j -= 1
+                            classname = self.all_tokens[j-1].spelling
+                        else :
+                            classname = self.all_tokens[i-1].spelling
+                        #print "classname:", classname
+
             elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" :
                 found_parens = True
                 funcname = self.all_tokens[i-1].spelling
                 if funcname != "operator" :
-                    if funcname == classname :
+                    if self.function_is_constructor( funcname, classname ) :
                         is_ctor = True
                     arglist = "started"
                     self.set_parent(i,stack,"function-decl-argument-list")
@@ -992,18 +1116,23 @@ class Beautifier :
         while i < len(self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
-            elif self.all_tokens[i].spelling == "catch" :
-                i = self.process_catch(i,stack)
-                found_catch = True
-                continue
-            elif found_catch :
-                stack.pop() # remove try
-                return i
             elif self.all_tokens[i].spelling == "{" :
                 i = self.process_statement(i,stack)
-                continue
+                break
             self.set_parent(i,stack)
             i+=1
+        j = self.find_next_visible_token(i,stack)
+        while j < len( self.all_tokens ):
+            #print "next visible: is it a catch?", j, self.all_tokens[j].spelling
+            if self.all_tokens[j].spelling == "catch" :
+                for k in xrange(i,j) :
+                    self.set_parent(k,stack)
+                i = self.process_catch(j,stack)
+                j = self.find_next_visible_token(i,stack)
+                continue
+            else :
+                stack.pop() # remove try
+                return i
 
         self.handle_read_all_tokens_error( "process_try", stack )
     def process_catch( self, i, stack ) :
@@ -1087,11 +1216,16 @@ class Beautifier :
         self.set_parent(i,stack,"class")
         stack.append(self.all_tokens[i])
         i+=1
+        template_bracket_count = 0
 
         while i < len( self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass
-            elif self.all_tokens[i].spelling == "[" :
+            elif self.all_tokens[i].spelling == "<" :
+                template_bracket_count += 1
+            elif self.all_tokens[i].spelling == ">" :
+                template_bracket_count -= 1
+            elif template_bracket_count == 0 and self.all_tokens[i].spelling == "[" :
                 # ok -- maybe we're looking at an array declaration; this happens with structs
                 # where you say struct structname varname[] = {};
                 found_square_brackets = True
@@ -1484,14 +1618,42 @@ class Beautifier :
             # print "indentation for ctor-initializer-list", first_token.parent.parent.type
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "statement" :
+            #print "indentation for statement line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            if first_token.parent.context() == "statement-scope" :
+                #print "self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent", self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent
+                if ( self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent ) :
+                    self.line_indentations[ line_number ] = self.line_indentations[first_token.parent.line_number] + 1
+                else :
+                    self.line_indentations[ line_number ] = self.line_indentations[first_token.parent.line_number]
             # this statement has run on to a second line
-            if first_token.is_visible and first_token.spelling == ")" and first_token.parent.children[-2] is first_token and \
+            elif first_token.is_visible and first_token.spelling == ")" and first_token.parent.children[-2] is first_token and \
                 first_token.parent.children[-1].spelling == ";" :
                 # the terminating ) in a function call, if it's the last token before the ";", should indent to
                 # the same level as the parent.
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+        elif first_token.context() == "statement-scope" :
+            # this statement has run on to a second line
+            #print "indentation for statement scope line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            if first_token.spelling == "}" and first_token.is_visible and not first_token.is_inside_string :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            else :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+        elif first_token.context() == "template" :
+            #print "indentation for template line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            # this statement has run on to a second line
+            self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+        elif first_token.context() == "template-arg-list" :
+            #print "indentation for template-arg-list line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            # this statement has run on to a second line
+            if first_token.is_visible and first_token.spelling == ">" and first_token.parent.children[-1] is first_token :
+                # the terminating > in a list of template arguments, should indent to
+                # the same level as the parent.
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
+            else :
+                self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
+
         elif first_token.context() == "try-scope" :
             if first_token.spelling == "}" and first_token.is_visible and not first_token.is_inside_string :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
@@ -2765,7 +2927,7 @@ class Beautifier :
             #print "scope equiv while loop", i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this, i_other )
 
-        print "Ran out of tokens in scope_equiv"
+        # print "Ran out of tokens in scope_equiv" -- this isn't an error condition!
         stack.pop()
         return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
@@ -2791,6 +2953,7 @@ class Beautifier :
 
         while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
             tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if debug_equiv: print " "*len(stack)+"simple statement equiv while loop", tok_this2.spelling, tok_other2.spelling
             if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
                 if debug_equiv: print " "*len(stack) + "leaving simple_statement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
                 if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
@@ -2799,7 +2962,49 @@ class Beautifier :
                 else :
                     if debug_equiv: print "returning false"
                     return False, i_this, i_other
+            if tok_this2.type in self.scope_types :
+                still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
+                if not still_good:
+                    print
+                    print "not still good from scope within simple_statement_equiv"
+                    return still_good, i_this, i_other
+                continue # do not increment i_this and i_other
             if not tok_this2.equivalent( tok_other2 ) :
+                if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+        #print "simple_statement_equiv should not have reached here", i_this, i_other
+        return True, i_this, i_other
+
+    def substatement_equiv( self, other, i_this, i_other, stack ) :
+        if debug_equiv: self.enter_equiv( other, "substatement_equiv", i_this, i_other, stack )
+        tok_this, tok_other = self.two_toks( other, i_this, i_other )
+
+        #if tok_other.type == "empty-statement" : return self.simple_statement_equiv( other, i_this, other.find_next_visible_token(i_other+1), stack )
+
+        #if tok_other.type in self.scope_types :
+        #    return self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
+
+        if not tok_this.equivalent( tok_other ) : return False, i_this, i_other
+        i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
+
+        while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
+            tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
+                #print "Finished substatement_equiv:", tok_ths2.spelling, tok_this2.parent.spelling, tok_other2.spelling,  tok_other2.parent.spelling
+                if debug_equiv: print " "*len(stack) + "leaving substatement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
+                    if debug_equiv: print "returning true"
+                    return True, i_this, i_other
+                else :
+                    if debug_equiv: print "returning false"
+                    return False, i_this, i_other
+            if tok_this2.type in self.scope_types :
+                still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
+                #still_good, i_this, i_other = self.equiv_to_scoped_statement( other, i_this, i_other, stack, self.simple_statement_equiv )
+                if not still_good:
+                    return still_good, i_this, i_other
+            elif not tok_this2.equivalent( tok_other2 ) :
                 if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
@@ -2935,6 +3140,8 @@ class Beautifier :
             retval = self.empty_statement_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "statement" :
             retval = self.simple_statement_equiv( other, i_this, i_other, stack )
+        elif tok_this.type == "substatement" :
+            retval = self.substatement_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "template" :
             retval = self.template_equiv( other, i_this, i_other, stack )
         elif tok_this.type == "function" :
@@ -2988,8 +3195,8 @@ class Beautifier :
 def canonical_set_of_macros_to_test() :
     return [ [],
              [ "USE_MPI" ],
-             [ "CXX11" ],
-             [ "CXX11", "MULTI_THREADED" ],
+             [ "USE_MPI", "SERIALIZATION" ],
+             [ "MULTI_THREADED" ],
              [ "USE_OPENMP" ],
              [ "BOINC_GRAPHICS" ],
              [ "WINDOWS" ],
@@ -3012,6 +3219,8 @@ def beautify_file( filename, overwrite, opts = None ) :
     orig_beaut=None
 
     orig_lines = open( filename ).readlines()
+    if ( any( [ line.endswith('\r\n') for line in orig_lines ] ) ):
+       print("WARNING: file %s contains DOS-style line endings. This may cause the beautifier to fail."%filename)
     for macro_set in macro_sets :
 
         if orig_beaut :
@@ -3052,7 +3261,7 @@ def beautify_file( filename, overwrite, opts = None ) :
             for line in beaut.new_lines :
                 print line,
 
-    if overwrite :
+    if overwrite or debug:
         # make sure that the beautified code is identical to the original code
         all_good = True
         for macro_set in macro_sets :
@@ -3086,12 +3295,18 @@ def beautify_file( filename, overwrite, opts = None ) :
                 all_good = False
                 print "MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename
 
-        if all_good :
+        if overwrite and all_good :
             open( filename, "w" ).writelines( beaut.new_lines )
             #pass
-        else :
+        elif overwrite and not all_good :
             print "Did not beautify", filename, "because tree differed in the presence of some macros"
-    else :
+        elif not overwrite and not all_good :
+            print "Beautified file does not match structure of original!"
+
+        if debug and not overwrite :
+            open( filename +".beaut", "w" ).writelines( beaut.new_lines )
+
+    elif not overwrite :
         open( filename +".beaut", "w" ).writelines( beaut.new_lines )
 
 class SmartStack :

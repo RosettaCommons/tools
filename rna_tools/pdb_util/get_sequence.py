@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import string
 from os.path import exists,basename
 from parse_tag import parse_tag
@@ -25,7 +26,7 @@ grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_typ
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()
-for tlc in tlcs.split('\n'):
+for tlc in tlcs.decode('iso-8859-15').split('\n'):
     longer_names[tlc] = "X[%s]" % tlc
 
 def get_sequences( pdbname, removechain = 0 ):
@@ -35,19 +36,23 @@ def get_sequences( pdbname, removechain = 0 ):
 
     lines = open(netpdbname,'r').readlines()
 
-    oldresnum = '   '
     oldchain = ''
+    oldsegid = "    "
+    oldresnum = '   '
     chain = oldchain
+    segid = oldsegid
     resnum = oldresnum
     count = 0;
     fasta_line = ''
 
     sequences = []
     all_chains = []
+    all_segids = []
     all_resnums = []
 
     sequence = ''
     chains = []
+    segids = []
     resnums = []
 
     for line in lines:
@@ -69,35 +74,40 @@ def get_sequences( pdbname, removechain = 0 ):
         if line_edit[0:4] == 'ATOM' or line_edit[0:6]=='HETATM':
             resnum = line_edit[22:26].replace( ' ', '' )
             chain = line_edit[21]
-
-        if ( line[0:3] == 'TER' or ( not chain == oldchain ) ) and len( sequence ) > 0:
+            segid = line_edit[72:76]
+        if ( line[0:3] == 'TER' or ( not chain == oldchain ) or ( not segid == oldsegid ) ) and len( sequence ) > 0:
             sequences.append( sequence )
             all_chains.append( chains )
             all_resnums.append( resnums )
+            all_segids.append( segids )
             sequence = ''
             chains   = []
             resnums  = []
+            segids = []
             old_resnum = ''
 
-        if (not (resnum == oldresnum and chain == oldchain) ):
+        if (not (resnum == oldresnum and chain == oldchain )):#and segid == oldsegid ) ):
             count = count + 1
             longname = line_edit[17:20]
-            if longer_names.has_key(longname):
+            if longname in longer_names.keys():
                 sequence +=  longer_names[longname]
             else:
                 sequence +=  'X'
             resnums.append( int(resnum) )
             chains.append( chain )
+            segids.append( segid )
             oldresnum = resnum
             oldchain = chain
+            oldsegid = segid
 
     if len( sequence ) > 0:
         sequences.append( sequence )
         if ( chain == ' ' ): chain = ''
         all_chains.append( chains )
         all_resnums.append( resnums )
+        all_segids.append( segids )
 
-    return ( sequences, all_chains, all_resnums )
+    return ( sequences, all_chains, all_resnums, all_segids )
 
 def get_sequence( pdbname, removechain = 0, join = False ):
     sequences, chains, resnums = get_sequences( pdbname, removechain )
@@ -106,17 +116,19 @@ def get_sequence( pdbname, removechain = 0, join = False ):
     return sequences[0]
 
 def get_sequences_for_res( pdbname, input_res, removechain = 0 ):
-    sequences, chains, resnums = get_sequences( pdbname, removechain )
-    input_resnums, input_chains = parse_tag(input_res)
+    sequences, chains, resnums, segids = get_sequences( pdbname, removechain )
+    input_resnums, input_chains, input_segids = parse_tag(input_res)
     if all ( (c is None or not c.isalpha()) for c in input_chains ):
         input_chains = [c for chain in chains for c in chain]
     subsequences = []
-    for sequence, subchains, subresnums in zip(sequences, chains, resnums):
+    for sequence, subchains, subresnums, subsegids in zip(sequences, chains, resnums, segids ):
         subsequence = ''
-        for residue in zip(sequence, subchains, subresnums):
+        for residue in zip(sequence, subchains, subresnums, subsegids):
             if residue[2] not in input_resnums:
                 continue
             if residue[1] not in input_chains:
+                continue
+            if residue[3] not in input_segids:
                 continue
             subsequence += residue[0]
         if len(subsequence):
@@ -132,5 +144,5 @@ if __name__=='__main__':
     parser.add_argument('--removechain', action='store_true')
     args=parser.parse_args()
 
-    ( sequences, all_chains, all_resnums ) = get_sequences( args.pdbname, removechain = args.removechain )
-    print string.join(sequences, '')
+    ( sequences, all_chains, all_resnums, all_segids ) = get_sequences( args.pdbname, removechain = args.removechain )
+    print(''.join(sequences))

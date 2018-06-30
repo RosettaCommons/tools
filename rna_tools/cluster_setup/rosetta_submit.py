@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 from sys import argv,exit
 from os import system,getcwd,popen,devnull
 from os.path import basename,dirname,expanduser,exists,expandvars
@@ -92,7 +92,7 @@ if len( argv ) > 4:
         nhours = min(nhours, 48)
 
 if not exists( infile ):
-    print 'Could not find: ', infile
+    print('Could not find: ', infile)
     exit( 0 )
 
 lines = open(infile).readlines()
@@ -169,10 +169,10 @@ for line in lines:
 
     if len(line) == 0: continue
     if line[0] == '#': continue
-    #if string.split( line[0]) == []: continue
+    #if line[0].split() == []: continue
     command_line = line[:-1]
 
-    cols = string.split( command_line )
+    cols = command_line.split()
     for i in range( len( cols ) ):
         if cols[i][0] == '@':
             flag_file = cols[i][1:]
@@ -182,14 +182,19 @@ for line in lines:
                 if len(flag)>0 and flag[0] != '#':
                     new_flags += ' ' + flag.replace( '\n', '')
             cols[i] = new_flags
-            command_line = string.join( cols )
+            command_line = ' '.join(cols)
 
     dir = outdir + '/$(Process)/'
+<<<<<<< HEAD
     make_outdirs = False
     if outdir == '0':
         assert( n_jobs == 1 )
     elif command_line.find( '-csa_bank_size' ) > -1:
         print "Detected CSA mode"
+=======
+    if command_line.find( '-csa_bank_size' ) > -1:
+        print("Detected CSA mode")
+>>>>>>> master
     else:
         command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
@@ -205,7 +210,7 @@ for line in lines:
     command_line = command_line.replace( '~/', HOMEDIR+'/')
     command_line = command_line.replace( '/home/rhiju',HOMEDIR)
 
-    cols = string.split( command_line )
+    cols = command_line.split()
     if len( cols ) == 0: continue
 
     EXE = cols[ 0 ]
@@ -224,17 +229,17 @@ for line in lines:
 
     if not exists( cols[0] ):
         cols[0] = EXE
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
 
 
     if '-total_jobs' in cols:
         pos = cols.index( '-total_jobs' )
         cols[ pos+1 ] = '%d' % n_jobs
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
     if '-job_number' in cols:
         pos = cols.index( '-job_number' )
         cols[ pos+1 ] = '$(Process)'
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
 
 
     for i in range( n_jobs ):
@@ -311,7 +316,7 @@ for line in lines:
         command_lines_explicit.append( command_line_explicit )
         tot_jobs += 1
 
-    arguments = string.join( cols[ 1: ] )
+    arguments = ' '.join(cols[1:])
 
     fid_condor.write('\nexecutable = %s\n' % EXE )
     fid_condor.write('arguments = %s\n' % arguments)
@@ -474,37 +479,51 @@ if DO_MPI:
     fid_queue_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
+<<<<<<< HEAD
 if len( hostname ) == 0 and bsub_file != '/dev/null':
     print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source',bsub_file
     print
+=======
+if len( hostname ) == 0:
+    print('Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source',bsub_file)
+    print()
+>>>>>>> master
 
 if hostname == 'ade':
-    print 'Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>condor_submit',condor_file
-    print
+    print('Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>condor_submit',condor_file)
+    print()
 
-    print 'Also created bash file with all commands ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>bash ', all_commands_file
-    print
+    print('Also created bash file with all commands ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>bash ', all_commands_file)
+    print()
 
+<<<<<<< HEAD
 if queue_cmd == 'qsub':
     print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',qsub_file
     print
+=======
+if len( hostname ) == 0:
+    print('Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source ',qsub_file)
+    print()
+>>>>>>> master
 
 if queue_cmd == 'sbatch':
-    print 'Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>source ',sbatch_file
-    print
+    print('Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source ',sbatch_file)
+    print()
 
 
 if DO_MPI:
     if len( hostname ) == 0:
-        print 'Created MPI_ONEBATCH qsub submission files ',queue_file_MPI_ONEBATCH,' with ',tot_jobs, ' jobs queued. To run, type: '
-        print '>qsub ',queue_file_MPI_ONEBATCH
-        print
+        print('Created MPI_ONEBATCH qsub submission files ',queue_file_MPI_ONEBATCH,' with ',tot_jobs, ' jobs queued. To run, type: ')
+        print('>qsub ',queue_file_MPI_ONEBATCH)
+        print()
 
-    print 'Created MPI submission files ',queue_file_MPI,' with ',tot_nodes, ' batches queued. To run, type: '
-    print '>source ',queue_file_MPI
+    print('Created MPI submission files ',queue_file_MPI,' with ',tot_nodes, ' batches queued. To run, type: ')
+    print('>source ',queue_file_MPI)
 

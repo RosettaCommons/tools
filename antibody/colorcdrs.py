@@ -114,7 +114,7 @@ def _get_selections(num_scheme, dis=5.0):
     # The actual selections happen here.
     # The order of selections matter, as we select based on previous selections
     around = 'byres ({} around {}) and not {}'
-    for cdr, range in sorted(scheme.iteritems()):
+    for cdr, range in sorted(scheme.items()):
         # select the CDR loop
         sel.append(Selection(cdr, '{} and resi {}-{}'.format(chain(cdr),
                                                              *range)))
@@ -166,7 +166,7 @@ def _get_selections(num_scheme, dis=5.0):
     sel.append(Selection('stem', 'light_stem or heavy_stem'))
 
     # selections for the H3 kink
-    for k, res in kink_nums.iteritems():
+    for k, res in kink_nums.items():
         sel.append(Selection(k, 'heavy and resi {}'.format('+'.join(res))))
     grp['H3_kink'] = kink_nums.keys()
 
@@ -215,7 +215,7 @@ PYMOL API
     for s in selections:
         cmd.select(s.name, s.selection)
 
-    for group, names in sorted(groups.iteritems(), key=lambda x: x[0].lower()):
+    for group, names in sorted(groups.items(), key=lambda x: x[0].lower()):
         for name in names:
             cmd.group(group, name)
 

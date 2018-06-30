@@ -7,11 +7,11 @@ import string
 import glob
 
 def Help():
-    print
-    print
-    print 'Usage: cat_outfiles.py <outfile1> <outfile2> ... > <concatenated outfile>'
-    print
-    print
+    print()
+    print()
+    print('Usage: cat_outfiles.py <outfile1> <outfile2> ... > <concatenated outfile>')
+    print()
+    print()
     exit()
 
 if len(argv)<2:

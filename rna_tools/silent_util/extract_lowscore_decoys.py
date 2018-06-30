@@ -32,7 +32,6 @@ if argv.count('-no_replace_names'):
     del( argv[pos] )
     replace_names = 0
 
-
 extract_first_chain = 0
 if argv.count('-extract_first_chain'):
     pos = argv.index('-extract_first_chain')
@@ -318,8 +317,8 @@ for infile in infiles:
             for m in extra_res_fa: command += " "+m
 
         if (scoretags.count('vdw')): command += ' -out:file:residue_type_set centroid '
-    
-    
+
+
     print(command)
     system(command)
 

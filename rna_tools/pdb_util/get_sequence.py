@@ -6,7 +6,7 @@ from os.path import exists,basename
 from parse_tag import parse_tag
 
 
-hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'H2U', 'PSU':'PSU', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP' }
+hetatm_map = { '5BU':'  U', ' MG':' MG', 'OMC':'  C', '5MC':'  C', 'CCC':'  C', ' DC':'  C', 'CBR':'  C', 'CBV':'  C', 'CB2':'  C', '2MG':'  G', 'H2U':'H2U', 'PSU':'PSU', '5MU':'  U', 'OMG':'  G', '7MG':'  G', '1MG':'  G', 'GTP':'  G', 'AMP':'  A', ' YG':'  G', '1MA':'  A', 'M2G':'  G', 'YYG':'  G', ' DG':'  G', 'G46':'  G', ' IC':' IC',' IG':' IG', 'ZMP':'ZMP', 'YYG':'  G', '2MG':'  G','H2U':'  U' }
 
 longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               'CYS': 'C', 'GLU': 'E', 'GLN': 'Q', 'GLY': 'G',
@@ -18,8 +18,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
               ' MG': 'Z[MG]',' IC':'c[ICY]',' IG':'g[IGU]',
               'ROS': 'Z[ROS]','HOH':'w[HOH]', 'H2U': 'X[H2U]',
               'PSU': 'X[PSU]', '5MU': 'X[5MU]', 'FME': 'X[FME]',
-	      'U33': 'X[U33]', '  I': 'X[INO]', 'BRU': 'X[5BU]',
-              }
+	      'U33': 'X[U33]', '  I': 'X[INO]', 'BRU': 'X[5BU]' }
 
 from subprocess import Popen, PIPE
 import os

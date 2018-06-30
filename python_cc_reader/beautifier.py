@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 import blargs
 
@@ -1216,7 +1217,7 @@ class Beautifier :
         stack.append(self.all_tokens[i])
         i+=1
         template_bracket_count = 0
-        
+
         while i < len( self.all_tokens ) :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string:
                 pass

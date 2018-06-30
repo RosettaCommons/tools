@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import beautify_compiled_files_w_fork
 import blargs
 import os, sys
@@ -13,7 +14,7 @@ import os, sys
 #
 # By default the beautifier does not overwrite the original files, but instead,
 # writes out a .beaut file representing the beautified version of your file.
-# Use the --overwrite flag to have this script write the beautified output 
+# Use the --overwrite flag to have this script write the beautified output
 # on top of the original file.
 if __name__ == "__main__" :
     with blargs.Parser(locals()) as p :
@@ -48,4 +49,4 @@ if __name__ == "__main__" :
             print "Files in test/ that could not be beautified:"
             for fname in fbm_test.files_that_failed :
                 print "File", fname, "could not be beautified"
-    
+

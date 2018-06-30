@@ -213,6 +213,8 @@ for line in lines:
         rosetta_folder = expandvars("$ROSETTA")
         EXE = rosetta_folder + '/main/source/bin/'+basename(EXE)
     if not exists( EXE ):
+        EXE += ".linuxiccrelease"
+    if not exists( EXE ):
         EXE += ".linuxclangrelease"
     if not exists( EXE ):
         EXE += ".macosclangrelease"

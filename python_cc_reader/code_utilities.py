@@ -1,3 +1,4 @@
+from __future__ import print_function
 #from test_compile import find_includes_for_file
 
 import code_reader
@@ -64,8 +65,8 @@ def include_for_line( cr, line ) :
       if len( toks ) > 0 :
          if toks[ 0 ].find( "<" ) != -1 :
             return toks[ 0 ].split("<")[ 1 ].split(">")[ 0 ]
-      print "Error", cr.curr_file(), cr.curr_line(), line,
-      print "#include is missing a filename"
+      print("Error", cr.curr_file(), cr.curr_line(), line,)
+      print("#include is missing a filename")
       sys.exit(1)
    if toks[ 1 ].find( "<" ) != -1 :
       include = toks[ 1 ].split("<")[ 1 ].split(">")[ 0 ]
@@ -96,7 +97,7 @@ def find_includes_at_global_scope( name, filelines ) :
       cr.examine_line( line )
       if cr.line_is_visible() and cr.scope_level == 0 :
          if re_pound_include.match( cr.commentless_line ) :
-            #print cr.line_is_visible(), cr.curr_file(), cr.curr_line(), line, cr.commentless_line,
+            #print(cr.line_is_visible(), cr.curr_file(), cr.curr_line(), line, cr.commentless_line,)
             include = include_for_line( cr, cr.commentless_line )
             if include not in inclusions :
                inclusions.append( include )
@@ -116,7 +117,7 @@ def compiled_cc_files() :
         libname = "apps"
         settings_file_name += ".all"
      f = file( settings_file_name ).read()
-     #print "reading files for library", libname
+     #print("reading files for library", libname)
      exec(f)
      for dir in sources.keys() :
         for cc_file in sources[ dir ] :
@@ -129,7 +130,7 @@ def compiled_cc_files() :
               name = libname + "/" + dir + "/" + cc_file + ".cc"
            else :
               name = dir + "/" + cc_file + ".cc" # note, following Sam's change to the .src.settings files, no longer append libname to file name
-           #print "file to be compiled: ", name
+           #print("file to be compiled: ", name)
            to_be_compiled.append( name )
    return to_be_compiled
 
@@ -144,7 +145,7 @@ def compiled_cxxtest_hh_files() :
       if library == "pilot_apps" :
          libname = "apps"
       if not os.path.isfile( settings_file_name ) :
-         print "did not find", settings_file_name, ". Skipping"
+         print("did not find", settings_file_name, ". Skipping")
          continue
       f = file( settings_file_name ).read()
       exec(f)
@@ -187,9 +188,9 @@ def scan_compilable_files() :
    for name in unprocessed_filenames :
       toks = name.split("/")
       if len( toks ) < 2 or toks[ 0 ] not in directories_with_hhfiles_to_examine() :
-         #print "skipping past", name
+         #print("skipping past", name)
          continue
-      #print "reading includes from", name
+      #print("reading includes from", name)
       includes = find_includes_at_global_scope( name, open( name ).readlines() )
       for include in includes :
          if include not in unprocessed_filenames :
@@ -294,19 +295,19 @@ def look_for_destructorless_classes( fname, filelines ) :
    dstorless_classes = []
    for line in filelines :
       cr.examine_line( line )
-      #print cr.scope_level, classname, cr.commentless_line,
+      #print(cr.scope_level, classname, cr.commentless_line,)
       if class_dec.match( cr.commentless_line ) :
          class_scope_level = last_scope_level
          if cr.scope_level > class_scope_level :
             class_has_begun = True
          classname = cr.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].strip()
-         #print classname
+         #print(classname)
          dstor_regex = re.compile( "~" + classname + "()" )
       if dstor_regex :
          if dstor_regex.search( cr.commentless_line ) :
             dstor_regex = None
       if class_has_begun and cr.scope_level == class_scope_level :
-         #print "End class"
+         #print("End class")
          if dstor_regex :
             dstorless_classes.append( classname )
          class_has_begun = False
@@ -330,27 +331,27 @@ def look_for_classes_with_header_declared_dstors( fname, filelines ) :
    inheader_dstor_classes = []
    for line in filelines :
       cr.examine_line( line )
-      #print cr.scope_level, classname, cr.commentless_line,
+      #print(cr.scope_level, classname, cr.commentless_line,)
       if class_dec.match( cr.commentless_line ) :
          class_scope_level = last_scope_level
          if cr.scope_level > class_scope_level :
             class_has_begun = True
          classname = cr.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].strip()
-         #print classname
+         #print(classname)
          dstor_regex1 = re.compile( "~" + classname + "\(\)[^;]*$" )
          dstor_regex2 = re.compile( "~" + classname + "\(\)\s*\{" )
       if dstor_regex1 :
          if dstor_regex1.search( cr.commentless_line ) :
-            #print "MATCH"
+            #print("MATCH")
             dstor_regex1 = None
             dstor_regex2 = None
       if dstor_regex2 :
          if dstor_regex2.search( cr.commentless_line ) :
-            #print "MATCH"
+            #print("MATCH")
             dstor_regex1 = None
             dstor_regex2 = None
       if class_has_begun and cr.scope_level == class_scope_level :
-         #print "End class"
+         #print("End class")
          if not dstor_regex1 :
             inheader_dstor_classes.append( classname )
          class_has_begun = False
@@ -373,16 +374,16 @@ def find_class_dec_lines( fname, filelines ) :
    class_has_begun = False
    for line in filelines :
       cr.examine_line( line )
-      #print cr.scope_level, classname, cr.commentless_line,
+      #print(cr.scope_level, classname, cr.commentless_line,)
       if class_dec.match( cr.commentless_line ) :
          class_scope_level = last_scope_level
          if cr.scope_level > class_scope_level :
             class_has_begun = True
          classname = cr.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].strip()
          class_dec_lines.append( ( classname, cr.curr_line() ) )
-         #print fname, classname, cr.curr_line()
+         #print(fname, classname, cr.curr_line())
       if class_has_begun and cr.scope_level == class_scope_level :
-         #print "End class"
+         #print("End class")
          class_has_begun = False
          classname = ""
       if not class_has_begun and class_scope_level < cr.scope_level :
@@ -406,24 +407,24 @@ def look_for_op_containing_classes( fname, filelines ) :
    class_contains_no_ops = True
    for line in filelines :
       cr.examine_line( line )
-      #print cr.scope_level, classname, class_has_begun, class_scope_level, class_contains_no_ops, cr.commentless_line, 
+      #print(cr.scope_level, classname, class_has_begun, class_scope_level, class_contains_no_ops, cr.commentless_line, )
       if class_dec.match( cr.commentless_line ) :
          class_scope_level = last_scope_level
          if cr.scope_level > class_scope_level :
             class_has_begun = True
          classname = cr.commentless_line.split("class")[ 1 ].split(":")[ 0 ].split("{")[ 0 ].strip()
-         #print classname
+         #print(classname)
          class_contains_no_ops = True
       if class_has_begun and class_contains_no_ops :
          if op_data_regex.match( cr.commentless_line ) :
-            #print "MATCH",
-            #print cr.commentless_line,
+            #print("MATCH",)
+            #print(cr.commentless_line,)
             classes_containing_an_op.append( classname )
             class_contains_no_ops = False
       if class_has_begun and cr.scope_level == class_scope_level :
-         #print "End class"
+         #print("End class")
          class_has_begun = False
-         #print "class", classname, "ended on line", cr.curr_line()
+         #print("class", classname, "ended on line", cr.curr_line())
          classname = ""
       if not class_has_begun and class_scope_level < cr.scope_level :
          class_has_begun = True
@@ -445,7 +446,7 @@ def read_rosetta_lib_class_declarations() :
       if not keep :
          continue
 
-      #print "Examining header:", header
+      #print("Examining header:", header)
       flines = open( header ).readlines()
       classes = code_reader.read_classes_from_header( header, flines )
       all_classes.extend( classes )

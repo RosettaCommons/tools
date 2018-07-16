@@ -9,8 +9,6 @@ import warnings
 import numpy as np
 import scipy.optimize
 
-# ( 0.0019872041 kcal/mol/K) * ( 273.15 + 37 ) = .616331351615
-KT_IN_KCAL = 0.61633135471  # 37 Celsius
 
 # Canonical AUCG RNA bases and their base-pair-partners
 CANONICAL_RNA_BP = {'a': 'u', 'g': 'c', 'u': 'a', 'c': 'g'}
@@ -91,15 +89,18 @@ DG_TERMINAL = {('a', 'u'): 0.45,
 def get_base_cmdline(save_terms=True, save_scores=True,
                      weight_file='turner.wts'):
     """Return the base Rosetta command line for Turner rule computation."""
-    cmdline_common = "turner_new "
+    cmdline_common = "recces_turner "
+    #cmdline_common = "turner_new "
     cmdline_common += "-rna::corrected_geo "
     cmdline_common += "-score:rna_torsion_potential RNA11_based_new "
     cmdline_common += "-chemical::enlarge_H_lj "
     cmdline_common += "-analytic_etable_evaluation false "
-    if save_terms:
-        cmdline_common += "-save_terms "
-    if save_scores:
-        cmdline_common += "-save_scores "
+    if save_terms or save_scores:
+         cmdline_common += "-save_score_terms "
+    #if save_terms:
+    #    cmdline_common += "-save_terms "
+    #if save_scores:
+    #    cmdline_common += "-save_scores "
     cmdline_common += "-score:weights %s " % os.path.abspath(weight_file)
     return cmdline_common
 
@@ -286,13 +287,11 @@ def weight_evaluate(folder, hist_score):
 
     def get_hist(filename):
         hist = load_1d_bin_gz(filename, dtype=np.uint64)
-        #print filename, len( hist )
         return np.column_stack((scores, hist))
 
     working_dir = os.getcwd()
     os.chdir(folder)
-    # use prefix of hist_scores_file
-    file_list = glob.glob( hist_score.split('_')[0] + '*.hist.gz')
+    file_list = glob.glob('*.hist.gz')
     data_list = [
         [name, float(name.split('_')[-1].replace('.hist.gz', ''))]
         for name in file_list]
@@ -301,7 +300,6 @@ def weight_evaluate(folder, hist_score):
     kT_list = data_list[1]
     name_list = data_list[0]
     hist_list = map(get_hist, name_list)
-    print_hist_list( hist_list )
     weight_list = [0]
 
     for hist1, kT1, hist2, kT2 in itertools.izip(
@@ -341,29 +339,22 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
         return np.sum(np.exp(log_prob) * hist[:, 1]) / sum_hist
 
     def target_func(delta):
-        acpt_rate1 = get_acpt_rate( delta, log_prob_base1, hist1, sum1)
+        acpt_rate1 = get_acpt_rate(delta, log_prob_base1, hist1, sum1)
         acpt_rate2 = get_acpt_rate(-delta, log_prob_base2, hist2, sum2)
         return acpt_rate1 - acpt_rate2
 
     # Simple heuristic for the init weight based on avg. energy
     E1 = np.sum(hist1[:, 0] * hist1[:, 1]) / sum1
     E2 = np.sum(hist2[:, 0] * hist2[:, 1]) / sum2
-    #print "kt1", kt1, "<E1>", E1, "-- kt2", kt2, "<E2>",E2
     delta_start = (beta2 - beta1) * (E1 + E2) / 2
     search_width = 5
     delta_range = (delta_start - search_width), (delta_start + search_width)
 
-    # TODO -- following fails sometimes due to some kind of numerical issue ("ValueError: f(a) and f(b) must have different signs" -- either put in a fix (smoothing?) or at least tell user what to do.
-    try:
-        # find scale-factor that will make accept rates in the two directions equal (brentq finds root)
-        delta_final = scipy.optimize.brentq(
-            target_func, delta_range[0], delta_range[1])
-    except ValueError:
-        print "Problem with %f to %f -- need to fill in intermediate temperatures" % (kt1,kt2)
-        raise( ValueError )
+    delta_final = scipy.optimize.brentq(
+        target_func, delta_range[0], delta_range[1])
     acpt_rate = get_acpt_rate(delta_final, log_prob_base1, hist1, sum1)
     if acpt_rate < 0.1:
-        warnings.warn(" Acceptance rate (%s) lower than 0.1 for %f to %f temperature transition -- fill in intermediate temperature" % (acpt_rate,kt1,kt2) )
+        warnings.warn(" Acceptance rate (%s) lower than 0.1" % acpt_rate)
     return delta_final
 
 
@@ -420,82 +411,16 @@ def torsion_volume(seq1, seq2='', aform_torsion_range=2 * math.pi / 3):
 
     len1 = seq_len(seq1)
     len2 = seq_len(seq2)
-    if len1 == 0:
-        print 'No phase space volume applied'
-        return 1.0
     min_len = min(len1, len2)
     diff_len = abs(len1 - len2)
     if min_len == 0:  # One-strand
-        print "applying phase space volume for single strand with length ", diff_len
+        #print "applying phase space volume for single strand with length ", diff_len
         return (2 * pi) ** (6 * diff_len - 5) * (2 ** diff_len)
     else:
-        print "applying phase space volume for two strand with helix length ", min_len, " and dangle length ", diff_len
+        #print "applying phase space volume for two strand with helix length ", min_len, " and dangle length ", diff_len
         volume = aform_torsion_range ** (12 * min_len - 10)
         volume *= (2 * pi) ** (6 * diff_len) * (2 ** diff_len)
         return volume
 
-def compute_rigid_body_volume_ratio( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
-    """Compute phase space volume of a sequence.
-
-    Parameters
-    ----------
-    RMSD_cutoff : in Angstroms.
-    xyz_file : file with x, y, z coordinate of atoms in object.
-
-    Returns
-    -------
-    Phase space volume ratio of trapping the object from 1 M standard state into
-     translations and orientations with RMSD less than RMSD_cutoff.
-    """
-    """
-    Output is in kcal/mol, and assumes concentration of 1.0 M.
-    """
-    lines  = open( xyz_file ).readlines();
-    xyz = []
-    for line in lines:
-        xyz.append( [float(x) for x in line.split()] )
-    N = len( xyz )
-    xyz = np.array( xyz )
-    xyz -= np.sum( xyz, axis=0 )/N
-    Imatrix = np.dot( xyz.transpose(), xyz)
-    eigs = np.linalg.eig( Imatrix ) # moments of inertia
-    Ixyz = eigs[0]
-    molar = (1.0e27 / 6.022e23); # units of /A^3
-
-    # entropy loss on going from 1 M concentration to 6D translations and orientations defined by rmsd_cutoff.
-
-    # this was original code -- it was *not* correct.
-    ref_energy =  np.log( (1.0/molar) * pow(float(N),1.5) * pow(float(RMSD_cutoff),6) * np.pi /48.0 / np.sqrt(Ixyz[0]+Ixyz[1]) / np.sqrt(Ixyz[0]+Ixyz[2]) / np.sqrt(Ixyz[1]+Ixyz[2]) );
-    ref_vol = np.exp( ref_energy )  # what's used by RECCES calcs.
-
-    return ref_vol
-
-def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
-    """
-    Give RMSD_cutoff in Angstroms.
-    Output is in kcal/mol, and assumes concentration of 1.0 M.
-    """
-    return -KT_IN_KCAL * np.log( compute_rigid_body_volume_ratio( RMSD_cutoff, xyz_file ) )
-
-
-def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
-    """
-    print out histogram matrix; accept input from SingleSimulation
-    """
-    fid = open( filename, 'w' )
-    for i in range( len( energies ) ):
-        fid.write( '%f ' % energies[i] )
-        for j in range( len( hist_list ) ):
-            fid.write( '%f ' % hist_list[j][i] )
-        fid.write( '\n' )
-    fid.close()
-    print "Created: ", filename
-    return
-
-
-def print_hist_list( hist_list ):
-    """
-    print out histogram matrix; accept input from weight_evaluate
-    """
-    print_hists( [ x[:,1] for x in hist_list ], hist_list[0][:,0] )
-    return
+def temp_list():
+    return [0.8, 1, 1.4, 1.8, 3, 7, 30]

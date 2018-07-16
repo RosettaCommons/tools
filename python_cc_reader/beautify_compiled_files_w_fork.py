@@ -1,3 +1,4 @@
+from __future__ import print_function
 import fork_manager
 import blargs
 import beautifier
@@ -42,17 +43,17 @@ class FileBeautifierManager :
         self.files_that_failed = []
     def handle_successful_file_beautification( self, fm, pid ) :
         if pid not in self.file_for_job :
-            print "Critical error.  Could not find file assigned to process ", pid
+            print("Critical error.  Could not find file assigned to process ", pid)
             for pid in self.file_for_job :
-               print "Process ", pid, "responsible for", self.file_for_job[ pid ]
+               print("Process ", pid, "responsible for", self.file_for_job[ pid ])
             sys.exit(1)
         else :
            del self.file_for_job[pid]
     def handle_failed_file_beautification( self, fm, pid ) :
        if pid not in self.file_for_job :
-          print "Critical error.  Could not find file assigned to process ", pid
+          print("Critical error.  Could not find file assigned to process ", pid)
           for pid in self.file_for_job :
-             print "Process ", pid, "responsible for", self.file_for_job[ pid ]
+             print("Process ", pid, "responsible for", self.file_for_job[ pid ])
           sys.exit(1)
        else :
           self.files_that_failed.append( self.file_for_job[ pid ] )
@@ -96,9 +97,9 @@ def beautify_files_in_parallel( file_list, overwrite, num_cpu, pound_if_setting 
 
     if not quiet :
         if overwrite :
-            print "Preparing to run beautifier on", len(file_list), "files"
+            print("Preparing to run beautifier on", len(file_list), "files")
         else :
-            print "Preparing a dry run of the beautifier on", len(file_list), "files; look for beautified output of X.cc in X.cc.beaut"
+            print("Preparing a dry run of the beautifier on", len(file_list), "files; look for beautified output of X.cc in X.cc.beaut")
 
     fbm = FileBeautifierManager()
     fm = fork_manager.ForkManager( num_cpu )
@@ -112,7 +113,7 @@ def beautify_files_in_parallel( file_list, overwrite, num_cpu, pound_if_setting 
     for fname in file_list :
         pid = fm.mfork()
         if pid == 0 :
-            # print "beautifying", fname
+            # print("beautifying", fname)
             beautifier.beautify_file( fname, overwrite, opts )
             sys.exit(0)
         else :
@@ -126,7 +127,7 @@ def exit_following_beautification( fbm ) :
         sys.exit(0)
     else :
        for fname in fbm.files_that_failed :
-           print "File", fname, "could not be beautified"
+           print("File", fname, "could not be beautified")
        sys.exit(1)
 
 if __name__ == "__main__" :
@@ -136,10 +137,10 @@ if __name__ == "__main__" :
         p.flag("overwrite")
 
     if not overwrite :
-        print "WARNING: In the absence of the --overwrite flag, this script will not change"
-        print "any of your source files. It will instead write the beautified output to new"
-        print ".beaut files for you to review. Also note: you should not commit these .beaut"
-        print "files to git! To actually beautify your source files, run this script with"
-        print "the --overwrite flag"
+        print("WARNING: In the absence of the --overwrite flag, this script will not change")
+        print("any of your source files. It will instead write the beautified output to new")
+        print(".beaut files for you to review. Also note: you should not commit these .beaut")
+        print("files to git! To actually beautify your source files, run this script with")
+        print("the --overwrite flag")
     fbm = beautify_all_files_in_pwd( overwrite, num_cpu, pound_if_setting )
     exit_following_beautification( fbm )

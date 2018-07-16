@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 import sys
 import blargs
 
@@ -202,7 +203,7 @@ class Beautifier :
         start = -1
         i = 0
         while ( i < len(self.line)) :
-            #print len(self.all_lines), i, self.line[i], start
+            #print(len(self.all_lines), i, self.line[i], start)
             if self.line[i] in self.whitespace :
                 if start >= 0 :
                     self.take_token_for_range( start, i )
@@ -293,14 +294,14 @@ class Beautifier :
         for tok in self.this_line_tokens :
             if tok.spelling == "\t" : continue
             if not self.in_comment_block and tok.spelling[0] == "#" :
-                # print "process as macro line", self.line.strip()
+                # print("process as macro line", self.line.strip())
                 process_as_macro_line = True
             else :
                 break;
 
         if self.in_macro_definition :
             # just don't mess with macro definitions; they shouldn't even be there!
-            if debug: print "still in macro definition", self.line_number
+            if debug: print("still in macro definition", self.line_number)
             if self.this_line_tokens :
                 for tok in self.this_line_tokens :
                     tok.is_visible = False
@@ -308,12 +309,12 @@ class Beautifier :
                 assert( len( self.this_line_tokens ) != 0 )
                 if self.this_line_tokens[-1].spelling != "\\" :
                     self.in_macro_definition = False
-                    if debug: print "final line in macro definition", self.line_number
+                    if debug: print("final line in macro definition", self.line_number)
                 return
             else :
                 # empty line
                 self.in_macro_definition = False
-                if debug: print "final line in macro definition", self.line_number
+                if debug: print("final line in macro definition", self.line_number)
                 return
 
         escape_tok = None
@@ -325,7 +326,7 @@ class Beautifier :
             if not self.macro_definitions_say_line_visible() :
                 tok.is_visible = False
                 tok.invisible_by_macro = True
-                # print "token is invisible by macro:", tok.spelling, tok.line_number+1
+                # print("token is invisible by macro:", tok.spelling, tok.line_number+1)
             if not self.in_string and tok.spelling == "\t" :
                 # keep around tab tokens only so long as they are inside strings
                 # they'll be replaced by escaped tabs when the file is written out
@@ -337,7 +338,7 @@ class Beautifier :
                 if tok.spelling == "*/" and self.macro_definitions_say_line_visible() :
                     self.in_comment_block = False
             elif self.in_string :
-                if debug : print "in string", tok.spelling, tok.line_number
+                if debug : print("in string", tok.spelling, tok.line_number)
                 tok.is_inside_string = True
                 if tok.spelling == "\\" :
                     if escape_tok and tok.start == escape_tok.one_past_end :
@@ -352,7 +353,7 @@ class Beautifier :
                 else :
                     escape_tok = None
             elif self.in_char_quote :
-                if debug : print "in char quote", tok.spelling, tok.line_number
+                if debug : print("in char quote", tok.spelling, tok.line_number)
                 tok.is_inside_string = True
                 if tok.spelling == "\\" :
                     if escape_tok and tok.start == escape_tok.one_past_end :
@@ -389,11 +390,11 @@ class Beautifier :
                 # should now be unreachable if i > 0 and self.this_line_tokens[i-1].spelling == "'" :
                 # should now be unreachable     i+=1
                 # should now be unreachable     continue
-                if debug : print "in string", tok.spelling, tok.line_number
+                if debug : print("in string", tok.spelling, tok.line_number)
                 tok.is_inside_string = True
                 self.in_string = True
             elif tok.spelling == "'" :
-                if debug : print "in char quote", tok.spelling, tok.line_number
+                if debug : print("in char quote", tok.spelling, tok.line_number)
                 tok.is_inside_string = True
                 self.in_char_quote = True
             # elif tok.spelling == "'" and not self.in_string :
@@ -401,10 +402,10 @@ class Beautifier :
             #         single_char = False
             #     else :
             #         single_char = True
-            #     if debug : print "in string", tok.spelling, tok.line_number
+            #     if debug : print("in string", tok.spelling, tok.line_number)
             #     tok.is_inside_string = True
             # elif single_char :
-            #     if debug : print "in string", tok.spelling, tok.line_number
+            #     if debug : print("in string", tok.spelling, tok.line_number)
             #     tok.is_inside_string = True
             i += 1
 
@@ -412,12 +413,12 @@ class Beautifier :
 
     def process_macro_line( self ) :
         # this line has been shown to start with "#" so the entire line is being treated as a macro definition
-        # print "process macro line: ", self.all_lines[-1].strip()
+        # print("process macro line: ", self.all_lines[-1].strip())
 
         for tok in self.this_line_tokens :
             tok.is_visible = False
             tok.is_preprocessor_directive = True
-            # print "tok: ", tok.spelling, "is now invisible"
+            # print("tok: ", tok.spelling, "is now invisible")
         tok0 = self.this_line_tokens[ 0 ]
         if tok0.spelling == "#include" or tok0.spelling == "#pragma" :
             return
@@ -433,10 +434,10 @@ class Beautifier :
                 tok.invisible_by_macro = False
         if tok0.spelling == "#define" :
             self.defined_macros.append( self.this_line_tokens[1].spelling )
-            if debug: print "#defined:", self.this_line_tokens[1].spelling
+            if debug: print("#defined:", self.this_line_tokens[1].spelling)
             if self.this_line_tokens[-1].spelling == "\\" :
                 self.in_macro_definition = True
-                if debug: print "in macro definition", self.line_number
+                if debug: print("in macro definition", self.line_number)
         elif tok0.spelling == "#ifdef" :
             if len(self.this_line_tokens) > 1 :
                 name = self.this_line_tokens[1].spelling
@@ -455,12 +456,12 @@ class Beautifier :
                     self.nested_ifdefs.append( (name, "ifndef", False ))
         elif tok0.spelling == "#if" :
             name = " ".join( [ x.spelling for x in self.this_line_tokens[1:] if not x.is_commented ] )
-            #print "hit #if", self.pound_if_setting, self.line_number
+            #print("hit #if", self.pound_if_setting, self.line_number)
             if self.pound_if_setting == "take_if" :
-                #print "Take if, arived at #if:", self.all_lines[-1].strip()
+                #print("Take if, arived at #if:", self.all_lines[-1].strip())
                 self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ) )
             elif self.pound_if_setting == "take_else" :
-                #print "Take else, arived at #if:", self.all_lines[-1].strip()
+                #print("Take else, arived at #if:", self.all_lines[-1].strip())
                 self.nested_ifdefs.append( (name, "if", False ) )
             elif self.pound_if_setting == "take_neither" :
                 self.nested_ifdefs.append( (name, "if", False ) )
@@ -469,16 +470,16 @@ class Beautifier :
                 # just say "yeah, it's probably true" and if you hit an else later, then
                 # instead of negating it, say the else is also true.
                 # this could cause problems
-                #print "take both"
+                #print("take both")
                 self.nested_ifdefs.append( (name, "if", self.nested_ifdefs[-1][2] ))
         elif tok0.spelling == "#else" :
             name, iftype, truthval = self.nested_ifdefs.pop()
-            #print "pop!", name, iftype, truthval
+            #print("pop!", name, iftype, truthval)
             if iftype == "else" :
                 # we have hit a problem
-                print "ERROR: Encountered '#else' inappropriately.  Ifdef stack: "
+                print("ERROR: Encountered '#else' inappropriately.  Ifdef stack: ")
                 for n2, it2, tv2 in reversed( self.nested_ifdefs ) :
-                    print "   ", n2, it2, tv2
+                    print("   ", n2, it2, tv2)
                 assert( iftype != "else" )
             if self.nested_ifdefs[-1][2] :
                 if iftype == "ifdef" or iftype == "ifndef" :
@@ -486,15 +487,15 @@ class Beautifier :
                 else :
                     assert( iftype == "if" )
                     if self.pound_if_setting == "take_if" :
-                        #print "Take if, arived at #else:", self.all_lines[-1].strip()
+                        #print("Take if, arived at #else:", self.all_lines[-1].strip())
                         self.nested_ifdefs.append( (name, "else", False ) )
                     elif self.pound_if_setting == "take_else" :
-                        #print "Take else, arived at #else:", self.all_lines[-1].strip()
+                        #print("Take else, arived at #else:", self.all_lines[-1].strip())
                         self.nested_ifdefs.append( (name, "else", True ) )
                     elif self.pound_if_setting == "take_neither" :
                         self.nested_ifdefs.append( (name, "else", False ) )
                     else :
-                        #print "conservative -- take both"
+                        #print("conservative -- take both")
                         self.nested_ifdefs.append( (name, "else", True) )
             else :
                 self.nested_ifdefs.append( (name, "else", False ))
@@ -503,8 +504,8 @@ class Beautifier :
             self.nested_ifdefs.pop()
         else :
             pass
-            #print "WARNING: Unhandled preprocessor directive:", tok0.spelling, "on", self.line_number+1, "of", self.filename, ":", self.line,
-        #print "processing macros", self.line_number+1, ", ".join( [ "%s %s" % ( x[1], "true" if x[2] else "false" ) for x in self.nested_ifdefs ] )
+            #print("WARNING: Unhandled preprocessor directive:", tok0.spelling, "on", self.line_number+1, "of", self.filename, ":", self.line,)
+        #print("processing macros", self.line_number+1, ", ".join( [ "%s %s" % ( x[1], "true" if x[2] else "false" ) for x in self.nested_ifdefs ] ))
 
 
     def find_next_visible_token( self, i, stack=None ) :
@@ -519,15 +520,15 @@ class Beautifier :
     def print_entry( self, fname, i, stack ) :
         if stack :
             if i < len(self.all_tokens) :
-                print (" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible
+                print((" "*len(stack)), fname, i, self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible)
             else :
-                print (" "*len(stack)),fname,i,"reached last token"
+                print((" "*len(stack)),fname,i,"reached last token")
         else :
             if i < len(self.all_tokens) :
-                # print "stack-less", fname, "token", i, ",", self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1
+                # print("stack-less", fname, "token", i, ",", self.all_tokens[i].spelling, "line number", self.all_tokens[i].line_number+1)
                 pass
             else :
-                # print "stack-less", fname, "token", i, "beyond last token"
+                # print("stack-less", fname, "token", i, "beyond last token")
                 pass
 
     def renumber_tokens( self ) :
@@ -549,7 +550,7 @@ class Beautifier :
         for i in xrange(len(self.all_tokens)) :
             if self.all_tokens[ i ].parent is self.all_tokens[i] :
                 itok = self.all_tokens[i]
-                print "Token", i, "is it's own parent:", itok.spelling, itok.line_number, itok.type
+                print("Token", i, "is it's own parent:", itok.spelling, itok.line_number, itok.type)
                 assert( not self.all_tokens[ i ].parent is self.all_tokens[i] )
             for tok in self.all_tokens[ i ].children :
                 assert( not tok is self.all_tokens[i] )
@@ -594,7 +595,7 @@ class Beautifier :
             return self.process_simple_statement(i,stack)
         elif i_spelling == "typedef" :
             j = self.find_next_visible_token(i+1)
-            #print "encountered typedef", self.all_tokens[j].spelling
+            #print("encountered typedef", self.all_tokens[j].spelling)
             if self.all_tokens[j].spelling == "struct" :
                 self.set_parent(i,stack,"statement")
                 i = self.find_next_visible_token(i+1,stack)
@@ -617,27 +618,27 @@ class Beautifier :
             return self.process_simple_statement(i,stack)
 
     def set_parent( self, i, stack, token_type = "substatement" ) :
-        #if debug : print " " * len(stack), " set parent of ", i, stack[-1].index, self.all_tokens[i].spelling, stack[-1].spelling
+        #if debug : print(" " * len(stack), " set parent of ", i, stack[-1].index, self.all_tokens[i].spelling, stack[-1].spelling)
         self.all_tokens[i].type   = token_type
         self.all_tokens[i].parent = stack[-1]
         stack[-1].children.append( self.all_tokens[i] )
 
     def handle_read_all_tokens_error( self, function_name, stack ) :
-        print "ERROR: Ran out of tokens in function", function_name, "in file", self.filename
+        print("ERROR: Ran out of tokens in function", function_name, "in file", self.filename)
         self.print_depth_stack( stack )
         sys.exit(1)
 
     def print_depth_stack( self, stack ) :
-        print "Depth stack: ",
+        print("Depth stack: ",)
         for elem in reversed( stack ) :
             if elem :
-                print "  ", elem.spelling, (  "%d %s" % ( elem.line_number+1, self.all_lines[ elem.line_number ].strip() ) ), "vis" if elem.is_visible else "invis"
+                print("  ", elem.spelling, (  "%d %s" % ( elem.line_number+1, self.all_lines[ elem.line_number ].strip() ) ), "vis" if elem.is_visible else "invis")
 
     def read_to_end_paren( self, i, stack ) :
         # the starting "(" should have already been read
         paren_depth = 1
         while i < len( self.all_tokens ) :
-            if debug : print (" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible
+            if debug : print((" "*len(stack)), "read to end paren", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1, self.all_tokens[i].is_visible)
             self.set_parent(i,stack)
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 pass
@@ -658,7 +659,7 @@ class Beautifier :
         template_params = "not-begun"
         template_depth = 0
         while i < len(self.all_tokens) :
-            #print "process template ", i, self.all_tokens[i].spelling
+            #print("process template ", i, self.all_tokens[i].spelling)
             if self.all_tokens[i].spelling == "<" :
                 template_depth += 1
                 if template_params == "not-begun" :
@@ -687,10 +688,10 @@ class Beautifier :
         self.handle_read_all_tokens_error( "process_template", stack )
 
     def var_in_class_dec_initializer( self, stack ) :
-        # print "stack[-1].type", stack[-1].type
-        # print "stack[-2].type", stack[-2].type
-        # print "stack[-3].type", stack[-3].type
-        # print "stack[-4].type", stack[-4].type
+        # print("stack[-1].type", stack[-1].type)
+        # print("stack[-2].type", stack[-2].type)
+        # print("stack[-3].type", stack[-3].type)
+        # print("stack[-4].type", stack[-4].type)
         return len(stack) >= 4 and \
             stack[-1].type == "statement" and \
             stack[-2].type == "function-scope" and \
@@ -776,7 +777,7 @@ class Beautifier :
 
         macro_without_ending_semicolon = False
         if self.all_tokens[i].spelling in white_listed_macros :
-            if debug : print "Encountered white-listed macro", self.all_tokens[i].spelling
+            if debug : print("Encountered white-listed macro", self.all_tokens[i].spelling)
             macro_without_ending_semicolon = True
             encountered_first_lparen = False
 
@@ -802,18 +803,18 @@ class Beautifier :
                 continue
 
             lambda_detection_stack[-1].append( self.all_tokens[i].spelling )
-            #print self.all_tokens[i].spelling, len( lambda_detection_stack )
+            #print(self.all_tokens[i].spelling, len( lambda_detection_stack ))
             self.check_lambda_compatability( lambda_detection_stack[-1] )
 
             if self.all_tokens[i].spelling == ";" and len(bracket_stack) == 0 :
-                # print "statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] )
+                # print("statement:", " ".join( [ x.spelling for x in self.all_tokens[i:i+1] ] ))
                 self.set_parent(i,stack)
                 stack.pop()
                 if debug : self.print_entry("exitting process_simple_statement",i,stack)
                 return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if self.all_tokens[i+1].spelling != ":" :
-                    if debug : print "found colon:", i, self.all_tokens[i].line_number, self.all_tokens[i].is_inside_string, self.all_tokens[i].start, "n?s", n_question_marks, "i+1", self.all_tokens[i+1].spelling
+                    if debug : print("found colon:", i, self.all_tokens[i].line_number, self.all_tokens[i].is_inside_string, self.all_tokens[i].start, "n?s", n_question_marks, "i+1", self.all_tokens[i+1].spelling)
                     if n_question_marks == 0 :
                         # goto handling; you're allowed to define statements on a line and end them with a colon
                         # I hope I'm not missing anything important here
@@ -851,13 +852,13 @@ class Beautifier :
                         self.set_parent(i,stack)
                         stack.pop()
                         return i
-                    print "Closing bracket '"+self.all_tokens[i].spelling+"' found that does not match an opening bracket in", self.filename
+                    print("Closing bracket '"+self.all_tokens[i].spelling+"' found that does not match an opening bracket in", self.filename)
                     sys.exit(1)
                 if closing_bracket_for_opener[ bracket_stack[-1] ] != self.all_tokens[i].spelling :
-                    print "Closing bracket does not match opening bracket in", self.filename
-                    print "opener:", bracket_stack[-1]
-                    print "closer:", self.all_tokens[i].spelling
-                    print "expected:", closing_bracket_for_opener[ bracket_stack[-1] ]
+                    print("Closing bracket does not match opening bracket in", self.filename)
+                    print("opener:", bracket_stack[-1])
+                    print("closer:", self.all_tokens[i].spelling)
+                    print("expected:", closing_bracket_for_opener[ bracket_stack[-1] ])
                     #assert( closing_bracket_for_opener[ bracket_stack[-1] ] == self.all_tokens[i].spelling  )
                     sys.exit(1)
                 bracket_stack.pop()
@@ -883,11 +884,11 @@ class Beautifier :
         return self.all_tokens[i].spelling
 
     def function_is_constructor( self, functionname, classname ) :
-        #print "function is constructor? ", functionname, classname
+        #print("function is constructor? ", functionname, classname)
         return functionname == classname
 
     def process_function_preamble_or_variable(self,i,stack) :
-        # print "process_function_preamble_or_variable", i, depth
+        # print("process_function_preamble_or_variable", i, depth)
         # treat function declarations and variable declarations interchangably.
         # so we should gobble up the tokens that make this a function
         # and see if we have a constructor, in which case, we should also
@@ -896,7 +897,7 @@ class Beautifier :
         classname = ""
         if stack[-1].type == "class-scope" :
             classname = self.current_classname( i, stack )
-            #if debug: print "class name!", classname
+            #if debug: print("class name!", classname)
         arglist = "not-begun"
         is_ctor = False
         found_init_list = False
@@ -910,7 +911,7 @@ class Beautifier :
         stack.append( self.all_tokens[i] )
         i+=1
         while i < len(self.all_tokens) :
-            # print (" "*len(stack)), "process function preamble or variable", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1
+            # print((" "*len(stack)), "process function preamble or variable", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1)
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 # don't do anything special; just don't try and interpret this token as having meaning
                 pass
@@ -923,7 +924,7 @@ class Beautifier :
                 if not found_parens :
                     found_equals = True
             elif self.all_tokens[i].spelling == ":" :
-                # print "found : -- ", classname, is_ctor, arglist, found_init_list
+                # print("found : -- ", classname, is_ctor, arglist, found_init_list)
                 if is_ctor and arglist == "ended" and not found_init_list :
                     # we're now reading the initializer list
                     # stack.pop() # remove the function-decl-argument-list
@@ -939,11 +940,11 @@ class Beautifier :
                         if self.all_tokens[i-1].spelling == ">" :
                             # The class is templated, so we have to look backwards past the template arguments
                             # to figure out its name so we can figure out if this is a constructor definition.
-                            #print "found a '<'; searching backwards for a '<'"
+                            #print("found a '<'; searching backwards for a '<'")
                             j = i-2
                             count_gts = 1
                             while j > 0 :
-                                #print "looking at", j, self.all_tokens[j].spelling, count_gts
+                                #print("looking at", j, self.all_tokens[j].spelling, count_gts)
                                 if not self.all_tokens[j].is_visible :
                                     pass
                                 elif self.all_tokens[j].spelling == "<" :
@@ -956,7 +957,7 @@ class Beautifier :
                             classname = self.all_tokens[j-1].spelling
                         else :
                             classname = self.all_tokens[i-1].spelling
-                        #print "classname:", classname
+                        #print("classname:", classname)
 
             elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" :
                 found_parens = True
@@ -991,9 +992,9 @@ class Beautifier :
                 return i
 
             elif self.all_tokens[i].spelling == "{" :
-                # print "found_square_brackets", found_square_brackets
-                # print "found_equals", found_equals
-                # print "found_operator", found_operator
+                # print("found_square_brackets", found_square_brackets)
+                # print("found_equals", found_equals)
+                # print("found_operator", found_operator)
                 if ( found_square_brackets or found_equals ) and not found_operator :
                     i = self.process_to_end_rcb(i,stack,"array-value-initializer")
                     i = self.find_next_visible_token(i,stack)
@@ -1123,7 +1124,7 @@ class Beautifier :
             i+=1
         j = self.find_next_visible_token(i,stack)
         while j < len( self.all_tokens ):
-            #print "next visible: is it a catch?", j, self.all_tokens[j].spelling
+            #print("next visible: is it a catch?", j, self.all_tokens[j].spelling)
             if self.all_tokens[j].spelling == "catch" :
                 for k in xrange(i,j) :
                     self.set_parent(k,stack)
@@ -1194,7 +1195,7 @@ class Beautifier :
                 stack.pop()
                 if debug :
                     if i < len(self.all_tokens) : self.print_entry("exitting process_namespace",i,stack)
-                    else : print "exiting process_namespace; all tokens processed"
+                    else : print("exiting process_namespace; all tokens processed")
                 return i
             if self.all_tokens[i].spelling == ";" :
                 self.set_parent(i,stack)
@@ -1252,7 +1253,7 @@ class Beautifier :
                     return i+1
             elif self.all_tokens[i].spelling == ":" :
                 if not seen_inheritance_colon :
-                    if debug: print " " * len(stack), "encountered inheritance colon"
+                    if debug: print(" " * len(stack), "encountered inheritance colon")
                     seen_inheritance_colon = True
                     self.set_parent(i,stack,"class-inheritance-list")
                     stack.append(self.all_tokens[i])
@@ -1419,19 +1420,19 @@ class Beautifier :
 
             assert( i < len(self.all_tokens) )
             if self.all_tokens[i].spelling == "}" :
-                # print (" "*len(stack)), "process_scope", i, "found end }", self.all_tokens[i].line_number+1
+                # print((" "*len(stack)), "process_scope", i, "found end }", self.all_tokens[i].line_number+1)
                 #ok, done processing at this depth
                 self.set_parent(i,stack)
                 stack.pop() # remove "scope" or "*-scope"
                 if debug : self.print_entry("exitting process_scope",i,stack)
                 return i+1
             else :
-                # print (" "*len(stack)), "process_scope encountered non-{, non-} at", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1
+                # print((" "*len(stack)), "process_scope encountered non-{, non-} at", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1)
                 i = self.process_statement(i,stack)
         self.handle_read_all_tokens_error( "process_scope", stack )
 
     # def process_scope_end(self,i,stack) :
-    #     # print "process_scope_end", i, depth
+    #     # print("process_scope_end", i, depth)
     #     self.set_parent(i,depth-1,stack.pop())
     #     return i+1, depth-1
     def process_privacy_declaration(self,i,stack) :
@@ -1469,7 +1470,7 @@ class Beautifier :
 
         # look at the first token on this line
         first_token = self.line_tokens[ line_number ][ 0 ]
-        # print "first token: ", first_token.spelling, "" if not first_token.parent else first_token.parent.spelling
+        # print("first token: ", first_token.spelling, "" if not first_token.parent else first_token.parent.spelling)
 
         if first_token.spelling in self.macros_at_zero_indentation :
             self.line_indentations[ line_number ] = 0
@@ -1538,7 +1539,7 @@ class Beautifier :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
         elif first_token.context() == "else-scope" :
             if first_token.spelling == "}" and first_token.is_visible and not first_token.is_inside_string :
-                # print "else-scope indentation:", first_token.parent.parent.spelling, self.line_indentations[first_token.parent.parent.line_number]
+                # print("else-scope indentation:", first_token.parent.parent.spelling, self.line_indentations[first_token.parent.parent.line_number])
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
@@ -1584,7 +1585,7 @@ class Beautifier :
         elif first_token.context() == "class-inheritance-list" :
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "class-scope" :
-            # print "class scope ", line_number, " and parent on ", first_token.parent.line_number
+            # print("class scope ", line_number, " and parent on ", first_token.parent.line_number)
             if ( first_token.spelling == "}" or first_token.type == "class-privacy" ) and first_token.is_visible and not first_token.is_inside_string :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]
             else :
@@ -1615,12 +1616,12 @@ class Beautifier :
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "ctor-initializer-list" :
-            # print "indentation for ctor-initializer-list", first_token.parent.parent.type
+            # print("indentation for ctor-initializer-list", first_token.parent.parent.type)
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.parent.line_number]+1
         elif first_token.context() == "statement" :
-            #print "indentation for statement line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            #print("indentation for statement line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index)
             if first_token.parent.context() == "statement-scope" :
-                #print "self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent", self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent
+                #print("self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent", self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent)
                 if ( self.line_tokens[ first_token.parent.line_number ][0] is not first_token.parent ) :
                     self.line_indentations[ line_number ] = self.line_indentations[first_token.parent.line_number] + 1
                 else :
@@ -1635,17 +1636,17 @@ class Beautifier :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "statement-scope" :
             # this statement has run on to a second line
-            #print "indentation for statement scope line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            #print("indentation for statement scope line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index)
             if first_token.spelling == "}" and first_token.is_visible and not first_token.is_inside_string :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
             else :
                 self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]+1
         elif first_token.context() == "template" :
-            #print "indentation for template line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            #print("indentation for template line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index)
             # this statement has run on to a second line
             self.line_indentations[line_number] = self.line_indentations[first_token.parent.line_number]
         elif first_token.context() == "template-arg-list" :
-            #print "indentation for template-arg-list line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index
+            #print("indentation for template-arg-list line?", first_token.spelling, first_token.index, "and", first_token.parent.spelling, first_token.parent.index)
             # this statement has run on to a second line
             if first_token.is_visible and first_token.spelling == ">" and first_token.parent.children[-1] is first_token :
                 # the terminating > in a list of template arguments, should indent to
@@ -1680,7 +1681,7 @@ class Beautifier :
     def line_from_line_tokens( self, line_number ) :
         toks = self.line_tokens[line_number]
         if len(toks) == 0 or not toks[0].invisible_by_macro :
-            # print line_number, [ x.spelling for x in toks ]
+            # print(line_number, [ x.spelling for x in toks ])
             spellings = ["\t" * self.line_indentations[line_number] ]
             for i, tok in enumerate( toks ) :
                 if tok.spelling == "\t" :
@@ -1706,7 +1707,7 @@ class Beautifier :
             i+=1
         if i == len(line_toks) :
             # whoa!
-            print "Failed to find tok:", tok.spelling, "on line", tok.line_number, "in file", self.filename
+            print("Failed to find tok:", tok.spelling, "on line", tok.line_number, "in file", self.filename)
             sys.exit(1)
         while i < len(line_toks) :
             line_toks[i].start = line_toks[i].start+1
@@ -1714,8 +1715,8 @@ class Beautifier :
             i+=1
 
     def enforce_space_between( self, tok1, tok2 ) :
-        # print "tok1", tok1.spelling, tok1.line_number, tok1.start, tok1.one_past_end
-        # print "tok2", tok2.spelling, tok2.line_number, tok2.start, tok2.one_past_end
+        # print("tok1", tok1.spelling, tok1.line_number, tok1.start, tok1.one_past_end)
+        # print("tok2", tok2.spelling, tok2.line_number, tok2.start, tok2.one_past_end)
         if tok1.line_number == tok2.line_number and tok1.one_past_end == tok2.start :
             self.insert_space_after( tok1 )
 
@@ -1801,7 +1802,7 @@ class Beautifier :
     def last_descendent( self, token ) :
         # return the last descendent of a given token
         # does not require that the index of the token be up-to-date
-        # print token.spelling, token.line_number
+        # print(token.spelling, token.line_number)
         if not token.children :
             return token
         else :
@@ -1844,7 +1845,7 @@ class Beautifier :
                             break
                     orig_parent = tok.parent
                     orig_parent.children.remove( tok )
-                    # print "move upward:", tok.spelling, "added as child of", moving_token.spelling
+                    # print("move upward:", tok.spelling, "added as child of", moving_token.spelling)
                     tok.parent = moving_token
                     new_children.append( tok )
 
@@ -1873,7 +1874,7 @@ class Beautifier :
         # tokens must already know their new line numbers.
         # first and last lines of tok_lines can't be empty.
         # adjusts self.line_tokens, but not self.all_tokens.
-        # print "insert token lines: ", [ " ".join( [ x.spelling for x in line ]) for line in tok_lines ]
+        # print("insert token lines: ", [ " ".join( [ x.spelling for x in line ]) for line in tok_lines ])
         nlines = len( tok_lines )
         assert( len(tok_lines[-1]) > 0 and len(tok_lines[0]) > 0 )
         firstline = tok_lines[0][0].line_number
@@ -1970,7 +1971,7 @@ class Beautifier :
         tok_line = self.line_tokens[ tok.line_number ]
         tok_pos = tok_line.index( tok )
         toks_for_next_line = tok_line[ (tok_pos+1): ]
-        # print "toks_for_next_line", [ x.spelling for x in toks_for_next_line ]
+        # print("toks_for_next_line", [ x.spelling for x in toks_for_next_line ])
         for nltok in toks_for_next_line :
             nltok.line_number += 1
         self.line_tokens[ tok.line_number ] = tok_line[:(tok_pos+1)]
@@ -2006,7 +2007,7 @@ class Beautifier :
         rcb.line_number = lcb.line_number
         rcb.start = lcb.one_past_end
         rcb.one_past_end = rcb.start+1
-        # print "toks left on rcb line:", ", ".join( [x.spelling for x in self.line_tokens[old_line_number] ])
+        # print("toks left on rcb line:", ", ".join( [x.spelling for x in self.line_tokens[old_line_number] ]))
         self.delete_empty_lines_between( lcb.line_number+1, old_line_number )
 
     def visible_tokens_on_line_after( self, tok ) :
@@ -2047,15 +2048,15 @@ class Beautifier :
         return i
 
     def adjust_parentage_of_comments_after( self, line, first_to_adjust, comments_new_parent, prev_child_of_comment ) :
-        # print "prev_child_of_comment:", "None" if not prev_child_of_comment else prev_child_of_comment.spelling
+        # print("prev_child_of_comment:", "None" if not prev_child_of_comment else prev_child_of_comment.spelling)
         new_child_ind = comments_new_parent.children.index( prev_child_of_comment )+1 if prev_child_of_comment else 0
-        # print "new_child_ind:", new_child_ind
+        # print("new_child_ind:", new_child_ind)
         for i in xrange( first_to_adjust, len(line) ) :
             itok = line[i]
             itok.parent.children.remove( itok )
             itok.parent = comments_new_parent
             comments_new_parent.children.insert( new_child_ind, itok )
-            # print "inserting child", itok.spelling, "at index", new_child_ind, ": ", ", ".join( [x.spelling for x in comments_new_parent.children ])
+            # print("inserting child", itok.spelling, "at index", new_child_ind, ": ", ", ".join( [x.spelling for x in comments_new_parent.children ]))
             new_child_ind += 1
         return new_child_ind
 
@@ -2141,15 +2142,15 @@ class Beautifier :
 
         # now adjust the parentage of all tokens on lines between the moving line and the destination line
         # the only thing between them
-        #print "now adjust the parentage of all tokens on lines between the moving line and the destination line"
-        #print "comments_new_parent:", comments_new_parent.spelling
-        #print "prev_child:", "None" if not prev_child else prev_child.spelling
+        #print("now adjust the parentage of all tokens on lines between the moving line and the destination line")
+        #print("comments_new_parent:", comments_new_parent.spelling)
+        #print("prev_child:", "None" if not prev_child else prev_child.spelling)
         for line_number in xrange( tok_before.line_number+1, orig_line_number+1 ) :
             for tok in self.line_tokens[line_number] :
-                # print "tok on line", line_number, tok.spelling, tok.is_visible, tok.invisible_by_macro, tok.is_preprocessor_directive
+                # print("tok on line", line_number, tok.spelling, tok.is_visible, tok.invisible_by_macro, tok.is_preprocessor_directive)
                 assert( not tok.is_visible and not tok.invisible_by_macro and not tok.is_preprocessor_directive )
             new_child_ind_plus_one = self.adjust_parentage_of_comments_after( self.line_tokens[line_number], 0 , comments_new_parent, prev_child )
-            #print "new_child_ind_plus_one:", new_child_ind_plus_one
+            #print("new_child_ind_plus_one:", new_child_ind_plus_one)
             if new_child_ind_plus_one != 0 :
                 prev_child = comments_new_parent.children[ new_child_ind_plus_one - 1 ]
 
@@ -2189,7 +2190,7 @@ class Beautifier :
 
 
     def adjust_else( self, tok ) :
-        # print "adjust else", tok.line_number
+        # print("adjust else", tok.line_number)
         last_desc = self.last_descendent( tok )
         else_body = None
         for child in tok.children :
@@ -2201,31 +2202,31 @@ class Beautifier :
         # make sure the else is moved up to the line the if-scope ends on
         parent_if = tok.parent
         # for child in parent_if.children :
-        #     print "parent if child:", child.spelling, child.type
+        #     print("parent if child:", child.spelling, child.type)
         else_ind = parent_if.children.index( tok )
-        # print "else ind:", else_ind
+        # print("else ind:", else_ind)
         prev_visible_child_ind = else_ind - 1
         assert( else_ind != 0 )
         while prev_visible_child_ind >= 0 :
-            # print "prev_child:", parent_if.children[ prev_visible_child_ind ].spelling
+            # print("prev_child:", parent_if.children[ prev_visible_child_ind ].spelling)
             if parent_if.children[ prev_visible_child_ind ].is_visible :
                 break
             prev_visible_child_ind -= 1
         assert( prev_visible_child_ind != -1 )
         prev_child = parent_if.children[ prev_visible_child_ind ]
         if prev_child.type == "if-scope" :
-            # if debug : print "else children:", ", ".join( [ x.spelling for x in tok.children ] )
-            # if debug : print "else.child[0].children:", ", ".join( [ x.spelling for x in tok.children[0].children ] )
-            # if debug : print "prev_child children:", ", ".join( [ x.spelling for x in prev_child.children ] )
+            # if debug : print("else children:", ", ".join( [ x.spelling for x in tok.children ] ))
+            # if debug : print("else.child[0].children:", ", ".join( [ x.spelling for x in tok.children[0].children ] ))
+            # if debug : print("prev_child children:", ", ".join( [ x.spelling for x in prev_child.children ] ))
             if_lcb = prev_child #rename for clarity
             if_rcb = self.find_rcb_child( if_lcb )
             assert( if_rcb.spelling == "}" )
             if if_rcb.line_number != tok.line_number and if_lcb.line_number != if_rcb.line_number and not self.intervening_macro_tokens( if_rcb, tok ) :
                 # ok -- move the "else" up to behind the rcb
                 last_visible_ind, comments_new_parent, prev_child = self.get_parent_for_eol_comments_for_else( tok, last_desc, tok.line_number )
-                # print "last_visible_ind", last_visible_ind, "comments_new_parent", comments_new_parent.spelling, comments_new_parent.type, "prev_child", prev_child.spelling if prev_child else "None"
+                # print("last_visible_ind", last_visible_ind, "comments_new_parent", comments_new_parent.spelling, comments_new_parent.type, "prev_child", prev_child.spelling if prev_child else "None")
                 self.move_line_upwards_and_after( tok, if_rcb, last_visible_ind, comments_new_parent, prev_child )
-                # print "comments new parent children:'%s'" % "', '".join( [ x.spelling for x in comments_new_parent.children ] )
+                # print("comments new parent children:'%s'" % "', '".join( [ x.spelling for x in comments_new_parent.children ] ))
 
             #otherwise, leave the else in place.
 
@@ -2233,7 +2234,7 @@ class Beautifier :
             if tok.line_number != else_body.line_number and not self.intervening_macro_tokens( tok, else_body ):
                 # ok, make sure that the whole line that the "if" statement is on ends up on this line
                 last_visible_ind, comments_new_parent, prev_child = self.get_parent_for_eol_comments_for_else( tok, last_desc, else_body.line_number )
-                # print "moving if behind else upwards", last_visible_ind, comments_new_parent.spelling, "None" if not prev_child else prev_child.spelling
+                # print("moving if behind else upwards", last_visible_ind, comments_new_parent.spelling, "None" if not prev_child else prev_child.spelling)
                 self.move_line_upwards_and_after( else_body, tok, last_visible_ind, comments_new_parent, prev_child )
         elif else_body.type == "else-scope" :
             else_lcb = else_body
@@ -2251,7 +2252,7 @@ class Beautifier :
                 # the same line as the lcb
                 last_before_rcb = self.last_descendent( else_lcb.children[-2] )
                 if last_before_rcb.line_number == else_rcb.line_number and else_rcb.line_number != else_body.line_number :
-                    # print 'ok -- move rcb to its own line'
+                    # print('ok -- move rcb to its own line')
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( else_rcb )
             else :
                 # ok, then else_lcb has a single child, the else_rcb.
@@ -2262,15 +2263,15 @@ class Beautifier :
             # check to see if we ought to have curly braces
             last_es_desc = self.last_descendent( else_body )
             if last_es_desc.line_number != tok.line_number and not self.intervening_macro_tokens(tok,else_body) :
-                # print 'we need to add a pair of curly braces'
+                # print('we need to add a pair of curly braces')
                 lcb_tok = self.add_left_curly_brace_after( tok )
                 lcb_tok.type = "else-scope"
                 self.adjust_token_tree( lcb_tok, tok.children[0], else_body ) # start with the first child of the else (possibly a comment)
                 if else_body.line_number == lcb_tok.line_number :
-                    # print 'move these tokens down to their own line'
+                    # print('move these tokens down to their own line')
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_es_desc ) :
-                    print "Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "1"
+                    print("Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "1")
                     self.move_tokens_after_to_their_own_next_line( last_es_desc )
                 self.add_right_curly_brace_on_own_line_after( last_es_desc, lcb_tok )
             else :
@@ -2280,13 +2281,13 @@ class Beautifier :
                     if self.visible_tokens_on_line_after( last_es_desc ) :
                         next_visible = self.next_visible_token_on_line_after( last_es_desc )
                         if not self.token_is_scope_ender( next_visible ) :
-                            # print 'move these tokens onto their own line'
-                            print "Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "2"
+                            # print('move these tokens onto their own line')
+                            print("Possible bug identified on line", last_es_desc.orig_line_number+1, "of file", self.filename, "2")
                             self.move_tokens_after_to_their_own_next_line( last_es_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
     def adjust_if( self, tok ) :
-        #print "adjust if", tok.line_number
+        #print("adjust if", tok.line_number)
         # ok -- let's look at the descendents; they should be an if-condition and
         # a statement
         last_desc = self.last_descendent( tok )
@@ -2303,7 +2304,7 @@ class Beautifier :
         if if_body.type == "if-scope" :
             # ok -- so the curly braces are there.  Check that they are in the right place.
             if end_paren.line_number != if_body.line_number and not self.intervening_macro_tokens( end_paren, if_body ) :
-                # print 'ok! we need to move the "{" up to the ")" line'
+                # print('ok! we need to move the "{" up to the ")" line')
                 if len( if_body.children ) == 1 :
                     # then we're looking at an empty statement
                     # first put the } on the same line as the {
@@ -2313,7 +2314,7 @@ class Beautifier :
                     if lcb.line_number != rcb.line_number :
                         orig_rcb_line_number = rcb.line_number
                         self.excise_token_and_move_upwards_and_after( rcb, lcb )
-                        # print "toks left on rcb line:", ", ".join( [x.spelling for x in self.line_tokens[orig_rcb_line_number] ])
+                        # print("toks left on rcb line:", ", ".join( [x.spelling for x in self.line_tokens[orig_rcb_line_number] ]))
                         rcb.start = lcb.one_past_end; rcb.one_past_end = rcb.start+1
                         self.delete_empty_lines_between( lcb.line_number+1, orig_rcb_line_number)
                     # now move the lcb and rcb up behind the end_paren
@@ -2323,21 +2324,21 @@ class Beautifier :
                     orig_lcb_line_number = lcb.line_number
                     self.move_line_upwards_and_after( lcb, end_paren, last_visible_ind, comments_new_parent, prev_child )
                     self.delete_empty_lines_between( end_paren.line_number+1, orig_lcb_line_number)
-                    # print "line start stop", ", ".join( [ "%s %d %d" % ( x.spelling, x.start, x.one_past_end ) for x in self.line_tokens[end_paren.line_number] ])
+                    # print("line start stop", ", ".join( [ "%s %d %d" % ( x.spelling, x.start, x.one_past_end ) for x in self.line_tokens[end_paren.line_number] ]))
                 else :
                     old_line = if_body.line_number
                     self.excise_token_and_move_upwards_and_after( if_body, end_paren )
                     if len( self.line_tokens[ old_line] ) == 0 :
                         self.delete_empty_line( old_line )
-            # print "if_body.children", ", ".join( [x.spelling for x in if_body.children ])
+            # print("if_body.children", ", ".join( [x.spelling for x in if_body.children ]))
             right_curly_brace = if_body.children[-1]
-            # print "right_curly_brace", right_curly_brace.spelling, right_curly_brace.line_number
+            # print("right_curly_brace", right_curly_brace.spelling, right_curly_brace.line_number)
             assert( right_curly_brace.spelling == "}" )
             # the right curly brace should be on its own line unless its on the same line as the left curly brace
             if if_body.line_number != right_curly_brace.line_number and len( if_body.children ) != 1 :
                 last_before_rcb = self.last_descendent( if_body.children[-2] )
                 if last_before_rcb.line_number == right_curly_brace.line_number :
-                    # print 'ok! move rcb to its own line'
+                    # print('ok! move rcb to its own line')
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
             elif len( if_body.children ) == 1 :
                 # make sure the {}s are on the same line together
@@ -2348,25 +2349,25 @@ class Beautifier :
             last_is_desc = self.last_descendent( if_body )
             last_ic_desc = self.last_descendent( if_cond )
             if last_is_desc.line_number != last_ic_desc.line_number and not self.intervening_macro_tokens(tok,if_body) :
-                #print 'we need to add a pair of curly braces'
+                #print('we need to add a pair of curly braces')
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "if-scope"
                 self.adjust_token_tree( lcb_tok, tok.children[ tok.children.index(if_cond)+1 ], if_body )
                 if if_body.line_number == lcb_tok.line_number :
-                    #print 'move these tokens down to their own line'
+                    #print('move these tokens down to their own line')
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_is_desc ) :
-                    print "Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "3"
+                    print("Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "3")
                     self.move_tokens_after_to_their_own_next_line( last_is_desc )
                 self.add_right_curly_brace_on_own_line_after( last_is_desc, lcb_tok )
             else :
                 # make sure that there are no other tokens on this line, except an "else" or a scope-ending "}"
                 if self.line_tokens[ last_is_desc.line_number ][ -1 ] is not last_is_desc :
                     if self.visible_tokens_on_line_after( last_is_desc ) :
-                        # print 'move these tokens onto their own line'
+                        # print('move these tokens onto their own line')
                         next_visible = self.next_visible_token_on_line_after( last_is_desc )
                         if not self.token_is_scope_ender( next_visible ) and next_visible.type != "else" :
-                            print "Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "4"
+                            print("Possible bug identified on line", last_is_desc.orig_line_number+1, "of file", self.filename, "4")
                             self.move_tokens_after_to_their_own_next_line( last_is_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
@@ -2392,7 +2393,7 @@ class Beautifier :
         if for_body.type == "for-scope" :
             # ok -- so the curly braces are there.  Check that they are in the right place.
             if end_paren.line_number != for_body.line_number :
-                # print 'ok! we need to move the "{" up to the ")" line'
+                # print('ok! we need to move the "{" up to the ")" line')
                 # ask -- are there other tokens on the "{" line?
                 if for_body.children[0].spelling == "}" :
                     pass; # handled below
@@ -2400,7 +2401,7 @@ class Beautifier :
                     # ok, the line is not going to be empty after we remove the "{"
                     self.excise_token_and_move_upwards_and_after( for_body, end_paren )
                 else :
-                    # print 'ok, excise the "{" and delete the line it was on'
+                    # print('ok, excise the "{" and delete the line it was on')
                     old_line = for_body.line_number
                     self.excise_token_and_move_upwards_and_after( for_body, end_paren )
                     self.delete_empty_line( old_line )
@@ -2412,7 +2413,7 @@ class Beautifier :
             if len(for_body.children) != 1 :
                 last_before_rcb = self.last_descendent( for_body.children[-2] )
                 if last_before_rcb.line_number == right_curly_brace.line_number and right_curly_brace.line_number != for_body.line_number :
-                    # print 'ok! move rcb to its own line'
+                    # print('ok! move rcb to its own line')
                     self.excise_right_curly_brace_and_move_to_next_line_on_own( right_curly_brace )
             else :
                 # make sure the {} are on the same line together
@@ -2425,23 +2426,23 @@ class Beautifier :
             last_fs_desc = self.last_descendent( for_body )
             last_fd_desc = self.last_descendent( for_dec_tok )
             if last_fs_desc.line_number != last_fd_desc.line_number and not self.intervening_macro_tokens(tok,for_body) :
-                # print 'we need to add a pair of curly braces'
+                # print('we need to add a pair of curly braces')
                 lcb_tok = self.add_left_curly_brace_after( end_paren )
                 lcb_tok.type = "for-scope"
                 self.adjust_token_tree( lcb_tok, tok.children[ tok.children.index( for_dec_tok ) + 1 ], for_body )
                 if for_body.line_number == lcb_tok.line_number :
-                    # print 'move these tokens down to their own line'
+                    # print('move these tokens down to their own line')
                     self.move_tokens_after_to_their_own_next_line( lcb_tok )
                 if self.visible_tokens_on_line_after( last_fs_desc ) :
-                    print "Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "5"
+                    print("Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "5")
                     self.move_tokens_after_to_their_own_next_line( last_fs_desc )
                 self.add_right_curly_brace_on_own_line_after( last_fs_desc, lcb_tok )
             else :
                 # make sure that there are no other tokens on this line
                 if self.line_tokens[ last_fs_desc.line_number ][ -1 ] is not last_fs_desc :
                     if self.visible_tokens_on_line_after( last_fs_desc ) :
-                        # print 'move these tokens onto their own line'
-                        print "Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "6"
+                        # print('move these tokens onto their own line')
+                        print("Possible bug identified on line", last_fs_desc.orig_line_number+1, "of file", self.filename, "6")
                         self.move_tokens_after_to_their_own_next_line( last_fs_desc )
         self.adjust_lines_for_children( tok ) # recurse
 
@@ -2535,17 +2536,17 @@ class Beautifier :
                 retval = other.equiv_to_scoped_statement( self, i_other, i_this, stack, other.empty_statement_equiv )
                 return retval[0], retval[2], retval[1]
             else :
-                #print "tok_this", tok_this.spelling, tok_this.line_number+1, tok_this.type, \
+                #print("tok_this", tok_this.spelling, tok_this.line_number+1, tok_this.type, \)
                 #    "tok_other", tok_other.spelling, tok_other.line_number+1, tok_other.type
                 return False, i_this, i_other
         else :
-            #print "tok_this:", tok_this.spelling,"tok_other:", tok_other.spelling
+            #print("tok_this:", tok_this.spelling,"tok_other:", tok_other.spelling)
             return self.statement_equiv( other, i_this, i_other, stack )
 
     def equiv_to_scoped_statement( self, other, i_this, i_other, stack, func ) :
         assert( other.all_tokens[i_other].type in other.scope_types )
         # this might be equivalent if tok_other contains only a single statement
-        # print func
+        # print(func)
         still_good, i_this, i_other = func( other, i_this, other.find_next_visible_token(i_other+1), stack )
         if not still_good : return still_good, i_this, i_other
         i_other = other.find_next_visible_token( i_other )
@@ -2615,7 +2616,7 @@ class Beautifier :
             tok_other = other.all_tokens[i_other]
             if tok_this.context() == end_context and tok_this.type != left_paren_type and found_open_paren :
                 stack.pop()
-                if debug_equiv: print " "*len(stack) + "leaving paren_block_equiv", i_this, i_other
+                if debug_equiv: print(" "*len(stack) + "leaving paren_block_equiv", i_this, i_other)
                 return True, i_this, i_other
             if tok_this.type == left_paren_type :
                 found_open_paren = True
@@ -2624,7 +2625,7 @@ class Beautifier :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        print "Ran out of tokens in paren_block_equiv, end_context =", end_context,"left_paren_type =", left_paren_type
+        print("Ran out of tokens in paren_block_equiv, end_context =", end_context,"left_paren_type =", left_paren_type)
         stack.pop()
         return False, i_this, i_other
 
@@ -2650,13 +2651,13 @@ class Beautifier :
         i_this, i_other = self.two_next_visible( other, i_this, i_other )
         tok_this, tok_other = self.two_toks( other, i_this, i_other )
 
-        # print "leaving do_while_equiv", i_this, i_other,
+        # print("leaving do_while_equiv", i_this, i_other,)
         if tok_this.spelling == ";" and tok_other.spelling == ";" :
-            # print "returning true"
+            # print("returning true")
             stack.pop()
             return True, i_this+1, i_other+1
         else :
-            # print "returning false"
+            # print("returning false")
             stack.pop()
             return False, i_this, i_other
 
@@ -2695,18 +2696,18 @@ class Beautifier :
                     stack.pop()
                     return retval
             if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
-                if debug_equiv: print " "*len(stack) + "leaving snamespace_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if debug_equiv: print(" "*len(stack) + "leaving snamespace_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,)
                 if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
-                    if debug_equiv: print "returning true"
+                    if debug_equiv: print("returning true")
                     return True, i_this, i_other
                 else :
-                    if debug_equiv: print "returning false"
+                    if debug_equiv: print("returning false")
                     return False, i_this, i_other
             if not tok_this2.equivalent( tok_other2 ) :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        print "Ran out of tokens in namespace_equiv"
+        print("Ran out of tokens in namespace_equiv")
         return False, i_this, i_other
 
     def class_equiv( self, other, i_this, i_other, stack ) :
@@ -2794,7 +2795,7 @@ class Beautifier :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        # print "Ran out of tokens in union_equiv"
+        # print("Ran out of tokens in union_equiv")
         stack.pop()
         return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
@@ -2823,7 +2824,7 @@ class Beautifier :
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        print "Ran out of tokens in switch_equiv"
+        print("Ran out of tokens in switch_equiv")
         stack.pop()
         return False, i_this, i_other
 
@@ -2849,7 +2850,7 @@ class Beautifier :
             if not tok_this.equivalent( tok_other ) : stack.pop(); return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
-        print "Ran out of tokens in switch_scope_equiv"
+        print("Ran out of tokens in switch_scope_equiv")
         stack.pop()
         return False, i_this, i_other
 
@@ -2885,7 +2886,7 @@ class Beautifier :
                 if not still_good : stack.pop(); return still_good, i_this, i_other
                 i_this, i_other = self.two_next_visible( other, i_this, i_other )
 
-        print "Ran out of tokens in case_equiv"
+        print("Ran out of tokens in case_equiv")
         stack.pop()
         return False, i_this, i_other
 
@@ -2910,24 +2911,24 @@ class Beautifier :
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
         while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
             tok_this, tok_other = self.two_toks( other, i_this, i_other )
-            if debug_equiv: print " "*len(stack)+"scope equiv while loop", tok_this.spelling, tok_other.spelling
+            if debug_equiv: print(" "*len(stack)+"scope equiv while loop", tok_this.spelling, tok_other.spelling)
             if tok_this.type == "empty-statement" or tok_other.type == "empty-statement" :
                 if tok_this.type == "empty-statement" : i_this += 1
                 if tok_other.type == "empty-statement" : i_other += 1
             elif tok_this.parents_last_child() or tok_other.parents_last_child() :
                 # is this the last child?  If so, it's the rcb
-                if debug_equiv: print " "*len(stack) + "leaving scope_equiv", i_this, i_other
+                if debug_equiv: print(" "*len(stack) + "leaving scope_equiv", i_this, i_other)
                 stack.pop()
                 if tok_this.spelling != tok_other.spelling : return False, i_this, i_other
                 return True, i_this+1, i_other+1
             else :
                 still_good, i_this, i_other = self.statement_equiv( other, i_this, i_other, stack )
-                if debug_equiv: print " "*len(stack) + "scope equiv returned from self.statement_equiv", i_this, i_other
+                if debug_equiv: print(" "*len(stack) + "scope equiv returned from self.statement_equiv", i_this, i_other)
                 if not still_good : stack.pop(); return still_good, i_this, i_other
-            #print "scope equiv while loop", i_this, i_other
+            #print("scope equiv while loop", i_this, i_other)
             i_this, i_other = self.two_next_visible( other, i_this, i_other )
 
-        # print "Ran out of tokens in scope_equiv" -- this isn't an error condition!
+        # print("Ran out of tokens in scope_equiv" -- this isn't an error condition!)
         stack.pop()
         return i_this == len(self.all_tokens) and i_other == len(other.all_tokens), i_this, i_other
 
@@ -2953,27 +2954,27 @@ class Beautifier :
 
         while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
             tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
-            if debug_equiv: print " "*len(stack)+"simple statement equiv while loop", tok_this2.spelling, tok_other2.spelling
+            if debug_equiv: print(" "*len(stack)+"simple statement equiv while loop", tok_this2.spelling, tok_other2.spelling)
             if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
-                if debug_equiv: print " "*len(stack) + "leaving simple_statement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                if debug_equiv: print(" "*len(stack) + "leaving simple_statement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,)
                 if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
-                    if debug_equiv: print "returning true"
+                    if debug_equiv: print("returning true")
                     return True, i_this, i_other
                 else :
-                    if debug_equiv: print "returning false"
+                    if debug_equiv: print("returning false")
                     return False, i_this, i_other
             if tok_this2.type in self.scope_types :
                 still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
                 if not still_good:
                     print
-                    print "not still good from scope within simple_statement_equiv"
+                    print("not still good from scope within simple_statement_equiv")
                     return still_good, i_this, i_other
                 continue # do not increment i_this and i_other
             if not tok_this2.equivalent( tok_other2 ) :
-                if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
+                if debug_equiv: print(" " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'")
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
-        #print "simple_statement_equiv should not have reached here", i_this, i_other
+        #print("simple_statement_equiv should not have reached here", i_this, i_other)
         return True, i_this, i_other
 
     def substatement_equiv( self, other, i_this, i_other, stack ) :
@@ -2991,13 +2992,13 @@ class Beautifier :
         while i_this < len( self.all_tokens ) and i_other < len( other.all_tokens ) :
             tok_this2, tok_other2 = self.two_toks( other, i_this, i_other )
             if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other :
-                #print "Finished substatement_equiv:", tok_ths2.spelling, tok_this2.parent.spelling, tok_other2.spelling,  tok_other2.parent.spelling
-                if debug_equiv: print " "*len(stack) + "leaving substatement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,
+                #print("Finished substatement_equiv:", tok_ths2.spelling, tok_this2.parent.spelling, tok_other2.spelling,  tok_other2.parent.spelling)
+                if debug_equiv: print(" "*len(stack) + "leaving substatement_equiv", tok_this2.spelling, tok_this2.parent.spelling, tok_other2.spelling, tok_other2.parent.spelling, i_this, i_other,)
                 if tok_this2.parent is not tok_this and tok_other2.parent is not tok_other :
-                    if debug_equiv: print "returning true"
+                    if debug_equiv: print("returning true")
                     return True, i_this, i_other
                 else :
-                    if debug_equiv: print "returning false"
+                    if debug_equiv: print("returning false")
                     return False, i_this, i_other
             if tok_this2.type in self.scope_types :
                 still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
@@ -3005,10 +3006,10 @@ class Beautifier :
                 if not still_good:
                     return still_good, i_this, i_other
             elif not tok_this2.equivalent( tok_other2 ) :
-                if debug_equiv: print " " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'"
+                if debug_equiv: print(" " *len(stack) + "toks not equivalent:'" + tok_this2.spelling + "' vs '" + tok_other2.spelling + "'")
                 return False, i_this, i_other
             i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
-        #print "simple_statement_equiv should not have reached here", i_this, i_other
+        #print("simple_statement_equiv should not have reached here", i_this, i_other)
         return True, i_this, i_other
 
     def template_equiv( self, other, i_this, i_other, stack ) :
@@ -3020,7 +3021,7 @@ class Beautifier :
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
         while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
-            if debug_equiv: print "template_equiv while loop:", i_this, i_other
+            if debug_equiv: print("template_equiv while loop:", i_this, i_other)
             tok_this, tok_other = self.two_toks( other, i_this, i_other )
             if tok_this.spelling == ">" or tok_other.spelling == ">" :
                 if tok_this.spelling == ">" and tok_this.parents_last_child() :
@@ -3043,7 +3044,7 @@ class Beautifier :
         i_this, i_other = self.two_next_visible( other, i_this+1, i_other+1 )
 
         while i_this < len(self.all_tokens) and i_other < len(other.all_tokens) :
-            # if debug_equiv: print "function_equiv while loop:", i_this, i_other
+            # if debug_equiv: print("function_equiv while loop:", i_this, i_other)
             tok_this, tok_other = self.two_toks( other, i_this, i_other )
             if tok_this.type == "function-scope" or tok_other.spelling == "function-scope" :
                 retval = self.statement_equiv( other, i_this, i_other, stack )
@@ -3151,15 +3152,15 @@ class Beautifier :
         elif tok_this.type == "enum" :
             retval = self.enum_equiv( other, i_this, i_other, stack )
         else :
-            print "We should not have reached here!", tok_this.type, tok_this.line_number+1, tok_this.spelling
+            print("We should not have reached here!", tok_this.type, tok_this.line_number+1, tok_this.spelling)
             retval = (False, i_this, i_other)
         stack.pop()
         return retval
 
     def enter_equiv( self, other, fname, i_this, i_other, stack ) :
-        print "%sentering" % (" "*len(stack)), fname, i_this, i_other,
-        print "%s %d " % ( self.all_tokens[i_this].spelling, self.all_tokens[i_this].line_number+1 ) if i_this < len(self.all_tokens) else "None",
-        print "%s %d " % ( other.all_tokens[i_other].spelling, other.all_tokens[i_other].line_number+1 ) if i_other < len(other.all_tokens) else "None"
+        print("%sentering" % (" "*len(stack)), fname, i_this, i_other,)
+        print("%s %d " % ( self.all_tokens[i_this].spelling, self.all_tokens[i_this].line_number+1 ) if i_this < len(self.all_tokens) else "None",)
+        print("%s %d " % ( other.all_tokens[i_other].spelling, other.all_tokens[i_other].line_number+1 ) if i_other < len(other.all_tokens) else "None")
 
     def equivalent( self, other ) :
         stack = SmartStack()
@@ -3177,15 +3178,15 @@ class Beautifier :
             # make sure there are no visible tokens remaining for self
             i_this = self.find_next_visible_token( i_this )
             if i_this < len( self.all_tokens ) :
-                print "unprocessed tokens in self for", self.filename, ":", i_this+1, "of", len(self.all_tokens),"processed"
-                print "(other;", i_other, "of", len(other.all_tokens), "processed)"
-                #print ", ".join( [ x.spelling for x in self.all_tokens[ i_this: ] ])
+                print("unprocessed tokens in self for", self.filename, ":", i_this+1, "of", len(self.all_tokens),"processed")
+                print("(other;", i_other, "of", len(other.all_tokens), "processed)")
+                #print(", ".join( [ x.spelling for x in self.all_tokens[ i_this: ] ]))
                 return False, i_this, i_other
         elif i_other < len( other.all_tokens ) :
             # make sure there are no visible tokens remaining for other
             i_other = self.find_next_visible_token( i_other )
             if i_other < len( other.all_tokens ) :
-                print "unprocessed tokens in other"
+                print("unprocessed tokens in other")
                 return False, i_this, i_other
         return True, i_this, i_other
 
@@ -3224,7 +3225,7 @@ def beautify_file( filename, overwrite, opts = None ) :
     for macro_set in macro_sets :
 
         if orig_beaut :
-            # print "Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about )
+            # print("Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about ))
             found_any = False
             for macro in macro_set :
                 if macro in orig_beaut.macros_inquired_about :
@@ -3236,10 +3237,10 @@ def beautify_file( filename, overwrite, opts = None ) :
         beaut.filename = filename
         if opts :
             if opts.pound_if_setting == "take_if" or opts.pound_if_setting == "take_else" :
-                #print "Setting beautifier pound_if_setting:", opts.pound_if_setting
+                #print("Setting beautifier pound_if_setting:", opts.pound_if_setting)
                 beaut.pound_if_setting = opts.pound_if_setting
 
-        #print "beautifying", filename, "with macros:" + ", ".join( [ x for x in macro_set ] )
+        #print("beautifying", filename, "with macros:" + ", ".join( [ x for x in macro_set ] ))
         for macro in macro_set :
             beaut.defined_macros.append( macro )
 
@@ -3257,9 +3258,9 @@ def beautify_file( filename, overwrite, opts = None ) :
         last_beaut = beaut
 
         if debug :
-            print "\n\nFINISHED macro set = [", ", ".join( macro_set ), "]"
+            print("\n\nFINISHED macro set = [", ", ".join( macro_set ), "]")
             for line in beaut.new_lines :
-                print line,
+                print(line,)
 
     if overwrite or debug:
         # make sure that the beautified code is identical to the original code
@@ -3267,7 +3268,7 @@ def beautify_file( filename, overwrite, opts = None ) :
         for macro_set in macro_sets :
 
             if macro_set :
-                # print "Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about )
+                # print("Macro Inquiries:", ", ".join( orig_beaut.macros_inquired_about ))
                 found_any = False
                 for macro in macro_set :
                     if macro in orig_beaut.macros_inquired_about :
@@ -3293,15 +3294,15 @@ def beautify_file( filename, overwrite, opts = None ) :
             equiv, t1, t2 = b1.equivalent( b2 )
             if not equiv :
                 all_good = False
-                print "MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename
+                print("MACRO set: " + ", ".join( macro_set ) + " did not produce the same tree in the original and beautified code for", filename)
 
         if overwrite and all_good :
             open( filename, "w" ).writelines( beaut.new_lines )
             #pass
         elif overwrite and not all_good :
-            print "Did not beautify", filename, "because tree differed in the presence of some macros"
+            print("Did not beautify", filename, "because tree differed in the presence of some macros")
         elif not overwrite and not all_good :
-            print "Beautified file does not match structure of original!"
+            print("Beautified file does not match structure of original!")
 
         if debug and not overwrite :
             open( filename +".beaut", "w" ).writelines( beaut.new_lines )
@@ -3316,11 +3317,11 @@ class SmartStack :
     def __len__( self ) :
         return len( self.stack )
     def append( self, str ) :
-        if self.debug : print " "*len(self.stack)+"appending", str
+        if self.debug : print(" "*len(self.stack)+"appending", str)
         self.stack.append( str )
     def pop( self, msg = "" ) :
         str = self.stack.pop()
-        if self.debug : print " "*len(self.stack) + "popped", str, msg
+        if self.debug : print(" "*len(self.stack) + "popped", str, msg)
 
 
 
@@ -3340,5 +3341,5 @@ if __name__ == "__main__" :
     if pound_if_setting : opts.pound_if_setting = pound_if_setting
     if macros : opts.macro_sets = [ macros ]
 
-    # print "pound if setting:", opts.pound_if_setting
+    # print("pound if setting:", opts.pound_if_setting)
     beautify_file( filename, overwrite, opts )

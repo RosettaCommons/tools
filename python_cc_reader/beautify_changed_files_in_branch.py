@@ -4,6 +4,7 @@
 # it will look for "source" in the CWD and then move into the root directory for the
 # repository to do its business
 
+from __future__ import print_function
 from beautify_compiled_files_w_fork import *
 import subprocess, sys
 try:
@@ -30,7 +31,7 @@ if __name__ == "__main__" :
     pwd_parts = pwd.rpartition( "source" )
     assert( pwd_parts[1] == "source" ) # you must run this script from the main/source directory or one of its subdirectories
     if not quiet :
-        print "cd'ing to " + pwd_parts[0]
+        print("cd'ing to " + pwd_parts[0])
     os.chdir( pwd_parts[0] )
 
 
@@ -39,10 +40,10 @@ if __name__ == "__main__" :
     if ( rev_to_diff_against == '' ): # If, for some reason, the branch doesn't exist
         sys.stderr.write( "ERROR: Branch '" + ref_branch + "' doesn't seem to be a valid branch in this repository - not beautifying.\n" )
         sys.exit(-1)
-    #print "rev to diff: " + rev_to_diff_against
+    #print("rev to diff: " + rev_to_diff_against)
     bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
     file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]
-    # print "Initial list\n", file_list
+    # print("Initial list\n", file_list)
     file_list = [ x.split(None,1) for x in file_list.splitlines() ]
 
     # pare down this list to the set of files that should be beautified at all
@@ -50,7 +51,7 @@ if __name__ == "__main__" :
     file_list = [ x for s, x in file_list if (x[-3:]==".hh" or x[-3:]==".cc") and s != 'D' ]
     file_list = [ x for x in file_list if x.find("source/src/ui/") == -1 and x.find( "source/code_templates/" ) == -1  ]
     if not quiet :
-        print "Preparing to beautify: " + ", ".join( file_list )
+        print("Preparing to beautify: " + ", ".join( file_list ))
     # sys.exit(0)
 
     fbm = beautify_files_in_parallel( file_list, not dry_run, num_cpu, pound_if_setting, quiet )

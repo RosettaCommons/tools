@@ -72,10 +72,7 @@ offset = args.offset
 n_struct = 100
 n_cycle = 1000
 cmdline_base = bytearray(
-    "rna_denovo_setup.py -fixed_stems -rna::corrected_geo "
-    "-score:rna_torsion_potential RNA11_based_new "
-    "-chemical::enlarge_H_lj "
-    "-score:weights stepwise/rna/rna_helix "
+    "rna_denovo -score:weights stepwise/rna/rna_res_level_energy4.wts -minimize_rna true -use_legacy_job_distributor true -restore_talaris_behavior true "
 )
 cmdline_base += "-nstruct %d " % n_struct
 cmdline_base += "-cycles %d " % n_cycle
@@ -105,7 +102,7 @@ for stem in helix_stems:
 
     cmdline = cmdline_base[:]
     cmdline += "-working_res %s " % res_num
-    cmdline += "-out_script %s " % out_script
+    #cmdline += "-out_script %s " % out_script
     cmdline += "-tag %s " % tag
     subprocess.check_call([str(elem) for elem in cmdline.split()])
     print >> out, "source %s" % out_script

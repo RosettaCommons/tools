@@ -52,11 +52,21 @@ class EpitopePredictorMatrix (EpitopePredictor):
 
         if pred_name is None: pred_name = filename
         
+        # Figure out the path to the Rosetta database assuming everything was cloned together
+        rosdb = os.path.abspath( os.path.dirname(__file__) + '/../../../main/database')
+        if not (os.path.isdir(rosdb)): rosdb = None
+        
         # TODO: look harder for file?
+        # Can we point directly to the file?  If so, use it.
         if os.path.exists(filename):
-            resolved_fn = filename
+            resolved_fn = filename		
+        # If we can automatically find the Rosetta database and the file is in it, use that.
+        elif rosdb and os.path.exists(rosdb+'/scoring/score_functions/mhc_epitope/'+filename):
+             resolved_fn = rosdb+'/scoring/score_functions/mhc_epitope/'+filename
+        # If the "ROSETTA" environment variable is set, try finding the database that way.
         else:
-            resolved_fn = os.environ['ROSETTA']+'/main/database/scoring/score_functions/mhc_epitope/'+filename
+            if not os.getenv('ROSETTA'): raise Exception('Unable to find the database file '+filename+'\n')
+            resolved_fn = os.getenv('ROSETTA')+'/main/database/scoring/score_functions/mhc_epitope/'+filename
             if not os.path.exists(resolved_fn): raise Exception('Unable to open file '+filename+', resolved to '+resolved_fn)
 
         with open(resolved_fn, 'r') as infile:

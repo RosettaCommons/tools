@@ -105,17 +105,22 @@ class NetMHCII (EpitopePredictor):
             if cols[0] in self.nm_alleles:
                 # a score row for an allele -- extract and store the info if good enough
                 score = float(cols[score_col])
-                if score <= self.thresh:
-                    allele = NetMHCII.std_name(cols[0])
-                    peptide = cols[2]
-                    peptides.add(peptide)
-                    scores[peptide][allele] = score                
+                #if score <= self.thresh:
+                allele = NetMHCII.std_name(cols[0])
+                peptide = cols[2]
+                peptides.add(peptide)
+                scores[peptide][allele] = score                
         if not got_version: print('*** unidentified version, use at your own risk!')
         peptides = list(peptides)
         episcores = []
         for pep in peptides:
-            details = [scores[pep][allele] for allele in self.alleles] # impose consistent order
-            episcores.append(EpitopeScore(len(details), details))
+            details = [] #Store the details of all peptide/allele combos
+            meet_thresh = 0 #Store the number of peptide/allele combos that are less than self.thresh
+            for allele in self.alleles:
+                details.append(scores[pep][allele])
+                if scores[pep][allele] <= self.thresh:
+                    meet_thresh+=1
+            episcores.append(EpitopeScore(meet_thresh, details))
         return EpitopeMap(self.peptide_length, self.alleles, peptides, episcores)
 
     def load_file(self, filename):

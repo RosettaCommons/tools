@@ -101,7 +101,7 @@ def setup_parser():
     alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15'])
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
     # epitope predictor parameters
-    parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=float, default=5)
+    parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
     parser.add_argument('db', help='name of sqlite3 database to store epitope information (create or augment)')
@@ -121,7 +121,7 @@ def main(args):
         pred = NetMHCII(nm_bin=False, score_type=args.netmhcii_score[0])
     else:
         pred = Propred.load()
-    pred.threshold = args.epi_thresh
+    pred.thresh = args.epi_thresh
 
     # alleles
     if args.allele_set is not None:

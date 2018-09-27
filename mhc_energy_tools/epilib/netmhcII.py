@@ -103,19 +103,19 @@ class NetMHCII (EpitopePredictor):
                 else:
                     print('*** untested version ',cols[-1],'; use at your own risk!')
             if cols[0] in self.nm_alleles:
-                # a score row for an allele -- extract and store the infor
-                allele = NetMHCII.std_name(cols[0])
-                peptide = cols[2]
+                # a score row for an allele -- extract and store the info if good enough
                 score = float(cols[score_col])
-                peptides.add(peptide)
-                scores[peptide][allele] = score                
+                if score <= self.thresh:
+                    allele = NetMHCII.std_name(cols[0])
+                    peptide = cols[2]
+                    peptides.add(peptide)
+                    scores[peptide][allele] = score                
         if not got_version: print('*** unidentified version, use at your own risk!')
         peptides = list(peptides)
         episcores = []
         for pep in peptides:
             details = [scores[pep][allele] for allele in self.alleles] # impose consistent order
-            value = sum(1 for s in details if s <= self.thresh)
-            episcores.append(EpitopeScore(value, details))
+            episcores.append(EpitopeScore(len(details), details))
         return EpitopeMap(self.peptide_length, self.alleles, peptides, episcores)
 
     def load_file(self, filename):

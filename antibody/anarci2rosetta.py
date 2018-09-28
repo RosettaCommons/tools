@@ -29,7 +29,7 @@ def main (args):
 
 	# Check if fasta file exist
 	if not os.path.isfile(args.fasta_file):
-		print "File", fasta_file, "does not exist!"
+		print "File", args.fasta_file, "does not exist!"
 		sys.exit()
 
 	# ANARCI Run

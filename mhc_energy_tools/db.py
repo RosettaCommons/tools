@@ -24,24 +24,13 @@ from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
 from epilib.sequence import load_fa, load_pdb
 
-def generate_peptides(aa_choices, peptide_length):
-    """Given the aa_choices [ [AA] ], generates all combinations into peptides of the given length."""
-    peptides = set()
-    for i in range(len(aa_choices)-peptide_length+1):
-        aa_combos = list(itertools.product(*[aa_choices[i+p] for p in range(peptide_length)]))
-        peptides.update(''.join(combo) for combo in aa_combos)
-    return peptides
-
-def save_peptides(peptides, filename):
-    """Writes the peptides to the file."""
-    with open(filename, 'wt') as of:
-        for pep in peptides:
-            of.write(pep)
-            of.write('\n')
+def wt_choices(wt):
+    """A dictionary of position -> [AA] listing allowed amino acids for each positions, initialized here with just the wild-type at each position"""
+    return dict((i, [wt[i]]) for i in range(wt.start, wt.start+len(wt)))
 
 def load_aa_choices_csv(wt, filename):
     """Load a csv-format file of mutational choices for the wt Sequence. Each row has the position (same numbering as wt) and list of alternative AAs."""
-    choices = [[aa] for aa in wt] # default unless specifed
+    choices = wt_choices(wt)
     with open(filename, 'r') as infile:
         for row in csv.reader(infile):
             pos = int(row[0]); aas = row[1:]
@@ -51,7 +40,7 @@ def load_aa_choices_csv(wt, filename):
 
 def load_aa_choices_pssm(wt, filename, thresh=0):
     """Loads a BLAST PSSM-format file and returns as mutational choices those whose negative log probabilities are at least the threshold."""
-    choices = [[aa] for aa in wt] # default unless specifed
+    choices = wt_choices(wt)
     with open(filename, 'rt') as infile:
         infile.readline() # blank
         infile.readline() # header
@@ -59,13 +48,29 @@ def load_aa_choices_pssm(wt, filename, thresh=0):
         aa_order = line.split()[:20]
         for line in infile:
             cols = line.split()
-            pos = int(cols[0])-1
+            pos = int(cols[0])
             if wt[pos] != cols[1]: raise Exception('mismatched PSSM vs. wt: %s, %s' % (cols[1], wt[pos]))
             scores = [int(cols[j+2]) for j in range(20)]
             aas = [aa_order[j] for j in range(20) if scores[j]>=thresh]
             if wt[pos] in aas: choices[pos] = aas
             else: choices[pos] += aas
     return choices
+
+def generate_peptides(wt, aa_choices, peptide_length):
+    """Given the aa_choices, generates all combinations into peptides of the given length."""
+    peptides = set()
+    for pos in range(wt.start, len(wt)-peptide_length+1):
+        aa_combos = list(itertools.product(*[aa_choices[pos+i] for i in range(peptide_length)]))
+        print(pos, ','.join(''.join(combo) for combo in aa_combos))
+        peptides.update(''.join(combo) for combo in aa_combos)
+    return peptides
+
+def save_peptides(peptides, filename):
+    """Writes the peptides to the file."""
+    with open(filename, 'wt') as of:
+        for pep in peptides:
+            of.write(pep)
+            of.write('\n')
 
 def setup_parser():
     """Creates an ArgumentParser and sets up all its arguments.
@@ -82,6 +87,8 @@ def setup_parser():
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--fa', help="name of file with single protein in fasta-ish format ('>' line optional)")
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
+    # positions to mutate
+    parser.add_argument('--positions', help='positions to consider mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: all positions)')
     # where to get the AA choices
     choices = parser.add_mutually_exclusive_group()
     choices.add_argument('--aa_csv', help='name of file with AA choices in csv format; each row has a residue number and list of allowed choices at that position')
@@ -135,7 +142,7 @@ def main(args):
     if args.fa is not None:
         wt = load_fa(args.fa)
     elif args.pdb is not None:
-       wt = load_pdb(args.pdb)
+        wt = load_pdb(args.pdb)
 
     # AA choices
     if args.aa_csv is not None:
@@ -143,8 +150,30 @@ def main(args):
     elif args.pssm is not None:
         aa_choices = load_aa_choices_pssm(wt, args.pssm, args.pssm_thresh)
     else:
-        aa_choices = [[aa] for aa in wt]
+        aa_choices = wt_choices(wt)
         
+    # positions
+    def get_idx(s):
+        try:
+            p = int(s)
+            assert(p >= wt.start and p <= wt.start+len(wt))
+            return p
+        except:
+            raise Exception('bad position '+s)
+    if args.positions is not None:
+        # parse which positions can be mutated, in terms of 0-based indices
+        idxs = set()
+        for p in args.positions.split(','):
+            if '-' in p:
+                (start,stop) = p.split('-')
+                idxs.update(range(get_idx(start), get_idx(stop)+1))
+            else:
+                idxs.add(get_idx(p))
+        # lock down others
+        for i in aa_choices:
+            if i not in idxs:
+                aa_choices[i] = [wt[i]]
+
     # open (and maybe initialize) the database
     db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)
     
@@ -153,7 +182,7 @@ def main(args):
         db.save_scores(pred.load_file(args.netmhcii_raw))
     else:
         # generate and score peptides, and store in the db
-        peptides = generate_peptides(aa_choices, pred.peptide_length)
+        peptides = generate_peptides(wt, aa_choices, pred.peptide_length)
         if args.peps_out: save_peptides(peptides, args.peps_out)
         db.save_scores(pred.score_peptides(peptides))
     

@@ -55,7 +55,7 @@ class EpitopeDatabase (EpitopePredictor):
         elif count==3:
             # exissting database; make sure matches structure and predictor
             errors = []
-            row = cursor.execute('select value from meta where name="pred"').fetchone()
+            row = cursor.execute('select value from meta where name="predictor"').fetchone()
             if row['value'] != pred_name:
                 errors.append('mismatched predictor name (%s vs. %s)' % (row['value'], pred_name))
             row = cursor.execute('select value from meta where name="peptide_length"').fetchone()

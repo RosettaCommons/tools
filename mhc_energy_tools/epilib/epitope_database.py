@@ -18,7 +18,7 @@ class EpitopeDatabase (EpitopePredictor):
         self.cursor = cursor
     
     @classmethod
-    def for_reading(cls, filename, handle_unseen='w', unseen_score=None):
+    def for_reading(cls, filename, handle_unseen='w', unseen_score=100):
         """Opens an existing database for reading (i.e., acting as an EpitopePredictor).
         Handle_unseen indicates whether to warn ('w'), return the unseen_score ('s') or else raise an exception."""
         conn = sqlite3.connect(filename)
@@ -53,7 +53,7 @@ class EpitopeDatabase (EpitopePredictor):
             cursor.execute('create table epitopes (peptide text primary key, score real, ' + ','.join(alleles) + ')')
             conn.commit()
         elif count==3:
-            # exissting database; make sure matches structure and predictor
+            # existing database; make sure matches structure and predictor
             errors = []
             row = cursor.execute('select value from meta where name="predictor"').fetchone()
             if row['value'] != pred_name:
@@ -80,15 +80,16 @@ class EpitopeDatabase (EpitopePredictor):
     def score_peptide(self, peptide):
         try:
             row = self.cursor.execute('select * from epitopes where peptide=?', (peptide,)).fetchone()
-            return EpitopeScore(row['score'], [row[a] for a in self.alleles])
+            if row is not None: return EpitopeScore(row['score'], [row[a] for a in self.alleles])
         except KeyError as e:
-            if self.handle_unseen == 'w':
-                print('warning: unscored peptide '+peptide)
-                return EpitopeScore(self.unseen_score, [])
-            elif self.handle_unseen == 's':
-                return EpitopeScore(self.unseen_score, [])
-            else:
-                raise Exception('unscored peptide '+peptide)
+            row = None
+        if self.handle_unseen == 'w':
+            print('warning: unscored peptide '+peptide)
+            return EpitopeScore(self.unseen_score, [])
+        elif self.handle_unseen == 's':
+            return EpitopeScore(self.unseen_score, [])
+        else:
+            raise Exception('unscored peptide '+peptide)
                 
     def save_scores(self, epimap):
         # epimap.report()

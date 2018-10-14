@@ -29,19 +29,6 @@ class EpitopeMap (object):
         """Sum of scores over the peptides"""
         return sum(score.value for score in self.scores)
 
-    def report(self, full=False, thresh=None, sep=' ', start=1):
-        """Reports the scores for the peptides."""
-        total = 0
-        print('pos','peptide','score',sep.join(self.alleles), sep=sep)
-        for (i, peptide) in enumerate(self.peptides):
-            score = self.p2s[peptide]
-            total += score.value
-            if full:
-                print(i+start, peptide, score.value, *(str(h) if h is not None else '-' for h in score.details), sep=sep)
-            elif score.value>0:
-                print(i+start, peptide, score.value, *(str(h) if h is not None and (thresh is None or h<=thresh) else '-' for h in score.details), sep=sep)
-        print('total','',total, sep=sep)
-
 class EpitopePredictor (object):
     """Provides the ability to predict epitope scores for peptides (or a whole protein) against MHC alleles."""
     

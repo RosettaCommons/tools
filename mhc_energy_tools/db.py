@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Precomputes epitope scores for a sequence and its considered mutations, storing this information in the database for efficient lookup at design time.
-Provide a sequence and specification of possible mutations; the script generates and scores epitopes and creates/augments the database.
-Currently supports prediction via
-- matrix methods, with code particularly targeted to Propred matrices (as provided with the distribution),
-- the NetMHCII executable, wrapping the invocation and processing the results
 
 @author: Chris Bailey-Kellogg, cbk@cs.dartmouth.edu; Brahm Yachnin, brahm.yachnin@rutgers.edu 
 """
@@ -29,7 +25,7 @@ def wt_choices(wt):
     return dict((i, [wt[i]]) for i in range(wt.start, wt.start+len(wt)))
 
 def load_aa_choices_csv(wt, filename):
-    """Load a csv-format file of mutational choices for the wt Sequence. Each row has the position (same numbering as wt) and list of alternative AAs."""
+    """Loads a csv-format file of mutational choices for the wt Sequence. Each row has the position (same numbering as wt) and list of alternative AAs."""
     choices = wt_choices(wt)
     with open(filename, 'r') as infile:
         for row in csv.reader(infile):
@@ -38,7 +34,7 @@ def load_aa_choices_csv(wt, filename):
             else: choices[pos] += aas
     return choices
 
-def load_aa_choices_pssm(wt, filename, thresh=0):
+def load_aa_choices_pssm(wt, filename, thresh=1):
     """Loads a BLAST PSSM-format file and returns as mutational choices those whose negative log probabilities are at least the threshold."""
     choices = wt_choices(wt)
     with open(filename, 'rt') as infile:
@@ -46,9 +42,19 @@ def load_aa_choices_pssm(wt, filename, thresh=0):
         infile.readline() # header
         line = infile.readline() # AA order
         aa_order = line.split()[:20]
+        if set(aa_order) != set('ACDEFGHIKLMNPQRSTVWY'):
+            raise Exception('PSSM not in expected format: <blank line><header line><AA order line><matrix lines>')
+        pos = 0
         for line in infile:
             cols = line.split()
-            pos = int(cols[0])
+            try:
+                pos = int(cols[0])
+            except:
+                # no longer in matrix; should be finished with sequence
+                if pos != wt.start + len(wt) - 1:
+                    raise Exception("PSSM stopped at position "+str(pos))
+                # finished
+                break
             if wt[pos] != cols[1]: raise Exception('mismatched PSSM vs. wt: %s, %s' % (cols[1], wt[pos]))
             scores = [int(cols[j+2]) for j in range(20)]
             aas = [aa_order[j] for j in range(20) if scores[j]>=thresh]
@@ -59,9 +65,9 @@ def load_aa_choices_pssm(wt, filename, thresh=0):
 def generate_peptides(wt, aa_choices, peptide_length):
     """Given the aa_choices, generates all combinations into peptides of the given length."""
     peptides = set()
-    for pos in range(wt.start, len(wt)-peptide_length+1):
+    for pos in range(wt.start, wt.start+len(wt)-peptide_length+1):
         aa_combos = list(itertools.product(*[aa_choices[pos+i] for i in range(peptide_length)]))
-        print(pos, ','.join(''.join(combo) for combo in aa_combos))
+        #print(pos, ','.join(''.join(combo) for combo in aa_combos))
         peptides.update(''.join(combo) for combo in aa_combos)
     return peptides
 
@@ -81,7 +87,7 @@ def setup_parser():
 - Currently only handles single sequence per file.
 - Wild-type is always considered at each position. If no other choices are provided, only wild-type epitopes are added to the database.
 - If the database already exists, it must be for the same predictor and parameters, including alleles
-- NetMHCII can be used in a single run as a subprocess, or in three steps -- use this to save out the peptides, run them through (executable or website), and use this to parse the raw output file
+- NetMHCII can be used in a single run as a subprocess, or in three steps -- use this to save out the peptides, run them through NetMHCII (executable or website), and use this to parse the raw output file
     """)
     # where to get the sequence
     source = parser.add_mutually_exclusive_group(required=True)
@@ -89,13 +95,15 @@ def setup_parser():
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
     # positions to mutate
     parser.add_argument('--positions', help='positions to consider mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: all positions)')
+    # and positions not to mutate (punch holes in the position intervals)
+    parser.add_argument('--lock', help='positions not to allow mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: none)')
     # where to get the AA choices
     choices = parser.add_mutually_exclusive_group()
     choices.add_argument('--aa_csv', help='name of file with AA choices in csv format; each row has a residue number and list of allowed choices at that position')
     choices.add_argument('--pssm', help='name of BLAST-formatted PSSM')
     # TODO choices.add_argument('--resfile', help='name of file with AA choices in resfile format')
     # AA choices parameters
-    parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default).2f)', type=float, default=0)
+    parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default))', type=int, default=1)
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
@@ -173,6 +181,17 @@ def main(args):
         for i in aa_choices:
             if i not in idxs:
                 aa_choices[i] = [wt[i]]
+    if args.lock is not None:
+        # parse which positions cannot be mutated, in terms of 0-based indices
+        for p in args.lock.split(','):
+            if '-' in p:
+                (start,stop) = p.split('-')
+                for i in range(get_idx(start), get_idx(stop)+1): aa_choices[i] = [wt[i]]
+            else:
+                i = get_idx(p)
+                aa_choices[i] = [wt[i]]
+
+    #print(aa_choices)
 
     # open (and maybe initialize) the database
     db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)

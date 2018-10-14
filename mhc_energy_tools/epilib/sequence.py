@@ -24,7 +24,7 @@ class Sequence (object):
     def __init__(self, seq, name='[anonymous]', start=1, noncanon='silent'):
         self.seq = seq
         self.name = name
-        self.start = 1
+        self.start = start
         
         noncanons = [i for i in range(len(seq)) if seq[i] not in AAs]
         if len(noncanons)>0:
@@ -32,9 +32,12 @@ class Sequence (object):
             if noncanon == 'warn': print(msg)
             elif noncanon == 'error': raise Exception(msg)
 
-    def __getitem__(self, pos):
-        """Gets the AA at the position, accounting for the starting residue number of the sequence."""
-        return self.seq[pos-self.start]
+    def __getitem__(self, where):
+        """Gets the AA at the position / AAs in the slice, accounting for the starting residue number of the sequence."""
+        if isinstance(where, slice): 
+            return self.seq[(where.start-self.start):(where.stop-self.start):where.step]
+        else: 
+            return self.seq[where-self.start]
     
     def __len__(self):
         return len(self.seq)
@@ -72,7 +75,8 @@ def load_pep(filename, noncanon='silent'):
     with open(filename, 'rt') as infile:
         for (i,seq) in enumerate(infile):
             seqs.append(Sequence(seq.strip(), name=core+'_'+str(i), noncanon=noncanon))
-            
+    return seqs
+
 def load_fsa(filename, noncanon='silent'):
     """Loads a modified multiple fasta-format sequence file ('>' required, '@pos' allowed for each)"""
     seqs = []

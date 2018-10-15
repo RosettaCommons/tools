@@ -7,7 +7,6 @@ Performs basic epitope prediction for a sequence or set of sequences, to support
 """
 
 import argparse, csv, sys
-import matplotlib.pyplot as plt # TODO: make this optional?
 from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
@@ -52,8 +51,8 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
-    parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default))', choices=['warn','error','score'], default='warn')
-    parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default))', type=int, default=100)
+    parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
+    parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
     parser.add_argument('--report', help='level of detail for output report: just _total_ score / epitope _hits_ / scores for _all_ peptides (default: %(default)s)', choices=['total','hits','full'], default='total')
     parser.add_argument('--report_file', help='filename in which to save report in csv format (default: print to stdout); see note about wildcard')
@@ -90,6 +89,11 @@ def handle_seq(seq, pred, args):
     # Plot
     if args.plot_hits_file is not None:
         # TODO: allow customization of size, color, labels, ....
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            print('matplotlib is required for plotting, and could not be imported.  Make sure it is correctly installed.\n')
+            exit()
         plt.clf()
         plt.bar(range(seq.start, seq.start+len(epimap.peptides)), [epimap.peptide_score(p).value for p in epimap.peptides])
         fn = args.plot_hits_file.replace('$', seq.name)

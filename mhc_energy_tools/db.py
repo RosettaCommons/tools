@@ -103,7 +103,7 @@ def setup_parser():
     choices.add_argument('--pssm', help='name of BLAST-formatted PSSM')
     # TODO choices.add_argument('--resfile', help='name of file with AA choices in resfile format')
     # AA choices parameters
-    parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default))', type=int, default=1)
+    parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default)i)', type=int, default=1)
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()

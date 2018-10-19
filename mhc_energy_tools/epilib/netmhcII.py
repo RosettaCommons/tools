@@ -84,16 +84,22 @@ class NetMHCII (EpitopePredictor):
         is_peptides indicates whether it was run in peptide mode (a single peptide per line) or protein mode (a whole sequence in a fasta file)"""
         got_version = False
         peptides = []
-        processed_positions = set() #The position numbers that we've seen already, so that we don't repeat alleles
         scores = collections.defaultdict(dict)
-        # different format for where the scores are
+        # Set which columns contain the allele, position, peptide sequence, and scores
+        # These column numbers may change if NetMHCII output changes in a future version
+        allele_col = 0 #Allele is always the first column
         pos_col = 1 #Position is always the second column
-        if is_peptides:
-            if self.score_type == 'a': score_col = 6 #Affinity is the same in both modes, I think?
-            else: score_col = 8
+        pep_col = 2 #Peptide is always the third column
+        #Score column changes depending on whether scoring peptides or a protein sequence, and whether using relative or absolute scores
+        #If using absolute scoring, the score column is 5 (log-transformed: 1-log50k(aff))
+        if self.score_type == 'a': 
+            score_col = 5
+        #If using relative scoring with peptides, the score column is 8
+        elif is_peptides:
+            score_col = 8
+        #If using relative scoring with a full protein sequence, the score column is 7
         else:
-            if self.score_type == 'a': score_col = 5
-            else: score_col = 7
+            score_col = 7
         for row in rows:
             if len(row)==0 or row[0]=='#': continue
             cols = row.split()
@@ -104,17 +110,30 @@ class NetMHCII (EpitopePredictor):
                     got_version = True
                 else:
                     print('*** untested version ',cols[-1],'; use at your own risk!')
-            if cols[0] in self.nm_alleles:
+            elif cols[allele_col] in self.nm_alleles:
                 # a score row for an allele -- extract and store the info if good enough
                 score = float(cols[score_col])
                 #if score <= self.thresh:
-                allele = NetMHCII.std_name(cols[0])
-                peptide = cols[2]
-                #Add the peptide only if we haven't seen it before, by position (not sequence)
-                if cols[pos_col] not in processed_positions:
+                allele = NetMHCII.std_name(cols[allele_col])
+                peptide = cols[pep_col]
+                idx = int(cols[pos_col]) - 1
+                #The idx basically gives the position number of the current line.
+                #If the number of peptides is greater than the index, we should no longer be on the first allele
+                #That means that the peptide has already been included in the peptides list
+                if idx < len(peptides):
+                    # Since we are on a non-first allele, the peptide should already be present in the list at that index.
+                    # If not, raise an exception.
+                    if peptide != peptides[idx]:
+                        raise Exception('peptide mismatch for %d: %s vs. %s' % (idx, peptides[idx], peptide))
+                #If the idx number and the length of peptides is the same, we are on the first allele and the peptide hasn't been seen.
+                #Add it to peptides.
+                elif idx == len(peptides):
                     peptides.append(peptide)
-                processed_positions.add(cols[pos_col]) #Store this position in a set, as we've seen it
-                scores[peptide][allele] = score                
+                #If the idx number is greater than the length of peptides, that means we are missing peptides for some reason.
+                #Raise an exception.
+                else:
+                    raise Exception('missing peptides from %d to %d' % (len(peptides), idx))
+                scores[peptide][allele] = score
         if not got_version: print('*** unidentified version, use at your own risk!')
         episcores = []
         for pep in peptides:

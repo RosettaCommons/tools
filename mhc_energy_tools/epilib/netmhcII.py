@@ -83,11 +83,13 @@ class NetMHCII (EpitopePredictor):
         """Processes the raw output from NetMHCII.
         is_peptides indicates whether it was run in peptide mode (a single peptide per line) or protein mode (a whole sequence in a fasta file)"""
         got_version = False
-        peptides = set()
+        peptides = []
+        processed_positions = set() #The position numbers that we've seen already, so that we don't repeat alleles
         scores = collections.defaultdict(dict)
         # different format for where the scores are
+        pos_col = 1 #Position is always the second column
         if is_peptides:
-            if self.score_type == 'a': score_col = 6
+            if self.score_type == 'a': score_col = 6 #Affinity is the same in both modes, I think?
             else: score_col = 8
         else:
             if self.score_type == 'a': score_col = 5
@@ -108,10 +110,12 @@ class NetMHCII (EpitopePredictor):
                 #if score <= self.thresh:
                 allele = NetMHCII.std_name(cols[0])
                 peptide = cols[2]
-                peptides.add(peptide)
+                #Add the peptide only if we haven't seen it before, by position (not sequence)
+                if cols[pos_col] not in processed_positions:
+                    peptides.append(peptide)
+                processed_positions.add(cols[pos_col]) #Store this position in a set, as we've seen it
                 scores[peptide][allele] = score                
         if not got_version: print('*** unidentified version, use at your own risk!')
-        peptides = list(peptides)
         episcores = []
         for pep in peptides:
             details = [] #Store the details of all peptide/allele combos

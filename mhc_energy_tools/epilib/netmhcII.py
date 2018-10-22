@@ -117,7 +117,7 @@ class NetMHCII (EpitopePredictor):
                 allele = NetMHCII.std_name(cols[allele_col])
                 peptide = cols[pep_col]
                 idx = int(cols[pos_col]) - 1
-                #The idx basically gives the position number of the current line.
+                #The idx basically gives the position number of the current line in the sequence or in the list of peptides.
                 #If the number of peptides is greater than the index, we should no longer be on the first allele
                 #That means that the peptide has already been included in the peptides list
                 if idx < len(peptides):
@@ -136,12 +136,18 @@ class NetMHCII (EpitopePredictor):
                 scores[peptide][allele] = score
         if not got_version: print('*** unidentified version, use at your own risk!')
         episcores = []
-        for pep in peptides:
+        for peptide in peptides:
+            # NetMHC converts non-20 AAs to 'X' and gladly scores them as contributing to epitope score
+            # Override to non-epitope
+            # TODO: in peptide mode, don't waste effort scoring
+            if 'X' in peptide: 
+                episcores.append(EpitopeScore())
+                continue
             details = [] #Store the details of all peptide/allele combos
             meet_thresh = 0 #Store the number of peptide/allele combos that are less than self.thresh
             for allele in self.alleles:
-                details.append(scores[pep][allele])
-                if scores[pep][allele] <= self.thresh:
+                details.append(scores[peptide][allele])
+                if scores[peptide][allele] <= self.thresh:
                     meet_thresh+=1
             episcores.append(EpitopeScore(meet_thresh, details))
         return EpitopeMap(self.peptide_length, self.alleles, peptides, episcores)
@@ -154,7 +160,7 @@ class NetMHCII (EpitopePredictor):
     def run(self, filename, is_peptides=True):  
         """Runs the executable as a subprocess."""
         cmd = [self.nm_bin] + (['-p'] if is_peptides else []) + ['-a', ','.join(self.nm_alleles), '-f', filename]
-        print(' '.join(cmd))
+        print('invoking NetMHCII: ' + ' '.join(cmd))
         sp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         (nm_stdout, nm_stderr) = sp.communicate()
         if nm_stderr != '': print('*** netmhc stderr:', nm_stderr)
@@ -172,7 +178,7 @@ class NetMHCII (EpitopePredictor):
         if is_tmp:
             with tempfile.NamedTemporaryFile(delete=False, mode='wt') as fp:
                 filename = fp.name
-                print('temp',fp.name)
+                print('saving peptides in tempfile', fp.name)
                 for peptide in peptides:
                     fp.write(peptide)
                     fp.write('\n')
@@ -186,7 +192,7 @@ class NetMHCII (EpitopePredictor):
         if is_tmp:
             with tempfile.NamedTemporaryFile(delete=False, mode='wt') as fp:
                 filename = fp.name
-                print('temp',fp.name)
+                print('saving sequence in tempfile', fp.name)
                 fp.write('>tmp\n')
                 fp.write(seq)
                 fp.write('\n')

@@ -10,7 +10,8 @@ Precomputes epitope scores for a sequence and its considered mutations, storing 
 # TODO: possible near-term extensions
 # - multiple chains in a single file
 # - AA choices from resfile
-# - other PSSM formats (though I think this is the one supported in Rosetta itself)
+# - generate resfile
+# - other PSSM formats (though the blast format is what FavorSequenceProfile wants)
 # - fancier scoring functions layered on predictions
 # - recompute the score column in a db from the other already-computed columns, with a different scoring function, allele subset/weights, etc.
 
@@ -81,7 +82,7 @@ def load_aa_choices_pssm(wt, filename, thresh=1):
             if set(aa_order) == set('ACDEFGHIKLMNPQRSTVWY'): break
         
         #If aa_order not the 20 AAs (i.e. we reached the end of the file without finding it), raise an exception.
-        print(aa_order)
+        #print('aa order:', aa_order)
         if set(aa_order) != set('ACDEFGHIKLMNPQRSTVWY'):
             raise Exception("Could not process the PSSM format!\n\nSee tools/mhc_energy_tools/pssm_examples for supported formats.")
         
@@ -125,15 +126,17 @@ def setup_parser():
     parser = argparse.ArgumentParser(description='Establishes a database of precomputed epitope scores, to enable efficient lookup at design time', 
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="""Additional notes:
-- Currently only handles single sequence per file.
+- Currently only handles single sequence per file. Thus if using a pdb file with multiple chains, must specify which with --pdb_chain.
+- Pretty rudimentary handling of PDB files, padding missing residues with '_' (i.e., no epitopes) and generally dealing only with the standard twenty 3-letter AA codes
 - Wild-type is always considered at each position. If no other choices are provided, only wild-type epitopes are added to the database.
-- If the database already exists, it must be for the same predictor and parameters, including alleles
+- If the database already exists, it will be augmented. However, the excisting database must be for the same predictor and parameters, including alleles
 - NetMHCII can be used in a single run as a subprocess, or in three steps -- use this to save out the peptides, run them through NetMHCII (executable or website), and use this to parse the raw output file
     """)
     # where to get the sequence
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--fa', help="name of file with single protein in fasta-ish format ('>' line optional)")
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
+    parser.add_argument('--pdb_chain', help='name of chain to extract from pdb file, when it includes more than one')
     # positions to mutate
     parser.add_argument('--positions', help='positions to consider mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: all positions)')
     # and positions not to mutate (punch holes in the position intervals)
@@ -182,7 +185,7 @@ def main(args):
     # alleles
     if args.allele_set is not None:
         if args.allele_set not in pred.allele_sets: 
-            raise Exception('alleleset '+args.allele_set+' not supported')
+            raise Exception('allele_set '+args.allele_set+' not supported')
         pred.filter_alleles(pred.allele_sets[args.allele_set])
     elif args.alleles is not None:
         pred.filter_alleles(args.alleles.split(','))
@@ -191,7 +194,16 @@ def main(args):
     if args.fa is not None:
         wt = load_fa(args.fa)
     elif args.pdb is not None:
-        wt = load_pdb(args.pdb)
+        chains = load_pdb(args.pdb)
+        if len(chains)>1:
+            if args.pdb_chain is None:
+                raise Exception('multi-chain pdb file; please use pdb_chain option to indicate which to use')
+            desired_seq = [seq for seq in chains if seq.chain == args.pdb_chain]
+            if len(desired_seq)==0:
+                raise Exception('no chain %s in pdb file' % (args.pdb_chain,))
+            if len(desired_seq)>1:
+                raise Exception('parser fail: multiple chains %s in pdb file' % (args.pdb_chain,))
+            wt = desired_seq[0]
 
     # AA choices
     if args.aa_csv is not None:

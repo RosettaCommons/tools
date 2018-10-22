@@ -21,15 +21,14 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="""Additional notes:
 - Only uses one source for sequences, checking in order: command-line, specified input file, stdin
-- Sequences can include '_' characters, treated as noncanonicals
+- Sequences can include '_' characters, treated as noncanonicals, which in the current implementation forces the containing peptides to be non-epitopes
 - The "fasta-ish" header can end in "@pos" to start residue numbering there; default 1
-- Pretty rudimentary handling of PDB files, padding missing residues with '_' and generally dealing only with the standard twenty 3-letter AA codes
+- Pretty rudimentary handling of PDB files, padding missing residues with '_' (i.e., no epitopes) and generally dealing only with the standard twenty 3-letter AA codes
 - If no predictor specified, defaults to propred
 - Allele sets include 'all' and 'test', specific to predictors, as well as two published lists that are supported by NetMHCII:
   + greenbaum11: www.ncbi.nlm.nih.gov/pubmed/21305276
   + paul15: www.ncbi.nlm.nih.gov/pubmed/25862607
 - Looks for predictor matrix file in current directory as well as in $ROSETTA/main/database/scoring/score_terms/mhc_epitope.
-- For "silent" treatment of noncanonicals, Matrix/Propred says no epitope; NetMHCII treats as 'X' and somehow scores anyway.
 - Output filenames can include a '$' character that is substituted with the current sequence's name, for cases where the input includes multiple sequences""")
     # where to get the sequence(s), unless on command line
     source = parser.add_mutually_exclusive_group()
@@ -37,6 +36,7 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     source.add_argument('--fsa', help="name of file with one or more sequences in fasta-ish format, each including '>' line")
     source.add_argument('--pdb', help='name of file with one or more sequences embedded in pdb format')
     source.add_argument('--pep', help="name of file with one sequence per line")
+    parser.add_argument('--pdb_chain', help='if only care about one chain and pdb file has more than one, the id of the desired one')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
     pred.add_argument('--db', help='name of database from which to load epitope predictions')
@@ -118,7 +118,7 @@ def main(args):
     # alleles
     if args.allele_set is not None:
         if args.allele_set not in pred.allele_sets: 
-            raise Exception('alleleset '+args.allele_set+' not supported')
+            raise Exception('allele_set '+args.allele_set+' not supported')
         pred.filter_alleles(pred.allele_sets[args.allele_set])
     elif args.alleles is not None:
         pred.filter_alleles(args.alleles.split(','))
@@ -132,7 +132,12 @@ def main(args):
     elif args.fsa is not None:
         for seq in load_fsa(args.fsa): handle_seq(seq, pred, args)
     elif args.pdb is not None:
-        for seq in load_pdb(args.pdb): handle_seq(seq, pred, args)
+        got_one = False
+        for seq in load_pdb(args.pdb): 
+            if args.pdb_chain is None or seq.chain==args.pdb_chain:
+                got_one = True
+                handle_seq(seq, pred, args)
+        if not got_one: raise Exception('no chain %s in pdb file' % (args.pdb_chain,))
     elif args.pep is not None:
         for seq in load_pep(args.pep): handle_seq(seq, pred, args)
     else:

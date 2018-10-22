@@ -20,11 +20,12 @@ AA31 = collections.defaultdict(lambda:'X',
                                 + [('CYX','C')])
 
 class Sequence (object):
-    """A sequence (String) with a name, indexed by residue numbers starting at 1 or some other value."""
-    def __init__(self, seq, name='[anonymous]', start=1, noncanon='silent'):
+    """A sequence (String) with a name and a chain id, indexed by residue numbers starting at 1 or some other value."""
+    def __init__(self, seq, name='[anonymous]', start=1, chain=None, noncanon='silent'):
         self.seq = seq
         self.name = name
         self.start = start
+        self.chain = chain
         
         noncanons = [i for i in range(len(seq)) if seq[i] not in AAs]
         if len(noncanons)>0:
@@ -113,17 +114,23 @@ def load_pdb(filename, noncanon='silent'):
                 res_type = line[17:20].strip()
                 if chain != last_chain:
                     if len(seq)>0:
-                        seqs.append(Sequence(seq, name=core+'_'+last_chain, start=start, noncanon=noncanon))
+                        seqs.append(Sequence(seq, name=core+'_'+last_chain, start=start, chain=last_chain, noncanon=noncanon))
                     last_chain = chain
                     seq = ''
                     start = pos
                     last_pos = pos
                 elif last_pos is None:
                     last_pos = pos
+                elif pos>last_pos+1:
+                    seq += '_'*(pos-last_pos-1)
+                    if pos==last_pos+2:
+                        print("warning: missing amino acid %d in chain %s; treating as epitope-breaking noncanonical" % (last_pos+1, chain))
+                    else:
+                        print("warning: missing amino acids %d-%d in chain %s; treating as epitope-breaking noncanonical" % (last_pos+1, pos-1, chain))
+                    last_pos = pos
                 else:
-                    seq += '_'*(pos-last_pos-1) 
                     last_pos = pos
                 seq += AA31[res_type]
-    if len(seq)>0: seqs.append(Sequence(seq, name=core+'_'+last_chain, start=start, noncanon=noncanon))
+    if len(seq)>0: seqs.append(Sequence(seq, name=core+'_'+last_chain, start=start, chain=chain, noncanon=noncanon))
     return seqs
   

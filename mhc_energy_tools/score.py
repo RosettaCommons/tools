@@ -36,7 +36,7 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     source.add_argument('--fsa', help="name of file with one or more sequences in fasta-ish format, each including '>' line")
     source.add_argument('--pdb', help='name of file with one or more sequences embedded in pdb format')
     source.add_argument('--pep', help="name of file with one sequence per line")
-    parser.add_argument('--pdb_chain', help='if only care about one chain and pdb file has more than one, the id of the desired one')
+    parser.add_argument('--chain', help='if only care about one chain and pdb file has more than one, the id of the desired one')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
     pred.add_argument('--db', help='name of database from which to load epitope predictions')
@@ -134,10 +134,10 @@ def main(args):
     elif args.pdb is not None:
         got_one = False
         for seq in load_pdb(args.pdb): 
-            if args.pdb_chain is None or seq.chain==args.pdb_chain:
+            if args.chain is None or seq.chain==args.chain:
                 got_one = True
                 handle_seq(seq, pred, args)
-        if not got_one: raise Exception('no chain %s in pdb file' % (args.pdb_chain,))
+        if not got_one: raise Exception('no chain %s in pdb file' % (args.chain,))
     elif args.pep is not None:
         for seq in load_pep(args.pep): handle_seq(seq, pred, args)
     else:

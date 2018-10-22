@@ -131,12 +131,13 @@ def setup_parser():
 - Wild-type is always considered at each position. If no other choices are provided, only wild-type epitopes are added to the database.
 - If the database already exists, it will be augmented. However, the excisting database must be for the same predictor and parameters, including alleles
 - NetMHCII can be used in a single run as a subprocess, or in three steps -- use this to save out the peptides, run them through NetMHCII (executable or website), and use this to parse the raw output file
+- Res file generation needs chain info, which can be specified by --chain for fasta file and for selection from pdb file
     """)
     # where to get the sequence
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--fa', help="name of file with single protein in fasta-ish format ('>' line optional)")
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
-    parser.add_argument('--pdb_chain', help='name of chain to extract from pdb file, when it includes more than one')
+    parser.add_argument('--chain', help='name of chain to associate with fasta file or to extract from pdb file (when it includes more than one)')
     # positions to mutate
     parser.add_argument('--positions', help='positions to consider mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: all positions)')
     # and positions not to mutate (punch holes in the position intervals)
@@ -149,6 +150,7 @@ def setup_parser():
     # AA choices parameters
     parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default)i)', type=int, default=1)
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
+    parser.add_argument('--res_out', help='name of file in which to store processed position-specific AA choices, in resfile format; requires chain to be specified by --chain')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
     pred.add_argument('--matrix', help='epitope predictor matrix filename')
@@ -193,16 +195,17 @@ def main(args):
     # wild-type sequence
     if args.fa is not None:
         wt = load_fa(args.fa)
+        wt.chain = args.chain
     elif args.pdb is not None:
         chains = load_pdb(args.pdb)
         if len(chains)>1:
-            if args.pdb_chain is None:
-                raise Exception('multi-chain pdb file; please use pdb_chain option to indicate which to use')
-            desired_seq = [seq for seq in chains if seq.chain == args.pdb_chain]
+            if args.chain is None:
+                raise Exception('multi-chain pdb file; please use --chain option to indicate which to use')
+            desired_seq = [seq for seq in chains if seq.chain == args.chain]
             if len(desired_seq)==0:
-                raise Exception('no chain %s in pdb file' % (args.pdb_chain,))
+                raise Exception('no chain %s in pdb file' % (args.chain,))
             if len(desired_seq)>1:
-                raise Exception('parser fail: multiple chains %s in pdb file' % (args.pdb_chain,))
+                raise Exception('parser fail: multiple chains %s in pdb file' % (args.chain,))
             wt = desired_seq[0]
 
     # AA choices
@@ -245,6 +248,14 @@ def main(args):
                 aa_choices[i] = [wt[i]]
 
     #print(aa_choices)
+    if args.res_out is not None:
+        if wt.chain is None: raise Exception('use --chain to specif chain for res file generation')
+        with open(args.res_out, 'w') as outfile:
+            # TODO: any other defaults to put in header?
+            outfile.write('NATAA\nstart\n')
+            for i in sorted(aa_choices):
+                if len(aa_choices[i])>1: # not just NATAA
+                    outfile.write('%d %s PIKAA %s\n' % (i, wt.chain, ''.join(aa_choices[i])))
 
     # open (and maybe initialize) the database
     db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)

@@ -110,10 +110,10 @@ sqlite3 out/2sak_A.wt_missing.pp5.db 'delete from epitopes where peptide="ALDATA
 
 #5 Mutations allowed according to the pssm, but only in the region in Choi Fig. 6 and locked down as in Table 1. Positions are adjusted for 1-based pssm and Rosetta pose numbering (native-15 for SakSTAR and native-5 for HB36). For demo purposes (to keep it small and fast), raise the pssm threshold.
 
-../db.py --fa in/2sak_A.fasta --pssm in/2sak_A.pssm --pssm_thresh 2 --positions 52-72 --lock 54,55,58,60,61 out/2sak_A.52-72.pssm.pp5.db
+../db.py --fa in/2sak_A.fasta --pssm in/2sak_A.pssm --pssm_thresh 2 --positions 52-72 --lock 54,55,58,60,61 --res_out out/2sak_A.52-72.res --chain A out/2sak_A.52-72.pssm.pp5.db
 
-../db.py --fa in/1eer_A.fasta --pssm in/1eer_A.pssm --pssm_thresh 2 --positions 140-160 --lock 150,151,155 out/1eer_A.140-160.pssm.pp5.db
+../db.py --fa in/1eer_A.fasta --pssm in/1eer_A.pssm --pssm_thresh 2 --positions 140-160 --lock 150,151,155 --res_out out/1eer_A.140-160.res --chain A out/1eer_A.140-160.pssm.pp5.db
 
-../db.py --fa in/3r2x_C.fasta --pssm in/3r2x_C.pssm --pssm_thresh 2 --positions 45-65 --lock 48,51,52,55,56,58,64 out/3r2x_C.45-65.pssm.pp5.db
+../db.py --fa in/3r2x_C.fasta --pssm in/3r2x_C.pssm --pssm_thresh 2 --positions 45-65 --lock 48,51,52,55,56,58,64 --res_out out/3r2x_C.45-65.res --chain C out/3r2x_C.45-65.pssm.pp5.db
 
 #TODO: something interesting from this preprocessing just as-is, before heading into design

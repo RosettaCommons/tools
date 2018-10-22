@@ -38,12 +38,53 @@ def load_aa_choices_pssm(wt, filename, thresh=1):
     """Loads a BLAST PSSM-format file and returns as mutational choices those whose negative log probabilities are at least the threshold."""
     choices = wt_choices(wt)
     with open(filename, 'rt') as infile:
-        infile.readline() # blank
-        infile.readline() # header
-        line = infile.readline() # AA order
-        aa_order = line.split()[:20]
+        #Loop until we get to the amino acid order line
+        linecount = 0 #Linecounter for AA order line.
+        for line in infile:
+            #aa_order = "" #aa_order should be reset for each iteration, so that we can identify a failure to find the AA line
+            linecount = linecount + 1
+            if line == "\n": continue #blank line
+            if line.lstrip()[0] == "#": continue #if the first character is a #, treat as a comment
+            #The command line psiblast PSSMs have the following header line.  Skip it.
+            if line == "Last position-specific scoring matrix computed, weighted observed percentages rounded down, information per position, and relative weight of gapless real matches to pseudocounts": continue
+            
+            #Split the line into a list of whitespace-delimited strings
+            line = line.split()
+            
+            #The first non-blank, non-comment, non-header line should be the AA line.
+            #The command line version of psiblast has the 20 AAs repeated for the two tables in that format
+            #The online version has the 20 AAs prefixed by P (position) and C (consensus)
+            #Guess the format based on the number of elements in line
+            recognized = False
+            if len(line) == 40: #Command line psiblast format
+                aa_order = line[:20]
+                recognized = True
+            elif len(line) == 22: #Online psiblast format
+                aa_order = line[2:22]
+                recognized = True
+            elif len(line) == 20: #If it is exaclty 20 elements, let's assume that it's the 20 AAs, with a warning
+                aa_order = line
+            else:
+                aa_order = line
+                #If the first 20 or last 20 elements match the 20 AAs, go with it.
+                if set(aa_order[:20]) == set('ACDEFGHIKLMNPQRSTVWY'):
+                    aa_order = aa_order[:20]
+                elif set(aa_order[-20:]) == set('ACDEFGHIKLMNPQRSTVWY'):
+                    aa_order = aa_order[-20:]
+                else:#If not, continue to the next line
+                    continue
+            
+            if not recognized: print("Line "+str(linecount)+" appears to be the AA order line, but the PSSM is not in a recognized format.  You may get unexpected results!\nSee tools/mhc_energy_tools/pssm_examples for supported formats.")
+            
+            assert len(aa_order) == 20 #The aa_order must be 20, or something's gone wrong.
+            #If the aa_order matches the 20 AAs, break out of this loop and start processing the PSSM contents in the next loop.
+            if set(aa_order) == set('ACDEFGHIKLMNPQRSTVWY'): break
+        
+        #If aa_order not the 20 AAs (i.e. we reached the end of the file without finding it), raise an exception.
+        print(aa_order)
         if set(aa_order) != set('ACDEFGHIKLMNPQRSTVWY'):
-            raise Exception('PSSM not in expected format: <blank line><header line><AA order line><matrix lines>')
+            raise Exception("Could not process the PSSM format!\n\nSee tools/mhc_energy_tools/pssm_examples for supported formats.")
+        
         pos = 0
         for line in infile:
             cols = line.split()

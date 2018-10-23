@@ -173,7 +173,6 @@ class NetMHCII (EpitopePredictor):
     
     def score_peptides(self, peptides, filename=None):
         """Stores the peptides in a temporary file unless a filename is given; invokes the executable; collects the scores."""
-        # TODO: distribute out over multiple threads
         is_tmp = filename is None
         if is_tmp:
             with tempfile.NamedTemporaryFile(delete=False, mode='wt') as fp:

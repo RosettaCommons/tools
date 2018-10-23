@@ -8,14 +8,14 @@ Precomputes epitope scores for a sequence and its considered mutations, storing 
 
 
 # TODO: possible near-term extensions
-# - multiple chains in a single file
 # - AA choices from resfile
-# - generate resfile
-# - other PSSM formats (though the blast format is what FavorSequenceProfile wants)
 # - fancier scoring functions layered on predictions
 # - recompute the score column in a db from the other already-computed columns, with a different scoring function, allele subset/weights, etc.
+# - import csv into db
+# - merge dbs
+# - make db optional, to handle case where want to save out peptides and submit to webserver
 
-import itertools, argparse, csv
+import itertools, argparse, csv, functools, operator
 from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
@@ -104,21 +104,14 @@ def load_aa_choices_pssm(wt, filename, thresh=1):
             else: choices[pos] += aas
     return choices
 
-def generate_peptides(wt, aa_choices, peptide_length):
-    """Given the aa_choices, generates all combinations into peptides of the given length."""
-    peptides = set()
+def generate_peptides(wt, aa_choices, peptide_length, db=None):
+    """Given the aa_choices, generates all combinations into peptides of the given length.
+    If given a db, only yields those not already there."""
     for pos in range(wt.start, wt.start+len(wt)-peptide_length+1):
-        aa_combos = list(itertools.product(*[aa_choices[pos+i] for i in range(peptide_length)]))
-        #print(pos, ','.join(''.join(combo) for combo in aa_combos))
-        peptides.update(''.join(combo) for combo in aa_combos)
-    return peptides
-
-def save_peptides(peptides, filename):
-    """Writes the peptides to the file."""
-    with open(filename, 'wt') as of:
-        for pep in peptides:
-            of.write(pep)
-            of.write('\n')
+        print('@', pos, '<=', functools.reduce(operator.mul, (len(aa_choices[pos+i]) for i in range(peptide_length))), 'peptides')
+        for combo in itertools.product(*[aa_choices[pos+i] for i in range(peptide_length)]):
+            peptide = ''.join(combo)
+            if db is None or not db.has_peptide(peptide): yield peptide
 
 def setup_parser():
     """Creates an ArgumentParser and sets up all its arguments.
@@ -146,7 +139,6 @@ def setup_parser():
     choices = parser.add_mutually_exclusive_group()
     choices.add_argument('--aa_csv', help='name of file with AA choices in csv format; each row has a residue number and list of allowed choices at that position')
     choices.add_argument('--pssm', help='name of BLAST-formatted PSSM')
-    # TODO choices.add_argument('--resfile', help='name of file with AA choices in resfile format')
     # AA choices parameters
     parser.add_argument('--pssm_thresh', help='threshold for AA choices from PSSM: take those with -log prob >= this value (default: %(default)i)', type=int, default=1)
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
@@ -165,6 +157,10 @@ def setup_parser():
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
+    # multiprocessing
+    parser.add_argument('--nproc', help='number of processors to distribute peptide predictions across (default: %(default)d)', type=int, default=1)
+    parser.add_argument('--batch', help='number of peptides to distribute for each batch of scoring (default: %(default)d)', type=int, default=100)
+    # the database
     parser.add_argument('db', help='name of sqlite3 database to store epitope information (create or augment)')
 
     return parser
@@ -249,7 +245,7 @@ def main(args):
 
     #print(aa_choices)
     if args.res_out is not None:
-        if wt.chain is None: raise Exception('use --chain to specif chain for res file generation')
+        if wt.chain is None: raise Exception('use --chain to specify chain for res file generation')
         with open(args.res_out, 'w') as outfile:
             # TODO: any other defaults to put in header?
             outfile.write('NATAA\nstart\n')
@@ -259,16 +255,46 @@ def main(args):
 
     # open (and maybe initialize) the database
     db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)
-    
+        
     if args.netmhcii_raw is not None:
         # process the raw binding data and store it in the db
         db.save_scores(pred.load_file(args.netmhcii_raw))
-    else:
-        # generate and score peptides, and store in the db
-        peptides = generate_peptides(wt, aa_choices, pred.peptide_length)
-        if args.peps_out: save_peptides(peptides, args.peps_out)
-        db.save_scores(pred.score_peptides(peptides))
+        return
     
+    if args.peps_out:
+        peps_file = open(args.peps_out, 'w')
+
+    # set up multiprocessing
+    if args.nproc > 1:
+        print('multiprocessing with',args.nproc,'processors')
+        import multiprocessing
+        pool = multiprocessing.Pool(processes=args.nproc)
+    
+    # generate and score peptides, and store in the db
+    pep_gen = generate_peptides(wt, aa_choices, pred.peptide_length, db if not db.is_new else None)
+    round_num = 0
+    while True:
+        print('round',round_num); round_num += 1
+        batches = []
+        # get a batch of fresh peptides to send to each proc
+        for p in range(args.nproc):
+            batch = list(next(pep_gen) for i in range(args.batch))
+            if len(batch)==0: break
+            if args.peps_out:
+                for peptide in batch: peps_file.write(peptide+'\n')
+            batches.append(batch)
+        if len(batches)==0: break
+        # farm out the scoring
+        if args.nproc == 1:
+            results = [pred.score_peptides(batch) for batch in batches]
+        else:
+            results = pool.map_async(pred.score_peptides, batches).get()
+        for scores in results:
+            db.save_scores(scores)
+
+    if args.peps_out:
+        peps_file.close()
+
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()

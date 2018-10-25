@@ -645,6 +645,7 @@ class Beautifier :
             elif self.all_tokens[i].spelling == ")" :
                 paren_depth -= 1
                 if paren_depth == 0 :
+                    if debug: print("Read to end paren done! token", i, "line", self.all_tokens[i].line_number+1)
                     return i+1
             elif self.all_tokens[i].spelling == "(" :
                 paren_depth += 1
@@ -660,7 +661,9 @@ class Beautifier :
         template_depth = 0
         while i < len(self.all_tokens) :
             #print("process template ", i, self.all_tokens[i].spelling)
-            if self.all_tokens[i].spelling == "<" :
+            if not self.all_tokens[i].is_visible:
+                pass
+            elif self.all_tokens[i].spelling == "<" :
                 template_depth += 1
                 if template_params == "not-begun" :
                     self.set_parent(i,stack,"template-arg-list")
@@ -683,6 +686,13 @@ class Beautifier :
                 self.set_parent(i,stack)
                 stack.pop() # pop template
                 return i+1
+            elif template_depth == 0:
+                # template specialization case
+                # if we don't see a "<" right after
+                # the word "template", then we're looking at a
+                # template specialization declaration.
+                stack.pop()
+                return i
             self.set_parent(i,stack)
             i+=1
         self.handle_read_all_tokens_error( "process_template", stack )
@@ -897,6 +907,7 @@ class Beautifier :
         classname = ""
         if stack[-1].type == "class-scope" :
             classname = self.current_classname( i, stack )
+            if debug: print("processing class constructor:", classname)
             #if debug: print("class name!", classname)
         arglist = "not-begun"
         is_ctor = False
@@ -905,6 +916,11 @@ class Beautifier :
         found_parens = False
         found_operator = False
         found_equals = False
+
+        open_brackets = set( [ "[", "(", "{" ] )
+        close_brackets = set( [ "]", ")", "}" ] )
+        closing_bracket_for_opener = { "[" : "]", "(" : ")", "{" : "}" }
+        bracket_stack = []
 
         i_initial = i # save this in case we aren't actually entering a function; treat it like a statement in that case
         self.set_parent(i,stack,"function")
@@ -915,16 +931,19 @@ class Beautifier :
             if not self.all_tokens[i].is_visible or self.all_tokens[i].is_inside_string :
                 # don't do anything special; just don't try and interpret this token as having meaning
                 pass
-            elif self.all_tokens[i].spelling == "[" :
-                # ok -- maybe we're looking at an array declaration
-                if not found_parens :
-                    found_square_brackets = True
+            #elif self.all_tokens[i].spelling == "[" and len(bracket_stack) == 0:
+            #    # ok -- maybe we're looking at an array declaration
+            #    if not found_parens :
+            #        found_square_brackets = True
+            #elif self.all_tokens[i].spelling == "]" and len(bracket_stack) == 0 and found_square_brackets:
+            #    pass
+            
             elif self.all_tokens[i].spelling == "=" :
                 # ok -- maybe we're looking at a variable declaration w/ assignment
                 if not found_parens :
                     found_equals = True
             elif self.all_tokens[i].spelling == ":" :
-                # print("found : -- ", classname, is_ctor, arglist, found_init_list)
+                if debug: print("found : -- ", classname, is_ctor, arglist, found_init_list)
                 if is_ctor and arglist == "ended" and not found_init_list :
                     # we're now reading the initializer list
                     # stack.pop() # remove the function-decl-argument-list
@@ -959,7 +978,7 @@ class Beautifier :
                             classname = self.all_tokens[i-1].spelling
                         #print("classname:", classname)
 
-            elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" :
+            elif self.all_tokens[i].spelling == "(" and arglist == "not-begun" and len(bracket_stack) == 0:
                 found_parens = True
                 funcname = self.all_tokens[i-1].spelling
                 if funcname != "operator" :
@@ -969,11 +988,17 @@ class Beautifier :
                     self.set_parent(i,stack,"function-decl-argument-list")
                     stack.append(self.all_tokens[i])
                     i+=1
+                    # do not worry about the bracket stack for the argument list
                     i = self.read_to_end_paren( i, stack )
+                    if debug:
+                        print("Read to end paren finished with token:",
+                              self.all_tokens[i].spelling)
                     arglist = "ended"
                     stack.pop() # remove decl-argument-list from stack
                     continue
-            elif self.all_tokens[i].spelling == ";" :
+                else:
+                    bracket_stack.append("(")
+            elif self.all_tokens[i].spelling == ";" and len(bracket_stack) == 0:
                 # ok, there's no function body here, just a function name declaration
                 # so we're not going to increase the stack depth
                 # in fact, this may not have been a function at all -- it might have
@@ -991,7 +1016,7 @@ class Beautifier :
                 if debug : self.print_entry("exitting process_function_preamble_or_variable",i,stack)
                 return i
 
-            elif self.all_tokens[i].spelling == "{" :
+            elif self.all_tokens[i].spelling == "{" and len(bracket_stack) == 0:
                 # print("found_square_brackets", found_square_brackets)
                 # print("found_equals", found_equals)
                 # print("found_operator", found_operator)
@@ -1012,6 +1037,25 @@ class Beautifier :
                     return i
             elif self.all_tokens[i].spelling == "operator" :
                 found_operator = True
+            elif self.all_tokens[i].spelling in open_brackets:
+                if debug: print( " " * len(stack), "found open bracket:",
+                                 self.all_tokens[i].spelling, "on line",
+                                 self.all_tokens[i].line_number+1)
+                bracket_stack.append(self.all_tokens[i].spelling)
+            elif self.all_tokens[i].spelling in close_brackets:
+                if len(bracket_stack) == 0:
+                    print( "Bracket stack is empty when encountering",
+                           self.all_tokens[i].spelling, "on line",
+                           self.all_tokens[i].line_number+1)
+                assert len(bracket_stack) > 0
+                if self.all_tokens[i].spelling != closing_bracket_for_opener[bracket_stack[-1]]:
+                    print("Wrong closing brack encountered:", self.all_tokens[i].spelling,
+                          "on line", self.all_tokens[i].line_number+1)
+                    print("Bracket stack:")
+                    print(bracket_stack)
+                
+                assert self.all_tokens[i].spelling == closing_bracket_for_opener[bracket_stack[-1]]
+                bracket_stack.pop()
 
             self.set_parent(i,stack)
             i+=1

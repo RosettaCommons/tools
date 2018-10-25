@@ -3981,3 +3981,10 @@ pdb8fab_chothia.pdb L2 false
 pdb8fab_chothia.pdb L3 false
 pdb8fab_chothia.pdb H1 false
 pdb8fab_chothia.pdb H2 false
+pdb4w6w_chothia.pdb FRL false
+pdb4w6w_chothia.pdb FRH false
+pdb4w6w_chothia.pdb L1 false
+pdb4w6w_chothia.pdb L2 false
+pdb4w6w_chothia.pdb L3 false
+pdb4w6w_chothia.pdb H1 false
+pdb4w6w_chothia.pdb H2 true

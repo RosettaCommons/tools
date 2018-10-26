@@ -195,7 +195,11 @@ def main(args):
         wt.chain = args.chain
     elif args.pdb is not None:
         chains = load_pdb(args.pdb)
-        if len(chains)>1:
+        if len(chains)==1:
+            wt = chains[0]
+            if args.chain is not None and args.chain != wt.chain:
+                raise Exception('no chain chain in the pdb file')
+        else:
             if args.chain is None:
                 raise Exception('multi-chain pdb file; please use --chain option to indicate which to use')
             desired_seq = [seq for seq in chains if seq.chain == args.chain]

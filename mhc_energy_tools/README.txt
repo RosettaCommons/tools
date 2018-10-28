@@ -5,11 +5,11 @@ These tools support the use of the Rosetta mhc_epitope_energy term in redesignin
 
 The python tools help to preprocess a wild-type sequence and possible mutations before performing design, as well as to postprocess possible designs.
 
-* Scoring: score.py. Provide sequence(s) and specify a predictor and its parameters; the script generates either the total score or a peptide-by-peptide report or plot. Numerous command-line arguments allow control over the options; invoke "score.py --help" for a description.
+* Scoring: mhc_score.py. Provide sequence(s) and specify a predictor and its parameters; the script generates either the total score or a peptide-by-peptide report or plot. Numerous command-line arguments allow control over the options; invoke "score.py --help" for a description.
 
-* Database creation: db.py. Provide a sequence and specification of possible mutations; the script generates and scores epitopes and creates/augments the database with them. 
+* Database creation: mhc_gen_db.py. Provide a sequence and specification of possible mutations; the script generates and scores epitopes and creates/augments the database with them. 
 
-Note that score.py can either directly invoke a predictor or use a databse.
+Note that mhc_score.py can either directly invoke a predictor or use a databse.
 
 A few notes about installation:
 * These were developed for python 3

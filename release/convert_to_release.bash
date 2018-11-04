@@ -41,6 +41,22 @@ ROSETTA=`pwd`
 
 # fi
 
+#Make sure we have the latest of all the submodules
+if [ "$debug" = false ];
+then 
+    cd $ROSETTA/tools
+    git submodule update --init --recursive
+
+    cd $ROSETTA/demos
+    git submodule update --init --recursive
+
+    cd $ROSETTA/documentation
+    git submodule update --init --recursive
+
+    cd $ROSETTA/main
+    git submodule update --init --recursive
+
+fi
 
 
 #prepare documentation

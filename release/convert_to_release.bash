@@ -220,19 +220,10 @@ cd $ROSETTA/main/source/
 # echo "git push -u origin weekly_releases/$branch_name"
 
 
-# Removing .git dirs
-cd $ROSETTA/tools
-rm -rf .git
+# Removing .git dirs -- We need to also remove the .git dirs of any submodule, hence the find/recursive
 
-cd $ROSETTA/demos
-rm -rf .git
-
-cd $ROSETTA/main
-rm -rf .git
-
-cd $ROSETTA/documentation
-rm -rf .git
-
+cd $ROSETTA
+find . -name '.git' -type d -prune -exec rm -rf '{}' '+'
 
 echo "Conversion to release is done!"
 

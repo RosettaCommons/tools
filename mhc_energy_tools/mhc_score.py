@@ -79,11 +79,12 @@ def handle_seq(seq, pred, args):
             elif score.value>0:
                 rows.append([i+seq.start, peptide, score.value] + [str(h) if (h is not None and h<=pred.thresh) else '-' for h in score.details])
         # Save or print
-        # TODO: Currently, if --report_file is used without a $ and we have multiple sequences, the files will keep overwriting themselves.
         if args.report_file is not None:
             fn = args.report_file.replace('$', seq.name)
-            with open(fn, 'w') as outfile:
+            with open(fn, 'a') as outfile:
+                outfile.write(seq.name + '\n')
                 csv.writer(outfile).writerows(rows)
+                outfile.write('\n')
             print('  saved to '+fn)
         else:
             csv.writer(sys.stdout).writerows(rows)

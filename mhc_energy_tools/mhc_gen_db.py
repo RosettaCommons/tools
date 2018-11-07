@@ -161,6 +161,7 @@ def setup_parser():
     parser.add_argument('--estimate_size', action='store_true', help='print out estimates of numbers of peptides')
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
     parser.add_argument('--res_out', help='name of file in which to store processed position-specific AA choices, in resfile format; requires chain to be specified by --chain')
+    parser.add_argument('--res_header', help='resfile command (e.g. NATRO) to be applied in the resfile header, to be applied to all residues not explicitly specified in the resfile (i.e. with multiple allowed identities).  By default, no command will be included, which is the equivalent to ALLAA.')
     # the database
     parser.add_argument('db', nargs='?', help='name of sqlite3 database to store epitope information (create or augment)')
 
@@ -249,11 +250,19 @@ def main(args):
                 aa_choices[i] = [wt[i]]
 
     #print(aa_choices)
+    if args.res_header is not None and args.res_out is None:
+        raise Exception('--res_out must be specified if you want to apply a --res_header.')
     if args.res_out is not None:
         if wt.chain is None: raise Exception('use --chain to specify chain for res file generation')
         with open(args.res_out, 'w') as outfile:
             # TODO: any other defaults to put in header?
-            outfile.write('NATAA\nstart\n')
+            # Write the default resfile behaviour, if specified.
+            if args.res_header is not None:
+                outfile.write(args.res_header + '\n')
+            # Start the body of the resfile
+            outfile.write('start\n')
+            # Loop over positions, and add a PIKAA line for all those with more than 1 AA choice
+            # The native position is always allowed, so if aa_choices[1] == 1, it is just the WT identity
             for i in sorted(aa_choices):
                 if len(aa_choices[i])>1: # not just NATAA
                     outfile.write('%d %s PIKAA %s\n' % (i, wt.chain, ''.join(aa_choices[i])))

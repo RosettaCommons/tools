@@ -291,8 +291,8 @@ def main(args):
     if args.peps_out:
         peps_file = open(args.peps_out, 'w')
 
-    # set up multiprocessing
-    if args.nproc > 1:
+    # set up multiprocessing if using netmhcii
+    if args.nproc > 1 and args.netmhcii is not False:
         print('multiprocessing with',args.nproc,'processors')
         import multiprocessing
         pool = multiprocessing.Pool(processes=args.nproc)
@@ -301,9 +301,21 @@ def main(args):
     pep_gen = generate_peptides(wt, aa_choices, pred.peptide_length, None if (db is None or db.is_new) else db)
     while True:
         batches = []
-        # get a batch of fresh peptides to send to each proc
-        for p in range(args.nproc):
-            batch = list(next(pep_gen) for i in range(args.batch))
+        # If using NetMHCII, get a batch of fresh peptides to send to each proc
+        # Otherwise, set the number of processors to 1 and batch size to 0 (don't use batches)
+        if args.netmhcii is False:
+            nproc = 1
+            batch_size = 0
+        else:
+            nproc = args.nproc
+            batch_size = args.batch
+        for p in range(nproc):
+            # If not using batches, convert pep_gen to a list called batch
+            if batch_size == 0:
+                batch = list(pep_gen)
+            # otherwise, batch should be batch_size peptides from pep_gen
+            else:
+                batch = list(next(pep_gen) for i in range(batch_size))
             if len(batch)==0: break
             if args.peps_out:
                 for peptide in batch: peps_file.write(peptide+'\n')
@@ -311,7 +323,7 @@ def main(args):
         if len(batches)==0: break
         if db is None: continue  # no scoring
         # farm out the scoring
-        if args.nproc == 1:
+        if nproc == 1:
             results = [pred.score_peptides(batch) for batch in batches]
         else:
             results = pool.map_async(pred.score_peptides, batches).get()

@@ -156,7 +156,7 @@ def setup_parser():
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
     # multiprocessing
     parser.add_argument('--nproc', help='number of processors to distribute peptide predictions across (default: %(default)d)', type=int, default=1)
-    parser.add_argument('--batch', help='number of peptides to distribute for each batch of scoring (default: %(default)d)', type=int, default=100)
+    parser.add_argument('--batch', help='The number of peptides to distribute to each process for each batch of scoring.  When that process finishes, another batch will be sent to a new process until all peptides are scored (default: %(default)d)', type=int, default=100)
     # optional outputs
     parser.add_argument('--estimate_size', action='store_true', help='print out estimates of numbers of peptides')
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
@@ -297,7 +297,7 @@ def main(args):
         import multiprocessing
         pool = multiprocessing.Pool(processes=args.nproc)
     
-    # generate peptides; optionall save to file and/or score and save to db
+    # generate peptides; optional save to file and/or score and save to db
     pep_gen = generate_peptides(wt, aa_choices, pred.peptide_length, None if (db is None or db.is_new) else db)
     while True:
         batches = []

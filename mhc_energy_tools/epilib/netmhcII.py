@@ -60,7 +60,7 @@ class NetMHCII (EpitopePredictor):
         """nm_alleles uses NetMHCII naming, as in the predefined sets above
         score_type 'r' means relative (percentile) and 'a' means absolute ('IC50'); note that a different thresh would be appropriate for 'a'
         nm_bin is the executable; else looks for it in $NMHOME"""
-        if nm_alleles is None: nm_alleles = NetMHCII.allele_sets['test']
+        if nm_alleles is None: nm_alleles = NetMHCII.allele_sets['paul15']
         super().__init__('netmhcii+'+NetMHCII.version, alleles=[NetMHCII.std_name(a) for a in nm_alleles], peptide_length=15)
         self.nm_alleles = nm_alleles
         self.thresh = thresh

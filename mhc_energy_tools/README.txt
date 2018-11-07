@@ -13,5 +13,7 @@ Note that mhc_score.py can either directly invoke a predictor or use a databse.
 
 A few notes about installation:
 * These were developed for python 3
-* To find the matrices for a matrix-based predictor (e.g., Propred), the script looks where it thinks the Rosetta database should be, assuming that the tools are installed in the same relative directory structure. It also checks in $ROSETTA/main/database/scoring/score_functions/mhc_epitop, if environment variable $ROSETTA is set.
+* To find the matrices for a matrix-based predictor (e.g., Propred), the script looks where it thinks the Rosetta database should be, assuming that the tools are installed in the same relative directory structure. It also checks in $ROSETTA/main/database/scoring/score_functions/mhc_epitope, if environment variable $ROSETTA is set.
 * A simple interface is provided to NetMHCII, version 2.3. That software must be installed separately, and the environment variable $NMHOME set to point to the directory holding the netMHC2-3 script.
+
+More details about these scripts can be found in documentation/rosetta_basics/scoring/mhc-energy-tools (and on the Rosetta Wiki).

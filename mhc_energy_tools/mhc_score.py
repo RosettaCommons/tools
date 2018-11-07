@@ -6,7 +6,7 @@ Performs basic epitope prediction for a sequence or set of sequences, to support
 @author: Chris Bailey-Kellogg, cbk@cs.dartmouth.edu; Brahm Yachnin, brahm.yachnin@rutgers.edu 
 """
 
-import argparse, csv, sys
+import argparse, csv, sys, os.path
 from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
@@ -99,8 +99,14 @@ def handle_seq(seq, pred, args):
         plt.clf()
         plt.bar(range(seq.start, seq.start+len(epimap.peptides)), [epimap.peptide_score(p).value for p in epimap.peptides])
         fn = args.plot_hits_file.replace('$', seq.name)
-        plt.savefig(fn)
-        print('  plotted to '+fn)
+        # Check if the fn already exists
+        if os.path.exists(fn):
+            print('WARNING: Attempting to save an epitope hit plot for sequence ' + fn + ' to a location with an existing file (' + fn + ').  The plot will not be generated.')
+            print('WARNING: You may have forgotten to include a "$" in your filename if you are scoring multiple sequences.')
+        # If not, generate the plot
+        else:
+            plt.savefig(fn)
+            print('  plotted to '+fn)
         
 def main(args):
     """Sets up an epitope prediction run based on the parsed args.

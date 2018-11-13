@@ -12,6 +12,7 @@ Precomputes epitope scores for a sequence and its considered mutations, storing 
 # - fancier scoring functions layered on predictions
 # - recompute the score column in a db from the other already-computed columns, with a different scoring function, allele subset/weights, etc.
 # - import csv into db
+# - output as csv instead of db
 # - merge dbs
 
 import itertools, argparse, csv, functools, operator
@@ -156,7 +157,7 @@ def setup_parser():
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
     # multiprocessing
     parser.add_argument('--nproc', help='number of processors to distribute peptide predictions across (default: %(default)d)', type=int, default=1)
-    parser.add_argument('--batch', help='The number of peptides to distribute to each process for each batch of scoring.  When that process finishes, another batch will be sent to a new process until all peptides are scored (default: %(default)d)', type=int, default=100)
+    parser.add_argument('--batch', help='The number of peptides to distribute to each process for each batch of scoring. When that process finishes, another batch will be sent to a new process until all peptides are scored (default: %(default)d)', type=int, default=1000)
     # optional outputs
     parser.add_argument('--estimate_size', action='store_true', help='print out estimates of numbers of peptides')
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
@@ -227,7 +228,7 @@ def main(args):
         except:
             raise Exception('bad position '+s)
     if args.positions is not None:
-        # parse which positions can be mutated, in terms of 0-based indices
+        # parse which positions can be mutated
         idxs = set()
         for p in args.positions.split(','):
             if '-' in p:
@@ -240,7 +241,7 @@ def main(args):
             if i not in idxs:
                 aa_choices[i] = [wt[i]]
     if args.lock is not None:
-        # parse which positions cannot be mutated, in terms of 0-based indices
+        # parse which positions cannot be mutated
         for p in args.lock.split(','):
             if '-' in p:
                 (start,stop) = p.split('-')
@@ -255,14 +256,13 @@ def main(args):
     if args.res_out is not None:
         if wt.chain is None: raise Exception('use --chain to specify chain for res file generation')
         with open(args.res_out, 'w') as outfile:
-            # TODO: any other defaults to put in header?
             # Write the default resfile behaviour, if specified.
             if args.res_header is not None:
                 outfile.write(args.res_header + '\n')
             # Start the body of the resfile
             outfile.write('start\n')
             # Loop over positions, and add a PIKAA line for all those with more than 1 AA choice
-            # The native position is always allowed, so if aa_choices[1] == 1, it is just the WT identity
+            # The native AA is always allowed, so if aa_choices[1] == 1, it is just the WT identity
             for i in sorted(aa_choices):
                 if len(aa_choices[i])>1: # not just NATAA
                     outfile.write('%d %s PIKAA %s\n' % (i, wt.chain, ''.join(aa_choices[i])))
@@ -283,7 +283,7 @@ def main(args):
         db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)
         
     if args.netmhcii_raw is not None:
-        # process the raw binding predictions and store it in the db
+        # process the raw binding predictions and store in the db
         if db is None: raise Exception('need an output database into which to store the raw binding predictions')
         db.save_scores(pred.load_file(args.netmhcii_raw))
         return

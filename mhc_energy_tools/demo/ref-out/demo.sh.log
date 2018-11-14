@@ -1,0 +1,125 @@
+* 2sak_A 54
+pos,peptide,score,DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0701,DRB1_0801,DRB1_1101,DRB1_1301,DRB1_1501
+3,FEPTGPYLM,2,5,-,-,2,-,-,-,-
+9,YLMVNVTGV,5,1,4,3,1,-,2,-,-
+10,LMVNVTGVD,1,-,-,-,-,3,-,-,-
+11,MVNVTGVDS,6,1,3,-,5,-,3,5,3
+12,VNVTGVDSK,1,-,-,4,-,-,-,-,-
+29,YVEFPIKPG,2,-,-,-,-,4,4,-,-
+32,FPIKPGTTL,1,-,-,-,5,-,-,-,-
+34,IKPGTTLTK,3,-,4,5,-,-,4,-,-
+45,IEYYVEWAL,1,-,-,-,-,-,-,-,3
+47,YYVEWALDA,3,1,-,1,-,-,3,-,-
+51,WALDATAYK,2,-,4,1,-,-,-,-,-
+58,YKEFRVVEL,2,4,-,-,2,-,-,-,-
+61,FRVVELDPS,4,-,5,4,-,4,3,-,-
+64,VELDPSAKI,2,-,2,2,-,-,-,-,-
+74,VTYYDKNKK,1,-,-,-,-,-,-,4,-
+76,YYDKNKKKE,1,-,-,-,-,1,-,-,-
+89,FPITEKGFV,2,-,-,-,5,-,5,-,-
+96,FVVPDLSEH,1,-,-,-,-,3,-,-,-
+97,VVPDLSEHI,4,-,1,1,2,-,-,-,5
+105,IKNPGFNLI,1,-,-,-,5,-,-,-,-
+110,FNLITKVVI,6,1,2,-,1,3,1,5,-
+112,LITKVVIEK,3,-,-,-,-,4,3,4,-
+* 2sak_A 54
+pos,peptide,score,DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0701,DRB1_0801,DRB1_1101,DRB1_1301,DRB1_1501
+18,FEPTGPYLM,2,5,-,-,2,-,-,-,-
+24,YLMVNVTGV,5,1,4,3,1,-,2,-,-
+25,LMVNVTGVD,1,-,-,-,-,3,-,-,-
+26,MVNVTGVDS,6,1,3,-,5,-,3,5,3
+27,VNVTGVDSK,1,-,-,4,-,-,-,-,-
+44,YVEFPIKPG,2,-,-,-,-,4,4,-,-
+47,FPIKPGTTL,1,-,-,-,5,-,-,-,-
+49,IKPGTTLTK,3,-,4,5,-,-,4,-,-
+60,IEYYVEWAL,1,-,-,-,-,-,-,-,3
+62,YYVEWALDA,3,1,-,1,-,-,3,-,-
+66,WALDATAYK,2,-,4,1,-,-,-,-,-
+73,YKEFRVVEL,2,4,-,-,2,-,-,-,-
+76,FRVVELDPS,4,-,5,4,-,4,3,-,-
+79,VELDPSAKI,2,-,2,2,-,-,-,-,-
+89,VTYYDKNKK,1,-,-,-,-,-,-,4,-
+91,YYDKNKKKE,1,-,-,-,-,1,-,-,-
+104,FPITEKGFV,2,-,-,-,5,-,5,-,-
+111,FVVPDLSEH,1,-,-,-,-,3,-,-,-
+112,VVPDLSEHI,4,-,1,1,2,-,-,-,5
+120,IKNPGFNLI,1,-,-,-,5,-,-,-,-
+125,FNLITKVVI,6,1,2,-,1,3,1,5,-
+127,LITKVVIEK,3,-,-,-,-,4,3,4,-
+* 2sak_A 54
+  saved to out/2sak_A.pp5.csv
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmptnn9fmyr
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmptnn9fmyr
+* 2sak_A 226
+  saved to out/2sak_A.nm10g.csv
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp1abobhv2
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0301,DRB1_0701,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp1abobhv2
+* 2sak_A 64
+  saved to out/2sak_A.nm10p.csv
+* 2sak_A 54
+  plotted to out/2sak_A.pp5.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmpn6npjtpb
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmpn6npjtpb
+* 2sak_A 226
+  plotted to out/2sak_A.nm10g.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmptn7x5wae
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0301,DRB1_0701,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmptn7x5wae
+* 2sak_A 64
+  plotted to out/2sak_A.nm10p.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp73etaldz
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp73etaldz
+* 2sak_A 40
+  plotted to out/2sak_A.nm2g.pdf
+* seq0 5
+pos,peptide,score,DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0701,DRB1_0801,DRB1_1101,DRB1_1301,DRB1_1501
+1,YLMVNVTGV,5,1,4,3,1,-,2,-,-
+enter sequences:
+* seq0 54
+* 2sak_A_A 54
+* 1eer_A 66
+* 2sak_A 54
+* 3r2x_C 37
+* 1eer_A 66
+  saved to out/1eer_A.pp.csv
+  plotted to out/1eer_A.pp5.pdf
+* 2sak_A 54
+  saved to out/2sak_A.pp.csv
+  plotted to out/2sak_A.pp5.pdf
+* 3r2x_C 37
+  saved to out/3r2x_C.pp.csv
+  plotted to out/3r2x_C.pp5.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmpoe70rku1
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmpoe70rku1
+* 1eer_A 534
+  saved to out/1eer_A.nm10g.csv
+  plotted to out/1eer_A.nm10g.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp66ej7egb
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp66ej7egb
+* 2sak_A 226
+  saved to out/2sak_A.nm10g.csv
+  plotted to out/2sak_A.nm10g.pdf
+saving sequence in tempfile /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp_gqh1v2t
+invoking NetMHCII: /Users/cbk/software/netMHCII-2.3/netMHCII-2.3 -a DRB1_0101,DRB1_0301,DRB1_0401,DRB1_0405,DRB1_0701,DRB1_0802,DRB1_0901,DRB1_1101,DRB1_1201,DRB1_1302,DRB1_1501,DRB3_0101,DRB3_0202,DRB4_0101,DRB5_0101,HLA-DPA10103-DPB10201,HLA-DPA10103-DPB10401,HLA-DPA10201-DPB10101,HLA-DPA10201-DPB10501,HLA-DPA10201-DPB11401,HLA-DPA10301-DPB10402,HLA-DQA10101-DQB10501,HLA-DQA10102-DQB10602,HLA-DQA10301-DQB10302,HLA-DQA10401-DQB10402,HLA-DQA10501-DQB10201,HLA-DQA10501-DQB10301 -f /var/folders/rd/n9j9shhs06z847xyc99lbtz80000gn/T/tmp_gqh1v2t
+* 3r2x_C 256
+  saved to out/3r2x_C.nm10g.csv
+  plotted to out/3r2x_C.nm10g.pdf
+* 2sak_A 54.0
+warning: unscored peptide ALDATAYKE
+* 2sak_A 154.0
+ERROR unscored peptide ALDATAYKE
+
+usage: mhc_score.py [-h] [--fa FA | --fsa FSA | --pdb PDB | --pep PEP]
+                    [--chain CHAIN]
+                    [--db DB | --matrix MATRIX | --netmhcii | --propred]
+                    [--allele_set {test,greenbaum11,paul15} | --alleles ALLELES]
+                    [--epi_thresh EPI_THRESH] [--noncanon {error,silent,warn}]
+                    [--netmhcii_score {rank,absolute}]
+                    [--db_unseen {warn,error,score}]
+                    [--db_unseen_score DB_UNSEEN_SCORE]
+                    [--report {total,hits,full}] [--report_file REPORT_FILE]
+                    [--plot_hits_file PLOT_HITS_FILE]
+                    [seq [seq ...]]
+* seq0 8.0
+* seq1 8.0
+* seq2 5.0
+* seq3 2.0

@@ -223,7 +223,8 @@ cd $ROSETTA/main/source/
 # Removing .git dirs -- We need to also remove the .git dirs of any submodule, hence the find/recursive
 
 cd $ROSETTA
-find . -name '.git' -type d -prune -exec rm -rf '{}' '+'
+# Not just git directories, but the .git files for submodules, too.
+find . -name '.git' -prune -exec rm -rf '{}' '+'
 # We've collapsed everything, no need for submodules (which mess up the release git repo).
 find . -name '.gitmodules' -type f -delete
 

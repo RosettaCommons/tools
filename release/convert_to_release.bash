@@ -224,6 +224,8 @@ cd $ROSETTA/main/source/
 
 cd $ROSETTA
 find . -name '.git' -type d -prune -exec rm -rf '{}' '+'
+# We've collapsed everything, no need for submodules (which mess up the release git repo).
+find . -name '.gitmodules' -type f -prune -delete
 
 echo "Conversion to release is done!"
 

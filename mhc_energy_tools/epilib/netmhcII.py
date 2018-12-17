@@ -49,7 +49,7 @@ class NetMHCII (EpitopePredictor):
     def std_name(nm_name):
         """Converts NetMHC name into something suitable for a column name in the database.
         - drops "HLA-"
-        - converts "-" to "-"
+        - converts "-" to "_"
         Caches the conversion."""
         if nm_name in NetMHCII.nm2std: return NetMHCII.nm2std[nm_name]
         name = nm_name.replace('HLA-','').replace('-','_')

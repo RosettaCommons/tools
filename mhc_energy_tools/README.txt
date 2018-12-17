@@ -9,6 +9,8 @@ The python tools help to preprocess a wild-type sequence and possible mutations 
 
 * Database creation: mhc_gen_db.py. Provide a sequence and specification of possible mutations; the script generates and scores epitopes and creates/augments the database with them. 
 
+* Experimental databse creation: mhc_data_db.py. Provide experimental information (currently IEDB format csv or mysql database); the script organizes into a database for use in scoring and design.
+
 Note that mhc_score.py can either directly invoke a predictor or use a databse.
 
 A few notes about installation:

@@ -11,8 +11,7 @@ Precomputes epitope scores for a sequence and its considered mutations, storing 
 # - AA choices from resfile
 # - fancier scoring functions layered on predictions
 # - recompute the score column in a db from the other already-computed columns, with a different scoring function, allele subset/weights, etc.
-# - import csv into db
-# - output as csv instead of db
+# - output as csv instead of db -- where to put metadata?
 # - merge dbs
 
 import itertools, argparse, csv, functools, operator

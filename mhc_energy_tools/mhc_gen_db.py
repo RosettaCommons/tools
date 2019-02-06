@@ -266,6 +266,8 @@ def main(args):
             for i in sorted(aa_choices):
                 if len(aa_choices[i])>1: # not just NATAA
                     outfile.write('%d %s PIKAA %s\n' % (i, wt.chain, ''.join(aa_choices[i])))
+                else: # Only one AA choice, which means it must be the WT residue
+                    outfile.write('%d %s NATAA\n' % (i, wt.chain))
 
     if args.estimate_size:
         sizes = dict((pos, functools.reduce(operator.mul, (len(aa_choices[pos+i]) for i in range(pred.peptide_length))))

@@ -1,9 +1,9 @@
-This file contains one example each of the two supported PSSM formats for use with db.py.
+This file contains one example each of the two supported PSSM formats for use with mhc_gen_db.py.
 
-db.py has been implemented with some flexibility to allow for slightly different PSSM formats.  The results 
+mhc_gen_db.py has been implemented with some flexibility to allow for slightly different PSSM formats.  The results 
 should be carefully checked if you try an unsupported format.
 
-In general, db.py will search for a AA order line, which contains the 20 AAs (whitespace delimited).  The command 
+In general, mhc_gen_db.py will search for a AA order line, which contains the 20 AAs (whitespace delimited).  The command 
 line psiblast output actually contains two copies of this, as it contains two tables, one with the log-transformed 
 probabilities of encountering a specific AA, and one with percentages.  The ASN-to-matrix PSSM converter, for use 
 with the online psiblast outputs the AA header row starting with P (position), then C (consensus), and finally the 

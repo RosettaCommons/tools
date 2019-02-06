@@ -53,11 +53,11 @@ def create_blast_db():
     cdr_info = file_to_dict("info/cdr.info")
 
     # convert to dict of dicts set up as d[CDR][Length] = [(pdb, "fasta string"),...]
-    converted_dict = { "h1":defaultdict(list), 
-                        "h2":defaultdict(list), 
-                        "h3":defaultdict(list), 
-                        "l1":defaultdict(list), 
-                        "l2":defaultdict(list), 
+    converted_dict = { "h1":defaultdict(list),
+                        "h2":defaultdict(list),
+                        "h3":defaultdict(list),
+                        "l1":defaultdict(list),
+                        "l2":defaultdict(list),
                         "l3":defaultdict(list)}
 
     for pdb in cdr_info.keys():
@@ -67,20 +67,57 @@ def create_blast_db():
                 converted_dict[cdr][length].append((pdb, cdr_info[pdb][cdr]))
             except KeyError: # length unmatched
                 continue
-    
+
     if not os.path.isdir("blast_database"): os.mkdir("blast_database")
 
     for cdr in converted_dict.keys():
         for length in converted_dict[cdr].keys():
             tuple_list_to_fasta(converted_dict[cdr][length], "blast_database/database.{}.{}".format(cdr.upper(),length))
-    
-            call(["makeblastdb", 
+
+            call(["makeblastdb",
                     "-in", "blast_database/database.{}.{}".format(cdr.upper(),length),
-                    "-dbtype", "prot", 
-                    "-title", "database.{}.{}".format(cdr.upper(),length), 
+                    "-dbtype", "prot",
+                    "-title", "database.{}.{}".format(cdr.upper(),length),
                     "-out", "blast_database/database.{}.{}".format(cdr.upper(),length)])
 
     # next code for the FRH/FRL/orientation databases
+    frh_info = file_to_dict("info/frh.info") # same as heavy?
+    frl_info = file_to_dict("info/frl.info") # same as light?
+    frlh_info = file_to_dict("info/frlh.info") # referred to as light_heavy previously
+
+    # no need for converted dict, only one structural region per file
+    # so extract tuples of pdb, sequence from the correct columns
+    frh_tuples = []
+    frl_tuples = []
+    frlh_tuples = []
+
+    for pdb in frh_info.keys(): frh_tuples.append((pdb, frh_info[pdb]["frh"]))
+    for pdb in frl_info.keys(): frl_tuples.append((pdb, frl_info[pdb]["frl"]))
+    for pdb in frlh_info.keys(): frlh_tuples.append((pdb, frlh_info[pdb]["light_heavy"]))
+
+    # now write fastas, then make dbs
+    tuple_list_to_fasta(frh_tuples, "blast_database/database.FRH")
+    tuple_list_to_fasta(frl_tuples, "blast_database/database.FRL")
+    tuple_list_to_fasta(frlh_tuples, "blast_database/database.light_heavy")
+
+    call(["makeblastdb",
+            "-in", "blast_database/database.FRH",
+            "-dbtype", "prot",
+            "-title", "database.FRH",
+            "-out", "blast_database/database.FRH"])
+
+    call(["makeblastdb",
+            "-in", "blast_database/database.FRL",
+            "-dbtype", "prot",
+            "-title", "database.FRL",
+            "-out", "blast_database/database.FRL"])
+
+    call(["makeblastdb",
+            "-in", "blast_database/database.light_heavy",
+            "-dbtype", "prot",
+            "-title", "database.light_heavy",
+            "-out", "blast_database/database.light_heavy"])
+
     return
 
 def file_to_dict(fn):
@@ -125,13 +162,12 @@ def dict_to_file(fn, header, info_dict):
                     line += " none"
                 else:
                     line += " {}".format(info_dict[pdb][column])
-
             f.write(line.strip() + "\n")
     return
 
 def write_info_files():
     """
-    Several quality filters need info files. 
+    Several quality filters need info files.
     Generate these from the structures + SAbDab summary file.
     """
     # loop over all PDBs in the database and match them to SAbDab records
@@ -156,11 +192,11 @@ def write_info_files():
                 'frlh': ['pdb', 'light_heavy_len', 'light_heavy']}
 
     # residue ranges for cdrs
-    cdr_ranges = {'h1': [26, 35], 
-                    'h2': [50, 65], 
-                    'h3': [95, 102], 
-                    'l1': [24, 34], 
-                    'l2': [50, 56], 
+    cdr_ranges = {'h1': [26, 35],
+                    'h2': [50, 65],
+                    'h3': [95, 102],
+                    'l1': [24, 34],
+                    'l2': [50, 56],
                     'l3': [89, 97]}
 
     fr_ranges = {'frh' : [10, 25, 36, 39, 46, 49, 66, 94, 103, 109],
@@ -271,13 +307,14 @@ def write_info_files():
     # done looping over PDBs
     # write different dicts to files
     for key in infos.keys():
+        print("writing info/{}.info file".format(key))
         dict_to_file("info/{}.info".format(key), headers[key], infos[key])
 
     return
 
 def parse_sabdab_summary(file_name):
     """
-    SAbDab produces a rather unique summary file. 
+    SAbDab produces a rather unique summary file.
     This function reads that file into a dict with the key being the
     4-letter PDB code.
     """
@@ -382,12 +419,12 @@ def truncate_antibody_pdbs():
         if len(pdb_text) == 0: sys.exit("Nothing parsed for PDB {} !".format(pdb))
 
         # test if pdb is in sabdab summary file, if not skip and delete PDB from db
-        try: 
+        try:
             sabdab_dict[pdb]
         except KeyError:
             remove_pdbs.append(pdb)
             print pdb + " not in sabdab summary file, removing ..."
-            try: 
+            try:
                 os.remove("antibody_database/" + pdb + ".pdb.bz2")
             except OSError:
                 os.remove("antibody_database/" + pdb + ".pdb")
@@ -398,20 +435,20 @@ def truncate_antibody_pdbs():
         lchain = sabdab_dict[pdb]["Lchain"]
         lchain_text = ""
 
-        if not hchain == "NA": 
+        if not hchain == "NA":
             hchain_text = truncate_chain(pdb_text, hchain, 112, "H")
             if len(hchain_text) == 0:
                 # could not find heavy chain -- do not overwrite, but warn!
-                warn_pdbs.append(pdb) 
+                warn_pdbs.append(pdb)
                 print "Warning, could not find " + hchain + " chain for " + pdb + " !"
                 print "It was not reported to be NA, so the file may have been altered!"
                 continue
 
-        if not lchain == "NA": 
+        if not lchain == "NA":
             lchain_text = truncate_chain(pdb_text, lchain, 109, "L")
             if len(lchain_text) == 0:
                 # could not find heavy chain -- do not overwrite, but warn!
-                warn_pdbs.append(pdb) 
+                warn_pdbs.append(pdb)
                 print "Warning, could not find " + lchain + " chain for " + pdb + " !"
                 print "It was not reported to be NA, so the file may have been altered!"
                 continue
@@ -440,7 +477,7 @@ def download_antibody_pdbs():
     url_query_base = url_base + 'DBrowser.php?'
 
     # configure options for SAbDab query
-    options = { 'submitted' : 'true', 
+    options = { 'submitted' : 'true',
                 'nonredundant' : 'true',
                 'ab_ident' : '99%25',# 25 need for html
                 'only_complete' : 'false', # might need capital F
@@ -456,7 +493,7 @@ def download_antibody_pdbs():
 
     # open page
     webpage = urllib2.urlopen(urllib2.Request(sabdab_url))
-    
+
     # read html and extract summary file, and download chothia PDBs
     webpage_html = webpage.read() # PDBs in table, summary at end
 
@@ -489,7 +526,7 @@ def download_antibody_pdbs():
                 # won't timeout if no internet, so ...
                 u = urllib2.urlopen(urllib2.Request(url_base + pdb))
                 f.write(bz2.compress(u.read()))
-    
+
     return
 
 def create_antibody_db():
@@ -499,10 +536,9 @@ def create_antibody_db():
 if __name__ == "__main__":
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
-    if not os.getcwd().partition("tools/")[2] == "antibody-update": 
+    if not os.getcwd().partition("tools/")[2] == "antibody-update":
         sys.exit("script needs to be run in tools/antibody-update!")
     #create_antibody_db()
     #truncate_antibody_pdbs()
     #write_info_files()
     create_blast_db()
-

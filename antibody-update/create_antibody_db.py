@@ -18,18 +18,63 @@
 ## Some directories (antibody_database, info, etc...) are hard coded.
 
 import urllib2
+import math
 import re
+import pyrosetta
 import os
 import bz2
 import sys
 from collections import defaultdict
 from subprocess import call
 
+def calc_orientation_diff(o1, o2):
+    res = 0.0
+    for i in [1,2,3,4]:
+        res += (o1[i] - o2[i])**2
+    return math.sqrt(res)
+
 def compare_orientations():
     """
     Necessary for multitemplate grafting.
     Use Nick's pilot app (or PyRosetta) to compute LHOCs and write to file.
     """
+    # last to do!! SLOW
+    # could speed up by moving Nick's calculation in here and assuming Chothia numbering
+    # place results in: protocol_data/antibody/comparisons.txt
+    # or update to place data in info
+
+    # loop over all *paired* PDBs, load and calculate orientations, then calculate OCDs (maybe dump halfway?)
+    frlh_info = file_to_dict("info/frlh.info")
+    unique_pdbs = frlh_info.keys()
+
+    # d[pdb] = [distance, heavy_opening_angle, light_opening_angle, dihedral_angle]
+    orientations = {}
+    outliers = []
+    for pdb in unique_pdbs:
+
+        print "Reading for OCD calculations: " + pdb + "..."
+
+        try:
+            pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        except:
+            sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+
+        try:
+            abi = pyrosetta.rosetta.protocols.antibody.AntibodyInfo(pose)
+        except:
+            unique_pdbs.remove(pdb) # should be ok - list is unique
+            outliers.append(pdb)
+        orientations[pdb] = pyrosetta.rosetta.protocols.antibody.vl_vh_orientation_coords(pose, abi)
+
+    # loop over all pairs
+    pairs = {}
+    for p1 in unique_pdbs:
+        pairs[p1] = {"pdb":p1}
+        for p2 in unique_pdbs:
+            pairs[p1][p2] = calc_orientation_diff(orientations[p1], orientations[p2])
+
+    dict_to_file("info/orientations.txt", ["pdb"] + unique_pdbs, pairs)
+    print outliers
     return
 
 def tuple_list_to_fasta(tl, fn):
@@ -242,7 +287,7 @@ def write_info_files():
         features["h3_len"] = len(features["h3"])
         features["frh_len"] = len(features["frh"])
         # not 100% sure about the custom length here...
-        features["heavy_len"] = len(get_sequence_from_pdb(pdb_text, "H", [7, 109]))
+        features["heavy_len"] = len(get_sequence_from_pdb(pdb_text, "H", [5, 109]))
 
         # repeat for light chain
         features["l1"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l1"])
@@ -267,7 +312,7 @@ def write_info_files():
 
         # get light/heavy paired seq
         features["light_heavy"] = get_sequence_from_pdb(pdb_text, "L", [5, 104])
-        features["light_heavy"] += get_sequence_from_pdb(pdb_text, "H", [7, 109])
+        features["light_heavy"] += get_sequence_from_pdb(pdb_text, "H", [5, 109])
         features["light_heavy_len"] = len(features["light_heavy"])
 
         # store data, but how to handle "" ?
@@ -399,21 +444,18 @@ def truncate_antibody_pdbs():
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
 
     # iterate over PDBs in antibody_database and truncate accordingly
-    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+    #unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb")])
 
     for pdb in unique_pdbs:
         # try reading bzipped pdb, then regular pdb
         print "Truncating " + pdb + "..."
         pdb_text = ""
         try:
-            with open("antibody_database/" + pdb + ".pdb.bz2", "rb") as f:
-                pdb_text = bz2.decompress(f.read())
+            with open("antibody_database/" + pdb + ".pdb", "r") as f:
+                pdb_text = f.read() # want string not list
         except IOError:
-            try:
-                with open("antibody_database/" + pdb + ".pdb", "r") as f:
-                    pdb_text = f.read() # want string not list
-            except IOError:
-                sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+            sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
 
         # should have pdb_text now
         if len(pdb_text) == 0: sys.exit("Nothing parsed for PDB {} !".format(pdb))
@@ -424,10 +466,7 @@ def truncate_antibody_pdbs():
         except KeyError:
             remove_pdbs.append(pdb)
             print pdb + " not in sabdab summary file, removing ..."
-            try:
-                os.remove("antibody_database/" + pdb + ".pdb.bz2")
-            except OSError:
-                os.remove("antibody_database/" + pdb + ".pdb")
+            os.remove("antibody_database/" + pdb + ".pdb")
             continue
 
         hchain = sabdab_dict[pdb]["Hchain"]
@@ -453,13 +492,21 @@ def truncate_antibody_pdbs():
                 print "It was not reported to be NA, so the file may have been altered!"
                 continue
 
-        # now overwrite -- dangerous becuase if chains are altered second trunc
-        # would delete the original pdb, so check if chains are found at all
-        with open("antibody_database/" + pdb+".pdb.bz2", "wb") as f:
-            f.write(bz2.compress(hchain_text + lchain_text))
+        # overwrite -- dangerous?
+        with open("antibody_database/" + pdb+".pdb", "w") as f:
+            f.write(hchain_text + lchain_text)
+
+        # test ability to open in rosetta as antibody
+        try:
+            pose = pyrosetta.pose_from_file("antibody_database/" + pdb+".pdb")
+            abi = pyrosetta.rosetta.protocols.antibody.AntibodyInfo(pose)
+        except:
+            remove_pdbs.append(pdb)
+            print pdb + " not loadable by rosetta, removing ..."
+            os.remove("antibody_database/" + pdb + ".pdb")
 
     for pdb in remove_pdbs:
-        print "Deleted " + pdb + " from database due to missing sabdab info!"
+        print "Deleted " + pdb + " from database due to ???"
 
     if len(warn_pdbs) > 0:
         print "Finished truncating, with {} warnings.".format(len(warn_pdbs))
@@ -519,13 +566,17 @@ def download_antibody_pdbs():
     for pdb in pdb_urls:
         counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
-        fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])
-        if not (os.path.isfile(fpath) or os.path.isfile(fpath_bz)):
-            with open(fpath_bz, "w") as f:
+        #fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])
+        #if not (os.path.isfile(fpath) or os.path.isfile(fpath_bz)):
+        if not os.path.isfile(fpath):
+            with open(fpath, "w") as f:
                 print "Downloading {}... {}/{}".format(pdb[-8:-4], counter, len(pdb_urls))
                 # won't timeout if no internet, so ...
                 u = urllib2.urlopen(urllib2.Request(url_base + pdb))
-                f.write(bz2.compress(u.read()))
+                # write pdb ?
+                f.write(u.read())
+                # write compressed bz2
+                #f.write(bz2.compress(u.read()))
 
     return
 
@@ -534,11 +585,13 @@ def create_antibody_db():
     return
 
 if __name__ == "__main__":
+    pyrosetta.init("-check_cdr_chainbreaks false")
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
     if not os.getcwd().partition("tools/")[2] == "antibody-update":
         sys.exit("script needs to be run in tools/antibody-update!")
     #create_antibody_db()
     #truncate_antibody_pdbs()
-    #write_info_files()
+    write_info_files()
     create_blast_db()
+    compare_orientations()

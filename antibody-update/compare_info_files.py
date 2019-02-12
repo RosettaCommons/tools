@@ -45,9 +45,12 @@ def compare_cdr(cdr, overlap, old_abi, new_abi):
     # for overlapping pdbs, spot check h1, h2, h3 ...
     print "COMPARING {}s!".format(cdr)
     print "\t{} mismatch: pdb, old, new".format(cdr)
+    miss_counts = 0
     for pdb in overlap:
         if old_abi[pdb][cdr] != new_abi[pdb][cdr]:
             print "\t{} mismatch: {}, {}, {}".format(cdr, pdb, old_abi[pdb][cdr], new_abi[pdb][cdr])
+            miss_counts += 1
+    print "For {}, there were {} mismatches.".format(cdr, miss_counts)
     return
 
 def compare_cdr_lens(cdr, old_cdri, new_cdri):
@@ -114,4 +117,5 @@ def compare(info_dir_new, info_dir_old):
     return
 
 if __name__ == "__main__":
-    compare("/Users/jjeliazkov/Rosetta/tools/antibody-update/info/", "/Users/jjeliazkov/Rosetta/tools/antibody/info/")
+    compare("/Users/lqtza/Rosetta/tools/antibody-update/info/", "/Users/lqtza/Rosetta/tools/antibody/info/")
+    #compare("/Users/jjeliazkov/Rosetta/tools/antibody-update/info/", "/Users/jjeliazkov/Rosetta/tools/antibody/info/")

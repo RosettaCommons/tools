@@ -310,6 +310,10 @@ def write_info_files():
 
     # track loops with bad geometries
     bad_geom_loops = []
+    # track unloadable pdbs
+    couldnt_load = []
+    # track light only (for fun)
+    lc_only = []
 
     for pdb in unique_pdbs:
         print("extracting info from " + pdb + "...")
@@ -378,16 +382,25 @@ def write_info_files():
         # before writing features, do some quality checks on CDR geometry
         # we don't want to graft something that isn't a "good" loop
         # strong assumption here that we can load the file into Rosetta
+        # return is list of tuples (pdb, loop_str)
         pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        # next we try to construct an AntibodyInfo object
+        # failure here is bad (but also, we can't handle light only Abs, so skip those)
         try:
             abi = antibody.AntibodyInfo(pose)
-        except: # catch light only
-            print "Possibly light chain only Ab! Skipping!"
-        else:
+        except: # if Ab cannot be constructed, something terrible is happening
+            print "Really bad Ab! Cannot load in AntibodyInfo()! Skipping!"
+            os.remove("antibody_database/" + pdb + ".pdb")
+            couldnt_load.append(pdb)
+            if features["frh_len"] == 0: lc_only.append(pdb)
+            continue
+        else: # pdb load, loop geom is bad, exclude
+
             # chain break CDR chainbreaks here
             loop_enums_H = [(antibody.h1, "h1"), (antibody.h2, "h2"), (antibody.h3, "h3")]
             loop_enums_L = [(antibody.l1, "l1"), (antibody.l2, "l2"), (antibody.l3, "l3")]
-            if not abi.is_camelid():
+
+            if not abi.is_camelid(): # has VH and VL
                 for ln in loop_enums_H + loop_enums_L:
                     cdr_loop = abi.get_CDR_loop(ln[0], pose)
                     # check for bond length and angle issues (returns pair (bool, int))
@@ -396,7 +409,9 @@ def write_info_files():
                     if geom_res[0] == True: # if geom is bad, eliminate cdr from list
                         features[ln[1]] = ""
                         bad_geom_loops.append((pdb, ln[1]))
-            else:
+
+
+            else: # VH only
                 for ln in loop_enums_H:
                     cdr_loop = abi.get_CDR_loop(ln[0], pose)
                     # check for bond length and angle issues (returns pair (bool, int))
@@ -441,6 +456,16 @@ def write_info_files():
             infos["frlh"][pdb] = td
 
     # done looping over PDBs
+    # delete egregious PDBs
+    print("Could not load {} pdbs.\nThey were: ".format(len(couldnt_load)))
+    for pdb in couldnt_load:
+        print("\t {}".format(pdb))
+
+    # report ligh chain only pdbs
+    print("{} pdbs were LC only!\nThey were: ".format(len(lc_only)))
+    for pdb in lc_only:
+        print("\t {}".format(pdb))
+
     # report loops with bad geom
     for (pdb, loop) in bad_geom_loops:
         print("Loops were excluded from info files due to bad geometry: {}, {}".format(pdb, loop))
@@ -666,7 +691,7 @@ def download_antibody_pdbs():
     print("Found {} pdbs, beginning download.".format(len(pdb_urls)))
     counter = 0
     for pdb in pdb_urls:
-        if pdb in ["1qok", "1dzb", "6b0w"]: # bad geometry -- skip
+        if pdb[-8:-4] in ["1qok", "1dzb", "6b0w"]: # bad geometry -- skip
             continue
         counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
@@ -685,7 +710,16 @@ def download_antibody_pdbs():
     return
 
 def create_antibody_db():
+    """
+    Run all function require to setup the database.
+    """
     download_antibody_pdbs()
+    truncate_antibody_pdbs()
+    write_info_files()
+    sys.exit()
+    create_blast_db()
+    compare_orientations()
+    get_bfactors()
     return
 
 if __name__ == "__main__":
@@ -693,9 +727,4 @@ if __name__ == "__main__":
     # or risk creation of dirs/files elsewhere
     if not os.getcwd().partition("tools/")[2] == "antibody-update":
         sys.exit("script needs to be run in tools/antibody-update!")
-    #create_antibody_db()
-    #truncate_antibody_pdbs()
-    #write_info_files()
-    #create_blast_db()
-    #compare_orientations()
-    get_bfactors()
+    create_antibody_db()

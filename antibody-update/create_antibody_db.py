@@ -40,6 +40,13 @@ def get_cdr_ranges():
 
     return cdr_ranges
 
+def check_pdb_line_for_atoms(line, atoms):
+    present = False
+    for atom in atoms:
+        if line[12:16].strip() == atom:
+            present = True
+    return present
+
 def get_avg_bfactor_from_pdb(pdb_text, chain, res_range):
     """ Given pdb text, chain, and resnum range, <B>. """
     B = 0.0
@@ -47,6 +54,7 @@ def get_avg_bfactor_from_pdb(pdb_text, chain, res_range):
     for line in pdb_text.split("\n"):
         #if line.startswith("ATOM") and line[12:16].strip() == "CA": # if only CA matters
         if line.startswith("ATOM"): # all atoms
+        #if line.startswith("ATOM") and check_pdb_line_for_atoms(line, ["N", "CA", "C", "O"]):
             cres = int(line[22:26])
             if line[21] == chain and cres >= res_range[0] and cres <= res_range[1]:
                 B += float(line[60:66])
@@ -85,21 +93,32 @@ def get_bfactors():
         for col in headers:
             bfactors[pdb][col] = get_avg_bfactor_from_pdb(pdb_text, col[0].upper(), cdr_ranges[col])
 
-    dict_to_file("info/bfactors.txt", ["pdb"] + headers, bfactors)
+    dict_to_file("info/bfactors.info", ["pdb"] + headers, bfactors)
 
     return
 
 def calc_orientation_diff(o1, o2):
+    """
+    Calculated as a z-score. Mean/Stdev are from Nick's paper:
+    https://academic.oup.com/peds/article/29/10/409/2462315
+    See Figure 3
+    """
+    # order is distance, Hopen, Lopen, packing_angle
+    # mimics output of vl_vh_orientation_coords function
+    means = [14.6, 97.2, 99.4, -52.3]
+    sigmas = [0.32, 2.55, 1.93, 3.83]
     res = 0.0
-    for i in [1,2,3,4]:
-        res += (o1[i] - o2[i])**2
-    return math.sqrt(res)
+    for i in [1,2,3,4]: # Rosetta indexing :O why ?
+        res += ((o1[i] - o2[i])/sigmas[i-1])**2
+    return res
 
 def compare_orientations():
     """
     Necessary for multitemplate grafting.
     Use Nick's pilot app (or PyRosetta) to compute LHOCs and write to file.
     """
+    import pyrosetta
+    pyrosetta.init("-check_cdr_chainbreaks false")
     # last to do!! SLOW
     # could speed up by moving Nick's calculation in here and assuming Chothia numbering
     # place results in: protocol_data/antibody/comparisons.txt
@@ -108,25 +127,45 @@ def compare_orientations():
     # loop over all *paired* PDBs, load and calculate orientations, then calculate OCDs (maybe dump halfway?)
     frlh_info = file_to_dict("info/frlh.info")
     unique_pdbs = frlh_info.keys()
-
-    # d[pdb] = [distance, heavy_opening_angle, light_opening_angle, dihedral_angle]
+    # d[pdb] = [distance, heavy_opening_angle, light_opening_angle, packing_angle]
     orientations = {}
-    outliers = []
+    # for fun sum all the values and calculate averages + stdevs
+    orientation_sums = [0.0, 0.0, 0.0, 0.0]
+
     for pdb in unique_pdbs:
 
         print("Reading for OCD calculations: " + pdb + "...")
 
-        try:
-            pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
-        except:
-            sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
+        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        abi = pyrosetta.rosetta.protocols.antibody.AntibodyInfo(pose)
 
-        try:
-            abi = pyrosetta.rosetta.protocols.antibody.AntibodyInfo(pose)
-        except:
-            unique_pdbs.remove(pdb) # should be ok - list is unique
-            outliers.append(pdb)
         orientations[pdb] = pyrosetta.rosetta.protocols.antibody.vl_vh_orientation_coords(pose, abi)
+        # check that orientations aren't all zero and if so, warn!
+        if sum(orientations[pdb]) == 0:
+            print("Warning read PDB, but couldn't calculate OCDs!")
+            print("Removing {} from antibody_database/".format(pdb))
+            os.remove("antibody_database/" + pdb + ".pdb")
+            del orientations[pdb]
+            sys.exit("Please re-run all steps *after* truncate.")
+        # list iteration to sum
+        orientation_sums = [sum(x) for x in zip(orientation_sums, orientations[pdb])]
+
+    # write all the values for the individual pdbs
+    with open("info/angles.info", "w") as of:
+        of.write("pdb, distance, heavy_opening_angle, light_opening_angle, packing_angle\n")
+        for pdb in unique_pdbs: # break writing paradigm -- sorry!
+            of.write("{}, {:.3f}, {:.3f}, {:.3f}, {:.3f}\n".format(pdb, *(orientations[pdb])))
+
+    # for fun, print averages over database
+    print("Average relative orientation values (+/-) a standard deviation: ")
+    for i, meas in enumerate(["distance", "heavy_opening_angle", "light_opening_angle", "packing_angle"]):
+        mm = orientation_sums[i]/len(unique_pdbs)
+        mstdev = 0.0
+        for pdb in unique_pdbs:
+            mstdev += (orientations[pdb][i+1] - mm)**2 # Rosetta indexing
+        mstdev = math.sqrt(mstdev/len(unique_pdbs))
+        print("\t {}: {:.2f} +/- {:.2f}".format(meas, mm, mstdev))
+    print("Originally reported by Marze et al. in PEDS (2016).")
 
     # loop over all pairs
     pairs = {}
@@ -136,8 +175,6 @@ def compare_orientations():
             pairs[p1][p2] = calc_orientation_diff(orientations[p1], orientations[p2])
 
     dict_to_file("info/orientations.txt", ["pdb"] + unique_pdbs, pairs)
-    print("Failed to load antibody info for: ")
-    print(outliers)
     return
 
 def tuple_list_to_fasta(tl, fn):
@@ -560,6 +597,9 @@ def truncate_antibody_pdbs():
     # count delete files (without sabdab info)
     remove_pdbs = []
 
+    # count deleted files (VH+VL same chain)
+    same_chain = []
+
     # read SAbDab info for chain identities
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
 
@@ -594,6 +634,13 @@ def truncate_antibody_pdbs():
         lchain = sabdab_dict[pdb]["Lchain"]
         lchain_text = ""
 
+        # we do not currently have a good way of handling VH & VL on the same chain
+        if hchain == lchain:
+            same_chain.append(pdb)
+            print(pdb + " has the VH+VL on a single chain, removing...")
+            os.remove("antibody_database/" + pdb + ".pdb")
+            continue
+
         if not hchain == "NA":
             hchain_text = truncate_chain(pdb_text, hchain, 112, "H")
             if len(hchain_text) == 0:
@@ -618,6 +665,10 @@ def truncate_antibody_pdbs():
 
     for pdb in remove_pdbs:
         print("Deleted " + pdb + " from database because it is missing from summary file")
+
+    for pdb in same_chain:
+        print("Deleted " + pdb + " from database because it has VH+VL on the same chain.")
+    print("Deleted {} total of same chain VH+VLs.".format(len(same_chain)))
 
     if len(warn_pdbs) > 0:
         print("Finished truncating, with {} warnings.".format(len(warn_pdbs)))
@@ -693,6 +744,8 @@ def download_antibody_pdbs():
     for pdb in pdb_urls:
         if pdb[-8:-4] in ["1qok", "1dzb", "6b0w"]: # bad geometry -- skip
             continue
+        if pdb[-8:-4] in ["6db7", "6iut"]: # AntibodyInfo construction issue
+            continue
         counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
         #fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])
@@ -713,10 +766,9 @@ def create_antibody_db():
     """
     Run all function require to setup the database.
     """
-    download_antibody_pdbs()
-    truncate_antibody_pdbs()
+    #download_antibody_pdbs()
+    #truncate_antibody_pdbs()
     write_info_files()
-    sys.exit()
     create_blast_db()
     compare_orientations()
     get_bfactors()

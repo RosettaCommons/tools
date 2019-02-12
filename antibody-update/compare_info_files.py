@@ -29,9 +29,10 @@ def read_info_file(info_dir, regex_str):
     # go into dir
     os.chdir(os.path.abspath(info_dir))
     # e.g. we use either antibody.info or antibody_info
+    # don't do this in the future... have user specify files
     possible_files = glob.glob(regex_str) # should only be one match
 
-    if len(possible_files) > 1: 
+    if len(possible_files) > 1:
         print "Warning! Multiple possible files found!"
         print "Try a better regex than: " + regex_str
         print possible_files
@@ -41,21 +42,76 @@ def read_info_file(info_dir, regex_str):
     os.chdir(cwd)
     return result
 
+def compare_ocds(overlap, old_ocds, new_ocds):
+    # compare ocd values
+    # note overlap for old file must be converted from four letter pdb
+    # to pdbXXXX_chothia.pdb
+    of = open("comparison/ocds.csv", "w")
+    of.write("pdb1, pdb2, old_ocd, new_ocd\n")
+
+    # comparison is across all pairs (yikes)
+    miss_counts = 0
+
+    for pdb1 in overlap:
+        for pdb2 in overlap:
+            if pdb1 != pdb2:
+                pdb1_old = "pdb{}_chothia.pdb".format(pdb1)
+                pdb2_old = "pdb{}_chothia.pdb".format(pdb2)
+
+                OCDo = old_ocds[pdb1_old][pdb2_old]
+                OCDn = new_ocds[pdb1][pdb2]
+
+                if OCDo != OCDn:
+                    of.write("{}, {}, {}, {}\n".format(pdb1, pdb2, OCDo, OCDn))
+                    miss_counts += 1
+
+    of.close()
+    print "For OCDs, there were {} mismatches.".format(miss_counts)
+    return
+
+def compare_bfactors(cdr, overlap, old_bs, new_bs):
+    # for overlapping pdbs, compare bfactors
+    # new bfactors are reported as floats
+    # old are T if > 50, else F
+    of = open("comparison/{}_bfactors.csv".format(cdr), "w")
+    of.write("cdr, pdb, old, new\n")
+
+    miss_counts = 0
+
+    for pdb in overlap:
+        Bo = (old_bs[pdb][cdr] == "True")
+        Bn = new_bs[pdb][cdr]
+
+        if Bn != "none": Bn = (float(Bn) > 50.0)
+
+        if Bo != Bn:
+            of.write("{}, {}, {}, {}\n".format(cdr, pdb, Bo, Bn))
+            miss_counts += 1
+
+    of.close()
+    print "For {} B factors, there were {} mismatches.".format(cdr, miss_counts)
+    return
+
 def compare_cdr(cdr, overlap, old_abi, new_abi):
     # for overlapping pdbs, spot check h1, h2, h3 ...
-    print "COMPARING {}s!".format(cdr)
-    print "\t{} mismatch: pdb, old, new".format(cdr)
+    of = open("comparison/{}_sequences.csv".format(cdr), "w")
+    of.write("pdb, cdr, old, new\n")
+
     miss_counts = 0
+
     for pdb in overlap:
         if old_abi[pdb][cdr] != new_abi[pdb][cdr]:
-            print "\t{} mismatch: {}, {}, {}".format(cdr, pdb, old_abi[pdb][cdr], new_abi[pdb][cdr])
+            of.write("{}, {}, {}, {}\n".format(pdb, cdr, old_abi[pdb][cdr], new_abi[pdb][cdr]))
             miss_counts += 1
-    print "For {}, there were {} mismatches.".format(cdr, miss_counts)
+
+    of.close()
+    print "For {} sequences, there were {} mismatches.".format(cdr, miss_counts)
     return
 
 def compare_cdr_lens(cdr, old_cdri, new_cdri):
     # for all pdbs, spot check lengths
-    print "COMPARING {}s!".format(cdr)
+    of = open("comparison/{}_lengths.csv".format(cdr), "w")
+    of.write("cdr, length, old, new\n")
 
     # hard coded for old manual file
     old_lens = [old_cdri[pdb]["{}_length".format(cdr.upper())] for pdb in old_cdri.keys()]
@@ -65,15 +121,19 @@ def compare_cdr_lens(cdr, old_cdri, new_cdri):
     new_lens = [int(new_cdri[pdb]["{}_len".format(cdr)]) for pdb in new_cdri.keys()]
     new_counts = collections.Counter(new_lens)
 
-    print "OLD"
-    print old_counts.keys()
-    print old_counts.values()
-    print ""
-
-    print "New"
-    print new_counts.keys()
-    print new_counts.values()
-    print ""
+    # write
+    all_keys = old_counts.keys() + new_counts.keys()
+    for key in all_keys:
+        try:
+            ov = old_counts[key]
+        except KeyError:
+            ov = 0
+        try:
+            nv = new_counts[key]
+        except KeyError:
+            nv = 0
+        of.write("{}, {}, {}, {}\n".format(cdr, key, ov, nv))
+    of.close()
 
     return
 
@@ -91,12 +151,23 @@ def compare(info_dir_new, info_dir_old):
     old_cdri = read_info_file(info_dir_old, "cdr*info")
     new_cdri = read_info_file(info_dir_new, "cdr*info")
 
+    # compare bfactors
+    old_bfactors = read_info_file("/Users/lqtza/Rosetta/main/database/protocol_data/antibody/", "list*bfactor50")
+    new_bfactors = read_info_file(info_dir_new, "bfactor*info")
+
+    # comapre OCDs
+    old_ocds = read_info_file("/Users/lqtza/Rosetta/main/database/protocol_data/antibody/", "comparisons*txt")
+    new_ocds = read_info_file(info_dir_new, "orientations*txt") # move to info file
+
     # print length of keys (pdbs) and overlap
     old_pdbs = old_abi.keys()
     new_pdbs = new_abi.keys()
     overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
     print "old, new, overlap"
     print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+
+    # comparisons write to comparison directory
+    if not os.path.isdir("comparison"): os.mkdir("comparison")
 
     # compare sequences
     compare_cdr("h1", overlap_pdbs, old_abi, new_abi)
@@ -113,6 +184,32 @@ def compare(info_dir_new, info_dir_old):
     compare_cdr_lens("l1", old_cdri, new_cdri)
     compare_cdr_lens("l2", old_cdri, new_cdri)
     compare_cdr_lens("l3", old_cdri, new_cdri)
+
+    # compare b factors -- repeat overlap calc ???
+    # print length of keys (pdbs) and overlap
+    old_pdbs = old_bfactors.keys()
+    new_pdbs = new_bfactors.keys()
+    overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
+    print "for bfactor file!"
+    print "old, new, overlap"
+    print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+    compare_bfactors("h1", overlap_pdbs, old_bfactors, new_bfactors)
+    compare_bfactors("h2", overlap_pdbs, old_bfactors, new_bfactors)
+    compare_bfactors("h3", overlap_pdbs, old_bfactors, new_bfactors)
+    compare_bfactors("l1", overlap_pdbs, old_bfactors, new_bfactors)
+    compare_bfactors("l2", overlap_pdbs, old_bfactors, new_bfactors)
+    compare_bfactors("l3", overlap_pdbs, old_bfactors, new_bfactors)
+
+
+    # compare OCDs -- repeat overlap calc ???
+    # convert pdbXXXX_chothia.pdb into XXXX
+    old_pdbs = [x[3:7] for x in old_ocds.keys()]
+    new_pdbs = new_ocds.keys()
+    overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
+    print "for OCD file!"
+    print "old, new, overlap"
+    print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+    compare_ocds(overlap_pdbs, old_ocds, new_ocds)
 
     return
 

@@ -36,7 +36,6 @@ def read_info_file(info_dir, regex_str):
         print "Warning! Multiple possible files found!"
         print "Try a better regex than: " + regex_str
         print possible_files
-        sys.exit()
 
     result = file_to_dict(possible_files[0])
     os.chdir(cwd)
@@ -92,6 +91,22 @@ def compare_bfactors(cdr, overlap, old_bs, new_bs):
     print "For {} B factors, there were {} mismatches.".format(cdr, miss_counts)
     return
 
+def compare_frs(fr, overlap, old_fri, new_fri):
+
+    miss_counts = 0
+
+    # headers in some old files are all caps
+    if fr == "light_heavy": fro = fr
+    else: fro = fr.upper()
+
+    for pdb in overlap:
+        if old_fri["pdb{}_chothia.pdb".format(pdb)][fro].strip() != new_fri[pdb][fr].strip():
+            miss_counts += 1
+            print "old:", pdb, old_fri["pdb{}_chothia.pdb".format(pdb)][fro]
+            print "new:", pdb, new_fri[pdb][fr]
+    print "For {} sequences, there were {} mismatches.".format(fr, miss_counts)
+    return
+
 def compare_cdr(cdr, overlap, old_abi, new_abi):
     # for overlapping pdbs, spot check h1, h2, h3 ...
     of = open("comparison/{}_sequences.csv".format(cdr), "w")
@@ -100,7 +115,7 @@ def compare_cdr(cdr, overlap, old_abi, new_abi):
     miss_counts = 0
 
     for pdb in overlap:
-        if old_abi[pdb][cdr] != new_abi[pdb][cdr]:
+        if old_abi[pdb][cdr].strip() != new_abi[pdb][cdr].strip():
             of.write("{}, {}, {}, {}\n".format(pdb, cdr, old_abi[pdb][cdr], new_abi[pdb][cdr]))
             miss_counts += 1
 
@@ -151,6 +166,14 @@ def compare(info_dir_new, info_dir_old):
     old_cdri = read_info_file(info_dir_old, "cdr*info")
     new_cdri = read_info_file(info_dir_new, "cdr*info")
 
+    # compare frh/l info files -- surprisingly relevant
+    old_frh = read_info_file(info_dir_old, "frh*info")
+    new_frh = read_info_file(info_dir_new, "frh*info")
+    old_frl = read_info_file(info_dir_old, "frl*info")
+    new_frl = read_info_file(info_dir_new, "frl*info")
+    old_frlh = read_info_file(info_dir_old, "frlh*info")
+    new_frlh = read_info_file(info_dir_new, "frlh*info")
+
     # compare bfactors
     old_bfactors = read_info_file("/Users/lqtza/Rosetta/main/database/protocol_data/antibody/", "list*bfactor50")
     new_bfactors = read_info_file(info_dir_new, "bfactor*info")
@@ -185,7 +208,40 @@ def compare(info_dir_new, info_dir_old):
     compare_cdr_lens("l2", old_cdri, new_cdri)
     compare_cdr_lens("l3", old_cdri, new_cdri)
 
+    # compare frh's
+    old_pdbs = [x[3:7] for x in old_frh.keys()]
+    new_pdbs = new_frh.keys()
+    overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
+
+    print "for frh file!"
+    print "old, new, overlap"
+    print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+
+    compare_frs("frh", overlap_pdbs, old_frh, new_frh)
+
+    # compare frl's
+    old_pdbs = [x[3:7] for x in old_frl.keys()]
+    new_pdbs = new_frl.keys()
+    overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
+
+    print "for frl file!"
+    print "old, new, overlap"
+    print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+
+    compare_frs("frl", overlap_pdbs, old_frl, new_frl)
+
+    # compare frlh's
+    old_pdbs = [x[3:7] for x in old_frlh.keys()]
+    new_pdbs = new_frlh.keys()
+    overlap_pdbs = list(set(old_pdbs) & set(new_pdbs))
+
+    print "for frlh file!"
+    print "old, new, overlap"
+    print "{}, {}, {}".format(len(old_pdbs), len(new_pdbs), len(overlap_pdbs))
+
+    compare_frs("light_heavy", overlap_pdbs, old_frlh, new_frlh)
     # compare b factors -- repeat overlap calc ???
+
     # print length of keys (pdbs) and overlap
     old_pdbs = old_bfactors.keys()
     new_pdbs = new_bfactors.keys()
@@ -199,7 +255,6 @@ def compare(info_dir_new, info_dir_old):
     compare_bfactors("l1", overlap_pdbs, old_bfactors, new_bfactors)
     compare_bfactors("l2", overlap_pdbs, old_bfactors, new_bfactors)
     compare_bfactors("l3", overlap_pdbs, old_bfactors, new_bfactors)
-
 
     # compare OCDs -- repeat overlap calc ???
     # convert pdbXXXX_chothia.pdb into XXXX

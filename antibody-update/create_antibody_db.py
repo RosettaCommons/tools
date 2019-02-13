@@ -345,12 +345,22 @@ def write_info_files():
     fr_ranges = {'frh' : [10, 25, 36, 39, 46, 49, 66, 94, 103, 109],
                  'frl' : [10, 23, 35, 39, 46, 49, 57, 66, 71, 88, 98, 104]}
 
+    # conserved ranges are for grafting - if a template residue is missing here
+    # or has bad geometry, we should exclude
+    # ranges from protocols/antibody/grafting/grafter.cc
+    conserved_frh_residues = [10,11,12,13,14,15,16,17,18,19,20,21,21,23,24,25,36,37,38,39,40,41,42,43,44,45,46,47,48,49,66,69,70,71,72,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,103,104,105]
+    conserved_frl_residues = [10,11,12,13,14,15,16,17,18,19,20,21,21,23,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,57,58,59,60,61,62,63,64,65,66,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,98,99,100]
+
     # track loops with bad geometries
     bad_geom_loops = []
     # track unloadable pdbs
     couldnt_load = []
-    # track light only (for fun)
+    # track light only (for fun) - according to AntibodyInfo!
     lc_only = []
+    # frh missing conserved residues
+    missing_frh_cons = []
+    # frl missing conserved resiudes
+    missing_frl_cons = []
 
     for pdb in unique_pdbs:
         print("extracting info from " + pdb + "...")
@@ -421,6 +431,36 @@ def write_info_files():
         # strong assumption here that we can load the file into Rosetta
         # return is list of tuples (pdb, loop_str)
         pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        # an alternative to the below, we check the ranges above for good geometry
+        # this way we can exclude frs and cdrs!
+        #for i in range(1,len(pose)+1):
+            # check by each residue
+            #tr = pyrosetta.rosetta.protocols.loops.has_severe_pep_bond_geom_issues(pose, i)
+            #if tr[0] == True: # geom is bad, but where?
+                #resnum, chain = *(pose.pdb_info().pose2pdb(tr[1]).split()) # convert resnum
+                # here find out what to exclude
+                # cheers :)
+        # first let us check if all the "conserved" residues are present
+        # to prevent orientation alignment failure
+        for cres in conserved_frh_residues:
+            if pose.pdb_info().pdb2pose("H", cres) == 0:
+                # missing important FRH residue, exclude
+                features["frh"] = ""
+                features["frh_len"] = 0
+                features["light_heavy"] = ""
+                features["light_heavy_len"] = 0
+                missing_frh_cons.append(pdb)
+                break # one missing residue is enough
+        for cres in conserved_frl_residues:
+            if pose.pdb_info().pdb2pose("L", cres) == 0:
+                # missing important FRH residue, exclude
+                features["frl"] = ""
+                features["frl_len"] = 0
+                features["light_heavy"] = ""
+                features["light_heavy_len"] = 0
+                missing_frl_cons.append(pdb)
+                break # one missing residue is enough
+
         # next we try to construct an AntibodyInfo object
         # failure here is bad (but also, we can't handle light only Abs, so skip those)
         try:
@@ -506,6 +546,10 @@ def write_info_files():
     # report loops with bad geom
     for (pdb, loop) in bad_geom_loops:
         print("Loops were excluded from info files due to bad geometry: {}, {}".format(pdb, loop))
+
+    # report frh/frl issues
+    print("{} pdbs had missing conserved_frh_residues!".format(len(missing_frh_cons)))
+    print("{} pdbs had missing conserved_frl_residues!".format(len(missing_frl_cons)))
 
     # write different dicts to files
     for key in infos.keys():
@@ -746,6 +790,8 @@ def download_antibody_pdbs():
             continue
         if pdb[-8:-4] in ["6db7", "6iut"]: # AntibodyInfo construction issue
             continue
+        if pdb[-8:-4] in ["1dl7.pdb"]: # no residue L10 ??? Weird, but how to check?
+            continue # really we need to check FRs for chain breaks, like the CDRs...
         counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
         #fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])
@@ -768,7 +814,7 @@ def create_antibody_db():
     """
     #download_antibody_pdbs()
     #truncate_antibody_pdbs()
-    write_info_files()
+    #write_info_files()
     create_blast_db()
     compare_orientations()
     get_bfactors()

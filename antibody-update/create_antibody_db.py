@@ -790,8 +790,6 @@ def download_antibody_pdbs():
             continue
         if pdb[-8:-4] in ["6db7", "6iut"]: # AntibodyInfo construction issue
             continue
-        if pdb[-8:-4] in ["1dl7.pdb"]: # no residue L10 ??? Weird, but how to check?
-            continue # really we need to check FRs for chain breaks, like the CDRs...
         counter += 1
         fpath = "antibody_database/{}.pdb".format(pdb[-8:-4])
         #fpath_bz = "antibody_database/{}.pdb.bz2".format(pdb[-8:-4])

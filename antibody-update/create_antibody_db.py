@@ -30,15 +30,23 @@ def get_cdr_ranges():
     """
     Central defintion for CDR ranges.
     """
-    # residue ranges for cdrs
-    cdr_ranges = {'h1': [26, 35],
-                    'h2': [50, 65],
-                    'h3': [95, 102],
-                    'l1': [24, 34],
-                    'l2': [50, 56],
-                    'l3': [89, 97]}
 
+    cdr_ranges = {  'h1': [26, 35], # res 31 has icode
+                    'h2': [50, 65], # res 52 has icode
+                    'h3': [95, 102], # res 95 has icode
+                    'l1': [24, 34], # res 30 has icode
+                    'l2': [50, 56],
+                    'l3': [89, 97] } # res 95 has icode
     return cdr_ranges
+
+def get_fr_ranges():
+    """
+    Central definition for FR ranges, inclusive as above.
+    """
+    fr_ranges = { 'frh': list(range(10, 26)) + list(range(36, 40)) + list(range(46, 50)) + list(range(66, 95)) + list(range(103, 110)),
+                  'frl': list(range(10, 24)) + list(range(35, 40)) + list(range(46, 50)) + list(range(57, 67)) + list(range(71, 89)) + list(range(98, 105)) }
+
+    return fr_ranges
 
 def check_pdb_line_for_atoms(line, atoms):
     present = False
@@ -117,8 +125,6 @@ def compare_orientations():
     Necessary for multitemplate grafting.
     Use Nick's pilot app (or PyRosetta) to compute LHOCs and write to file.
     """
-    import pyrosetta
-    pyrosetta.init("-check_cdr_chainbreaks false")
     # last to do!! SLOW
     # could speed up by moving Nick's calculation in here and assuming Chothia numbering
     # place results in: protocol_data/antibody/comparisons.txt
@@ -137,9 +143,9 @@ def compare_orientations():
         print("Reading for OCD calculations: " + pdb + "...")
 
         pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
-        abi = pyrosetta.rosetta.protocols.antibody.AntibodyInfo(pose)
+        abi = antibody.AntibodyInfo(pose)
 
-        orientations[pdb] = pyrosetta.rosetta.protocols.antibody.vl_vh_orientation_coords(pose, abi)
+        orientations[pdb] = antibody.vl_vh_orientation_coords(pose, abi)
         # check that orientations aren't all zero and if so, warn!
         if sum(orientations[pdb]) == 0:
             print("Warning read PDB, but couldn't calculate OCDs!")
@@ -310,14 +316,77 @@ def dict_to_file(fn, header, info_dict):
             f.write(line.strip() + "\n")
     return
 
+def extract_cdr_sequence(pose, chain, start, stop):
+    """
+    Go from start to stop residue. Check for loop integrity along the way.
+    If the loop is intact, then the sequence must be good.
+    """
+    sequence = ""
+    pose_start = pose.pdb_info().pdb2pose(chain, start)
+    pose_stop = pose.pdb_info().pdb2pose(chain, stop)
+
+    if pose_start == 0 or pose_stop == 0:
+        return ""
+
+    for i in range(pose_start, pose_stop+1):
+        has_issues = loops.has_severe_pep_bond_geom_issues(pose, i)
+        # geometry issues -- skip
+        if has_issues[0]: return ""
+        sequence += pose.sequence()[i-1]
+
+    return sequence
+
+def extract_fr_sequence(pose, chain, residue_list):
+    """
+    Extract the sequence for a certain region of a Chothia-numbered structure.
+    Will break for regions shorter than expected
+    Sequence will be length 0 if the region is missing residues or
+    if the bond lengths/angles fail a geometry check.
+
+    Careful with insertions codes around residue 82
+
+    Otherwise, iterate through the list and convert.
+    """
+    sequence = ""
+    rosetta_numbers = []
+    # loop over certain regions and extract seq / check quality
+    # first convert chothia numbering to rosetta numbering
+    for i in residue_list:
+
+        pose_num = pose.pdb_info().pdb2pose(chain, i)
+
+        # missing residue, skip region
+        if pose_num == 0: return ""
+
+        rosetta_numbers.append(pose_num)
+        # account for icodes by inserting
+        if chain == "H" and i == 82:
+            # add pose numbers until the next residue
+            rosetta_numbers.append(pose_num + 1) #82A
+            rosetta_numbers.append(pose_num + 2) #82B
+            rosetta_numbers.append(pose_num + 3) #82C
+
+
+    for i in rosetta_numbers:
+        # residue cannot be terminal because the function below checks +1
+        # structure terminated mid region in the case below
+        if i == pose.size(): return ""
+
+        has_issues = loops.has_severe_pep_bond_geom_issues(pose, i)
+        # geometry issues, skip region
+        if has_issues[0]: return ""
+
+        # all good -- append loop sequence
+        sequence += pose.sequence()[i-1]
+
+    return sequence
+
 def write_info_files():
     """
     Several quality filters need info files.
     Generate these from the structures + SAbDab summary file.
     """
-    import pyrosetta
-    from pyrosetta.rosetta.protocols import antibody
-    pyrosetta.init("-check_cdr_chainbreaks false")
+
     # loop over all PDBs in the database and match them to SAbDab records
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
 
@@ -342,21 +411,8 @@ def write_info_files():
     # residue ranges for cdrs
     cdr_ranges = get_cdr_ranges()
     # could move to function if used elsewhere in the code
-    fr_ranges = {'frh' : [10, 25, 36, 39, 46, 49, 66, 94, 103, 109],
-                 'frl' : [10, 23, 35, 39, 46, 49, 57, 66, 71, 88, 98, 104]}
+    fr_ranges =  get_fr_ranges()
 
-    # conserved ranges are for grafting - if a template residue is missing here
-    # or has bad geometry, we should exclude
-    # ranges from protocols/antibody/grafting/grafter.cc
-    conserved_frh_residues = [10,11,12,13,14,15,16,17,18,19,20,21,21,23,24,25,36,37,38,39,40,41,42,43,44,45,46,47,48,49,66,69,70,71,72,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,103,104,105]
-    conserved_frl_residues = [10,11,12,13,14,15,16,17,18,19,20,21,21,23,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,57,58,59,60,61,62,63,64,65,66,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,98,99,100]
-
-    # track loops with bad geometries
-    bad_geom_loops = []
-    # track unloadable pdbs
-    couldnt_load = []
-    # track light only (for fun) - according to AntibodyInfo!
-    lc_only = []
     # frh missing conserved residues
     missing_frh_cons = []
     # frl missing conserved resiudes
@@ -379,124 +435,92 @@ def write_info_files():
         except IOError:
             sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
 
-        # let's get the different regions
-        # we use "standard" Rosetta definitions -- I think these are kabat
-        features["h1"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h1"])
-        features["h2"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h2"])
-        features["h3"] = get_sequence_from_pdb(pdb_text, "H", cdr_ranges["h3"])
+        # if we are loading in Rosetta then we should use pose2pdb to get the
+        # sequence as this would help us establish missing residues
+        # do some quality checks on geometry
+        # we don't want to graft something that has a chain break
+        # strong assumption here that we can load the file into Rosetta
 
-        # frh is a little more annoying (have to go between cdrs...)
-        features["frh"] = get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][0:2])
-        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][2:4])
-        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][4:6])
-        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][6:8])
-        features["frh"] += get_sequence_from_pdb(pdb_text, "H", fr_ranges["frh"][8:10])
+        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
 
-        # get lengths
-        features["h1_len"] = len(features["h1"])
-        features["h2_len"] = len(features["h2"])
-        features["h3_len"] = len(features["h3"])
-        features["frh_len"] = len(features["frh"])
-        # not 100% sure about the custom length here...
-        features["heavy_len"] = len(get_sequence_from_pdb(pdb_text, "H", [5, 109]))
+        features["h1"] = extract_cdr_sequence(pose, "H", *cdr_ranges["h1"])
+        features["h2"] = extract_cdr_sequence(pose, "H", *cdr_ranges["h2"])
+        features["h3"] = extract_cdr_sequence(pose, "H", *cdr_ranges["h3"])
 
-        # repeat for light chain
-        features["l1"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l1"])
-        features["l2"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l2"])
-        features["l3"] = get_sequence_from_pdb(pdb_text, "L", cdr_ranges["l3"])
+        features["l1"] = extract_cdr_sequence(pose, "L", *cdr_ranges["l1"])
+        features["l2"] = extract_cdr_sequence(pose, "L", *cdr_ranges["l2"])
+        features["l3"] = extract_cdr_sequence(pose, "L", *cdr_ranges["l3"])
 
-        # frh is a little more annoying (have to go between cdrs...)
-        features["frl"] = get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][0:2])
-        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][2:4])
-        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][4:6])
-        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][6:8])
-        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][8:10])
-        features["frl"] += get_sequence_from_pdb(pdb_text, "L", fr_ranges["frl"][10:12])
+        # note fr ranges are full lists, not just start/stop as above
+        features["frh"] = extract_fr_sequence(pose, "H", fr_ranges["frh"])
+        features["frl"] = extract_fr_sequence(pose, "L", fr_ranges["frl"])
 
-        # get lengths
-        features["l1_len"] = len(features["l1"])
-        features["l2_len"] = len(features["l2"])
-        features["l3_len"] = len(features["l3"])
-        features["frl_len"] = len(features["frl"])
-        # not 100% sure about the custom length here...
-        features["light_len"] = len(get_sequence_from_pdb(pdb_text, "L", [5, 104]))
-
-        # get light/heavy paired seq
+        # get light/heavy paired seq for orientation -- structural flaws ok here
+        # hence we pull from the pdb_text directly rather than Rosetta
         features["light_heavy"] = get_sequence_from_pdb(pdb_text, "L", [5, 104])
         features["light_heavy"] += get_sequence_from_pdb(pdb_text, "H", [5, 109])
-        features["light_heavy_len"] = len(features["light_heavy"])
 
-        # before writing features, do some quality checks on CDR geometry
-        # we don't want to graft something that isn't a "good" loop
-        # strong assumption here that we can load the file into Rosetta
-        # return is list of tuples (pdb, loop_str)
-        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
-        # an alternative to the below, we check the ranges above for good geometry
-        # this way we can exclude frs and cdrs!
-        #for i in range(1,len(pose)+1):
-            # check by each residue
-            #tr = pyrosetta.rosetta.protocols.loops.has_severe_pep_bond_geom_issues(pose, i)
-            #if tr[0] == True: # geom is bad, but where?
-                #resnum, chain = *(pose.pdb_info().pose2pdb(tr[1]).split()) # convert resnum
-                # here find out what to exclude
-                # cheers :)
-        # first let us check if all the "conserved" residues are present
-        # to prevent orientation alignment failure
-        for cres in conserved_frh_residues:
-            if pose.pdb_info().pdb2pose("H", cres) == 0:
-                # missing important FRH residue, exclude
-                features["frh"] = ""
-                features["frh_len"] = 0
-                features["light_heavy"] = ""
-                features["light_heavy_len"] = 0
-                missing_frh_cons.append(pdb)
-                break # one missing residue is enough
-        for cres in conserved_frl_residues:
-            if pose.pdb_info().pdb2pose("L", cres) == 0:
-                # missing important FRH residue, exclude
-                features["frl"] = ""
-                features["frl_len"] = 0
-                features["light_heavy"] = ""
-                features["light_heavy_len"] = 0
-                missing_frl_cons.append(pdb)
-                break # one missing residue is enough
 
-        # next we try to construct an AntibodyInfo object
-        # failure here is bad (but also, we can't handle light only Abs, so skip those)
+        # ranges from protocols/antibody/grafting/grafter.cc
+        # compact representation
+        conserved_frh_residues = list(range(10,26))
+        conserved_frh_residues += list(range(36,50))
+        conserved_frh_residues += [66]
+        conserved_frh_residues += list(range(69,95))
+        conserved_frh_residues += list(range(103,106))
+
+        conserved_frl_residues = list(range(10,24))
+        conserved_frl_residues += list(range(35,50))
+        conserved_frl_residues += list(range(57,67))
+        conserved_frl_residues += list(range(69,89))
+        conserved_frl_residues += list(range(98,101))
+
+        # conserved residues are necessary to superipmose FRH/L models
+        # onto orientation model, so we need an extract check to exclude
+        # frh/frl/orientation models with missing conserved residues
+        if extract_fr_sequence(pose, "H", conserved_frh_residues) == "":
+            # missing residue or bad geometry, exclude frh + orientation
+            features["frh"] = ""
+            features["frh_len"] = 0
+            features["light_heavy"] = ""
+            missing_frh_cons.append(pdb)
+
+        if extract_fr_sequence(pose, "L", conserved_frl_residues) == "":
+            # missing residue or bad geometry, exclude frh + orientation
+            features["frl"] = ""
+            features["frl_len"] = 0
+            features["light_heavy"] = ""
+            missing_frl_cons.append(pdb)
+
+        # try to load the antibody info object
+        # if we can't then we can't calculate OCD, so this Ab should not be
+        # used as an orientation template
         try:
             abi = antibody.AntibodyInfo(pose)
         except: # if Ab cannot be constructed, something terrible is happening
-            print "Really bad Ab! Cannot load in AntibodyInfo()! Skipping!"
-            os.remove("antibody_database/" + pdb + ".pdb")
-            couldnt_load.append(pdb)
-            if features["frh_len"] == 0: lc_only.append(pdb)
-            continue
-        else: # pdb load, loop geom is bad, exclude
+            features["light_heavy"] = ""
 
-            # chain break CDR chainbreaks here
-            loop_enums_H = [(antibody.h1, "h1"), (antibody.h2, "h2"), (antibody.h3, "h3")]
-            loop_enums_L = [(antibody.l1, "l1"), (antibody.l2, "l2"), (antibody.l3, "l3")]
+        # set lengths last
+        # get lengths for heavy
+        features["h1_len"] = len(features["h1"])
+        features["h2_len"] = len(features["h2"])
+        features["h3_len"] = len(features["h3"])
 
-            if not abi.is_camelid(): # has VH and VL
-                for ln in loop_enums_H + loop_enums_L:
-                    cdr_loop = abi.get_CDR_loop(ln[0], pose)
-                    # check for bond length and angle issues (returns pair (bool, int))
-                    geom_res = pyrosetta.rosetta.protocols.loops.has_severe_pep_bond_geom_issues(pose, cdr_loop, True, True)
-                    print geom_res, cdr_loop
-                    if geom_res[0] == True: # if geom is bad, eliminate cdr from list
-                        features[ln[1]] = ""
-                        bad_geom_loops.append((pdb, ln[1]))
+        features["frh_len"] = len(features["frh"])
 
+        features["l1_len"] = len(features["l1"])
+        features["l2_len"] = len(features["l2"])
+        features["l3_len"] = len(features["l3"])
 
-            else: # VH only
-                for ln in loop_enums_H:
-                    cdr_loop = abi.get_CDR_loop(ln[0], pose)
-                    # check for bond length and angle issues (returns pair (bool, int))
-                    geom_res = pyrosetta.rosetta.protocols.loops.has_severe_pep_bond_geom_issues(pose, cdr_loop, True, True)
-                    print geom_res, cdr_loop
-                    if geom_res[0] == True: # bad geom
-                        features[ln[1]] = ""
-                        bad_geom_loops.append((pdb, ln[1]))
+        features["frl_len"] = len(features["frl"])
+
+        features["light_heavy_len"] = len(features["light_heavy"])
+
+        # not 100% sure about the custom length here...
+        # also, we don't really blast against this so, let's just pull from text
+        # in the future maybe remove this information?
+        features["light_len"] = len(get_sequence_from_pdb(pdb_text, "L", [5, 104]))
+        features["heavy_len"] = len(get_sequence_from_pdb(pdb_text, "H", [5, 109]))
 
         # store data, but how to handle "" ?
         # set up antibody_info
@@ -518,7 +542,7 @@ def write_info_files():
                 td[column] = features[column]
             infos["frh"][pdb] = td
 
-        # set up frl_info, only if there is an FRH
+        # set up frl_info, only if there is an FRL
         if features["frl_len"] > 0:
             td = {}
             for column in headers["frl"]:
@@ -526,26 +550,14 @@ def write_info_files():
             infos["frl"][pdb] = td
 
         # set up frlh_info, only if there are both chains
-        if features["frh_len"] > 0 and features["frl_len"] > 0:
+        # double check these lengths
+        if features["light_heavy_len"] > 0:
             td = {}
             for column in headers["frlh"]:
                 td[column] = features[column]
             infos["frlh"][pdb] = td
 
     # done looping over PDBs
-    # delete egregious PDBs
-    print("Could not load {} pdbs.\nThey were: ".format(len(couldnt_load)))
-    for pdb in couldnt_load:
-        print("\t {}".format(pdb))
-
-    # report ligh chain only pdbs
-    print("{} pdbs were LC only!\nThey were: ".format(len(lc_only)))
-    for pdb in lc_only:
-        print("\t {}".format(pdb))
-
-    # report loops with bad geom
-    for (pdb, loop) in bad_geom_loops:
-        print("Loops were excluded from info files due to bad geometry: {}, {}".format(pdb, loop))
 
     # report frh/frl issues
     print("{} pdbs had missing conserved_frh_residues!".format(len(missing_frh_cons)))
@@ -812,13 +824,18 @@ def create_antibody_db():
     """
     #download_antibody_pdbs()
     #truncate_antibody_pdbs()
-    #write_info_files()
-    create_blast_db()
-    compare_orientations()
-    get_bfactors()
+    write_info_files()
+    #create_blast_db()
+    #compare_orientations()
+    #get_bfactors()
     return
 
 if __name__ == "__main__":
+    # we'll eventually need Rosetta, so let's import it now (once)
+    import pyrosetta
+    from pyrosetta.rosetta.protocols import antibody
+    from pyrosetta.rosetta.protocols import loops
+    pyrosetta.init("-check_cdr_chainbreaks false")
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
     if not os.getcwd().partition("tools/")[2] == "antibody-update":

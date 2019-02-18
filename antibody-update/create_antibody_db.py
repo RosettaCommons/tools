@@ -89,7 +89,7 @@ def get_bfactors():
     for pdb in unique_pdbs:
         pdb_text = ""
         try:
-            with open("antibody_database/" + pdb + ".pdb", "r") as f:
+            with open("antibody_database/" + pdb + "_trunc.pdb", "r") as f:
                 pdb_text = f.read() # want string not list
         except IOError:
             sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
@@ -142,7 +142,7 @@ def compare_orientations():
 
         print("Reading for OCD calculations: " + pdb + "...")
 
-        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + "_trunc.pdb")
         abi = antibody.AntibodyInfo(pose)
 
         orientations[pdb] = antibody.vl_vh_orientation_coords(pose, abi)
@@ -329,8 +329,9 @@ def extract_cdr_sequence(pose, chain, start, stop):
         return ""
 
     for i in range(pose_start, pose_stop+1):
-        has_issues = loops.has_severe_pep_bond_geom_issues(pose, i)
-        # geometry issues -- skip
+        # check bond lenghts for issues (chainbreaks), but not angles
+        has_issues = loops.has_severe_pep_bond_geom_issues(pose, i, True, False)
+        # if chain is broken, skip
         if has_issues[0]: return ""
         sequence += pose.sequence()[i-1]
 
@@ -391,7 +392,7 @@ def write_info_files():
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
 
     # iterate over PDBs in antibody_database and truncate accordingly
-    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
+    unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb")])
 
     # dicts of info to store
     infos = {'antibody': {},
@@ -430,7 +431,7 @@ def write_info_files():
         # ok now more challenging features such as frh/frl/cdr sequences
         # these come from the structure
         try:
-            with open("antibody_database/" + pdb + ".pdb", "r") as f:
+            with open("antibody_database/" + pdb + "_trunc.pdb", "r") as f:
                 pdb_text = f.read() # want string not list
         except IOError:
             sys.exit("Failed to open {} in antibody_database/ !".format(pdb))
@@ -441,7 +442,7 @@ def write_info_files():
         # we don't want to graft something that has a chain break
         # strong assumption here that we can load the file into Rosetta
 
-        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + ".pdb")
+        pose = pyrosetta.pose_from_file("antibody_database/" + pdb + "_trunc.pdb")
 
         features["h1"] = extract_cdr_sequence(pose, "H", *cdr_ranges["h1"])
         features["h2"] = extract_cdr_sequence(pose, "H", *cdr_ranges["h2"])
@@ -660,12 +661,15 @@ def truncate_antibody_pdbs():
     sabdab_dict = parse_sabdab_summary("info/sabdab_summary.tsv")
 
     # iterate over PDBs in antibody_database and truncate accordingly
-    #unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb") or x.endswith(".pdb.bz2")])
     unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb")])
 
     for pdb in unique_pdbs:
-        # try reading bzipped pdb, then regular pdb
-        print("Truncating " + pdb + "...")
+
+        # check if "pdb_trunc.pdb" exits, if not then generate it
+        if os.path.isfile("antibody_database/" + pdb + "_trunc.pdb"):
+            print("We think a truncated version of " + pdb + " was found. Skipping.")
+            continue
+
         pdb_text = ""
         try:
             with open("antibody_database/" + pdb + ".pdb", "r") as f:
@@ -715,9 +719,12 @@ def truncate_antibody_pdbs():
                 print("It was not reported to be NA, so the file may have been altered!")
                 continue
 
-        # overwrite -- dangerous?
-        with open("antibody_database/" + pdb+".pdb", "w") as f:
+        # write new file to avoid bugs from multiple truncations
+        with open("antibody_database/" + pdb+"_trunc.pdb", "w") as f:
             f.write(hchain_text + lchain_text)
+
+        # remove old file
+        os.remove("antibody_database/" + pdb + ".pdb")
 
     for pdb in remove_pdbs:
         print("Deleted " + pdb + " from database because it is missing from summary file")
@@ -824,10 +831,10 @@ def create_antibody_db():
     """
     #download_antibody_pdbs()
     #truncate_antibody_pdbs()
-    write_info_files()
+    #write_info_files()
     #create_blast_db()
-    #compare_orientations()
-    #get_bfactors()
+    compare_orientations()
+    get_bfactors()
     return
 
 if __name__ == "__main__":

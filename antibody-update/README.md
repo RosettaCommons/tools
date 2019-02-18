@@ -140,10 +140,10 @@ an increase in template sources:
 
 | Region | Old # | New # | Overlapping # |
 | ------ | ----- | ----- | ------------- |
-| All CDRs | 1902 | 2437 | 1497 |
-| FRH | 1785 | 2365 | 1428 |
-| FRL | 1577 | 1758 | 1109 |
-| Orientation | 1003 | 1717 | 752 |
+| All CDRs | 1902 | 2611 | 1560 |
+| FRH | 1785 | 2390 | 1427 |
+| FRL | 1577 | 1832 | 1111 |
+| Orientation | 1003 | 1721 | 749 |
 
 The overlapping PDBs could be used to compare sequences and metrics. I found
 most PDBs agreed. Below I report mismatches and discuss a few reasons for them.
@@ -151,11 +151,11 @@ most PDBs agreed. Below I report mismatches and discuss a few reasons for them.
 | Region | Mismatches |
 | ------ | ---------- |
 | CDR H1 | 30 |
-| CDR H2 | 62 |
-| CDR H3 | 35 |
-| CDR L1 | 13 |
-| CDR L2 | 16 |
-| CDR L3 | 11 |
+| CDR H2 | 60 |
+| CDR H3 | 33 |
+| CDR L1 | 11 |
+| CDR L2 | 15 |
+| CDR L3 | 8 |
 | FRH | 27 |
 | FRL | 3 |
 | Orientation | 11 |
@@ -177,7 +177,7 @@ in the new one. Hence they are now included.
 
 - 1ol0
 - 4at6
-- 3c5s
+- 3c5s (multiple Fvs, the selected one has a chainbreak)
 - 2p46
 - 2p44
 - 2p45
@@ -188,27 +188,26 @@ in the new one. Hence they are now included.
 - 4jzn
 - 2p47
 - 4y5y
-- 4k3e
+- 4k3e (multiple Fvs, the selected one has a chainbreak)
 - 4jn2
-- 1oay
-- 1oax
-- 1oau
+- 1oay has multiple Fvs in the PDB (new PDB select VHH with chainbreak)
+- 1oax has multiple Fvs in the PDB (new PDB select VL only)
+- 1oau has multiple Fvs in the PDB (new PDB selects VHH with chainbreak)
 
 These are a mix of antibodies. Spot checking a few: 4jzn, 4jn2, and 1oay have
 missing atoms in the new H1. This indicates that we are not optimally selecting
 H/L chains (because these breaks were not previously present).
 
-**Present in both, but with different sequences (9)**
+**Present in both, but with different sequences (8)**
 
-- 1pg7
+- 1pg7 has multiple Fvs in the PDB
 - 4nzr
-- 4krp
-- 4rgn
-- 4k7p
-- 1n7m
-- 5bv7
-- 4nc1
-- 3zkx
+- 4krp has multiple Fvs in the PDB
+- 4rgn has multiple Fvs in the PDB
+- 4k7p has the wrong sequence in the old antibody_info file
+- 5bv7 has multiple Fvs in the PDB
+- 4nc1 has the wrong sequence in the old antibody_info file
+- 3zkx has multiple Fvs in the PDB
 
 This is likely due to the presence of multiple antibodies in the PDB.
 See 3zkx or 5bv7 as examples (I did not inspect all 9).
@@ -224,7 +223,7 @@ and then graft another).
 - 1mie
 
 **Present in old database, but not in new (17)**
-- 3c5s
+- 3c5s (multiple Fvs, the selected one has a chainbreak)
 - 2p46
 - 2p44
 - 2p45
@@ -237,53 +236,52 @@ and then graft another).
 - 2p47
 - 4y5y
 - 1mam
-- 1oay
-- 1oax
-- 1oar
-- 1oau
+- 1oay has multiple Fvs in the PDB (new PDB select VHH, with chainbreak)
+- 1oax has multiple Fvs in the PDB (new PDB select VL only)
+- 1oar has multiple Fvs in the PDB (new PDB selects a broken one)
+- 1oau has multiple Fvs in the PDB (new PDB selects VHH, with chainbreak)
 
-**Present in both, but with different sequences (44)**
+**Present in both, but with different sequences (43)**
 - 4ydl
-- 1pg7
+- 1pg7 has multiple Fvs in the PDB
 - 1ol0
 - 5dtf
 - 5mje
 - 4toy
-- 3uyr
-- 4od1
+- 3uyr appears to have been mis-parsed in the old PDB
+- 4od1 has a tricky H3 (appears to have been mis-parsed in the old PDB)
 - 4m3j
 - 4m3k
 - 4kph
 - 4nzr
 - 5dmg
 - 4krn
-- 4krp
+- 4krp has multiple Fvs in the PDB
 - 4ma3
 - 4z9k
-- 3v52
-- 4rgn
+- 3v52 appears to have been mis-parsed in the old PDB
+- 4rgn has multiple Fvs in the PDB
 - 4o51
-- 4k7p
+- 4k7p has the wrong sequence in the old antibody_info file
 - 5j57
-- 3v4u
+- 3v4u appears to have been mis-parsed in the old PDB
 - 4ztp
 - 4zto
 - 5dub
 - 4o4y
-- 1n7m
-- 5dt1
+- 5dt1  appears to have been mis-parsed in the old PDB
 - 4jo3
 - 4s1q
-- 5bv7
-- 4jpv
+- 5bv7 has multiple Fvs in the PDB
+- 4jpv has different numbering in the old PDB (unclear why)
 - 3gk8
 - 4fhb
-- 4nc1
+- 4nc1 has the wrong sequence in the old antibody_info file
 - 5ds8
 - 5dsc
 - 3dv4
 - 1flr
-- 3zkx
+- 3zkx has multiple Fvs in the PDB
 - 4x7d
 - 4x7c
 - 3nps
@@ -292,255 +290,172 @@ and then graft another).
 
 **Present in new database, but not in old (3)**
 
-- 3upc
-- 1sjv
-- 2ai0
+- 3upc should be excluded H3 appears unfolded/extended?
+- 1sjv should be excluded H3 appears unfolded/extended?
 
 **Present in old database, but not in new (20)**
 
-- 4dqo
-- 4od1
-- 1fh5
-- 4yaq
-- 3k1k
-- 1yzz
-- 3mug
-- 2gk0
-- 5dt1
-- 4nrx
-- 3u4e
-- 1oay
-- 1oax
-- 1oau
-- 3q6g
-- 1zlv
-- 1xf3
-- 1xf4
-- 3u1s
-- 3lh2
+- 4dqo has a chainbreak in the H3
+- 4od1 has a tricky H3 (appears to have been mis-parsed in the old PDB)
+- 1fh5 has a chainbreak in the H3
+- 1fve has multiple Fvs, the selected one has a chainbreak
+- 4yaq has a chainbreak in the H3
+- 1yzz has a chainbreak in the H3
+- 3mug has a chainbreak in the H3
+- 5hdo has multiple Fvs, the selected one has a chainbreak
+- 2gk0 has multiple Fvs, the selected one has a chainbreak
+- 5dt1 has a chainbreak in the H3
+- 4nrx has multiple Fvs, the selected one has a chainbreak
+- 3u4e has a chainbreak in the H3
+- 1oay has multiple Fvs in the PDB (new PDB select VHH, with chainbreak)
+- 1oax has multiple Fvs in the PDB (new PDB select VL only)
+- 1oau has multiple Fvs in the PDB (new PDB selects VHH, with chainbreak)
+- 1zlv has multiple Fvs, the selected one has a chainbreak
+- 1xf3 has multiple residues with 0 occupancy in the H3
+- 1xf4 has multiple residues with 0 occupancy in the H3
+- 3u1s has a chainbreak in the H3
+- 3lh2 has multiple Fvs, the selected one has a chainbreak
 
-**Present in both, but with different sequences (12)**
+**Present in both, but with different sequences (11)**
 
-- 1pg7
-- 3uyr
-- 4krp
-- 3v52
-- 4rgn
-- 4k7p
-- 3v4u
-- 1n7m
-- 4k3d
-- 5bv7
-- 4nc1
-- 3zkx
+- 1pg7 has multiple Fvs in the PDB
+- 3uyr has a tricky H3 (appears to have been mis-parsed in the old PDB)
+- 4krp has multiple Fvs in the PDB
+- 3v52 has a tricky H3 (appears to have been mis-parsed in the old PDB)
+- 4rgn has multiple Fvs in the PDB
+- 4k7p has the wrong sequence in the old antibody_info file
+- 3v4u has a tricky H3 (appears to have been mis-parsed in the old PDB)
+- 4k3d has an H3 so long there are insertions on 101 and 102
+- 5bv7 has multiple Fvs in the PDB
+- 4nc1 has the wrong sequence in the old antibody_info file
+- 3zkx has multiple Fvs in the PDB
 
 #### CDR L1 Mismatches
 
 **Present in new database, but not in old (1)**
 
-- 4krp
+- 4krp is missing its light chain in the old PDB.
 
-**Present in old database, but not in new (6)**
+**Present in old database, but not in new (5)**
 
-- 4lvh
-- 4jpv
-- 1fn4
-- 1oay
-- 1oar
-- 1oau
+- 4jpv no L34, so geometry-checking function fails
+- 1fn4 has multiple Fvs in the PDB (new PDB selects a broken one)
+- 1oay has multiple Fvs in the PDB (new PDB select VHH, not Fv)
+- 1oar has multiple Fvs in the PDB (new PDB selects a broken one)
+- 1oau has multiple Fvs in the PDB (new PDB selects a broken one)
 
-**Present in both, but with differnet sequences (6)**
+**Present in both, but with differnet sequences (5)**
 
-- 1pg7
-- 4rgn
-- 4k7p
-- 4a6y
-- 1n7m
-- 5bv7
+- 1pg7 has multiple Fvs in the PDB
+- 4rgn has multiple Fvs in the PDB
+- 4k7p has the wrong sequence in the old antibody_info file
+- 4a6y has multiple Fvs in the PDB
+- 5bv7 has multiple Fvs in the PDB
 
 #### CDR L2 Mismatches
 
 **Present in new database, but not in old (1)**
 
-- 4krp
+- 4krp is missing its light chain in the old PDB.
 
-**Present in old database, but not in new (3)**
+**Present in old database, but not in new (2)**
 
-- 1i3g
-- 1oay
-- 1oau
+- 1oay has multiple Fvs in the PDB (new PDB select VHH, not Fv)
+- 1oau has multiple Fvs in the PDB (new PDB select VHH, not Fv)
+- 1i3g has 3.4 Angstrom C-N bond (resi 55)
 
-**Present in both, but with differnet sequences (12)**
+**Present in both, but with different sequences (11)**
 
-- 1pg7
-- 4dcq
-- 5d72
-- 3ffd
-- 4rgn
-- 4k7p
-- 2otw
-- 1n7m
-- 5eor
-- 5d7s
-- 5c7x
-- 5bv7
+- 1pg7 has multiple Fvs in the PDB
+- 4dcq was numbered differently in the old PDB
+- 5d72 has an atypical L2 that is mis-numbered in the old
+- 3ffd was numbered differently in the old PDB
+- 4rgn has multiple Fvs in the PDB
+- 4k7p has the wrong sequence in the old antibody_info file
+- 2otw was numbered differently in the old PDB
+- 5eor was numbered differently in the old PDB
+- 5d7s has an atypical L2 that is mis-numbered in the old
+- 5c7x has an atypical L2 that is mis-numbered in the old
+- 5bv7 has multiple Fvs in the PDB
 
 #### CDR L3 Mismatches
 
 **Present in new database, but not in old (1)**
 
-- 4krp
+- 4krp is missing its light chain in the old PDB.
 
-**Present in old database, but not in new (4)**
+**Present in old database, but not in new (2)**
 
-- 2dwe
-- 4xce
-- 1oay
-- 1oau
+- 1oay has multiple Fvs in the PDB (new PDB select VHH, not Fv)
+- 1oau has multiple Fvs in the PDB (new PDB select VHH, not Fv)
 
-**Present in both, but with differnet sequences (6)**
+**Present in both, but with different sequences (5)**
 
-- 1pg7
-- 4rgn
-- 4k7p
-- 1n7m
-- 5bv7
-- 3mlr
+- 1pg7 has multiple Fvs in the PDB
+- 4rgn has multiple Fvs in the PDB
+- 4k7p has the wrong sequence in the old antibody_info file
+- 5bv7 has multiple Fvs in the PDB
+- 3mlr has a super long L3 that is truncated in the old PDB
 
 #### FRH Mismatches (27)
 
-```
-old: 4ydl QVRKPGASVRISCEASWVRQEWLGSMTMTRDNFEETAYLDLSKLNPGDTAVYFCARWGQGTLV
-new: 4ydl QVRKPGASVRISCEASWVRQEWLGKMTMTRDNFEETAYLDLSKLNPGDTAVYFCARWGQGTLV
+A few happen when there are surprise insertions (at positions not) expected.
+This ruins the assumption of a constant FRH, but only in a way, since the
+surprise insertions are in non-CDR loops (mostly DE, I think).
+Maybe we should be considering only the beta strands for the FRH/FRL templating?
+And begin grafting the H4/DE?
 
-old: 4ydj AMKSLGSSLTITCRVSGDDLTYFMLPSTKTPTYAHKFRGRVSISAPGVPPVLSLALEPKNRDN
-new: 4ydj AMKSLGSSLTITCRVSWVRQEYMGRVSISAPGVPPVLSLALTNLTYDDTATYFCARWGRGTFV
+Other issues here are that our previous numbering the FRH (around 66) was not
+identical to actual Chothia numbering.
 
-old: 1pg7 GLVQPGGSLRLSCAASWVRQEWVGRATISADNSKNTAYLQMNSLRAEDTAVYYCARWGQGTLV
-new: 1pg7 ELVKPGASVKISCKASWVKQEWIGKATLTVDRSSTTAYIELVRLTSNDSAVYYCARWGQGTSV
-
-old: 5mje GLVQPGGSLRLSCVVSWFRQELVARFSISRDSAEDSAKNTVSLQMNSLKPEDTAFYTCYEWGQGTQV
-new: 5mje GLVQPGGSLRLSCVVSWFRQELVARFSISRDSAKNTVSLQMNSLKPEDTAFYTCYEWGQGTQV
-
-old: 4toy ELKKPGASVKISCKTSWIRQEWMGWISPYSGDKNLAPAFQDRVIMTTDTEVPVTSFFDDTGTY
-new: 4toy ELKKPGASVKISCKTSWIRQEWMGRVIMTTDTSTGAAYMEIRNLKFDDTGTYFCAKWGQGTLL
-
-old: 3uyr GLVQPGSSMKLSCTASWVRQEWVANINYDGSSTYYLDSLKGRFIISRDIAKNILYLRLTNGYL
-new: 3uyr GLVQPGSSMKLSCTASWVRQEWVARFIISRDIAKNILYLQMSSLRCEDTATYYCARWGAGTTV
-
-old: 1e4x ELVKPGASVKLSCKASWVKQEWIGKATLTVDKSSNTAYMQLSSLTSEDSAVYYCARWGQGTTL
-new: 1e4x ELVKPGPSVKLSCKASWVKQEWIGKATLTVDKSSNTAYMQLSSLTSEDSAVYYCARWGQGTTL
-
-old: 4nzr GLVKPSETLSLSCTVSGDSIDKDYIHWRGTTHYKESLRRRVSMSIDTSRNWFSLRLHDVFMLV
-new: 4nzr GLVKPSETLSLSCTVSWVRHEWIGRVSMSIDTSRNWFSLRLASVTAADTAVYFCARWGPGVQV
-
-old: 4jfx GGGLLRLSQAPGKGLEWVASIVTGGRKTYYSDSVKGRFTIQMNSLRA
-new: 4jfx GLVQPGGSLRLSCVTSWVRQEWVARFTISRDNSKNTLYLQMNSLRAEDTAVYYCTRWGQGTLV
-
-old: 3v52 GLVQPGSSMKLSCTASWVRQEWVANINYDGSSTYYLDSLKGRFIISRDIAKNILYLRLTNGYL
-new: 3v52 GLVQPGSSMKLSCTASWVRQEWVARFIISRDIAKNILYLQMSSLRCEDTATYYCARWGAGTTV
-
-old: 4rgn DLVKPGGSLKLSCATSWVRQEWVARFTISRDTAGDILFLQMNSLRSEDSAIYYCVRWGQGTLV
-new: 4rgn ELVKPGASVKLSCKASWVKQEWIGKATLTVDKSSTTAYLQLSSLTSEDSAVYYCARWGQGTSV
-
-old: 4o51 RLVTPGTPLTLTCTVSWVRQEWIGGRFIISRASSTTVDLKVTSPTTEDTATYFCARWGPGTLV
-new: 4o51 RLVTPGTPLTLTCTVSWVRQEWIGRFIISRASSTTVDLKVTSPTTTEDTATYFCARWGPGTLV
-
-old: 3v4u GLVQPGSSMKLSCTASWVRQEWVANINYDGSSTYYLDSLKGRFIISRDIAKNILYLRLTNGYL
-new: 3v4u GLVQPGSSMKLSCTASWVRQEWVARFIISRDIAKNILYLQMSSLRCEDTATYYCARWGAGTTV
-
-old: 4a6y ELVKPGASVKLSCKASWVKQEWIGKATLTVDKPSSTAYMQLSSLTSEDSAVYYCARWGQGTTL
-new: 4a6y ELVAPGASVKLSCKASWVKQEWIGKATLTVDKPSSTAYMQLSSLTSEDSAVYYCARWGQGTTL
-
-old: 4o4y RLVTPGTPLTLTCTVSWVRQEWIGGRFIISRASSTTVDLKVTSPTTEDTATYFCARWGPGTLV
-new: 4o4y RLVTPGTPLTLTCTVSWVRQEWIGRFIISRASSTTVDLKVTSPTTTEDTATYFCARWGPGTLV
-
-old: 4jo3 DLVKPGASLTLTCTASWVRQEWIAGRFTISKTSSTTVTLQMTSLTAADTATYFCARWGPGTLV
-new: 4jo3 DLVKPGASLTLTCTASWVRQEWIARFTISKTSSTTVTLQMTSLTTAADTATYFCARWGPGTLV
-
-old: 4k3d SLVKPSQTLSLTCTASWVRQEWLGRLSITKDNSKSQVSLSVSSVTTEDSATYYCTSVHQETKK
-new: 4k3d SLVKPSQTLSLTCTASWVRQEWLGRLSITKDNSKSQVSLSVSSVTTEDSATYYCTSWGQGLLV
-
-old: 4k3e SLVQPSQTLSLTCTASWVRQEWLGRLSITKDNSKSQVSLSVSSVTTEDSATYYCTTVHQETRK
-new: 4k3e SLVQPSQTLSLTCTASWVRQEWLGRLSITKDNSKSQVSLSVSSVTTEDSATYYCTTWGRGLLV
-
-old: 4s1q VMRKPGSSVKISCRASWVRLEWIGWIKGMWGAVSYARQLQGRVSMTRQLSQDPDDPDTAEYFC
-new: 4s1q VMRKPGSSVKISCRASWVRLEWIGRVSMTRQLSQDIAYLEFSGLTSGDTAEYFCVRWGQGTAV
-
-old: 5bv7 GVVQPGRSLRLSCAASWVRQEWVARFTISRDNSKNTLYLQMDSLRAEDTAVYYCARWGQGTTV
-new: 5bv7 GLVKPSQTLSLTCTVSWIRQEWIGRVTISVDTSKNQFSLKLSSVTAADTAVYYCARWGQGTTV
-
-old: 4grw GLVQAGGSLRLSCAASWFRQEFVARFTISRDNAKNTVYLQMNSLRPEDTAVYLCGEWGQGTQV
-new: 4grw GLVQPGGSLRLSCAASWFRQEGVSRFTISSDNAKNTVYLQMNSLRPEDTAVYYCARWGKGTLV
-
-old: 4fnl GLVQPGESLRLSCVGSGSSFYYAVNAGGGDIDYADSVEGRFTISRDNSKETLYLQMAGWERAD
-new: 4fnl GLVQPGESLRLSCVGSWVRQEWLSRFTISRDNSKETLYLQMTNLRVEDTGVYYCAKWGQGTMV
-
-old: 4jpv AVTKPGASVRVSCEASWWRQQWVGTRHASWDFDTYSFYMDLKALRSDDTAVYFCARWGSGTQV
-new: 4jpv AVTKPGASVRVSCEASWWRQQWVGRVSLTRDFDTYSFYMDLKALRSDDTAVYFCARWGSGTQV
-
-old: 3gk8 VKPGASAGVKLSCKASWVRQEWIGGKATLTTDKSSSTAYQLNRLTSEDSAVYFCARWGQGTLV
-new: 3gk8 VKPGASAGVKLSCKASWVRQEWIGKATLTTDKSSSTAYQLNRLTTSEDSAVYFCARWGQGTLV
-
-old: 4ma3 RLVTPGTPLTLTCTVSWVRQEWIGGRFIISRASSTTVDLKVTSPTTEDTATYFCARWGPGTLV
-new: 4ma3 RLVTPGTPLTLTCTVSWVRQEWIGRFIISRASSTTVDLKVTSPTTTEDTATYFCARWGPGTLV
-
-old: 3u1s EVKKPGSSVKVSCKASWVRQEWMGRVTITRDSGASTVYMELRGLTADDTAIYYCLTGSKHRLR
-new: 3u1s EVKKPGSSVKVSCKASWVRQEWMGRVTITRDSGASTVYMELRGLTADDTAIYYCLTWGHGTAV
-
-old: 3zkx GLVQPGGSLRLSCAASWVRQEWVSRFTISRDNARNTLYLQMNSLKPEDTAVYYCTSRGPGTQV
-new: 3zkx GLVQAGGSLRLSCAASWVRREWVARFTASRDKAGNRLYLQMDNLRPNDTAVYYCIYRGQGTQV
-```
+- 4ydl numbering differs (66S vs. 66K, but LS after K missing in the new Fv
+because they are numbered by a rare insertion at 66).
+- 4ydj has a super long H3 that is truncated in the old PDB and affects the frh
+- 1pg7 has multiple Fvs in the PDB
+- 5mje has "surprise" insertions at 73 that are "missed"
+- 4toy has a missing DE loop in the old PDB so is misnumbered
+- 3uyr has different numbering in the old PDB (unclear why)
+- 1e4x has multiple Fvs in the PDB
+- 4nzr has a super long H3 that is truncated in the old PDB and affects the frh
+- 4jfx truncated poorly in old DB (starts residue 26)
+- 3v52 has a super long H3 that is truncated in the old PDB and affects the frh
+- 4rgn has multiple Fvs in the PDB
+- 4o51 has different numbering in the old PDB (why)
+- 3v4u has a tricky H3 (appears to have been mis-parsed in the old PDB)
+- 4a6y has multiple Fvs in the PDB
+- 4o4y has different numbering in the old PDB (why)
+- 4jo3 has different numbering in the old PDB (why)
+- 4k3d has a super long H3 that is truncated in the old PDB and affects the frh
+- 4k3e has a super long H3 that is truncated in the old PDB and affects the frh
+- 4s1q has a super long H3 that is truncated in the old PDB and affects the frh
+- 5bv7 has multiple Fvs in the PDB
+- 4grw has a blatantly wrong old sequence...
+- 4fnl has a super long H3 that is truncated in the old PDB and affects the frh
+- 4jpv has different numbering in the old PDB (why)
+- 3gk8 has different numbering in the old PDB (why)
+- 4ma3 has different numbering in the old PDB (why)
+- 3u1s has a super long H3 that is truncated in the old PDB and affects the frh
+- 3zkx has multiple Fvs in the PDB
 
 #### FRL Mismatches (3)
 
-```
-old: 4rgn TLSVTPGDRVSLSCWYQQKLLINGIPSRFSGSGFTLIINSVEPEDVGVYYCFGGGTKL
-new: 4rgn SLTVTAGEKVTMTCWYQQILLIYGVPDRFTGSGFTLTISSVQAEDLAVYYCFGVGTKL
-
-old: 3mlr SVSVSPGQTASISCWYYQRLLMYGIPERLSGSKATLTISGTQSLDEGDYYCSGGGTKL
-new: 3mlr SVSVSPGQTASISCWYYQRLLMYGIPERLSGSKATLTISGTQSLDEGDYYCFGDGTRL
-
-old: 4jpv SLSASVGDTVTITCQANGYRRGKDGSKLERGVPGRRWGQEYNLTINNLQPEFCQVYEF
-new: 4jpv SLSASVGDTVTITCWYQQRLLIYGVPSRFSGRRYNLTINNLQPEDIATYFCVVPGTRL
-```
+- 4rgn has multiple Fvs in the PDB
+- 3lmr has more residues in the new db, because the old light chain is truncated
+- 4jpv is misnubmered in the old db (lots of residues skipped around the CDR L1)
 
 #### Orientation Mismatches (11)
 
-```
-old: 3u6r TQSPATLSLSPGERATLSCRASQSVNKYLAWYQQKPGQAPRLLIYDASNRATGIPARFSGSGSGTDFTLTISNLEPEDFAVYYCQQRSDWVTFGGGTKVEQSGAEVKKPGSSVKVSCQVFGDTFSRYTIQWLRQAPGQGPEWMGNIIPVYNTPNYAQKFQGRLSITADDSTSTAYMELSSLRSEDTAVYFCARVVIPNAIRHTMGYYFDYWGQGTLV
-new: 3u6r TQSPATLSLSPGERATLSCRASQSVNKYLAWYQQKPGQAPRLLIYDASNRATGIPARFSGSGSGTDFTLTISNLEPEDFAVYYCQQRSDWVTFGGGTKVLEQSGAEVKKPGSSVKVSCQVFGDTFSRYTIQWLRQAPGQGPEWMGNIIPVYNTPNYAQKFQGRLSITADDSTSTAYMELSSLRSEDTAVYFCARVVIPNAIRHTMGYYFDYWGQGTLV
-
-old: 1t2q TQSPLSLPVSLGDQASISCRSSQSLVHSSGNTYLHWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLTISRVEAEDLGVYYCFQGSHVPLTFGAGTKLEESGPGLVQPSQSLSITCTVSGFSLTSYGVHWVRQSPGKGLEWLGVIWSGGSTDYNAAFISRLSISKDNSKSQVFFKMNSLQADDTAIYYCARNRGYSYAMDSWGQGTSV
-new: 1t2q TQSPLSLPVSLGDQASISCRSSQSLVHSSGNTYLHWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLTISRVEAEDLGVYYCFQGSHVPLTFGAGTKLLEESGPGLVQPSQSLSITCTVSGFSLTSYGVHWVRQSPGKGLEWLGVIWSGGSTDYNAAFISRLSISKDNSKSQVFFKMNSLQADDTAIYYCARNRGYSYAMDSWGQGTSV
-
-old: 1e4x TQTPSSLSASLGDRVTISCRASQDISHYLNWFQQKPDGTVKLLIYYTSTLHSGVPSRFSGSGSGTDYSLTISNLEEEDIAFYFCQQGGALPFTFGSGTKLQQPGAELVKPGASVKLSCKASGFTFTNYWMHWVKQRPGQGLEWIGEILPSNGRTNYNEKFKTKATLTVDKSSNTAYMQLSSLTSEDSAVYYCARSPSDYWGQGTTL
-new: 1e4x TQTPSSLSASLGDRVTISCRASQDISHYLNWFQQKPDGTVKLLIYYTSTLHSGVPSRFSGSGSGTDYSLTISNLEEEDIAFYFCQQGGALPFTFGSGTKLQQPGAELVKPGPSVKLSCKASGFTFTNYWMHWVKQRPGQGLEWIGEILPSNGRTNYNEKFKTKATLTVDKSSNTAYMQLSSLTSEDSAVYYCARSPSDYWGQGTTL
-
-old: 3c5s TQAAFSNPVTLGTSASISCRSSKSLLHSDGITYLYWYLQKPGQSPHLLIYHLSNLASGVPDRFSSSGSGTDFTLRISRVEAEDVGIYYCAHNVELPRTFGGGTKLEESGGGLVQPGGSMKISCVVSGLTFSNYWMSWVRQSPEKGLEWVAEIRLKSDNYATYYAESVKGKFTISRDDSKSRLYLQMNNLRTEDTGIYYCFLPMDYWGQGTSV
-new: 3c5s TQAAFSNPVTLGTSASISCRSSKSLLHSDGITYLYWYLQKPGQSPHLLIYHLSNLASGVPDRFSSSGSGTDFTLRISRVEAEDVGIYYCAHNVELPRTFGGGTKLEESGGGLVQPGGSMKISCVVSGSNYWMSWVRQSPEKGLEWVAEIRTYYAESVKGKFTISRDDSKSRLYLQMNNLRTEDTGIYYCFLPMDYWGQGTSV
-
-old: 1rhh TQSPGTLSLSAGERATLSCRASQSVSSGSLAWYQQKPGQAPRLLIYGASTRATGIPDRFSGSGSGTDFTLTIGRLEPEDLAVYYCQQYGTSPYTFGQGTKLEQSGAEVKKPGSSVQVSCKASGGTFSMYGFNWVRQAPGHGLEWMGGIIPIFGTSNYAQKFRGRVTFTADQATSTAYMELTNLRSDDTAVYYCARDFGPDWEDGDSYDGSGRGFFDFWGQGTLV
-new: 1rhh TQSPGTLSLSAGERATLSCRASQSVSSGSLAWYQQKPGQAPRLLIYGASTRATGIPDRFSGSGSGTDFTLTIGRLEPEDLAVYYCQQYGTSPYTFGQGTKLLEQSGAEVKKPGSSVQVSCKASGGTFSMYGFNWVRQAPGHGLEWMGGIIPIFGTSNYAQKFRGRVTFTADQATSTAYMELTNLRSDDTAVYYCARDFGPDWEDGDSYDGSGRGFFDFWGQGTLV
-
-old: 3mlr TQPPSVSVSPGQTASISCSGDKLDDKYVSWYYQRPGQSPVLLMYQDFKRPSGIPERLSGSKSGKTATLTISGTQSLDEGDYYCQAWDASTGVSGGGTKLVESGGEVKQPGQSLKISCKSSGYNFLDSWIGWVRQIPGKGLEWIGIIYPDDSDAHYSPSFEGQVTMSVDKSISTAYLQWTTLQASDTGKYFCTRLYLFEGAQSSNAFDLWGQGTMI
-new: 3mlr TQPPSVSVSPGQTASISCSGDKLDDKYVSWYYQRPGQSPVLLMYQDFKRPSGIPERLSGSKSGKTATLTISGTQSLDEGDYYCQAWDASTGVSGGGTKLTVLFGDGTRLVESGGEVKQPGQSLKISCKSSGYNFLDSWIGWVRQIPGKGLEWIGIIYPDDSDAHYSPSFEGQVTMSVDKSISTAYLQWTTLQASDTGKYFCTRLYLFEGAQSSNAFDLWGQGTMI
-
-old: 2d03 TQSPLSLPVSLGDQASISCRSSQSLVHSSGNTYLHWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLTISRVEAEDLGVYYCFQSSHVPLTFGAGTKLEESGPGLVQPSQSLSITCTVSGFSLTSYGVHWVRQSPGKGLEWLGVIWSGGSTDYNAAFISRLSISKDNSKSQVFFKMNSLQADDTAIYYCARNRGYSYAMDSWGQGTSV
-new: 2d03 TQSPLSLPVSLGDQASISCRSSQSLVHSSGNTYLHWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLTISRVEAEDLGVYYCFQSSHVPLTFGAGTKLLEESGPGLVQPSQSLSITCTVSGFSLTSYGVHWVRQSPGKGLEWLGVIWSGGSTDYNAAFISRLSISKDNSKSQVFFKMNSLQADDTAIYYCARNRGYSYAMDSWGQGTSV
-
-old: 1zlv TQSPSTLSASVGDTITITCRASQSIETWLAWYQQKPGKAPKLLIYKASTLKTGVPSRFSGSGSGTEFTLTISGLQFDDFATYHCQHYAGYSATFGQGTRVVESGGGLVKAGGSLILSCGVSNFRISAHTMNWVRRVPGGGLEWVASISTSSTYRDYADAVKGRFTVSRDDLEDFVYLQMHKMRVEDTAIYYCARKGSDRLSDNDPFDAWGPGTVV
-new: 1zlv TQSPSTLSASVGDTITITCRASQSIETWLAWYQQKPGKAPKLLIYKASTLKTGVPSRFSGSGSGTEFTLTISGLQFDDFATYHCQHYAGYSATFGQGTRVVESGGGLVKAGGSLILSCGVSNFRISAHTMNWVRRVPGGGLEWVASISTSSTYRDYADAVKGRFTVSRDDLEDFVYLQMHKMRVEDTAIYYCARKGSLSDNDPFDAWGPGTVV
-
-old: 3lh2 TQSPGTQSLSPGERATLSCRASQSVGNNKLAWYQQRPGQAPRLLIYGASSRPSGVADRFSGSGSGTDFTLTISRLEPEDFAVYYCQQYGQSLSTFGQGTKVVQSGAEVKRPGSSVTVSCKASGGSFSTYALSWVRQAPGRGLEWMGGVIPLLTITNYAPRFQGRITITADRSTSTAYLELNSLRPEDTAVYYCAREGTTGAGWLGKPIGAFAHWGQGTLV
-new: 3lh2 TQSPGTQSLSPGERATLSCRASQSVGNNKLAWYQQRPGQAPRLLIYGASSRPSGVADRFSGSGSGTDFTLTISRLEPEDFAVYYCQQYGQSLSTFGQGTKVVQSGAEVKRPGSSVTVSCKASGGSFSTYALSWVRQAPGRGLEWMGGVIPLLTITNYAPRFQGRITITADRSTSTAYLELNSLRPEDTAVYYCAREGTTLGKPIGAFAHWGQGTLV
-
-old: 3gk8 TQSHKFMSTSVGDRVSITCKASQDVNTALAWYQQIPGQSPKLLIYSASNRYTGVPDRFTASGSGTDFTFTISSVQAEDLALYYCQQHYTTPWTFGGGTKLQGTELVKPGASAGVKLSCKASGYTFTNYDMNWVRQRPEQGLEWIGWIFPGDGSTRYNEKFKGKATLTTDKSSSTAYQLNRLTSEDSAVYFCARRGFHGSYSFAYWGQGTLV
-new: 3gk8 TQSHKFMSTSVGDRVSITCKASQDVNTALAWYQQIPGQSPKLLIYSASNRYTGVPDRFTASGSGTDFTFTISSVQAEDLALYYCQQHYTTPWTFGGGTKLHLQGTELVKPGASAGVKLSCKASGYTFTNYDMNWVRQRPEQGLEWIGWIFPGDGSTRYNEKFKGKATLTTDKSSSTAYQLNRLTSEDSAVYFCARRGFHGSYSFAYWGQGTLV
-
-old: 2gk0 TQTPLSLPVSLGDQASISCRSSQSIVHSNGNTYLEWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLKINRVEAEDLGVYYCFQGSHLPPTFGGGTKLKESGPGLVAPSQSLSITCTVSGFSLTNYGVDWVRQPPGKGLEWVGVIWSGGSTNYNSALMSRLSISKDNSKSQVFLKMNSLQTDDTAVYYCAKHWGGYYIPYGMDHWGQGTTV
-new: 2gk0 TQTPLSLPVSLGDQASISCRSSQSIVHSNGNTYLEWYLQKPGQSPKLLIYKVSNRFSGVPDRFSGSGSGTDFTLKINRVEAEDLGVYYCFQGSHLPPTFGGGTKLKESGPGLVAPSQSLSITCTVSGFSLTNYGVDWVRQPPGKGLEWVGVIWSGGSTNYNSALMSRLSISKDNSKSQVFLKMNSLQTDDTAVYYCAKHWGYGMDHWGQGTTV
-```
+- 3u6r has a residue insertion (L), due to a numbering difference.
+- 1t2q has a residue insertion (L), due to a numbering difference.
+- 1e4x has multiple Fvs in the PDB
+- 3c5s has multiple Fvs in the PDB
+- 1rhh has a residue insertion (L), due to a numbering difference.
+- 3lmr has more residues in the new db, because the old light chain is truncated
+- 2d03 has a residue insertion (L), due to a numbering difference.
+- 1zlv has multiple Fvs in the PDB
+- 3lh2 has multiple Fvs in the PDB
+- 3gk8 has a residue insertion (HL), due to a numbering difference.
+- 2gk0 has multiple Fvs in the PDB
 
 #### Metric mismatches (numerous)
 Metrics also do not match 100%. For the OCDs this is due to changes in which
@@ -557,3 +472,6 @@ current approach does not yield as many outliers.
 
 1. Is it necessary to use the whole light+heavy sequences for the orientation
 alignment? Is this the best approach?
+2. Should we create a region-based exclusion list (maybe this was the outlier
+list from before)? There are some crazy, _e.g._ 4k3d, 5c7x, 5d7s, 5dt1
+PDBs out there.

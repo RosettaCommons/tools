@@ -419,6 +419,9 @@ def write_info_files():
     # frl missing conserved resiudes
     missing_frl_cons = []
 
+    # use counter to track progress
+    #for i, pdb in enumerate(list(unique_pdbs)):
+        #print("Progress: {}/{}".format(i, len(list(unique_pdbs))))
     for pdb in unique_pdbs:
         print("extracting info from " + pdb + "...")
         # store features under column names for each pdb (easy matching)
@@ -463,18 +466,19 @@ def write_info_files():
 
 
         # ranges from protocols/antibody/grafting/grafter.cc
+        # expanded to include CDR start/stop as grafting without these is impossible
         # compact representation
-        conserved_frh_residues = list(range(10,26))
-        conserved_frh_residues += list(range(36,50))
+        conserved_frh_residues = list(range(10,27))
+        conserved_frh_residues += list(range(35,51))
         conserved_frh_residues += [66]
-        conserved_frh_residues += list(range(69,95))
-        conserved_frh_residues += list(range(103,106))
+        conserved_frh_residues += list(range(69,96))
+        conserved_frh_residues += list(range(102,106))
 
-        conserved_frl_residues = list(range(10,24))
-        conserved_frl_residues += list(range(35,50))
+        conserved_frl_residues = list(range(10,25))
+        conserved_frl_residues += list(range(34,51))
         conserved_frl_residues += list(range(57,67))
-        conserved_frl_residues += list(range(69,89))
-        conserved_frl_residues += list(range(98,101))
+        conserved_frl_residues += list(range(69,90))
+        conserved_frl_residues += list(range(97,101))
 
         # conserved residues are necessary to superipmose FRH/L models
         # onto orientation model, so we need an extract check to exclude
@@ -831,8 +835,8 @@ def create_antibody_db():
     """
     #download_antibody_pdbs()
     #truncate_antibody_pdbs()
-    #write_info_files()
-    #create_blast_db()
+    write_info_files()
+    create_blast_db()
     compare_orientations()
     get_bfactors()
     return
@@ -843,6 +847,8 @@ if __name__ == "__main__":
     from pyrosetta.rosetta.protocols import antibody
     from pyrosetta.rosetta.protocols import loops
     pyrosetta.init("-check_cdr_chainbreaks false")
+    # if you want to mute Rosetta output
+    #pyrosetta.init("-check_cdr_chainbreaks false -mute all")
     # check for execution in correct dir
     # or risk creation of dirs/files elsewhere
     if not os.getcwd().partition("tools/")[2] == "antibody-update":

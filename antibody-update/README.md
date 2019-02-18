@@ -157,8 +157,8 @@ most PDBs agreed. Below I report mismatches and discuss a few reasons for them.
 | CDR L2 | 15 |
 | CDR L3 | 8 |
 | FRH | 27 |
-| FRL | 3 |
-| Orientation | 11 |
+| FRL | 2 |
+| Orientation | 10 |
 
 In general, mismatches occur at rates of ~1–2%, but why?
 
@@ -440,18 +440,16 @@ because they are numbered by a rare insertion at 66).
 - 3u1s has a super long H3 that is truncated in the old PDB and affects the frh
 - 3zkx has multiple Fvs in the PDB
 
-#### FRL Mismatches (3)
+#### FRL Mismatches (2)
 
 - 4rgn has multiple Fvs in the PDB
 - 3lmr has more residues in the new db, because the old light chain is truncated
-- 4jpv is misnubmered in the old db (lots of residues skipped around the CDR L1)
 
-#### Orientation Mismatches (11)
+#### Orientation Mismatches (10)
 
 - 3u6r has a residue insertion (L), due to a numbering difference.
 - 1t2q has a residue insertion (L), due to a numbering difference.
 - 1e4x has multiple Fvs in the PDB
-- 3c5s has multiple Fvs in the PDB
 - 1rhh has a residue insertion (L), due to a numbering difference.
 - 3lmr has more residues in the new db, because the old light chain is truncated
 - 2d03 has a residue insertion (L), due to a numbering difference.

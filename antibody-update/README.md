@@ -6,7 +6,7 @@ database for antibody CDR and Framework templates.
 
 The below text is true for the following git shas/branches:
 - rosetta/main: lqtza/scs_blast_updates_for_auto_db, 4db3fed871
-- rosetta/tools: lqtza/update-ab-db, [insert sha]
+- rosetta/tools: lqtza/update-ab-db, a0ad97f1be
 
 ## Database Contents
 
@@ -166,30 +166,30 @@ In general, mismatches occur at rates of ~1–2%, but why?
 
 **Present in new database, but not in old (3)**
 
-- 3qxu
-- 1yc7
-- 1mvf
+- 3qxu (multiple Fvs, the old one has a chainbreak)
+- 1yc7 (multiple Fvs, the old one has a chainbreak)
+- 1mvf (multiple Fvs, the old one has a chainbreak)
 
 These PDBs are missing H1 atoms in the old database (not sure why), but not
 in the new one. Hence they are now included.
 
 **Present in old database, but not in new (18)**
 
-- 1ol0
-- 4at6
+- 1ol0 has a chainbreak
+- 4at6 (multiple Fvs, the selected one has a chainbreak)
 - 3c5s (multiple Fvs, the selected one has a chainbreak)
-- 2p46
-- 2p44
-- 2p45
-- 2p42
-- 2p43
-- 2p48
-- 4tuj
-- 4jzn
-- 2p47
-- 4y5y
+- 2p46 new PDB has chainbreaks, but old one doesn't?!
+- 2p44 new PDB has chainbreaks, but old one doesn't?!
+- 2p45 new PDB has chainbreaks, but old one doesn't?!
+- 2p42 new PDB has chainbreaks, but old one doesn't?!
+- 2p43 new PDB has chainbreaks, but old one doesn't?!
+- 2p48 new PDB has chainbreaks, but old one doesn't?!
+- 4tuj (multiple Fvs, the selected one has a chainbreak)
+- 4jzn (multiple Fvs, the selected one has a chainbreak)
+- 2p47 new PDB has chainbreaks, but old one doesn't?!
+- 4y5y has a chainbreak in the H1
 - 4k3e (multiple Fvs, the selected one has a chainbreak)
-- 4jn2
+- 4jn2 (multiple Fvs, the selected one has a chainbreak)
 - 1oay has multiple Fvs in the PDB (new PDB select VHH with chainbreak)
 - 1oax has multiple Fvs in the PDB (new PDB select VL only)
 - 1oau has multiple Fvs in the PDB (new PDB selects VHH with chainbreak)
@@ -201,7 +201,7 @@ H/L chains (because these breaks were not previously present).
 **Present in both, but with different sequences (8)**
 
 - 1pg7 has multiple Fvs in the PDB
-- 4nzr
+- 4nzr old PBD has different numbering and is truncated
 - 4krp has multiple Fvs in the PDB
 - 4rgn has multiple Fvs in the PDB
 - 4k7p has the wrong sequence in the old antibody_info file
@@ -219,67 +219,70 @@ and then graft another).
 
 #### CDR H2 Mismatches
 
-**Present in new database, but not in old (1)**
-- 1mie
+These are quite numerous and it might be because we did not use a consistent
+H2 definition (or maybe because we used a sequence-based definition that
+sometimes failed?)
 
-**Present in old database, but not in new (17)**
+**Present in new database, but not in old (1)**
+- 1mie old PDB is missing the heavy chain
+
+**Present in old database, but not in new (16)**
 - 3c5s (multiple Fvs, the selected one has a chainbreak)
-- 2p46
-- 2p44
-- 2p45
-- 2p42
-- 2p43
-- 2p48
-- 4g6k
-- 4g6m
-- 3phq
-- 2p47
-- 4y5y
-- 1mam
+- 2p46 new PDB has chainbreaks, but old one doesn't?!
+- 2p44 new PDB has chainbreaks, but old one doesn't?!
+- 2p45 new PDB has chainbreaks, but old one doesn't?!
+- 2p42 new PDB has chainbreaks, but old one doesn't?!
+- 2p43 new PDB has chainbreaks, but old one doesn't?!
+- 2p48 new PDB has chainbreaks, but old one doesn't?!
+- 4g6k has a chainbreak in the H2
+- 4g6m has a chainbreak in the H2
+- 3phq has a chainbreak in the H2
+- 2p47 new PDB has chainbreaks, but old one doesn't?!
+- 4y5y has a chainbreak in the H2
 - 1oay has multiple Fvs in the PDB (new PDB select VHH, with chainbreak)
 - 1oax has multiple Fvs in the PDB (new PDB select VL only)
 - 1oar has multiple Fvs in the PDB (new PDB selects a broken one)
 - 1oau has multiple Fvs in the PDB (new PDB selects VHH, with chainbreak)
 
 **Present in both, but with different sequences (43)**
-- 4ydl
+- 4ydl old H2 sequence runs past 65 (to 67)
 - 1pg7 has multiple Fvs in the PDB
-- 1ol0
-- 5dtf
-- 5mje
-- 4toy
+- 1ol0 old H2 sequence stops at 64, not 65
+- 5dtf old H2 sequence runs past 65 (to 69)
+- 5mje old PBD has different numbering and is truncated
+- 4toy old PBD has different numbering and is truncated
 - 3uyr appears to have been mis-parsed in the old PDB
 - 4od1 has a tricky H3 (appears to have been mis-parsed in the old PDB)
-- 4m3j
-- 4m3k
-- 4kph
-- 4nzr
-- 5dmg
-- 4krn
+- 4m3j old H2 sequence misses residues 50-52 (why)
+- 4m3k old H2 sequence misses residues 50-52 (why)
+- 4kph old H2 sequence stops at 64, not 65
+- 4nzr old PBD has different numbering and is truncated
+- 5dmg old H2 sequence stops at 63, not 65
+- 4krn old H2 sequence stops at 62, not 65
 - 4krp has multiple Fvs in the PDB
-- 4ma3
-- 4z9k
+- 4ma3 old H2 sequence stops at 64, not 65
+- 4z9k old H2 sequence stops at 63, not 65
 - 3v52 appears to have been mis-parsed in the old PDB
 - 4rgn has multiple Fvs in the PDB
-- 4o51
+- 4o51 old H2 sequence stops at 64, not 65
 - 4k7p has the wrong sequence in the old antibody_info file
-- 5j57
+- 5j57 old H2 sequence misses residues 50-52 (why)
 - 3v4u appears to have been mis-parsed in the old PDB
-- 4ztp
-- 4zto
-- 5dub
-- 4o4y
-- 5dt1  appears to have been mis-parsed in the old PDB
-- 4jo3
-- 4s1q
+- 4ztp old H2 sequence stops at 64, not 65
+- 4zto old H2 sequence stops at 64, not 65
+- 5dub old H2 sequence stops at 63, not 65
+- 4o4y old H2 sequence stops at 64, not 65
+- 5dt1 appears to have been mis-parsed in the old PDB
+- 4jo3 old H2 sequence stops at 64, not 65
+- 4s1q old PBD has different numbering and is truncated
 - 5bv7 has multiple Fvs in the PDB
 - 4jpv has different numbering in the old PDB (unclear why)
-- 3gk8
-- 4fhb
+- 3gk8 old H2 sequence stops at 64, not 65
+- 4fhb old H2 sequence misses residues 50 & 51 (why)
 - 4nc1 has the wrong sequence in the old antibody_info file
-- 5ds8
-- 5dsc
-- 3dv4
+- 5ds8 old H2 sequence stops at 63, not 65
+- 5dsc old H2 sequence stops at 63, not 65
+- 3dv4 old H2 sequence stops at 63, not 65
 - 1flr old H2 sequence stops at 63, not 65
 - 3zkx has multiple Fvs in the PDB
 - 4x7d appears to have been mis-parsed in the old PDB
@@ -473,5 +476,5 @@ current approach does not yield as many outliers.
 1. Is it necessary to use the whole light+heavy sequences for the orientation
 alignment? Is this the best approach?
 2. Should we create a region-based exclusion list (maybe this was the outlier
-list from before)? There are some crazy, _e.g._ 4k3d, 5c7x, 5d7s, 5dt1
+list from before)? There are some crazy, _e.g._ 4k3d, 5c7x, 5d7s, 5dt1, 4s1q
 PDBs out there.

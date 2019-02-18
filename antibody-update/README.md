@@ -280,11 +280,11 @@ and then graft another).
 - 5ds8
 - 5dsc
 - 3dv4
-- 1flr
+- 1flr old H2 sequence stops at 63, not 65
 - 3zkx has multiple Fvs in the PDB
-- 4x7d
-- 4x7c
-- 3nps
+- 4x7d appears to have been mis-parsed in the old PDB
+- 4x7c old H2 sequence stops at 62, not 65
+- 3nps has different numbering in the old PDB (unclear why)
 
 #### CDR H3 Mismatches
 

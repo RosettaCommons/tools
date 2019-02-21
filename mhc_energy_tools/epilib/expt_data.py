@@ -123,7 +123,7 @@ class IEDBData (ExptData):
                 peptide = row['Epitope Description']
                 allele = row['MHC Allele Name']
                 if alleles is not None and allele not in alleles:
-                    print('skipping allele',allele)
+                    #print('skipping allele',allele)
                     continue
                 # only deal with peptides containing at least 9 amino acids
                 if len(peptide)<9 or any(aa not in AAs for aa in peptide): continue
@@ -140,7 +140,7 @@ class IEDBData (ExptData):
         mysql = 'mysql -u '+user
         if pw is not None: mysql += ' -p '+pw
         # http://www.iedb.org/database_export_v3.php
-        os.system(mysql + ' -e "drop database '+dbname+'; create database '+dbname+';"')
+        os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
         os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
 
     @staticmethod

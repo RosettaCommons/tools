@@ -1,4 +1,3 @@
-NATAA
 start
 45 C PIKAA DKT
 46 C PIKAA IL

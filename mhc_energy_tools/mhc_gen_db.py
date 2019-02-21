@@ -11,12 +11,11 @@ Precomputes epitope scores for a sequence and its considered mutations, storing 
 # - AA choices from resfile
 # - fancier scoring functions layered on predictions
 # - recompute the score column in a db from the other already-computed columns, with a different scoring function, allele subset/weights, etc.
-# - output as csv instead of db -- where to put metadata?
-# - merge dbs
 
-import itertools, argparse, csv, functools, operator
+import itertools, argparse, csv, functools, operator, os, sys
 from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_database import EpitopeDatabase
+from epilib.epitope_csv import EpitopeCSV
 from epilib.netmhcII import NetMHCII
 from epilib.sequence import load_fa, load_pdb
 
@@ -121,12 +120,16 @@ def setup_parser():
 - Currently only handles single sequence per file. Thus if using a pdb file with multiple chains, must specify which with --pdb_chain.
 - Pretty rudimentary handling of PDB files, padding missing residues with '_' (i.e., no epitopes) and generally dealing only with the standard twenty 3-letter AA codes
 - Wild-type is always considered at each position. If no other choices are provided, only wild-type epitopes are added to the database.
-- If the database already exists, it will be augmented. However, the excisting database must be for the same predictor and parameters, including alleles
+- "db" means sqlite3 file (random access); for simplicity, much of the same functionality is supported by "csv", comma-separated value format (read into a dictionary in memory)
+- The results are stored in the file indicated by "--db" or "--csv". 
+- If the specified "--db" or "--csv" exists, an error is raised unless "--overwrite" or "--augment" is indicated (augment currently only supported for db)
+- An existing "--db_in" or "--csv_in" can be provided; it is then copied into the output.
+- In the case of copying or augmenting, the epitope prediction parameters may be omitted and simply obtained from that. If provided, they must be consistent.
 - NetMHCII can be used in a single run as a subprocess, or in three steps -- use this to save out the peptides (don't provide db), run them through NetMHCII (executable or website), and use this to parse the raw output file
 - Res file generation needs chain info, which can be specified by --chain for fasta file and for selection from pdb file
     """)
     # where to get the sequence
-    source = parser.add_mutually_exclusive_group(required=True)
+    source = parser.add_mutually_exclusive_group()
     source.add_argument('--fa', help="name of file with single protein in fasta-ish format ('>' line optional)")
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
     parser.add_argument('--chain', help='name of chain to associate with fasta file or to extract from pdb file (when it includes more than one)')
@@ -162,33 +165,53 @@ def setup_parser():
     parser.add_argument('--peps_out', help='name of file in which to store raw list of peptide sequences covering choices, with one peptide per line')
     parser.add_argument('--res_out', help='name of file in which to store processed position-specific AA choices, in resfile format; requires chain to be specified by --chain')
     parser.add_argument('--res_header', help='resfile command (e.g. NATRO) to be applied in the resfile header, to be applied to all residues not explicitly specified in the resfile (i.e. with multiple allowed identities).  By default, no command will be included, which is the equivalent to ALLAA.')
-    # the database
-    parser.add_argument('db', nargs='?', help='name of sqlite3 database to store epitope information (create or augment)')
+    # the database(s)
+    out = parser.add_mutually_exclusive_group()
+    out.add_argument('--db', help='name of sqlite3 database to store epitope information (create or augment)')
+    out.add_argument('--csv', help='name of csv file to store epitope information (create)')
+    init = parser.add_mutually_exclusive_group()
+    init.add_argument('--db_in', help='name of sqlite3 database from which to retrieve initial epitope information')
+    init.add_argument('--csv_in', help='name of csv file from which to retrieve initial epitope information')
+    oa = parser.add_mutually_exclusive_group()
+    oa.add_argument('--augment', help='augment existing db (not currently supported for csv)', action='store_true')
+    oa.add_argument('--overwrite', help='overwrite existing db or csv', action='store_true')
 
     return parser
 
-def main(args):
+def main(args, argv):
     """Sets up an epitope prediction run based on the parsed args.
-    args: ArgumentParser"""
+    args: argparse.Namespace (to use)
+    argv: original sys.argv (to store)"""
     
     # epitope predictor
+    peptide_length = None
     if args.matrix is not None:
         pred = EpitopePredictorMatrix.load(args.matrix)
     elif args.netmhcii or args.netmhcii_raw is not None:
         pred = NetMHCII(score_type=args.netmhcii_score[0])
     elif args.netmhcii_raw is not None:
         pred = NetMHCII(nm_bin=False, score_type=args.netmhcii_score[0])
-    else:
+    elif args.propred:
         pred = Propred.load()
-    pred.thresh = args.epi_thresh
-
+    else:
+        pred = None
+    if pred:
+        pred.thresh = args.epi_thresh
+        peptide_length = pred.peptide_length
+        
     # alleles
+    alleles = None
+    if pred is not None: alleles = pred.alleles
     if args.allele_set is not None:
+        if pred is None:
+            raise Exception('allele_set is currently only useful in the context of a predictor')
         if args.allele_set not in pred.allele_sets: 
             raise Exception('allele_set '+args.allele_set+' not supported')
         pred.filter_alleles(pred.allele_sets[args.allele_set])
+        alleles = pred.alleles
     elif args.alleles is not None:
-        pred.filter_alleles(args.alleles.split(','))
+        alleles = args.alleles.split(',')
+        if pred is not None: pred.filter_alleles(alleles)
     
     # wild-type sequence
     if args.fa is not None:
@@ -209,14 +232,19 @@ def main(args):
             if len(desired_seq)>1:
                 raise Exception('parser fail: multiple chains %s in pdb file' % (args.chain,))
             wt = desired_seq[0]
+    else:
+        # when exporting from one db to another
+        wt = None
 
     # AA choices
     if args.aa_csv is not None:
         aa_choices = load_aa_choices_csv(wt, args.aa_csv)
     elif args.pssm is not None:
         aa_choices = load_aa_choices_pssm(wt, args.pssm, args.pssm_thresh)
-    else:
+    elif wt is not None:
         aa_choices = wt_choices(wt)
+    else:
+        aa_choices = None
         
     # positions
     def get_idx(s):
@@ -274,17 +302,56 @@ def main(args):
         if args.db is None and args.peps_out is None:
             # nothing more to do
             return
-        
-    # open (and maybe initialize) the database
-    if args.db is None:
-        db = None
+    
+    # open the initialization db
+    if args.db_in is not None:
+        init = EpitopeDatabase.for_reading(args.db_in)
+    elif args.csv_in is not None:
+        init = EpitopeCSV.for_reading(args.csv_in)
     else:
-        db = EpitopeDatabase.for_writing(args.db, pred.name, pred.alleles, pred.peptide_length)
+        init = None
+    # check consistency with alleles specified for predictor; if none, note alleles from init
+    if init is not None:
+        if alleles is None:
+            alleles = init.alleles
+        elif init.alleles != alleles: 
+            # TODO: handle case when alleles are in different order? ugh
+            raise Exception('alleles in init different from those specified')
+        if peptide_length is None:
+            peptide_length = init.peptide_length
+        elif init.peptide_length != peptide_length: 
+            raise Exception('peptide_length in init different from predictor')
+        
+    # need a predictor or an init, else can't do anything (and missing critical info -- alleles, peptide_length)
+    if init is None and pred is None: raise Exception('need predictor and/or initial database')
+    
+    # open (and maybe initialize) the output
+    out = None
+    if args.db is not None:
+        if os.path.exists(args.db):
+            if args.overwrite:
+                os.remove(args.db)
+            elif not args.augment:
+                raise Exception('database '+args.db+' already exists; specify --augment or --overwrite')
+        out = EpitopeDatabase.for_writing(args.db, ' '.join(argv), alleles, peptide_length)
+    elif args.csv is not None:
+        if os.path.exists(args.csv):
+            if args.overwrite:
+                os.remove(args.csv)
+            else:
+                raise Exception('csv file '+args.csv+' already exists; specify --overwrite')
+        out = EpitopeCSV.for_writing(args.csv, alleles, peptide_length)
+    if out is not None and init is not None:
+        out.save_scores(init.load_scores())
         
     if args.netmhcii_raw is not None:
         # process the raw binding predictions and store in the db
-        if db is None: raise Exception('need an output database into which to store the raw binding predictions')
-        db.save_scores(pred.load_file(args.netmhcii_raw))
+        if out is None: raise Exception('need an output db/csv into which to store the raw binding predictions')
+        out.save_scores(pred.load_file(args.netmhcii_raw))
+        return
+    
+    if wt is None:
+        # nothing more to do
         return
     
     if args.peps_out:
@@ -296,8 +363,8 @@ def main(args):
         import multiprocessing
         pool = multiprocessing.Pool(processes=args.nproc)
     
-    # generate peptides; optional save to file and/or score and save to db
-    pep_gen = generate_peptides(wt, aa_choices, pred.peptide_length, None if (db is None or db.is_new) else db)
+    # generate peptides; optional save and/or score
+    pep_gen = generate_peptides(wt, aa_choices, peptide_length, out)
     while True:
         batches = []
         # If using NetMHCII, get a batch of fresh peptides to send to each proc
@@ -320,23 +387,25 @@ def main(args):
                 for peptide in batch: peps_file.write(peptide+'\n')
             batches.append(batch)
         if len(batches)==0: break
-        if db is None: continue  # no scoring
+        if out is None: continue  # no scoring
         # farm out the scoring
         if nproc == 1:
             results = [pred.score_peptides(batch) for batch in batches]
         else:
             results = pool.map_async(pred.score_peptides, batches).get()
         for scores in results:
-            db.save_scores(scores)
+            out.save_scores(scores)
 
     if args.peps_out:
         peps_file.close()
+    if args.csv:
+        out.file.close()
 
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()
     try:
-        main(args)
+        main(args, sys.argv)
     except Exception as e:
         print('ERROR', e)
         print()

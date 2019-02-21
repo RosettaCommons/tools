@@ -8,6 +8,7 @@ Performs basic epitope prediction for a sequence or set of sequences, to support
 
 import argparse, csv, sys, os.path
 from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
+from epilib.epitope_csv import EpitopeCSV
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
 from epilib.sequence import Sequence, load_fa, load_pep, load_fsa, load_pdb
@@ -39,6 +40,7 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     parser.add_argument('--chain', help='if only care about one chain and pdb file has more than one, the id of the desired one')
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
+    pred.add_argument('--csv', help='name of csv database from which to load epitope predictions')
     pred.add_argument('--db', help='name of database from which to load epitope predictions')
     pred.add_argument('--matrix', help='generic epitope predictor matrix filename')
     pred.add_argument('--netmhcii', action='store_true', help='use netmhcII executable')
@@ -110,13 +112,15 @@ def handle_seq(seq, pred, args):
         
 def main(args):
     """Sets up an epitope prediction run based on the parsed args.
-    args: ArgumentParser"""
+    args: argparse.Namespace"""
     
     # epitope predictor
     if args.matrix is not None:
         pred = EpitopePredictorMatrix.load(args.matrix)
     elif args.netmhcii:
         pred = NetMHCII(score_type=args.netmhcii_score[0])
+    elif args.csv is not None:
+        pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
     elif args.db is not None:
         pred = EpitopeDatabase.for_reading(args.db, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
     else:

@@ -1,4 +1,3 @@
-NATAA
 start
 52 A PIKAA AV
 53 A PIKAA ILV

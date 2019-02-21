@@ -1,4 +1,3 @@
-NATAA
 start
 140 A PIKAA EK
 141 A PIKAA LF

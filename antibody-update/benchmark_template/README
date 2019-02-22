@@ -1,0 +1,24 @@
+This directory contains subdirectories with FASTAs derived from the PDB / directory name.
+
+You should copy this directory (twice) over before running grafting. 
+In a sense, this is an integration test. In another, this is a scientific test.
+Use one copy to run your baseline. Then your other copy can test something new
+(e.g. a new database or a new definition for the CDR H2 or something).
+
+You can use the shell scripts to run a quick graft (~5 mins per graft, but
+10 grafts per Ab are usually run with multi-template grafting). There is no
+need to run multi-template grafting unless this is a feature you'd like to test.
+Use -antibody:n_multi_templates 1 to run with a single template only.
+
+Run scripts as: `nohup ./run1.sh &> run1.out &`.
+
+Scripts split the grafting tasks into smaller set so they can be run in parallel.
+
+Once grafting has run, there are analysis scripts. The first will align Abs
+on conserved residues and compute RMSDs for key structural regions.
+The second will plot some of these results.
+
+Requirements:
+    - Rosetta executable "antibody" in your path
+    - PyRosetta (for analysis)
+    - R (for analysis)

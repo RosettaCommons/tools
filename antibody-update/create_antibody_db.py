@@ -833,8 +833,8 @@ def create_antibody_db():
     """
     Run all function require to setup the database.
     """
-    #download_antibody_pdbs()
-    #truncate_antibody_pdbs()
+    download_antibody_pdbs()
+    truncate_antibody_pdbs()
     write_info_files()
     create_blast_db()
     compare_orientations()

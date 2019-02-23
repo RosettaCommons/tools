@@ -33,7 +33,7 @@ def load_aa_choices_csv(wt, filename):
             else: choices[pos] += aas
     return choices
 
-def load_aa_choices_pssm(wt, filename, thresh=1):
+def load_aa_choices_pssm(wt, filename, thresh=1, startres=1):
     """Loads a BLAST PSSM-format file and returns as mutational choices those whose negative log probabilities are at least the threshold."""
     choices = wt_choices(wt)
     with open(filename, 'rt') as infile:
@@ -80,7 +80,6 @@ def load_aa_choices_pssm(wt, filename, thresh=1):
             if set(aa_order) == set('ACDEFGHIKLMNPQRSTVWY'): break
         
         #If aa_order not the 20 AAs (i.e. we reached the end of the file without finding it), raise an exception.
-        #print('aa order:', aa_order)
         if set(aa_order) != set('ACDEFGHIKLMNPQRSTVWY'):
             raise Exception("Could not process the PSSM format!\n\nSee tools/mhc_energy_tools/pssm_examples for supported formats.")
         
@@ -95,11 +94,11 @@ def load_aa_choices_pssm(wt, filename, thresh=1):
                     raise Exception("PSSM stopped at position "+str(pos))
                 # finished
                 break
-            if wt[pos] != cols[1]: raise Exception('mismatched PSSM vs. wt: %s, %s' % (cols[1], wt[pos]))
+            if wt[pos+startres-1] != cols[1]: raise Exception('mismatched PSSM vs. wt: %s, %s' % (cols[1], wt[pos+startres-1]))
             scores = [int(cols[j+2]) for j in range(20)]
             aas = [aa_order[j] for j in range(20) if scores[j]>=thresh]
-            if wt[pos] in aas: choices[pos] = aas
-            else: choices[pos] += aas
+            if wt[pos+startres-1] in aas: choices[pos+startres-1] = aas
+            else: choices[pos+startres-1] += aas
     return choices
 
 def generate_peptides(wt, aa_choices, peptide_length, db=None):
@@ -133,6 +132,7 @@ def setup_parser():
     source.add_argument('--fa', help="name of file with single protein in fasta-ish format ('>' line optional)")
     source.add_argument('--pdb', help='name of file with single protein embedded in pdb format (allowing chain breaks)')
     parser.add_argument('--chain', help='name of chain to associate with fasta file or to extract from pdb file (when it includes more than one)')
+    parser.add_argument('--firstres', help='when generating resfiles from a PSSM, if the PSSM is generated from a PDB file that does not start at residue 1, it will be detected as a mismatch.  This allows the first residue to be set to something other than 1.', type=int, default=1)
     # positions to mutate
     parser.add_argument('--positions', help='positions to consider mutating, format <start1>[-<end1>],<start2>[-<end2>],... where each comma-separated entry indicates either a single position <start> or an inclusive range <start>-<stop> (default: all positions)')
     # and positions not to mutate (punch holes in the position intervals)
@@ -240,7 +240,7 @@ def main(args, argv):
     if args.aa_csv is not None:
         aa_choices = load_aa_choices_csv(wt, args.aa_csv)
     elif args.pssm is not None:
-        aa_choices = load_aa_choices_pssm(wt, args.pssm, args.pssm_thresh)
+        aa_choices = load_aa_choices_pssm(wt, args.pssm, args.pssm_thresh, args.firstres)
     elif wt is not None:
         aa_choices = wt_choices(wt)
     else:
@@ -277,7 +277,6 @@ def main(args, argv):
                 i = get_idx(p)
                 aa_choices[i] = [wt[i]]
 
-    #print(aa_choices)
     if args.res_header is not None and args.res_out is None:
         raise Exception('--res_out must be specified if you want to apply a --res_header.')
     if args.res_out is not None:
@@ -293,6 +292,8 @@ def main(args, argv):
             for i in sorted(aa_choices):
                 if len(aa_choices[i])>1: # not just NATAA
                     outfile.write('%d %s PIKAA %s\n' % (i, wt.chain, ''.join(aa_choices[i])))
+                else: # Only one AA choice, which means it must be the WT residue
+                    outfile.write('%d %s NATAA\n' % (i, wt.chain))
 
     if args.estimate_size:
         sizes = dict((pos, functools.reduce(operator.mul, (len(aa_choices[pos+i]) for i in range(pred.peptide_length))))

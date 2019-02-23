@@ -1,3 +1,5 @@
+mkdir -p out
+
 #1 List Propred epitope hits (5%) for SakStar, using the default Southwood set of 8 alleles
 
 ../mhc_score.py --fa in/2sak_A.fasta --report hits 
@@ -18,7 +20,7 @@
 
 ../mhc_score.py --fa in/2sak_A.fasta --report hits --netmhcii --epi_thresh 10 --allele_set paul15 --report_file out/2sak_A.nm10p.csv
 
-#6 Theese things can be easier to see graphically (note though that since Propred uses 9mers and NetMHC 15mers, there's a shift)
+#6 These things can be easier to see graphically (note though that since Propred uses 9mers and NetMHC 15mers, there's a shift)
 
 ../mhc_score.py --fa in/2sak_A.fasta --plot_hits_file out/2sak_A.pp5.pdf
 ../mhc_score.py --fa in/2sak_A.fasta --netmhcii --epi_thresh 10 --allele_set greenbaum11 --plot_hits_file out/2sak_A.nm10g.pdf
@@ -61,9 +63,9 @@
 #13 Hit reports and plots for each of the three proteins, using Propred 5% and NetMHCII Greenbaum 10%
 # Use the $ wildcard to tell the script to substitute the appropriate sequence's name in the output filename
 
-../mhc_score.py --fsa in/all.fasta --report hits --report_file out/$.pp.csv --plot_hits_file out/$.pp5.pdf
+../mhc_score.py --fsa in/all.fasta --report hits --report_file out/$.batch.pp5.csv --plot_hits_file out/$.batch.pp5.pdf
 
-../mhc_score.py --fsa in/all.fasta --report hits --netmhcii --epi_thresh 10 --allele_set greenbaum11 --report_file out/$.nm10g.csv --plot_hits_file out/$.nm10g.pdf
+../mhc_score.py --fsa in/all.fasta --report hits --netmhcii --epi_thresh 10 --allele_set greenbaum11 --report_file out/$.batch.nm10g.csv --plot_hits_file out/$.batch.nm10g.pdf
 
 #TODO: a file with a bunch of designed variants of a single protein to be scored for comparison
 

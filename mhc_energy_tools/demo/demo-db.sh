@@ -1,3 +1,5 @@
+mkdir -p out
+
 # There's really no reason to create a database from Propred, since it's very fast anyway and can be directly invoked from within Rosetta. However, since it is faster and its peptides are shorter, it may be useful to try it first on your protein, as NetMHCII will be slower and have more peptides due to the combinatoric difference between 15mer vs. 9mer. You can also use the positions specification and an aggressive pssm filter to keep things under control.
 
 #1 Just wild-type epitopes, now stashed in a database

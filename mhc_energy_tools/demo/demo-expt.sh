@@ -1,3 +1,5 @@
+mkdir -p out
+
 # Download a fresh snapshot of IEDB and load it into a local database
 # For this, need to have mysql / mariadb up and running; example assumes login as root / no password
 # Also need to have installed mysql.connector https://dev.mysql.com/downloads/connector/python/

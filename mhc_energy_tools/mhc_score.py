@@ -85,7 +85,7 @@ def handle_seq(seq, pred, args):
             fn = args.report_file.replace('$', seq.name)
             with open(fn, 'a') as outfile:
                 outfile.write(seq.name + '\n')
-                csv.writer(outfile).writerows(rows)
+                csv.writer(outfile, lineterminator=os.linesep).writerows(rows)
                 outfile.write('\n')
             print('  saved to '+fn)
         else:

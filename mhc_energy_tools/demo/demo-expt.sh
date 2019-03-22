@@ -1,19 +1,55 @@
+# This demo runs a series of tests that use the IEDB download capabilities.
+# For this, need to have mysql / mariadb up and running, with access to a database.
+# Also need to have installed mysql.connector https://dev.mysql.com/downloads/connector/python/
+# By default, we assume that the database is called 'iedb' and you have root access with no password.
+# Arguments to the script will allow you to specify a database name, username, and password.
+
+#argparser for mysql settings
+dbname=iedb #Default mysql database name
+while getopts ":d:u:p:" opt; do
+	case ${opt} in
+		d ) dbname=$OPTARG
+			;;
+		u ) uname=$OPTARG
+			;;
+		p ) pword=$OPTARG
+			;;
+		\? ) echo "Usage: demo-expt.sh [-d mysql_database_name] [-u mysql_database_userid] [-p mysql_password]"
+			echo "The default mysql_database_name is iedb.  By default, no username or password are provided."
+			exit 1
+			;;
+		: ) echo "Invalid option: $OPTARG requires an argument, if provided."
+			exit 1
+			;;
+	esac
+done
+
+#Make the "sql string"
+#Ensures that we only pass the options with values to the python script
+if [ $uname ]; then
+	sqlstring="$sqlstring --mysql_user $uname"
+fi
+if [ $pword ]; then
+	sqlstring="$sqlstring --mysql_pw $pword"
+fi
+
 mkdir -p out
 
 # Download a fresh snapshot of IEDB and load it into a local database
-# For this, need to have mysql / mariadb up and running; example assumes login as root / no password
-# Also need to have installed mysql.connector https://dev.mysql.com/downloads/connector/python/
-# The download can take a while, so this example stops after the download and then the next example does something with it; it's possible also to do both in a single execution
-
 # I've left it commented out so you have to really want to execute it to do so, by copy-paste
+# Subsequent commands will not work unless you already have downloaded the db using this command, or you uncomment it.
 #../mhc_data_db.py --iedb_fresh_mysql iedb
+# With arguments:
+#../mhc_data_db.py --iedb_fresh_mysql iedb --mysql_user sqlusername --mysql_pw sqlpassword
+# Uncomment and run in this script:
+#../mhc_data_db.py --iedb_fresh_mysql $dbname $sqlstring
 
 # Pull out the DRB1*01:01 data (the 'test' allele-set), store all 9mer cores as potential epitopes
-../mhc_data_db.py --iedb_mysql iedb --allele_set test --csv out/iedb_0101_allcores.csv
+../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set test --csv out/iedb_0101_allcores.csv
 
 # Or just the good-enough cores according to Propred
 # Relies on 'test' allele-set being the same for both
-../mhc_data_db.py --iedb_mysql iedb --allele_set test --propred --cores predicted_good --csv out/iedb_0101_pp5cores.csv
+../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set test --propred --cores predicted_good --csv out/iedb_0101_pp5cores.csv
 
 # Now can scan a protein with this as the scorer
 # Note that the unseen score here is set to 0, since not being seen is good (the default is a penalty)

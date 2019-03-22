@@ -26,7 +26,7 @@ if (graft.analysis) {
   merge.both <- merge(subset(melt.both, label=="old"), subset(melt.both, label=="new"), by=c("pdb","model","variable"), all = T)
   
   # plot
-  violin.plot<-ggplot(subset(mboth, model==0 & variable!="ocd"), aes(x=variable, y=value, fill=label)) + geom_violin() + theme_bw(base_size=12) + guides(fill=F) + ylab("RMSD (A)") + xlab("Region")
+  violin.plot<-ggplot(subset(melt.both, model==0 & variable!="ocd"), aes(x=variable, y=value, fill=label)) + geom_violin() + theme_bw(base_size=12) + guides(fill=F) + ylab("RMSD (A)") + xlab("Region")
   ggsave(filename = "region_vs_rmsd_violins.pdf", plot = violin.plot,  width = 6, height = 4, units = "in")
   
   density.plot<-ggplot(subset(merge.both, model==0 ), aes(x=value.x - value.y)) + geom_density() + facet_wrap(~variable, scales="free") + theme_bw(base_size=12) + ylab("Density") + xlab("Old-New")

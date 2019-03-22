@@ -115,7 +115,7 @@ def main(args, argv):
     if args.iedb_csv is not None:
         data = IEDBData.from_csv(args.iedb_csv, data_allele_list, args.allele_set)
     elif args.iedb_mysql is not None:
-        data = IEDBData.from_mysql(args.iedb_mysql, data_allele_list, args.allele_set)
+        data = IEDBData.from_mysql(args.iedb_mysql, data_allele_list, args.allele_set, args.mysql_user, args.mysql_pw)
     elif args.iedb_fresh_mysql is not None:
         IEDBData.download_mysql(args.iedb_fresh_mysql, user=args.mysql_user, pw=args.mysql_pw)
         if data_allele_list is None and args.allele_set is None:

@@ -138,7 +138,7 @@ class IEDBData (ExptData):
     def download_mysql(dbname, user='root', pw=None):
         """Download IEDB database into local mysql database (blowing away whatever's there now)."""
         mysql = 'mysql -u '+user
-        if pw is not None: mysql += ' -p '+pw
+        if pw is not None: mysql += ' -p'+pw
         # http://www.iedb.org/database_export_v3.php
         os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
         os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')

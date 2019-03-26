@@ -100,14 +100,14 @@ def check_native_structure(native_path):
         for line in n:
             if line[13:15] == 'CA':
                 native_calphas += 1
-                native_sequence += line[17:20]
+                native_sequence += list(pfpd.THREE_TO_ONE_AA.keys())[list(pfpd.THREE_TO_ONE_AA.values()).index(line[17:20])]
     with open(receptor_path, 'r') as rec:
         rec_calphas = 0
         receptor_sequence = ''
         for line in rec:
             if line[13:15] == 'CA':
                 rec_calphas += 1
-                receptor_sequence += line[17:20]
+                receptor_sequence += list(pfpd.THREE_TO_ONE_AA.keys())[list(pfpd.THREE_TO_ONE_AA.values()).index(line[17:20])]
         complex_calphas = rec_calphas + pep_length
         complex_sequence = receptor_sequence + peptide_seq
     if native_calphas != complex_calphas or native_sequence != complex_sequence:
@@ -265,32 +265,32 @@ def create_params_file(frags):
     """Read only needed values from frags_file and store them in frags_parameters file"""
     if not os.path.isfile('frags_parameters'):
         parameters_sets = []
-        frags_parameters = open('frags_parameters', 'w+')
-        with open(frags) as frags_file:
-            all_file_lines = frags_file.readlines()
-        # Get parameters and save them in parameters_sets list
-        j = 0
-        for i in range(2, len(all_file_lines)):
-            if j % (pep_length + 1) == 0:
-                first_line_in_set = all_file_lines[i]
-                last_line_in_set = all_file_lines[i+(pep_length-1)]
-                seq = ""
-                for k in range(i, i+pep_length):
-                    line = all_file_lines[k].split()
-                    seq += line[3]
-                first_line_words = first_line_in_set.split()
-                last_line_words = last_line_in_set.split()
-                pdb = first_line_words[0]
-                chain = first_line_words[1]
-                start_res = first_line_words[2]
-                end_res = last_line_words[2]
-                parameters_sets.append([pdb, chain, start_res, end_res, seq])
-            j += 1
-        for item in parameters_sets:
-            for par in item:
-                frags_parameters.write("%s\t" % par)
-            frags_parameters.write("\n")
-        frags_parameters.close()
+        with open('frags_parameters', 'w') as frags_parameters:
+            with open(frags) as frags_file:
+                frags_lines = frags_file.readlines()
+            # Get parameters and save them in parameters_sets list
+            j = 0
+            for i in range(2, len(frags_lines)):  # - header
+                if j % (pep_length + 1) == 0:
+                    first_line_in_set = frags_lines[i]
+                    last_line_in_set = frags_lines[i+(pep_length-1)]
+                    seq = ""
+                    for k in range(i, i+pep_length):
+                        line = frags_lines[k].split()
+                        seq += line[3]
+                    first_line_words = first_line_in_set.split()
+                    last_line_words = last_line_in_set.split()
+                    pdb = first_line_words[0]
+                    chain = first_line_words[1]
+                    start_res = first_line_words[2]
+                    end_res = last_line_words[2]
+                    parameters_sets.append([pdb, chain, start_res, end_res, seq])
+                j += 1
+            for item in parameters_sets:
+                for par in item:
+                    frags_parameters.write("%s\t" % par)
+                frags_parameters.write("\n")
+
     with open('frags_parameters', 'r') as params:
         all_frags = params.readlines()
     return all_frags
@@ -315,7 +315,7 @@ def extract_frag(pdb, start, end, outfile):
             while cur_line[22:27].strip() != str(int(end) + 1):
                 frag.write(cur_line)
                 cur_line = full_pdb.readline()
-                if not cur_line:
+                if not cur_line or cur_line[:3] == 'TER':
                     return
 
 
@@ -336,8 +336,10 @@ def review_frag(outfile, sequence):
     with open(outfile) as frag:
         residues = ''
         cur_line = frag.readline()
+        while cur_line[0:4] != 'ATOM' and cur_line[0:6] != 'HETATM':
+            cur_line = frag.readline()
         for i in range(pep_length):
-            if cur_line[:4] == 'ATOM' and cur_line[17:20] == pfpd.THREE_TO_ONE_AA[sequence[i]]:
+            if cur_line[:4] == 'ATOM' and cur_line[0:6] != 'HETATM' and cur_line[17:20] == pfpd.THREE_TO_ONE_AA[sequence[i]]:
                 if cur_line[54:60].strip() == 0.00:
                     print("Zero occupancy atoms!")
                     return bad_frag(outfile)
@@ -358,27 +360,26 @@ def renumber_frag(fragment):
         pdb_lines = frag.readlines()
 
     i = 1  # residues counter
+    a_n = 1  # atom counter
     previous = 0
 
     for j in range(len(pdb_lines)):
         if pdb_lines[j][0:4] != 'ATOM' and pdb_lines[j][0:6] != 'HETATM':
             continue
-        elif j == len(pdb_lines) - 1:
+        elif j == len(pdb_lines) - 1:  # at the end of the file
             for line in pdb_lines[previous:]:
                 new_line = list(line)
-                if i < 10:
-                    new_line[22:26] = '   ' + str(i)
-                else:
-                    new_line[22:26] = '  ' + str(i)
+                new_line[22:26] = (4 - len(str(i)))*' ' + str(i)
+                new_line[6:11] = (5 - len(str(a_n)))*' ' + str(a_n)
+                a_n += 1
                 renumbered.append(''.join(new_line))
-        elif pdb_lines[j][17:20] != pdb_lines[j + 1][17:20]:
-            for line in pdb_lines[previous:j+1]:
+        elif pdb_lines[j + 1][12:15] == ' N ':  # beginning of the next residue
+            for line in pdb_lines[previous:j+1]:  # go back to the first atom of the current residue
                 new_line = list(line)
-                if i < 10:
-                    new_line[22:26] = '   ' + str(i)
-                else:
-                    new_line[22:26] = '  ' + str(i)
+                new_line[22:26] = (4 - len(str(i)))*' ' + str(i)
+                new_line[6:11] = (5 - len(str(a_n)))*' ' + str(a_n)
                 renumbered.append(''.join(new_line))
+                a_n += 1
             i += 1
             previous = j + 1
 
@@ -404,7 +405,7 @@ def process_frags(pep_sequence, fragments, add_frags_num=0):
     print("**************Extracting fragments**************")
     # Start and end residues numbers will not be used for fragment extraction - the fragments will be extracted
     # from fasta of sequentially renumbered pdb. Both, fasta file and renumbered pdb, are output of clean_pdb.py
-    # However, the original numbers will be used in fragment and it's resfile names
+    # The original numbers will only be used in fragment's and it's resfile names
     for frag in fragments:
         pdb = frag.split()[0]
         chain = frag.split()[1]
@@ -427,9 +428,9 @@ def process_frags(pep_sequence, fragments, add_frags_num=0):
 
             with open(fasta_name, 'r') as f:
                 fasta = f.read()
-            clean_fasta = fasta[fasta.find('\n') + 1:]
+            clean_fasta = fasta[fasta.find('\n') + 1:].strip()
             # These fasta_start and fasta_end numbers are only temporary numbers for fragments extraction
-            fasta_start = clean_fasta.find(sequence) + 1  # +1 because of zero-based numbering
+            fasta_start = clean_fasta.find(sequence) + 1
             if fasta_start == 0:  # -1 would mean 'sequence doesn't exist', but we added 1
                 print("no matching sequence")
                 continue
@@ -441,10 +442,10 @@ def process_frags(pep_sequence, fragments, add_frags_num=0):
             if is_frag_ok:
                 os.remove(pdb_full)
                 os.remove(fasta_name)
-                renumber_frag(outfile)
+                renumber_frag(outfile)  # the frag is sequentially renumbered --> resfile should be renumbered too
                 frags_count = count_pdbs(fragments_dir)
                 print("creating resfile")
-                create_resfile(pep_sequence, chain, fasta_start, sequence, fragment_name)
+                create_resfile(pep_sequence, chain, sequence, fragment_name)
                 pdb_resfiles_dict[outfile] = 'resfile_' + fragment_name
                 if frags_count >= pfpd.FRAGS_NUM + add_frags_num:
                     print("**************Finished with fragments**************")
@@ -461,7 +462,7 @@ def process_frags(pep_sequence, fragments, add_frags_num=0):
     return pdb_resfiles_dict
 
 
-def create_resfile(ori_seq, chain, start, sequence, fragment_name):
+def create_resfile(ori_seq, chain, sequence, fragment_name):
     """Create resfiles for each fragment individually"""
     cur_resfile = os.path.join(resfiles_dir, 'resfile_%s')
     # Create resfile for each fragment
@@ -471,9 +472,9 @@ def create_resfile(ori_seq, chain, start, sequence, fragment_name):
         chain = 'A'
     for i, res in enumerate(sequence):
         if res == ori_seq[i]:
-            resfile.write('\n' + str(i + int(start)) + ' ' + chain + ' NATRO')
+            resfile.write('\n' + str(i + 1) + ' ' + chain + ' NATRO')
         else:
-            resfile.write('\n' + str(i + int(start)) + ' ' + chain + ' PIKAA ' + ori_seq[i] +
+            resfile.write('\n' + str(i + 1) + ' ' + chain + ' PIKAA ' + ori_seq[i] +
                           ' EX 1 EX 2')
     resfile.close()
 
@@ -575,7 +576,8 @@ def run_fixbb(pdb_and_resfiles):
         print("**************Some fragments were defective. Extracting more fragments**************")
         # extract more frags and create a new dictionary for creating an xml
         new_frag_resfile_dict = extract_more_frags(fragments_needed, already_defective)
-        create_xml(new_frag_resfile_dict)
+        if jd3:
+            create_xml(new_frag_resfile_dict)
         run_fixbb(new_frag_resfile_dict)
 
 
@@ -687,11 +689,11 @@ def run_piper(processed_receptor):
         if not os.path.exists(run_dir):
             os.makedirs(run_dir)
         os.chdir(run_dir)
-        os.system(pfpd.COPY.format(os.path.join(piper_dir, 'ligands', 'lig.' + "{:04}".format(i) + '_nmin.pdb'),
-                                   'lig.' + "{:04}".format(i) + '_nmin.pdb'))
+        os.system(pfpd.COPY.format(os.path.join(piper_dir, 'ligands', 'lig.' + "{:04}".format(i) + '_pnon.pdb'),
+                                   'lig.' + "{:04}".format(i) + '_pnon.pdb'))
 
-        rec_name = os.path.join(piper_dir, receptor_name.lower() + '_nmin.pdb')
-        lig_name = 'lig.' + "{:04}".format(i) + '_nmin.pdb'
+        rec_name = os.path.join(piper_dir, receptor_name.lower() + '_pnon.pdb')
+        lig_name = 'lig.' + "{:04}".format(i) + '_pnon.pdb'
 
         # Here the job will be sent using SLURM workload manager. Change the following function if you
         # are using something else. The jobs list is needed for dependency settings

@@ -23,10 +23,6 @@ RUN_EXTRACT_TOP_MODEL = ['sbatch', 'extract_model']
 RUN_RESCORING = ['sbatch', 'rescoring']
 RUN_CLUSTERING = ['sbatch', 'run_clustering']
 
-#################################################################################################
-"""Attention! The next 2 functions send all the jobs to cluster. They are also SLURM dependent"""
-#################################################################################################
-
 
 def send_piper_job(jobs_list, rec_name, lig_name, ppk_receptor, refinement_dir):
     """run PIPER docking, extract top 250 decoys and prepare input for refinement"""

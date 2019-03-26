@@ -72,7 +72,7 @@ PREP_PDB = PIPER_DIR + 'protein_prep/prepare.py {}'
 
 
 ########################## Run PIPER and get collect structures fot refinement###################################
-# These commands are executed from the single run_piper script
+# These commands are executed from the run_piper script
 
 PIPER_DOCKING = PIPER_DIR + "piper -vv -c1.0 -k4 --msur_k=1.0 --maskr=1.0 -T FFTW_EXHAUSTIVE -R {decoys} -t 1 -p " \
                 + PIPER_DIR + "prms/atoms.prm -f " + PIPER_DIR + "prms/coeffs.prm -r " + PIPER_DIR + \

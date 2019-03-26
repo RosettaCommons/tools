@@ -172,7 +172,8 @@ class IEDBData (ExptData):
         print(query)
         
         import mysql.connector
-        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+        connection = mysql.connector.connect(database=dbname, user=user, password=pw, use_unicode=True) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+        # Note that the use_unicode=True above is supposed to be the default for the MySQL connector, but on some platforms, the output comes in bytearrays instead, so the option is necessary for those cases.
         cursor = connection.cursor()
         cursor.execute(query)
         # TODO: error handling

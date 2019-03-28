@@ -172,8 +172,7 @@ class IEDBData (ExptData):
         print(query)
         
         import mysql.connector
-        connection = mysql.connector.connect(database=dbname, user=user, password=pw, use_unicode=True) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
-        # Note that the use_unicode=True above is supposed to be the default for the MySQL connector, but on some platforms, the output comes in bytearrays instead, so the option is necessary for those cases.
+        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
         cursor = connection.cursor()
         cursor.execute(query)
         # TODO: error handling
@@ -182,6 +181,12 @@ class IEDBData (ExptData):
         nrows = 0
         for (peptide,iedb_allele,qual_measure) in cursor:
             nrows += 1
+            
+            # The mysql connector sometimes (but not always) returns bytearrays instead of strings.  Decode them to strings only if necessary.
+            if type(peptide) == bytearray: peptide = peptide.decode()
+            if type(iedb_allele) == bytearray: iedb_allele = iedb_allele.decode()
+            if type(qual_measure) == bytearray: qual_measure = qual_measure.decode()
+            
             if any(aa not in AAs for aa in peptide): continue
             measurements[peptide][IEDBData.std_name(iedb_allele)].append(qual_measure)
         print(nrows,'rows','=>',len(measurements),'peptides')

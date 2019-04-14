@@ -22,7 +22,7 @@ def get_core_hits(scores, pred, option):
     """Uses epitope predictor to generate 9mer core hits for the peptide epitope scores.
     scores: peptide => allele => score
     pred: EpitopePredictor returning 9mer
-    option: 'all', predicted_good', 'predicted_best' -- which core(s) #TODO enum?
+    option: 'all', predicted_good', 'predicted_best', 'full' -- which core(s) #TODO enum?
     returns: core => [allele] such that there is evidence that the core is for a peptide binder against allele
     """
     # TODO: currently just indicates whether there's evidence for a core binding an allele; nothing relative about strength of evidence
@@ -44,9 +44,11 @@ def get_core_hits(scores, pred, option):
                         core_hits[core].add(allele)
                         ncores += 1
                 # print(peptide,allele,ncores,'cores')
+            elif option == 'full':
+                core_hits[peptide].add(allele)
             else:
                 # TODO: implement
-                raise Exception('not implemented')
+                raise Exception(option+' not implemented')
     #print(len(core_hits),'cores')
     return core_hits
 
@@ -61,8 +63,10 @@ def setup_parser():
 - IEDB includes names that have only DRB as well as those paired up with DRA (e.g., HLA-DRB1*01:01 and HLA-DRA*01:01/DRB1*01:01); the predefined sets include both
 - IEDB also includes some not completely specified names (e.g., HLA-DR1); these are ignored but presumably could be pulled in with specific naming
 - If the specified "--db" or "--csv" exists, an error is raised unless "--overwrite" or "--augment" is indicated (augment currently only supported for db)
+- Peptides are of variable length, so are converted into one or more 9mer core(s) considered risky -- all of them, or just the best or "good enough" ones according to an epitope predictor. The 'full' option saves out the whole peptide without 'core'ing it; this can't be used in the current mhc_epitope score but might be useful.
 - If an epitope predictor is used, an attempt will be made to convert allele names to those used by the predictor
-- NetMHCII identifies one core per peptide (may be of low confidence), but matrices can identify multiple (or none)
+- NetMHCII (currently not supported) identifies one core per peptide (may be of low confidence), but matrices can identify multiple (or none)
+- Assay restrictions are currently only supported for queries to the local database, and currently are either just all/none for binding and elution separately. This follows IEDB's breakdown. The IEDB website allows finer-grained filtering; this script could be extended to do likewise.
     """)
 
     # where to get the data
@@ -70,12 +74,15 @@ def setup_parser():
     source.add_argument('--iedb_csv', help='name of IEDB-format csv export')
     source.add_argument('--iedb_mysql', help='name of mysql database holding IEDB-format tables')
     source.add_argument('--iedb_fresh_mysql', help='name of mysql database into which IEDB-format tables will be downloaded (via curl) and stored, to enable processing (note: blows away existing IEDB tables!)')
-
     parser.add_argument('--mysql_user', help='username for connecting to mysql database (default: %(default)s)', default='root')
     parser.add_argument('--mysql_pw', help='password for connecting to mysql database (default: %(default)s)', default=None)
 
+    # types of assay (following IEDB's breakdown)
+    source.add_argument('--assay_mhc_ligand_binding', help='which forms of MHC binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+    source.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+
     # from peptide to consistuent core 9mer(s)
-    parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s)', choices=['all','predicted_good','predicted_best'], default='all')
+    parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s)', choices=['all','predicted_good','predicted_best','full'], default='all')
     # subset of alleles to take from data
     alleles = parser.add_mutually_exclusive_group()
     alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15'])
@@ -93,7 +100,7 @@ def setup_parser():
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
 
-    # the database
+    # output db / file
     out = parser.add_mutually_exclusive_group()
     out.add_argument('--db', help='name of sqlite3 database to store epitope information (create or augment)')
     out.add_argument('--csv', help='name of csv file to store epitope information (create)')
@@ -112,16 +119,17 @@ def main(args, argv):
     data = None
     data_allele_list = None if args.alleles is None else args.alleles.split(',')
     if args.iedb_csv is not None:
+        if args.assay_mhc_ligand_binding != 'all' or args.assay_mhc_ligand_elution != 'all': print('csv currently cannot restrict assay type; ignoring that flag')
         data = IEDBData.from_csv(args.iedb_csv, data_allele_list, args.allele_set)
     elif args.iedb_mysql is not None:
-        data = IEDBData.from_mysql(args.iedb_mysql, data_allele_list, args.allele_set, args.mysql_user, args.mysql_pw)
+        data = IEDBData.from_mysql(args.iedb_mysql, args.assay_mhc_ligand_binding, args.assay_mhc_ligand_elution, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
     elif args.iedb_fresh_mysql is not None:
         IEDBData.download_mysql(args.iedb_fresh_mysql, user=args.mysql_user, pw=args.mysql_pw)
         if data_allele_list is None and args.allele_set is None:
             # only goal was to download the database, so bail
             return
         # else continue with the fresh db
-        data = IEDBData.from_mysql(args.iedb_fresh_mysql, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
+        data = IEDBData.from_mysql(args.iedb_fresh_mysql, args.assay_mhc_ligand_binding, args.assay_mhc_ligand_elution, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
     
     # alleles
     alleles = list(data.std_alleles)

@@ -6,6 +6,16 @@ Parsing experimental epitope data, currently with support for IEDB-downloaded fi
 @author: Chris Bailey-Kellogg, cbk@cs.dartmouth.edu; Brahm Yachnin, brahm.yachnin@rutgers.edu 
 """
 
+"""Notes during development
+* example query https://help.iedb.org/hc/en-us/articles/114094146451-Select-all-MHC-binding-assays-for-class-II-human-epitopes-with-a-SQL-queryAP
+
+select m.mhc_bind_id into outfile "~/Downloads/bind.csv" from mhc_bind m where m.mhc_allele_name in ('HLA-DRB1*01:01', 'HLA-DRA*01:01/DRB1*01:01') order by m.mhc_bind_id;
+select m.mhc_elution_id into outfile "~/Downloads/elute.csv" from mhc_elution m where m.mhc_allele_name in ('HLA-DRB1*01:01','HLA-DRA*01:01/DRB1*01:01') order by m.mhc_elution_id;
+-> combining these gives almost the same as what I get via web query (just restricting HLA type to 0101); web query has two additional sets of epitopes, apparently from two additional publications (recently added?)
+
+* fields http://curationwiki.iedb.org/wiki/index.php/Data_Field_Descriptions
+"""
+
 import collections, csv, os
 
 from epilib.sequence import AAs
@@ -125,8 +135,10 @@ class IEDBData (ExptData):
                 if alleles is not None and allele not in alleles:
                     #print('skipping allele',allele)
                     continue
-                # only deal with peptides containing at least 9 amino acids
-                if len(peptide)<9 or any(aa not in AAs for aa in peptide): continue
+                # only deal with peptides containing at least 9 amino acids and nothing funky
+                if len(peptide)<9 or any(aa not in AAs for aa in peptide):
+                    print('skipping',peptide)
+                    continue
                 std_allele = IEDBData.std_name(allele)
                 std_alleles.add(std_allele)
                 qual_measure = row['Assay Qualitative Measure']
@@ -144,40 +156,52 @@ class IEDBData (ExptData):
         os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
 
     @staticmethod
-    def from_mysql(dbname, alleles=None, allele_set=None, user='root', pw=None):
+    def from_mysql(dbname, assay_binding_filter, assay_elution_filter, alleles=None, allele_set=None, user='root', pw=None):
         """Loads from local mysql database downloaded from IEDB.
+        Either or both of data from the mhc_bind table and/or the mhc_elution table.
         A list of alleles or an allele_set name must be given."""
+
+        import mysql.connector
+        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+        cursor = connection.cursor()
+
         if allele_set is not None: alleles = IEDBData.allele_sets[allele_set]       
         if alleles is None: raise Exception('please specify alleles or allele_set')
         std_alleles = set(IEDBData.std_name(a) for a in alleles) # duplicates due to DRA
         
-        """Notes during development
-        * example query https://help.iedb.org/hc/en-us/articles/114094146451-Select-all-MHC-binding-assays-for-class-II-human-epitopes-with-a-SQL-queryAP
-
-        select m.mhc_bind_id into outfile "~/Downloads/bind.csv" from mhc_bind m where m.mhc_allele_name in ('HLA-DRB1*01:01', 'HLA-DRA*01:01/DRB1*01:01') order by m.mhc_bind_id;
-        select m.mhc_elution_id into outfile "~/Downloads/elute.csv" from mhc_elution m where m.mhc_allele_name in ('HLA-DRB1*01:01','HLA-DRA*01:01/DRB1*01:01') order by m.mhc_elution_id;
-        -> combining these gives almost the same as what I get via web query (just restricting HLA type to 0101); web query has two additional sets of epitopes, apparently from two additional publications (recently added?)
-
-        * fields http://curationwiki.iedb.org/wiki/index.php/Data_Field_Descriptions
-        """
-
-        # TODO: currently just binding data; also get elution from separate table (as in note above)
+        measurements = collections.defaultdict(lambda:collections.defaultdict(list)) # peptide => allele => [qual_measure]
+        if assay_binding_filter != 'none':
+            print('loading mhc ligand binding data')
+            IEDBData.load_table(cursor, measurements, 'mhc_bind', assay_binding_filter, alleles)
+        if assay_elution_filter != 'none':
+            print('loading mhc ligand elution data')
+            IEDBData.load_table(cursor, measurements, 'mhc_elution', assay_elution_filter, alleles)
         # TODO: t cell data?
-        # TODO: allow filtering on assay details
-        query = ('select e.linear_peptide_seq as peptide, m.mhc_allele_name as allele, m.as_char_value as qual_measure '
-                 'from mhc_bind m, curated_epitope ce, epitope_object eo, epitope e '
-                 'where m.curated_epitope_id=ce.curated_epitope_id and ce.e_object_id = eo.object_id and eo.epitope_id=e.epitope_id '
-                 'and length(e.linear_peptide_seq)>=9 '
-                 'and m.mhc_allele_name in ') + '(' + ','.join('"'+a+'"' for a in alleles) + ')'
+        print('=>',len(measurements),'peptides')
+
+        cursor.close()
+        connection.close()
+
+        return IEDBData('iedb mysql '+dbname, std_alleles, measurements, IEDBData.aggregate_measurements(measurements))
+
+    @staticmethod
+    def load_table(cursor, measurements, table, assay_filter, alleles):
+        # TODO: allow filtering on specific assay details (currently just ignoring assay_filter)
+
+        # Note: while the IEDB example suggests to get the linear_peptide_seq, that doesn't include modifications, whereas description seems to
+        # (e.g., id 95191 is 'AADAAAKAAAAAAA + MCM(3)' and a comment says that 'The third residue of the epitope is benzylaspartic acid')
+        # TODO: filter out modified peptides as part of the query?
+        query = """
+        select e.description as peptide, m.mhc_allele_name as allele, m.as_char_value as qual_measure 
+        from %s m, curated_epitope ce, epitope_object eo, epitope e
+        where m.curated_epitope_id=ce.curated_epitope_id and ce.e_object_id = eo.object_id and eo.epitope_id=e.epitope_id
+        and length(e.linear_peptide_seq)>=9
+        and m.mhc_allele_name in (%s)""" % (table, ','.join('"'+a+'"' for a in alleles))
         # print(query)
         
-        import mysql.connector
-        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
-        cursor = connection.cursor()
         cursor.execute(query)
         # TODO: error handling
         
-        measurements = collections.defaultdict(lambda:collections.defaultdict(list)) # peptide => allele => [qual_measure]
         nrows = 0
         for (peptide,iedb_allele,qual_measure) in cursor:
             nrows += 1
@@ -187,11 +211,10 @@ class IEDBData (ExptData):
             if type(iedb_allele) == bytearray: iedb_allele = iedb_allele.decode()
             if type(qual_measure) == bytearray: qual_measure = qual_measure.decode()
             
-            if any(aa not in AAs for aa in peptide): continue
+            # only deal with peptides containing nothing funky
+            # (in contrast to csv, the length condition was handled during the query; TODO: if it's of interest to print it out, modify accordingly)
+            if any(aa not in AAs for aa in peptide):
+                print('skipping',peptide)
+                continue
             measurements[peptide][IEDBData.std_name(iedb_allele)].append(qual_measure)
-        print(nrows,'rows','=>',len(measurements),'peptides')
-    
-        cursor.close()
-        connection.close()
-
-        return IEDBData('iedb mysql '+dbname, std_alleles, measurements, IEDBData.aggregate_measurements(measurements))
+        print(nrows,'rows')

@@ -46,10 +46,16 @@ mkdir -p out
 
 # Pull out the DRB1*01:01 data (the 'test' allele-set), store all 9mer cores as potential epitopes
 ../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set test --csv out/iedb_0101_allcores.csv
+# Sort the csv file to make the diff pass, leaving the header line alone
+(read -r; printf "%s\n" "$REPLY"; sort) < out/iedb_0101_allcores.csv > out/tmp
+mv out/tmp out/iedb_0101_allcores.csv
 
 # Or just the good-enough cores according to Propred
 # Relies on 'test' allele-set being the same for both
 ../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set test --propred --cores predicted_good --csv out/iedb_0101_pp5cores.csv
+# Sort the csv file to make the diff pass, leaving the header line alone
+(read -r; printf "%s\n" "$REPLY"; sort) < out/iedb_0101_pp5cores.csv > out/tmp
+mv out/tmp out/iedb_0101_pp5cores.csv
 
 # Now can scan a protein with this as the scorer
 # Note that the unseen score here is set to 0, since not being seen is good (the default is a penalty)
@@ -65,6 +71,9 @@ mkdir -p out
 # Do the same with a file saved from IEDB. Since 1eer turned out to be interesting, I downloaded its MHC II ligand assay data (from assay tab)
 
 ../mhc_data_db.py --iedb_csv in/iedb_epo_mhcii_assays.csv --allele_set test --csv out/iedb_epo_0101_allcores.csv
+# Sort the csv file to make the diff pass, leaving the header line alone
+(read -r; printf "%s\n" "$REPLY"; sort) < out/iedb_epo_0101_allcores.csv > out/tmp
+mv out/tmp out/iedb_epo_0101_allcores.csv
 ../mhc_score.py --fa in/1eer_A.fasta --csv out/iedb_epo_0101_allcores.csv --db_unseen score --db_unseen_score 0
 
 # 1eer_A 109.0

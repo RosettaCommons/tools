@@ -169,7 +169,7 @@ class IEDBData (ExptData):
                  'where m.curated_epitope_id=ce.curated_epitope_id and ce.e_object_id = eo.object_id and eo.epitope_id=e.epitope_id '
                  'and length(e.linear_peptide_seq)>=9 '
                  'and m.mhc_allele_name in ') + '(' + ','.join('"'+a+'"' for a in alleles) + ')'
-        print(query)
+        # print(query)
         
         import mysql.connector
         connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, ... ? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html

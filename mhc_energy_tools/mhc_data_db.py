@@ -70,7 +70,6 @@ def setup_parser():
     source.add_argument('--iedb_csv', help='name of IEDB-format csv export')
     source.add_argument('--iedb_mysql', help='name of mysql database holding IEDB-format tables')
     source.add_argument('--iedb_fresh_mysql', help='name of mysql database into which IEDB-format tables will be downloaded (via curl) and stored, to enable processing (note: blows away existing IEDB tables!)')
-    # TODO allow specifcying mysql username and password
 
     parser.add_argument('--mysql_user', help='username for connecting to mysql database (default: %(default)s)', default='root')
     parser.add_argument('--mysql_pw', help='password for connecting to mysql database (default: %(default)s)', default=None)
@@ -172,6 +171,7 @@ def main(args, argv):
         
     # TODO: seems like it would be nice to have a pointer from the core back to it source, from which we could then get details of the data
     
+    out = None
     if args.db is not None:
         if os.path.exists(args.db):
             if args.overwrite:
@@ -186,16 +186,18 @@ def main(args, argv):
             else:
                 raise Exception('csv file '+args.csv+' already exists; specify --overwrite')
         out = EpitopeCSV.for_writing(args.csv, alleles, 9)
-    out.save_scores(epimap)
+    if out is None:
+        print('no output generated')
+    else:
+        out.save_scores(epimap)
         
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()
-    main(args, sys.argv)
-    # TODO: protected main
-#    try:
-#        main(args)
-#    except Exception as e:
-#        print('ERROR', e)
-#        print()
-#        parser.print_usage()
+    # main(args, sys.argv)
+    try:
+        main(args, sys.argv)
+    except Exception as e:
+        print('ERROR', e)
+        print()
+        parser.print_usage()

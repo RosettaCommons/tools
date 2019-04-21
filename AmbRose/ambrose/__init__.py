@@ -1,18 +1,21 @@
-'''Tools for AMBER intercompatibility..'''
+'''Gonna be part of Ambrose. Attempts to import a pytraj Trajectory as a
+pyrosetta Pose.'''
 
 # pragma pylint: disable=bad-whitespace
 
 import re
-import collections
-import itertools
-import os
-import sys
-import tempfile
-import subprocess
-import warnings
 import datetime
-import copy
+import collections
 import weakref
+import copy
+import enum
+import itertools
+import tempfile
+import os
+import subprocess
+import sys
+import warnings
+
 from functools import reduce
 
 # pragma pylint: disable=import-error
@@ -24,36 +27,36 @@ from pyrosetta.rosetta.core.io import AtomInformation
 import pose_selectors
 
 AMBROSE_DIR = os.path.dirname(__file__)
-DEBUG = True
+DEBUG = False
 
 ### Helper functions and classes for dealing with Rosetta and AMBER
 ## Get certain Rosetta singleton objects
 
-def chemical_manager():
+def _chemical_manager():
     return pr.rosetta.core.chemical.ChemicalManager.get_instance()
 
-def global_element_set():
-    if not hasattr(global_element_set, 'es'):
-        global_element_set.es = chemical_manager().element_set('default')
-    return global_element_set.es
+def _global_element_set():
+    if not hasattr(_global_element_set, 'es'):
+        _global_element_set.es = _chemical_manager().element_set('default')
+    return _global_element_set.es
 
-def global_residue_type_set():
-    if not hasattr(global_residue_type_set, 'rts'):
-        global_residue_type_set.rts = \
-            chemical_manager().residue_type_set('fa_standard')
-    return global_residue_type_set.rts
+def _global_residue_type_set():
+    if not hasattr(_global_residue_type_set, 'rts'):
+        _global_residue_type_set.rts = \
+            _chemical_manager().residue_type_set('fa_standard')
+    return _global_residue_type_set.rts
 
 ## Work with Rosetta ResidueType objects
 
-def get_pr_res(name):
-    return global_residue_type_set().get_representative_type_base_name(name)
+def _get_pr_res(name):
+    return _global_residue_type_set().get_representative_type_base_name(name)
 
-def patch_pr_res(res, patch_name):
-    return global_residue_type_set().patch_map()[patch_name][1].apply(res)
+def _patch_pr_res(res, patch_name):
+    return _global_residue_type_set().patch_map()[patch_name][1].apply(res)
 
 ## Work with Rosetta Pose objects
 
-def check_pose_convertibility(pose, crd_path, top_path):
+def _check_pose_convertibility(pose, crd_path, top_path):
     '''Checks whether a Pose changes its topology upon being converted to AMBER
     coordinates and back, given the pose and the paths to the coordinates and
     topology files it's been converted to.
@@ -104,9 +107,10 @@ def check_pose_convertibility(pose, crd_path, top_path):
     # pylint: enable=no-member
 
 
-def transfer_xyz_from_pose_to_pose(source_pose, dest_pose):
+def _transfer_xyz_from_pose_to_pose(source_pose, dest_pose):
     '''Copy coordinates from one pose to another, assuming that they have the
     exact same topology (we don't bother to check).'''
+
     for i in range(1, dest_pose.size()+1):
         dest_r = dest_pose.residue(i)
         source_r = source_pose.residue(i) # pylint: disable=no-member
@@ -114,62 +118,6 @@ def transfer_xyz_from_pose_to_pose(source_pose, dest_pose):
             dest_r.set_xyz(j, source_r.xyz(j))
 
 ## Fake Mover class
-
-class _NotAMover:
-    '''Mimics the Mover class from Rosetta. Nearly every method raises a
-    NotImplementedError; it is therefore more of an interface than a class.
-    All getters and setters are implemented as Python properties, with "get"
-    and "set" removed from their names, if applicable. The methods that don't
-    raise NotImplementedError have docstrings.'''
-
-    def __init__(self):
-        raise NotImplementedError
-    @property
-    def name(self):
-        '''Name of Mover.'''
-        return 'UNDEFINED NAME'
-    @property
-    def self_ptr(self):
-        '''Pointer to Mover.'''
-        return self
-    @property
-    def self_weak_ptr(self):
-        '''Weak pointer to Mover.'''
-        return weakref.ref(self)
-    @staticmethod
-    def register_options():
-        raise NotImplementedError
-    def apply(self, pose):
-        raise NotImplementedError
-    def test_move(self, pose):
-        '''Copy of `apply`_, with possibility of overriding for testing.'''
-        self.apply(pose)
-    @property
-    def type(self):
-        raise NotImplementedError
-    @type.setter
-    def type(self, value):
-        raise NotImplementedError
-    @property
-    def input_pose(self):
-        raise NotImplementedError
-    @input_pose.setter
-    def input_pose(self, value):
-        raise NotImplementedError
-    @property
-    def native_pose(self):
-        raise NotImplementedError
-    @native_pose.setter
-    def native_pose(self, value):
-        raise NotImplementedError
-    def clone(self):
-        '''Returns copy of Mover.'''
-        return copy.copy(self)
-    def parse_my_tag(self, tag, data, filters, movers, pose):
-        raise NotImplementedError
-    def show(self, ostream=sys.stdout):
-        '''Prints a representation of the Mover.'''
-        print(self, file=ostream)
 
 ## Misc Rosetta stuff
 
@@ -210,7 +158,8 @@ def dump_amber_pdb(pose, pdb_path):
     pose : rosetta.core.Pose
         The pose to dump.
     pdb_path : str
-        The path at which to dump it.'''
+        The path at which to dump it.
+    '''
 
     fstream = pr.rosetta.std.ofstream(pdb_path,
                                       pr.rosetta.std._Ios_Openmode._S_out)
@@ -316,15 +265,16 @@ def fortran_str(x):
     raise ValueError('Can only convert ints, floats, bools, and certain '
                      'strings.')
 
-def sub_escape(s):
-    return s.replace('\\', r'\\').replace('/', r'\/')
-
-def timestamp():
+def _timestamp():
     '''Gets timestamp in standardized format.'''
 
     return datetime.datetime.now().isoformat()
 
-class NullContextManager:
+### Supporting classes
+
+## Misc
+
+class _NullContextManager:
     '''Does absolutely nothing when used as a context manager. Equivalent to
     Python 3.7's ``nullcontext`` class from the module ``contextlib``.'''
 
@@ -333,17 +283,8 @@ class NullContextManager:
     def __exit__(self, exc_type, exc_value, traceback):
         return False
 
-class TopologyError(RuntimeError):
-    '''An error encountered when there's something wrong with a topology.'''
+## Classes supporting TrajToPoses
 
-class TopologySizeError(TopologyError):
-    '''An error encountered when a topology has the wrong number of residues or
-    atoms.'''
-
-class TopologyTypeError(TopologyError):
-    '''An error encountered when a topology has the wrong kind of residues.'''
-
-### Classes (and one alternate dict constructor)
 class _AtomRecord:
     '''Describes the key properties of an atom in a PyRosetta ResidueType used
     to construct AtomInformation records, and its mapping onto an absolute
@@ -471,8 +412,8 @@ class _ResidueMap:
         self.first_atom_i = first_atom_i
         self.chain_id = '@'
 
-        base_res_type = get_pr_res(name)
-        res_type      = reduce(patch_pr_res, patches, base_res_type)
+        base_res_type = _get_pr_res(name)
+        res_type      = reduce(_patch_pr_res, patches, base_res_type)
 
         self.name3 = res_type.name3()
         self.atoms = []
@@ -579,8 +520,7 @@ class _StateID:
     def __eq__(self, other):
         if isinstance(other, _StateID):
             return self.id == other.id
-        else:
-            return False
+        return False
     def next(self):
         return _StateID(self.id + 1)
 
@@ -792,7 +732,398 @@ class _TopologyParser:
                 maps.append(res_map)
         return tuple(maps)
 
-### Front end functionality
+## Classes supporting the _AMBERMovers
+
+class _NotAMover:
+    '''Mimics the Mover class from Rosetta. Nearly every method raises a
+    NotImplementedError; it is therefore more of an interface than a class.
+    All getters and setters are implemented as Python properties, with "get"
+    and "set" removed from their names, if applicable. The methods that don't
+    raise NotImplementedError have docstrings.'''
+
+    def __init__(self):
+        raise NotImplementedError
+    @property
+    def name(self):
+        '''Name of Mover.'''
+        return 'UNDEFINED NAME'
+    @property
+    def self_ptr(self):
+        '''Pointer to Mover.'''
+        return self
+    @property
+    def self_weak_ptr(self):
+        '''Weak pointer to Mover.'''
+        return weakref.ref(self)
+    @staticmethod
+    def register_options():
+        raise NotImplementedError
+    def apply(self, pose):
+        raise NotImplementedError
+    def test_move(self, pose):
+        '''Copy of `apply`_, with possibility of overriding for testing.'''
+        self.apply(pose)
+    @property
+    def type(self):
+        raise NotImplementedError
+    @type.setter
+    def type(self, value):
+        raise NotImplementedError
+    @property
+    def input_pose(self):
+        raise NotImplementedError
+    @input_pose.setter
+    def input_pose(self, value):
+        raise NotImplementedError
+    @property
+    def native_pose(self):
+        raise NotImplementedError
+    @native_pose.setter
+    def native_pose(self, value):
+        raise NotImplementedError
+    def clone(self):
+        '''Returns copy of Mover.'''
+        return copy.copy(self)
+    def parse_my_tag(self, tag, data, filters, movers, pose):
+        raise NotImplementedError
+    def show(self, ostream=sys.stdout):
+        '''Prints a representation of the Mover.'''
+        print(repr(self), file=ostream)
+
+class _AMBERMover(_NotAMover):
+    '''Not a real mover; rather, a superclass for all "movers" using AMBER.
+    The apply_ method actually does something: it minimizes the pose for
+    500 steps in AMBER. This doesn't change the final state of the pose, but
+    it doesn't delete the files, either. This is meant to serve as the first
+    step of any AMBER operation, and is ideally called as a super before the
+    subclass's apply. See its docstring for details on the kinds of files it
+    creates.'''
+
+    LEAP_SUFFIXES = {
+        'crd_path' : '-inpcrd.rst7',
+        'top_path' : '-prmtop.parm7',
+        'log_path' : '-leap.log'
+    }
+    MIN_SUFFIXES = {
+        'prmtop' : '-prmtop.parm7',
+        'inpcrd' : '-inpcrd.rst7',
+        'restrt' : '-min-restrt.nc',
+        'mdinfo' : '-min-mdinfo',
+        'mdin'   : '-min-mdin.in',
+        'mdout'  : '-min-mdout.out',
+        'refc'   : '-refc.rst7'
+    }
+    MD_SUFFIXES = {
+        'prmtop' : '-prmtop.parm7',
+        'inpcrd' : '-min-restrt.nc',
+        'restrt' : '-restrt.nc',
+        'mdcrd'  : '-mdcrd.nc',
+        'mdinfo' : '-mdinfo',
+        'mdin'   : '-mdin.in',
+        'mdout'  : '-mdout.out',
+        'refc'   : '-refc.rst7'
+    }
+
+    def __init__(self, working_dir='', prefix=None, solvent=None,
+                 solvent_shape=SolventShape.OCT, cutoff=15., ref_pose=None,
+                 cst_mask=None, cst_weight=None):
+        self._working_dir = working_dir
+        self._prefix = prefix
+        self._ref_pose = ref_pose
+        self._solvent = solvent
+        self._solvent_shape = solvent_shape
+        wet = solvent is not None
+        self._amber_executable = 'pmemd' if wet else 'sander'
+        common_dict = {'igb': int(not wet),
+                       'ntb': int(wet),
+                       'cut': cutoff}
+        if cst_mask is not None:
+            common_dict['restraintmask'] = cst_mask
+        if cst_weight is not None:
+            common_dict['restraint_wt'] = cst_weight
+        self._min_mdin_dict = {'imin': 1, **common_dict}
+        self._mdin_dict = {**common_dict}
+    @property
+    def name(self):
+        return 'UNDEFINED _AMBERMover'
+    @property
+    def working_dir(self):
+        '''str or None: Working directory in which intermediate files are
+        stored. If set to None, will use a temporary directory that gets deleted
+        once the AMBER operation is finished (not recommended). Current directory
+        by default.'''
+        return self._working_dir
+    @working_dir.setter
+    def working_dir(self, value):
+        self._working_dir = value
+    @property
+    def prefix(self):
+        return self._prefix
+    @prefix.setter
+    def prefix(self, value):
+        self._prefix = value
+    @property
+    def solvent(self):
+        '''Solvent or None: The type of solvent to use for an explicit-solvent
+        simulation, if any. If this is set to None, an implicit-solvent
+        simulation will be performed instead. None by default.'''
+        return self._solvent
+    @solvent.setter
+    def solvent(self, value):
+        self._solvent = value
+        wet = value is not None
+        self._min_mdin_dict['igb'] = int(not wet)
+        self._min_mdin_dict['ntb'] = int(wet)
+        self._mdin_dict['igb'] = int(not wet)
+        self._mdin_dict['ntb'] = int(wet)
+        self._amber_executable = 'pmemd' if wet else 'sander'
+    @property
+    def solvent_shape(self):
+        '''SolventShape: The shape of solvent to use for an explicit-solvent
+        simulation. ``OCT`` by default.'''
+        return self._solvent_shape
+    @solvent_shape.setter
+    def solvent_shape(self, value):
+        self._solvent_shape = value
+    @property
+    def cutoff(self):
+        '''int or float: Van der Waals cutoff in angstroms. 15 by default.'''
+        if self._min_mdin_dict['cut'] != self._mdin_dict['cut']:
+            warnings.warn('Van der Waals cutoff values don\'t match for '
+                          'minimization and simulation. To fix this, assign '
+                          'something to cutoff. Returning simulation cutoff '
+                          'value.',
+                          RuntimeWarning)
+        return self._mdin_dict['cut']
+    @cutoff.setter
+    def cutoff(self, value):
+        self._min_mdin_dict['cut'] = value
+        self._mdin_dict['cut'] = value
+    @property
+    def ref_pose(self):
+        '''Pose or None: Reference Pose to give coordinate constraints, if any.
+        It is safe to use the Pose that you are operating on for this purpose,
+        if you want to constrain the Pose to its original coordinates; you just
+        won't be able to use it again after an `apply`_, since the Pose will
+        change.'''
+        return self._ref_pose
+    @ref_pose.setter
+    def ref_pose(self, value):
+        self._ref_pose = value
+    @property
+    def cst_mask(self):
+        '''str or None: Atom mask string specifying which atoms are affected by
+        the coordinate constraints. Given in ambmask syntax: see section 19.1 of
+        the 2018 AMBER manual, on page 395.'''
+        try:
+            return self._mdin_dict['restraintmask']
+        except KeyError:
+            return None
+    @cst_mask.setter
+    def cst_mask(self, value):
+        if value is None:
+            try:
+                del self._min_mdin_dict['restraintmask']
+            except KeyError:
+                pass
+            try:
+                del self._mdin_dict['restraintmask']
+            except KeyError:
+                pass
+            return
+        self._min_mdin_dict['restraintmask'] = value
+        self._mdin_dict['restraintmask'] = value
+    @property
+    def cst_weight(self):
+        '''int or float or None: Weight of coordinate constraints, in
+        kcal/mol/angstroms^2.'''
+        try:
+            return self._mdin_dict['restraint_wt']
+        except KeyError:
+            return None
+    @cst_weight.setter
+    def cst_weight(self, value):
+        if value is None:
+            try:
+                del self._min_mdin_dict['restraint_wt']
+            except KeyError:
+                pass
+            try:
+                del self._mdin_dict['restraint_wt']
+            except KeyError:
+                pass
+            return
+        self._min_mdin_dict['restraint_wt'] = value
+        self._mdin_dict['restraint_wt'] = value
+    @property
+    def min_mdin_dict(self):
+        '''Key-value pairs for AMBER minimization parameters. Only tamper with
+        these if you've ever made a NAMELIST file for an AMBER simulation
+        (because that's what this describes). For all available parameters, see
+        section 17.6 of the 2018 AMBER manual, on page 320.'''
+
+        return self._min_mdin_dict
+    @min_mdin_dict.setter
+    def min_mdin_dict(self, value):
+        assert isinstance(value, dict), 'min_mdin_dict must be a dict.'
+        self._min_mdin_dict = value
+    @property
+    def mdin_dict(self):
+        '''dict: Key-value pairs for AMBER simulation parameters. Only tamper
+        with these if you've ever made a NAMELIST file for an AMBER simulation
+        (because that's what this describes). For all available parameters, see
+        section 17.6 of the 2018 AMBER manual, on page 320.'''
+
+        return self._mdin_dict
+    @mdin_dict.setter
+    def mdin_dict(self, value):
+        assert isinstance(value, dict), 'mdin_dict must be a dict.'
+        self._mdin_dict = value
+    def _make_run_md_args(self, *, working_dir, prefix, minp):
+        '''Create a dict of keyword arguments that can be passed to `run_md`_
+        for a particular run, based on some local variables calculated during
+        an `apply`_ call. Intended for internal use during said calls.
+
+        Parameters
+        ----------
+        working_dir : str or TemporaryDirectory
+            Object representing current working directory and behaving like a
+            string.
+        prefix : str
+            Prefix used for this run.
+        minp : bool
+            Whether to produce args for a minimization (True) or a simulation
+            (False).
+
+        Returns
+        -------
+        dict
+            Dict of arguments that can be unpacked into a `run_md`_ call during
+            an `apply`_ call when all the necessary files already exist.
+        '''
+
+        suffix_dict = _AMBERMover.MIN_SUFFIXES if minp \
+                      else _AMBERMover.MD_SUFFIXES
+        args = {key: os.path.join(working_dir, prefix+suffix) \
+                for key, suffix in suffix_dict.items()}
+        args['executable'] = self._amber_executable
+        args['overwrite'] = True
+        if self.ref_pose is None:
+            del args['refc']
+        args['mdin_dict'] = copy.copy(self._min_mdin_dict if minp \
+                                      else self._mdin_dict)
+        return args
+    def apply(self, pose):
+        '''This half of apply will create a topology file for the pose, and
+        minimize it in AMBER, which is the bare minimum for what you need to do
+        before running a simulation. The topology file will be stored at
+        ``[working_dir]/[prefix]-prmtop.parm7``, and the restart file for the
+        minimized structure will be stored at
+        ``[working_dir]/[prefix]-min-restrt.nc``. The local variables
+        ``working_dir``, ``prefix``, and ``min_paths`` will be returned in a
+        tuple, to be used for the second half, to be written in the subclass.
+
+        Parameters
+        ----------
+        pose : rosetta.core.Pose
+            Pose to minimize.
+
+        Returns
+        -------
+        (str or TemporaryDirectory, str, dict)
+            A tuple containing the local variables ``working_dir``,
+            ``prefix``, and ``min_args``. ``working_dir`` is a string or
+            TemporaryDirectory object representing the directory where the
+            intermediate files are stored, which must be kept alive under most
+            circumstances to prevent the directory from being deleted in the
+            case that it's temporary. ``prefix`` is the string prefix for files
+            created during this run; if the preperty `prefix`_ is set, it will
+            be equal to it. ``min_args`` is a dict representing the arguments
+            that were passed to `run_md`_ during the minimization that occurred
+            when this `apply`_ was called.
+        '''
+
+        working_dir = self.working_dir if self.working_dir is not None \
+                      else tempfile.TemporaryDirectory()
+        prefix = _timestamp() if self.prefix is None else self.prefix
+        leap_args = {key: os.path.join(working_dir, prefix+suffix) \
+                     for key, suffix in _AMBERMover.LEAP_SUFFIXES.items()}
+        leap_args['solvent'] = self.solvent
+        leap_args['solvent_shape'] = self.solvent_shape
+        pose_to_amber_params(pose, **leap_args)
+        _check_pose_convertibility(pose,
+                                   leap_args['crd_path'],
+                                   leap_args['top_path'])
+        min_args = self._make_run_md_args(working_dir=working_dir,
+                                          prefix=prefix,
+                                          minp=True)
+        ref_pose = self.ref_pose
+        if ref_pose is not None:
+            ref_leap_args = copy.copy(leap_args)
+            ref_leap_args['crd_path'] = min_args['refc']
+            pose_to_amber_params(ref_pose, **leap_args)
+            # Check whether AMBER-ified Pose has the same topology as the
+            # original Pose. If it doesn't, then all our work would be for
+            # naught (since leaving the missing residues in their places
+            # wouldn't make sense, and deleting them would be rude), so we
+            # raise a TopologyError and call it a day.
+            _check_pose_convertibility(ref_pose,
+                                       ref_leap_args['crd_path'],
+                                       ref_leap_args['top_path'])
+        run_md(**min_args)
+        # Actual .apply methods aren't supposed to return anything, but this is
+        # only half of one; all the local variables need to get carried over,
+        # especially working_dir (so that it doesn't get destroyed in the case
+        # that it's a temporary directory).
+        return working_dir, prefix, min_args
+
+## Classes supporting pose_to_amber_params
+
+class Solvent(enum.Enum):
+    '''A solvent choice for anything that requires you to set or provide a
+    solvent, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
+
+    SPCE_WATER
+        SPC/E (extended simple point charge) waters.
+    TIP3P_WATER
+        TIP3P (transferable intramolecular potential with 3 points) waters.
+    METHANOL
+        Methanol.
+    '''
+
+    SPCE_WATER = 'SPCE_WATER'
+    TIP3P_WATER = 'TIP3P_WATER'
+    METHANOL = 'METHANOL'
+
+class SolventShape(enum.Enum):
+    '''The choice of shape for the periodic boundaries you're using for an
+    explicit-solvent simulation, for anything that requires you to set or
+    provide it, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
+
+    BOX
+        Rectangular prism.
+    OCT
+        Truncated octahedron.
+    '''
+
+    BOX = 'BOX'
+    OCT = 'OCT'
+
+### Front end classes
+
+## Errors
+
+class TopologyError(RuntimeError):
+    '''An error encountered when there's something wrong with a topology.'''
+
+class TopologySizeError(TopologyError):
+    '''An error encountered when a topology has the wrong number of residues or
+    atoms.'''
+
+class TopologyTypeError(TopologyError):
+    '''An error encountered when a topology has the wrong kind of residues.'''
+
+## TrajToPoses
 
 class TrajToPoses:
     '''A container that provides a ``Pose`` for each frame of a given pytraj
@@ -876,296 +1207,10 @@ class TrajToPoses:
         sfr.header().finalize_parse()
 
         pose = pr.Pose()
-        rts = global_residue_type_set()
+        rts = _global_residue_type_set()
         options = pr.rosetta.core.import_pose.ImportPoseOptions()
         pr.rosetta.core.import_pose.build_pose_as_is(sfr, pose, rts, options)
         return pose
-
-class _AMBERMover(_NotAMover):
-    '''Not a real mover; rather, a superclass for all "movers" using AMBER.
-    The apply_ method actually does something: it minimizes the pose for
-    500 steps in AMBER. This doesn't change the final state of the pose, but
-    it doesn't delete the files, either. This is meant to serve as the first
-    step of any AMBER operation, and is ideally called as a super before the
-    subclass's apply. See its docstring for details on the kinds of files it
-    creates.'''
-
-    LEAP_SUFFIXES = {
-        'crd_path' : '-inpcrd.rst7',
-        'top_path' : '-prmtop.parm7',
-        'log_path' : '-leap.log'
-    }
-    MIN_SUFFIXES = {
-        'prmtop' : '-prmtop.parm7',
-        'inpcrd' : '-inpcrd.rst7',
-        'restrt' : '-min-restrt.nc',
-        'mdinfo' : '-min-mdinfo',
-        'mdin'   : '-min-mdin.in',
-        'mdout'  : '-min-mdout.out',
-        'refc'   : '-refc.rst7'
-    }
-    MD_SUFFIXES = {
-        'prmtop' : '-prmtop.parm7',
-        'inpcrd' : '-min-restrt.nc',
-        'restrt' : '-restrt.nc',
-        'mdcrd'  : '-mdcrd.nc',
-        'mdinfo' : '-mdinfo',
-        'mdin'   : '-mdin.in',
-        'mdout'  : '-mdout.out',
-        'refc'   : '-refc.rst7'
-    }
-
-    def __init__(self, working_dir='', prefix=None, wet=False, cutoff=15.,
-                 ref_pose=None, cst_mask=None, cst_weight=None):
-        assert isinstance(wet, bool), 'Value for \'wet\' must be a boolean.'
-        self._working_dir = working_dir
-        self._prefix = prefix
-        self._ref_pose = ref_pose
-        self._amber_executable = 'pmemd' if wet else 'sander'
-        common_dict = {'igb': int(not wet),
-                       'ntb': int(wet),
-                       'cut': cutoff}
-        if cst_mask is not None:
-            common_dict['restraintmask'] = cst_mask
-        if cst_weight is not None:
-            common_dict['restraint_wt'] = cst_weight
-        self._min_mdin_dict = {'imin': 1, **common_dict}
-        self._mdin_dict = {**common_dict}
-    @property
-    def name(self):
-        return 'UNDEFINED AMBERMover'
-    @property
-    def working_dir(self):
-        '''Working directory in which intermediate files are stored. If set to
-        None, will use a temporary directory that gets deleted once the AMBER
-        operation is finished (not recommended). Current directory by
-        default.'''
-        return self._working_dir
-    @working_dir.setter
-    def working_dir(self, value):
-        self._working_dir = value
-    @property
-    def prefix(self):
-        return self._prefix
-    @prefix.setter
-    def prefix(self, value):
-        self._prefix = value
-    @property
-    def wet(self):
-        '''Boolean representing whether the simulation is explicit-solvent or
-        not. False by default.'''
-        assert self._mdin_dict['igb'] == self._min_mdin_dict['igb'], \
-            ('Wetness values for minimization and simulation don\'t match; '
-             'this is terrible. Assign True or False to this mover\'s .wet '
-             'parameter.')
-        if self._mdin_dict['igb'] == 0 and self._mdin_dict['ntb'] == 0:
-            warnings.warn('Your simulation is wet, but your boundaries aren\'t '
-                          'periodic. This probably isn\'t what you want. To '
-                          'fix this, assign True or False to this mover\'s '
-                          '.wet parameter.',
-                          RuntimeWarning)
-        return not bool(self._mdin_dict['igb'])
-    @wet.setter
-    def wet(self, value):
-        assert isinstance(value, bool), 'Value for \'wet\' must be a boolean.'
-        self._min_mdin_dict['igb'] = int(not value)
-        self._min_mdin_dict['ntb'] = int(value)
-        self._mdin_dict['igb'] = int(not value)
-        self._mdin_dict['ntb'] = int(value)
-        self._amber_executable = 'pmemd' if value else 'sander'
-    @property
-    def cutoff(self):
-        '''Van der Waals cutoff in angstroms. 15 by default.'''
-        if self._min_mdin_dict['cut'] != self._mdin_dict['cut']:
-            warnings.warn('Van der Waals cutoff values don\'t match for '
-                          'minimization and simulation. To fix this, assign '
-                          'something to cutoff. Returning simulation cutoff '
-                          'value.',
-                          RuntimeWarning)
-        return self._mdin_dict['cut']
-    @cutoff.setter
-    def cutoff(self, value):
-        self._min_mdin_dict['cut'] = value
-        self._mdin_dict['cut'] = value
-    @property
-    def ref_pose(self):
-        '''Reference Pose to give coordinate constraints, if any. It is safe to
-        use the Pose that you are operating on for this purpose, if you want to
-        constrain the Pose to its original coordinates; you just won't be able
-        to use it again after an `apply`_, since the Pose will change.'''
-        return self._ref_pose
-    @ref_pose.setter
-    def ref_pose(self, value):
-        self._ref_pose = value
-    @property
-    def cst_mask(self):
-        '''Atom mask string specifying which atoms are affected by the
-        coordinate constraints. Given in ambmask syntax: see section 19.1 of the
-        2018 AMBER manual, on page 395.'''
-        try:
-            return self._mdin_dict['restraintmask']
-        except KeyError:
-            return None
-    @cst_mask.setter
-    def cst_mask(self, value):
-        if value is None:
-            try:
-                del self._min_mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            try:
-                del self._mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraintmask'] = value
-        self._mdin_dict['restraintmask'] = value
-    @property
-    def cst_weight(self):
-        '''Weight of coordinate constraints, in kcal/mol/angstroms^2.'''
-        try:
-            return self._mdin_dict['restraint_wt']
-        except KeyError:
-            return None
-    @cst_weight.setter
-    def cst_weight(self, value):
-        if value is None:
-            try:
-                del self._min_mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            try:
-                del self._mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraint_wt'] = value
-        self._mdin_dict['restraint_wt'] = value
-    @property
-    def min_mdin_dict(self):
-        '''Key-value pairs for AMBER minimization parameters. Only tamper with
-        these if you've ever made a NAMELIST file for an AMBER simulation
-        (because that's what this describes). For all available parameters, see
-        section 17.6 of the 2018 AMBER manual, on page 320.'''
-
-        return self._min_mdin_dict
-    @min_mdin_dict.setter
-    def min_mdin_dict(self, value):
-        assert isinstance(value, dict), 'min_mdin_dict must be a dict.'
-        self._min_mdin_dict = value
-    @property
-    def mdin_dict(self):
-        '''Key-value pairs for AMBER simulation parameters. Only tamper with
-        these if you've ever made a NAMELIST file for an AMBER simulation
-        (because that's what this describes). For all available parameters, see
-        section 17.6 of the 2018 AMBER manual, on page 320.'''
-
-        return self._mdin_dict
-    @mdin_dict.setter
-    def mdin_dict(self, value):
-        assert isinstance(value, dict), 'mdin_dict must be a dict.'
-        self._mdin_dict = value
-    def _make_run_md_args(self, *, working_dir, prefix, minp):
-        '''Create a dict of keyword arguments that can be passed to `run_md`_
-        for a particular run, based on some local variables calculated during
-        an `apply`_ call. Intended for internal use during said calls.
-
-        Parameters
-        ----------
-        working_dir : str or TemporaryDirectory
-            Object representing current working directory and behaving like a
-            string.
-        prefix : str
-            Prefix used for this run.
-        minp : bool
-            Whether to produce args for a minimization (True) or a simulation
-            (False).
-
-        Returns
-        -------
-        dict
-            Dict of arguments that can be unpacked into a `run_md`_ call during
-            an `apply`_ call when all the necessary files already exist.
-        '''
-
-        suffix_dict = _AMBERMover.MIN_SUFFIXES if minp \
-                      else _AMBERMover.MD_SUFFIXES
-        args = {key: os.path.join(working_dir, prefix+suffix) \
-                for key, suffix in suffix_dict.items()}
-        args['executable'] = self._amber_executable
-        args['overwrite'] = True
-        if self.ref_pose is None:
-            del args['refc']
-        args['mdin_dict'] = copy.copy(self._min_mdin_dict if minp \
-                                      else self._mdin_dict)
-        return args
-    def apply(self, pose):
-        '''This half of apply will create a topology file for the pose, and
-        minimize it in AMBER, which is the bare minimum for what you need to do
-        before running a simulation. The topology file will be stored at
-        ``[working_dir]/[prefix]-prmtop.parm7``, and the restart file for the
-        minimized structure will be stored at
-        ``[working_dir]/[prefix]-min-restrt.nc``. The local variables
-        ``working_dir``, ``prefix``, and ``min_paths`` will be returned in a
-        tuple, to be used for the second half, to be written in the subclass.
-
-        Parameters
-        ----------
-        pose : rosetta.core.Pose
-            Pose to minimize.
-
-        Returns
-        -------
-        (str or TemporaryDirectory, str, dict)
-            A tuple containing the local variables ``working_dir``,
-            ``prefix``, and ``min_args``. ``working_dir`` is a string or
-            TemporaryDirectory object representing the directory where the
-            intermediate files are stored, which must be kept alive under most
-            circumstances to prevent the directory from being deleted in the
-            case that it's temporary. ``prefix`` is the string prefix for files
-            created during this run; if the preperty `prefix`_ is set, it will
-            be equal to it. ``min_args`` is a dict representing the arguments
-            that were passed to `run_md`_ during the minimization that occurred
-            when this `apply`_ was called.
-        '''
-
-        working_dir = self.working_dir if self.working_dir is not None \
-                      else tempfile.TemporaryDirectory()
-        prefix = timestamp() if self.prefix is None else self.prefix
-        leap_args = {key: os.path.join(working_dir, prefix+suffix) \
-                     for key, suffix in _AMBERMover.LEAP_SUFFIXES.items()}
-        if self.wet:
-            leap_args['solvent'] = 'SPCBOX'
-            leap_args['add-ions-p'] = True
-        else:
-            leap_args['solvent'] = None
-            leap_args['add_ions'] = False
-        pose_to_amber_params(pose, **leap_args)
-        check_pose_convertibility(pose,
-                                  leap_args['crd_path'],
-                                  leap_args['top_path'])
-        min_args = self._make_run_md_args(working_dir=working_dir,
-                                          prefix=prefix,
-                                          minp=True)
-        ref_pose = self.ref_pose
-        if ref_pose is not None:
-            ref_leap_args = copy.copy(leap_args)
-            ref_leap_args['crd_path'] = min_args['refc']
-            pose_to_amber_params(ref_pose, **leap_args)
-            # Check whether AMBER-ified Pose has the same topology as the
-            # original Pose. If it doesn't, then all our work would be for
-            # naught (since leaving the missing residues in their places
-            # wouldn't make sense, and deleting them would be rude), so we
-            # raise a TopologyError and call it a day.
-            check_pose_convertibility(ref_pose,
-                                      ref_leap_args['crd_path'],
-                                      ref_leap_args['top_path'])
-        run_md(**min_args)
-        # Actual .apply methods aren't supposed to return anything, but this is
-        # only half of one; all the local variables need to get carried over,
-        # especially working_dir (so that it doesn't get destroyed in the case
-        # that it's a temporary directory).
-        return working_dir, prefix, min_args
 
 class AMBERMinMover(_AMBERMover):
     '''A Mover-like object that uses sander or PMEMD to minimize a pose.
@@ -1179,6 +1224,11 @@ class AMBERMinMover(_AMBERMover):
     <prefix>-leap.log
         The log file where the LEaP output for the conversion of the pose(s)
         to AMBER input files is recorded.
+    <prefix>-prmtop.parm7
+        The topology file describing the chemistry and connectivity of the
+        protein(s) in your minimization, generated by LEaP.
+    <prefix>-inpcrd.rst7
+        The initial coordinates for your minimization, generated by LEaP.
     <prefix>-min-mdin.in
         The FORTRAN NAMELIST file that contains the minimization parameters.
     <prefix>-min-mdout.out
@@ -1186,11 +1236,6 @@ class AMBERMinMover(_AMBERMover):
     <prefix>-min-mdinfo
         The log file where high-level information about the current state of the
         minimization is recorded.
-    <prefix>-prmtop.parm7
-        The topology file describing the chemistry and connectivity of the
-        protein(s) in your minimization, generated by LEaP.
-    <prefix>-inpcrd.rst7
-        The initial coordinates for your minimization, generated by LEaP.
     <prefix>-min-restrt.nc
         The latest coordinates for your minimization. After the minimization is
         over, this gives the new coordinates for your input Pose.
@@ -1221,10 +1266,13 @@ class AMBERMinMover(_AMBERMover):
     prefix : str or None, optional
         The prefix of the intermediate files output by the simulation. If set to
         None, will use the timestamp at which `apply`_ was called.
-    wet : bool, optional
-        Whether the solvent of your simulation is explicit or implicit. Setting
-        it to True will make the mover use an explicit solvent. False by
-        default.
+    solvent : Solvent or None
+        The type of solvent to use for an explicit-solvent simulation, if any.
+        If this is set to None, an implicit-solvent simulation will be performed
+        instead. None by default.
+    solvent_shape : SolventShape
+        The shape of solvent to use for an explicit-solvent simulation. ``OCT``
+        by default.
     cutoff : int or float, optional
         Van der Waals cutoff in angstroms. 15 by default.
     ref_pose : rosetta.core.Pose, optional
@@ -1239,11 +1287,13 @@ class AMBERMinMover(_AMBERMover):
         Weight of coordinate constraints, in kcal/mol/angstroms^2.
     '''
 
-    def __init__(self, working_dir='', prefix=None, wet=False, cutoff=15.):
+    def __init__(self, working_dir='', prefix=None, solvent=None,
+                 solvent_shape=SolventShape.OCT, cutoff=15.):
         _AMBERMover.__init__(self,
                              working_dir=working_dir,
                              prefix=prefix,
-                             wet=wet,
+                             solvent=solvent,
+                             solvent_shape=solvent_shape,
                              cutoff=cutoff)
     @property
     def name(self):
@@ -1261,7 +1311,7 @@ class AMBERMinMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, _, min_args = _AMBERMover.apply(self, pose)
-        transfer_xyz_from_pose_to_pose(
+        _transfer_xyz_from_pose_to_pose(
             TrajToPoses(pt.iterload(min_args['restrt'],
                                     min_args['prmtop']))[0],
             pose)
@@ -1339,10 +1389,13 @@ class AMBERSimulateMover(_AMBERMover):
     prefix : str or None, optional
         The prefix of the intermediate files output by the simulation. If set to
         None, will use the timestamp at which `apply`_ was called.
-    wet : bool, optional
-        Whether the solvent of your simulation is explicit or implicit. Setting
-        it to True will make the mover use an explicit solvent. False by
-        default.
+    solvent : Solvent or None
+        The type of solvent to use for an explicit-solvent simulation, if any.
+        If this is set to None, an implicit-solvent simulation will be performed
+        instead. None by default.
+    solvent_shape : SolventShape
+        The shape of solvent to use for an explicit-solvent simulation. ``OCT``
+        by default.
     duration : int or float, optional
         Duration of simulation in picoseconds. Must be set before the simulation
         runs.
@@ -1371,14 +1424,16 @@ class AMBERSimulateMover(_AMBERMover):
     cst_weight : float, optional
         Weight of coordinate constraints, in kcal/mol/angstroms^2.
     '''
-    def __init__(self, working_dir='', prefix=None, wet=False, duration=None,
+    def __init__(self, working_dir='', prefix=None, solvent=None,
+                 solvent_shape=SolventShape.OCT, duration=None,
                  temperature=None, starting_temperature=0, cutoff=15.,
                  output_interval=1., seed=-1, ref_pose=None, cst_mask=None,
                  cst_weight=None):
         _AMBERMover.__init__(self,
                              working_dir=working_dir,
                              prefix=prefix,
-                             wet=wet,
+                             solvent=None,
+                             solvent_shape=SolventShape.OCT,
                              cutoff=cutoff,
                              ref_pose=ref_pose,
                              cst_mask=cst_mask,
@@ -1412,7 +1467,7 @@ class AMBERSimulateMover(_AMBERMover):
         self._pose_selector = value
     @property
     def duration(self):
-        '''Duration of simulation in picoseconds.'''
+        '''int or float: Duration of simulation in picoseconds.'''
         if self._duration_is_int:
             return self._mdin_dict['nstlim'] // 1000
         return self._mdin_dict['nstlim'] / 1000.
@@ -1422,22 +1477,23 @@ class AMBERSimulateMover(_AMBERMover):
         self._mdin_dict['nstlim'] = int(value * 1000)
     @property
     def temperature(self):
-        '''Temperature of simulation in kelvins.'''
+        '''int or float: Temperature of simulation in kelvins.'''
         return self._mdin_dict['temp0']
     @temperature.setter
     def temperature(self, value):
         self._mdin_dict['temp0'] = value
     @property
     def starting_temperature(self):
-        '''Starting temperature of simulation in kelvins. 0 by default.'''
+        '''int or float: Starting temperature of simulation in kelvins. 0 by
+        default.'''
         return self._mdin_dict['tempi']
     @starting_temperature.setter
     def starting_temperature(self, value):
         self._mdin_dict['tempi'] = value
     @property
     def output_interval(self):
-        '''Amount of in-simulation time to wait in between writing successive
-        frames and log data, in picoseconds. 1 by default.'''
+        '''int or float: Amount of in-simulation time to wait in between writing
+        successive frames and log data, in picoseconds. 1 by default.'''
         if self._output_interval_is_int:
             return self._mdin_dict['ntwx'] // 1000
         return self._mdin_dict['ntwx'] / 1000.
@@ -1448,7 +1504,7 @@ class AMBERSimulateMover(_AMBERMover):
         self._mdin_dict['ntpr'] = int(value * 1000)
     @property
     def seed(self):
-        '''Seed to use for random operations (in our case, the Langevin
+        '''int: Seed to use for random operations (in our case, the Langevin
         thermostat, if it's a wet simulation). Nonnegative integers are valid
         seeds, while negative integers cause the seed to be determined by the
         hardware. -1 by default.'''
@@ -1484,7 +1540,7 @@ class AMBERSimulateMover(_AMBERMover):
                                          prefix=prefix,
                                          minp=False)
         run_md(**md_args)
-        transfer_xyz_from_pose_to_pose(
+        _transfer_xyz_from_pose_to_pose(
             self.pose_selector( # pylint: disable=not-callable
                 TrajToPoses(
                     pt.iterload(md_args['mdcrd'],
@@ -1495,9 +1551,9 @@ class AMBERSimulateMover(_AMBERMover):
 
 def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
                          leap_script_dump_path=None, solvent=None,
-                         solvent_shape='oct', add_ions=False):
+                         solvent_shape=SolventShape.OCT, add_ions=True):
     '''Writes a .rst7 input coordinates file and a .parm7 topology file for
-    input into sander or pmemd, based on a Rosetta Pose.
+    input into sander or pmemd, based on a Rosetta Pose, by invoking LEaP.
 
     Parameters
     ----------
@@ -1512,13 +1568,16 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
         directory.
     leap_script_dump_path : str or None
         Path to dump the generated LEaP script at. Default is None.
-    solvent : str or None
-        What explicit solvent to use, if any. Can be None, 'SPCBOX', 'TIP3PBOX',
-        or 'MEOHBOX', for SPCE water, TIP3P water, or methanol. Case-
-        insensitive.
-    solvent_shape : str or None
-        What shape to use for the explicit solvent box, if any. Can be 'box'
-        (rectangular prism) or 'oct' (truncated octahedron). Case-insensitve.
+    solvent : Solvent or None
+        What explicit solvent to use, if any. See the `Solvent`_ class for your
+        options. None by default.
+    solvent_shape : SolventShape
+        What shape to use for the explicit solvent box, if any. See the
+        `SolventShape`_ class for your options. ``OCT`` by default.
+    add_ions : bool
+        Whether to add neutralizing sodium or chloride ions in the case that
+        your simulation is explicit-solvent and the charge of your protein is
+        nonzero. True by default.
     '''
 
     if leap_script_dump_path is not None:
@@ -1537,11 +1596,13 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             # To ensure that this is not a bottleneck, we give the indices of the
             # replacement points in advance. We could technically forego the names
             # to gain even more time, but then it becomes pretty unreadable.
+            if solvent:
+                solvent_box, solvent_cmd = \
+                    pose_to_amber_params.SOLVENTS[solvent]
             replacements = {('+LOG-FILE+', (8,)):
                                 log_path,
                             ('+LOAD-SOLVENT+', (48,)):
-                                pose_to_amber_params.SOLVENT_CMDS[
-                                    solvent.upper()] if solvent else '',
+                                solvent_cmd if solvent else '',
                             ('+PDB-PATH+', (81,)):
                                 pdb_f.name,
                             ('+SOLVATEP+', (92,)):
@@ -1549,9 +1610,9 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
                             ('+SOLVENT-SHAPE+', (110,)):
                                 solvent_shape.lower(),
                             ('+SOLVENT+', (133,)):
-                                solvent.upper() if solvent else '',
+                                solvent_box if solvent else '',
                             ('+ADD-IONS-P+', (148, 182)):
-                                '' if add_ions else '#',
+                                '' if add_ions and solvent else '#',
                             ('+OUT-TOP-PATH+', (237,)):
                                 top_path,
                             ('+OUT-CRD-PATH+', (252,)):
@@ -1577,10 +1638,19 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             os.remove(leap_in_path)
 ## the "load" commands for different solvents, used to construct the LEaP
 ## instructions
-pose_to_amber_params.SOLVENT_CMDS = \
-    {'SPCBOX':   'source leaprc.water.spce',
-     'TIP3PBOX': 'source leaprc.water.tip3p',
-     'MEOHBOX':  'loadoff solvents.lib\nloadamberparams frcmod.meoh'}
+pose_to_amber_params.SOLVENTS = \
+    {Solvent.SPCE_WATER:
+     ('SPCBOX',
+      'source leaprc.water.spce'),
+     Solvent.TIP3P_WATER:
+     ('TIP3PBOX',
+      'source leaprc.water.tip3p'),
+     Solvent.METHANOL:
+     ('MEOHBOX',
+      'loadoff solvents.lib\nloadamberparams frcmod.meoh')}
+pose_to_amber_params.SOLVENT_SHAPES = \
+    {Solvent.BOX: 'box',
+     Solvent.OCT: 'oct'}
 
 def run_md(executable='sander', *, overwrite=False, mdin=None,
            mdin_dict=None, mdout=None, prmtop=None, inpcrd=None, restrt=None,
@@ -1647,7 +1717,7 @@ def run_md(executable='sander', *, overwrite=False, mdin=None,
 
     with tempfile.NamedTemporaryFile() if mdin is None \
                                           and mdin_dict is not None \
-         else NullContextManager() as mdin_tempfile:
+         else _NullContextManager() as mdin_tempfile:
         if mdin_dict is not None:
             if mdin is None:
                 mdin = mdin_tempfile.name
@@ -1669,33 +1739,3 @@ def run_md(executable='sander', *, overwrite=False, mdin=None,
         result = subprocess.run([os.path.join(amber_bin(), executable)] + arguments)
         _debug_print(f'{executable} run with result: {result}')
         return result
-
-def run_md_on_pose(pose, crd_path, top_path, log_path='leap.log',
-                   executable='sander', *, leap_script_dump_path=None,
-                   solvent=None, solvent_shape='oct', add_ions=True,
-                   overwrite=False, mdin=None, mdin_dict=None, mdout=None,
-                   restrt=None, refc=None, mdcrd=None, mdinfo=None):
-    '''Runs an AMBER MD program as run_md_ does, but input structures are replaced
-    instead with a ``Pose`` object, which is converted to suitable input files
-    with `pose_to_amber_params`_. The AMBER input files that the ``Pose``
-    object gets converted to are saved at the specified locations. The
-    arguments are the synthesis of those of pose_to_amber_params_ and
-    `run_md`_.
-
-    If you don't want to make the mdin_dict parameters by hand, the templates_
-    submodule can synthesize some common formulas for you.'''
-
-    if mdin_dict is not None and ('imin' not in mdin_dict \
-                                  or mdin_dict['imin'] != 1):
-        warnings.warn('About to simulate a pose without minimizing it first in '
-                      'AMBER. This is a bad idea!', RuntimeWarning)
-
-    # No need to make this any smarter for now.
-    pose_to_amber_params(pose, crd_path, top_path, log_path,
-                         leap_script_dump_path=leap_script_dump_path,
-                         solvent=solvent, solvent_shape=solvent_shape,
-                         add_ions=add_ions)
-    return run_md(executable, overwrite=overwrite, mdin=mdin,
-                  mdin_dict=mdin_dict, mdout=mdout, prmtop=top_path,
-                  inpcrd=crd_path, restrt=restrt, refc=refc, mdcrd=mdcrd,
-                  mdinfo=mdinfo)

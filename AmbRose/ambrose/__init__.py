@@ -1,5 +1,4 @@
-'''Gonna be part of Ambrose. Attempts to import a pytraj Trajectory as a
-pyrosetta Pose.'''
+'''AMBER intercompatibility for PyRosetta.'''
 
 # pragma pylint: disable=bad-whitespace
 
@@ -24,7 +23,7 @@ import pyrosetta as pr
 from pyrosetta.rosetta.core.io import AtomInformation
 # pragma pylint: enable=import-error
 
-import pose_selectors
+from . import pose_selectors
 
 AMBROSE_DIR = os.path.dirname(__file__)
 DEBUG = False
@@ -271,6 +270,38 @@ def _timestamp():
     return datetime.datetime.now().isoformat()
 
 ### Supporting classes
+
+## Enums
+
+class Solvent(enum.Enum):
+    '''A solvent choice for anything that requires you to set or provide a
+    solvent, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
+
+    SPCE_WATER
+        SPC/E (extended simple point charge) waters.
+    TIP3P_WATER
+        TIP3P (transferable intramolecular potential with 3 points) waters.
+    METHANOL
+        Methanol.
+    '''
+
+    SPCE_WATER = 'SPCE_WATER'
+    TIP3P_WATER = 'TIP3P_WATER'
+    METHANOL = 'METHANOL'
+
+class SolventShape(enum.Enum):
+    '''The choice of shape for the periodic boundaries you're using for an
+    explicit-solvent simulation, for anything that requires you to set or
+    provide it, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
+
+    BOX
+        Rectangular prism.
+    OCT
+        Truncated octahedron.
+    '''
+
+    BOX = 'BOX'
+    OCT = 'OCT'
 
 ## Misc
 
@@ -957,8 +988,8 @@ class _AMBERMover(_NotAMover):
         self._mdin_dict['restraint_wt'] = value
     @property
     def min_mdin_dict(self):
-        '''Key-value pairs for AMBER minimization parameters. Only tamper with
-        these if you've ever made a NAMELIST file for an AMBER simulation
+        '''dict: Key-value pairs for AMBER minimization parameters. Only tamper
+        with these if you've ever made a NAMELIST file for an AMBER simulation
         (because that's what this describes). For all available parameters, see
         section 17.6 of the 2018 AMBER manual, on page 320.'''
 
@@ -1077,39 +1108,7 @@ class _AMBERMover(_NotAMover):
         # that it's a temporary directory).
         return working_dir, prefix, min_args
 
-## Classes supporting pose_to_amber_params
-
-class Solvent(enum.Enum):
-    '''A solvent choice for anything that requires you to set or provide a
-    solvent, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
-
-    SPCE_WATER
-        SPC/E (extended simple point charge) waters.
-    TIP3P_WATER
-        TIP3P (transferable intramolecular potential with 3 points) waters.
-    METHANOL
-        Methanol.
-    '''
-
-    SPCE_WATER = 'SPCE_WATER'
-    TIP3P_WATER = 'TIP3P_WATER'
-    METHANOL = 'METHANOL'
-
-class SolventShape(enum.Enum):
-    '''The choice of shape for the periodic boundaries you're using for an
-    explicit-solvent simulation, for anything that requires you to set or
-    provide it, like `pose_to_amber_params`_ or `AMBERSimulateMover`_. Can be:
-
-    BOX
-        Rectangular prism.
-    OCT
-        Truncated octahedron.
-    '''
-
-    BOX = 'BOX'
-    OCT = 'OCT'
-
-### Front end classes
+### Front end
 
 ## Errors
 
@@ -1212,6 +1211,8 @@ class TrajToPoses:
         pr.rosetta.core.import_pose.build_pose_as_is(sfr, pose, rts, options)
         return pose
 
+## _AMBERMovers and friends
+
 class AMBERMinMover(_AMBERMover):
     '''A Mover-like object that uses sander or PMEMD to minimize a pose.
 
@@ -1266,11 +1267,11 @@ class AMBERMinMover(_AMBERMover):
     prefix : str or None, optional
         The prefix of the intermediate files output by the simulation. If set to
         None, will use the timestamp at which `apply`_ was called.
-    solvent : Solvent or None
+    solvent : Solvent or None, optional
         The type of solvent to use for an explicit-solvent simulation, if any.
         If this is set to None, an implicit-solvent simulation will be performed
         instead. None by default.
-    solvent_shape : SolventShape
+    solvent_shape : SolventShape, optional
         The shape of solvent to use for an explicit-solvent simulation. ``OCT``
         by default.
     cutoff : int or float, optional
@@ -1389,11 +1390,11 @@ class AMBERSimulateMover(_AMBERMover):
     prefix : str or None, optional
         The prefix of the intermediate files output by the simulation. If set to
         None, will use the timestamp at which `apply`_ was called.
-    solvent : Solvent or None
+    solvent : Solvent or None, optional
         The type of solvent to use for an explicit-solvent simulation, if any.
         If this is set to None, an implicit-solvent simulation will be performed
         instead. None by default.
-    solvent_shape : SolventShape
+    solvent_shape : SolventShape, optional
         The shape of solvent to use for an explicit-solvent simulation. ``OCT``
         by default.
     duration : int or float, optional
@@ -1563,18 +1564,21 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
         Path to the output .rst7 file.
     top_path : str
         Path to the output .parm7 file.
-    log_path : str
-        Path to the output LEaP log file. Default is 'leap.log' in the current
-        directory.
-    leap_script_dump_path : str or None
+    log_path : str, optional
+        Path to the output LEaP log file. Default is ``leap.log`` in the current
+        directory. Due to a how LEaP's header scripts for proteins function,
+        this command actually barely does anything at all, at the moment; most
+        of the log will still be dumped in the current working directory under
+        the filename ``leap.log``, regardless of your settings.
+    leap_script_dump_path : str or None, optional
         Path to dump the generated LEaP script at. Default is None.
-    solvent : Solvent or None
+    solvent : Solvent or None, optional
         What explicit solvent to use, if any. See the `Solvent`_ class for your
         options. None by default.
-    solvent_shape : SolventShape
+    solvent_shape : SolventShape, optional
         What shape to use for the explicit solvent box, if any. See the
         `SolventShape`_ class for your options. ``OCT`` by default.
-    add_ions : bool
+    add_ions : bool, optional
         Whether to add neutralizing sodium or chloride ions in the case that
         your simulation is explicit-solvent and the charge of your protein is
         nonzero. True by default.
@@ -1599,6 +1603,8 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             if solvent:
                 solvent_box, solvent_cmd = \
                     pose_to_amber_params.SOLVENTS[solvent]
+            solvent_shape_str = \
+                pose_to_amber_params.SOLVENT_SHAPES[solvent_shape]
             replacements = {('+LOG-FILE+', (8,)):
                                 log_path,
                             ('+LOAD-SOLVENT+', (48,)):
@@ -1608,7 +1614,7 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
                             ('+SOLVATEP+', (92,)):
                                 '' if solvent else '#',
                             ('+SOLVENT-SHAPE+', (110,)):
-                                solvent_shape.lower(),
+                                solvent_shape_str if solvent else '',
                             ('+SOLVENT+', (133,)):
                                 solvent_box if solvent else '',
                             ('+ADD-IONS-P+', (148, 182)):
@@ -1649,8 +1655,8 @@ pose_to_amber_params.SOLVENTS = \
      ('MEOHBOX',
       'loadoff solvents.lib\nloadamberparams frcmod.meoh')}
 pose_to_amber_params.SOLVENT_SHAPES = \
-    {Solvent.BOX: 'box',
-     Solvent.OCT: 'oct'}
+    {SolventShape.BOX: 'box',
+     SolventShape.OCT: 'oct'}
 
 def run_md(executable='sander', *, overwrite=False, mdin=None,
            mdin_dict=None, mdout=None, prmtop=None, inpcrd=None, restrt=None,

@@ -4,7 +4,7 @@
 # it will look for "source" in the CWD and then move into the root directory for the
 # repository to do its business
 
-from beautify_compiled_files_w_fork import *
+from .beautify_compiled_files_w_fork import *
 import subprocess, sys
 import argparse
 import os.path
@@ -36,11 +36,11 @@ if __name__ == "__main__" :
     pwd_parts = pwd.rpartition( "source" )
     assert( pwd_parts[1] == "source" ) # you must run this script from the main/source directory or one of its subdirectories
     if not quiet :
-        print "cd'ing to " + pwd_parts[0]
+        print("cd'ing to " + pwd_parts[0])
     os.chdir( pwd_parts[0] )
 
     if not quiet :
-        print "Preparing to beautify: " + ", ".join( [ fn for (fn, abs) in file_list ] )
+        print("Preparing to beautify: " + ", ".join( [ fn for (fn, abs) in file_list ] ))
     # sys.exit(0)
 
     fbm = beautify_files_in_parallel( [ abs for (fn, abs) in file_list ], not dry_run, num_cpu, pound_if_setting, quiet )

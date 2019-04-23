@@ -1,11 +1,11 @@
-from inclusion_graph import *
-from code_utilities import *
+from .inclusion_graph import *
+from .code_utilities import *
 #import os
 
 if __name__ == "__main__" :
     cxxtest_files = compiled_cxxtest_hh_files()
     for cxxtest_file in cxxtest_files :
-        print "going to add transitive includes to ", cxxtest_file
+        print("going to add transitive includes to ", cxxtest_file)
 
     compilable_files, all_includes, file_contents = load_source_tree()
     g = create_graph_from_includes( all_includes )

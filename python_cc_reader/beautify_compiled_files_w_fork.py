@@ -1,11 +1,11 @@
-from __future__ import print_function
-import fork_manager
-import blargs
-import beautifier
+
+from . import fork_manager
+from . import blargs
+from . import beautifier
 import re
 import sys, os
 
-from code_utilities import *
+from .code_utilities import *
 
 # This script is meant to be run from either the Rosetta/main/source/src/ or 
 # the Rosetta/main/source/test/ directories. It reads the scons .settings
@@ -77,9 +77,9 @@ def files_to_beautify() :
 
 def files_in_src_to_beautify() :
     includes = scan_compilable_files()
-    all_files = includes.keys()
+    all_files = list(includes.keys())
 
-    all_files = filter( lambda x : x.partition("/")[0] != "ObjexxFCL", all_files )
+    all_files = [x for x in all_files if x.partition("/")[0] != "ObjexxFCL"]
     all_files.remove( "protocols/noesy_assign/PeakAssignmentOptionKeys.hh" ) # this one doesn't beautify
     return all_files
 

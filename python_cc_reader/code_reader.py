@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 # This class is intended to read a c++ file and
 # determine which lines will be read by the compiler.
 # That is, it keeps track of which lines end up inside
@@ -89,7 +89,7 @@ class CodeReader :
       else:
          newline = line[0]
       last_char = line[0]
-      for i in xrange( 1, len(line)) :
+      for i in range( 1, len(line)) :
          if self.long_comment :
             if line[ i ] == "/" and last_char == "*" :
                self.long_comment = False
@@ -178,7 +178,7 @@ class CodeReader :
       escape = False
       in_single = False
       in_double = False
-      for i in xrange( len( self.commentless_line )) :
+      for i in range( len( self.commentless_line )) :
          curr = self.commentless_line[i]
          if in_single or in_double :
             if curr == "\\" :
@@ -794,7 +794,7 @@ class HeavyCodeReader( CodeReader ) :
          print("ERROR: interpret_toks_as_vardec failed to find a variable name.")
          for tok in toks :
             print(tok,)
-         print
+         print()
          varname = "DUMMY"
       return vartype, varname
 

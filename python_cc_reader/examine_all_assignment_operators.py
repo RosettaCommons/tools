@@ -1,5 +1,5 @@
-from code_utilities import *
-from code_reader import *
+from .code_utilities import *
+from .code_reader import *
 #from inclusion_graph import *
 
 compilable_files, all_includes, file_contents = load_source_tree()
@@ -17,7 +17,7 @@ for hh_file in hh_files :
         continue
     if hh_file.partition( "basic")[2] :
         continue
-    print "Processing header", hh_file
+    print("Processing header", hh_file)
     classes = read_classes_from_header( hh_file, file_contents[ hh_file ] )
 
     for cl in classes :
@@ -36,11 +36,11 @@ for hh_file in hh_files :
         else :
             ccfile = hh_file
         if ccfile not in file_contents:
-            print "Skipping class", cl.name, "because", ccfile, "is not in the source tree"
+            print("Skipping class", cl.name, "because", ccfile, "is not in the source tree")
             continue
         uncopied = find_data_members_unassigned_in_assignment_operator( ccfile, file_contents[ ccfile ], cl )
         for un in uncopied :
-            print "Data member", un, "in class", cl.name, "is unassigned in the assignment operator"
+            print("Data member", un, "in class", cl.name, "is unassigned in the assignment operator")
         #print cl.name, hh_file
         #for func in cl.functions :
         #    print "   ", cl.name, func.name

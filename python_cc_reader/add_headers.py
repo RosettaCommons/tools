@@ -1,5 +1,5 @@
 import re
-import code_reader
+from . import code_reader
 
 def write_file( filename, filelines ) :
    file = open( filename, "w" )
@@ -38,7 +38,7 @@ def group_and_sort_headers( headers ) :
    lib_names, other_names, header_sets = group_headers( headers )
    all_headers = []
    for libname in lib_names :
-      namespaces = header_sets[ libname ].keys()
+      namespaces = list(header_sets[ libname ].keys())
       namespaces.sort()
       for ns in namespaces :
          #print libname, ns

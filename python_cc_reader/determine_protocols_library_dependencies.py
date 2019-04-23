@@ -1,7 +1,7 @@
-import code_utilities
-import library_levels
-import pygraph
-import inclusion_graph
+from . import code_utilities
+from . import library_levels
+from . import pygraph
+from . import inclusion_graph
 import sys
 
 # $1 == --graphviz
@@ -47,12 +47,12 @@ def create_protocols_interlibrary_dependency_dot_file( g ) :
    outlines = []
    endl = "\n"
    outlines.append( "digraph G {" + endl )
-   for level in xrange(len(prot_levels)) :
+   for level in range(len(prot_levels)) :
       line = "subgraph level" + str(level+1) + " { rank = same; "
       if len(prot_levels[level]) == 1 :
          line += "\"" + str(level+1) + "\";}" + endl
       else:
-         for column in xrange(len(prot_levels[level])) :
+         for column in range(len(prot_levels[level])) :
             line += "\"" + str(level+1) + chr( ord('a') + column ) + "\";"
          line +=  "}" + endl
       outlines.append( line )
@@ -107,12 +107,12 @@ def create_intralibrary_dependency_graph( g, srcsettings_fname ) :
       node1 = file1.split("/")[1]
       node2 = file2.split("/")[1]
       if node1 not in topleveldirs :
-         print "ERROR: node1:", node1, "not in the topleveldirs set in spite of being identified by library_and_column_for_file as belonging to the target library"
-         print "all nodes:", topleveldirs
+         print("ERROR: node1:", node1, "not in the topleveldirs set in spite of being identified by library_and_column_for_file as belonging to the target library")
+         print("all nodes:", topleveldirs)
          assert( node1 in topleveldirs )
       if node2 not in topleveldirs :
-         print "ERROR: node2:", node2, "not in the topleveldirs set in spite of being identified by library_and_column_for_file as belonging to the target library"
-         print "all nodes:", topleveldirs
+         print("ERROR: node2:", node2, "not in the topleveldirs set in spite of being identified by library_and_column_for_file as belonging to the target library")
+         print("all nodes:", topleveldirs)
          assert( node2 in topleveldirs )
       if node2 not in topleveldir_graph.neighbors( node1 ) :
          #print "adding edge", node1, node2
@@ -162,10 +162,10 @@ def draw_all_protocol_dependencies( g ) :
    representative_node = {}
 
 
-   for level in xrange(len(prot_levels)) :
+   for level in range(len(prot_levels)) :
       #ranksameline = "{ rank=same; "
       #graph_lines.append( "subgraph cluster_level" + str(level+1) + "{\n" )
-      for column in xrange(len(prot_levels[level])) :
+      for column in range(len(prot_levels[level])) :
          if len(prot_levels[level]) == 1 :
             sublibname = str(level+1)
          else :
@@ -212,17 +212,17 @@ if __name__ == "__main__" :
       output_prefix = sys.argv[2]
 
    compilable_files, all_includes, file_contents = code_utilities.load_source_tree()
-   print "...source tree loaded"
+   print("...source tree loaded")
    g = inclusion_graph.create_graph_from_includes( all_includes )
-   print "...inclusion graph created"
+   print("...inclusion graph created")
 
    #protocols_tg = inclusion_graph.transitive_closure( protocols_library_graph )
    if not graphviz_output :
       protocols_tg = protocols_library_graph
       for node in protocols_tg.nodes() :
-         print "Dependencies for node", node
+         print("Dependencies for node", node)
          for node_neighbor in protocols_tg.neighbors( node ) :
-            print "  ", node_neighbor
+            print("  ", node_neighbor)
    else :
       graphlines = draw_all_protocol_dependencies( g )
       open( output_prefix + "_all_dependencies.dot", "w" ).writelines( graphlines )

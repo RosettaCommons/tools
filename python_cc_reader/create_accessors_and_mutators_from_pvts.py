@@ -1,4 +1,4 @@
-import blargs
+from . import blargs
 
 def write_accessors( classname, pvts ) :
     new_hh_lines = []
@@ -44,12 +44,12 @@ if __name__ == "__main__" :
     acc_new_hh_lines, acc_new_cc_lines = write_accessors( classname, lines )
     mut_new_hh_lines, mut_new_cc_lines = write_mutators( classname, lines )
 
-    print "header:"
+    print("header:")
     for line in acc_new_hh_lines + mut_new_hh_lines :
-        print line,
-    print
-    print "ccfile:"
+        print(line, end=' ')
+    print()
+    print("ccfile:")
     for line in acc_new_cc_lines + mut_new_cc_lines :
-        print line,
-    print
+        print(line, end=' ')
+    print()
 

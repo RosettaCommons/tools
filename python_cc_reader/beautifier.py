@@ -1,7 +1,7 @@
 #!/usr/bin/python
-from __future__ import print_function
+
 import sys
-import blargs
+from . import blargs
 
 # This file defines the Beautifier class which parses Rosetta into an AST
 # and then determines the indentation for each line based on the AST.
@@ -547,7 +547,7 @@ class Beautifier :
         while i < len( self.all_tokens ) :
             i = self.process_statement( i, stack )
 
-        for i in xrange(len(self.all_tokens)) :
+        for i in range(len(self.all_tokens)) :
             if self.all_tokens[ i ].parent is self.all_tokens[i] :
                 itok = self.all_tokens[i]
                 print("Token", i, "is it's own parent:", itok.spelling, itok.line_number, itok.type)
@@ -720,7 +720,7 @@ class Beautifier :
         seen_throw = False
         seen_throw_lparen = False
         template_depth = 0; # how many "<"s have we seen?
-        for tok_ind in xrange( len(token_list) ) :
+        for tok_ind in range( len(token_list) ) :
             tok = token_list[ tok_ind ]
             if tok_ind == 0 :
                 if tok != "[" : return False
@@ -1170,7 +1170,7 @@ class Beautifier :
         while j < len( self.all_tokens ):
             #print("next visible: is it a catch?", j, self.all_tokens[j].spelling)
             if self.all_tokens[j].spelling == "catch" :
-                for k in xrange(i,j) :
+                for k in range(i,j) :
                     self.set_parent(k,stack)
                 i = self.process_catch(j,stack)
                 j = self.find_next_visible_token(i,stack)
@@ -1870,14 +1870,14 @@ class Beautifier :
         moving_token.start = dest_tok.one_past_end + space_from_prev
         moving_token.one_past_end = moving_token.start + moving_token_length
         # shift the rest of the tokens on this line right by two spaces
-        for i in xrange( dest_tok_ind+1, len(dest_line) ) :
+        for i in range( dest_tok_ind+1, len(dest_line) ) :
             tok = dest_line[i]
             tok.start += space_from_prev+moving_token_length
             tok.one_past_end += space_from_prev+moving_token_length
         dest_line.insert( dest_tok_ind+1, moving_token )
         if adjust_parentage :
             new_children = []
-            for i in xrange( dest_line_number, orig_line_number+1 ) :
+            for i in range( dest_line_number, orig_line_number+1 ) :
                 found_moving_token = False
                 for tok in self.line_tokens[ i ] :
                     if i == dest_line_number and not found_moving_token :
@@ -1923,7 +1923,7 @@ class Beautifier :
         assert( len(tok_lines[-1]) > 0 and len(tok_lines[0]) > 0 )
         firstline = tok_lines[0][0].line_number
         self.line_tokens = self.line_tokens[:firstline] + tok_lines + self.line_tokens[firstline:]
-        for i in xrange( tok_lines[-1][0].line_number + 1, len(self.line_tokens) ) :
+        for i in range( tok_lines[-1][0].line_number + 1, len(self.line_tokens) ) :
             for tok in self.line_tokens[i] :
                 tok.line_number += nlines
 
@@ -1940,7 +1940,7 @@ class Beautifier :
             rcb_ind = rcb_line.index( rcb )
 
             any_visible = False
-            for i in xrange( rcb_ind+1, len( rcb_line )) :
+            for i in range( rcb_ind+1, len( rcb_line )) :
                 if self.line_tokens[ rcb.line_number ][ i ].is_visible :
                     any_visible = True
                     break;
@@ -1961,7 +1961,7 @@ class Beautifier :
                 # case where there are comments at the end of the line after rcb.
                 # let's not adjust the start and one_past_end positions of these tokens
                 # but do adjust the tree so that these tokens are assigned rcb's parent
-                for i in xrange(rcb_ind+1,len(rcb_line)) :
+                for i in range(rcb_ind+1,len(rcb_line)) :
                     tok = rcb_line[i]
                     orig_parent = tok.parent
                     orig_parent.children.remove( tok )
@@ -1992,7 +1992,7 @@ class Beautifier :
         lcb.line_number = tok_before.line_number
         line_toks = self.line_tokens[ tok_before.line_number ]
         tok_before_index = line_toks.index( tok_before )
-        for i in xrange( tok_before_index+1, len( line_toks ) ) :
+        for i in range( tok_before_index+1, len( line_toks ) ) :
             line_toks[i].start += 2
             line_toks[i].one_past_end += 2
         line_toks.insert( tok_before_index+1, lcb )
@@ -2095,7 +2095,7 @@ class Beautifier :
         # print("prev_child_of_comment:", "None" if not prev_child_of_comment else prev_child_of_comment.spelling)
         new_child_ind = comments_new_parent.children.index( prev_child_of_comment )+1 if prev_child_of_comment else 0
         # print("new_child_ind:", new_child_ind)
-        for i in xrange( first_to_adjust, len(line) ) :
+        for i in range( first_to_adjust, len(line) ) :
             itok = line[i]
             itok.parent.children.remove( itok )
             itok.parent = comments_new_parent
@@ -2189,7 +2189,7 @@ class Beautifier :
         #print("now adjust the parentage of all tokens on lines between the moving line and the destination line")
         #print("comments_new_parent:", comments_new_parent.spelling)
         #print("prev_child:", "None" if not prev_child else prev_child.spelling)
-        for line_number in xrange( tok_before.line_number+1, orig_line_number+1 ) :
+        for line_number in range( tok_before.line_number+1, orig_line_number+1 ) :
             for tok in self.line_tokens[line_number] :
                 # print("tok on line", line_number, tok.spelling, tok.is_visible, tok.invisible_by_macro, tok.is_preprocessor_directive)
                 assert( not tok.is_visible and not tok.invisible_by_macro and not tok.is_preprocessor_directive )
@@ -2204,7 +2204,7 @@ class Beautifier :
     def find_rcb_child( self, tok ) :
         # search through the children on tok and look for the right-curly-brace child
         # (there should be only one)
-        rcbs = filter( lambda x : x.is_visible and not x.is_inside_string and x.spelling == "}", tok.children )
+        rcbs = [x for x in tok.children if x.is_visible and not x.is_inside_string and x.spelling == "}"]
         assert( len(rcbs) == 1 )
         return rcbs[0]
 
@@ -2215,7 +2215,7 @@ class Beautifier :
         # tok1 must preceed tok2.
         line1 = tok1.line_number
         line2 = tok2.line_number
-        for line_number in xrange( line1, line2+1 ) :
+        for line_number in range( line1, line2+1 ) :
             toks = self.line_tokens[line_number]
             ind = 0
             if line_number == line1 :
@@ -2228,7 +2228,7 @@ class Beautifier :
         return False
 
     def delete_empty_lines_between( self, start, end ) :
-        for line_number in xrange( end, start-1, -1 ) :
+        for line_number in range( end, start-1, -1 ) :
             if len(self.line_tokens[line_number]) == 0 :
                 self.delete_empty_line( line_number )
 
@@ -3010,7 +3010,7 @@ class Beautifier :
             if tok_this2.type in self.scope_types :
                 still_good, i_this, i_other = self.equiv_if_both_empty_or_if_neither_empty_and_equiv( other, i_this, i_other, stack )
                 if not still_good:
-                    print
+                    print()
                     print("not still good from scope within simple_statement_equiv")
                     return still_good, i_this, i_other
                 continue # do not increment i_this and i_other

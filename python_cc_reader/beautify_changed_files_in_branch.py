@@ -4,17 +4,17 @@
 # it will look for "source" in the CWD and then move into the root directory for the
 # repository to do its business
 
-from __future__ import print_function
-from beautify_compiled_files_w_fork import *
+
+from .beautify_compiled_files_w_fork import *
 import subprocess, sys
 try:
-    import blargs
+    from . import blargs
 except ImportError:
     # if this script is in the Rosetta/tools/xsd_xrw/ directory
     # blargs is in the ../external/ directory. Add that to the path. and re-import
     blargs_path = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'external')
     sys.path.append(blargs_path)
-    import blargs
+    from . import blargs
 
 
 if __name__ == "__main__" :

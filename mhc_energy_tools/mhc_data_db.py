@@ -78,8 +78,8 @@ def setup_parser():
     parser.add_argument('--mysql_pw', help='password for connecting to mysql database (default: %(default)s)', default=None)
 
     # types of assay (following IEDB's breakdown)
-    source.add_argument('--assay_mhc_ligand_binding', help='which forms of MHC binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
-    source.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+    parser.add_argument('--assay_mhc_ligand_binding', help='which forms of MHC binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+    parser.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
 
     # from peptide to consistuent core 9mer(s)
     parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s)', choices=['all','predicted_good','predicted_best','full'], default='all')

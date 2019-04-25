@@ -152,8 +152,14 @@ class IEDBData (ExptData):
         mysql = 'mysql -u '+user
         if pw is not None: mysql += ' -p'+pw
         # http://www.iedb.org/database_export_v3.php
-        os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
-        os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
+        errcode = os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
+        if (errcode):
+            print('Error re-creating empty database ' + dbname + ', with error code ' + str(errcode))
+            exit(2)
+        errcode = os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
+        if (errcode):
+            print('Error downloading IEDB or populating local database ' + dbname + ', with error code ' + str(errcode))
+            exit(3)
 
     @staticmethod
     def from_mysql(dbname, assay_binding_filter, assay_elution_filter, alleles=None, allele_set=None, user='root', pw=None):
@@ -162,8 +168,12 @@ class IEDBData (ExptData):
         A list of alleles or an allele_set name must be given."""
 
         import mysql.connector
-        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
-        cursor = connection.cursor()
+        try:
+            connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+            cursor = connection.cursor()
+        except mysql.connector.Error as err:
+            print('Error accessing local mysql database ' + dbname)
+            exit(4)
 
         if allele_set is not None: alleles = IEDBData.allele_sets[allele_set]       
         if alleles is None: raise Exception('please specify alleles or allele_set')

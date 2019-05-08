@@ -12,6 +12,7 @@ from epilib.epitope_csv import EpitopeCSV
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
 from epilib.sequence import Sequence, load_fa, load_pep, load_fsa, load_pdb
+from epilib.ext_citations import CitationTracker
 
 def setup_parser():
     """Creates an ArgumentParser and sets up all its arguments.
@@ -114,16 +115,24 @@ def main(args):
     """Sets up an epitope prediction run based on the parsed args.
     args: argparse.Namespace"""
     
+    # Citation manager object to track what features are being used
+    cite_manager = CitationTracker()
+    
     # epitope predictor
     if args.matrix is not None:
         pred = EpitopePredictorMatrix.load(args.matrix)
+        #We don't have any generic matrix strategy.  If added, add the citation.
     elif args.netmhcii:
+        cite_manager.add_citation(cite_manager.netmhcii)
         pred = NetMHCII(score_type=args.netmhcii_score[0])
     elif args.csv is not None:
+        #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
     elif args.db is not None:
+        #Generic, so we can't add a citation
         pred = EpitopeDatabase.for_reading(args.db, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
     else:
+        cite_manager.add_citation(cite_manager.propred)
         pred = Propred.load()
     pred.thresh = args.epi_thresh
     
@@ -158,6 +167,8 @@ def main(args):
         for line in sys.stdin:
             handle_seq(Sequence(line.strip(), name='seq'+str(i)), pred, args)
             i += 1
+    
+    cite_manager.output_citations()
 
 if __name__ == '__main__':
     parser = setup_parser()

@@ -14,6 +14,7 @@ from epilib.epitope_csv import EpitopeCSV
 from epilib.epitope_database import EpitopeDatabase
 from epilib.expt_data import IEDBData
 from epilib.netmhcII import NetMHCII
+from epilib.ext_citations import CitationTracker
 
 # TODO potential additional functionality:
 # * merge datasets -- requires reconciling conflicting data, and note that currently only positive hits are stored
@@ -115,18 +116,24 @@ def main(args, argv):
     args: argparse.Namespace (to use)
     argv: original sys.argv (to store)"""
     
+    # Citation manager object to track what features are being used
+    cite_manager = CitationTracker()
     # load data
     data = None
     data_allele_list = None if args.alleles is None else args.alleles.split(',')
     if args.iedb_csv is not None:
+        cite_manager.add_citation(cite_manager.iedb)
         if args.assay_mhc_ligand_binding != 'all' or args.assay_mhc_ligand_elution != 'all': print('csv currently cannot restrict assay type; ignoring that flag')
         data = IEDBData.from_csv(args.iedb_csv, data_allele_list, args.allele_set)
     elif args.iedb_mysql is not None:
+        cite_manager.add_citation(cite_manager.iedb)
         data = IEDBData.from_mysql(args.iedb_mysql, args.assay_mhc_ligand_binding, args.assay_mhc_ligand_elution, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
     elif args.iedb_fresh_mysql is not None:
+        cite_manager.add_citation(cite_manager.iedb)
         IEDBData.download_mysql(args.iedb_fresh_mysql, user=args.mysql_user, pw=args.mysql_pw)
         if data_allele_list is None and args.allele_set is None:
             # only goal was to download the database, so bail
+            cite_manager.output_citations()
             return
         # else continue with the fresh db
         data = IEDBData.from_mysql(args.iedb_fresh_mysql, args.assay_mhc_ligand_binding, args.assay_mhc_ligand_elution, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
@@ -138,14 +145,19 @@ def main(args, argv):
     pred = None # default is not to use prediction
     if args.propred:
         pred = Propred.load()
+        cite_manager.add_citation(cite_manager.propred)
     elif args.matrix is not None:
+        #We don't have any generic matrix strategy.  If added, add the citation.
         pred = EpitopePredictorMatrix.load(args.matrix)
 #    elif args.netmhcii:
+#        cite_manager.add_citation(cite_manager.netmhcii)
 #        pred = NetMHCII(score_type=args.netmhcii_score[0])
 #        raise Exception('not implemented yet -- need to extract cores')
     elif args.pred_csv is not None:
+        #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.pred_csv)
     elif args.pred_db is not None:
+        #Generic, so we can't add a citation
         pred = EpitopeDatabase.for_reading(args.pred_db)
     if pred is not None:
         pred.thresh = args.epi_thresh
@@ -198,7 +210,9 @@ def main(args, argv):
         print('no output generated')
     else:
         out.save_scores(epimap)
-        
+    
+    cite_manager.output_citations()
+
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()

@@ -65,7 +65,7 @@ class EpitopeCSV (EpitopePredictor):
     def for_writing(cls, filename, alleles, peptide_length=9):
         """Opens a csv for storing epitope data."""
         file = open(filename,'w')
-        csvf = csv.writer(file)
+        csvf = csv.writer(file, lineterminator=os.linesep)
         # header
         csvf.writerow(['peptide','score']+alleles)
             

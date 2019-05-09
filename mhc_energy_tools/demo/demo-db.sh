@@ -10,6 +10,9 @@ sqlite3 out/2sak_A.wt.pp5.db 'select peptide,score from epitopes where score>0;'
 #1b Can also store directly to csv
 
 ../mhc_gen_db.py --propred --fa in/2sak_A.fasta --csv out/2sak_A.wt.pp5.csv
+# Sort the csv file to make the diff pass, leaving the header line alone
+(read -r; printf "%s\n" "$REPLY"; sort) < out/2sak_A.wt.pp5.csv > out/tmp
+mv out/tmp out/2sak_A.wt.pp5.csv
 
 #2 The database can then be used for scoring
 
@@ -31,6 +34,9 @@ sqlite3 out/2sak_A.wt.pp5.db 'select peptide,score from epitopes where score>0;'
 # * 2sak_A 54.0
 
 ../mhc_gen_db.py --db_in out/2sak_A.wt.pp5.v2.db --csv out/2sak_A.wt.pp5.v2.csv
+# Sort the csv file to make the diff pass, leaving the header line alone
+(read -r; printf "%s\n" "$REPLY"; sort) < out/2sak_A.wt.pp5.v2.csv > out/tmp
+mv out/tmp out/2sak_A.wt.pp5.v2.csv
 ../mhc_score.py --fa in/2sak_A.fasta --csv out/2sak_A.wt.pp5.v2.csv
 
 # * 2sak_A 54.0

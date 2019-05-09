@@ -18,6 +18,7 @@ from epilib.epitope_database import EpitopeDatabase
 from epilib.epitope_csv import EpitopeCSV
 from epilib.netmhcII import NetMHCII
 from epilib.sequence import load_fa, load_pdb
+from epilib.ext_citations import CitationTracker
 
 def wt_choices(wt):
     """A dictionary of position -> [AA] listing allowed amino acids for each positions, initialized here with just the wild-type at each position"""
@@ -183,16 +184,23 @@ def main(args, argv):
     args: argparse.Namespace (to use)
     argv: original sys.argv (to store)"""
     
+    # Citation manager object to track what features are being used
+    cite_manager = CitationTracker()
+    
     # epitope predictor
     peptide_length = None
     if args.matrix is not None:
         pred = EpitopePredictorMatrix.load(args.matrix)
+        #We don't have any generic matrix strategy.  If added, add the citation.
     elif args.netmhcii or args.netmhcii_raw is not None:
         pred = NetMHCII(score_type=args.netmhcii_score[0])
+        cite_manager.add_citation(cite_manager.netmhcii)
     elif args.netmhcii_raw is not None:
         pred = NetMHCII(nm_bin=False, score_type=args.netmhcii_score[0])
+        cite_manager.add_citation(cite_manager.netmhcii)
     elif args.propred:
         pred = Propred.load()
+        cite_manager.add_citation(cite_manager.propred)
     else:
         pred = None
     if pred:
@@ -302,6 +310,7 @@ def main(args, argv):
         print('total',sum(sizes.values()))
         if args.db is None and args.peps_out is None:
             # nothing more to do
+            cite_manager.output_citations()
             return
     
     # open the initialization db
@@ -349,10 +358,12 @@ def main(args, argv):
         # process the raw binding predictions and store in the db
         if out is None: raise Exception('need an output db/csv into which to store the raw binding predictions')
         out.save_scores(pred.load_file(args.netmhcii_raw))
+        cite_manager.output_citations()
         return
     
     if wt is None:
         # nothing more to do
+        cite_manager.output_citations()
         return
     
     if args.peps_out:
@@ -401,6 +412,8 @@ def main(args, argv):
         peps_file.close()
     if args.csv:
         out.file.close()
+    
+    cite_manager.output_citations()
 
 if __name__ == '__main__':
     parser = setup_parser()

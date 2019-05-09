@@ -13,14 +13,19 @@ from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_csv import EpitopeCSV
 from epilib.epitope_database import EpitopeDatabase
 from epilib.expt_data import IEDBData
-from epilib.netmhcII import NetMHCII
 
 # TODO potential additional functionality:
+# * general control over allele synonyms (w/o allele file)
+# * the epitope prediction stuff is quite skeletal, and doesn't yet support NetMHCII
+# * finer control over MHC assays
+# * beyond MHC data to T cell data (in a different table in IEDB)
+# * seems like it could be nice to have a pointer from the stored peptide back to the source data, for subsequent analysis   
+# * scores are currently binary (is there a hit or not); could scale based on amount of evidence
 # * merge datasets -- requires reconciling conflicting data, and note that currently only positive hits are stored
 
-def get_core_hits(scores, pred, option):
+def get_core_hits(expt, pred, option):
     """Uses epitope predictor to generate 9mer core hits for the peptide epitope scores.
-    scores: peptide => allele => score
+    expt: peptide => allele => score
     pred: EpitopePredictor returning 9mer
     option: 'all', predicted_good', 'predicted_best', 'full' -- which core(s) #TODO enum?
     returns: core => [allele] such that there is evidence that the core is for a peptide binder against allele
@@ -29,14 +34,15 @@ def get_core_hits(scores, pred, option):
     # if want to do something quantitative, base it on scores[peptide][allele]
     core_hits = collections.defaultdict(set) # core => [allele]
     
-    for peptide in scores:
+    for peptide in expt:
         if pred:
             pep_epimap = pred.score_protein(peptide)
-        for allele in scores[peptide]:
+        for allele in expt[peptide]:
             if option == 'all':
                 for i in range(len(peptide)-9): 
                     core_hits[peptide[i:i+9]].add(allele)
             elif option == 'predicted_good':
+                # prediction for experimentally identified allele
                 a = pred.alleles.index(allele) # TODO: ugh -- details is just a list in order of alleles
                 ncores = 0
                 for core in pep_epimap.peptides:
@@ -58,13 +64,16 @@ def setup_parser():
     parser = argparse.ArgumentParser(description='Establishes a database of precomputed epitope scores, to enable efficient lookup at design time', 
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="""Additional notes:
-- Allele subsetting (--allele_set / --alleles) is required for mysql and allowed for csv import
+- Allele subsetting (--allele_set / --alleles / --allele_file) is required for mysql and allowed for csv import.
+- The allele_set 'hlaII' indicates all alleles known to be of HLA class II. For mysql, that's done by query; for csv, using the provided file 'data/hlaII.csv' which was exported from IEDB but may not be the latest.
 - Allele naming is wrt whatever is used in the input file/db (currently IEDB)
-- IEDB includes names that have only DRB as well as those paired up with DRA (e.g., HLA-DRB1*01:01 and HLA-DRA*01:01/DRB1*01:01); the predefined sets include both
+- IEDB includes names that have only DRB as well as those paired up with DRA (e.g., HLA-DRB1*01:01 and HLA-DRA*01:01/DRB1*01:01); the predefined sets include both.
 - IEDB also includes some not completely specified names (e.g., HLA-DR1); these are ignored but presumably could be pulled in with specific naming
+- The allele_file allows precise control over which alleles to use. Alternatively, the IEDB web server can be used to pull down data for just the alleles of interest.
+- Allele_file (e.g., 'data/iedb-hlaII.csv'): one allele name per row. Header row required; fixed column format anyway so names don't matter. Optional second column (comma separated) allows specifying of synonyms to be merged to a common name; e.g., HLA-DRA*01:01/DRB*01:01 to simply HLA-DRB*01:01, which is a different row). Optional third column gives the name as used by an epitope predictor
 - If the specified "--db" or "--csv" exists, an error is raised unless "--overwrite" or "--augment" is indicated (augment currently only supported for db)
 - Peptides are of variable length, so are converted into one or more 9mer core(s) considered risky -- all of them, or just the best or "good enough" ones according to an epitope predictor. The 'full' option saves out the whole peptide without 'core'ing it; this can't be used in the current mhc_epitope score but might be useful.
-- If an epitope predictor is used, an attempt will be made to convert allele names to those used by the predictor
+- If an epitope predictor is used, only the experimentally-evaluated allele will be predicted, and an attempt will be made to convert allele names to those used by the predictor. The allele_file can specify such a mapping.
 - NetMHCII (currently not supported) identifies one core per peptide (may be of low confidence), but matrices can identify multiple (or none)
 - Assay restrictions are currently only supported for queries to the local database, and currently are either just all/none for binding and elution separately. This follows IEDB's breakdown. The IEDB website allows finer-grained filtering; this script could be extended to do likewise.
     """)
@@ -78,15 +87,17 @@ def setup_parser():
     parser.add_argument('--mysql_pw', help='password for connecting to mysql database (default: %(default)s)', default=None)
 
     # types of assay (following IEDB's breakdown)
-    source.add_argument('--assay_mhc_ligand_binding', help='which forms of MHC binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
-    source.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+    parser.add_argument('--assay_mhc_ligand_binding', help='which forms of MHC binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
+    parser.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
 
     # from peptide to consistuent core 9mer(s)
     parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s)', choices=['all','predicted_good','predicted_best','full'], default='all')
+
     # subset of alleles to take from data
     alleles = parser.add_mutually_exclusive_group()
-    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15'])
+    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'hlaII'])
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
+    alleles.add_argument('--allele_file', help='name of csv-file with allele names, format in "additional notes" section')
 
     # epitope predictor
     pred = parser.add_mutually_exclusive_group()
@@ -132,7 +143,7 @@ def main(args, argv):
         data = IEDBData.from_mysql(args.iedb_fresh_mysql, args.assay_mhc_ligand_binding, args.assay_mhc_ligand_elution, data_allele_list, args.allele_set, user=args.mysql_user, pw=args.mysql_pw)
     
     # alleles
-    alleles = list(data.std_alleles)
+    std_alleles = sorted(set(data.std_alleles.values()))
     
     # epitope predictor
     pred = None # default is not to use prediction
@@ -173,12 +184,9 @@ def main(args, argv):
     
     # make scores for the cores
     cores = list(core_hits.keys())
-    # TODO: currently a binary score (is there a hit or not); could scale based on amount of evidence, # alleles, whatever
-    scores = [EpitopeScore(1, [1 if a in hits else None for a in alleles]) for hits in core_hits.values()]
-    epimap = EpitopeMap(9, alleles, cores, scores)
+    scores = [EpitopeScore(1, [1 if a in hits else None for a in std_alleles]) for hits in core_hits.values()]
+    epimap = EpitopeMap(9, std_alleles, cores, scores)
         
-    # TODO: seems like it would be nice to have a pointer from the core back to it source, from which we could then get details of the data
-    
     out = None
     if args.db is not None:
         if os.path.exists(args.db):
@@ -186,14 +194,14 @@ def main(args, argv):
                 os.remove(args.db)
             elif not args.augment:
                 raise Exception('database '+args.db+' already exists; specify --augment or --overwrite')
-        out = EpitopeDatabase.for_writing(args.db, ' '.join(argv), alleles, 9)
+        out = EpitopeDatabase.for_writing(args.db, ' '.join(argv), std_alleles, 9)
     elif args.csv is not None:
         if os.path.exists(args.csv):
             if args.overwrite:
                 os.remove(args.csv)
             else:
                 raise Exception('csv file '+args.csv+' already exists; specify --overwrite')
-        out = EpitopeCSV.for_writing(args.csv, alleles, 9)
+        out = EpitopeCSV.for_writing(args.csv, std_alleles, 9)
     if out is None:
         print('no output generated')
     else:
@@ -202,10 +210,10 @@ def main(args, argv):
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()
-    # main(args, sys.argv)
     try:
         main(args, sys.argv)
     except Exception as e:
         print('ERROR', e)
         print()
         parser.print_usage()
+        raise(e)

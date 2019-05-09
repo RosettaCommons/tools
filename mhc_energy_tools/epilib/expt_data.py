@@ -29,14 +29,9 @@ class ExptData (object):
     # TODO: copied from EpitopePredictor -- generalize somehow?
     allele_sets = {}
 
-    @staticmethod
-    def std_name(name):
-        """Converts name as given in the file to a 'standard' name used in the rest of the library"""
-        return name
-
     def __init__(self, name, std_alleles, measurements, scores):
         """name: arbitrary string
-        std_alleles: list of std allele names for which there are measurements
+        std_alleles: allele name => standardized allele name
         measurements: peptide => allele => [data], where data is implementation-dependent, but somehow measures the allele:peptide binding
         scores: peptide => allele => number, compiled from measurements into a score"""
         self.name = name
@@ -49,11 +44,7 @@ class IEDBData (ExptData):
     """Manages experimental epitope data downloaded from the IEDB."""
       
     # names as IEDB wants them
-    # also adding in DRA partner allele since some data includes it
-    # TODO: check legit
-    def add_dra(allele_sets):
-        return dict((name, alleles+['HLA-DRA*01:01/'+a[4:] for a in alleles if a.startswith('HLA-DR')]) for (name,alleles) in allele_sets.items())
-    allele_sets = add_dra({
+    allele_sets = {
         'test': 
             ['HLA-DRB1*01:01'],
             
@@ -75,7 +66,7 @@ class IEDBData (ExptData):
         # https://www.ncbi.nlm.nih.gov/pubmed/25862607
         'paul15':
             ['HLA-DRB1*03:01', 'HLA-DRB1*07:01', 'HLA-DRB1*15:01', 'HLA-DRB3*01:01', 'HLA-DRB3*02:02', 'HLA-DRB4*01:01', 'HLA-DRB5*01:01'],
-        })
+        }
 
     # TODO: copied and modified from NetMHC -- generalize?
     # in particular, use the internal "std_name" to reconcile naming    
@@ -86,14 +77,11 @@ class IEDBData (ExptData):
         - drops "HLA-"
         - converts "-", '*', and '/' to "_"
         - drops ':'
-        - gets rid of DRA paired with DRB [for uniformity, collapsing; see TODO below]
         Caches the conversion."""
         if iedb_name in IEDBData.iedb2std: return IEDBData.iedb2std[iedb_name]
         name = iedb_name \
             .replace('HLA-','') \
-            .translate(str.maketrans({'/':'_', '-':'_', '*':'_', ':':None})) \
-            .replace('DRA_0101_','') 
-            # TODO: I think we want to collapse the DRA down, but double check or allow option?
+            .translate(str.maketrans({'/':'_', '-':'_', '*':'_', ':':None}))
         IEDBData.iedb2std[iedb_name] = name
         return name
 
@@ -117,12 +105,20 @@ class IEDBData (ExptData):
         return scores
 
     @staticmethod
-    def from_csv(filename, alleles=None, allele_set=None):
+    def from_csv(filename, alleles=None, allele_set=None, allele_file=None):
         """Loads from IEDB-formatted download file.
-        If given, restricts to just the specified alleles or named allele_set; else imports all."""
-        if allele_set is not None: alleles = IEDBData.allele_sets[allele_set]
+        If given, restricts to just the specified alleles (by list of names, named set, or file); else imports all.
+        Special allele_set name 'hlaII' means from file 'data/iedb-hlaII.csv'."""
+
+        restr_synonyms = None # restricted query allele name => synonym for merging
+        if allele_set == 'hlaII': restr_synonyms = IEDBData.load_allele_file('data/iedb-hlaII.csv')
+        elif allele_set is not None: restr_synonyms = IEDBData.loaded_synonyms(IEDBData.allele_sets[allele_set])
+        elif alleles is not None: restr_synonyms = IEDBData.loaded_synonyms(alleles)
+        elif allele_file is not None: restr_synonyms = IEDBData.load_allele_file(allele_file)
+        std_alleles = dict((a,IEDBData.std_name(s)) for (a,s) in restr_synonyms.items())
+
         measurements = collections.defaultdict(lambda:collections.defaultdict(list)) # peptide => allele => [qual_measure]
-        std_alleles = set()
+        std_alleles = {}
         with open(filename) as infile:
             # IEDB splits the header over two lines, so concatenate them as use them as the field names
             head1 = infile.readline().strip().split(',')
@@ -132,19 +128,24 @@ class IEDBData (ExptData):
                 nrows += 1
                 peptide = row['Epitope Description']
                 allele = row['MHC Allele Name']
-                if alleles is not None and allele not in alleles:
+                if restr_synonyms is not None and allele not in restr_synonyms:
                     #print('skipping allele',allele)
                     continue
                 # only deal with peptides containing at least 9 amino acids and nothing funky
                 if len(peptide)<9 or any(aa not in AAs for aa in peptide):
                     print('skipping',peptide)
                     continue
-                std_allele = IEDBData.std_name(allele)
-                std_alleles.add(std_allele)
+                if allele not in std_alleles:
+                    std_alleles[allele] = IEDBData.std_name(allele)
                 qual_measure = row['Assay Qualitative Measure']
-                measurements[peptide][std_allele].append(qual_measure)
+                measurements[peptide][std_alleles[allele]].append(qual_measure)
         print(nrows,'rows','=>',len(measurements),'peptides')
         return IEDBData('iedb csv '+filename, std_alleles, measurements, IEDBData.aggregate_measurements(measurements))
+
+    @staticmethod
+    def loaded_synonyms(alleles):
+        synonyms = IEDBData.load_allele_file('data/iedb-hlaII.csv')
+        return dict((a, synonyms[a] if a in synonyms else a) for a in alleles)
 
     @staticmethod
     def download_mysql(dbname, user='root', pw=None):
@@ -152,30 +153,43 @@ class IEDBData (ExptData):
         mysql = 'mysql -u '+user
         if pw is not None: mysql += ' -p'+pw
         # http://www.iedb.org/database_export_v3.php
-        os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
-        os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
+        errcode = os.system(mysql + ' -e "drop database if exists '+dbname+'; create database '+dbname+';"')
+        if (errcode):
+            raise Exception('Error re-creating empty database ' + dbname + ', with error code ' + str(errcode))
+        errcode = os.system('curl http://www.iedb.org/downloader.php?file_name=doc/iedb_public.sql.gz | gunzip -c | '+ mysql + ' iedb ')
+        if (errcode):
+            raise Exception('Error downloading IEDB or populating local database ' + dbname + ', with error code ' + str(errcode))
 
     @staticmethod
-    def from_mysql(dbname, assay_binding_filter, assay_elution_filter, alleles=None, allele_set=None, user='root', pw=None):
+    def from_mysql(dbname, assay_binding_filter, assay_elution_filter, alleles=None, allele_set=None, allele_file=None, user='root', pw=None):
         """Loads from local mysql database downloaded from IEDB.
         Either or both of data from the mhc_bind table and/or the mhc_elution table.
-        A list of alleles or an allele_set name must be given."""
+        A list of alleles, an allele_set name, or an allele_file must be given.
+        Special allele_set name 'hlaII' means everything that is returned in a query for human class II."""
 
         import mysql.connector
-        connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
-        cursor = connection.cursor()
+        try:
+            connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+            cursor = connection.cursor()
+        except mysql.connector.Error as err:
+            print('Error accessing local mysql database ' + dbname)
+            raise(err)
 
-        if allele_set is not None: alleles = IEDBData.allele_sets[allele_set]       
-        if alleles is None: raise Exception('please specify alleles or allele_set')
-        std_alleles = set(IEDBData.std_name(a) for a in alleles) # duplicates due to DRA
+        synonyms = None # query allele name => synonym for merging
+        if allele_set == 'hlaII': synonyms = IEDBData.query_hlaII(cursor)
+        elif allele_set is not None: synonyms = IEDBData.query_synonyms(cursor, IEDBData.allele_sets[allele_set])      
+        elif alleles is not None: synonyms = IEDBData.query_synonyms(cursor, alleles)
+        elif allele_file is not None: synonyms = IEDBData.load_allele_file(allele_file)
+        else: raise Exception('please specify alleles using one of the available mechanisms')
+        std_alleles = dict((a,IEDBData.std_name(s)) for (a,s) in synonyms.items())
         
         measurements = collections.defaultdict(lambda:collections.defaultdict(list)) # peptide => allele => [qual_measure]
         if assay_binding_filter != 'none':
             print('loading mhc ligand binding data')
-            IEDBData.load_table(cursor, measurements, 'mhc_bind', assay_binding_filter, alleles)
+            IEDBData.load_table(cursor, measurements, 'mhc_bind', assay_binding_filter, std_alleles)
         if assay_elution_filter != 'none':
             print('loading mhc ligand elution data')
-            IEDBData.load_table(cursor, measurements, 'mhc_elution', assay_elution_filter, alleles)
+            IEDBData.load_table(cursor, measurements, 'mhc_elution', assay_elution_filter, std_alleles)
         # TODO: t cell data?
         print('=>',len(measurements),'peptides')
 
@@ -185,7 +199,66 @@ class IEDBData (ExptData):
         return IEDBData('iedb mysql '+dbname, std_alleles, measurements, IEDBData.aggregate_measurements(measurements))
 
     @staticmethod
-    def load_table(cursor, measurements, table, assay_filter, alleles):
+    def query_synonyms(cursor, alleles):
+        """Uses the cursor to find synonyms for the given alleles.
+        Currently for DRB-only alleles (no mutations) also finds those with DRA*01:01 (no mutations) specified (this is what the IEDB web site does).
+        Returns allele => synonym (where synonym is allele itself for most)"""
+
+        synonyms = dict((a,a) for a in alleles)
+        drbs = ['"%s"' % (a,) for a in alleles if a.startswith('HLA-DRB')]
+        print(drbs)
+        cursor.execute('select displayed_restriction,chain_ii_name from mhc_allele_restriction where chain_i_name="HLA-DRA*01:01" and chain_i_mutation is NULL and chain_ii_name in (%s) and chain_ii_mutation is NULL' % (','.join(drbs), ))
+        # TODO: error handling
+
+        for (allele,synonym) in cursor:
+            # The mysql connector sometimes (but not always) returns bytearrays instead of strings.  Decode them to strings only if necessary.
+            if type(allele) == bytearray: allele = allele.decode()
+            if type(synonym) == bytearray: synonym = synonym.decode()
+            synonyms[allele] = synonym
+
+        for a_s in sorted(synonyms.items()): print(a_s)
+        
+        return synonyms
+        
+    @staticmethod
+    def query_hlaII(cursor):
+        """Uses the cursor to query HLA-II alleles. 
+        Identifies synonyms for DRA/DRB as in get_synonyms.
+        Returns allele => synonym (where synonym is allele itself for most)"""
+
+        cursor.execute('select displayed_restriction,chain_i_name,chain_i_mutation,chain_ii_name,chain_ii_mutation from mhc_allele_restriction where class="II" and organism_ncbi_tax_id="9606" order by displayed_restriction')
+        # TODO: error handling
+
+        synonyms = {}     
+        for (allele,a_chain,a_mut,b_chain,b_mut) in cursor:
+            # The mysql connector sometimes (but not always) returns bytearrays instead of strings.  Decode them to strings only if necessary.
+            if type(allele) == bytearray: allele = allele.decode()
+            if type(a_chain) == bytearray: a_chain = a_chain.decode()
+            if type(b_chain) == bytearray: b_chain = b_chain.decode()
+            synonyms[allele] = allele
+            if a_chain=='HLA-DRA*01:01' and a_mut is None and b_chain.startswith('HLA-DRB') and b_mut is None:
+                synonyms[allele] = b_chain
+                
+        return synonyms
+
+    @staticmethod
+    def load_allele_file(filename):
+        """Loads the allele names (and optional synonyms) from the csv file.
+        Format: header row, then one row per allele name (first column) with optional synonym (second column) and epitope predictor allele name (third column, currently ignored)
+        Returns allele => synonym (itself if unspecified)"""
+        
+        synonyms = {}
+        with open(filename,'r') as infile:
+            infile.readline() # hedaer
+            for row in csv.reader(infile):
+                if row[1] is not None: synonyms[row[0]] = row[1]
+                else: synonyms[row[0]] = row[0]
+                # TODO: get epipred name
+                
+        return synonyms
+                
+    @staticmethod
+    def load_table(cursor, measurements, table, assay_filter, std_names):
         # TODO: allow filtering on specific assay details (currently just ignoring assay_filter)
 
         # Note: while the IEDB example suggests to get the linear_peptide_seq, that doesn't include modifications, whereas description seems to
@@ -196,7 +269,7 @@ class IEDBData (ExptData):
         from %s m, curated_epitope ce, epitope_object eo, epitope e
         where m.curated_epitope_id=ce.curated_epitope_id and ce.e_object_id = eo.object_id and eo.epitope_id=e.epitope_id
         and length(e.linear_peptide_seq)>=9
-        and m.mhc_allele_name in (%s)""" % (table, ','.join('"'+a+'"' for a in alleles))
+        and m.mhc_allele_name in (%s)""" % (table, ','.join('"'+a+'"' for a in std_names))
         # print(query)
         
         cursor.execute(query)
@@ -216,5 +289,29 @@ class IEDBData (ExptData):
             if any(aa not in AAs for aa in peptide):
                 print('skipping',peptide)
                 continue
-            measurements[peptide][IEDBData.std_name(iedb_allele)].append(qual_measure)
+            measurements[peptide][std_names[iedb_allele]].append(qual_measure)
         print(nrows,'rows')
+
+    @staticmethod
+    def export_hlaII(dbname, filename, user='root', pw=None):
+        """Internal method (not currently available from command-line, but could be) to extract HLA-II allele names into a csv file."""
+
+        import mysql.connector
+        try:
+            connection = mysql.connector.connect(database=dbname, user=user, password=pw) # TODO: server, other options? https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+            cursor = connection.cursor()
+        except mysql.connector.Error as err:
+            print('Error accessing local mysql database ' + dbname)
+            raise(err)
+
+        synonyms = IEDBData.query_hlaII(cursor)
+        
+        with open(filename,'w') as outfile:
+            outcsv = csv.writer(outfile)
+            outcsv.writerow(['allele','synonym'])
+            
+            for allele_synonym in sorted(synonyms.items()):
+                outcsv.writerow(allele_synonym)
+
+        cursor.close()
+        connection.close()

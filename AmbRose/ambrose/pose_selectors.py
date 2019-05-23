@@ -57,7 +57,7 @@ def lowest_energy_from_end(l):
     # this would be easier with numpy but I don't want to introduce a
     # dependency just to do a mean and a standard deviation
     mean = sum(energies)/len(energies)
-    std = (sum([(e-mean)**2 for e in energies]) / len(energies))**0.5
+    std = (sum((e-mean)**2 for e in energies) / len(energies))**0.5
     start_index -= 1 # guaranteed >= 0 since len(l) > 1
     while True:
         next_energy = scorefxn.score(l[start_index])

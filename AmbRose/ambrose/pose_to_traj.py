@@ -211,48 +211,41 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             dump_amber_pdb(pose, pdb_f.name)
 
             ## generate and write the LEaP instructions
-            leap_command_str = bytearray(
+            leap_command_str = \
                 open(os.path.join(consts.AMBROSE_DIR,
-                                  'pose-to-traj.in.prototype')).read(),
-                'ascii')
-            # To ensure that this is not a bottleneck, we give the indices of the
-            # replacement points in advance. We could technically forego the names
-            # to gain even more time, but then it becomes pretty unreadable.
+                                  'pose-to-traj.in.prototype')).read()
             if solvent:
                 solvent_box, solvent_cmd = \
                     pose_to_amber_params.SOLVENTS[solvent]
             solvent_shape_str = \
                 pose_to_amber_params.SOLVENT_SHAPES[solvent_shape]
-            replacements = {('+LOG-FILE+', (8,)):
+            # The following code will replace each instance of each key in the
+            # leap command str with its corresponding value. The keys must
+            # not be prefixes of each other.
+            replacements = {'+LOG-FILE+':
                                 log_path,
-                            ('+LOAD-SOLVENT+', (48,)):
+                            '+LOAD-SOLVENT+':
                                 solvent_cmd if solvent else '',
-                            ('+PDB-PATH+', (81,)):
+                            '+PDB-PATH+':
                                 pdb_f.name,
-                            ('+SOLVATEP+', (92,)):
+                            '+SOLVATEP+':
                                 '' if solvent else '#',
-                            ('+SOLVENT-SHAPE+', (110,)):
+                            '+SOLVENT-SHAPE+':
                                 solvent_shape_str if solvent else '',
-                            ('+SOLVENT+', (133,)):
+                            '+SOLVENT+':
                                 solvent_box if solvent else '',
-                            ('+ADD-IONS-P+', (148, 182)):
+                            '+ADD-IONS-P+':
                                 '' if add_ions and solvent else '#',
-                            ('+OUT-TOP-PATH+', (237,)):
+                            '+OUT-TOP-PATH+':
                                 top_path,
-                            ('+OUT-CRD-PATH+', (252,)):
+                            '+OUT-CRD-PATH+':
                                 crd_path}
-            # cumulative difference between given index and actual replacement
-            # index, from accumulated differences in lengths between names and
-            # their replacements:
-            cum_diff = 0
-            for (name, indices), replacement in replacements.items():
-                len_name = len(bytearray(name, 'ascii'))
-                byte_replacement = bytearray(replacement, 'ascii')
-                for index in indices:
-                    leap_command_str[index+cum_diff:index+len_name+cum_diff] = \
-                        byte_replacement
-                    cum_diff += len(byte_replacement) - len_name
-            open(leap_in_fd, 'wb').write(leap_command_str)
+            matcher = re.compile(
+                '(' + '|'.join(map(re.escape, replacements.keys())) + ')')
+            leap_command_str = matcher.sub(
+                lambda mo: replacements[mo.group(1)],
+                leap_command_str)
+            open(leap_in_fd, 'w').write(leap_command_str)
 
             ## get LEaP to write the file
             subprocess.run([os.path.join(amber_bin(), 'tleap'),

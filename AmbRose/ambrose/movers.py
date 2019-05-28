@@ -187,7 +187,7 @@ class _AMBERMover(_NotAMover):
         self._solvent = solvent
         self._solvent_shape = solvent_shape
         wet = solvent is not None
-        self._amber_executable = 'pmemd' if wet else 'sander'
+        self._amber_executable = 'pmemd.cuda'
         common_dict = {'igb': int(not wet),
                        'ntb': int(wet),
                        'cut': cutoff}
@@ -230,7 +230,6 @@ class _AMBERMover(_NotAMover):
         self._min_mdin_dict['ntb'] = int(wet)
         self._mdin_dict['igb'] = int(not wet)
         self._mdin_dict['ntb'] = int(wet)
-        self._amber_executable = 'pmemd' if wet else 'sander'
     @property
     def solvent_shape(self):
         '''SolventShape: The shape of solvent to use for an explicit-solvent
@@ -268,7 +267,7 @@ class _AMBERMover(_NotAMover):
     def cst_mask(self):
         '''str or None: Atom mask string specifying which atoms are affected by
         the coordinate constraints. Given in ambmask syntax: see section 19.1 of
-        the 2018 AMBER manual, on page 395.'''
+        the 2019 AMBER manual, on page 410.'''
         try:
             return self._mdin_dict['restraintmask']
         except KeyError:
@@ -502,8 +501,8 @@ class AMBERMinMover(_AMBERMover):
         to constrain the pose to its original coordinates.
     cst_mask : str, optional
         Atom mask specifying which atoms are affected by the coordinate
-        constraints. Given in ambmask syntax; see section 19.1 of the 2018
-        AMBER manual, on page 395.
+        constraints. Given in ambmask syntax; see section 19.1 of the 2019
+        AMBER manual, on page 410.
     cst_weight : float, optional
         Weight of coordinate constraints, in kcal/mol/angstroms^2.
     '''
@@ -595,9 +594,9 @@ class AMBERSimulateMover(_AMBERMover):
     the function that determines which frame to use from the simulated
     trajectory to overwrite the input Pose.
 
-    This object provides, but does not implement or document, all the methods of
-    the base Mover class. The only method from the base class that actually
-    works is `apply`_.
+    This object provides, but does not implement or document, all the methods
+    of the base Mover class. See the documentation for the class `_NotAMover`_
+    for more info.
 
     Parameters
     ----------
@@ -640,8 +639,8 @@ class AMBERSimulateMover(_AMBERMover):
         to constrain the pose to its original coordinates.
     cst_mask : str, optional
         Atom mask specifying which atoms are affected by the coordinate
-        constraints. Given in ambmask syntax; see section 19.1 of the 2018
-        AMBER manual, on page 395.
+        constraints. Given in ambmask syntax; see section 19.1 of the 2019
+        AMBER manual, on page 410.
     cst_weight : float, optional
         Weight of coordinate constraints, in kcal/mol/angstroms^2.
     '''

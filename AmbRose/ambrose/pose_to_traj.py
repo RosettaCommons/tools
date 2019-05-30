@@ -114,7 +114,7 @@ def dict_to_namelist_str(d, name='cntrl'):
     # make sure the last entry doesn't have a comma:
     key, value = keys_and_values[-1]
     to_output.append(f'  {key} = {fortran_str(value)}')
-    to_output.extend(['&', ''])
+    to_output.extend(['&end', ''])
     return '\n'.join(to_output)
 
 def dict_to_namelist_file(d, path, name='cntrl'):

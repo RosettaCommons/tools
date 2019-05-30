@@ -10,3 +10,9 @@ class TopologySizeError(TopologyError):
 
 class TopologyTypeError(TopologyError):
     '''An error encountered when a topology has the wrong kind of residues.'''
+
+class AMBERError(RuntimeError):
+    '''An error encountered when an AMBER utility fails in some way.'''
+
+class AMBERFileError(RuntimeError):
+    '''An error encountered when an AMBER utility fails to produce a file.'''

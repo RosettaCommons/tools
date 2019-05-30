@@ -71,6 +71,22 @@ def _check_pose_convertibility(pose, crd_path, top_path):
             'AMBER! Here\'s the offending residue:\n  ' + bad_residue)
     # pylint: enable=no-member
 
+def _check_file_existence(path, file_type='AMBER file'):
+    '''Checks whether a file exists. If it doesn't exist, this raises an
+    `AMBERFileError`_ with the path of the file and a description of it.
+
+    Parameters
+    ----------
+    path : str
+        Path to file to check existence of.
+    file_type : str
+        Noun phrase describing file, to be inserted into error message.
+    '''
+
+    if not os.path.isfile(path):
+        raise errors.AMBERFileError(
+            f'Failed to produce {file_type} at {path}; cannot continue.')
+
 def _timestamp():
     '''Gets timestamp in standardized format.'''
 
@@ -240,7 +256,8 @@ class _AMBERMover(_NotAMover):
         self._solvent_shape = value
     @property
     def cutoff(self):
-        '''int or float: Van der Waals cutoff in angstroms. 15 by default.'''
+        '''int or float: Van der Waals cutoff in angstroms. Ignored for
+        implicit-solvent simulations, since 15 by default.'''
         if self._min_mdin_dict['cut'] != self._mdin_dict['cut']:
             warnings.warn('Van der Waals cutoff values don\'t match for '
                           'minimization and simulation. To fix this, assign '
@@ -365,6 +382,13 @@ class _AMBERMover(_NotAMover):
             del args['refc']
         args['mdin_dict'] = copy.copy(self._min_mdin_dict if minp \
                                       else self._mdin_dict)
+        # Necessary so that pmemd.cuda doesn't barf. Why don't we just leave
+        # out the cutoff altogether? Because, apparently, the default of 0 is
+        # not good enough, because it's less than 999 angstroms. You'd think
+        # that this means that the cutoff must be large but finite, but no,
+        # anything above 999 angstroms gets treated as infinite anyway. Aaaargh.
+        if args['mdin_dict']['igb'] != 0:
+            args['mdin_dict']['cut'] = 1000.
         return args
     def apply(self, pose):
         '''This half of apply will create a topology file for the pose, and
@@ -404,6 +428,8 @@ class _AMBERMover(_NotAMover):
         leap_args['solvent'] = self.solvent
         leap_args['solvent_shape'] = self.solvent_shape
         pose_to_traj.pose_to_amber_params(pose, **leap_args)
+        _check_file_existence(leap_args['crd_path'], 'input coordinates file')
+        _check_file_existence(leap_args['top_path'], 'input topology file')
         _check_pose_convertibility(pose,
                                    leap_args['crd_path'],
                                    leap_args['top_path'])
@@ -531,6 +557,7 @@ class AMBERMinMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, _, min_args = _AMBERMover.apply(self, pose)
+        _check_file_existence(min_args['restrt'], 'minimization results')
         _transfer_xyz_from_pose_to_pose(
             traj_to_poses.TrajToPoses(pt.iterload(min_args['restrt'],
                                                   min_args['prmtop']))[0],
@@ -756,7 +783,8 @@ class AMBERSimulateMover(_AMBERMover):
         # pylint: disable=unused-variable
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
-        working_dir, prefix, _ = _AMBERMover.apply(self, pose)
+        working_dir, prefix, min_args = _AMBERMover.apply(self, pose)
+        _check_file_existence(min_args['restrt'], 'minimization results')
         md_args = self._make_run_md_args(working_dir=working_dir,
                                          prefix=prefix,
                                          minp=False)

@@ -257,7 +257,8 @@ class _AMBERMover(_NotAMover):
     @property
     def cutoff(self):
         '''int or float: Van der Waals cutoff in angstroms. Ignored for
-        implicit-solvent simulations, since 15 by default.'''
+        implicit-solvent simulations, since pmemd.cuda doesn't allow a cutoff
+        for those. 15 by default.'''
         if self._min_mdin_dict['cut'] != self._mdin_dict['cut']:
             warnings.warn('Van der Waals cutoff values don\'t match for '
                           'minimization and simulation. To fix this, assign '

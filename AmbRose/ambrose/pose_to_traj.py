@@ -81,7 +81,7 @@ def dict_to_namelist_str(d, name='cntrl'):
     be used as an mdin NAMELIST file for sander, because sander treats the
     first line as a title, while here the first line is already the group
     name. You need to concatenate a newline to the front of the string, if
-    you are going to dump it to a file.
+    you are going to dump it to a file. The same applies to pmemd.
 
     Parameters
     ----------
@@ -269,7 +269,7 @@ pose_to_amber_params.SOLVENT_SHAPES = \
     {enums.SolventShape.BOX: 'box',
      enums.SolventShape.OCT: 'oct'}
 
-def run_md(executable='sander', *, overwrite=False, mdin=None,
+def run_md(executable='pmemd.cuda', *, overwrite=False, mdin=None,
            mdin_dict=None, mdout=None, prmtop=None, inpcrd=None, restrt=None,
            refc=None, mdcrd=None, mdinfo=None):
     '''Runs an AMBER MD program (sander by default) with the given arguments, with
@@ -285,7 +285,7 @@ def run_md(executable='sander', *, overwrite=False, mdin=None,
     Parameters
     ----------
     executable : str, optional
-        The AMBER executable to run the MD with. sander by default.
+        The AMBER executable to run the MD with. pmemd.cuda by default.
     overwrite : bool, optional
         Whether to overwrite the output files if already present. Equivalent to
         the ``-O`` flag in the executable.

@@ -460,7 +460,7 @@ class _AMBERMover(_NotAMover):
 ### Premier classes
 
 class AMBERMinMover(_AMBERMover):
-    '''A Mover-like object that uses sander or PMEMD to minimize a pose.
+    '''A Mover-like object that uses pmemd.cuda to minimize a pose.
 
     Intermediate files are stored by default in the working directory, prefixed
     with a timestamp. The directory and prefix may be overridden. Output of the
@@ -546,7 +546,7 @@ class AMBERMinMover(_AMBERMover):
     def name(self):
         return 'AMBERMinMover'
     def apply(self, pose):
-        '''Minimize the given pose using sander or PMEMD.
+        '''Minimize the given pose using pmemd.cuda.
 
         Parameters
         ----------
@@ -567,9 +567,9 @@ class AMBERMinMover(_AMBERMover):
         # TemporaryDirectory
 
 class AMBERSimulateMover(_AMBERMover):
-    '''A Mover-like object that uses sander or PMEMD to minimize and then
-    simulate a pose, ultimately overwriting it with a frame from the
-    simulation's trajectory.
+    '''A Mover-like object that uses pmemd.cuda to minimize and then simulate a
+    pose, ultimately overwriting it with a frame from the simulation's
+    trajectory.
 
     Intermediate files are stored by default in the working directory, prefixed
     with a timestamp. The directory and prefix may be overridden. Output of the
@@ -672,6 +672,7 @@ class AMBERSimulateMover(_AMBERMover):
     cst_weight : float, optional
         Weight of coordinate constraints, in kcal/mol/angstroms^2.
     '''
+
     def __init__(self, working_dir='', prefix=None, solvent=None,
                  solvent_shape=enums.SolventShape.OCT, duration=None,
                  temperature=None, starting_temperature=0, cutoff=15.,
@@ -769,13 +770,19 @@ class AMBERSimulateMover(_AMBERMover):
             except KeyError:
                 return
         self._mdin_dict['ig'] = value
-    def apply(self, pose):
-        '''Minimize, then simulate the given pose using sander or PMEMD.
+    def simulate(self, pose):
+        '''Minimize, then simulate the given Pose using pmemd.cuda. Return a
+        Trajectory object of the frames output during the simulation.
 
         Parameters
         ----------
         pose : rosetta.core.Pose
             Pose to minimize and simulate.
+
+        Returns
+        -------
+        pytraj.Trajectory
+            The frames from the simulation.
         '''
 
         assert self.duration is not None, 'Set duration first.'
@@ -790,11 +797,22 @@ class AMBERSimulateMover(_AMBERMover):
                                          prefix=prefix,
                                          minp=False)
         pose_to_traj.run_md(**md_args)
-        _transfer_xyz_from_pose_to_pose(
-            self.pose_selector( # pylint: disable=not-callable
-                traj_to_poses.TrajToPoses(
-                    pt.iterload(md_args['mdcrd'],
-                                md_args['prmtop']))),
-            pose)
+        return traj_to_poses.TrajToPoses(pt.iterload(md_args['mdcrd'],
+                                                     md_args['prmtop']))
         # working_dir should get cleaned up on its own if it's a
         # TemporaryDirectory
+    def apply(self, pose):
+        '''Minimize, then simulate the given pose using pmemd.cuda. Replace the
+        Pose with a frame from the simulation selected by this mover's
+        `pose_selector`_.
+
+        Parameters
+        ----------
+        pose : rosetta.core.Pose
+            Pose to minimize and simulate.
+        '''
+
+        _transfer_xyz_from_pose_to_pose(
+            self.pose_selector( # pylint: disable=not-callable
+                self.simulate(pose)),
+            pose)

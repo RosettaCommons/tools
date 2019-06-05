@@ -93,7 +93,7 @@ def setup_parser():
     parser.add_argument('--assay_mhc_ligand_elution', help='which forms of MHC ligand elution binding data to use; only supported with mysql interface (default: %(default)s)', choices=['all','none'], default='all') # TODO: break down subtypes
 
     # from peptide to consistuent core 9mer(s)
-    parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s)', choices=['all','predicted_good','predicted_best','full'], default='all')
+    parser.add_argument('--cores', help='which 9mer core(s) of a peptide to include (default: %(default)s).  all means all 9mers, predicted_good/_best selects good binders/best binder core(s), and full leaves the intact peptide (does not reduce to a 9mer).', choices=['all','predicted_good','predicted_best','full'], default='all')
 
     # subset of alleles to take from data
     alleles = parser.add_mutually_exclusive_group()

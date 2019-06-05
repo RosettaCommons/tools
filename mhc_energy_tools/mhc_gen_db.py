@@ -117,7 +117,7 @@ def setup_parser():
     parser = argparse.ArgumentParser(description='Establishes a database of precomputed epitope scores, to enable efficient lookup at design time', 
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="""Additional notes:
-- Currently only handles single sequence per file. Thus if using a pdb file with multiple chains, must specify which with --pdb_chain.
+- Currently only handles single sequence per file. Thus if using a pdb file with multiple chains, must specify which with --chain.
 - Pretty rudimentary handling of PDB files, padding missing residues with '_' (i.e., no epitopes) and generally dealing only with the standard twenty 3-letter AA codes
 - Wild-type is always considered at each position. If no other choices are provided, only wild-type epitopes are added to the database.
 - "db" means sqlite3 file (random access); for simplicity, much of the same functionality is supported by "csv", comma-separated value format (read into a dictionary in memory)
@@ -230,7 +230,7 @@ def main(args, argv):
         if len(chains)==1:
             wt = chains[0]
             if args.chain is not None and args.chain != wt.chain:
-                raise Exception('no chain chain in the pdb file')
+                raise Exception('no chain %s in the pdb file' % (args.chain,) )
         else:
             if args.chain is None:
                 raise Exception('multi-chain pdb file; please use --chain option to indicate which to use')

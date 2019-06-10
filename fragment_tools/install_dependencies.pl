@@ -305,7 +305,7 @@ if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 
 	if (!-s "$datdir/nr_pfilt") {
 		print "Generating nr_pfilt fasta. Be very very patient ......\n";
-		$cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
+		my $cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
 		print $cmd;
 		(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
 	}

@@ -266,10 +266,18 @@ chdir($Bin);
 if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 	chdir($datdir);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
-	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
-	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "$datdir/update_blastdb.pl");
-	system("rm $datdir/nr*"); # clean up interrupted attempts
-	$SIG{INT} = \&clean_nr_tgz;
+	system("wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.9.0+-src.tar.gz");
+	system("tar -zxf ncbi-blast-2.9.0+-src.tar.gz");
+	system("cp ncbi-blast-2.9.0+-src/c++/src/app/blast/update_blastdb.pl .");
+	die "ERROR! wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-1.9.0+-src.tar.gz failed.\n" if (!-s "$datdir/update_blastdb.pl");
+	if ( -d "$datdir/nr" ) {
+		system("rm -rf $datdir/nr*"); # clean up interrupted attempts
+		$SIG{INT} = \&clean_nr_tgz;
+	}
+	# Sometimes fails randomly, run multiple times (sorry horrible hack)
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
 	(system("perl $datdir/update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
 	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
@@ -288,16 +296,26 @@ chdir($Bin);
 # p_filt NR database from installed nr
 if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	chdir($datdir);
-	print "Generating nr fasta. Be very patient ......\n";
-	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > $datdir/nr";
-	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
-	print "Generating nr_pfilt fasta. Be very very patient ......\n";
-	$cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
-	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	if (!-s "$datdir/nr") {
+		print "Generating nr fasta. Be very patient ......\n";
+		my $cmd = "$Bin/blast/bin/fastacmd -D 1 > $datdir/nr";
+		print $cmd;
+		(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	}
+
+	if (!-s "$datdir/nr_pfilt") {
+		print "Generating nr_pfilt fasta. Be very very patient ......\n";
+		$cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
+		print $cmd;
+		(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	}
+
 	print "Formatting nr_pfilt fasta. Be very very very patient ......\n";
 	system("rm $datdir/nr_pfilt.*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_pfilt;
-	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt") == 0) or do { &clean_nr_pfilt; };
+	my $cmd = "$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt -v 10000";
+	print $cmd;
+	(system($cmd) == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr_pfilt.pal") or die "ERROR! $datdir/nr_pfilt database installation failed!\n";
 }

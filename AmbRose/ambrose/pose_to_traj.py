@@ -68,9 +68,19 @@ def dump_amber_pdb(pose, pdb_path):
         The path at which to dump it.
     '''
 
+    # change the names of all cystines to 'CYX':
+    pose.conformation() \
+        .residue_type_set_for_conf() \
+        .name_map('CYS:disulfide') \
+        .name3('CYX')
     fstream = pr.rosetta.std.ofstream(pdb_path,
                                       pr.rosetta.std._Ios_Openmode._S_out)
     pr.rosetta.core.io.pdb.dump_pdb(pose, fstream, _heavy_atom_mask(pose))
+    # change it back:
+    pose.conformation() \
+        .residue_type_set_for_conf() \
+        .name_map('CYS:disulfide') \
+        .name3('CYS')
 
 def dict_to_namelist_str(d, name='cntrl'):
     '''Dumps a single-group FORTRAN 77 NAMELIST for a dict, as a string. The

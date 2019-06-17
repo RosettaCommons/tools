@@ -177,7 +177,8 @@ def main(args, argv):
             raise Exception('need to predict 9mer cores')
         if args.allele_set is not None:
             if args.allele_set not in pred.allele_sets: 
-                raise Exception('allele_set '+args.allele_set+' not supported')
+                # TODO: if predictor is a CSV/DB, it doesn't have an allele_set per se.  This becomes a bit esoteric, though, since you are unlikely to make a db to then pick cores.
+                raise Exception('allele_set '+args.allele_set+' is not supported by ' + pred.name + ', the Predictor you are using for picking cores.  You must select one of ' + pred.name + "'s supported allele_sets: " + str(list(pred.allele_sets.keys())))
             pred.filter_alleles(pred.allele_sets[args.allele_set])
         elif args.alleles is not None:
             # TODO: convert allele names from those for IEDB to those for predictor, by way of data.std_alleles and corresponding std_name in predictor

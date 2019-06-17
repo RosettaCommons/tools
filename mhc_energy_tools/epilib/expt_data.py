@@ -207,7 +207,8 @@ class IEDBData (ExptData):
         synonyms = dict((a,a) for a in alleles)
         drbs = ['"%s"' % (a,) for a in alleles if a.startswith('HLA-DRB')]
         print(drbs)
-        if drbs: cursor.execute('select displayed_restriction,chain_ii_name from mhc_allele_restriction where chain_i_name="HLA-DRA*01:01" and chain_i_mutation is NULL and chain_ii_name in (%s) and chain_ii_mutation is NULL' % (','.join(drbs), ))
+        if not drbs: return alleles # If there are no drbs, we don't need to worry about alleles.  Just give back the input alleles.
+        cursor.execute('select displayed_restriction,chain_ii_name from mhc_allele_restriction where chain_i_name="HLA-DRA*01:01" and chain_i_mutation is NULL and chain_ii_name in (%s) and chain_ii_mutation is NULL' % (','.join(drbs), ))
         # TODO: error handling
 
         for (allele,synonym) in cursor:

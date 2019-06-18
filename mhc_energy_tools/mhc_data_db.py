@@ -97,7 +97,7 @@ def setup_parser():
 
     # subset of alleles to take from data
     alleles = parser.add_mutually_exclusive_group()
-    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'hlaII'])
+    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'southwood98', 'hlaII'])
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
     alleles.add_argument('--allele_file', help='name of csv-file with allele names, format in "additional notes" section')
 
@@ -111,7 +111,7 @@ def setup_parser():
     # epitope predictor parameters
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
-    parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
+    #parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
 
     # output db / file
     out = parser.add_mutually_exclusive_group()

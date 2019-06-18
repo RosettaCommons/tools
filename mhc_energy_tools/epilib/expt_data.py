@@ -72,7 +72,7 @@ class IEDBData (ExptData):
         # J Immunol. 1998 Apr;160:3363-73
         # https://www.ncbi.nlm.nih.gov/pubmed/9531296
         'southwood98':
-            ['DRB1_0101','DRB1_0301','DRB1_0401','DRB1_0701','DRB1_0801','DRB1_1101','DRB1_1301','DRB1_1501']
+            ['HLA-DRB1*01:01','HLA-DRB1*03:01','HLA-DRB1*04:01','HLA-DRB1*07:01','HLA-DRB1*08:01','HLA-DRB1*11:01','HLA-DRB1*13:01','HLA-DRB1*15:01']
         }
 
     # TODO: copied and modified from NetMHC -- generalize?

@@ -152,7 +152,7 @@ def setup_parser():
     pred.add_argument('--propred', action='store_true', help='use propred matrices')
     # epitope predictor alleles
     alleles = parser.add_mutually_exclusive_group()
-    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'all'])
+    alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'southwood98', 'all'])
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
     # epitope predictor parameters
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)

@@ -105,8 +105,8 @@ def setup_parser():
     pred = parser.add_mutually_exclusive_group()
     pred.add_argument('--matrix', help='generic epitope predictor matrix filename')
     #pred.add_argument('--netmhcii', action='store_true', help='use netmhcII executable')
-    pred.add_argument('--pred_csv', help='name of csv from which to load epitope predictions') # TODO: different name from score.py since output is also db -- confusing?
-    pred.add_argument('--pred_db', help='name of database from which to load epitope predictions') # TODO: different name from score.py since output is also db -- confusing?
+    pred.add_argument('--pred_csv', help='name of csv from which to load epitope predictions')
+    pred.add_argument('--pred_db', help='name of database from which to load epitope predictions')
     pred.add_argument('--propred', action='store_true', help='use propred matrices')
     # epitope predictor parameters
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)

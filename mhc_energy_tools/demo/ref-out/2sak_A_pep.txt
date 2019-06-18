@@ -111,3 +111,8 @@
 * 2sak_A_110 0
 * 2sak_A_111 3
 * 2sak_A_112 0
+You have used ProPred.  This reference should be cited if used in publication.
+        Matrices obtained from http://crdd.osdd.net/raghava/propred/
+        If you use results based on these predictions, please cite
+        Singh, H. and Raghava, G.P.S. (2001) ProPred: Prediction of DR binding sites. Bioinformatics, 17(12):1236-37.
+        http://www.ncbi.nlm.nih.gov/pubmed/11751237

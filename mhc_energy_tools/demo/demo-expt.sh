@@ -51,8 +51,8 @@ mkdir -p out
 mv out/tmp out/iedb_0101_allcores.csv
 
 # Or just the good-enough cores according to Propred
-# Relies on 'test' allele-set being the same for both
-../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set test --propred --cores predicted_good --csv out/iedb_0101_pp5cores.csv
+# Relies on 'southwood98' allele-set being the same for both
+../mhc_data_db.py --iedb_mysql $dbname $sqlstring --allele_set southwood98 --propred --cores predicted_good --csv out/iedb_0101_pp5cores.csv
 # Sort the csv file to make the diff pass, leaving the header line alone
 (read -r; printf "%s\n" "$REPLY"; sort) < out/iedb_0101_pp5cores.csv > out/tmp
 mv out/tmp out/iedb_0101_pp5cores.csv

@@ -111,7 +111,7 @@ class IEDBData (ExptData):
         Special allele_set name 'hlaII' means from file 'data/iedb-hlaII.csv'."""
 
         restr_synonyms = None # restricted query allele name => synonym for merging
-        if allele_set == 'hlaII': restr_synonyms = IEDBData.load_allele_file('data/iedb-hlaII.csv')
+        if allele_set == 'hlaII': restr_synonyms = IEDBData.load_allele_file(os.path.dirname(__file__) + '/../data/iedb-hlaII.csv')
         elif allele_set is not None: restr_synonyms = IEDBData.loaded_synonyms(IEDBData.allele_sets[allele_set])
         elif alleles is not None: restr_synonyms = IEDBData.loaded_synonyms(alleles)
         elif allele_file is not None: restr_synonyms = IEDBData.load_allele_file(allele_file)
@@ -144,7 +144,7 @@ class IEDBData (ExptData):
 
     @staticmethod
     def loaded_synonyms(alleles):
-        synonyms = IEDBData.load_allele_file('data/iedb-hlaII.csv')
+        synonyms = IEDBData.load_allele_file(os.path.dirname(__file__) + '/../data/iedb-hlaII.csv')
         return dict((a, synonyms[a] if a in synonyms else a) for a in alleles)
 
     @staticmethod

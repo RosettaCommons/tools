@@ -8,14 +8,15 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^(standard|overwrite)\s*$/) {
 		$installtype = $1;
 	}
-	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr)\s*$/) {
+	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr|localnrcopy)\s*$/) {
 		$installtype = "";
 		last;
 	}
 }
+
 if (!$installtype) {
 	print "\n";
-	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr]\n\n";
+	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr|localnrcopy]\n\n";
 	print "This script installs blast, psipred, csblast, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "<standard> will only install what is missing.\n";
 	print "<overwrite> will do a fresh installation.\n";
@@ -45,9 +46,11 @@ my $skip_nr = 0;
 my $database = "nr";
 foreach my $arg (@ARGV) {
 	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
-	if ($arg =~ /^(uniref90|uniref50)\s*$/) { $database = $1; }
+	if ($arg =~ /^(uniref90|uniref50|localnrcopy)\s*$/) { $database = $1; }
 }
-
+if ($database eq "localnrcopy" && !$ENV{'LOCAL_NR_COPY'}) {
+	die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not set!\n";
+}
 chdir($Bin);
 
 # blast binaries
@@ -279,6 +282,26 @@ if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 	system("perl $datdir/update_blastdb.pl nr");
 	system("perl $datdir/update_blastdb.pl nr");
 	(system("perl $datdir/update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
+	$SIG{INT} = \&clean_nr;
+	foreach my $f (glob("$datdir/nr.*tar.gz")) {
+		my $unzipped = $f;
+		$unzipped =~ s/\.tar\.gz$//;
+		if (!-s $unzipped) {
+			(system("tar -zxvf $f") == 0) or do { &clean_nr; };
+			unlink $f; # save disk space
+		}
+	}
+	$SIG{INT} = 'DEFAULT';
+	(-s "$datdir/nr.pal") or die "ERROR! $datdir/nr database installation failed!\n";
+}
+chdir($Bin);
+
+if (!$skip_nr && $database eq "localnrcopy" && ($overwrite || !-s "$datdir/nr.pal")) {
+	print "Copying your local nr database to $datdir\n...";
+	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'} $datdir";
+	print $copy_cmd;
+	system($copy_cmd);
+
 	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
 		my $unzipped = $f;

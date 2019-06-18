@@ -42,6 +42,13 @@ class NetMHCII (EpitopePredictor):
         # https://www.ncbi.nlm.nih.gov/pubmed/25862607
         'paul15':
             ['DRB1_0301', 'DRB1_0701', 'DRB1_1501', 'DRB3_0101', 'DRB3_0202', 'DRB4_0101', 'DRB5_0101'],
+        
+        # Southwood S, Sidney J, Kondo A, del Guercio MF, Appella E, Hoffman S, Kubo RT, Chesnut RW, Grey HM, Sette A.
+        # Several common HLA-DR types share largely overlapping peptide binding repertoires
+        # J Immunol. 1998 Apr;160:3363-73
+        # https://www.ncbi.nlm.nih.gov/pubmed/9531296
+        'southwood98':
+            ['DRB1_0101','DRB1_0301','DRB1_0401','DRB1_0701','DRB1_0801','DRB1_1101','DRB1_1301','DRB1_1501']
         }
 
     nm2std = {} # cache for std_name

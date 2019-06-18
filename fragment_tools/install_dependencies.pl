@@ -48,8 +48,13 @@ foreach my $arg (@ARGV) {
 	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
 	if ($arg =~ /^(uniref90|uniref50|localnrcopy)\s*$/) { $database = $1; }
 }
-if ($database eq "localnrcopy" && !$ENV{'LOCAL_NR_COPY'}) {
-	die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not set!\n";
+if ($database eq "localnrcopy") {
+	if (!$ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not set!\n";
+	}
+	if (!-d $ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not a real dir: $ENV{'LOCAL_NR_COPY'}\n";
+	}
 }
 chdir($Bin);
 

@@ -14,6 +14,7 @@ import pyrosetta as pr
 # pragma pylint: enable=import-error
 
 from . import consts
+from . import errors
 from . import utils
 from . import enums
 
@@ -68,19 +69,21 @@ def dump_amber_pdb(pose, pdb_path):
         The path at which to dump it.
     '''
 
+    # cystine ResidueType:
+    cystine = pose.conformation() \
+                  .residue_type_set_for_conf() \
+                  .name_map('CYS:disulfide') \
+    # save original residue name:
+    original_name = cystine.name3()
     # change the names of all cystines to 'CYX':
-    pose.conformation() \
-        .residue_type_set_for_conf() \
-        .name_map('CYS:disulfide') \
-        .name3('CYX')
+    cystine.name3('CYX')
+    # actually dump file:
+    #pylint: disable=protected-access
     fstream = pr.rosetta.std.ofstream(pdb_path,
                                       pr.rosetta.std._Ios_Openmode._S_out)
     pr.rosetta.core.io.pdb.dump_pdb(pose, fstream, _heavy_atom_mask(pose))
     # change it back:
-    pose.conformation() \
-        .residue_type_set_for_conf() \
-        .name_map('CYS:disulfide') \
-        .name3('CYS')
+    cystine.name3(original_name)
 
 def dict_to_namelist_str(d, name='cntrl'):
     '''Dumps a single-group FORTRAN 77 NAMELIST for a dict, as a string. The
@@ -225,8 +228,33 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
                 open(os.path.join(consts.AMBROSE_DIR,
                                   'pose-to-traj.in.prototype')).read()
             if solvent:
-                solvent_box, solvent_cmd = \
+                solvent_str, load_solvent_str = \
                     pose_to_amber_params.SOLVENTS[solvent]
+            disulfide_residues = []
+            for i in range(1, pose.size()+1):
+                if pose.residue(i).name() == 'CYS:disulfide':
+                    disulfide_residues.append(i)
+            disulfides = []
+            while disulfide_residues:
+                # TODO: Rewrite this to not run in O(nlogn) time; it's trash.
+                our_r = disulfide_residues.pop()
+                other_r = None
+                for i in disulfide_residues:
+                    if pose.residue(our_r).is_bonded(i):
+                        other_r = i
+                        break
+                else:
+                    raise errors.TopologyTypeError(
+                        'Cystine is bonded to something other than a cystine. '
+                        'AMBRose does not support noncanonical residues yet. '
+                        'If you think that this is the only error preventing '
+                        'your project from working properly, please raise an '
+                        'issue on the rosetta/tools Github and give it the '
+                        '"ambrose" tag. I\'ll see what I can do about it.')
+                disulfides.append((our_r, other_r))
+                disulfide_residues.remove(other_r)
+            disulfides_str = '\n'.join(f'bond struct.{i}.SG struct.{j}.SG' \
+                                       for i, j in disulfides)
             solvent_shape_str = \
                 pose_to_amber_params.SOLVENT_SHAPES[solvent_shape]
             # The following code will replace each instance of each key in the
@@ -235,15 +263,17 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             replacements = {'+LOG-FILE+':
                                 log_path,
                             '+LOAD-SOLVENT+':
-                                solvent_cmd if solvent else '',
+                                load_solvent_str if solvent else '',
                             '+PDB-PATH+':
                                 pdb_f.name,
+                            '+DISULFIDES+':
+                                disulfides_str,
                             '+SOLVATEP+':
                                 '' if solvent else '#',
                             '+SOLVENT-SHAPE+':
                                 solvent_shape_str if solvent else '',
                             '+SOLVENT+':
-                                solvent_box if solvent else '',
+                                solvent_str if solvent else '',
                             '+ADD-IONS-P+':
                                 '' if add_ions and solvent else '#',
                             '+OUT-TOP-PATH+':
@@ -260,6 +290,7 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
             ## get LEaP to write the file
             subprocess.run([os.path.join(amber_bin(), 'tleap'),
                             '-f', leap_in_path])
+
     finally:
         if leap_script_dump_path is None:
             os.remove(leap_in_path)
@@ -282,8 +313,8 @@ pose_to_amber_params.SOLVENT_SHAPES = \
 def run_md(executable='pmemd.cuda', *, overwrite=False, mdin=None,
            mdin_dict=None, mdout=None, prmtop=None, inpcrd=None, restrt=None,
            refc=None, mdcrd=None, mdinfo=None):
-    '''Runs an AMBER MD program (sander by default) with the given arguments, with
-    the additional feature that the mdin file, which normally gives the
+    '''Runs an AMBER MD program (pmemd.cuda by default) with the given arguments
+    with the additional feature that the mdin file, which normally gives the
     simulation parameters, can be replaced with a dict specifying the same
     parameters. All arguments are optional, as in the sander executable; if a
     value is needed but not specified, sander will assume the default (which is

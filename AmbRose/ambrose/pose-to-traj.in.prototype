@@ -1,8 +1,9 @@
-logfile +LOG-FILE+
 source leaprc.protein.ff14SB
+logfile +LOG-FILE+
 +LOAD-SOLVENT+
 
 struct = loadpdb +PDB-PATH+
++DISULFIDES+
 +SOLVATEP+ solvate+SOLVENT-SHAPE+ struct +SOLVENT+ 15.0
 +ADD-IONS-P+ addions struct Na+ 0
 +ADD-IONS-P+ addions struct Cl- 0

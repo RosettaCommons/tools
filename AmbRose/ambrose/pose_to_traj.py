@@ -214,6 +214,10 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
         nonzero. True by default.
     '''
 
+    # .exists() is appropriate here rather than .isfile(), because we don't want
+    # to remove it even if it's a directory. I don't know what LEaP does with it
+    # if it already exists as a directory, however...
+    leap_log_exists_in_current_dir = os.path.exists('leap.log')
     if leap_script_dump_path is not None:
         leap_in_fd, leap_in_path = leap_script_dump_path, leap_script_dump_path
     else:
@@ -293,7 +297,15 @@ def pose_to_amber_params(pose, crd_path, top_path, log_path='leap.log', *,
 
     finally:
         if leap_script_dump_path is None:
-            os.remove(leap_in_path)
+            try:
+                os.remove(leap_in_path)
+            except FileNotFoundError:
+                pass
+        if not leap_log_exists_in_current_dir:
+            try:
+                os.remove('leap.log')
+            except FileNotFoundError:
+                pass
 ## the "load" commands for different solvents, used to construct the LEaP
 ## instructions
 pose_to_amber_params.SOLVENTS = \

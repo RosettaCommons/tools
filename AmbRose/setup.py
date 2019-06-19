@@ -26,3 +26,6 @@ def setup_package():
     finally:
         os.chdir(old_path)
         del sys.path[0]
+
+if __name__ == '__main__':
+    setup_package()

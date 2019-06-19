@@ -302,9 +302,9 @@ if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 chdir($Bin);
 
 if (!$skip_nr && $database eq "localnrcopy" && ($overwrite || !-s "$datdir/nr.pal")) {
-	print "Copying your local nr database to $datdir\n...";
-	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'} $datdir";
-	print $copy_cmd;
+	print "Copying your local nr database to $datdir...\n";
+	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'}/* $datdir";
+	print "$copy_cmd\n";
 	system($copy_cmd);
 
 	$SIG{INT} = \&clean_nr;

@@ -1,0 +1,59 @@
+Global peptide docking using PIPER-FlexPepDock:
+This is the stand alone version of the PIPER-FlexPepDock protocol, as implemented in the server at
+http://piperfpd.furmanlab.cs.huji.ac.il/
+
+The script runs the PIPER-FlexPepDock protocol, using Rosetta version 2018.07 and the 'ref2015' scoring function
+(benchmarked to reproduce similar results to the original version published in
+http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005905#sec030.)
+To restore this original version, add '--restore_talaris_behaviour' option and make sure you have Rosetta 2016.20
+release compiled.
+
+To run this script:
+
+(1) Download PIPER (https://cluspro.bu.edu)
+
+(2) Change paths in pfpd_const.py (your rosetta directory, and the directory with these scripts)
+
+(3) Adapt the script to your cluster environment:
+After the input fragments are ready, 50 PIPER jobs need to be executed (it is highly recommended to run them in
+parallel). After all of them are done, refinement of 12500 models (50x250 top PIPER models) will be performed
+with Rosetta FlexPepDock.
+We use the SLURM workload manager to run jobs on our cluster. All the SLURM dependent functions are concentrated
+in the slurm_jobs.py file; you will need to adapt them to your job manager.
+
+Options:
+Two mandatory arguments: receptor '-r' and peptide sequence '-p'
+
+If a native structure is available pass it as an argument to the script with the '--native' flag.
+
+For receptor minimization add the '--receptor_min' flag.
+
+To restore the protocol published in http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005905#sec030
+add the '--restore_talaris_behaviour' option and make sure you have Rosetta 2016.20 release compiled.
+
+If the secondary structure of the peptide is known, pass the file (format: 'LLLEEEHHH') with the '--sec_struct' option.
+
+If the secondary structure is not known, for more accurate prediction of peptide secondary structure you can
+pass a full protein FASTA from which the peptide is derived (or a longer sequence) with the '--pep_from_fasta' option,
+so the prediction will be done based on a longer sequence, and the motif will be cut from it.
+
+Sometimes the prediction can be improved by extending the fragment library with helices and beta-strands in addition
+to the fragments of predicted secondary structure. To extend the library, add the '--add_alpha_beta' option.
+
+References:
+Please cite the following when referring to results of this protocol:
+
+Alam, Goldstein, Xia, Porter, Kozakov, Schueler-Furman. High-resolution global peptide-protein docking using
+fragments-based PIPER-FlexPepDock. (2017) PLoS CB 13:e1005905
+
+Porter KA, Xia B, Beglov D, Bohnuud T, Alam N, Schueler-Furman O, Kozakov D. ClusPro PeptiDock: Efficient global docking
+of peptide recognition motifs using FFT. (2017) Bioinformatics btx216
+
+Raveh B, London N, Schueler-Furman O. Sub-angstrom modeling of complexes between flexible peptides and globular
+proteins. (2010) Proteins 78:2029-40
+
+Kozakov D, Brenke R, Comeau SR, Vajda S. PIPER: An FFT-based protein docking program with pairwise potentials.
+(2006) Proteins : Structure, Function, and Bioinformatics 65:392–406
+
+The code is written by:
+alisa.khramushin@mail.huji.ac.il

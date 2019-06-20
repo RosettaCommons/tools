@@ -306,17 +306,13 @@ if (!$skip_nr && $database eq "localnrcopy" && ($overwrite || !-s "$datdir/nr.pa
 	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'}/* $datdir";
 	print "$copy_cmd\n";
 	system($copy_cmd);
+	chdir($datdir);
 
-	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
-		my $unzipped = $f;
-		$unzipped =~ s/\.tar\.gz$//;
-		if (!-s $unzipped) {
-			(system("tar -zxvf $f") == 0) or do { &clean_nr; };
-			unlink $f; # save disk space
-		}
+		my $ext_cmd = "tar -zxvf $f";
+		(system($ext_cmd) == 0) or die "Failed to exract with command $ext_cmd";
 	}
-	$SIG{INT} = 'DEFAULT';
+	# Make sure at least one nr.pal file is there
 	(-s "$datdir/nr.pal") or die "ERROR! $datdir/nr database installation failed!\n";
 }
 chdir($Bin);

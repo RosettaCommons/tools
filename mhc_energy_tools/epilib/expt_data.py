@@ -82,13 +82,13 @@ class IEDBData (ExptData):
     def std_name(iedb_name):
         """Converts IEDB name into something suitable for a column name in the database.
         - drops "HLA-"
-        - converts "-", '*', and '/' to "_"
+        - converts "-", '*', ',', ' ', and '/' to "_"
         - drops ':'
         Caches the conversion."""
         if iedb_name in IEDBData.iedb2std: return IEDBData.iedb2std[iedb_name]
         name = iedb_name \
             .replace('HLA-','') \
-            .translate(str.maketrans({'/':'_', '-':'_', '*':'_', ':':None}))
+            .translate(str.maketrans({'/':'_', '-':'_', '*':'_', ',':'_', ' ':'_', ':':None}))
         IEDBData.iedb2std[iedb_name] = name
         return name
 

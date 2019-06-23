@@ -16,7 +16,7 @@ select m.mhc_elution_id into outfile "~/Downloads/elute.csv" from mhc_elution m 
 * fields http://curationwiki.iedb.org/wiki/index.php/Data_Field_Descriptions
 """
 
-import collections, csv, os
+import collections, csv, os, re
 
 from epilib.sequence import AAs
 
@@ -82,13 +82,14 @@ class IEDBData (ExptData):
     def std_name(iedb_name):
         """Converts IEDB name into something suitable for a column name in the database.
         - drops "HLA-"
-        - converts "-", '*', ',', ' ', and '/' to "_"
         - drops ':'
+        - converts other non-alphanumeric characters to _
         Caches the conversion."""
         if iedb_name in IEDBData.iedb2std: return IEDBData.iedb2std[iedb_name]
         name = iedb_name \
             .replace('HLA-','') \
-            .translate(str.maketrans({'/':'_', '-':'_', '*':'_', ',':'_', ' ':'_', ':':None}))
+            .replace(':', '')
+        name = re.sub('[^A-Za-z0-9_]', '_', name)
         IEDBData.iedb2std[iedb_name] = name
         return name
 

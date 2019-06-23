@@ -6,4 +6,8 @@ For human-interpretable preprocessing in cases where the pdb file doesn't actual
 
 The pssm files were produced for the 2013 paper, so of course results from searches on the current database will differ. Command-line PSI-BLAST was used to generate a pssm directly. The web version generates an asn file that can be converted by a web tool (as of this writing, at https://www.ncbi.nlm.nih.gov/Class/Structure/pssm/pssm_viewer.cgi). 
 
-The demo.sh file has some examples of how to use the scripts, using inputs in "in/" and saving outputs in "out/"; reference outputs are saved in "ref-out/". For the sake of demonstration, in addition to the real fasta files,"2sak_A.pep" lists all overlapping 9mers from SakSTAR and "2sak_A.seq" has the sequence without the header, while "all.fsa" includes all three proteins.
+The demo-score.sh file and demo-db.sh files have some examples of how to use the scripts, using inputs in "in/" and saving outputs in "out/"; reference outputs are saved in "ref-out/". For the sake of demonstration, in addition to the real fasta files,"2sak_A.pep" lists all overlapping 9mers from SakSTAR and "2sak_A.seq" has the sequence without the header, while "all.fsa" includes all three proteins.
+
+The tools for dealing with experimental (from IEDB) are not as far along, but demo-expt.sh illustrates getting data and formatting into files that can be used in scoring and design, the same as an epitope predictor.
+
+The script demo-diff.sh will compare the relevant files from the out directory to the reference ref-out directory.  You can think of this as a bit like an integration test.

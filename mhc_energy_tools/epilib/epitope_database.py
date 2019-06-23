@@ -7,7 +7,7 @@ Maintenance of a database of epitope scores, caching results from an epitope pre
 """
 
 import sqlite3, os.path
-from epilib.epitope_predictor import EpitopePredictor, EpitopeScore
+from epilib.epitope_predictor import EpitopePredictor, EpitopeScore, EpitopeMap
 
 class EpitopeDatabase (EpitopePredictor):  
     """Manages the database and serves itself as an EpitopePredictor"""
@@ -39,10 +39,9 @@ class EpitopeDatabase (EpitopePredictor):
         return db
     
     @classmethod
-    def for_writing(cls, filename, pred_name, alleles=[], peptide_length=9):
-        """Opens a database for storing eptiope data.
-        If the database already exists, it should be storing things from the same predictor with its parameters.
-        A check will be made as to whether the alleles and peptide_length are the same."""
+    def for_writing(cls, filename, source, alleles=[], peptide_length=9):
+        """Opens a database for storing epitope data.
+        If the database already exists, the alleles and peptide_length must be the same."""
         conn = sqlite3.connect(filename)
         conn.row_factory = sqlite3.Row # so can access columns by name
         cursor = conn.cursor()
@@ -51,18 +50,20 @@ class EpitopeDatabase (EpitopePredictor):
         if count==0:
             # new database; set up
             cursor.execute('create table meta (name text primary key, value text)')
-            cursor.execute('insert into meta values (?, ?)', ('predictor', pred_name))
+            cursor.execute('insert into meta values (?, ?)', ('source', source))
             cursor.execute('insert into meta values (?, ?)', ('peptide_length', peptide_length))
             cursor.execute('create table alleles (name text primary key)')
             cursor.executemany('insert into alleles values (?)', [(a,) for a in alleles])
             cursor.execute('create table epitopes (peptide text primary key, score real, ' + ','.join(alleles) + ')')
             conn.commit()
         elif count==3:
-            # existing database; make sure matches structure and predictor
+            # existing database; make sure parameters match
             errors = []
-            row = cursor.execute('select value from meta where name="predictor"').fetchone()
-            if row['value'] != pred_name:
-                errors.append('mismatched predictor name (%s vs. %s)' % (row['value'], pred_name))
+            row = cursor.execute('select value from meta where name="source"').fetchone()
+            # seems like this might not always be appropriate, e.g., when combining different sources of data
+            # so now 'source' is essentially just for informational purposes
+#            if row['value'] != source:
+#                errors.append('mismatched source (%s vs. %s)' % (row['value'], source))
             row = cursor.execute('select value from meta where name="peptide_length"').fetchone()
             if int(row['value']) != peptide_length: 
                 errors.append('mismatched peptide length (%d vs. %d)' % (int(row['value']), peptide_length))
@@ -70,7 +71,7 @@ class EpitopeDatabase (EpitopePredictor):
             if db_alleles != set(alleles):
                 errors.append('mismatched alleles (%d vs. %d of them)' % (len(db_alleles), len(set(alleles))))
             if len(errors)>0:
-                raise Exception('database exists but established with different predictor: ' + '; '.join(errors))
+                raise Exception('database exists but established with different parameters: ' + '; '.join(errors))
         else:
             raise Exception('database exists but schema is wrong')
 
@@ -104,6 +105,15 @@ class EpitopeDatabase (EpitopePredictor):
             raise Exception('unscored peptide '+peptide)
                 
     def save_scores(self, epimap):
+        """Saves the scores from the EpitopeMap to the database"""
         # epimap.report()
         self.cursor.executemany(self.save_stmt, [[p, epimap.peptide_score(p).value] + epimap.peptide_score(p).details for p in epimap.peptides])
         self.conn.commit()
+
+    def load_scores(self):
+        """Returns an EpitopeMap with all the scores"""
+        scores = {}
+        for row in self.cursor.execute('select * from epitopes'):
+            scores[row['peptide']] = EpitopeScore(row['score'], [row[a] for a in self.alleles])
+        return EpitopeMap(self.peptide_length, self.alleles, scores.keys(), scores.values())
+        

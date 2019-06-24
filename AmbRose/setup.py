@@ -12,14 +12,17 @@ def setup_package():
 
     try:
         setuptools.setup(
-            name='ambrose',
-            version='2.1',
-            author='Maria Szegedy',
-            author_email='mszegedy2@gmail.com',
-            description='AMBER interoperability for PyRosetta.',
-            url='https://github.com/RosettaCommons/tools/tree/master/AmbRose',
-            packages=setuptools.find_packages(exclude=['legacy']),
-            classifiers=[
+            name = 'ambrose',
+            version = '2.1',
+            author = 'Maria Szegedy',
+            author_email = 'mszegedy2@gmail.com',
+            description = 'AMBER interoperability for PyRosetta.',
+            url = 'https://github.com/RosettaCommons/tools/tree/master/AmbRose',
+            packages = setuptools.find_packages(exclude=['legacy']),
+            package_data = {
+                '' : ['*.prototype']
+            },
+            classifiers = [
                 'Programming Language :: Python :: 3'
             ]
         )

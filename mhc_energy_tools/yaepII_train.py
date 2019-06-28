@@ -45,7 +45,7 @@ def setup_parser():
     cores.add_argument('--netmhcii_predicted_cores_dir', help="use fixed pre-predicted cores for training (doesn't much impact accuracy, just speed of training); see notes for details")
         
     # outputs
-    parser.add_argument('--out_base', help='base directory for models. etc. (nested within)', default='models')
+    parser.add_argument('--out_base', help='base directory for models. etc. (nested within) (default: %(default))', default='models')
     parser.add_argument('--overwrite', help='must set this in order to overwrite existing model', action='store_true')
 
     return parser
@@ -59,6 +59,7 @@ def train_one_allele(args, allele):
     allele_dir = base+'/'+allele+'/'
     if os.path.exists(allele_dir):
         if args.overwrite:
+            print('overwriting',allele)
             shutil.rmtree(allele_dir)
         else:
             raise Exception('output directory "'+allele_dir+'" already exists; specify --overwrite if you want to overwrite it')

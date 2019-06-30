@@ -650,26 +650,34 @@ class YAEPII (EpitopePredictor):
     @staticmethod
     def find_models_dir():
         # TODO: look in rosetta database, etc.
-        return os.getenv('YAEPII')
+         if os.getenv('YAEPII') is not None: return os.getenv('YAEPII')
+         return 'models'
         
-    def __init__(self, allele_models, prob_thresh=None):
-        super().__init__('yaepii', alleles=allele_models, peptide_length=15)
+    def __init__(self, models, models_dir=None, prob_thresh=None):
+        super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15)
+        self.models = models
+        self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
         self.prob_thresh = prob_thresh if prob_thresh is not None else BindingData.nM_to_prob(500)
+
+    def set_alleles(self, alleles):
+        # TODO: make sure supported
+        self.models = [YAEPIIAlleleModel.load_frozen(allele, self.models_dir) for allele in alleles]
+        self.alleles = [m.allele for m in self.models]
 
     @classmethod
     def load_saved(cls, alleles, models_dir=None, prob_thresh=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
         models = [YAEPIIAlleleModel.load_saved(allele, models_dir) for allele in alleles]
-        return cls(models, prob_thresh)
+        return cls(models, models_dir=models_dir, prob_thresh=prob_thresh)
 
     @classmethod
     def load_frozen(cls, alleles, models_dir=None, prob_thresh=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
         models = [YAEPIIAlleleModel.load_frozen(allele, models_dir) for allele in alleles]
-        return cls(models, prob_thresh)
+        return cls(models, models_dir=models_dir, prob_thresh=prob_thresh)
 
     def score_peptide(self, pep):
-        details = [m.score_peptide(pep) for m in self.alleles]
+        details = [m.score_peptide(pep) for m in self.models]
         return EpitopeScore(sum(1 for s in details if s>self.prob_thresh), details)
 
     # TODO: score_peptides in batch -- feed whole list

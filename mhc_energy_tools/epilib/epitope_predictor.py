@@ -41,8 +41,8 @@ class EpitopePredictor (object):
         self.alleles = alleles
         self.peptide_length = peptide_length
  
-    def filter_alleles(self, selected_alleles):
-        """Subsets the predictor's alleles to those listed, making sure they're supported."""
+    def set_alleles(self, selected_alleles):
+        """Sets the predictor's alleles to those listed, making sure they're supported."""
         missing = set(selected_alleles) - set(self.alleles)
         if len(missing)>0:
             raise Exception('no such allele(s) '+','.join(missing))

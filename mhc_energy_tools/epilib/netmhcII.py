@@ -79,7 +79,7 @@ class NetMHCII (EpitopePredictor):
             if path is None: raise Exception('please set the NMHOME environemnt variable to the path where the netMHC-2.3 executable lives')
             self.nm_bin = path+'/netMHCII-2.3'
  
-    def filter_alleles(self, selected_alleles):
+    def set_alleles(self, selected_alleles):
         missing = set(selected_alleles) - set(NetMHCII.allele_sets['all'])
         if len(missing)>0:
             raise Exception('no such allele(s) '+missing)

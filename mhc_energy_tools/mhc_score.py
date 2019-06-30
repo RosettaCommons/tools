@@ -11,6 +11,7 @@ from epilib.epitope_predictor_matrix import EpitopePredictorMatrix, Propred
 from epilib.epitope_csv import EpitopeCSV
 from epilib.epitope_database import EpitopeDatabase
 from epilib.netmhcII import NetMHCII
+from epilib.yaepII import YAEPII
 from epilib.sequence import Sequence, load_fa, load_pep, load_fsa, load_pdb
 from epilib.ext_citations import CitationTracker
 
@@ -46,14 +47,16 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     pred.add_argument('--matrix', help='generic epitope predictor matrix filename')
     pred.add_argument('--netmhcii', action='store_true', help='use netmhcII executable')
     pred.add_argument('--propred', action='store_true', help='use propred matrices')
+    pred.add_argument('--yaepII', action='store_true', help='use yaepII models')
     # epitope predictor alleles
     alleles = parser.add_mutually_exclusive_group()
     alleles.add_argument('--allele_set', help='name of predefined set of alleles', choices=['test', 'greenbaum11', 'paul15', 'southwood98', 'all'])
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
     # epitope predictor parameters
-    parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int, default=5)
+    parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
+    parser.add_argument('--yaepII_dir', help='root directory for yaepII models')
     parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
     parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
@@ -125,6 +128,9 @@ def main(args):
     elif args.netmhcii:
         cite_manager.add_citation(cite_manager.netmhcii)
         pred = NetMHCII(score_type=args.netmhcii_score[0])
+    elif args.yaepII:
+        # TODO: once there's a paper, cite
+        pred = YAEPII([]) # start with no alleles; fill in later
     elif args.csv is not None:
         #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
@@ -134,15 +140,17 @@ def main(args):
     else:
         cite_manager.add_citation(cite_manager.propred)
         pred = Propred.load()
-    pred.thresh = args.epi_thresh
+
+    if args.epi_thresh is not None:
+        pred.thresh = args.epi_thresh
     
     # alleles
     if args.allele_set is not None:
         if args.allele_set not in pred.allele_sets: 
             raise Exception('allele_set '+args.allele_set+' not supported')
-        pred.filter_alleles(pred.allele_sets[args.allele_set])
+        pred.set_alleles(pred.allele_sets[args.allele_set])
     elif args.alleles is not None:
-        pred.filter_alleles(args.alleles.split(','))
+        pred.set_alleles(args.alleles.split(','))
 
     # Get sequences from whatever source is specified
     # Predict epitopes for each

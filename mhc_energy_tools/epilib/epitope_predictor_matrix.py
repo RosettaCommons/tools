@@ -34,7 +34,7 @@ class EpitopePredictorMatrix (EpitopePredictor):
         self.unknown_aa = unknown_aa
         self.thresh = thresh
     
-    def filter_alleles(self, selected_alleles):
+    def set_alleles(self, selected_alleles):
         a2m = dict((m.name, m) for m in self.matrices)
         selected_matrices = []
         missing = []

@@ -654,7 +654,7 @@ class YAEPII (EpitopePredictor):
          return 'models'
         
     def __init__(self, models, models_dir=None, prob_thresh=None):
-        super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15)
+        super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15, overhang=3)
         self.models = models
         self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
         self.prob_thresh = prob_thresh if prob_thresh is not None else BindingData.nM_to_prob(500)

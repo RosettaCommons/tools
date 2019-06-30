@@ -36,10 +36,12 @@ class EpitopePredictor (object):
     # { String set_name : [ String allele_name ] }
     allele_sets = {}
     
-    def __init__(self, name, alleles=[], peptide_length=9):
+    def __init__(self, name, alleles=[], peptide_length=9, overhang=0, pad_char='-'):
         self.name = name
         self.alleles = alleles
         self.peptide_length = peptide_length
+        self.overhang = overhang
+        self.pad_char = pad_char
  
     def set_alleles(self, selected_alleles):
         """Sets the predictor's alleles to those listed, making sure they're supported."""
@@ -59,6 +61,8 @@ class EpitopePredictor (object):
     
     def score_protein(self, seq):
         """EpitopeMap for a whole protein (as a String)."""
-        peptides = [seq[i:i+self.peptide_length] for i in range(len(seq)-self.peptide_length+1)]
+        pad = ''.join([self.pad_char]*self.overhang)
+        padded = pad+seq+pad
+        peptides = [padded[i:i+self.peptide_length] for i in range(len(padded)-self.peptide_length+1)]
         return EpitopeMap(self.peptide_length, self.alleles,
                           peptides, [self.score_peptide(pep) for pep in peptides])

@@ -55,8 +55,9 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     # epitope predictor parameters
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
-    parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','absolute'], default='rank')
+    parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
     parser.add_argument('--yaepII_dir', help='root directory for yaepII models')
+    parser.add_argument('--yaepII_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
     parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
     parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
@@ -150,7 +151,7 @@ def main(args):
             raise Exception('allele_set '+args.allele_set+' not supported')
         pred.set_alleles(pred.allele_sets[args.allele_set])
     elif args.alleles is not None:
-        pred.set_alleles(args.alleles.split(','))
+        pred.set_alleles(args.alleles.split(','), use_ranks=args.yaepII_score=='rank')
 
     # Get sequences from whatever source is specified
     # Predict epitopes for each

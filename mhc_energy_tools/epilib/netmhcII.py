@@ -65,7 +65,7 @@ class NetMHCII (EpitopePredictor):
     
     def __init__(self, nm_alleles=None, thresh=5, score_type='r', nm_bin=None):
         """nm_alleles uses NetMHCII naming, as in the predefined sets above
-        score_type 'r' means relative (percentile) and 'a' means absolute ('IC50'); note that a different thresh would be appropriate for 'a'
+        score_type 'r' means relative (percentile) and 'i' means the underlying 'IC50' value; note that a different thresh would be appropriate for 'a'
         nm_bin is the executable; else looks for it in $NMHOME"""
         if nm_alleles is None: nm_alleles = NetMHCII.allele_sets['paul15']
         super().__init__('netmhcii+'+NetMHCII.version, alleles=[NetMHCII.std_name(a) for a in nm_alleles], peptide_length=15)
@@ -99,7 +99,7 @@ class NetMHCII (EpitopePredictor):
         pep_col = 2 #Peptide is always the third column
         #Score column changes depending on whether scoring peptides or a protein sequence, and whether using relative or absolute scores
         #If using absolute scoring, the score column is 5 (log-transformed: 1-log50k(aff))
-        if self.score_type == 'a': 
+        if self.score_type == 'i': 
             score_col = 5
         #If using relative scoring with peptides, the score column is 8
         elif is_peptides:

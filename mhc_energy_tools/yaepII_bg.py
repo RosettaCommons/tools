@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Compute background distributions for YAEPII models, in order to convert predicted values to percentile ranks
+Compute percentile ranks from background distributions for YAEPII models
+The output files specify, for sampled score values (implicit, at steps of 0.001) the corresponding percentile ranks
+Percentile ranks are in the "lower is better" order, i.e., 5 means a higher probability that 95% of the background peptides
 
 uniprot-reviewed%3Ayes+AND+proteome%3Aup000005640.fasta
 
@@ -9,19 +11,25 @@ uniprot-reviewed%3Ayes+AND+proteome%3Aup000005640.fasta
 """
 
 import argparse, os
-from epilib.yaepII import YAEPII
+from epilib.yaepII import YAEPIIAlleleModel, YAEPII
 from epilib.epitope_predictor import EpitopeScore, EpitopeMap
 from epilib.epitope_database import EpitopeDatabase
 from epilib.sequence import load_pep, load_fsa
+
+import numpy as np
+import scipy
+import statsmodels.distributions.empirical_distribution as edf
 
 def setup_parser():
     """Creates an ArgumentParser and sets up all its arguments.
     returns: ArgumentParser"""
 
-    parser = argparse.ArgumentParser(description='Computes background distributions for YAEPII models', 
+    parser = argparse.ArgumentParser(description='Computes percentile ranks from background distributions for YAEPII models', 
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="""Additional notes:
-    - if use a db, everything in the db contributes to the dist
+    - all files are stored within a model's directory
+    - the distribution goes into ranks.txt, with one line for each score, stepping by 0.0001, giving the percentile rank (lower is better) for the score (e.g., line 1 is the percentile rank of score 0.001)
+    - if using a db, augment it, and then everything in the db contributes to the calculation
                                          """)
     # where to get the sequences
     source = parser.add_mutually_exclusive_group(required=True)
@@ -39,8 +47,8 @@ def setup_parser():
     # outputs
     parser.add_argument('--build_db', help='create/augment a database with peptide scores, so build up over runs', action='store_true')
     parser.add_argument('--db', help='filename (no directory) of db to be created/augmented if build_db is true (default: %(default))', default='scores.db')
-    parser.add_argument('--dist_file', help='filename (no directory) for resulting distribution (default: %(default))', default='dist.txt')
-    parser.add_argument('--overwrite', help='must set this in order to overwrite existing distribution file', action='store_true')
+    parser.add_argument('--plot_dist', help='if set, plot score distribution for inspection (matplotlib required), in dist.pdf', action='store_true')
+    parser.add_argument('--overwrite', help='must set this in order to overwrite existing file', action='store_true')
 
     return parser
 
@@ -53,19 +61,20 @@ def compute_one_allele(args, seqs, allele):
     allele_dir = base+'/'+allele+'/'
 
     # check that out file is legit    
-    fn = allele_dir + args.dist_file
+    fn = allele_dir + 'ranks.txt'
     if os.path.exists(fn):
         if args.overwrite:
             print('overwriting',fn)
         else:
-            raise Exception('distribution "'+fn+'" already exists; specify --overwrite if you want to overwrite it')
+            raise Exception('ranks file "'+fn+'" already exists; specify --overwrite if you want to overwrite it')
 
-    model = YAEPII.load_frozen([allele], args.model_base).alleles[0] # TODO: little awkward since doing an allele at a time, but ok?
+    model = YAEPIIAlleleModel.load_frozen(allele, args.model_base, False)
     
-    # database
     if args.build_db:
+        # will augment database, then get all scores
         db = EpitopeDatabase.for_writing(allele_dir + '/' + args.db, 'yaepII_bg', alleles=[allele], peptide_length=15)
     else:
+        # just current scores
         scores = []
 
     # scan peptides in sequences
@@ -85,12 +94,29 @@ def compute_one_allele(args, seqs, allele):
         scores = [s.value for s in db.load_scores().scores]
             
     # compute distribution
-    # TODO: don't yet know what format will be best to use in Rosetta, so just raw sorted scores
-    dist = sorted(scores)
+    # inspired by https://stackoverflow.com/questions/44132543/python-inverse-empirical-cumulative-distribution-function-ecdf
+    scores_edf = edf.ECDF(scores)
+    slope_changes = sorted(set(scores) | set([0,1]))
+    scores_edf_values_at_slope_changes = [scores_edf(score) for score in slope_changes]
+    interp_edf = scipy.interpolate.interp1d(slope_changes, scores_edf_values_at_slope_changes)
+    sample_scores = np.arange(0, 1.001, 0.001)
+    sample_pcts = (1-interp_edf(sample_scores))*100
 
     # save
     with open(fn, 'w') as out:
-        print(dist, file=out)
+        for pct in sample_pcts: print(pct, file=out)
+
+    if args.plot_dist:
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            print('matplotlib is required for plotting, and could not be imported.  Make sure it is correctly installed.\n')
+            exit()
+        plt.clf()
+        plt.hist(scores, color='lightgray')
+        ax2 = plt.gca().twinx()
+        ax2.plot(sample_scores, sample_pcts, 'b.')
+        plt.savefig(fn[:-3]+'pdf')
 
 def main(args):
     # sequences

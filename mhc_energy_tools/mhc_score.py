@@ -56,8 +56,8 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     parser.add_argument('--epi_thresh', help='epitope predictor threshold (default: %(default).2f)', type=int)
     parser.add_argument('--noncanon', help='how to treat letters other than the 20 canonical AAs (default: %(default)s)', choices=['error', 'silent', 'warn'])
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
-    parser.add_argument('--yaepII_dir', help='root directory for yaepII models')
-    parser.add_argument('--yaepII_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
+    parser.add_argument('--yaepII_dir', help='root directory for yaepII models') # TODO: break out directory for ranks
+    parser.add_argument('--yaepII_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50','prob'], default='rank')
     parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
     parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
@@ -131,7 +131,7 @@ def main(args):
         pred = NetMHCII(score_type=args.netmhcii_score[0])
     elif args.yaepII:
         # TODO: once there's a paper, cite
-        pred = YAEPII([]) # start with no alleles; fill in later
+        pred = YAEPII([], score_type=args.yaepII_score[0], models_dir=args.yaepII_dir) # start with no alleles; fill in later
     elif args.csv is not None:
         #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)
@@ -151,7 +151,7 @@ def main(args):
             raise Exception('allele_set '+args.allele_set+' not supported')
         pred.set_alleles(pred.allele_sets[args.allele_set])
     elif args.alleles is not None:
-        pred.set_alleles(args.alleles.split(','), use_ranks=args.yaepII_score=='rank')
+        pred.set_alleles(args.alleles.split(','))
 
     # Get sequences from whatever source is specified
     # Predict epitopes for each

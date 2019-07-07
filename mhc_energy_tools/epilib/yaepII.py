@@ -578,13 +578,14 @@ class YAEPIITrainer (object):
 # ============================================================================
 # using models
             
-# TODO: background distributions; use_ranks ranks
+# TODO: background distributions; score_type ranks
 
 class YAEPIIAlleleModel (object):
     """Model for a single allele; allows predicting binding affinity for a 15-mer peptide"""
     
-    def __init__(self, allele, ranks, graph, sess, peptide, prediction):
+    def __init__(self, allele, score_type, ranks, graph, sess, peptide, prediction):
         self.allele = allele
+        self.score_type = score_type
         self.ranks = ranks
         self.graph = graph
         self.sess = sess
@@ -596,7 +597,7 @@ class YAEPIIAlleleModel (object):
         return [float(v) for v in open(models_dir+'/'+allele+'/ranks.txt')]
     
     @classmethod
-    def load_saved(cls, allele, models_dir, use_ranks):
+    def load_saved(cls, allele, models_dir, score_type):
         """The original model saved by YAEPIITrainer.save_model"""
         graph = tf.Graph()
         sess = tf.Session(graph=graph)
@@ -604,11 +605,11 @@ class YAEPIIAlleleModel (object):
             model = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], models_dir+'/'+allele)
             peptide = graph.get_tensor_by_name(model.signature_def['serving_default'].inputs['peptide'].name)
             prediction = graph.get_tensor_by_name(model.signature_def['serving_default'].outputs['prediction'].name)
-        return cls(allele, cls.load_ranks(allele, models_dir) if use_ranks else None, 
+        return cls(allele, score_type, cls.load_ranks(allele, models_dir) if score_type else None, 
                    graph, sess, peptide, prediction)
     
     @classmethod
-    def load_frozen(cls, allele, models_dir, use_ranks):
+    def load_frozen(cls, allele, models_dir, score_type):
         """The model frozen from the saved model."""
         from tensorflow.python.platform import gfile 
         graph = tf.Graph()
@@ -622,13 +623,15 @@ class YAEPIIAlleleModel (object):
             sess.run(init)
             peptide = graph.get_tensor_by_name('yaep/peptide:0')
             prediction = graph.get_operation_by_name('yaep/prediction').outputs[0]
-            return cls(allele, cls.load_ranks(allele, models_dir) if use_ranks else None, 
+            return cls(allele, score_type, cls.load_ranks(allele, models_dir) if score_type else None, 
                        graph, sess, peptide, prediction)
 
     def score_peptide(self, peptide):
         res = self.sess.run(self.prediction, feed_dict={self.peptide:[peptide]})[0]
-        if self.ranks is not None:
+        if self.score_type == 'r':
             return self.ranks[int(res*1000)]
+        elif self.score_type == 'p':
+            return res
         else:
             return BindingData.prob_to_nM(res)
 
@@ -660,40 +663,48 @@ class YAEPII (EpitopePredictor):
     @staticmethod
     def find_models_dir():
         # TODO: look in rosetta database, etc.
-         if os.getenv('YAEPII') is not None: return os.getenv('YAEPII')
-         return 'models'
+        if os.getenv('YAEPII') is not None: return os.getenv('YAEPII')
+        return 'models'
         
-    def __init__(self, models, use_ranks=True, thresh=None, models_dir=None):
+    def __init__(self, models, score_type='r', thresh=None, models_dir=None):
+        # TODO: make score_type an enum?
         super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15, overhang=3)
         self.models = models
         self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
-        self.use_ranks = use_ranks
-        if thresh is not None:
-            self.thresh = thresh
-        elif use_ranks:
-            self.thresh = 5
-        else: # IC50
-            self.thresh = 500
+        self.score_type = score_type
+        # threshes (with defaults) by score type
+        if score_type == 'r':
+            self.thresh = 5 if thresh is None else thresh
+            self.is_hit = lambda s: s <= self.thresh
+        elif score_type == 'i':
+            self.thresh = 500 if thresh is None else thresh
+            self.is_hit = lambda s: s <= self.thresh
+        elif score_type == 'p':
+            self.thresh = 1 - math.log(500,50000) if thresh is None else thresh
+            self.is_hit = lambda s: s >= self.thresh
+        else:
+            raise Exception('invalid score type '+score_type)
 
-    def set_alleles(self, alleles, use_ranks=True):
+    def set_alleles(self, alleles):
         # TODO: make sure there are models for the alleles
-        self.models = [YAEPIIAlleleModel.load_frozen(allele, self.models_dir, use_ranks) for allele in alleles]
+        self.models = [YAEPIIAlleleModel.load_frozen(allele, self.models_dir, self.score_type) for allele in alleles]
         self.alleles = [m.allele for m in self.models]
 
     @classmethod
-    def load_saved(cls, alleles, use_ranks=True, thresh=None, models_dir=None):
+    def load_saved(cls, alleles, score_type='r', thresh=None, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
-        models = [YAEPIIAlleleModel.load_saved(allele, use_ranks, models_dir) for allele in alleles]
-        return cls(models, models_dir=models_dir, use_ranks=use_ranks, thresh=thresh)
+        models = [YAEPIIAlleleModel.load_saved(allele, score_type, models_dir) for allele in alleles]
+        return cls(models, models_dir=models_dir, score_type=score_type, thresh=thresh)
 
     @classmethod
-    def load_frozen(cls, alleles, use_ranks=True, thresh=None, models_dir=None):
+    def load_frozen(cls, alleles, score_type=True, thresh=None, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
-        models = [YAEPIIAlleleModel.load_frozen(allele, use_ranks, models_dir) for allele in alleles]
-        return cls(models, models_dir=models_dir, use_ranks=use_ranks, thresh=thresh)
+        models = [YAEPIIAlleleModel.load_frozen(allele, score_type, models_dir) for allele in alleles]
+        return cls(models, models_dir=models_dir, score_type=score_type, thresh=thresh)
 
     def score_peptide(self, pep):
         details = [m.score_peptide(pep) for m in self.models]
-        return EpitopeScore(sum(1 for s in details if s<self.thresh), details)
+        # TODO: note that the score is always a sum of "hit"s; could generalize if desired
+        return EpitopeScore(sum(1 for s in details if self.is_hit(s)), details)
 
     # TODO: score_peptides in batch -- feed whole list

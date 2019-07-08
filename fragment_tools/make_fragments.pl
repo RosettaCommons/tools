@@ -253,12 +253,7 @@ if ( !$options{homs} ) {
 		system("$BLAST_DIR/bin/formatdb -i $VALL_BLAST_DB") if (-s $VALL_BLAST_DB);
 	}
 	if (!-s $PDB_SEQRES) {
-		if ($INTERNET_HOST) {
-			my $pwd = cwd();
-			system("ssh $INTERNET_HOST 'cd $pwd; wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt'");
-		} else {
-			system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
-		}
+		system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
 		if (!-s "pdb_seqres.txt") { die "ERROR! wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt failed\n"; }
 		system("mv pdb_seqres.txt $PDB_SEQRES") if (!-s $PDB_SEQRES);
 	}

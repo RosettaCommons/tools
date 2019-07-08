@@ -626,14 +626,19 @@ class YAEPIIAlleleModel (object):
             return cls(allele, score_type, cls.load_ranks(allele, models_dir) if score_type else None, 
                        graph, sess, peptide, prediction)
 
-    def score_peptide(self, peptide):
-        res = self.sess.run(self.prediction, feed_dict={self.peptide:[peptide]})[0]
+    def convert_score(self, score):
         if self.score_type == 'r':
-            return self.ranks[int(res*1000)]
+            return self.ranks[int(score*1000)]
         elif self.score_type == 'p':
-            return res
+            return score
         else:
-            return BindingData.prob_to_nM(res)
+            return BindingData.prob_to_nM(score)
+        
+    def score_peptide(self, peptide):
+        return self.convert_score(self.sess.run(self.prediction, feed_dict={self.peptide:[peptide]}))
+
+    def score_peptides(self, peptides):
+        return [self.convert_score(res) for res in self.sess.run(self.prediction, feed_dict={self.peptide:peptides})]
 
 class YAEPII (EpitopePredictor):
     """Model(s) for one or more allele;s allows predicting binding affinity for a 15-mer peptide and thresholding as hit/not for each allele"""
@@ -707,4 +712,8 @@ class YAEPII (EpitopePredictor):
         # TODO: note that the score is always a sum of "hit"s; could generalize if desired
         return EpitopeScore(sum(1 for s in details if self.is_hit(s)), details)
 
-    # TODO: score_peptides in batch -- feed whole list
+    def score_peptides(self, peptides):
+        details_by_model = [m.score_peptides(peptides) for m in self.models]
+        details_by_peptide = [[details_by_model[m][i] for m in range(len(self.models))] for i in range(len(peptides))]
+        # TODO: note that the score is always a sum of "hit"s; could generalize if desired
+        return [EpitopeScore(sum(1 for s in details if self.is_hit(s)), details) for details in details_by_peptide]

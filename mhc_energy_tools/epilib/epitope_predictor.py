@@ -56,8 +56,7 @@ class EpitopePredictor (object):
     
     def score_peptides(self, peptides):
         """EpitopeScores for a list of peptides (each a String). May be more efficient in batch than one-by-one."""
-        return EpitopeMap(self.peptide_length, self.alleles,
-                          peptides, [self.score_peptide(pep) for pep in peptides])
+        return [self.score_peptide(pep) for pep in peptides]
     
     def score_protein(self, seq):
         """EpitopeMap for a whole protein (as a String)."""
@@ -65,4 +64,4 @@ class EpitopePredictor (object):
         padded = pad+seq+pad
         peptides = [padded[i:i+self.peptide_length] for i in range(len(padded)-self.peptide_length+1)]
         return EpitopeMap(self.peptide_length, self.alleles,
-                          peptides, [self.score_peptide(pep) for pep in peptides])
+                          peptides, self.score_peptides(peptides))

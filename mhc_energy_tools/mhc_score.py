@@ -58,6 +58,7 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
     parser.add_argument('--yaepII_dir', help='root directory for yaepII models') # TODO: break out directory for ranks
     parser.add_argument('--yaepII_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50','prob'], default='rank')
+    parser.add_argument('--yaepII_slide', help='if set, slide the 9mer core within the 15mer, a la NetMHCII', action='store_true')
     parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
     parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
@@ -131,7 +132,7 @@ def main(args):
         pred = NetMHCII(score_type=args.netmhcii_score[0])
     elif args.yaepII:
         # TODO: once there's a paper, cite
-        pred = YAEPII([], score_type=args.yaepII_score[0], models_dir=args.yaepII_dir) # start with no alleles; fill in later
+        pred = YAEPII([], score_type=args.yaepII_score[0], slide=args.yaepII_slide, models_dir=args.yaepII_dir) # start with no alleles; fill in later
     elif args.csv is not None:
         #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)

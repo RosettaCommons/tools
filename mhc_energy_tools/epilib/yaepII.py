@@ -577,8 +577,8 @@ class YAEPIITrainer (object):
 
 # ============================================================================
 # using models
-            
-# TODO: background distributions; score_type ranks
+         
+full_pad = '---'
 
 class YAEPIIAlleleModel (object):
     """Model for a single allele; allows predicting binding affinity for a 15-mer peptide"""
@@ -634,11 +634,43 @@ class YAEPIIAlleleModel (object):
         else:
             return BindingData.prob_to_nM(score)
         
+    def peptide_slides(self, peptide):
+        # pad to '---' on both sides, but don't overpad (might already have some)
+        npad = 0; cpad = 1
+        while peptide[npad]=='-': npad += 1
+        while peptide[-cpad]=='-': cpad += 1
+        padded = full_pad[:3-npad] + peptide + full_pad[:4-cpad]
+        return [padded[i:i+15] for i in range(len(padded)-14)]
+        
     def score_peptide(self, peptide):
         return self.convert_score(self.sess.run(self.prediction, feed_dict={self.peptide:[peptide]}))
 
+    def score_peptide_slide(self, peptide):
+        slides = self.peptide_slides(peptide)
+        slide_scores = self.sess.run(self.prediction, feed_dict={self.peptide:slides})
+        print(slides,slide_scores)
+        core = np.argmax(slide_scores) # highest probability of binding
+        print(peptide, slides[core][3:12])
+        return self.convert_score(slide_scores[core])
+
     def score_peptides(self, peptides):
         return [self.convert_score(res) for res in self.sess.run(self.prediction, feed_dict={self.peptide:peptides})]
+
+    def score_peptides_slide(self, peptides):
+        slides_by_peptide = [self.peptide_slides(peptide) for peptide in peptides]
+        all_slides = [s for slides in slides_by_peptide for s in slides]
+        all_slide_scores = self.sess.run(self.prediction, feed_dict={self.peptide:all_slides})
+        scores = []
+        s = 0 # index into flattened scores
+        for i in range(len(peptides)):
+            best_core = None; best_score = None
+            for core_idx in range(len(slides_by_peptide[i])):
+                if best_core is None or all_slide_scores[s] > best_score:
+                    best_core = core_idx; best_score = all_slide_scores[s]
+                s += 1
+            print(peptides[i], best_score, slides_by_peptide[i][best_core][3:12])
+            scores.append(self.convert_score(best_score))
+        return scores
 
 class YAEPII (EpitopePredictor):
     """Model(s) for one or more allele;s allows predicting binding affinity for a 15-mer peptide and thresholding as hit/not for each allele"""
@@ -671,12 +703,13 @@ class YAEPII (EpitopePredictor):
         if os.getenv('YAEPII') is not None: return os.getenv('YAEPII')
         return 'models'
         
-    def __init__(self, models, score_type='r', thresh=None, models_dir=None):
+    def __init__(self, models, score_type='r', thresh=None, slide=False, models_dir=None):
         # TODO: make score_type an enum?
         super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15, overhang=3)
         self.models = models
-        self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
         self.score_type = score_type
+        self.slide = slide
+        self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
         # threshes (with defaults) by score type
         if score_type == 'r':
             self.thresh = 5 if thresh is None else thresh
@@ -696,24 +729,26 @@ class YAEPII (EpitopePredictor):
         self.alleles = [m.allele for m in self.models]
 
     @classmethod
-    def load_saved(cls, alleles, score_type='r', thresh=None, models_dir=None):
+    def load_saved(cls, alleles, score_type='r', thresh=None, slide=False, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
         models = [YAEPIIAlleleModel.load_saved(allele, score_type, models_dir) for allele in alleles]
-        return cls(models, models_dir=models_dir, score_type=score_type, thresh=thresh)
+        return cls(models, score_type=score_type, thresh=thresh, slide=slide, models_dir=models_dir)
 
     @classmethod
-    def load_frozen(cls, alleles, score_type=True, thresh=None, models_dir=None):
+    def load_frozen(cls, alleles, score_type=True, thresh=None, slide=False, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
         models = [YAEPIIAlleleModel.load_frozen(allele, score_type, models_dir) for allele in alleles]
-        return cls(models, models_dir=models_dir, score_type=score_type, thresh=thresh)
+        return cls(models, score_type=score_type, thresh=thresh, slide=slide, models_dir=models_dir)
 
     def score_peptide(self, pep):
-        details = [m.score_peptide(pep) for m in self.models]
+        if self.slide: details = [m.score_peptide_slide(pep) for m in self.models]
+        else: details = [m.score_peptide(pep) for m in self.models]
         # TODO: note that the score is always a sum of "hit"s; could generalize if desired
         return EpitopeScore(sum(1 for s in details if self.is_hit(s)), details)
 
     def score_peptides(self, peptides):
-        details_by_model = [m.score_peptides(peptides) for m in self.models]
+        if self.slide: details_by_model = [m.score_peptides_slide(peptides) for m in self.models]
+        else: details_by_model = [m.score_peptides(peptides) for m in self.models]
         details_by_peptide = [[details_by_model[m][i] for m in range(len(self.models))] for i in range(len(peptides))]
         # TODO: note that the score is always a sum of "hit"s; could generalize if desired
         return [EpitopeScore(sum(1 for s in details if self.is_hit(s)), details) for details in details_by_peptide]

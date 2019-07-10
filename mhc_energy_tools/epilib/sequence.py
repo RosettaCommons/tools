@@ -21,7 +21,7 @@ AA31 = collections.defaultdict(lambda:'X',
 
 class Sequence (object):
     """A sequence (String) with a name and a chain id, indexed by residue numbers starting at 1 or some other value."""
-    def __init__(self, seq, name='[anonymous]', start=1, chain=None, noncanon='silent'):
+    def __init__(self, seq, name='[anonymous]', start=1, chain=None, noncanon='silent', noncanon_replace=None):
         self.seq = seq
         self.name = name
         self.start = start
@@ -32,6 +32,9 @@ class Sequence (object):
             msg = name + ' has noncanonical AA(s): '+','.join('%s%d'%(seq[i],i+start) for i in noncanons)
             if noncanon == 'warn': print(msg)
             elif noncanon == 'error': raise Exception(msg)
+            if noncanon_replace is not None:
+                print('replacing with',noncanon_replace)
+                self.seq = ''.join(noncanon_replace if i in noncanons else seq[i] for i in range(len(seq)))
 
     def __getitem__(self, where):
         """Gets the AA at the position / AAs in the slice, accounting for the starting residue number of the sequence."""
@@ -57,7 +60,7 @@ def extract_name_start(line):
         return (name[:at_pos], int(name[at_pos+1:]))
     return (name, 1)
  
-def load_fa(filename, noncanon='silent'):
+def load_fa(filename, noncanon='silent', noncanon_replace=None):
     """Loads modified fasta-format file ('>' optional, '@pos' allowed)"""
     with open(filename, 'rt') as infile:
         rows = infile.readlines()
@@ -65,20 +68,20 @@ def load_fa(filename, noncanon='silent'):
             raise Exception('empty file')
         elif rows[0][0]=='>':
             (name, start) = extract_name_start(rows[0].strip())
-            return Sequence(''.join(row.strip() for row in rows[1:]), name=name, start=start, noncanon=noncanon)
+            return Sequence(''.join(row.strip() for row in rows[1:]), name=name, start=start, noncanon=noncanon, noncanon_replace=noncanon_replace)
         else:
-            return Sequence(''.join(row.strip() for row in rows), noncanon=noncanon)
+            return Sequence(''.join(row.strip() for row in rows), noncanon=noncanon, noncanon_replace=noncanon_replace)
         
-def load_pep(filename, noncanon='silent'):
+def load_pep(filename, noncanon='silent', noncanon_replace=None):
     """Loads a file with a single anonymous peptide per line"""
     seqs = []
     core = filecore(filename)
     with open(filename, 'rt') as infile:
         for (i,seq) in enumerate(infile):
-            seqs.append(Sequence(seq.strip(), name=core+'_'+str(i), noncanon=noncanon))
+            seqs.append(Sequence(seq.strip(), name=core+'_'+str(i), noncanon=noncanon), noncanon_replace=noncanon_replace)
     return seqs
 
-def load_fsa(filename, noncanon='silent'):
+def load_fsa(filename, noncanon='silent', noncanon_replace=None):
     """Loads a modified multiple fasta-format sequence file ('>' required, '@pos' allowed for each)"""
     seqs = []
     name = ''; start = 1; seq = ''
@@ -87,12 +90,12 @@ def load_fsa(filename, noncanon='silent'):
             line = line.strip()
             if len(line) == 0: continue
             if line[0]=='>':
-                if seq != '': seqs.append(Sequence(seq, name=name, start=start, noncanon=noncanon))
+                if seq != '': seqs.append(Sequence(seq, name=name, start=start, noncanon=noncanon, noncanon_replace=noncanon_replace))
                 (name,start) = extract_name_start(line)
                 seq = ''
             else:
                 seq += line
-        if seq != '': seqs.append(Sequence(seq, name=name, start=start, noncanon=noncanon))
+        if seq != '': seqs.append(Sequence(seq, name=name, start=start, noncanon=noncanon, noncanon_replace=noncanon_replace))
     return seqs
 
 def load_pdb(filename, noncanon='silent'):

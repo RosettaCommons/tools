@@ -78,7 +78,9 @@ def compute_one_allele(args, seqs, allele):
         scores = []
 
     # scan peptides in sequences
-    for seq in seqs:
+    print('processing',len(seqs),'seqs')
+    for (i,seq) in enumerate(seqs):
+        if i%10 == 0: print('seq #',i)
         # include N- and C-terminal peptides padded to length 15
         padded = '---' + seq.seq + '---'
         peps = [padded[i:i+15] for i in range(len(padded)-14)]
@@ -121,9 +123,9 @@ def compute_one_allele(args, seqs, allele):
 def main(args):
     # sequences
     if args.fsa is not None:
-        seqs = load_fsa(args.fsa)
+        seqs = load_fsa(args.fsa, noncanon='warn', noncanon_replace='X')
     elif args.pep is not None:
-        seqs = load_pep(args.pep)
+        seqs = load_pep(args.pep, noncanon='warn', noncanon_replace='X')
 
     # alleles
     if args.allele_set is not None:
@@ -140,7 +142,7 @@ def main(args):
         compute_one_allele(args, seqs, allele)
     
 # python yaepII_bg.py --fsa ~/Downloads/test.fsa --alleles DRB1_0101
-# python yaepII_bg.py --fsa ~/Downloads/uniprof_human_reviewed.fsa --alleles DRB1_0101
+# python yaepII_bg.py --fsa ~/Downloads/uniprot_human_reviewed.fsa --alleles DRB1_0101
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()

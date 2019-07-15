@@ -443,7 +443,7 @@ unless ( &nonempty_file_exists("$options{runid}.check") ) {
     print_debug("Using nr: $NR");
     if (
         !&try_try_again(
-"$PSIBLAST -t 1 -i $options{fastafile} -F F -j 1 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
+"$PSIBLAST -t 1 -i $options{fastafile} -F F -j 2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
             2,
             ["$options{runid}.check"],
             [
@@ -485,7 +485,7 @@ if ( $options{psipred}
         {
             print_debug("Running psi-blast for psipred, using $PFILTNR.");
             my $psiblast_success = &try_try_again(
-              "$PSIBLAST -t 1 -b10000 -v10000 -j 1 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
+              "$PSIBLAST -t 1 -b10000 -v10000 -j 3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
               2, [ "sstmp.chk", "sstmp.ascii" ], [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]);
             $psiblast_success or die("psipred psi-blast failed!\n");
 

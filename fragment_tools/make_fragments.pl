@@ -38,6 +38,7 @@ my $VALL = $ENV{"VALL"} || "$Bin/vall.jul19.2011"; # template database
 # BLAST path (Requires non-blast+ NCBI version)
 my $BLAST_DIR = $ENV{"BLAST_DIR"} || "$Bin/blast";
 my $BLAST_NUM_CPUS = int($ENV{"BLAST_NUM_CPUS"}) || 8;    # number of processors to use (blastpgp -a option)
+$ENV{"BLAST_NUM_CPUS"} = $BLAST_NUM_CPUS;  # set ENV for sparksX
 
 # NR database path
 my $NR = $ENV{"NR"} || "$Bin/databases/nr";

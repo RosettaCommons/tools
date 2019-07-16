@@ -69,21 +69,31 @@ def dump_amber_pdb(pose, pdb_path):
         The path at which to dump it.
     '''
 
-    # cystine ResidueType:
-    cystine = pose.conformation() \
-                  .residue_type_set_for_conf() \
-                  .name_map('CYS:disulfide') \
-    # save original residue name:
-    original_name = cystine.name3()
-    # change the names of all cystines to 'CYX':
-    cystine.name3('CYX')
+    # map residue base names to their 3-letter codes in the AMBER naming scheme:
+    amber_names = {
+        'CYS:disulfide': 'CYX',
+        'CYZ':           'CYM',
+        'HIS_D':         'HID',
+        'HIS':           'HIE',
+        'HPR':           'HYP',
+    }
+    residue_types = {name: pose.conformation() \
+                               .residue_type_set_for_conf() \
+                               .name_map(name) \
+                     for name in amber_names}
+    # save original residue names:
+    original_names = {name: r.name3() for name, r in residue_types.items()}
+    # change the names of all the special residues to the AMBER ones:
+    for name, residue_type in residue_types.items():
+        residue_type.name3(amber_names[name])
     # actually dump file:
     #pylint: disable=protected-access
     fstream = pr.rosetta.std.ofstream(pdb_path,
                                       pr.rosetta.std._Ios_Openmode._S_out)
     pr.rosetta.core.io.pdb.dump_pdb(pose, fstream, _heavy_atom_mask(pose))
-    # change it back:
-    cystine.name3(original_name)
+    # change them back:
+    for name, residue_type in residue_types.items():
+        residue_type.name3(original_names[name])
 
 def dict_to_namelist_str(d, name='cntrl'):
     '''Dumps a single-group FORTRAN 77 NAMELIST for a dict, as a string. The

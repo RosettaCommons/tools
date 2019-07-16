@@ -38,7 +38,7 @@ def _check_pose_convertibility(pose, crd_path, top_path):
         Path to topology file Pose has been converted to.
     '''
 
-    ambered_pose = traj_to_poses.TrajToPoses(pt.iterload(crd_path, top_path))[0]
+    ambered_pose = traj_to_poses.pose_from_amber_params(crd_path, top_path)
     # pylint: disable=no-member
     if ambered_pose.size() > pose.size():
         bad_residue = None
@@ -204,7 +204,7 @@ class _AMBERMover(_NotAMover):
         self._solvent_shape = solvent_shape
         wet = solvent is not None
         self._amber_executable = 'pmemd.cuda'
-        common_dict = {'igb': int(not wet),
+        common_dict = {'igb': int(not wet)*8,
                        'ntb': int(wet),
                        'cut': cutoff}
         if cst_mask is not None:
@@ -242,9 +242,9 @@ class _AMBERMover(_NotAMover):
     def solvent(self, value):
         self._solvent = value
         wet = value is not None
-        self._min_mdin_dict['igb'] = int(not wet)
+        self._min_mdin_dict['igb'] = int(not wet)*8
         self._min_mdin_dict['ntb'] = int(wet)
-        self._mdin_dict['igb'] = int(not wet)
+        self._mdin_dict['igb'] = int(not wet)*8
         self._mdin_dict['ntb'] = int(wet)
     @property
     def solvent_shape(self):
@@ -728,7 +728,7 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def temperature(self):
         '''int or float: Temperature of simulation in kelvins.'''
-        return self._mdin_dict['temp0']
+        return self._mdin_dict.get('temp0')
     @temperature.setter
     def temperature(self, value):
         self._mdin_dict['temp0'] = value

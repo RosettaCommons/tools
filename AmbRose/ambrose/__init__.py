@@ -13,8 +13,8 @@ Rosetta Poses to input files for simulation, conversion of simulation frames to
 Rosetta Poses, and abstraction of the entire Rosetta-to-simulation-to-Rosetta
 workflow into Mover-like objects.'''
 
-#pragma pylint disable=unused-import
-#pragma pylint disable=unused-wildcard-import
+#pylint disable=unused-import
+#pylint disable=unused-wildcard-import
 from . import consts
 from . import enums
 from . import errors
@@ -24,10 +24,10 @@ from . import pose_to_traj
 from . import templates
 from . import traj_to_poses
 from . import utils
-#pragma pylint disable=wildcard-import
+#pylint disable=wildcard-import
 from .enums import *
 from .errors import *
-#pragma pylint enable=wildcard-import
+#pylint enable=wildcard-import
 from .pose_to_traj import (pose_to_amber_params, run_md)
-from .traj_to_poses import TrajToPoses
+from .traj_to_poses import (TrajToPoses, pose_from_amber_params)
 from .movers import (AMBERMinMover, AMBERSimulateMover)

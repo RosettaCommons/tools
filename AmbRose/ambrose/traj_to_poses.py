@@ -9,6 +9,7 @@ from functools import reduce
 
 # pragma pylint: disable=import-error
 import pyrosetta as pr
+import pytraj as pt
 # pragma pylint: enable=import-error
 
 from . import utils
@@ -32,7 +33,7 @@ def _global_residue_type_set():
     return _global_residue_type_set.rts
 
 def _get_pr_res(name):
-    return _global_residue_type_set().get_representative_type_base_name(name)
+    return _global_residue_type_set().name_map(name)
 
 def _patch_pr_res(res, patch_name):
     return _global_residue_type_set().patch_map()[patch_name][1].apply(res)
@@ -322,10 +323,10 @@ class _TopologyParser:
     # Auxiliary data for map_atoms
     PT_TO_PR_RES_NAMES = {
         'ASH':'ASP',
-        'CYM':'CYS',
-        'CYX':'CYS',
+        'CYM':'CYZ',
+        'CYX':'CYD',
         'GLH':'GLU',
-        'HID':'HIS',
+        'HID':'HIS_D',
         'HIE':'HIS',
         'HIP':'HIS',
         'HYP':'HPR',
@@ -574,3 +575,27 @@ class TrajToPoses:
         options = pr.rosetta.core.import_pose.ImportPoseOptions()
         pr.rosetta.core.import_pose.build_pose_as_is(sfr, pose, rts, options)
         return pose
+
+### Front-facing functions
+
+def pose_from_amber_params(crd_path, top_path, index=0):
+    '''Takes an AMBER coordinates and topology file and creates a pose from them
+    with `TrajToPoses`_. If the coordinates contain multiple frames, it takes
+    either the first one, or the one specified by the argument ``index``.
+
+    Parameters
+    ----------
+    crd_path : str
+        Path to the input .rst7 or .nc file.
+    top_path : str
+        Path to the input .parm7 file.
+    index : int, optional
+        The index of the frame to use from the trajectory. 0 by default.
+
+    Returns
+    -------
+    rosetta.core.Pose
+        The pose corresponding to the given input files.
+    '''
+
+    return TrajToPoses(pt.iterload(crd_path, top_path))[index]

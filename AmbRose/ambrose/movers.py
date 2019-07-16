@@ -38,7 +38,7 @@ def _check_pose_convertibility(pose, crd_path, top_path):
         Path to topology file Pose has been converted to.
     '''
 
-    ambered_pose = traj_to_poses.TrajToPoses(pt.iterload(crd_path, top_path))[0]
+    ambered_pose = traj_to_poses.pose_from_amber_params(crd_path, top_path)
     # pylint: disable=no-member
     if ambered_pose.size() > pose.size():
         bad_residue = None
@@ -728,7 +728,7 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def temperature(self):
         '''int or float: Temperature of simulation in kelvins.'''
-        return self._mdin_dict['temp0']
+        return self._mdin_dict.get('temp0')
     @temperature.setter
     def temperature(self, value):
         self._mdin_dict['temp0'] = value

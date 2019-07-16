@@ -2,6 +2,8 @@ source leaprc.protein.ff14SB
 logfile +LOG-FILE+
 +LOAD-SOLVENT+
 
+set default pbradii mbondi3
+
 struct = loadpdb +PDB-PATH+
 +DISULFIDES+
 +SOLVATEP+ solvate+SOLVENT-SHAPE+ struct +SOLVENT+ 15.0

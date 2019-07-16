@@ -8,12 +8,8 @@ def minimize_wet(*, cutoff=15.):
 
     Parameters
     ----------
-    n_steps : int, optional
-        Number of steps of minimization to perform.
     cutoff : int or float, optional
         Van der Waals cutoff in angstroms.
-    log_interval : int, optional
-        Steps to wait in between writing to mdout and mdinfo.
 
     Returns
     -------
@@ -32,12 +28,8 @@ def minimize_dry(*, cutoff=15.):
 
     Parameters
     ----------
-    n_steps : int, optional
-        Number of steps of minimization to perform.
     cutoff : int or float, optional
         Van der Waals cutoff in angstroms.
-    log_interval : int, optional
-        Steps to wait in between writing to mdout and mdinfo.
 
     Returns
     -------

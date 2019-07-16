@@ -203,6 +203,12 @@ if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 				print NF "$nl\n";
 				next;
 			}
+			if ($l =~ /^OPTS.* -a 4"/) {
+				print NF "#".$l;
+				print NF "# the following line was added by Rosetta/tools/fragment_tools/install_dependencies.pl\n";
+				print NF "OPTS=\"-d \$blastDB -j 4 -b 1 -a \$BLAST_NUM_CPUS\"\n";
+				next;
+			}
 			print NF $l;
 		}
 		close(F);

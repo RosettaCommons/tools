@@ -136,6 +136,9 @@ class _ResidueMap:
         Whether to treat all atoms as base atoms, rather than just the ones that
         appear in the base ``ResidueType``. This has significance for certain
         ``set_indices`` methods.
+    chain_id : str, optional
+        A single printable ASCII character representing the chain to which this
+        residue belongs. '@' by default (0x40).
 
     Attributes
     ----------
@@ -149,9 +152,7 @@ class _ResidueMap:
         pytraj.
     chain_id : str
         A single printable ASCII character representing the chain to which this
-        residue belongs. Currently always equal to ``@`` (0x40), but it is
-        planned to break non-contiguous topologies up into multiple chains
-        eventually, at which point chain IDs will count up from 0x40 to 0xFF.
+        residue belongs.
     name3 : str
         The three-letter residue name for this residue in Rosetta.
     atoms : list(:obj:`_AtomRecord`)
@@ -161,11 +162,12 @@ class _ResidueMap:
         Rosetta ``ResidueType`` to their indices in `atoms`.
     '''
 
-    def __init__(self, name, patches, first_atom_i, always_base_p=False):
+    def __init__(self, name, patches, first_atom_i, always_base_p=False,
+                 chain_id='@'):
         self.name = name
         self.patches = patches
         self.first_atom_i = first_atom_i
-        self.chain_id = '@'
+        self.chain_id = chain_id
 
         base_res_type = _get_pr_res(name)
         res_type      = reduce(_patch_pr_res, patches, base_res_type)
@@ -389,7 +391,12 @@ class _TopologyParser:
              NA:     {_TopologyParser.NA:  (NA,     ('NA',)),
                       _TopologyParser.NA3: (NA,     ('NA3',)),
                       _TopologyParser.NA5: (NA,     ('NA5',))},
-             END:    {}}
+             END:    {_TopologyParser.NAA: (PRE_AA, ('CHAIN_INCR', 'NAA')),
+                      _TopologyParser.AA:  (PRE_AA, ('CHAIN_INCR', 'NAA')),
+                      frozenset({'ACE'}):  (ACE,    ('CHAIN_INCR',)),
+                      _TopologyParser.NA:  (NA,     ('CHAIN_INCR', 'NA')),
+                      _TopologyParser.NA3: (NA,     ('CHAIN_INCR', 'NA3')),
+                      _TopologyParser.NA5: (NA,     ('CHAIN_INCR', 'NA5'))}}
         self.default_transitions = \
             {BEGIN:  (BEGIN, ('SKIP',)),
              ACE:    (BEGIN, ('SKIP',)),
@@ -421,6 +428,7 @@ class _TopologyParser:
         pt_res_i = 0
         pt_res = top.residue(pt_res_i)
         pt_atom_i = pt_res.first_atom_index
+        chain_id = 'A'
 
         def consume_residue():
             '''Updates pt_res_i, pt_atom_i, and n_res_consumed to the next
@@ -441,8 +449,14 @@ class _TopologyParser:
                 tokens.append('CAA')
             for token in tokens:
                 utils.debug_print('token:', token)
+
+                ## deal with "control" tokens:
                 if token == 'SKIP':
                     consume_residue()
+                    continue
+                if token == 'CHAIN_INCR':
+                    if ord(chain_id) < 126:
+                        chain_id = chr(ord(chain_id) + 1)
                     continue
 
                 naa_or_caa_p = token in ('NAA', 'CAA')
@@ -460,7 +474,8 @@ class _TopologyParser:
                 ## construct _ResidueMap records:
                 res_map = _ResidueMap(name, patches, pt_atom_i,
                                       always_base_p=(naa_or_caa_p or \
-                                                     na3_or_na5_p))
+                                                     na3_or_na5_p),
+                                      chain_id=chain_id)
                 # assign indices for acetyl atoms
                 if token == 'ACE_AA':
                     res_map.set_indices_by_name_relative(

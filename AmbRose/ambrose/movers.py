@@ -62,13 +62,16 @@ def _check_pose_convertibility(pose, crd_path, top_path):
             'residue that went missing:\n  ' + bad_residue)
     for i in range(1, pose.size()+1):
         bad_residue = None
+        other_bad_residue = None
         if ambered_pose.residue(i).type() != pose.residue(i).type():
-            bad_residue = f'{i} {pose.residue(i).name()}'
+            bad_residue       = f'{i} {pose.residue(i).name()}'
+            other_bad_residue = f'{i} {ambered_pose.residue(i).name()}'
             break
     if bad_residue is not None:
         raise errors.TopologyTypeError(
             'Pose changed at least one residue\'s type when piped through '
-            'AMBER! Here\'s the offending residue:\n  ' + bad_residue)
+            'AMBER! Here\'s the offending residue:\n  ' + bad_residue + '\n'
+            'It changed to:\n  ' + other_bad_residue)
     # pylint: enable=no-member
 
 def _check_file_existence(path, file_type='AMBER file'):
@@ -421,6 +424,9 @@ class _AMBERMover(_NotAMover):
             when this `apply`_ was called.
         '''
 
+        if self.working_dir is not None:
+            assert os.path.exists(self.working_dir), \
+                   'Working directory must exist.'
         working_dir = self.working_dir if self.working_dir is not None \
                       else tempfile.TemporaryDirectory()
         prefix = _timestamp() if self.prefix is None else self.prefix

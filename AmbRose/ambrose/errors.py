@@ -4,6 +4,9 @@ Rosetta and AMBER.'''
 class TopologyError(RuntimeError):
     '''An error encountered when there's something wrong with a topology.'''
 
+class TopologyParsingError(TopologyError):
+    '''An error encountered when a topology cannot be parsed for conversion.'''
+
 class TopologySizeError(TopologyError):
     '''An error encountered when a topology has the wrong number of residues or
     atoms.'''

@@ -177,9 +177,9 @@ def fortran_str(x):
         to_output = ["'"]
         for c in x:
             if c == "'":
-                x.extend(("'", "'"))
+                to_output.extend(("'", "'"))
             else:
-                x.append(c)
+                to_output.append(c)
         to_output.append("'")
         to_output = ''.join(to_output)
         assert to_output.isascii() and to_output.isprintable(), \
@@ -416,6 +416,8 @@ def run_md(executable='pmemd.cuda', *, overwrite=False, mdin=None,
         for key, value in flags_to_variables.items():
             if value is not None:
                 arguments.extend((key, value))
-        result = subprocess.run([os.path.join(amber_bin(), executable)] + arguments)
+        command = [os.path.join(amber_bin(), executable), *arguments]
+        utils.debug_print(f'About to run command: {command}')
+        result = subprocess.run(command)
         utils.debug_print(f'{executable} run with result: {result}')
         return result

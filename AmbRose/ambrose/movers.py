@@ -15,6 +15,7 @@ import warnings
 import pytraj as pt
 # pragma pylint: enable=import-error
 
+from . import utils
 from . import errors
 from . import enums
 from . import traj_to_poses
@@ -425,7 +426,7 @@ class _AMBERMover(_NotAMover):
         '''
 
         if self.working_dir is not None:
-            assert os.path.exists(self.working_dir), \
+            assert os.path.exists(self.working_dir) or not self.working_dir, \
                    'Working directory must exist.'
         working_dir = self.working_dir if self.working_dir is not None \
                       else tempfile.TemporaryDirectory()
@@ -447,12 +448,7 @@ class _AMBERMover(_NotAMover):
         if ref_pose is not None:
             ref_leap_args = copy.copy(leap_args)
             ref_leap_args['crd_path'] = min_args['refc']
-            pose_to_traj.pose_to_amber_params(ref_pose, **leap_args)
-            # Check whether AMBER-ified Pose has the same topology as the
-            # original Pose. If it doesn't, then all our work would be for
-            # naught (since leaving the missing residues in their places
-            # wouldn't make sense, and deleting them would be rude), so we
-            # raise a TopologyError and call it a day.
+            pose_to_traj.pose_to_amber_params(ref_pose, **ref_leap_args)
             _check_pose_convertibility(ref_pose,
                                        ref_leap_args['crd_path'],
                                        ref_leap_args['top_path'])

@@ -211,6 +211,8 @@ class _AMBERMover(_NotAMover):
         common_dict = {'igb': int(not wet)*8,
                        'ntb': int(wet),
                        'cut': cutoff}
+        if ref_pose is not None:
+            common_dict['ntr'] = 1
         if cst_mask is not None:
             common_dict['restraintmask'] = cst_mask
         if cst_weight is not None:
@@ -285,51 +287,45 @@ class _AMBERMover(_NotAMover):
     @ref_pose.setter
     def ref_pose(self, value):
         self._ref_pose = value
+        if value is None:
+            if 'ntr' in self._min_mdin_dict:
+                del self._min_mdin_dict['ntr']
+            if 'ntr' in self._mdin_dict:
+                del self._mdin_dict['ntr']
+        else:
+            self._min_mdin_dict['ntr'] = 1
+            self._mdin_dict['ntr'] = 1
     @property
     def cst_mask(self):
         '''str or None: Atom mask string specifying which atoms are affected by
         the coordinate constraints. Given in ambmask syntax: see section 19.1 of
         the 2019 AMBER manual, on page 410.'''
-        try:
-            return self._mdin_dict['restraintmask']
-        except KeyError:
-            return None
+        return self._mdin_dict.get('restraintmask')
     @cst_mask.setter
     def cst_mask(self, value):
         if value is None:
-            try:
+            if 'restraintmask' in self._min_mdin_dict:
                 del self._min_mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            try:
+            if 'restraintmask' in self._mdin_dict:
                 del self._mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraintmask'] = value
-        self._mdin_dict['restraintmask'] = value
+        else:
+            self._min_mdin_dict['restraintmask'] = value
+            self._mdin_dict['restraintmask'] = value
     @property
     def cst_weight(self):
         '''int or float or None: Weight of coordinate constraints, in
         kcal/mol/angstroms^2.'''
-        try:
-            return self._mdin_dict['restraint_wt']
-        except KeyError:
-            return None
+        return self._mdin_dict.get('restraint_wt')
     @cst_weight.setter
     def cst_weight(self, value):
         if value is None:
-            try:
+            if 'restraint_wt' in self._min_mdin_dict:
                 del self._min_mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            try:
+            if 'restraint_wt' in self._mdin_dict:
                 del self._mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraint_wt'] = value
-        self._mdin_dict['restraint_wt'] = value
+        else:
+            self._min_mdin_dict['restraint_wt'] = value
+            self._mdin_dict['restraint_wt'] = value
     @property
     def min_mdin_dict(self):
         '''dict: Key-value pairs for AMBER minimization parameters. Only tamper

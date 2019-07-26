@@ -41,6 +41,63 @@ def _patch_pr_res(res, patch_name):
 ### Supporting classes
 
 class _ResidueClass(enum.Flag):
+    '''Describes attributes of an AMBER residue, used to control state
+    transition for the _TopologyParser finite state machine. The possible flags
+    are:
+
+    TER
+        Special flag reserved for the end of a topology. The only flag that
+        doesn't represent a residue.
+    NAA
+        Amino acid at the N-terminal of a protein.
+    AA
+        Amino acid at neither terminal of a protein.
+    CAA
+        Amino acid at the C-terminal of a protein.
+    RNA5
+        RNA base at the 5' end of an RNA strand.
+    RNA
+        RNA base at neither end of an RNA strand.
+    RNA3
+        RNA base at the 3' end of an RNA strand.
+    DNA5
+        DNA base at the 5' end of an RNA strand.
+    DNA
+        DNA base at neither end of an RNA strand.
+    DNA3
+        DNA base at the 3' end of an RNA strand.
+    ACE
+        An N-terminal acetyl on a protein.
+    NME
+        A C-terminal N-methylamine on a protein.
+
+    Additionally, the following composite flags (flags that are combinations of
+    single flags) are defined:
+
+    NONE
+        Something that doesn't belong to any class.
+    NAA_OR_CAA
+        Amino acid at either terminal of a protein.
+    ANY_AA
+        Amino acid.
+    ANY_RNA
+        RNA base.
+    ANY_DNA
+        DNA base.
+    NA5
+        RNA or DNA base at the 5' end of a strand.
+    NA
+        RNA or DNA base at neither end of a strand.
+    NA3
+        RNA or DNA base at the 5' end of a strand.
+    NA5_OR_NA3
+        RNA or DNA base at either end of a strand.
+    ANY_NA
+        Nucleobase.
+    ROSETTA_EQUIVALENT
+        Any residue that has a full Rosetta residue named after it; currently
+        this is amino acids and nucleobases.
+    '''
     NONE       = 0
     TER        = enum.auto()
     NAA        = enum.auto()
@@ -87,11 +144,12 @@ class _AtomRecord:
 
     Attributes
     ----------
-    parent_res : :obj:`_ResidueMap` or None
-        The :obj:`_ResidueMap` that this ``_AtomRecord`` belongs to. Can be None,
-        but then you can't call `atom_information`.
     name : str
         The 4-character name of the atom in its Rosetta ``ResidueType``.
+    res_name : str
+        The 3-4-character name of the residue the atom belongs to.
+    chain_id : str
+        The 1-character ID of the chain the atom belongs to.
     h_number : int or None
         The number that appears at the beginning of this atom's name, if it is a
         hydrogen numbered that way.  Used by some ``set_indices`` methods of
@@ -112,9 +170,10 @@ class _AtomRecord:
         residue. Used by some ``set_indices`` methods of :obj:`_ResidueMap`.
     '''
 
-    def __init__(self, parent_res, name, element, basep=True):
-        self.parent_res = parent_res
+    def __init__(self, name, res_name, chain_id, element, basep=True):
         self.name     = name
+        self.res_name = res_name
+        self.chain_id = chain_id
         self.h_number = int(name[0]) if name[0] in '123456789' else None
         self.coda     = name[1:].strip(' ') if self.h_number is not None \
                         else name.strip(' ')
@@ -129,13 +188,10 @@ class _AtomRecord:
         -------
         rosetta.core.io.AtomInformation'''
 
-        if self.parent_res is None:
-            raise NotImplementedError('parent_res cannot be None if '
-                                      'atom_information() is called!')
         ai = pr.rosetta.core.io.AtomInformation()
-        ai.resName   = self.parent_res.name3
+        ai.resName   = self.res_name
         ai.name      = self.name
-        ai.chainID   = self.parent_res.chain_id
+        ai.chainID   = self.chain_id
         ai.occupancy = 1.0
         ai.segmentID = '    '
         ai.element   = self.element
@@ -166,7 +222,7 @@ class _AMBERResidue:
         The full name of the residue.
     regular_name : str
         The full name of the residue, minus the N or C at the front for
-        N/C-terminal amino acids, and minus the 5 or 3 at the end for 5/3-prime
+        N/C-terminal amino acids, and minus the 5 or 3 at the end for 5'/3'
         nucleic acids. Similar to the representative type name for Rosetta
         residues.
     first : int
@@ -207,6 +263,10 @@ class _AMBERResidue:
         'C'  :'RCY',
         'G'  :'RGU',
         'U'  :'URA',
+        'DA' :'ADE',
+        'DC' :'CYT',
+        'DG' :'GUA',
+        'DT' :'THY',
     }
 
     def __init__(self, top, res_i):
@@ -390,65 +450,59 @@ class _RosettaResidue:
     '''
 
     def __init__(self, amber_residue, chain_id='@'):
-        self.amber_residue = amber_residue
-        self.chain_id = chain_id
-        res_type = self.residue_type
+        name = amber_residue.rosetta_name
+        patches = amber_residue.patches
+        res_type = _get_pr_res(':'.join((name, *patches)))
+
+        ## create _AtomRecords for self.atoms
         self.atoms = []
-        self.__names_to_indices = {}
+        atom_names_to_indices = {}
         all_base_atoms =    amber_residue.is_naa_or_caa \
                          or amber_residue.is_na5_or_na3
         for i in range(1, res_type.natoms()):
             atom_name = res_type.atom_name(i)
-            self.__names_to_indices[atom_name] = i
+            atom_names_to_indices[atom_name] = i
             self.atoms.append(
-                _AtomRecord(self,
-                            atom_name,
+                _AtomRecord(atom_name,
+                            res_type.name3(),
+                            chain_id,
                             str(res_type.atom(i).element())[9:],
                             basep=(all_base_atoms or \
                                    res_type.has(atom_name))))
-        # assign indices for N-terminal acetyl atoms
-        if 'N_acetylated' in self.patches:
-            self.set_indices_by_name_relative(
+        self.atoms = tuple(self.atoms)
+
+        def set_indices_by_name_relative(indices_dict):
+            '''Provided a dict that maps Rosetta atom names to an offset of its
+            pt_i from the index of the first atom in the AMBER residue, set the
+            pt_is of each named atom to the appropriate absolute index.
+
+            Parameters
+            ----------
+            indices_dict : dict
+                A dict mapping the Rosetta names of atoms in this residue to the
+                indices of their corresponding atoms in a pytraj trajectory,
+                relative to the beginning of the base AMBER residue.
+            '''
+
+            for atom_name, i in indices_dict.items():
+                self[atom_names_to_indices[atom_name]].pt_i = \
+                    amber_residue.first + i
+
+        ## assign indices for N-terminal acetyl atoms
+        if 'N_acetylated' in patches:
+            set_indices_by_name_relative(
                 {' CP ': -2,
                  ' CQ ': -5,
                  ' OCP': -1})
-        # assign indices for hydrogens of base residue
-        self.set_indices_by_h_number_scheme()
-        # assign indices for C-terminal N-methylamine atoms
-        if 'C_methylamidated' in self.patches:
-            n = self.amber_residue.n_atoms()
-            self.set_indices_by_name_relative(
-                {' NR ': n,
-                 ' CS ': n + 2,
-                 ' HR ': n + 1})
-        self.atoms = tuple(self.atoms)
-    @property
-    def name(self):
-        return self.amber_residue.rosetta_name
-    @property
-    def name3(self):
-        return self.residue_type.name3()
-    @property
-    def patches(self):
-        return self.amber_residue.patches
-    @property
-    def first_atom_i(self):
-        return self.amber_residue.first
-    @property
-    def residue_type(self):
-        if not hasattr(self, '_residue_type'):
-            self._residue_type = \
-                _get_pr_res(':'.join((self.name, *self.patches)))
-        return self._residue_type
-    def set_indices_by_h_number_scheme(self):
-        '''Set the pt_i of the base atoms, based on a map of pytraj atom names
-        to absolute pt_is, via a specific algorithm that works for canonical
-        amino acids and canonical nucleic acids (and hydroxyproline, and not
-        much else).'''
 
-        pt_names_to_indices = {name: self.amber_residue.first + i \
-                               for i, name \
-                               in enumerate(self.amber_residue.atoms)}
+        ## assign indices for hydrogens of base residue
+        # This sets the pt_i of the base atoms, based on a map of AMBER atom
+        # names to absolute pt_is, via a specific algorithm that works for
+        # canonical amino acids and canonical nucleic acids (and
+        # hydroxyproline, and not much else).
+        pt_names_to_indices = {atom_name: amber_residue.first + i \
+                               for i, atom_name \
+                               in enumerate(amber_residue.atoms)}
         # collection of codas of residues that have h numbers, mapped to a list
         # of the atom records that have it:
         codas_with_h_numbers = collections.defaultdict(list)
@@ -459,18 +513,16 @@ class _RosettaResidue:
                 if atom_record.h_number is not None:
                     codas_with_h_numbers[atom_record.coda].append(atom_record)
                     continue
-
                 ## Handle edge cases:
                 # rosetta prolines have an extra virtual nitrogen at the
                 # same spot as the backbone nitrogen:
-                if self.name in ('PRO', 'HPR') and atom_record.name == ' NV ':
+                if name in ('PRO', 'HPR') and atom_record.name == ' NV ':
                     atom_record.h_number = None
                     atom_record.coda = 'N'
 
                 ## Actually retrieve index:
                 atom_record.pt_i = pt_names_to_indices.get(atom_record.coda)
                 # we actually have no plan if the .get returns None
-
         # maps codas to starting h number in pt residue (pr residue h
         # numbers assumed to always start at 1):
         pt_starting_h_numbers = \
@@ -486,41 +538,52 @@ class _RosettaResidue:
                         coda + \
                         str(atom_record.h_number - 1 + \
                             pt_starting_h_numbers[atom_record.coda])]
-    def set_indices_by_name_relative(self, indices_dict):
-        '''Provided a dict that maps Rosetta atom names to an offset of its pt_i
-        from `first_atom_i` (the index of the first atom in the pytraj residue),
-        set the pt_is of each named atom to the appropriate absolute index.
 
-        Parameters
-        ----------
-        indices_dict : dict
-            A dict mapping the Rosetta names of atoms in this residue to the
-            indices of their corresponding atoms in a pytraj trajectory,
-            relative to `first_atom_i`.
-        '''
+        ## assign indices for C-terminal N-methylamine atoms
+        if 'C_methylamidated' in patches:
+            n = amber_residue.n_atoms()
+            set_indices_by_name_relative(
+                {' NR ': n,
+                 ' CS ': n + 2,
+                 ' HR ': n + 1})
 
-        for atom_name, i in indices_dict.items():
-            self[atom_name].pt_i = self.first_atom_i + i
     def __len__(self):
         return len(self.atoms)
     def __iter__(self):
         for i in range(len(self)):
             yield self[i]
     def __getitem__(self, key):
-        if isinstance(key, slice):
-            raise NotImplementedError
-        if isinstance(key, str):
-            return self.atoms[self.__names_to_indices[key]]
         return self.atoms[key]
 
 class _TopologyParser:
     '''A finite state machine that parses residues from a pytraj topology and
-    builds a list of _ResidueMap objects.'''
+    builds a list of `_RosettaResidue`_ objects.'''
 
     def __init__(self):
-        ## build transitions:
-        # emitted objects are tuples of "residue tokens" that are used to build
-        # the actual _ResidueMaps
+        ## Build transitions:
+        # Each transition emits a tuple of "action tokens" that cause the parser
+        # to perform some action. Note that a "Rosetta equivalent queue" exists,
+        # exists, to which every AMBER residue in the topology that has a
+        # Rosetta equivalent immediately gets pushed, before any actions are
+        # performed. The tokens are:
+        #
+        # SKIP
+        #     If the current residue is a Rosetta equivalent residue, remove it
+        #     from the queue. Otherwise do nothing.
+        # CHBR
+        #     Increment the chain counter. Whenever a residue is EMITted, it
+        #     receives whatever chain ID the current chain counter reads.
+        # EMIT
+        #     Package the first residue in the queue into a `_RosettaResidue`_
+        #     object and add it to the list of those objects. This removes the
+        #     residue from the queue, and no further actions may be performed
+        #     on it. (Unless in the future an action token is invented that
+        #     operates on the Rosetta residue list, but let's not.)
+        # PATCH:patch_name
+        #     Adds the patch *patch_name* to the end of the list of patches to
+        #     be applied to the residue at the front of the queue. *patch_name*
+        #     may be any string, but in practice should be the name of a valid
+        #     Rosetta patch.
         self.state = 'BEGIN'
         Class = _ResidueClass # brevity
         self.TRANSITIONS = \
@@ -573,6 +636,8 @@ class _TopologyParser:
             for token in tokens:
                 utils.debug_print('token:', token)
                 if token == 'SKIP':
+                    if amber_res.has_rosetta_equivalent:
+                        del rosetta_equivalent_queue[-1]
                     continue
                 if token == 'CHBR':
                     if ord(chain_id) < 126:

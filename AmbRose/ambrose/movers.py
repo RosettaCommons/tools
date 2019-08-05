@@ -16,80 +16,13 @@ import pytraj as pt
 # pragma pylint: enable=import-error
 
 from . import utils
-from . import errors
 from . import enums
+from . import validation
 from . import traj_to_poses
 from . import pose_to_traj
 from . import pose_selectors
 
 ### Supporting functions
-
-def _check_pose_convertibility(pose, crd_path, top_path):
-    '''Checks whether a Pose changes its topology upon being converted to AMBER
-    coordinates and back, given the pose and the paths to the coordinates and
-    topology files it's been converted to.
-
-    Parameters
-    ----------
-    pose : rosetta.core.Pose
-        Pose to check.
-    crd_path : str
-        Path to coordinates file Pose has been converted to.
-    top_path : str
-        Path to topology file Pose has been converted to.
-    '''
-
-    ambered_pose = traj_to_poses.pose_from_amber_params(crd_path, top_path)
-    # pylint: disable=no-member
-    if ambered_pose.size() > pose.size():
-        bad_residue = None
-        for i in range(1, ambered_pose.size()+1):
-            if ambered_pose.residue(i).type() != pose.residue(i).type():
-                bad_residue = f'{i} {ambered_pose.residue(i).name()}'
-                break
-        raise errors.TopologySizeError(
-            'Pose changed size when piped through AMBER! It somehow got '
-            'bigger, which should be impossible. Please open an issue on the '
-            'Github repo and describe your error there in detail. Here\'s the '
-            '(first) residue that sprouted out of thin air:\n  ' + bad_residue)
-    if ambered_pose.size() < pose.size():
-        bad_residue = None
-        for i in range(1, pose.size()+1):
-            if ambered_pose.residue(i).type() != pose.residue(i).type():
-                bad_residue = f'{i} {pose.residue(i).name()}'
-                break
-        raise errors.TopologySizeError(
-            'Pose changed size when piped through AMBER! Here\'s the (first) '
-            'residue that went missing:\n  ' + bad_residue)
-    for i in range(1, pose.size()+1):
-        bad_residue = None
-        other_bad_residue = None
-        if ambered_pose.residue(i).type() != pose.residue(i).type():
-            bad_residue       = f'{i} {pose.residue(i).name()}'
-            other_bad_residue = f'{i} {ambered_pose.residue(i).name()}'
-            break
-    if bad_residue is not None:
-        raise errors.TopologyTypeError(
-            'Pose changed at least one residue\'s type when piped through '
-            'AMBER! Here\'s the offending residue:\n  ' + bad_residue + '\n'
-            'It changed to:\n  ' + other_bad_residue)
-    # pylint: enable=no-member
-
-def _check_file_existence(path, file_type='AMBER file'):
-    '''Checks whether a file exists. If it doesn't exist, this raises an
-    `AMBERFileError`_ with the path of the file and a description of it.
-
-    Parameters
-    ----------
-    path : str
-        Path to file to check existence of.
-    file_type : str
-        Noun phrase describing file, to be inserted into error message.
-    '''
-
-    if not os.path.isfile(path):
-        raise errors.AMBERFileError(
-            f'Failed to produce {file_type} at {path}; cannot continue.')
 
 def _timestamp():
     '''Gets timestamp in standardized format.'''
@@ -234,6 +167,9 @@ class _AMBERMover(_NotAMover):
         self._working_dir = value
     @property
     def prefix(self):
+        '''str or None: The prefix of the intermediate files output by the
+        simulation. If set to None, will use the timestamp at which `apply`_
+        was called.'''
         return self._prefix
     @prefix.setter
     def prefix(self, value):
@@ -432,11 +368,14 @@ class _AMBERMover(_NotAMover):
         leap_args['solvent'] = self.solvent
         leap_args['solvent_shape'] = self.solvent_shape
         pose_to_traj.pose_to_amber_params(pose, **leap_args)
-        _check_file_existence(leap_args['crd_path'], 'input coordinates file')
-        _check_file_existence(leap_args['top_path'], 'input topology file')
-        _check_pose_convertibility(pose,
-                                   leap_args['crd_path'],
-                                   leap_args['top_path'])
+        validation.check_file_existence(leap_args['crd_path'],
+                                        'input coordinates file')
+        validation.check_file_existence(leap_args['top_path'],
+                                        'input topology file')
+        validation.check_pose_convertibility(
+            pose,
+            leap_args['crd_path'],
+            leap_args['top_path'])
         min_args = self._make_run_md_args(working_dir=working_dir,
                                           prefix=prefix,
                                           minp=True)
@@ -445,9 +384,10 @@ class _AMBERMover(_NotAMover):
             ref_leap_args = copy.copy(leap_args)
             ref_leap_args['crd_path'] = min_args['refc']
             pose_to_traj.pose_to_amber_params(ref_pose, **ref_leap_args)
-            _check_pose_convertibility(ref_pose,
-                                       ref_leap_args['crd_path'],
-                                       ref_leap_args['top_path'])
+            validation.check_pose_convertibility(
+                ref_pose,
+                ref_leap_args['crd_path'],
+                ref_leap_args['top_path'])
         pose_to_traj.run_md(**min_args)
         # Actual .apply methods aren't supposed to return anything, but this is
         # only half of one; all the local variables need to get carried over,
@@ -563,10 +503,13 @@ class AMBERMinMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, _, min_args = _AMBERMover.apply(self, pose)
-        _check_file_existence(min_args['restrt'], 'minimization results')
+        validation.check_file_existence(
+            min_args['restrt'],
+            'minimization results')
         _transfer_xyz_from_pose_to_pose(
-            traj_to_poses.TrajToPoses(pt.iterload(min_args['restrt'],
-                                                  min_args['prmtop']))[0],
+            traj_to_poses.pose_from_amber_params(
+                min_args['restrt'],
+                min_args['prmtop']),
             pose)
         # working_dir should get cleaned up on its own if it's a
         # TemporaryDirectory
@@ -727,8 +670,8 @@ class AMBERSimulateMover(_AMBERMover):
         '''function: A function that selects which frame of the simulated
         trajectory to use to overwrite your input Pose when `apply`_ is called.
         In practice, it can be any function that takes an ordered list of Poses
-        and returns one of them, since it operates on a TrajToPose_ object and
-        returns one of its entries. By default, it's equal to the function
+        and returns one of them, since it operates on a `TrajToPoses`_ object
+        and returns one of its entries. By default, it's equal to the function
         `last`_ from the submodule `pose_selectors`_, which selects the last
         frame of the trajectory; there is also the more sophisticated option of
         `lowest_energy_from_end`_ available from the same module.'''
@@ -817,7 +760,9 @@ class AMBERSimulateMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, prefix, min_args = _AMBERMover.apply(self, pose)
-        _check_file_existence(min_args['restrt'], 'minimization results')
+        validation.check_file_existence(
+            min_args['restrt'],
+            'minimization results')
         md_args = self._make_run_md_args(working_dir=working_dir,
                                          prefix=prefix,
                                          minp=False)

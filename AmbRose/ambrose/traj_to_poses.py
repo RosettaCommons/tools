@@ -394,7 +394,7 @@ class _AMBERResidue:
     @is_na5.setter
     def is_na5(self, value):
         CLASS = _ResidueClass.NA5
-        PATCH = '5prime_end_OH'
+        PATCH = 'LowerRNA'
         if value:
             self.add_class_and_patch(CLASS, PATCH)
         else:
@@ -405,7 +405,7 @@ class _AMBERResidue:
     @is_na3.setter
     def is_na3(self, value):
         CLASS = _ResidueClass.NA3
-        PATCH = '3prime_end_OH'
+        PATCH = 'UpperRNA'
         if value:
             self.add_class_and_patch(CLASS, PATCH)
         else:
@@ -636,7 +636,8 @@ class _TopologyParser:
             for token in tokens:
                 utils.debug_print('token:', token)
                 if token == 'SKIP':
-                    if amber_res.has_rosetta_equivalent:
+                    if amber_res is not None \
+                       and amber_res.has_rosetta_equivalent:
                         del rosetta_equivalent_queue[-1]
                     continue
                 if token == 'CHBR':
@@ -671,6 +672,7 @@ class _TopologyParser:
                 rosetta_equivalent_queue.append(amber_res)
             process_tokens(self.transit(amber_res.res_class))
 
+        amber_res = None
         process_tokens(self.transit(_ResidueClass.TER))
         return tuple(output_residues)
 

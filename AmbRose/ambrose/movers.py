@@ -540,6 +540,13 @@ class AMBERMinMover(_AMBERMover):
                              solvent=solvent,
                              solvent_shape=solvent_shape,
                              cutoff=cutoff)
+    def __repr__(self):
+        return f'AMBERMinMover(\n' \
+               + f'  working_dir={self.working_dir},\n' \
+               + f'  prefix={self.prefix},\n' \
+               + f'  solvent={self.solvent},\n' \
+               + f'  solvent_shape={self.solvent_shape},\n' \
+               + f'  cutoff={self.cutoff})'
     @property
     def name(self):
         return 'AMBERMinMover'
@@ -696,6 +703,22 @@ class AMBERSimulateMover(_AMBERMover):
         self.output_interval = output_interval
         self.seed = seed
         self._pose_selector = pose_selectors.last
+    def __repr__(self):
+        return f'AMBERMinMover(\n' \
+               + f'  working_dir={self.working_dir},\n' \
+               + f'  prefix={self.prefix},\n' \
+               + f'  solvent={self.solvent},\n' \
+               + f'  solvent_shape={self.solvent_shape},\n' \
+               + f'  duration={self.duration},\n' \
+               + f'  temperature={self.temperature},\n' \
+               + f'  starting_temperature={self.starting_temperature},\n' \
+               + f'  cutoff={self.cutoff},\n' \
+               + f'  output_interval={self.output_interval},\n' \
+               + f'  seed={self.seed},\n' \
+               + f'  pose_selector={self.pose_selector},\n' \
+               + f'  ref_pose={self.ref_pose},\n' \
+               + f'  cst_mask={self.cst_mask},\n' \
+               + f'  cst_weight={self.cst_weight})'
     @property
     def name(self):
         return 'AMBERSimulateMover'
@@ -716,6 +739,8 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def duration(self):
         '''int or float: Duration of simulation in picoseconds.'''
+        if 'nstlim' not in self._mdin_dict:
+            return None
         if self._duration_is_int:
             return self._mdin_dict['nstlim'] // 1000
         return self._mdin_dict['nstlim'] / 1000.
@@ -726,6 +751,8 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def temperature(self):
         '''int or float: Temperature of simulation in kelvins.'''
+        if 'temp0' not in self._mdin_dict:
+            return None
         return self._mdin_dict.get('temp0')
     @temperature.setter
     def temperature(self, value):

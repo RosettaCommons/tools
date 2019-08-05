@@ -1,4 +1,6 @@
 source leaprc.protein.ff14SB
+source leaprc.RNA.OL3
+source leaprc.DNA.OL15
 logfile +LOG-FILE+
 +LOAD-SOLVENT+
 

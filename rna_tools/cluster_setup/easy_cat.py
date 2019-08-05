@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import string
 from os import system,popen,getcwd,chdir,listdir
@@ -56,7 +57,7 @@ for tag in which_files_to_cat.keys():
     #if (len( which_files_to_cat[tag] ) == 1) : continue
 
     cat_file = tag+".out"
-    print("Catting into: ",cat_file, end='')
+    print("Catting into: {}".format(cat_file), end='')
     command = 'python %s/cat_outfiles.py %s >  %s ' % \
               (scripts_path, " ".join( which_files_to_cat[tag] ) ,
                cat_file )

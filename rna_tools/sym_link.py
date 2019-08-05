@@ -19,6 +19,7 @@ CWD = getcwd()
 chdir( dirname( argv[0] ) )
 
 for f in glob.glob('./bin/*'):
+    if 'pycache' in f: continue
     os.remove(f)
 
 for dirpath, dirnames, filenames in os.walk('./'):

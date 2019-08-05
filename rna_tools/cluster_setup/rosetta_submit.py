@@ -6,8 +6,8 @@ from os.path import basename,dirname,expanduser,exists,expandvars
 import string
 
 def Help():
-    print argv[0]+' <text file with rosetta command> <outdir> <# jobs>  [# hours]'
-    print '  give outdir as 0 and # jobs as 1 to not create separate outdirs.'
+    print(argv[0]+' <text file with rosetta command> <outdir> <# jobs>  [# hours]')
+    print('  give outdir as 0 and # jobs as 1 to not create separate outdirs.')
     exit()
 
 if len( argv ) < 2:
@@ -24,7 +24,7 @@ try:
     n_jobs = int( argv[3] )
 except:
     n_jobs = 1
-    if outdir != '0': print 'NEED TO SUPPLY NUMBER OF JOBS'
+    if outdir != '0': print('NEED TO SUPPLY NUMBER OF JOBS')
 
 DO_MPI = False # May need to reactivate for XSEDE.
 
@@ -185,16 +185,8 @@ for line in lines:
             command_line = ' '.join(cols)
 
     dir = outdir + '/$(Process)/'
-<<<<<<< HEAD
-    make_outdirs = False
-    if outdir == '0':
-        assert( n_jobs == 1 )
-    elif command_line.find( '-csa_bank_size' ) > -1:
-        print "Detected CSA mode"
-=======
     if command_line.find( '-csa_bank_size' ) > -1:
         print("Detected CSA mode")
->>>>>>> master
     else:
         command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
@@ -479,17 +471,10 @@ if DO_MPI:
     fid_queue_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
-<<<<<<< HEAD
-if len( hostname ) == 0 and bsub_file != '/dev/null':
-    print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>source',bsub_file
-    print
-=======
 if len( hostname ) == 0:
     print('Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
     print('>source',bsub_file)
     print()
->>>>>>> master
 
 if hostname == 'ade':
     print('Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
@@ -500,17 +485,10 @@ if hostname == 'ade':
     print('>bash ', all_commands_file)
     print()
 
-<<<<<<< HEAD
-if queue_cmd == 'qsub':
-    print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>source ',qsub_file
-    print
-=======
 if len( hostname ) == 0:
     print('Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
     print('>source ',qsub_file)
     print()
->>>>>>> master
 
 if queue_cmd == 'sbatch':
     print('Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: ')

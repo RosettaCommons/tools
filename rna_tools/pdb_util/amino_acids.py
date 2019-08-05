@@ -1,4 +1,3 @@
-import string
 from operator import add
 
 amino_acids = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', \

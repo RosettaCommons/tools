@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import __print_function__
 from sys import stdout,argv
 from os import system
 import string
@@ -18,16 +19,12 @@ def extractchain(actualpdbname, out, chains_to_extract):
                 and (line[21:22] in chains_to_extract ):
             #line = line[0:21]+chain_to_extract+line[22:]
             out.write(line)
-    out.close()
 
 actualpdbname = argv[1]
 chains_to_extract = argv[2:]
 
 newpdbfile = actualpdbname.replace('.pdb',string.join(chains_to_extract,'')+'.pdb')
 
-out = open( newpdbfile, 'w' )
-
-print 'Extracting to ',newpdbfile,'...'
-
-extractchain(actualpdbname, out, chains_to_extract)
-
+with open( newpdbfile, 'w' ) as out:
+    print 'Extracting to {}...'.format(newpdbfile)
+    extractchain(actualpdbname, out, chains_to_extract)

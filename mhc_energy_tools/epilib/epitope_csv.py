@@ -4,7 +4,7 @@
 Maintenance of epitope scores, caching results from an epitope predictor for efficient lookup in design.
 Essentially a stripped-down version of epitope_database, stored in a csv-format file and read into memory.
 Didn't bother coming up with a baseclass to rule them both, though.
-The scores are one per row, with the first two columns giving the peptide and overall score, and the remaining ones the details for the alleles.
+The scores are one per row, with the first two columns giving the peptide and overall score, and the remaining ones the individual scores for the alleles.
 
 @author: Chris Bailey-Kellogg, cbk@cs.dartmouth.edu; Brahm Yachnin, brahm.yachnin@rutgers.edu 
 """
@@ -39,12 +39,12 @@ class EpitopeCSV (EpitopePredictor):
                     peptide = row[0]
                     score = float(row[1])
                     # assumes empty cells are there, not missing
-                    details = [0 if v=='' else float(v) for v in row[2:len(header)]]
+                    allele_scores = [0 if v=='' else float(v) for v in row[2:len(header)]]
                     if peptide in scores:
                         # TODO: raise exception?
                         print('duplicate peptide '+peptide+' -- ignoring second one')
                     else:
-                        scores[peptide] = EpitopeScore(score, details)
+                        scores[peptide] = EpitopeScore(score, allele_scores)
                 except:
                     raise Exception('bad score row in csv '+filename+':' + str(row))
         lens = set(len(p) for p in scores)
@@ -93,7 +93,7 @@ class EpitopeCSV (EpitopePredictor):
         """Saves the scores from the EpitopeMap to the csv file"""
         for peptide in epimap.peptides:
             score = epimap.peptide_score(peptide)
-            self.csvf.writerow([peptide,score.value]+score.details)
+            self.csvf.writerow([peptide,score.value]+score.allele_scores)
             
     def load_scores(self):
         """Returns an EpitopeMap with all the scores"""

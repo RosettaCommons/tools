@@ -58,7 +58,7 @@ Provide sequence(s) and specify predictor and its parameters; the script generat
     parser.add_argument('--netmhcii_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50'], default='rank')
     parser.add_argument('--yaepII_dir', help='root directory for yaepII models') # TODO: break out directory for ranks
     parser.add_argument('--yaepII_score', help='type of score to compute (default %(default)s)', choices=['rank','ic50','prob'], default='rank')
-    parser.add_argument('--yaepII_slide', help='if set, slide the 9mer core within the 15mer, a la NetMHCII', action='store_true')
+    parser.add_argument('--yaepII_slide_indep', help='if set, slide the 9mer core within the 15mer, a la NetMHCII (independently for each model in the ensemble)', action='store_true') # TODO: support dependent sliding?
     parser.add_argument('--db_unseen', help='how to handle unseen epitope (default %(default)s)', choices=['warn','error','score'], default='warn')
     parser.add_argument('--db_unseen_score', help='what score to use for unseen epitope (default %(default)i)', type=int, default=100)
     # output
@@ -77,15 +77,24 @@ def handle_seq(seq, pred, args):
     # Report
     if args.report=='full' or args.report=='hits':
         # One row per peptide (full or just hits), starting with a header
-        rows = [['pos','peptide','score'] + epimap.alleles]
+        header = ['pos','peptide','score'] + epimap.alleles
+        got_cores = len(epimap.peptides)>0 and len(epimap.p2s[epimap.peptides[0]].allele_cores)>0
+        if got_cores: header += [a+' core' for a in epimap.alleles] # second set of columns for core offsets
+        rows = [header]
         total = 0
         for (i, peptide) in enumerate(epimap.peptides):
             score = epimap.p2s[peptide]
             total += score.value
             if args.report=='full':
-                rows.append([i+seq.start, peptide, score.value] + [str(h) if h is not None else '-' for h in score.details])
+                row = [i+seq.start, peptide, score.value] + score.allele_scores
+                if got_cores: row += score.allele_cores
+                rows.append(row)
             elif score.value>0:
-                rows.append([i+seq.start, peptide, score.value] + [str(h) if (h is not None and h<=pred.thresh) else '-' for h in score.details])
+                thresh_scores = [s if s is not None and s<=pred.thresh else None for s in score.allele_scores]
+                row = [i+seq.start, peptide, score.value] + thresh_scores
+                if got_cores:
+                    row += [score.allele_cores[a] if s is not None else None for (a,s) in enumerate(thresh_scores)]
+                rows.append(row)
         # Save or print
         if args.report_file is not None:
             fn = args.report_file.replace('$', seq.name)
@@ -132,7 +141,7 @@ def main(args):
         pred = NetMHCII(score_type=args.netmhcii_score[0])
     elif args.yaepII:
         # TODO: once there's a paper, cite
-        pred = YAEPII([], score_type=args.yaepII_score[0], slide=args.yaepII_slide, models_dir=args.yaepII_dir) # start with no alleles; fill in later
+        pred = YAEPII([], score_type=args.yaepII_score[0], slide_indep=args.yaepII_slide_indep, models_dir=args.yaepII_dir) # start with no alleles; fill in later
     elif args.csv is not None:
         #Generic, so we can't add a citation
         pred = EpitopeCSV.for_reading(args.csv, handle_unseen=args.db_unseen[0], unseen_score=args.db_unseen_score)

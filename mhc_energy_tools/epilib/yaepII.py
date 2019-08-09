@@ -583,7 +583,7 @@ full_pad = '---'
 class YAEPIIAlleleModel (object):
     """Model for a single allele; allows predicting binding affinity for a 15-mer peptide"""
     
-    def __init__(self, allele, score_type, ranks, graph, sess, peptide, prediction):
+    def __init__(self, allele, score_type, ranks, graph, sess, peptide, prediction, cat):
         self.allele = allele
         self.score_type = score_type
         self.ranks = ranks
@@ -591,13 +591,15 @@ class YAEPIIAlleleModel (object):
         self.sess = sess
         self.peptide = peptide
         self.prediction = prediction
+        self.cat = cat
 
     @classmethod
-    def load_ranks(cls, allele, models_dir):
-        return [float(v) for v in open(models_dir+'/'+allele+'/ranks.txt')]
+    def load_ranks(cls, allele, models_dir, slide_indep):
+        fn = models_dir + '/' + allele + '/ranks' + ('_slide_indep' if slide_indep else'') + '.txt'
+        return [float(v) for v in open(fn)]
     
     @classmethod
-    def load_saved(cls, allele, models_dir, score_type):
+    def load_saved(cls, allele, models_dir, score_type, slide_indep):
         """The original model saved by YAEPIITrainer.save_model"""
         graph = tf.Graph()
         sess = tf.Session(graph=graph)
@@ -605,11 +607,13 @@ class YAEPIIAlleleModel (object):
             model = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], models_dir+'/'+allele)
             peptide = graph.get_tensor_by_name(model.signature_def['serving_default'].inputs['peptide'].name)
             prediction = graph.get_tensor_by_name(model.signature_def['serving_default'].outputs['prediction'].name)
-        return cls(allele, score_type, cls.load_ranks(allele, models_dir) if score_type else None, 
-                   graph, sess, peptide, prediction)
+            # TODO: cat
+            cat = None
+        return cls(allele, score_type, cls.load_ranks(allele, models_dir, slide_indep) if score_type=='r' else None, 
+                   graph, sess, peptide, prediction, cat)
     
     @classmethod
-    def load_frozen(cls, allele, models_dir, score_type):
+    def load_frozen(cls, allele, models_dir, score_type, slide_indep):
         """The model frozen from the saved model."""
         from tensorflow.python.platform import gfile 
         graph = tf.Graph()
@@ -623,53 +627,74 @@ class YAEPIIAlleleModel (object):
             sess.run(init)
             peptide = graph.get_tensor_by_name('yaep/peptide:0')
             prediction = graph.get_operation_by_name('yaep/prediction').outputs[0]
-            return cls(allele, score_type, cls.load_ranks(allele, models_dir) if score_type else None, 
-                       graph, sess, peptide, prediction)
+            cat = graph.get_tensor_by_name('yaep/concatenate/concat:0')
+            return cls(allele, score_type, cls.load_ranks(allele, models_dir, slide_indep) if score_type=='r' else None, 
+                       graph, sess, peptide, prediction, cat)
 
     def convert_score(self, score):
         if self.score_type == 'r':
             return self.ranks[int(score*1000)]
         elif self.score_type == 'p':
             return score
-        else:
+        elif self.score_type == 'i':
             return BindingData.prob_to_nM(score)
+        else:
+            raise Exception('invalid score type '+self.score_type)
         
     def peptide_slides(self, peptide):
         # pad to '---' on both sides, but don't overpad (might already have some)
-        npad = 0; cpad = 1
-        while peptide[npad]=='-': npad += 1
-        while peptide[-cpad]=='-': cpad += 1
-        padded = full_pad[:3-npad] + peptide + full_pad[:4-cpad]
-        return [padded[i:i+15] for i in range(len(padded)-14)]
+        npad = 3; cpad = 3
+        while peptide[3-npad]=='-': npad -= 1
+        while peptide[-(4-cpad)]=='-': cpad -= 1
+        padded = full_pad[:npad] + peptide + full_pad[:cpad]
+        return ([padded[i:i+15] for i in range(len(padded)-14)], npad)
         
     def score_peptide(self, peptide):
         return self.convert_score(self.sess.run(self.prediction, feed_dict={self.peptide:[peptide]}))
 
-    def score_peptide_slide(self, peptide):
-        slides = self.peptide_slides(peptide)
+    def score_peptide_slide_indep(self, peptide):
+        # NetMHCII lets each model choose its own best frame, and then averages scores over these (possibly inconsistent)
+        (slides,npad) = self.peptide_slides(peptide)
+        cat_preds = self.sess.run(self.cat, feed_dict={self.peptide:slides})
+        (nslides,nmodels) = cat_preds.shape        
+        mod_preds = [max(cat_preds[s][m] for s in range(nslides)) for m in range(nmodels)]
+        # TODO: take vote on core
+        return np.average(mod_preds)
+
+    def score_peptide_slide_dep(self, peptide):
+        # For comparison, dunno if useful
+        (slides,npad) = self.peptide_slides(peptide)
         slide_scores = self.sess.run(self.prediction, feed_dict={self.peptide:slides})
-        print(slides,slide_scores)
-        core = np.argmax(slide_scores) # highest probability of binding
-        print(peptide, slides[core][3:12])
-        return self.convert_score(slide_scores[core])
+        #print(slides,slide_scores)
+        best_slide = np.argmax(slide_scores) # highest probability of binding
+        # print(peptide, slides[slide][3:12])
+        return (self.convert_score(slide_scores[best_slide]),best_slide+3-npad)
 
     def score_peptides(self, peptides):
         return [self.convert_score(res) for res in self.sess.run(self.prediction, feed_dict={self.peptide:peptides})]
 
-    def score_peptides_slide(self, peptides):
-        slides_by_peptide = [self.peptide_slides(peptide) for peptide in peptides]
+    def score_peptides_slide_indep(self, peptides):
+        # NetMHCII lets each model choose its own best frame, and then averages scores over these (possibly inconsistent)
+        # TODO: batch score
+        return [self.score_peptide_slide_indep(p) for p in peptides]
+    
+    def score_peptides_slide_dep(self, peptides):
+        # For comparison, dunno if useful
+        by_peptide = [self.peptide_slides(peptide) for peptide in peptides]
+        slides_by_peptide = [bp[0] for bp in by_peptide]
+        npad_by_peptide = [bp[1] for bp in by_peptide]
         all_slides = [s for slides in slides_by_peptide for s in slides]
         all_slide_scores = self.sess.run(self.prediction, feed_dict={self.peptide:all_slides})
         scores = []
         s = 0 # index into flattened scores
         for i in range(len(peptides)):
-            best_core = None; best_score = None
-            for core_idx in range(len(slides_by_peptide[i])):
-                if best_core is None or all_slide_scores[s] > best_score:
-                    best_core = core_idx; best_score = all_slide_scores[s]
+            best_slide = None; best_score = None
+            for slide_idx in range(len(slides_by_peptide[i])):
+                if best_score is None or all_slide_scores[s] > best_score:
+                    best_slide = slide_idx; best_score = all_slide_scores[s]
                 s += 1
-            print(peptides[i], best_score, slides_by_peptide[i][best_core][3:12])
-            scores.append(self.convert_score(best_score))
+            # print(peptides[i], best_score, slides_by_peptide[i][best_slide][3:12])
+            scores.append((self.convert_score(best_score),best_slide+3-npad_by_peptide[i]))
         return scores
 
 class YAEPII (EpitopePredictor):
@@ -697,18 +722,31 @@ class YAEPII (EpitopePredictor):
             ['DRB1_0301', 'DRB1_0701', 'DRB1_1501', 'DRB3_0101', 'DRB3_0202', 'DRB4_0101', 'DRB5_0101'],
         }
 
+    #TODO: this name standardization stuff is copied everywhere; do something general or might they all be different?
+    yaep2std = {} # cache for std_name 
+    @staticmethod
+    def std_name(yaep_name):
+        """Converts NetMHC name into something suitable for a column name in the database.
+        - drops "HLA-"
+        - converts "-" to "_"
+        Caches the conversion."""
+        if yaep_name in YAEPII.yaep2std: return YAEPII.yaep2std[yaep_name]
+        name = yaep_name.replace('HLA-','').replace('-','_')
+        YAEPII.yaep2std[yaep_name] = name
+        return name
+    
     @staticmethod
     def find_models_dir():
         # TODO: look in rosetta database, etc.
         if os.getenv('YAEPII') is not None: return os.getenv('YAEPII')
         return 'models'
         
-    def __init__(self, models, score_type='r', thresh=None, slide=False, models_dir=None):
+    def __init__(self, models, score_type='r', thresh=None, slide_indep=False, models_dir=None):
         # TODO: make score_type an enum?
-        super().__init__('yaepii', alleles=[m.allele for m in models], peptide_length=15, overhang=3)
+        super().__init__('yaepii', alleles=[YAEPII.std_name(m.allele) for m in models], peptide_length=15, overhang=3)
         self.models = models
         self.score_type = score_type
-        self.slide = slide
+        self.slide_indep = slide_indep
         self.models_dir = models_dir if models_dir is not None else YAEPII.find_models_dir()
         # threshes (with defaults) by score type
         if score_type == 'r':
@@ -725,30 +763,34 @@ class YAEPII (EpitopePredictor):
 
     def set_alleles(self, alleles):
         # TODO: make sure there are models for the alleles
-        self.models = [YAEPIIAlleleModel.load_frozen(allele, self.models_dir, self.score_type) for allele in alleles]
+        self.models = [YAEPIIAlleleModel.load_frozen(allele, self.models_dir, self.score_type, self.slide_indep) for allele in alleles]
         self.alleles = [m.allele for m in self.models]
 
     @classmethod
-    def load_saved(cls, alleles, score_type='r', thresh=None, slide=False, models_dir=None):
+    def load_saved(cls, alleles, score_type='r', thresh=None, slide_indep=False, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
-        models = [YAEPIIAlleleModel.load_saved(allele, score_type, models_dir) for allele in alleles]
-        return cls(models, score_type=score_type, thresh=thresh, slide=slide, models_dir=models_dir)
+        models = [YAEPIIAlleleModel.load_saved(allele, models_dir, score_type, slide_indep) for allele in alleles]
+        return cls(models, score_type=score_type, thresh=thresh, slide_indep=slide_indep, models_dir=models_dir)
 
     @classmethod
-    def load_frozen(cls, alleles, score_type=True, thresh=None, slide=False, models_dir=None):
+    def load_frozen(cls, alleles, score_type='p', thresh=None, slide_indep=False, models_dir=None):
         if models_dir == None: models_dir = YAEPII.find_models_dir()
-        models = [YAEPIIAlleleModel.load_frozen(allele, score_type, models_dir) for allele in alleles]
-        return cls(models, score_type=score_type, thresh=thresh, slide=slide, models_dir=models_dir)
+        models = [YAEPIIAlleleModel.load_frozen(allele, models_dir, score_type, slide_indep) for allele in alleles]
+        return cls(models, score_type=score_type, thresh=thresh, slide_indep=slide_indep, models_dir=models_dir)
 
     def score_peptide(self, pep):
-        if self.slide: details = [m.score_peptide_slide(pep) for m in self.models]
-        else: details = [m.score_peptide(pep) for m in self.models]
+        if self.slide_indep: 
+            scores = [m.score_peptide_slide_indep(pep) for m in self.models]
+        else:
+            scores = [m.score_peptide(pep) for m in self.models]
         # TODO: note that the score is always a sum of "hit"s; could generalize if desired
-        return EpitopeScore(sum(1 for s in details if self.is_hit(s)), details)
+        return EpitopeScore(sum(1 for s in scores if self.is_hit(s)), scores)
 
     def score_peptides(self, peptides):
-        if self.slide: details_by_model = [m.score_peptides_slide(peptides) for m in self.models]
-        else: details_by_model = [m.score_peptides(peptides) for m in self.models]
-        details_by_peptide = [[details_by_model[m][i] for m in range(len(self.models))] for i in range(len(peptides))]
+        if self.slide_indep:
+            scores_by_model = [m.score_peptides_slide_indep(peptides) for m in self.models]
+        else:
+            scores_by_model = [m.score_peptides(peptides) for m in self.models]
+        scores_by_peptide = [[scores_by_model[m][i] for m in range(len(self.models))] for i in range(len(peptides))]
         # TODO: note that the score is always a sum of "hit"s; could generalize if desired
-        return [EpitopeScore(sum(1 for s in details if self.is_hit(s)), details) for details in details_by_peptide]
+        return [EpitopeScore(sum(1 for s in scores_for_a_peptide if self.is_hit(s)), scores_for_a_peptide) for scores_for_a_peptide in scores_by_peptide]

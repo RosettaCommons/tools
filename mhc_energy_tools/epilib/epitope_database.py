@@ -107,7 +107,7 @@ class EpitopeDatabase (EpitopePredictor):
     def save_scores(self, epimap):
         """Saves the scores from the EpitopeMap to the database"""
         # epimap.report()
-        self.cursor.executemany(self.save_stmt, [[p, epimap.peptide_score(p).value] + epimap.peptide_score(p).details for p in epimap.peptides])
+        self.cursor.executemany(self.save_stmt, [[p, epimap.peptide_score(p).value] + epimap.peptide_score(p).allele_scores for p in epimap.peptides])
         self.conn.commit()
 
     def load_scores(self):

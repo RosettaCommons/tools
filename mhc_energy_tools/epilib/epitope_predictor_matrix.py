@@ -111,8 +111,8 @@ class EpitopePredictorMatrix (EpitopePredictor):
     
     def score_peptide(self, pep):
         try:
-            details = [m.score(pep, self.thresh) for m in self.matrices]
-            return EpitopeScore(sum(1 for s in details if s is not None), details)
+            allele_scores = [m.score(pep, self.thresh) for m in self.matrices]
+            return EpitopeScore(sum(1 for s in allele_scores if s is not None), allele_scores)
         except KeyError as err: # nancanonical => no epitope
             return EpitopeScore()
     

@@ -22,19 +22,19 @@ AA31 = collections.defaultdict(lambda:'X',
 class Sequence (object):
     """A sequence (String) with a name and a chain id, indexed by residue numbers starting at 1 or some other value."""
     def __init__(self, seq, name='[anonymous]', start=1, chain=None, noncanon='silent', noncanon_replace=None):
-        self.seq = seq
+        self.seq = seq.upper()
         self.name = name
         self.start = start
         self.chain = chain
         
-        noncanons = [i for i in range(len(seq)) if seq[i] not in AAs]
+        noncanons = [i for i in range(len(self.seq)) if self.seq[i] not in AAs]
         if len(noncanons)>0:
-            msg = name + ' has noncanonical AA(s): '+','.join('%s%d'%(seq[i],i+start) for i in noncanons)
+            msg = name + ' has noncanonical AA(s): '+','.join('%s%d'%(self.seq[i],i+start) for i in noncanons) + ' -- replacing with ' + noncanon_replace
+
             if noncanon == 'warn': print(msg)
             elif noncanon == 'error': raise Exception(msg)
             if noncanon_replace is not None:
-                print('replacing with',noncanon_replace)
-                self.seq = ''.join(noncanon_replace if i in noncanons else seq[i] for i in range(len(seq)))
+                self.seq = ''.join(noncanon_replace if i in noncanons else self.seq[i] for i in range(len(self.seq)))
 
     def __getitem__(self, where):
         """Gets the AA at the position / AAs in the slice, accounting for the starting residue number of the sequence."""
@@ -78,7 +78,7 @@ def load_pep(filename, noncanon='silent', noncanon_replace=None):
     core = filecore(filename)
     with open(filename, 'rt') as infile:
         for (i,seq) in enumerate(infile):
-            seqs.append(Sequence(seq.strip(), name=core+'_'+str(i), noncanon=noncanon), noncanon_replace=noncanon_replace)
+            seqs.append(Sequence(seq.strip(), name=core+'_'+str(i), noncanon=noncanon, noncanon_replace=noncanon_replace))
     return seqs
 
 def load_fsa(filename, noncanon='silent', noncanon_replace=None):

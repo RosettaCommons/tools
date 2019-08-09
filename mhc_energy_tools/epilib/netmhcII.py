@@ -65,7 +65,8 @@ class NetMHCII (EpitopePredictor):
     
     def __init__(self, nm_alleles=None, thresh=5, score_type='r', nm_bin=None):
         """nm_alleles uses NetMHCII naming, as in the predefined sets above
-        score_type 'r' means relative (percentile) and 'i' means the underlying 'IC50' value; note that a different thresh would be appropriate for 'a'
+        score_type 'r' means relative (percentile), 'i' means the underlying 'IC50' value, and 'p' the probability (i.e., 1-log50k(aff))
+        note that different threshes are appropriate for different score types
         nm_bin is the executable; else looks for it in $NMHOME"""
         if nm_alleles is None: nm_alleles = NetMHCII.allele_sets['paul15']
         super().__init__('netmhcii+'+NetMHCII.version, alleles=[NetMHCII.std_name(a) for a in nm_alleles], peptide_length=15)
@@ -92,14 +93,19 @@ class NetMHCII (EpitopePredictor):
         got_version = False
         peptides = []
         scores = collections.defaultdict(dict)
+        cores = collections.defaultdict(dict)
         # Set which columns contain the allele, position, peptide sequence, and scores
         # These column numbers may change if NetMHCII output changes in a future version
         allele_col = 0 #Allele is always the first column
         pos_col = 1 #Position is always the second column
         pep_col = 2 #Peptide is always the third column
+        core_col = 4 #Core offset
         #Score column changes depending on whether scoring peptides or a protein sequence, and whether using relative or absolute scores
-        #If using absolute scoring, the score column is 5 (log-transformed: 1-log50k(aff))
+        #If using absolute scoring, the score column is 6
         if self.score_type == 'i': 
+            score_col = 6
+        #If using raw probabilies (i.e., 1-log50k(aff)), 5
+        elif self.score_type == 'p':
             score_col = 5
         #If using relative scoring with peptides, the score column is 8
         elif is_peptides:
@@ -120,10 +126,15 @@ class NetMHCII (EpitopePredictor):
             elif cols[allele_col] in self.nm_alleles:
                 # a score row for an allele -- extract and store the info if good enough
                 score = float(cols[score_col])
+                core = int(cols[core_col])
                 #if score <= self.thresh:
                 allele = NetMHCII.std_name(cols[allele_col])
                 peptide = cols[pep_col]
                 idx = int(cols[pos_col]) - 1
+                # TODO: This stuff doesn't work if the input the NetMHCII includes multiple proteins, since it resets the peptide counter for each one. We weren't counting on that use case before. I vote we just drop it.
+                # TODO: could have redundant peptides -- skip if already seen?
+                peptides.append(peptide) # in place of the commented stuff
+                """
                 #The idx basically gives the position number of the current line in the sequence or in the list of peptides.
                 #If the number of peptides is greater than the index, we should no longer be on the first allele
                 #That means that the peptide has already been included in the peptides list
@@ -140,7 +151,9 @@ class NetMHCII (EpitopePredictor):
                 #Raise an exception.
                 else:
                     raise Exception('missing peptides from %d to %d' % (len(peptides), idx))
+                """
                 scores[peptide][allele] = score
+                cores[peptide][allele] = core
         if not got_version: print('*** unidentified version, use at your own risk!')
         episcores = []
         for peptide in peptides:
@@ -150,19 +163,21 @@ class NetMHCII (EpitopePredictor):
             if 'X' in peptide: 
                 episcores.append(EpitopeScore())
                 continue
-            details = [] #Store the details of all peptide/allele combos
-            meet_thresh = 0 #Store the number of peptide/allele combos that are less than self.thresh
+            allele_scores = [] # Store the scores of the individual alleles
+            allele_cores = [] # Store the core offsets of the individual alleles
+            meet_thresh = 0 #Store the number of alleles that are less than self.thresh
             for allele in self.alleles:
-                details.append(scores[peptide][allele])
-                if scores[peptide][allele] <= self.thresh:
+                allele_scores.append(scores[peptide][allele])
+                allele_cores.append(cores[peptide][allele])
+                if (self.score_type != 'p' and scores[peptide][allele] <= self.thresh) or (self.score_type == 'p' and scores[peptide][allele] >= self.thresh):
                     meet_thresh+=1
-            episcores.append(EpitopeScore(meet_thresh, details))
+            episcores.append(EpitopeScore(meet_thresh, allele_scores, allele_cores))
         return EpitopeMap(self.peptide_length, self.alleles, peptides, episcores)
 
-    def load_file(self, filename):
+    def load_file(self, filename, is_peptides=False):
         """Saved-out NetMHCII file."""
         with open(filename, 'r') as infile:
-            return self.process_raw(infile.readlines())
+            return self.process_raw(infile.readlines(), is_peptides)
 
     def run(self, filename, is_peptides=True):  
         """Runs the executable as a subprocess."""

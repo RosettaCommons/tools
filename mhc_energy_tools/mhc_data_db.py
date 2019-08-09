@@ -45,10 +45,10 @@ def get_core_hits(expt, pred, option):
                     core_hits[peptide[i:i+9]].add(allele)
             elif option == 'predicted_good':
                 # prediction for experimentally identified allele
-                a = pred.alleles.index(allele) # TODO: ugh -- details is just a list in order of alleles
+                a = pred.alleles.index(allele) # TODO: ugh -- allele_scores is just a list in order of alleles
                 ncores = 0
                 for core in pep_epimap.peptides:
-                    if pep_epimap.peptide_score(core).details[a] is not None: # TODO: Propred does this, but not NetMHC (it also doesn't store 9mers, so fix simultaneously)
+                    if pep_epimap.peptide_score(core).allele_scores[a] is not None: # TODO: Propred does this, but not NetMHC (it also doesn't store 9mers, so fix simultaneously)
                         core_hits[core].add(allele)
                         ncores += 1
                 # print(peptide,allele,ncores,'cores')

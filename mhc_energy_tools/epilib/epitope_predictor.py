@@ -7,10 +7,11 @@ Base classes for epitope prediction
 """
 
 class EpitopeScore (object):
-    """A score for a peptide, both an overall value and details for predicted alleles."""
-    def __init__(self, value=0, details=[]):
+    """A score for a peptide, both an overall value and details for predicted alleles (scores and possibly offsets for cores when applicable)"""
+    def __init__(self, value=0, allele_scores=[], allele_cores=[]):
         self.value = value
-        self.details = details
+        self.allele_scores = allele_scores
+        self.allele_cores = allele_cores
 
 class EpitopeMap (object):
     """Scores for peptides."""

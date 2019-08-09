@@ -5,8 +5,6 @@ Compute percentile ranks from background distributions for YAEPII models
 The output files specify, for sampled score values (implicit, at steps of 0.001) the corresponding percentile ranks
 Percentile ranks are in the "lower is better" order, i.e., 5 means a higher probability that 95% of the background peptides
 
-uniprot-reviewed%3Ayes+AND+proteome%3Aup000005640.fasta
-
 @author: Chris Bailey-Kellogg, cbk@cs.dartmouth.edu; Brahm Yachnin, brahm.yachnin@rutgers.edu 
 """
 
@@ -42,11 +40,14 @@ def setup_parser():
     alleles.add_argument('--alleles', help='comma-separated list of allele names')
 
     # where to find models and store background distributions    
-    parser.add_argument('--model_base', help='base directory for models. etc. (nested within) (default: %(default))', default='models')
+    parser.add_argument('--model_base', help='base directory for reading models (nested within by allele) (default: %(default))', default='models')
+    parser.add_argument('--bg_base', help='base directory for writing bg distr info (nested within by allele) (default: whatever model_base is)')
+
+    parser.add_argument('--slide_indep', help='if set, slide the 9mer core within the 15mer, a la NetMHCII (independently for each model in the ensemble)', action='store_true') # TODO: support dependent sliding?
 
     # outputs
     parser.add_argument('--build_db', help='create/augment a database with peptide scores, so build up over runs', action='store_true')
-    parser.add_argument('--db', help='filename (no directory) of db to be created/augmented if build_db is true (default: %(default))', default='scores.db')
+    parser.add_argument('--db', help='filename (no directory) of db to be created/augmented if build_db is true (default: scores.db or scores_slide_indep.db)')
     parser.add_argument('--plot_dist', help='if set, plot score distribution for inspection (matplotlib required), in dist.pdf', action='store_true')
     parser.add_argument('--overwrite', help='must set this in order to overwrite existing file', action='store_true')
 
@@ -56,23 +57,33 @@ def compute_one_allele(args, seqs, allele):
     """Handles calculation for one specified allele.
     args: ArgumentParser""" 
 
-    # directory for this allele   
-    base = args.model_base if args.model_base is not None else 'yaepII'
-    allele_dir = base+'/'+allele+'/'
+    # directories for this allele   
+    out_base = args.bg_base if args.bg_base is not None else args.model_base
+    out_dir = out_base+'/'+allele+'/'
+    if not os.path.exists(out_dir): os.mkdir(out_dir)
 
-    # check that out file is legit    
-    fn = allele_dir + 'ranks.txt'
+    # check that out file is legit
+    if args.slide_indep:
+        fn = out_dir + 'ranks_slide_indep.txt'
+    else:
+        fn = out_dir + 'ranks.txt'
     if os.path.exists(fn):
         if args.overwrite:
             print('overwriting',fn)
         else:
             raise Exception('ranks file "'+fn+'" already exists; specify --overwrite if you want to overwrite it')
 
-    model = YAEPIIAlleleModel.load_frozen(allele, args.model_base, False)
+    model = YAEPIIAlleleModel.load_frozen(allele, args.model_base, 'p', args.slide_indep)
     
     if args.build_db:
         # will augment database, then get all scores
-        db = EpitopeDatabase.for_writing(allele_dir + '/' + args.db, 'yaepII_bg', alleles=[allele], peptide_length=15)
+        db_name = args.db
+        if db_name is None:
+            if args.slide_indep:
+                db_name = out_dir + '/scores_slide_indep.db'
+            else:
+                db_name = out_dir + '/scores.db'                
+        db = EpitopeDatabase.for_writing(db_name, 'yaepII_bg', alleles=[YAEPII.std_name(allele)], peptide_length=15)
     else:
         # just current scores
         scores = []
@@ -84,8 +95,11 @@ def compute_one_allele(args, seqs, allele):
         # include N- and C-terminal peptides padded to length 15
         padded = '---' + seq.seq + '---'
         peps = [padded[i:i+15] for i in range(len(padded)-14)]
-        # TODO: batch score; if db, only for new ones
-        pep_scores = [model.score_peptide(pep) for pep in peps]
+        # TODO: if db, filter for new ones
+        if args.slide_indep:
+            pep_scores = model.score_peptides_slide_indep(peps)
+        else:
+            pep_scores = model.score_peptides(peps)
         if args.build_db:
             db.save_scores(EpitopeMap(15, [allele], peps, [EpitopeScore(float(score), [float(score)]) for score in pep_scores]))
         else:
@@ -143,6 +157,7 @@ def main(args):
     
 # python yaepII_bg.py --fsa ~/Downloads/test.fsa --alleles DRB1_0101
 # python yaepII_bg.py --fsa ~/Downloads/uniprot_human_reviewed.fsa --alleles DRB1_0101
+
 if __name__ == '__main__':
     parser = setup_parser()
     args = parser.parse_args()

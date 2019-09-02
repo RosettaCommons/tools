@@ -250,7 +250,7 @@ $VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 my $PDB_SEQRES      = "$Bin/pdb_seqres.txt";
 if ( !$options{homs} ) {
 	if (!-s "$VALL_BLAST_DB.phr") {
-		system("gunzip $VALL_BLAST_DB.gz") if (-s "$VALL_BLAST_DB.gz");
+		system("gunzip -k $VALL_BLAST_DB.gz") if (-s "$VALL_BLAST_DB.gz");
 		system("$BLAST_DIR/bin/formatdb -i $VALL_BLAST_DB") if (-s $VALL_BLAST_DB);
 	}
 	if (!-s $PDB_SEQRES) {

@@ -119,6 +119,7 @@ class EpitopePredictorMatrix (EpitopePredictor):
 class Propred (EpitopePredictorMatrix):
     allele_sets = { 
         'all': ['DRB1_0101','DRB1_0301','DRB1_0401','DRB1_0701','DRB1_0801','DRB1_1101','DRB1_1301','DRB1_1501'],
+        'southwood98': ['DRB1_0101','DRB1_0301','DRB1_0401','DRB1_0701','DRB1_0801','DRB1_1101','DRB1_1301','DRB1_1501'],
         'test': ['DRB1_0101']
     }
     @classmethod

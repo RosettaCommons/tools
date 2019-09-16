@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from . import blargs
+import blargs
 
 # This file defines the Beautifier class which parses Rosetta into an AST
 # and then determines the indentation for each line based on the AST.

@@ -5,16 +5,16 @@
 # repository to do its business
 
 
-from .beautify_compiled_files_w_fork import *
+from beautify_compiled_files_w_fork import *
 import subprocess, sys
 try:
-    from . import blargs
+    import blargs
 except ImportError:
     # if this script is in the Rosetta/tools/xsd_xrw/ directory
     # blargs is in the ../external/ directory. Add that to the path. and re-import
     blargs_path = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'external')
     sys.path.append(blargs_path)
-    from . import blargs
+    import blargs
 
 
 if __name__ == "__main__" :
@@ -42,9 +42,11 @@ if __name__ == "__main__" :
         sys.exit(-1)
     #print("rev to diff: " + rev_to_diff_against)
     bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
-    file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]
-    # print("Initial list\n", file_list)
-    file_list = [ x.split(None,1) for x in file_list.splitlines() ]
+    file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0].decode('ascii')
+    #print("Initial list\n", file_list)
+    file_list = [str(x) for x in file_list.splitlines()]
+    file_list = [ x.split(None,1) for x in file_list ]
+    
 
     # pare down this list to the set of files that should be beautified at all
     # Files with status of D have been deleted, and don't need beautification.

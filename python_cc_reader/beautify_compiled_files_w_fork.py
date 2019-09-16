@@ -1,11 +1,11 @@
 
-from . import fork_manager
-from . import blargs
-from . import beautifier
+import fork_manager
+import blargs
+import beautifier
 import re
 import sys, os
 
-from .code_utilities import *
+from code_utilities import *
 
 # This script is meant to be run from either the Rosetta/main/source/src/ or 
 # the Rosetta/main/source/test/ directories. It reads the scons .settings

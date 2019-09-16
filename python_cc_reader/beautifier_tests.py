@@ -1,5 +1,5 @@
-from . import beautifier
-from . import blargs
+import beautifier
+import blargs
 import sys
 
 class BeautifierTest :

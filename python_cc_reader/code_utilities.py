@@ -1,7 +1,7 @@
 
 #from test_compile import find_includes_for_file
 
-from . import code_reader
+import code_reader
 import re, sys, os
 
 def regex_subset( filelist, regex ) :
@@ -116,9 +116,12 @@ def compiled_cc_files() :
      if library == "pilot_apps" :
         libname = "apps"
         settings_file_name += ".all"
-     f = file( settings_file_name ).read()
+     f = open( settings_file_name ).read()
      #print("reading files for library", libname)
-     exec(f)
+     _globals = {}
+     _locals = {}
+     exec(f, _globals, _locals)
+     sources = _locals["sources"]
      for dir in list(sources.keys()) :
         for cc_file in sources[ dir ] :
            if len( cc_file ) > 3 and cc_file[-3:] == ".cu" :
@@ -147,8 +150,11 @@ def compiled_cxxtest_hh_files() :
       if not os.path.isfile( settings_file_name ) :
          print("did not find", settings_file_name, ". Skipping")
          continue
-      f = file( settings_file_name ).read()
-      exec(f)
+      f = open( settings_file_name ).read()
+      _globals = {}
+      _locals = {}
+      exec(f, _globals, _locals)
+      sources = _locals["sources"]
       for dir in list(sources.keys()) :
          for hh_file in sources[ dir ] :
             name = "../test/" + libname + "/" + dir + "/" + hh_file + ".cxxtest.hh"
@@ -157,16 +163,21 @@ def compiled_cxxtest_hh_files() :
 
 # return all the libraries that are to be built
 def rosetta_projects() :
-   f = file( "../projects.settings" ).read()
-   exec( f )
-   return projects
+   f = open( "../projects.settings" ).read()
+   _globals = {}
+   _locals = {}
+   exec(f, _globals, _locals)
+   return _locals["projects"]
 
 #return a set of all the top-level directories in a particular .src.settings file
 #intended for the sub-divided libraries and for use in the library_levels.py script
 def toplevel_subdirs_of_library( libname ) :
    settings_file_name = libname + ".src.settings";
-   f = file( settings_file_name ).read()
-   exec( f )
+   f = open( settings_file_name ).read()
+   _globals = {}
+   _locals = {}
+   exec( f, _globals, _locals )
+   sources = _locals["sources"]
    subdirs = set([])
    for dir in list(sources.keys()) :
       subdir_full = dir.partition( "/" )[ 2 ]

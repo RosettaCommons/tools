@@ -4,7 +4,7 @@
 # it will look for "source" in the CWD and then move into the root directory for the
 # repository to do its business
 
-from .beautify_compiled_files_w_fork import *
+from beautify_compiled_files_w_fork import *
 import subprocess, sys
 import argparse
 import os.path

@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from . import beautify_compiled_files_w_fork
-from . import blargs
+import beautify_compiled_files_w_fork
+import blargs
 import os, sys
 
 # This script is meant to be run from the Rosetta/main/source/ directory.

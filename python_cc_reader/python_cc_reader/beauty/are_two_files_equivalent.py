@@ -1,7 +1,6 @@
-from ...external.blargs import blargs
+from ..external.blargs import blargs
 from . import beautifier
 import sys
-
 
 def parse_file(lines):
     beaut = beautifier.Beautifier()
@@ -11,10 +10,7 @@ def parse_file(lines):
     return beaut
 
 
-if __name__ == "__main__":
-    with blargs.Parser(locals()) as p:
-        p.str("file1")
-        p.str("file2")
+def compare_whether_two_files_are_equivalent(file1, file2):
     b1 = parse_file(open(file1).readlines())
     b2 = parse_file(open(file2).readlines())
     good, i1, i2 = b1.equivalent(b2)

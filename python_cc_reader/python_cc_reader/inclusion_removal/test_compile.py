@@ -143,7 +143,9 @@ def test_compile(cc_file, verbose=False, id="", devnull=False):
     else:
         # print file(out_log).read(), file(err_log).read()
         print(
-            "To compile this header locally run following command: cd source/src && python ./../../../tools/python_cc_reader/test_all_headers_compile_w_fork.py --headers",
+            "To compile this header locally run following command: " +
+            "cd source/src && python ./../../../tools/python_cc_reader/" +
+            "test_all_headers_compile_w_fork.py --headers",
             cc_file,
             "\n\n",
         )

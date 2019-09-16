@@ -46,7 +46,7 @@ except:
     sys.exit(1)
 
 
-def whole_shebang():
+def whole_shebang(ppservers: pp.Server):
 
     # OVERVIEW:
     # first create the include graph
@@ -84,14 +84,14 @@ def whole_shebang():
     remove_known_circular_dependencies_from_graph(g)
 
     # second, verify that all files compile on their own
-    # any_fail_to_compile = False
-    # for fname in compilable_files :
-    #   if not test_compile_from_lines( expand_includes_for_file( fname, file_contents ) ) :
-    #      print "Error: ", fname, "does not compile on its own"
-    #      any_fail_to_compile = True
-    # if any_fail_to_compile :
-    #   print "Error: coud not compile all files on their own"
-    #   sys.exit(0)
+    any_fail_to_compile = False
+    for fname in compilable_files :
+      if not test_compile_from_lines( expand_includes_for_file( fname, file_contents ) ) :
+         print "Error: ", fname, "does not compile on its own"
+         any_fail_to_compile = True
+    if any_fail_to_compile :
+      print "Error: coud not compile all files on their own"
+      sys.exit(0)
 
     # third, compute the transitive closure graph
     tg = transitive_closure(g)

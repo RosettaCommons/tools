@@ -32,12 +32,12 @@ Digraph class
 
 
 # Imports
-#from pygraph.algorithms import *
-#from pygraph.algorithms import filters
-#from pygraph.algorithms import traversal
+# from pygraph.algorithms import *
+# from pygraph.algorithms import filters
+# from pygraph.algorithms import traversal
 
 
-class digraph (object):
+class digraph(object):
     """
     Digraph class.
     
@@ -50,17 +50,15 @@ class digraph (object):
     neighbors, node_degree, node_order, nodes, reverse, set_edge_label, set_edge_weight, traversal
     """
 
-
     def __init__(self):
         """
         Initialize a digraph.
         """
-        self.node_neighbors = {}     # Pairing: Node -> Neighbors
-        self.edge_properties = {}    # Pairing: Edge -> (Label, Weight)
-        self.node_incidence = {}     # Pairing: Node -> Incident nodes
-        self.node_attr = {}          # Pairing: Node -> Attributes
-        self.edge_attr = {}          # Pairing: Edge -> Attributes
-
+        self.node_neighbors = {}  # Pairing: Node -> Neighbors
+        self.edge_properties = {}  # Pairing: Edge -> (Label, Weight)
+        self.node_incidence = {}  # Pairing: Node -> Incident nodes
+        self.node_attr = {}  # Pairing: Node -> Attributes
+        self.edge_attr = {}  # Pairing: Edge -> Attributes
 
     def __str__(self):
         """
@@ -71,7 +69,6 @@ class digraph (object):
         """
         return "<graph object " + str(self.nodes()) + " " + str(self.edges()) + ">"
 
-
     def __len__(self):
         """
         Return the order of the digraph when requested by len().
@@ -80,7 +77,6 @@ class digraph (object):
         @return: Size of the graph.
         """
         return len(self.node_neighbors)
-
 
     def __iter__(self):
         """
@@ -92,7 +88,6 @@ class digraph (object):
         for each in self.node_neighbors.keys():
             yield each
 
-
     def __getitem__(self, node):
         """
         Return a iterator passing through all neighbors of the given node.
@@ -103,7 +98,6 @@ class digraph (object):
         for each in self.node_neighbors[node]:
             yield each
 
-
     def nodes(self):
         """
         Return node list.
@@ -112,7 +106,6 @@ class digraph (object):
         @return: Node list.
         """
         return list(self.node_neighbors.keys())
-
 
     def neighbors(self, node):
         """
@@ -125,8 +118,7 @@ class digraph (object):
         @return: List of nodes directly accessible from given node.
         """
         return self.node_neighbors[node]
-    
-    
+
     def incidents(self, node):
         """
         Return all nodes that are incident to the given node.
@@ -138,9 +130,7 @@ class digraph (object):
         @return: List of nodes directly accessible from given node.    
         """
         return self.node_incidence[node]
-        
-    
-    
+
     def edges(self):
         """
         Return all edges in the graph.
@@ -149,7 +139,6 @@ class digraph (object):
         @return: List of all edges in the graph.
         """
         return list(self.edge_properties.keys())
-
 
     def has_node(self, node):
         """
@@ -163,8 +152,7 @@ class digraph (object):
         """
         return node in self.node_neighbors
 
-
-    def add_node(self, node, attrs = []):
+    def add_node(self, node, attrs=[]):
         """
         Add given node to the graph.
         
@@ -177,11 +165,10 @@ class digraph (object):
         @type  attrs: list
         @param attrs: List of node attributes specified as (attribute, value) tuples.
         """
-        if (node not in self.node_neighbors):
+        if node not in self.node_neighbors:
             self.node_neighbors[node] = []
             self.node_incidence[node] = []
             self.node_attr[node] = attrs
-
 
     def add_nodes(self, nodelist):
         """
@@ -196,8 +183,7 @@ class digraph (object):
         for each in nodelist:
             self.add_node(each)
 
-
-    def add_edge(self, u, v, wt = 1, label = '', attrs = []):
+    def add_edge(self, u, v, wt=1, label="", attrs=[]):
         """
         Add an directed edge (u,v) to the graph connecting nodes u to v.
 
@@ -216,12 +202,11 @@ class digraph (object):
         @type  attrs: list
         @param attrs: List of node attributes specified as (attribute, value) tuples.
         """
-        if (v not in self.node_neighbors[u]):
+        if v not in self.node_neighbors[u]:
             self.node_neighbors[u].append(v)
             self.node_incidence[v].append(u)
             self.edge_properties[(u, v)] = [label, wt]
             self.edge_attr[(u, v)] = attrs
-
 
     def del_node(self, node):
         """
@@ -234,10 +219,9 @@ class digraph (object):
             self.del_edge(each, node)
         for each in list(self.neighbors(node)):
             self.del_edge(node, each)
-        del(self.node_neighbors[node])
-        del(self.node_incidence[node])
-        del(self.node_attr[node])
-
+        del (self.node_neighbors[node])
+        del (self.node_incidence[node])
+        del (self.node_attr[node])
 
     def del_edge(self, u, v):
         """
@@ -251,9 +235,8 @@ class digraph (object):
         """
         self.node_neighbors[u].remove(v)
         self.node_incidence[v].remove(u)
-        del(self.edge_properties[(u, v)])
-        del(self.edge_attr[(u, v)])
-
+        del (self.edge_properties[(u, v)])
+        del (self.edge_attr[(u, v)])
 
     def edge_weight(self, u, v):
         """
@@ -270,7 +253,6 @@ class digraph (object):
         """
         return self.edge_properties[(u, v)][1]
 
-
     def set_edge_weight(self, u, v, wt):
         """
         Set the weight of an edge.
@@ -285,7 +267,6 @@ class digraph (object):
         @param wt: Edge weight.
         """
         self.edge_properties[(u, v)][1] = wt
-
 
     def edge_label(self, u, v):
         """
@@ -302,7 +283,6 @@ class digraph (object):
         """
         return self.edge_properties[(u, v)][0]
 
-
     def set_edge_label(self, u, v, label):
         """
         Set the label of an edge.
@@ -317,8 +297,7 @@ class digraph (object):
         @param label: Edge label.
         """
         self.edge_properties[(u, v)][0] = label
-    
-    
+
     def add_node_attribute(self, node, attr):
         """
         Add attribute to the given node.
@@ -331,7 +310,6 @@ class digraph (object):
         """
         self.node_attr[node] = self.node_attr[node] + [attr]
 
-
     def node_attributes(self, node):
         """
         Return the attributes of the given node.
@@ -343,7 +321,6 @@ class digraph (object):
         @return: List of attributes specified tuples in the form (attribute, value).
         """
         return self.node_attr[node]
-
 
     def add_edge_attribute(self, u, v, attr):
         """
@@ -360,7 +337,6 @@ class digraph (object):
         """
         self.edge_attr[(u, v)] = self.edge_attr[(u, v)] + [attr]
 
-
     def edge_attributes(self, u, v):
         """
         Return the attributes of the given edge.
@@ -375,7 +351,6 @@ class digraph (object):
         @return: List of attributes specified tuples in the form (attribute, value).
         """
         return self.edge_attr[(u, v)]
-
 
     def has_edge(self, u, v):
         """
@@ -392,7 +367,6 @@ class digraph (object):
         """
         return (u, v) in self.edge_properties
 
-    
     def node_order(self, node):
         """
         Return the order of the given node.
@@ -401,7 +375,6 @@ class digraph (object):
         @return: Order of the given node.
         """
         return len(self.neighbors(node))
-
 
     def node_degree(self, node):
         """
@@ -412,7 +385,6 @@ class digraph (object):
         """
         return len(self.node_incidence[node])
 
-
     def complete(self):
         """
         Make the graph a complete graph.
@@ -421,9 +393,8 @@ class digraph (object):
         """
         for each in self.nodes():
             for other in self.nodes():
-                if (each != other):
+                if each != other:
                     self.add_edge(each, other)
-
 
     def inverse(self):
         """
@@ -447,20 +418,22 @@ class digraph (object):
         @return: The directed graph that should be reversed.
         """
         N = digraph()
-    
-        #- Add the nodes
+
+        # - Add the nodes
         for n in self.nodes():
             N.add_node(n, self.node_attributes(n))
-    
-        #- Add the reversed edges
-        for (u, v) in self.edges():
-            N.add_edge(v, u,
-            self.edge_weight(u, v),
-            self.edge_label(u, v),
-            self.edge_attributes(u, v))
-    
-        return N
 
+        # - Add the reversed edges
+        for (u, v) in self.edges():
+            N.add_edge(
+                v,
+                u,
+                self.edge_weight(u, v),
+                self.edge_label(u, v),
+                self.edge_attributes(u, v),
+            )
+
+        return N
 
     def add_graph(self, graph):
         """
@@ -476,7 +449,6 @@ class digraph (object):
             for each_edge in graph.neighbors(each_node):
                 self.add_edge(each_node, each_edge)
 
-
     def add_spanning_tree(self, st):
         """
         Add a spanning tree to the graph.
@@ -486,22 +458,21 @@ class digraph (object):
         """
         self.add_nodes(list(st.keys()))
         for each in st:
-            if (st[each] is not None):
+            if st[each] is not None:
                 self.add_edge(st[each], each)
 
-
-    #def traversal(self, node, order = 'pre'):
+    # def traversal(self, node, order = 'pre'):
     #    """
     #    Graph traversal iterator.
 
     #    @type  node: node
     #    @param node: Node.
-        
+
     #    @type  order: string
     #    @param order: traversal ordering. Possible values are:
     #        2. 'pre' - Preordering (default)
     #        1. 'post' - Postordering
-        
+
     #    @rtype:  iterator
     #    @return: Traversal iterator.
     #    """

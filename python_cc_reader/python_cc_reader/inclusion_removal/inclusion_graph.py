@@ -2,7 +2,8 @@
 # utility functions for working with
 # inclusion graphs
 
-import re, pygraph, sys
+import re, sys
+from ..external.pygraph import pygraph
 
 # from pygraph.algorithms.sorting import topological_sorting
 from .add_headers import (
@@ -24,7 +25,7 @@ from .test_compile import (
     test_compile_extreme,
     cxxtest_test_compile,
 )
-from .code_utilities import (
+from ..cpp_parser.code_utilities import (
     known_circular_dependencies,
     scan_compilable_files,
     expand_includes_for_file,

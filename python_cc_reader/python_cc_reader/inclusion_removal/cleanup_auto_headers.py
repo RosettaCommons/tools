@@ -1,4 +1,4 @@
-from .code_utilities import load_source_tree, directories_with_ccfiles_to_examine
+from ..cpp_parser.code_utilities import load_source_tree, directories_with_ccfiles_to_examine
 from .add_headers import write_file
 import sys
 

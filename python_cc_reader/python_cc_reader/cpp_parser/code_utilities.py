@@ -1,7 +1,7 @@
 
 # from test_compile import find_includes_for_file
 
-import code_reader
+from . import code_reader
 import re, sys, os
 
 

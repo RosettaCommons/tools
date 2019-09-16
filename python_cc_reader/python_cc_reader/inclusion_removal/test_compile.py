@@ -3,7 +3,7 @@
 # computer:  os, nbits, and compiler.
 
 import subprocess, re, time, sys
-from .code_utilities import expand_includes_for_file, load_source_tree
+from ..cpp_parser.code_utilities import expand_includes_for_file, load_source_tree
 from .reinterpret_objdump import relabel_sections, compare_objdump_lines
 
 
@@ -267,6 +267,10 @@ def tar_together_files(tar_file_name, filelist):
 
 
 if __name__ == "__main__":
+    """To run this script as an executable, you'll need to pass the
+    module information on the command line with the -m flag
+    e.g. "-m python_cc_reader.inclusion_removal"
+    """
     if len(sys.argv) < 2:
         print("Usage: python test_compile.py <filename>")
         sys.exit(1)

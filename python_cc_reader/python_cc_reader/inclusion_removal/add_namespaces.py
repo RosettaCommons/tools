@@ -1,4 +1,5 @@
-import re, code_reader
+import re
+from ..cpp_parser import code_reader
 from .add_headers import write_file
 
 

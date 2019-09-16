@@ -1,7 +1,8 @@
 
-import re, code_reader
+import re
+from ..cpp_parser import code_reader
 from .add_headers import write_file
-from .code_utilities import load_source_tree
+from ..cpp_parser.code_utilities import load_source_tree
 
 
 def remove_duplicate_headers_from_filelines(filename, filelines):

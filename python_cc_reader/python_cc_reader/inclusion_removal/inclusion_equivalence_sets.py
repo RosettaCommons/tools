@@ -1,6 +1,6 @@
 
-import pygraph, sys
-
+import sys
+from ..external.pygraph import pygraph
 
 def inclusion_equivalence_sets(inclusion_graph):
     dg = pygraph.digraph()

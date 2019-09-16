@@ -1,5 +1,5 @@
 from .inclusion_graph import *
-from .code_utilities import *
+from ..cpp_parser.code_utilities import *
 
 
 def total_inclusion_count():
@@ -13,6 +13,3 @@ def total_inclusion_count():
             print(node, "--", tg.edge_label(node, non_fwd_hh), "-->", non_fwd_hh)
     return count
 
-
-if __name__ == "__main__":
-    print(total_inclusion_count())

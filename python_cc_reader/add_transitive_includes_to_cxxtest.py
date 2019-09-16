@@ -1,5 +1,5 @@
-from .inclusion_graph import *
-from .code_utilities import *
+from python_cc_reader.inclusion_removal.inclusion_graph import *
+from python_cc_reader.cpp_parser.code_utilities import *
 
 # import os
 

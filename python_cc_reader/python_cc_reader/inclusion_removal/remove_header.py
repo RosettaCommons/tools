@@ -1,7 +1,7 @@
 
 import re
 from .add_headers import write_file
-from . import code_reader
+from ..cpp_parser import code_reader
 
 # if preserve_regular_header = True, then
 # only remove auto-headers from the file

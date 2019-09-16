@@ -148,13 +148,13 @@ def write_tleapfile( parm_file, rst7_file, pose_name ):
     '''
     
     ## Open a writable .tleap.in file
-    with open('{PNAME}.tleap.in'.format( PNAME=posename ),'w') as tfile:
+    with open('{PNAME}.tleap.in'.format( PNAME=pose_name ),'w') as tfile:
 
         ## Load the ff14SBonlysc force field.
         tfile.write("source leaprc.protein.ff14SBonlysc\n" )
 
         ## Load the dumped PDB.
-        tfile.write("m = loadpdb {PNAME}.pdb\n".format( PNAME=posename ))
+        tfile.write("m = loadpdb {PNAME}.pdb\n".format( PNAME=pose_name ))
 
         ## Set the GB radii set to mbondi3, which is best for proteins.
         tfile.write("set default pbradii mbondi3\n" )
@@ -496,7 +496,7 @@ quit
         if same_parm == 1:
             parmfile = 'parm'
         else:
-	        parmfile = pdbfile_root
+	    parmfile = pdbfile_root
 
         tleap_command = tleap_template.format(pdbfile_root=pdbfile_root, parmfile_name=parmfile)
         
@@ -714,17 +714,18 @@ def target( coordinates ):
     return e.tot, -numpy.array(f)
 
 
-def minimize_with_amberff( trajectory, parm_file ):
-    '''
-    Minimized using SciPy Minimizer and Amber FF
-    '''
-    inp = sander.gas_input(8)
-    for index, frame in enumerate( trajectory ):
-        with sander.setup( parm_file, frame.xyz, frame.box, inp ):
-            res = minimize( target, frame.xyz.flatten(), method='L-BFGS-B', jac=True, tol=1e-8, options=dict(maxiter=200, disp=True ))
-        trajectory[ index ] = res.x.reshape( trajectory.n_atoms, 3 )
-        #new_frame = res.x.reshape( trajectory.n_atoms, 3 )
-        #trajectory.__setitem__( index, new_frame )
+# This isn't finished, so it shouldn't be part of the API. -- mszegedy
+# def minimize_with_amberff( trajectory, parm_file ):
+#     '''
+#     Minimized using SciPy Minimizer and Amber FF
+#     '''
+#     inp = sander.gas_input(8)
+#     for index, frame in enumerate( trajectory ):
+#         with sander.setup( parm_file, frame.xyz, frame.box, inp ):
+#             res = minimize( target, frame.xyz.flatten(), method='L-BFGS-B', jac=True, tol=1e-8, options=dict(maxiter=200, disp=True ))
+#         trajectory[ index ] = res.x.reshape( trajectory.n_atoms, 3 )
+#         #new_frame = res.x.reshape( trajectory.n_atoms, 3 )
+#         #trajectory.__setitem__( index, new_frame )
 
 #######################################################################
 ##### Minimize PDBs with Sander #######################################
@@ -839,7 +840,7 @@ def write_explicit_tleapfile( parm_file, rst7_file, pose_name ):
     '''
     
     ## Open a writable .tleap.in file
-    with open('{PNAME}.tleap.in'.format( PNAME=posename ),'w') as tfile:
+    with open('{PNAME}.tleap.in'.format( PNAME=pose_name ),'w') as tfile:
 
         ## Load the ff14SBonlysc force field.
         tfile.write("source leaprc.ff14SBonlysc\n" )
@@ -848,7 +849,7 @@ def write_explicit_tleapfile( parm_file, rst7_file, pose_name ):
         tfile.write("loadAmberParams frcmod.ionsjc_tip3p\n")
 
         ## Load the dumped PDB.
-        tfile.write("m = loadpdb {PNAME}.pdb\n".format( PNAME=posename ))
+        tfile.write("m = loadpdb {PNAME}.pdb\n".format( PNAME=pose_name ))
 
         ## Add Ions.
         tfile.write("addions m Cl- 0\n")

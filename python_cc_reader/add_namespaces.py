@@ -1,6 +1,6 @@
 
 import re, code_reader
-from .add_headers import write_file
+from add_headers import write_file
 
 def auto_ns_comment() :
    return " // AUTO USING NS"

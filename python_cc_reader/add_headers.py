@@ -1,5 +1,5 @@
 import re
-from . import code_reader
+import code_reader
 
 def write_file( filename, filelines ) :
    file = open( filename, "w" )

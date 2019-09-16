@@ -1,5 +1,5 @@
 import re
-import code_reader
+import ..cpp_parser.code_reader as code_reader
 
 def write_file( filename, filelines ) :
    file = open( filename, "w" )

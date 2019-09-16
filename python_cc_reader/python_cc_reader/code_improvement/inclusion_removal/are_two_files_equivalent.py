@@ -1,4 +1,4 @@
-from . import blargs
+import ...external.blargs.blargs as blargs
 from . import beautifier
 import sys
 

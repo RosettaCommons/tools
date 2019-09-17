@@ -21,7 +21,9 @@ from .add_namespaces import (
 from .test_compile import (
     test_compile_from_lines,
     test_compile_from_stdin,
+    generate_objdump_for_file,
     generate_objdump,
+    test_compile_for_file_extreme,
     test_compile_extreme,
     cxxtest_test_compile,
 )
@@ -565,8 +567,8 @@ def trim_inclusions_from_files_extreme(filelist, id, super_cautious=False):
     tg = transitive_closure(g)
     total_order = total_order_from_graph(g)
     for fname in filelist:
-        builds, gold_objdump = generate_objdump(
-            expand_includes_for_file(fname, file_contents), id
+        builds, gold_objdump = generate_objdump_for_file(
+            fname, id
         )
         if not builds:
             print("ERROR: could not compile", fname)
@@ -603,8 +605,9 @@ def trim_inclusions_from_cxxtest_files(filelist, id):
 
 
 def wrap_compile_extreme(fname, file_contents, arg_tuple):
-    return test_compile_extreme(
-        expand_includes_for_file(fname, file_contents), arg_tuple[0], arg_tuple[1]
+    write_file(fname, file_contents[fname])
+    return test_compile_for_file_extreme(
+        fname, arg_tuple[0], arg_tuple[1]
     )
 
 

@@ -132,7 +132,7 @@ def test_compile(cc_file, verbose=False, id="", devnull=False):
     return_code = subprocess.call(command_list, stderr=errfile, stdout=logfile)
 
     if verbose:
-        print("return code: ", return_code)
+        print("return code: ", return_code, type(return_code))
 
     if id:
         errfile.close()
@@ -155,17 +155,28 @@ def test_compile(cc_file, verbose=False, id="", devnull=False):
 
 
 def test_compile_from_lines(filelines, verbose=False):
+    # print("file lines:")
+    # print("".join(filelines))
+    # print()
+    # print("----")
+    # print()
     compiler, generic_command = central_compile_command()
 
     command = compiler + " -o /dev/null " + generic_command + " -x c++ -"
     command_list = command.split(" ")
     command_list = no_empty_args(command_list)
 
+    # outfile = open("test_compile.log", "w")
+    # errfile = open("test_compile.err", "w")
+    # with open("example_input.cc", "w") as fid:
+    #     fid.writelines(filelines)
+    
     job = subprocess.Popen(
         command_list,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
+        encoding='utf8'
     )
     job.communicate("".join(filelines))
     job.wait()
@@ -189,6 +200,39 @@ def test_compile_from_stdin(C_cc, file_contents):
         return False
 
     return test_compile_from_lines(expand_includes_for_file(C_cc, file_contents))
+
+
+def generate_objdump_for_file(fname, id=""):
+    compiler, generic_command = central_compile_command()
+    temp_o = "temp.o"
+    temp_objdump = "temp.objdump"
+    if id != "":
+        temp_o = temp_o + "." + str(id)
+    command = " ".join([compiler,"-o", temp_o, generic_command, fname])
+    command_list = no_empty_args(command.split(" "))
+
+    job = subprocess.Popen(
+        command_list,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stdind=subprocess.PIPE
+    )
+    job.wait()
+    if job.returncode == 0:
+        command2 = " ".join("objdump -d", tmp_o)
+        command_list2 = no_empty_args(command2.split(" "))
+        job2 = subprocess.Popen(
+            command_list2,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stdind=subprocess.PIPE,
+            encoding='utf8'
+        )
+        out, err = job2.communicate()
+        objdump = relabel_sections(out.splitlines(True))
+        return True, objdump
+
+    return False, None
 
 
 def generate_objdump(filelines, id=""):
@@ -233,6 +277,20 @@ def generate_objdump(filelines, id=""):
 
 def test_compile_extreme(filelines, gold_objdump, id=""):
     builds, test_objdump = generate_objdump(filelines, id)
+    # if ( test_objdump ) : open( "test_objdump.objdump", "w" ).writelines( test_objdump ) #temp debug
+    if not builds:
+        # print "test compile extreme: build fails" #temp debug
+        # open( "failed_filelines.txt","w").writelines( filelines );
+        return False
+    else:
+        if compare_objdump_lines(gold_objdump, test_objdump):
+            return True
+        else:
+            # print "test compile extreme: objdump comparison fails"
+            return False
+
+def test_compile_for_file_extreme(fname, gold_objdump, id=""):
+    builds, test_objdump = generate_objdump_for_file(fname, id)
     # if ( test_objdump ) : open( "test_objdump.objdump", "w" ).writelines( test_objdump ) #temp debug
     if not builds:
         # print "test compile extreme: build fails" #temp debug

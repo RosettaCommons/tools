@@ -9,7 +9,7 @@ def total_inclusion_count():
     count = 0
     for node in tg.nodes():
         count += len(non_fwd_hh_subset(tg.node_neighbors[node]))
-        for non_fwd_hh in non_fwd_hh_subset(tg.node_neighbors[node]):
-            print(node, "--", tg.edge_label(node, non_fwd_hh), "-->", non_fwd_hh)
+        # for non_fwd_hh in non_fwd_hh_subset(tg.node_neighbors[node]):
+        #     print(node, "--", tg.edge_label(node, non_fwd_hh), "-->", non_fwd_hh)
     return count
 

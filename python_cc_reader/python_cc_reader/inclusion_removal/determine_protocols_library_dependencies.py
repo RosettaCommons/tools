@@ -1,8 +1,10 @@
-from . import code_utilities
-from . import library_levels
-from . import pygraph
-from . import inclusion_graph
 import sys
+
+from ..cpp_parser import code_utilities
+from . import library_levels
+from ..external.pygraph import pygraph
+from . import inclusion_graph
+
 
 # $1 == --graphviz
 # $2 == target prefix name

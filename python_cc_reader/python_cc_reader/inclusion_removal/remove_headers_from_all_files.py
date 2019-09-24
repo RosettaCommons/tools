@@ -3,6 +3,8 @@ import math
 import random
 import re
 import sys
+import pickle
+import os
 
 from ..cpp_parser.code_utilities import load_source_tree, expand_includes_for_file
 
@@ -53,110 +55,90 @@ def whole_shebang(fork_manager: ForkManager, skip_test_compile=False):
 
     # BEGIN CODE
 
-    # first create the include graph
-    # trim this graph to remove known cycles (vector1_bool, vector0_bool)
+    if os.path.isfile("pickled_include_graph.bin"):
+        with open("pickled_include_graph.bin","rb") as fid:
+            graphs = pickle.load(fid)
+        compilable_files = graphs["compilable_files"]
+        all_includes = graphs["all_includes"]
+        file_contents = graphs["file_contents"]
+        g = graphs["g"]
+    else :
+        # first create the include graph
+        # trim this graph to remove known cycles (vector1_bool, vector0_bool)
+    
+        compilable_files, all_includes, file_contents = load_source_tree()
+        g = create_graph_from_includes(all_includes)
+        remove_known_circular_dependencies_from_graph(g)
+    
+        graphs = {}
+        graphs["compilable_files"] = compilable_files
+        graphs["all_includes"] = all_includes
+        graphs["file_contents"] = file_contents
+        graphs["g"] = g
+        with open("pickled_include_graph.bin","wb") as fid:
+            pickle.dump(graphs, fid)
 
-    compilable_files, all_includes, file_contents = load_source_tree()
-    g = create_graph_from_includes(all_includes)
-    remove_known_circular_dependencies_from_graph(g)
-
+    
     # second, verify that all files compile on their own
-    any_fail_to_compile = False
+    d = {}
+    d["any_fail_to_compile"] = False
     def set_any_failed(_1, _2):
-        any_fail_to_compile
+        print("FAILURE CALLBACK");
+        d["any_fail_to_compile"] = True
     fork_manager.error_callback = set_any_failed
     
     if not skip_test_compile:
         for fname in compilable_files :
-            print("testing compilation of", fname)
+            if d["any_fail_to_compile"]:
+                break
             pid = fork_manager.mfork()
             if pid == 0:
+                if d["any_fail_to_compile"]:
+                    sys.exit(0)
+                print("testing compilation of", fname)
                 if not test_compile(fname) :
                     print( "Error: ", fname, "does not compile on its own")
                     sys.exit(1)
                 else:
                     sys.exit(0)
     fork_manager.wait_for_remaining_jobs()
-    if any_fail_to_compile :
+    if d["any_fail_to_compile"] :
         print("Error: coud not compile all files on their own")
         sys.exit(0)
 
-    # third, compute the transitive closure graph
-    tg = transitive_closure(g)
+    if os.path.isfile("pickled_equiv_sets.bin"):
+        with open("pickled_equiv_sets.bin","rb") as fid:
+            eqsets = pickle.load(fid)
+        tg = eqsets["tg"]
+        compilable_files = eqsets["compilable_files"]
+        equiv_sets = eqsets["equiv_sets"]
+    else :
+        # third, compute the transitive closure graph
+        tg = transitive_closure(g)
+    
+        # fourth, add all headers in transitive closure
+        tar_everything("bu_starting_code")
+        add_indirect_headers(tg, compilable_files)
+        tar_everything("bu_transclose_headers_round_0")
+    
+        # fifth, compute the equivalence sets, focusing only on files in
+        # core/ protocols/ devel/ and apps/
+        equiv_sets = inclusion_equivalence_sets_from_desired_subgraph(g)
+        write_equiv_sets_file("equivalence_sets_wholeshebang.txt", equiv_sets)
 
-    # fourth, add all headers in transitive closure
-    tar_everything("bu_starting_code")
-    add_indirect_headers(tg, compilable_files)
-    tar_everything("bu_transclose_headers_round_0")
+        eqsets = {}
+        eqsets["tg"] = tg
+        eqsets["compilable_files"] = compilable_files
+        eqsets["equiv_sets"] = equiv_sets
+        with open("pickled_equiv_sets.bin","wb") as fid:
+            pickle.dump(eqsets, fid)
 
-    # fifth, compute the equivalence sets, focusing only on files in
-    # core/ protocols/ devel/ and apps/
-    equiv_sets = inclusion_equivalence_sets_from_desired_subgraph(g)
-    write_equiv_sets_file("equivalence_sets_wholeshebang.txt", equiv_sets)
 
-    # equiv_sets = read_equiv_sets_file( "equivalence_sets_wholeshebang.txt" )
-
-    #funcs = (
-    #    test_compile_from_lines,
-    #    central_compile_command,
-    #    remove_duplicate_headers_from_filelines,
-    #    no_empty_args,
-    #    test_compile_extreme,
-    #    generate_objdump,
-    #    labeled_instructions,
-    #    ignore_instructions,
-    #    regexes_for_instructions,
-    #    skip_sections,
-    #    relabel_sections,
-    #    compare_objdump_lines,
-    #    add_autoheaders_to_filelines,
-    #    remove_header_from_filelines,
-    #    group_and_sort_headers,
-    #    group_headers,
-    #    add_using_namespaces_to_lines,
-    #    remove_using_namespace_from_lines,
-    #    cleanup_auto_namespace_block_lines,
-    #    expand_includes_for_file,
-    #    follow_includes_for_file,
-    #    auto_ns_comment,
-    #    transitive_closure,
-    #    prohibit_removal,
-    #    trim_unnecessary_headers_from_file,
-    #    trim_inclusions_from_files_extreme,
-    #    wrap_compile_extreme,
-    #    load_source_tree,
-    #    create_graph_from_includes,
-    #    remove_known_circular_dependencies_from_graph,
-    #    known_circular_dependencies,
-    #    topological_sorting,
-    #    depth_first_search,
-    #    total_order_from_graph,
-    #    transitive_closure,
-    #    write_file,
-    #    topologically_sorted,
-    #    libraries_with_ccfiles_to_examine,
-    #    scan_compilable_files,
-    #    libraries_with_hhfiles_to_examine,
-    #    directories_with_ccfiles_to_examine,
-    #    directories_with_hhfiles_to_examine,
-    #    include_for_line,
-    #    find_all_includes,
-    #    find_includes_at_global_scope,
-    #    compiled_cc_files,
-    #    strip_toendofline_comment,
-    #)
-
-    # modules = (
-    #     "re",
-    #     "subprocess",
-    #     "code_reader",
-    #     "pygraph",
-    #     "subprocess",
-    #     "dont_remove_include",
-    # )
-
-    dri = dont_remove_include.DontRemoveInclude()
+    dri = DontRemoveInclude()
     # sixth, iterate across all equivalence sets
+    # for each equivalence set, fork ncpu processes
+    # and each process will remove #includes from a
+    # subset of the files in that equivalence set
     count_round = 0
     for es in equiv_sets:
         count_round += 1
@@ -174,10 +156,11 @@ def whole_shebang(fork_manager: ForkManager, skip_test_compile=False):
             start += nfiles_per_cpu
         es_subsets.append(es_filtered[start:])
         for count_jobid, es_subset in enumerate(es_subsets):
-            pid = fork_manager.mfork()
+            # TEMP ! pid = fork_manager.mfork()
+            pid = 0 # TEMP !
             if pid == 0:
-                trim_inclusions_from_files_extreme(es_subset+1, count_jobid)
-                sys.exit(0)
+                trim_inclusions_from_files_extreme(es_subset, count_jobid+1)
+                #  TEMP ! sys.exit(0)
 
         fork_manager.wait_for_remaining_jobs()
         tar_everything("bu_wholeshebang_round_" + str(count_round))

@@ -1,9 +1,9 @@
-from . import fork_manager
-from . import blargs
+from python_cc_reader.utility import fork_manager
+from python_cc_reader.external.blargs import blargs
 
-from .test_compile import *
-from .code_utilities import *
-from .inclusion_equivalence_sets import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.inclusion_removal.inclusion_equivalence_sets import *
 
 import re
 import sys

@@ -80,8 +80,16 @@ def inclusion_equivalence_sets(inclusion_graph):
             active_nodes.append(new_blue)
         if len(newly_blued) == 0:
             print("Error:: no new blue nodes found!")
+            for blue_node in active_nodes:
+                print("blue node:", blue_node)
+                for node_incident in dg.node_incidence[active]:
+                    print("  child", node_indicent)
+                    for parent in dg.node_neighbors[node_incident]:
+                        if dg.node_attr[parent][color] == red:
+                            print("   red parent:", parent)
+                        
             for remnant in remaining:
-                print(remnant)
+                print("remaining node:", remnant)
             break
         node_equivalence_sets.append(newly_blued)
 

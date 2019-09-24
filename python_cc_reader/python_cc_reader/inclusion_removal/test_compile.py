@@ -209,26 +209,29 @@ def generate_objdump_for_file(fname, id=""):
     if id != "":
         temp_o = temp_o + "." + str(id)
     command = " ".join([compiler,"-o", temp_o, generic_command, fname])
+    #print(command)
     command_list = no_empty_args(command.split(" "))
 
     job = subprocess.Popen(
         command_list,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stdind=subprocess.PIPE
+        stdin=subprocess.PIPE
     )
     job.wait()
     if job.returncode == 0:
-        command2 = " ".join("objdump -d", tmp_o)
+        command2 = " ".join(["objdump -d", temp_o])
         command_list2 = no_empty_args(command2.split(" "))
         job2 = subprocess.Popen(
             command_list2,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stdind=subprocess.PIPE,
+            stdin=subprocess.PIPE,
             encoding='utf8'
         )
         out, err = job2.communicate()
+        #print("out", out)
+        #print("err", err)
         objdump = relabel_sections(out.splitlines(True))
         return True, objdump
 
@@ -322,30 +325,3 @@ def tar_together_files(tar_file_name, filelist):
     command_list = command.split(" ")
     command_list.extend(filelist)
     subprocess.call(command_list)
-
-
-if __name__ == "__main__":
-    """To run this script as an executable, you'll need to pass the
-    module information on the command line with the -m flag
-    e.g. "-m python_cc_reader.inclusion_removal"
-    """
-    if len(sys.argv) < 2:
-        print("Usage: python test_compile.py <filename>")
-        sys.exit(1)
-    print("First testing compilation directly from .cc file")
-    compiled = test_compile(sys.argv[1], True)
-
-    print("Now testing compilation using python-expanded #includes")
-    compilable_files, all_includes, file_contents = load_source_tree()
-    print("...source tree loaded")
-    if sys.argv[1] not in file_contents:
-        print("File", sys.argv[1], "not found in source tree")
-        sys.exit(1)
-    compiled = test_compile_from_lines(
-        expand_includes_for_file(sys.argv[1], file_contents), verbose=True
-    )
-    if compiled:
-        print("Success")
-    else:
-        test_compile(sys.argv[1], True)
-        print("Failed")

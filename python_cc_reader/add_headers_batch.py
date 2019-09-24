@@ -2,8 +2,8 @@
 
 import sys
 
-sys.path.append("/Users/brian/SVN/mini_tools")
-from python_cc_reader import add_headers
+# sys.path.append("/Users/brian/SVN/mini_tools")
+from python_cc_reader.inclusion_removal import add_headers
 
 from optparse import OptionParser
 

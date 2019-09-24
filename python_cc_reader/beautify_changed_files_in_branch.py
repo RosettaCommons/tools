@@ -8,7 +8,7 @@
 from beautify_compiled_files_w_fork import *
 import subprocess, sys
 try:
-    import blargs
+    from python_cc_reader.external.blargs import blargs
 except ImportError:
     # if this script is in the Rosetta/tools/xsd_xrw/ directory
     # blargs is in the ../external/ directory. Add that to the path. and re-import

@@ -1,11 +1,11 @@
 
-import fork_manager
-import blargs
-import beautifier
+from python_cc_reader.utility import fork_manager
+from python_cc_reader.external.blargs import blargs
+from python_cc_reader.beauty import beautifier
 import re
 import sys, os
 
-from code_utilities import *
+from python_cc_reader.cpp_parser.code_utilities import *
 
 # This script is meant to be run from either the Rosetta/main/source/src/ or 
 # the Rosetta/main/source/test/ directories. It reads the scons .settings

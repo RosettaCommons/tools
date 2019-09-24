@@ -3,6 +3,8 @@
 # inclusion graphs
 
 import re, sys
+import os
+import pickle
 from ..external.pygraph import pygraph
 
 # from pygraph.algorithms.sorting import topological_sorting
@@ -254,7 +256,7 @@ def add_indirect_headers(tg, files):
         "utility/",
         "ObjexxFCL/",
         "numeric/",
-        "core/options/",
+        "basic/options/",
     ]  # skip any file that starts with this
     re_starts = {}
     for start in starts:
@@ -353,6 +355,7 @@ def trim_unnecessary_headers_from_file(
     for ih in indirect_headers:  # temp debug
         print("About to add indirect header:", ih)  # temp debug
 
+    print("Adding auto-header to", C_cc)
     file_contents[C_cc] = add_autoheaders_to_filelines(
         C_cc, file_contents[C_cc], indirect_headers
     )
@@ -366,6 +369,7 @@ def trim_unnecessary_headers_from_file(
     backup_C_cc = file_contents[C_cc][:]  # deep copy
     last_compiling_version = backup_C_cc[:]
 
+    print("Adding using namespaces to lines")
     namespaces, file_contents[C_cc] = add_using_namespaces_to_lines(
         C_cc, file_contents[C_cc]
     )
@@ -543,14 +547,19 @@ def trim_unnecessary_headers_from_file(
 # that it has been asked to process.  After processing each file, it then
 # writes that file to disk.
 def trim_inclusions_from_files(filelist):
+    print("loading source tree")
     compilable_files, all_includes, file_contents = load_source_tree()
+    print("creating graph from includes")
     g = create_graph_from_includes(all_includes)
     remove_known_circular_dependencies_from_graph(g)
+    print("creating transitive closure")
     tg = transitive_closure(g)
 
+    print("computing total order")
     total_order = total_order_from_graph(g)
     dummy = 1
     for fname in filelist:
+        print("beginning work on", fname)
         trim_unnecessary_headers_from_file(
             fname, tg, total_order, file_contents, simple_compile_from_lines, dummy
         )
@@ -561,11 +570,36 @@ def trim_inclusions_from_files(filelist):
 # "extreme" version of the compilation test which also compares
 # the objdump output from the compiled object file
 def trim_inclusions_from_files_extreme(filelist, id, super_cautious=False):
-    compilable_files, all_includes, file_contents = load_source_tree()
-    g = create_graph_from_includes(all_includes)
-    remove_known_circular_dependencies_from_graph(g)
-    tg = transitive_closure(g)
-    total_order = total_order_from_graph(g)
+    sorted_files = sorted(filelist)
+    pickle_name = "pickle_trim_files_%d.bin" % hash(tuple(sorted_files))
+    print("looking for file", pickle_name)
+    if os.path.isfile(pickle_name):
+        with open(pickle_name, "rb") as fid:
+            d = pickle.load(fid)
+        compilable_files, all_includes, file_contents = d[1]
+        g = d[2]
+        tg = d[3]
+        total_order = d[4]
+    else:
+
+        print("loading source tree")
+        compilable_files, all_includes, file_contents = load_source_tree()
+        print("creating graph from includes")
+        g = create_graph_from_includes(all_includes)
+        remove_known_circular_dependencies_from_graph(g)
+        print("creating transitive closure")
+        tg = transitive_closure(g)
+    
+        print("computing total order")
+        total_order = total_order_from_graph(g)
+        d = {}
+        d[1] = compilable_files, all_includes, file_contents
+        d[2] = g
+        d[3] = tg
+        d[4] = total_order
+        with open(pickle_name,"wb") as fid:
+            pickle.dump(d, fid)
+
     for fname in filelist:
         builds, gold_objdump = generate_objdump_for_file(
             fname, id

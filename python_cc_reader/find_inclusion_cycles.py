@@ -1,0 +1,3 @@
+from python_cc_reader.inclusion_removal.inclusion_graph import print_cycles_in_source_tree
+
+print_cycles_in_source_tree()

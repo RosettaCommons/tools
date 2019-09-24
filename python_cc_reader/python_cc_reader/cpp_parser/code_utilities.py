@@ -343,6 +343,10 @@ def known_circular_dependencies():
             "core/io/silent/ProteinSilentStuct.tmpl.hh",
             "core/io/silent/ProteinSilentStruct.hh",
         ),
+        (
+            "core/scoring/etable/BaseEtableEnergy.hh",
+            "core/scoring/etable/BaseEtableEnergy.tmpl.hh",
+        )
     ]
     return circular_dependencies
 

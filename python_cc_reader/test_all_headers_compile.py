@@ -1,7 +1,7 @@
 # :noTabs=true:
 
-from .test_compile import test_compile
-from .code_utilities import scan_compilable_files, regex_subset
+from python_cc_reader.inclusion_removal import test_compile
+from python_cc_reader.cpp_parser.code_utilities import scan_compilable_files, regex_subset
 
 from optparse import OptionParser, IndentedHelpFormatter
 

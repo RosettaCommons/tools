@@ -218,22 +218,26 @@ def generate_objdump_for_file(fname, id=""):
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE
     )
-    job.wait()
+    out, err = job.communicate()
+
     if job.returncode == 0:
-        command2 = " ".join(["objdump -d", temp_o])
-        command_list2 = no_empty_args(command2.split(" "))
-        job2 = subprocess.Popen(
-            command_list2,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            encoding='utf8'
-        )
-        out, err = job2.communicate()
-        #print("out", out)
-        #print("err", err)
-        objdump = relabel_sections(out.splitlines(True))
-        return True, objdump
+        if len(fname) > 3 and fname[-3:] == ".cc": 
+            command2 = " ".join(["objdump -d", temp_o])
+            command_list2 = no_empty_args(command2.split(" "))
+            job2 = subprocess.Popen(
+                command_list2,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                encoding='utf8'
+            )
+            out, err = job2.communicate()
+            #print("out", out)
+            #print("err", err)
+            objdump = relabel_sections(out.splitlines(True))
+            return True, objdump
+        else:
+            return True, []
 
     return False, None
 

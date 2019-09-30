@@ -569,55 +569,58 @@ def trim_inclusions_from_files(filelist):
 # Similar to trim_inclusions_from_files, except it relies on the
 # "extreme" version of the compilation test which also compares
 # the objdump output from the compiled object file
-def trim_inclusions_from_files_extreme(filelist, id, super_cautious=False):
-    sorted_files = sorted(filelist)
-    pickle_name = "pickle_trim_files_%d.bin" % hash(tuple(sorted_files))
-    print("looking for file", pickle_name)
-    if os.path.isfile(pickle_name):
-        with open(pickle_name, "rb") as fid:
-            d = pickle.load(fid)
-        compilable_files, all_includes, file_contents = d[1]
-        g = d[2]
-        tg = d[3]
-        total_order = d[4]
-    else:
-
-        print("loading source tree")
-        compilable_files, all_includes, file_contents = load_source_tree()
-        print("creating graph from includes")
-        g = create_graph_from_includes(all_includes)
-        remove_known_circular_dependencies_from_graph(g)
-        print("creating transitive closure")
-        tg = transitive_closure(g)
-    
-        print("computing total order")
-        total_order = total_order_from_graph(g)
-        d = {}
-        d[1] = compilable_files, all_includes, file_contents
-        d[2] = g
-        d[3] = tg
-        d[4] = total_order
-        with open(pickle_name,"wb") as fid:
-            pickle.dump(d, fid)
+def trim_inclusions_from_files_extreme(
+        filelist,
+        id,
+        compilable_files,
+        all_includes,
+        file_contents,
+        g,
+        tg,
+        total_order,
+        super_cautious=False):
 
     for fname in filelist:
-        builds, gold_objdump = generate_objdump_for_file(
-            fname, id
+        trim_inclusions_from_file_extreme(
+            fname,
+            id,
+            compilable_files,
+            all_includes,
+            file_contents,
+            g,
+            tg,
+            total_order,
+            super_cautious)
+
+        
+def trim_inclusions_from_file_extreme(
+        fname,
+        id,
+        compilable_files,
+        all_includes,
+        file_contents,
+        g,
+        tg,
+        total_order,
+        super_cautious=False):
+
+    builds, gold_objdump = generate_objdump_for_file(
+        fname, id
+    )
+    if not builds:
+        print("ERROR: could not compile", fname)
+    else:
+        arg_tuple = (gold_objdump, id)
+        trim_unnecessary_headers_from_file(
+            fname,
+            tg,
+            total_order,
+            file_contents,
+            wrap_compile_extreme,
+            arg_tuple,
+            super_cautious,
         )
-        if not builds:
-            print("ERROR: could not compile", fname)
-        else:
-            arg_tuple = (gold_objdump, id)
-            trim_unnecessary_headers_from_file(
-                fname,
-                tg,
-                total_order,
-                file_contents,
-                wrap_compile_extreme,
-                arg_tuple,
-                super_cautious,
-            )
-            write_file(fname, file_contents[fname])
+        write_file(fname, file_contents[fname])
 
 
 # Similar to trim_inclusions_from_files, except it relies on the
@@ -706,7 +709,7 @@ def topologically_sorted(total_order, file_list):
     tot_order_set = []
     for fname in file_list:
         tot_order_set.append((fname, total_order[fname]))
-    values = sorted(tot_order_set, lambda x, y: cmp(x[1], y[1]))
+    values = sorted(tot_order_set, key = lambda x: x[1])
     # print "Dependent headers for ", C_cc
     for val in values:
         # print "   ", val[ 0 ], val[ 1 ]

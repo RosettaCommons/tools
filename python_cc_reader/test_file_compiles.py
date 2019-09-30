@@ -20,19 +20,19 @@ if __name__ == "__main__":
     print(objdump)
     sys.exit( not compiles)
 
-    compiled = test_compile(sys.argv[1], True)
-
-    print("Now testing compilation using python-expanded #includes")
-    compilable_files, all_includes, file_contents = load_source_tree()
-    print("...source tree loaded")
-    if sys.argv[1] not in file_contents:
-        print("File", sys.argv[1], "not found in source tree")
-        sys.exit(1)
-    compiled = test_compile_from_lines(
-        expand_includes_for_file(sys.argv[1], file_contents), verbose=True
-    )
-    if compiled:
-        print("Success")
-    else:
-        test_compile(sys.argv[1], True)
-        print("Failed")
+    # compiled = test_compile(sys.argv[1], True)
+    # 
+    # print("Now testing compilation using python-expanded #includes")
+    # compilable_files, all_includes, file_contents = load_source_tree()
+    # print("...source tree loaded")
+    # if sys.argv[1] not in file_contents:
+    #     print("File", sys.argv[1], "not found in source tree")
+    #     sys.exit(1)
+    # compiled = test_compile_from_lines(
+    #     expand_includes_for_file(sys.argv[1], file_contents), verbose=True
+    # )
+    # if compiled:
+    #     print("Success")
+    # else:
+    #     test_compile(sys.argv[1], True)
+    #     print("Failed")

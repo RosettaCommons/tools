@@ -10,7 +10,7 @@
 # a scope depth.  A scope depth of 0 is at global scope.
 
 import re, sys
-
+from .preprocessor_parser import PreProcParser
 
 def strip_toendofline_comment(line):
     start = line.find("//")
@@ -22,15 +22,15 @@ def strip_toendofline_comment(line):
 
 class CodeReader:
     def __init__(self):
-        self.re_pound_if = re.compile("\s*#if ")
-        self.re_pound_ifdef = re.compile("\s*#ifdef")
-        self.re_pound_ifndef = re.compile("\s*#ifndef")
-        self.re_pound_else = re.compile("\s*#else")
-        self.re_pound_endif = re.compile("\s*#endif")
-        self.re_pound_define = re.compile("\s*#define")
+        self.re_pound_if = re.compile(r"\s*#if ")
+        self.re_pound_ifdef = re.compile(r"\s*#ifdef")
+        self.re_pound_ifndef = re.compile(r"\s*#ifndef")
+        self.re_pound_else = re.compile(r"\s*#else")
+        self.re_pound_endif = re.compile(r"\s*#endif")
+        self.re_pound_define = re.compile(r"\s*#define")
         self.if_directive = "if_directive"
         self.re_if_directive = re.compile(self.if_directive)
-        self.re_splitter = re.compile("\S+")
+        self.re_splitter = re.compile(r"\S+")
         self.long_comment = False
         self.nested_ifdefs = [("None", True)]
         self.defined_macros = []
@@ -39,6 +39,7 @@ class CodeReader:
         self.line_num_stack = []
         self.full_line = ""
         self.commentless_line = ""
+        self.preprocessor_parser = PreProcParser()
 
     def strip_line_comment(self, line):
         start = line.find("//")
@@ -131,15 +132,26 @@ class CodeReader:
         if self.commentless_line == "\n":
             return
         if self.re_pound_if.match(self.commentless_line):
-            # cannot process "if" directives -- conservative
-            self.nested_ifdefs.append(
-                (
-                    self.if_directive
-                    + " "
-                    + self.re_splitter.findall(self.commentless_line)[1],
-                    True,
+            if_expression = self.commentless_line.partition("#if")[2]
+            ast = self.preprocessor_parser.tree_from_line(if_expression)
+            print("if expression", if_expression, "ast", ast)
+            if ast:
+                for defnode in self.preprocessor_parser.defined_nodes:
+                    defnode.defined_set = self.defined_macros
+                next_visibility = ast.eval() and self.nested_ifdefs[-1][1]
+                self.nested_ifdefs.append(("parsed " + if_expression, next_visibility))
+
+            else:
+                # cannot process this "if" directive -- conservatively say that
+                # both this and the "else" (if present) are visible.
+                self.nested_ifdefs.append(
+                    (
+                        self.if_directive
+                        + " "
+                        + self.re_splitter.findall(self.commentless_line)[1],
+                        True,
+                    )
                 )
-            )
         elif self.re_pound_ifdef.match(
             self.commentless_line
         ) or self.re_pound_ifndef.match(self.commentless_line):
@@ -185,7 +197,7 @@ class CodeReader:
                 )
                 sys.exit(1)
             self.nested_ifdefs.pop()
-        elif self.re_pound_define.match(self.commentless_line):
+        elif self.nested_ifdefs[-1][1] and self.re_pound_define.match(self.commentless_line):
             toks = self.re_splitter.findall(self.commentless_line)
             if len(toks) < 2:
                 print("Error: in", self.file_name_stack[-1], " on line ")
@@ -274,11 +286,11 @@ class HeavyCodeReader(CodeReader):
         self.paren_depth = 0
         self.processing_function_declaration = False
         self.processing_class_declaration = False
-        self.re_class_dec = re.compile("\s*class\s+")
-        self.re_class_fwd_dec = re.compile("\s*class\s+\w+;")
-        self.re_class_dataop_dec = re.compile("\s*[\w:]+OP\s+\w+;")
-        self.re_optype = re.compile("[\w:]+OP$")
-        self.re_namespace_dec = re.compile("\s*namespace\s+\w")
+        self.re_class_dec = re.compile(r"\s*class\s+")
+        self.re_class_fwd_dec = re.compile(r"\s*class\s+\w+;")
+        self.re_class_dataop_dec = re.compile(r"\s*[\w:]+OP\s+\w+;")
+        self.re_optype = re.compile(r"[\w:]+OP$")
+        self.re_namespace_dec = re.compile(r"\s*namespace\s+\w")
         self.reserve_words = set(
             [
                 "using",
@@ -310,21 +322,21 @@ class HeavyCodeReader(CodeReader):
         self.re_pound_directive = re.compile("#")
         # self.privacy_settings = [ "private", "protected", "public" ]
         self.re_privacy = [
-            ("private", re.compile("\s*private\s*:\s*$")),
-            ("protected", re.compile("\s*protected\s*:\s*$")),
-            ("public", re.compile("\s*public\s*:\s*$")),
+            ("private", re.compile(r"\s*private\s*:\s*$")),
+            ("protected", re.compile(r"\s*protected\s*:\s*$")),
+            ("public", re.compile(r"\s*public\s*:\s*$")),
         ]
-        self.re_assert_only = re.compile("(.*)ASSERT_ONLY\( (\w+) \)(.*)")
-        self.re_whitespace = re.compile("\s+")
-        self.re_whitespace_line = re.compile("\s*$")
-        self.re_ends_in_operator_parens = re.compile("operator\s*\(\s*$")
-        self.re_regular_varname = re.compile("\w:$")
+        self.re_assert_only = re.compile(r"(.*)ASSERT_ONLY\( (\w+) \)(.*)")
+        self.re_whitespace = re.compile(r"\s+")
+        self.re_whitespace_line = re.compile(r"\s*$")
+        self.re_ends_in_operator_parens = re.compile(r"operator\s*\(\s*$")
+        self.re_regular_varname = re.compile(r"\w:$")
         self.func_patterns = [
-            ("varname", re.compile("[\w!:+=/$~.]+")),
+            ("varname", re.compile(r"[\w!:+=/$~.]+")),
             ("&", re.compile(r"&")),
-            ("(", re.compile("\(")),
-            (")", re.compile("\)")),
-            ("*", re.compile("\*")),
+            ("(", re.compile(r"\(")),
+            (")", re.compile(r"\)")),
+            ("*", re.compile(r"\*")),
             (",", re.compile(r",")),
             ("-", re.compile(r"-")),
             ("=", re.compile(r"=")),
@@ -332,10 +344,10 @@ class HeavyCodeReader(CodeReader):
             ("'", re.compile(r"'")),
             ("<", re.compile(r"<")),
             (">", re.compile(r">")),
-            ("]", re.compile("\]")),
-            ("[", re.compile("\[")),
+            ("]", re.compile(r"\]")),
+            ("[", re.compile(r"\[")),
         ]
-        self.enum_pattern = re.compile("\s*enum\s")
+        self.enum_pattern = re.compile(r"\s*enum\s")
 
     def examine_line(self, line):
         self.prep_for_newline()
@@ -809,7 +821,7 @@ class HeavyCodeReader(CodeReader):
     def tokenize_func_dec_string(self, instring):
         strcopy = instring[:]
         retlist = []
-        re_whitespace = re.compile("\s+")
+        re_whitespace = re.compile(r"\s+")
         while strcopy:
             goon = False
             # print(strcopy)
@@ -993,8 +1005,8 @@ def read_classes_from_header(fname, flines, options=None):
 
 
 def find_data_members_assigned_in_assignment_operator(fname, flines, class_data):
-    asgnop_regex = re.compile(class_data.name + "::operator[\s]*=[\s]*\(")
-    inline_asgnop_regex = re.compile("operator[\s]*=[\s]*\(")
+    asgnop_regex = re.compile(class_data.name + r"::operator[\s]*=[\s]*\(")
+    inline_asgnop_regex = re.compile(r"operator[\s]*=[\s]*\(")
     assignment_regex = re.compile("[^!]=[^=]")
     cr = HeavyCodeReader()
     cr.push_new_file(fname)
@@ -1023,7 +1035,7 @@ def find_data_members_assigned_in_assignment_operator(fname, flines, class_data)
                     # print(cr.scope_level, cr.commentless_line, lhs)
                     for dm in class_data.data_members:
                         # print("looking for datamember", dm[1], "on line", lhs)
-                        restring = "[\s.>]*" + dm[1] + "[\s=[(]"
+                        restring = r"[\s.>]*" + dm[1] + r"[\s=[(]"
                         # print(restring)
                         if re.search(restring, lhs):
                             # print("  found data member ", dm[ 1 ], "on the left hand side of the assignment statement: ", lhs)
@@ -1046,15 +1058,15 @@ def find_data_members_assigned_in_assignment_operator(fname, flines, class_data)
 
 def find_data_members_assigned_in_copy_constructor(fname, flines, class_data):
     cname = class_data.name
-    restring = cname + "[\s]*::[\s]*" + cname + "[\s]*\([^,]*" + cname + "[^,]*\)"
+    restring = cname + r"[\s]*::[\s]*" + cname + r"[\s]*\([^,]*" + cname + r"[^,]*\)"
     # print(restring)
     copy_ctor_regex = re.compile(restring)
     cr = HeavyCodeReader()
     cr.push_new_file(fname)
-    on_own_line = re.compile("[;\)}]")
-    this_equals_re = re.compile("\*this[\s]*=[^=]")
-    this_equals_re2 = re.compile("\([\s]*\*this[\s]*\)[\s]*=[^=]")
-    opequals_re = re.compile("operator[\s]*=[\s]*\(")
+    on_own_line = re.compile(r"[;\)}]")
+    this_equals_re = re.compile(r"\*this[\s]*=[^=]")
+    this_equals_re2 = re.compile(r"\([\s]*\*this[\s]*\)[\s]*=[^=]")
+    opequals_re = re.compile(r"operator[\s]*=[\s]*\(")
 
     last_line = ""
     processing_copy_ctor = False
@@ -1072,7 +1084,7 @@ def find_data_members_assigned_in_copy_constructor(fname, flines, class_data):
                     continue
                 else:
                     for dm in class_data.data_members:
-                        if re.search("[\s]*" + dm[1] + "\(", cr.commentless_line):
+                        if re.search(r"[\s]*" + dm[1] + r"\(", cr.commentless_line):
                             # print("   found data member", dm[1], "initialized in the intialize list for", cname)
                             dmass.add(dm[1])
                     if cr.commentless_line.find("{") != -1:
@@ -1095,7 +1107,7 @@ def find_data_members_assigned_in_copy_constructor(fname, flines, class_data):
                     #   print("after", dm)
                 for dm in class_data.data_members:
                     # print("looking for datamember", dm[1], "on line", cr.commentless_line,)
-                    restring = "[\s.>]*" + dm[1] + "[\s=[(]"
+                    restring = r"[\s.>]*" + dm[1] + r"[\s=[(]"
                     # print(restring)
                     if re.search(restring, cr.commentless_line):
                         # print("  found data member ", dm[ 1 ], "on the left hand side of the assignment statement: ", cr.commentless_line,)

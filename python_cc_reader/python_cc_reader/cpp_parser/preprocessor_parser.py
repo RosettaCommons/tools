@@ -46,7 +46,7 @@ class PreProcToken:
 class PreProcScanner:
     def __init__(self):
         self.whitespace = set([" ", "\t"])
-        self.dividers = set(["(", ")", "[", "]", "=", "&", "|", "\\", '"', "'", ",", "%"])
+        self.dividers = set(["(", ")", "[", "]", "=", "&", "|", "\\", '"', "'", ",", "%", ">", "<"])
         self.two_character_dividers = set(["&&", "||", "<=", ">=", "==", "!="])
         self.unprocessable_tokens = set(["==", "!=", "<=", "<", ">=", ">", "*", "+", "/", ",", "%", "[", "]", "'", '"', "=", "&", "|", "-"])
         self.literal_starts = set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-"])
@@ -78,7 +78,7 @@ class PreProcScanner:
                     start = i
                 i += 1
         if start >= 0:
-            tokens.append(self.take_token_for_range(start, len(line)))
+            tokens.append(self.take_token_for_range(line, start, len(line)))
 
         return tokens
     def take_token_for_range(self, line, start, one_past_end):
@@ -86,7 +86,7 @@ class PreProcScanner:
         tok.spelling = line[start:one_past_end]
         tok.start = start
         tok.one_past_end = one_past_end
-        # print("token", tok.spelling, tok.start, tok.one_past_end)
+        #print("token", tok.spelling, tok.start, tok.one_past_end)
 
         if tok.spelling == "defined":
             tok.type = PreProcTokenTypes.DEFINED
@@ -209,7 +209,7 @@ class PreProcParser:
                 fact2, ind2 = self.parse_term(ind+1)
                 if fact2 is None:
                     return None, ind2
-                root = PreProcASTTerm()
+                root = PreProcASTFactor()
                 root.type = PreProcTokenTypes.AND
                 root.left = fact
                 root.right = fact2
@@ -219,10 +219,10 @@ class PreProcParser:
     def parse_factor(self, tok_ind):
         #print("parse factor", tok_ind, self.tokens[tok_ind].type)
         if self.tokens[tok_ind].type == PreProcTokenTypes.LITERAL:
-            root = PreProcAstAtom()
+            root = PreProcASTAtom()
             root.type = PreProcTokenTypes.LITERAL
             try:
-                root.value = float(self.tokens[tok_ind])
+                root.value = float(self.tokens[tok_ind].spelling)
             except:
                 return None, tok_ind
             return root, tok_ind+1

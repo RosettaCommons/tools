@@ -209,7 +209,7 @@ def generate_objdump_for_file(fname, id=""):
     if id != "":
         temp_o = temp_o + "." + str(id)
     command = " ".join([compiler,"-o", temp_o, generic_command, fname])
-    #print(command)
+    print(command)
     command_list = no_empty_args(command.split(" "))
 
     job = subprocess.Popen(
@@ -310,6 +310,12 @@ def test_compile_for_file_extreme(fname, gold_objdump, id=""):
             # print "test compile extreme: objdump comparison fails"
             return False
 
+def test_compile_w_surrogate(fname, surrogate, id=""):
+    compiles = test_compile(fname, id=id)
+    if compiles:
+        return test_compile(surrogate, id=id)
+    return False
+        
 
 def tar_everything(tar_file_name):
     dirs_to_tar = ["core", "devel", "apps", "protocols"]

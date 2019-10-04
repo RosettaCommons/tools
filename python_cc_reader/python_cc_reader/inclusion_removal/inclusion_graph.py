@@ -1,4 +1,3 @@
-
 # utility functions for working with
 # inclusion graphs
 
@@ -29,6 +28,9 @@ from .test_compile import (
     test_compile_extreme,
     cxxtest_test_compile,
 )
+# from ..cpp_parser.code_reader import (
+#     heavy_code_reader,
+# )
 from ..cpp_parser.code_utilities import (
     known_circular_dependencies,
     scan_compilable_files,
@@ -309,6 +311,7 @@ def trim_unnecessary_headers_from_file(
     super_cautious=False,
 ):
     print("Examining includes within", C_cc)
+    sys.stdout.flush()
 
     DRI = dont_remove_include.DontRemoveInclude()
 
@@ -540,6 +543,8 @@ def trim_unnecessary_headers_from_file(
                 super_cautious=True,
             )
 
+    print("Finished Examining includes within", C_cc)
+    sys.stdout.flush()
 
 # this function takes a list of files to process.  It then reads the entire
 # source tree, computes the transitive closure graph, a total-order for
@@ -578,6 +583,7 @@ def trim_inclusions_from_files_extreme(
         g,
         tg,
         total_order,
+        dri,
         super_cautious=False):
 
     for fname in filelist:
@@ -590,6 +596,7 @@ def trim_inclusions_from_files_extreme(
             g,
             tg,
             total_order,
+            dri,
             super_cautious)
 
         
@@ -602,25 +609,34 @@ def trim_inclusions_from_file_extreme(
         g,
         tg,
         total_order,
+        dri,
         super_cautious=False):
 
-    builds, gold_objdump = generate_objdump_for_file(
-        fname, id
-    )
-    if not builds:
-        print("ERROR: could not compile", fname)
+    if fname in dri.surrogates:
+        arg_tuple = (dri.surrogates[fname])
+        compile_function = wrap_compile_w_surrogate
     else:
-        arg_tuple = (gold_objdump, id)
-        trim_unnecessary_headers_from_file(
-            fname,
-            tg,
-            total_order,
-            file_contents,
-            wrap_compile_extreme,
-            arg_tuple,
-            super_cautious,
+        builds, gold_objdump = generate_objdump_for_file(
+            fname, id
         )
-        write_file(fname, file_contents[fname])
+        if not builds:
+            print("ERROR: could not compile", fname)
+            return
+        else:
+            arg_tuple = (gold_objdump, id)
+            compile_function = wrap_compile_extreme
+
+    trim_unnecessary_headers_from_file(
+        fname,
+        tg,
+        total_order,
+        file_contents,
+        compile_function,
+        arg_tuple,
+        super_cautious,
+    )
+    write_file(fname, file_contents[fname])
+
 
 
 # Similar to trim_inclusions_from_files, except it relies on the

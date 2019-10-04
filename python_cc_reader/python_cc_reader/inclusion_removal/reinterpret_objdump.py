@@ -92,7 +92,7 @@ def relabel_sections(alllines):
             currsect = line.split("<")[1].split(">")[0]
             continue
         newline = (
-            orig_labels[currsect][line.split(":")[0].strip()] + ":" + line.split(":")[1]
+            orig_labels[currsect][line.partition(":")[0].strip()] + ":" + line.partition(":")[2]
         )
         for label in regexes:
             if regexes[label].search(newline):

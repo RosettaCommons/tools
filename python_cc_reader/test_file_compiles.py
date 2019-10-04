@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     compiles, objdump = generate_objdump_for_file(sys.argv[1])
     print("file compiles?", compiles)
-    print(objdump)
+    #print(objdump)
     sys.exit( not compiles)
 
     # compiled = test_compile(sys.argv[1], True)

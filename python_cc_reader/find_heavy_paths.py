@@ -16,7 +16,7 @@ import pickle
 import blargs
 
 
-def count_paths_to_ccs_for_headers(source_header, compilable_files, g):
+def count_paths_to_ccs_for_headers(source_headers, compilable_files, g):
     sorted_fnames = sorted(compilable_files)
     fname_index = {fname:i for i,fname in enumerate(sorted_fnames)}
 
@@ -34,17 +34,21 @@ def count_paths_to_ccs_for_headers(source_header, compilable_files, g):
         if fname[-3:] == ".cc":
             dest_nodes[i] = 1
 
-    print("index for", source_header, fname_index[source_header])
-    n_paths_for_node = paths_to_destinations(
-        fname_index[source_header], edge_matrix, dest_nodes )
+    n_paths_for_node_total = numpy.zeros((N,), dtype=numpy.int64)
+    for source_header in source_headers:
+        print("looking at paths for", source_header) 
+        print("index for", source_header, fname_index[source_header])
+        n_paths_for_node = paths_to_destinations(
+            fname_index[source_header], edge_matrix, dest_nodes )
+        n_paths_for_node_total += n_paths_for_node.astype(numpy.int64)
 
-    return [(fname, n_paths_for_node[i]) for i,fname in enumerate(sorted_fnames)]
+    return [(fname, n_paths_for_node_total[i]) for i,fname in enumerate(sorted_fnames)]
         
 
 
 if __name__ == "__main__":
     with blargs.Parser(locals()) as p:
-        p.str("focused_header")
+        p.multiword("focused_headers").cast(lambda x: x.split())
     
     pickle_file = "pickled_heavy_headers.bin"
     if os.path.isfile(pickle_file):
@@ -69,11 +73,12 @@ if __name__ == "__main__":
         with open(pickle_file,"wb") as fid:
             pickle.dump(graphs, fid)
 
-    assert focused_header in file_contents
+    for focused_header in focused_headers:
+        assert focused_header in file_contents
 
     header_files = non_fwd_hh_subset(file_contents.keys())
     header_importance = count_paths_to_ccs_for_headers(
-        focused_header, file_contents.keys(), g)
+        focused_headers, file_contents.keys(), g)
     
     sorted_importance = sorted(header_importance, key=lambda x: x[1])
 

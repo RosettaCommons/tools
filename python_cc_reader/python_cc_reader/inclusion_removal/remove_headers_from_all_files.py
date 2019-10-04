@@ -13,7 +13,7 @@ from .test_compile import test_compile, tar_everything
 #from .inclusion_equivalence_sets import *
 #from .add_headers import *
 #from .add_namespaces import *
-#from .remove_header import 
+#from .remove_header import
 #from .remove_duplicate_headers import *
 #from ..cpp_parser.code_reader import *
 #from .reinterpret_objdump import *
@@ -32,7 +32,7 @@ def verify_all_files_compile(fork_manager, compilable_files):
         print("FAILURE CALLBACK");
         d["any_fail_to_compile"] = True
     fork_manager.error_callback = set_any_failed
-    
+
     for fname in compilable_files :
         if d["any_fail_to_compile"]:
             break
@@ -48,6 +48,99 @@ def verify_all_files_compile(fork_manager, compilable_files):
                 sys.exit(0)
     fork_manager.wait_for_remaining_jobs()
     return d["any_fail_to_compile"]
+
+
+def create_inclusion_graph_from_source(pickle_file_name=None):
+    if pickle_file_name and os.path.isfile(pickle_file_name):
+        with open(pickle_file_name,"rb") as fid:
+            graphs = pickle.load(fid)
+        compilable_files = graphs["compilable_files"]
+        all_includes = graphs["all_includes"]
+        file_contents = graphs["file_contents"]
+        g = graphs["g"]
+    else :
+        # first create the include graph
+        # trim this graph to remove known cycles (vector1_bool, vector0_bool)
+
+        print("loading source tree")
+        compilable_files, all_includes, file_contents = load_source_tree()
+        print("creating inclusion graph")
+        g = create_graph_from_includes(all_includes)
+        remove_known_circular_dependencies_from_graph(g)
+
+        if pickle_file_name:
+            graphs = {}
+            graphs["compilable_files"] = compilable_files
+            graphs["all_includes"] = all_includes
+            graphs["file_contents"] = file_contents
+            graphs["g"] = g
+            with open(pickle_file_name,"wb") as fid:
+                pickle.dump(graphs, fid)
+
+    return compilable_files, all_includes, file_contents, g
+
+
+def add_transitive_closure_headers(g, files_needing_transcludes, pickled_tg_and_eqset_fname=None):
+    if pickled_tg_and_eqset_fname and os.path.isfile():
+        with open(pickled_tg_and_eqset_fname,"rb") as fid:
+            eqsets = pickle.load(fid)
+        tg = eqsets["tg"]
+        equiv_sets = eqsets["equiv_sets"]
+    else :
+        # third, compute the transitive closure graph
+        print("computing transitive closure")
+        tg = transitive_closure(g)
+
+        # fourth, add all headers in transitive closure
+        tar_everything("bu_starting_code")
+        print("adding indirect headers")
+        add_indirect_headers(tg, files_needing_transcludes)
+
+        # fifth, compute the equivalence sets, focusing only on files in
+        # core/ protocols/ devel/ and apps/
+        print("computing equivalence sets from inclusion graph")
+        equiv_sets = inclusion_equivalence_sets_from_desired_subgraph(g)
+        write_equiv_sets_file("equivalence_sets_wholeshebang.txt", equiv_sets)
+
+        if picked_tg_and_eqset_fname:
+            eqsets = {}
+            eqsets["tg"] = tg
+            eqsets["equiv_sets"] = equiv_sets
+            with open(pickled_tg_and_eqset_fname,"wb") as fid:
+                pickle.dump(eqsets, fid)
+
+    return tg, equiv_sets
+
+def remove_includes_from_files_in_parallel(
+        fnames,
+        fork_manager,
+        compilable_files,
+        all_includes,
+        file_contents,
+        g,
+        tg,
+        total_order,
+        dri
+):
+    for i, fname in enumerate(es_filtered):
+        pid = fork_manager.mfork()
+        # pid = 0 # TEMP !
+        if pid == 0:
+            trim_inclusions_from_file_extreme(
+                fname,
+                (i+1) % fork_manager.max_n_jobs,
+                compilable_files,
+                all_includes,
+                file_contents,
+                g,
+                tg,
+                total_order,
+                dri
+            )
+            sys.exit(0)
+    fork_manager.wait_for_remaining_jobs()
+
+
 
 def whole_shebang(fork_manager: ForkManager, skip_test_compile=False, starting_round=1):
 
@@ -79,120 +172,64 @@ def whole_shebang(fork_manager: ForkManager, skip_test_compile=False, starting_r
 
     # BEGIN CODE
 
-    if os.path.isfile("pickled_include_graph.bin"):
-        with open("pickled_include_graph.bin","rb") as fid:
-            graphs = pickle.load(fid)
-        compilable_files = graphs["compilable_files"]
-        all_includes = graphs["all_includes"]
-        file_contents = graphs["file_contents"]
-        g = graphs["g"]
-    else :
-        # first create the include graph
-        # trim this graph to remove known cycles (vector1_bool, vector0_bool)
+    # first, load the inclusion graph
+    compilable_files, all_includes, file_contents, g = (
+        create_inclusion_graph_from_source("pickled_include_graph.bin")
+    )
 
-        print("loading source tree")
-        compilable_files, all_includes, file_contents = load_source_tree()
-        print("creating inclusion graph")
-        g = create_graph_from_includes(all_includes)
-        remove_known_circular_dependencies_from_graph(g)
-    
-        graphs = {}
-        graphs["compilable_files"] = compilable_files
-        graphs["all_includes"] = all_includes
-        graphs["file_contents"] = file_contents
-        graphs["g"] = g
-        with open("pickled_include_graph.bin","wb") as fid:
-            pickle.dump(graphs, fid)
-
-    
     # second, verify that all files compile on their own
-
     if not skip_test_compile:
         any_fail_to_compile = verify_all_files_compile(fork_manager, compilable_files)
         if any_fail_to_compile:
             print("Error: coud not compile all files on their own")
             sys.exit(0)
 
-    if os.path.isfile("pickled_equiv_sets.bin"):
-        with open("pickled_equiv_sets.bin","rb") as fid:
-            eqsets = pickle.load(fid)
-        tg = eqsets["tg"]
-        compilable_files = eqsets["compilable_files"]
-        equiv_sets = eqsets["equiv_sets"]
-    else :
-        # third, compute the transitive closure graph
-        print("computing transitive closure")
-        tg = transitive_closure(g)
-    
-        # fourth, add all headers in transitive closure
-        tar_everything("bu_starting_code")
-        print("adding indirect headers")
-        add_indirect_headers(tg, compilable_files)
-        tar_everything("bu_transclose_headers_round_0")
-    
-        # fifth, compute the equivalence sets, focusing only on files in
-        # core/ protocols/ devel/ and apps/
-        print("computing equivalence sets from inclusion graph")
-        equiv_sets = inclusion_equivalence_sets_from_desired_subgraph(g)
-        write_equiv_sets_file("equivalence_sets_wholeshebang.txt", equiv_sets)
-
-        eqsets = {}
-        eqsets["tg"] = tg
-        eqsets["compilable_files"] = compilable_files
-        eqsets["equiv_sets"] = equiv_sets
-        with open("pickled_equiv_sets.bin","wb") as fid:
-            pickle.dump(eqsets, fid)
-
+    # third, create transitive closure graph and determine file equivalence
+    # sets from the partial order
+    tg, equiv_sets = add_transitive_closure_headers(
+        g, compilable_files, "pickled_equiv_sets.bin")
+    tar_everything("bu_transclose_headers_round_0")
 
     dri = DontRemoveInclude()
     # sixth, iterate across all equivalence sets
     # for each equivalence set, fork ncpu processes
     # and each process will remove #includes from a
     # subset of the files in that equivalence set
-    count_round = 0
-    for es in equiv_sets:
-        count_round += 1
-        if count_round < starting_round :
+
+    for count_round, es in enumerate(equiv_sets):
+        if count_round+1 < starting_round :
             continue
-        es_filtered = list(filter(dri.attempt_include_removal_for_file, es))
-        nfiles_to_process = len(es_filtered)
-        print("Starting round", count_round, "with", nfiles_to_process, "to process")
+        equiv_set_filtered = list(filter(dri.attempt_include_removal_for_file, es))
+        nfiles_to_process = len(equiv_set_filtered)
+        print("Starting round", count_round+1, "with", nfiles_to_process, "to process")
         sys.stdout.flush()
 
         if count_round > 1:
-            print("loading source tree")
-            compilable_files, all_includes, file_contents = load_source_tree()
-            print("creating graph from includes")
-            g = create_graph_from_includes(all_includes)
-            remove_known_circular_dependencies_from_graph(g)
+            compilable_files, all_includes, file_contents, g = (
+                create_inclusion_graph_from_source()
+            )
             print("creating transitive closure")
             tg = transitive_closure(g)
-        
+            print("number of edges in transitive closure graph:", len(tg.edge_properties))
+        else:
+            # the file contents have changed after we added the transcludes
+            print("reloding file contents")
+            file_contents = {fname: open(fname).readlines() for fname in file_contents.keys()}
+
         print("computing total order")
         sys.stdout.flush()
         total_order = total_order_from_graph(g)
 
-        # es_subsets = []
-        # start = 0
-        # for i in range(fork_manager.max_n_jobs - 1):
-        #     es_subsets.append(es_filtered[start : start + nfiles_per_cpu])
-        #     start += nfiles_per_cpu
-        # es_subsets.append(es_filtered[start:])
-        for i, fname in enumerate(es_filtered):
-            pid = fork_manager.mfork()
-            # pid = 0 # TEMP !
-            if pid == 0:
-                trim_inclusions_from_file_extreme(
-                    fname,
-                    (i+1) % fork_manager.max_n_jobs,
-                    compilable_files,
-                    all_includes,
-                    file_contents,
-                    g,
-                    tg,
-                    total_order
-                )
-                sys.exit(0)
+        remove_includes_from_files_in_parallel(
+            equiv_set_filtered,
+            fork_manager,
+            compilable_files,
+            all_includes,
+            file_contents,
+            g,
+            tg,
+            total_order,
+            dri
+        )
 
-        fork_manager.wait_for_remaining_jobs()
         tar_everything("bu_wholeshebang_round_" + str(count_round))

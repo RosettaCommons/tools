@@ -133,12 +133,13 @@ class CodeReader:
             return
         if self.re_pound_if.match(self.commentless_line):
             if_expression = self.commentless_line.partition("#if")[2]
-            ast = self.preprocessor_parser.tree_from_line(if_expression)
-            print("if expression", if_expression, "ast", ast)
+            ast = self.preprocessor_parser.tree_from_line(if_expression.strip())
+            # print("if expression", if_expression, "ast", ast)
             if ast:
                 for defnode in self.preprocessor_parser.defined_nodes:
                     defnode.defined_set = self.defined_macros
                 next_visibility = ast.eval() and self.nested_ifdefs[-1][1]
+                # print("visibility", ast.eval())
                 self.nested_ifdefs.append(("parsed " + if_expression, next_visibility))
 
             else:

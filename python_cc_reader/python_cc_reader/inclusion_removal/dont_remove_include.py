@@ -5,17 +5,25 @@ import re
 
 class DontRemoveInclude:
     def __init__(self):
+
         self.files_to_leave_intact = set()
         self.regexes_to_leave_intact = []
+
         self.includes_to_leave_intact = set()
         self.includes_to_leave_be = set()
         self.initialize_keep_intact_lists()
+
+        self.surrogates = {}
+        self.initialize_surrogates_for_files()
+
 
     # returns True if no headers should be removed
     # from a particular file
     def leave_file_intact(self, fname):
         if fname in self.files_to_leave_intact:
             return True
+        if fname in self.surrogates:
+            return False
         for regex in self.regexes_to_leave_intact:
             if regex.search(fname):
                 return True
@@ -59,11 +67,18 @@ class DontRemoveInclude:
 
     def initialize_regexes_to_leave_intact(self):
         self.regexes_to_leave_intact.append(re.compile("\.tmpl\.hh$"))
+        self.regexes_to_leave_intact.append(re.compile("\.impl\.hh$"))
         self.regexes_to_leave_intact.append(re.compile("\.ipp$"))
 
     def initialize_includes_to_leave_intact(self):
         pairs = [
             ("core/types.hh", "core/pack/rotamer_set/RotamerSetsBase.hh"),
+            ("core/types.hh", "core/grid/CartGrid.hh"),
+            ("core/types.hh", "core/pack/rotamer_trials.hh"),
+            ("core/types.hh", "core/pack_basic/RotamerSetsBase.hh"),
+            ("core/types.hh", "protocols/dna/DNAParameters.hh"),
+            ("core/types.hh", "protocols/pockets/PocketGrid.hh"),
+            ("core/types.hh", "protocols/scoring/methods/pcs2/PcsDataLanthanide.hh"),
             ("utility/exit.hh", "protocols/moves/DataMap.hh"),
             ("string", "protocols/moves/DataMap.hh"),
             ("utility/basic_sys_util.hh", "core/init.cc"),
@@ -89,10 +104,80 @@ class DontRemoveInclude:
             ("cassert", "devel/simple_options/option.cc"),
             ("cstring", "devel/simple_options/option.cc"),
             ("utility/keys/Key2Tuple.hh", "core/chemical/ResidueType.hh"),
+            ("utility/keys/Key3Tuple.hh", "core/chemical/ResidueType.hh"),
+            ("utility/keys/Key4Tuple.hh", "core/chemical/ResidueType.hh"),
+            ("core/chemical/Adduct.hh", "core/chemical/ResidueType.hh"),
+            ("core/chemical/Adduct.hh", "core/chemical/ResidueTypeBase.hh"),
+            ("core/id/DOF_ID.hh","core/id/DOF_ID_Map.hh"),
             (
                 "core/kinematics/ShortestPathInFoldTree.hh",
                 "protocols/abinitio/MaxSeqSepConstraintSet.hh",
             ),
+            ("core/kinematics/Jump.hh", "core/io/silent/ProteinSilentStruct.hh"),
+            ("core/pack/interaction_graph/LinearMemoryInteractionGraph.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
+            ("core/pack/task/PackerTask.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
+            ("core/pack/rotamer_set/RotamerSet.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
+            ("core/pack/rotamer_set/RotamerSets.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
+            ("core/scoring/TenANeighborGraph.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
+            ("core/pack/interaction_graph/LinearMemoryInteractionGraph.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/conformation/Residue.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/pack/task/PackerTask.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/pack/rotamer_set/RotamerSet.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/pack/rotamer_set/RotamerSets.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/pose/Pose.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/scoring/ScoreFunction.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/scoring/Energies.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/scoring/hbonds/NPDHBondSet.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/scoring/hbonds/HBondOptions.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("utility/graph/Graph.hh", "core/pack/interaction_graph/NPDHBondInteractionGraph.hh"),
+            ("core/scoring/EnergyMap.hh", "core/scoring/etable/BaseEtableEnergy.hh"),
+            ("core/conformation/Residue.hh", "core/scoring/etable/BaseEtableEnergy.hh"),
+            ("core/conformation/Atom.hh","core/scoring/etable/atom_pair_energy_inline.hh"),
+            ("core/conformation/Residue.hh","core/scoring/etable/atom_pair_energy_inline.hh"),
+            ("core/chemical/AtomType.hh","core/scoring/etable/atom_pair_energy_inline.hh"),
+            ("numeric/xyzVector.hh","core/scoring/etable/atom_pair_energy_inline.hh"),
+            ("core/conformation/Atom.hh","core/scoring/etable/count_pair/CountPair1B.hh"),
+            ("core/conformation/Residue.hh","core/scoring/etable/count_pair/CountPair1B.hh"),
+            ("core/conformation/Atom.hh", "core/scoring/etable/count_pair/CountPair2B.hh"),
+            ("core/conformation/Residue.hh", "core/scoring/etable/count_pair/CountPair2B.hh"),
+            ("core/conformation/Residue.hh", "core/scoring/etable/count_pair/CountPairIntraRes.hh"),
+            ("core/pose/util.tmpl.hh", "core/scoring/packing/surf_vol.cc"),
+            ("core/scoring/trie/TrieCountPairBase.hh", "core/scoring/trie/RotamerTrie.hh"),
+            ("core/scoring/hbonds/hbtrie/HBCPData.hh", "core/scoring/trie/RotamerTrie.hh"),
+            ("core/scoring/lkball/lkbtrie/LKBAtom.hh", "core/scoring/trie/RotamerTrie.hh"),
+            ("core/scoring/trie/CPDataCorrespondence.hh", "core/scoring/trie/trie.functions.hh"),
+            ("core/scoring/trie/RotamerTrieBase.hh", "core/scoring/trie/trie.functions.hh"),
+            ("core/conformation/Residue.hh", "core/scoring/trie/trie.functions.hh"),
+            ("core/conformation/RotamerSetBase.hh", "core/scoring/trie/trie.functions.hh"),
+            ("protocols/antibody/grafting/util.hh", "protocols/antibody/grafting/cdr_detection.hh"),
+            ("protocols/antibody/grafting/util.hh", "protocols/antibody/grafting/json_based_cdr_detection.hh"),
+            ("utility/json_utilities.hh", "protocols/antibody/grafting/json_based_cdr_detection.hh"),
+            ("protocols/antibody/grafting/util.hh", "protocols/antibody/grafting/scs_multi_template.hh"),
+            ("utility/json_utilities.hh", "protocols/ddg/CartesianddG.hh"),
+            ("core/io/silent/SilentStruct.hh", "protocols/evaluation/PoseEvaluator.hh"),
+            ("core/conformation/Residue.hh", "protocols/features/RotamerFeatures.hh"),
+            ("core/kinematics/FoldTree.hh", "protocols/forge/methods/fold_tree_functions.hh"),
+            ("core/conformation/Residue.hh", "protocols/indexed_structure_store/FragmentLookup.hh"),
+            ("core/pose/Pose.hh", "protocols/indexed_structure_store/FragmentLookup.hh"),
+            ("core/pack/task/TaskFactory.hh", "protocols/loop_modeling/refiners/packing_helper.hh"),
+            ("core/pack/task/PackerTask.hh", "protocols/loop_modeling/refiners/packing_helper.hh"),
+            ("core/pose/Pose.hh", "protocols/loop_modeling/refiners/packing_helper.hh"),
+            ("utility/tag/Tag.hh", "protocols/loop_modeling/utilities/rosetta_scripts.hh"),
+            ("protocols/noesy_assign/CrossPeak.hh", "protocols/noesy_assign/NoesyModule.impl.hh"),
+            ("protocols/noesy_assign/CrossPeakList.hh", "protocols/noesy_assign/NoesyModule.impl.hh"),
+            ("protocols/fldsgn/topology/SS_Info2.hh", "protocols/sic_dock/scores/MotifHashRigidScore.cc"),
+            ("protocols/antibody/grafting/util.hh", "protocols/tcr/TCRloopRefine.hh"),
+            ("protocols/antibody/grafting/util.hh", "protocols/tcr/TCRseqInfo.hh"),
+            ("protocols/antibody/grafting/util.hh", "protocols/tcr/util.hh"),
+            ("core/io/silent/SilentStruct.hh", "protocols/toolbox/Cluster.impl.hh"),
+            ("core/conformation/Residue.hh", "protocols/toolbox/DecoySetEvaluation.impl.hh"),
+            ("core/pose/Pose.hh", "protocols/toolbox/PyReturnValuePolicyTest.hh"),
+            ("core/scoring/ScoreFunction.hh", "protocols/toolbox/PyReturnValuePolicyTest.hh"),
+            ("core/conformation/parametric/ParametersSet.hh", "protocols/viewer/viewers.cc"), # I'm not sure about this one
+            ("", ""),
+            ("", ""),
+            ("", ""),
+            ("", ""),
             (
                 "protocols/jd2/MPIWorkPoolJobDistributor.hh",
                 "apps/public/rosetta_scripts/rosetta_scripts.cc",
@@ -150,6 +235,14 @@ class DontRemoveInclude:
                 "core/pack/dunbrack/RotamerLibrary.cc",
             ),
             ("core/fragment/FrameIteratorWorker_.hh", "core/fragment/FrameIterator.hh"),
+            ("core/fragment/Frame.hh", "core/fragment/FragCache.hh"),
+            ("core/fragment/FragData.hh", "core/fragment/picking_old/vall/util.hh"),
+            ("protocols/docking/DockingProtocol.hh", "apps/benchmark/performance/Docking.bench.hh"),
+            ("core/chemical/Atom.hh", "core/chemical/ResidueGraphTypes.hh"),
+            ("boost/graph/filtered_graph.hpp", "core/chemical/ResidueGraphTypes.hh"),
+            ("core/chemical/AtomTypeSet.fwd.hh", "core/chemical/ResidueGraphTypes.hh"),
+            ("boost/graph/adjacency_list.hpp", "core/chemical/ResidueGraphTypes.hh"),
+            ("utility", "core/chemical/ResidueGraphTypes.hh"),
         ]
 
         for pair in pairs:
@@ -158,3 +251,31 @@ class DontRemoveInclude:
     def initialize_includes_to_leave_be(self):
         self.includes_to_leave_be.add("utility/vector1.hh")
         self.includes_to_leave_be.add("utility/vector0.hh")
+
+    def initialize_surrogates_for_files(self):
+        surrogates = [
+            ("protocols/loops/Loops.tmpl.hh", "protocols/simple_task_operations/RestrictToLoops.cc"),
+            ("protocols/canonical_sampling/BiasEnergy.tmpl.hh", "protocols/canonical_sampling/BiasEnergy.cc"),
+            ("protocols/moves/MonteCarlo.tmpl.hh", "protocols/viewer/viewers.cc"),
+            ("numeric/interpolation/InterpolatedPotential.tmpl.hh", "core/scoring/rna/data/RNA_DMS_Potential.cc"),
+            ("numeric/interpolation/spline/PolycubicSpline.tmpl.hh", "protocols/features/RotamerFeatures.cc"),
+            ("core/pack/dunbrack/RotamericSingleResidueDunbrackLibrary.tmpl.hh", "core/pack/dunbrack/RotamerLibrary.cc"),
+            ("core/pack/dunbrack/SemiRotamericSingleResidueDunbrackLibrary.tmpl.hh", "core/pack/dunbrack/RotamerLibrary.cc"),
+            ("core/pack/dunbrack/RotamericSingleResidueDunbrackLibraryParser.tmpl.hh", "core/pack/dunbrack/SingleResidueDunbrackLibrary.cc"),
+            ("core/pose/util.tmpl.hh", "protocols/helical_bundle/PerturbBundle.cc"),
+            ("core/io/silent/ProteinSilentStruct.tmpl.hh", "protocols/loophash/WorkUnit_LoopHash.cc"),
+            ("core/scoring/rms_util.tmpl.hh", "protocols/protein_interface_design/filters/RmsdSimpleFilter.cc"),
+            ("core/scoring/etable/BaseEtableEnergy.tmpl.hh", "core/scoring/etable/EtableEnergy.cc"),
+            ("core/scoring/NeighborList.tmpl.hh", "core/energy_methods/StackElecEnergy.cc"),
+            ("utility/FixedSizeLexicographicalIterator.tmpl.hh", "protocols/match/MatchSet.cc"),
+            ("protocols/ligand_docking/ligand_dock_impl.hh", "apps/public/ligand_docking/ligand_dock.cc"),
+            ("protocols/noesy_assign/CrossPeakList.impl.hh", "protocols/noesy_assign/NoesyModule.cc"),
+            ("protocols/noesy_assign/NoesyModule.impl.hh", "protocols/noesy_assign/NoesyModule.cc"),
+            ("protocols/toolbox/Cluster.impl.hh", "apps/public/analysis/fast_clustering.cc"),
+            ("protocols/toolbox/DecoySetEvaluation.impl.hh", "protocols/toolbox/DecoySetEvaluation.cc"),
+            ("numeric/alignment/rmsd_calc.impl.hh", "numeric/alignment/rmsd_calc.cc"),
+            ("numeric/VoxelGrid.impl.hh", "protocols/nmr/pre/PREEnergy.cc"),
+        ]
+        
+        for surrpair in surrogates:
+            self.surrogates[surrpair[0]] = surrpair[1]

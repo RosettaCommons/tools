@@ -164,10 +164,12 @@ class PreProcParser:
     def tree_from_line(self, line):
         self.defined_nodes = []
         self.tokens = self.scanner.tokenize_line(line)
+        # for i,tok in enumerate(self.tokens):
+        #      print(i, tok.spelling)
         if self.tokens_contain_unprocessable():
             return None
         root, ind = self.parse_expression(0)
-        #print("tree from lines:", root, ind)
+        # print("tree from lines:", root, ind, len(self.tokens))
         if ind < len(self.tokens):
             return None
         else:

@@ -5,6 +5,8 @@ import re, sys
 import os
 import pickle
 from ..external.pygraph import pygraph
+from toolz import curry
+
 
 # from pygraph.algorithms.sorting import topological_sorting
 from .add_headers import (
@@ -184,7 +186,7 @@ def add_necessary_headers(tg, C_cc, headers):
 
 
 # returns True when X_hh should not be removed from C_cc
-def prohibit_removal(C_cc, X_hh, DRI=None):
+def prohibit_removal_standard(C_cc, X_hh, DRI=None):
     is_ccfile = False
     is_header = False
     is_tmpl_header = False
@@ -302,20 +304,25 @@ def add_indirect_headers_to_file_outside_tg(tg, fname):
 # C_cc, file_contents, and compile_args. It should return true if the
 # compilation succeeds and false if the compilation fails
 def trim_unnecessary_headers_from_file(
-    C_cc,
-    tg,
-    total_order,
-    file_contents,
-    compile_command,
-    compile_args,
-    super_cautious=False,
+        C_cc,
+        tg,
+        total_order,
+        file_contents,
+        compile_command, 
+        prohibit_removal,
+        add_indirect_headers=True,
+        super_cautious=False,
 ):
+    """
+    compiled_command: (possibly curried) function: arg1: fname,
+                      arg2: dict w/ file lines
+    prohibit_removal: (possibly curried) function: arg1: fname,
+                      arg2: included header w/i arg1 file
+    """
     print("Examining includes within", C_cc)
     sys.stdout.flush()
 
-    DRI = dont_remove_include.DontRemoveInclude()
-
-    if not compile_command(C_cc, file_contents, compile_args):
+    if not compile_command(C_cc, file_contents):
         print("Skipping ", C_cc, " since it does not compile as is")
         return
 
@@ -328,18 +335,25 @@ def trim_unnecessary_headers_from_file(
 
     C_cc_headers = None
     indirect_headers = []
+    
     if C_cc in tg.node_neighbors:
-        # if we're dealing with a file that's part of the tg, then we can use the edges in tg to construct the set of indirect_headers
+        # if we're dealing with a file that's part of the tg,
+        # then we can use the edges in tg to construct the set
+        # of indirect_headers
         C_cc_headers = tg.node_neighbors[C_cc]
         for header in C_cc_headers:
             # print header, tg.edge_label( C_cc, header ), C_cc
             if tg.edge_label(C_cc, header) == "indirect":
                 indirect_headers.append(header)
     else:
-        # if we're not dealing with a file that's part of the tg, then read the headers from the file_contents
-        # add in transitive headers for any files that are part of the tg.  (Note there may be headers which are not part of tg)
-        # Note that if we're going to remove includes for a file, then that file must be included in the
-        # file_contents map, even though it doesn't have to be part of the tg
+        # if we're not dealing with a file that's part of the
+        # tg, then read the headers from the file_contents
+        # add in transitive headers for any files that are
+        # part of the tg.  (Note there may be headers which
+        # are not part of tg). Note that if we're going to
+        # remove includes for a file, then that file must be
+        # included in the file_contents map, even though it
+        # doesn't have to be part of the tg
         assert C_cc in file_contents
         C_cc_headers = find_includes_at_global_scope(C_cc, file_contents[C_cc])
         if len(C_cc_headers) == 0:
@@ -349,25 +363,26 @@ def trim_unnecessary_headers_from_file(
         for header in C_cc_headers:
             if header in tg:
                 for neighb in tg.node_neighbors[header]:
-                    if neighb not in C_cc_headers_set and neighb not in indirect_set:
-                        indirect_set.add(neighb)
+                    indirect_set.add(neighb)
         indirect_headers = list(indirect_set)
 
     for h in C_cc_headers:  # temp debug
-        print("File,", C_cc, " has header:", h)  # temp debug
+        print("File", C_cc, " has header:", h)  # temp debug
     for ih in indirect_headers:  # temp debug
-        print("About to add indirect header:", ih)  # temp debug
+        print("File", C_cc, " has indirect header:", ih)  # temp debug
 
-    print("Adding auto-header to", C_cc)
-    file_contents[C_cc] = add_autoheaders_to_filelines(
-        C_cc, file_contents[C_cc], indirect_headers
-    )
-    if compile_command(C_cc, file_contents, compile_args):
-        print("autoheader addition succeeded")
-    else:
-        print("Warning: could not resolve compilation issues with ", C_cc)
-        file_contents[C_cc] = backup_C_cc
-        return
+    if add_indirect_headers:
+        print("Adding auto-header to", C_cc)
+        file_contents[C_cc] = add_autoheaders_to_filelines(
+            C_cc, file_contents[C_cc], indirect_headers
+        )
+
+        if compile_command(C_cc, file_contents):
+            print("autoheader addition succeeded")
+        else:
+            print("Warning: could not resolve compilation issues with ", C_cc)
+            file_contents[C_cc] = backup_C_cc
+            return
 
     backup_C_cc = file_contents[C_cc][:]  # deep copy
     last_compiling_version = backup_C_cc[:]
@@ -377,7 +392,7 @@ def trim_unnecessary_headers_from_file(
         C_cc, file_contents[C_cc]
     )
 
-    if not compile_command(C_cc, file_contents, compile_args):
+    if not compile_command(C_cc, file_contents):
         print(
             "Warning: failed to compile",
             C_cc,
@@ -393,7 +408,7 @@ def trim_unnecessary_headers_from_file(
             blah, file_contents[C_cc] = add_using_namespaces_to_lines(
                 C_cc, file_contents[C_cc], test_namespaces
             )
-            if not compile_command(C_cc, file_contents, compile_args):
+            if not compile_command(C_cc, file_contents):
                 file_contents[C_cc] = backup_C_cc
             else:
                 last_compiling_version = file_contents[C_cc][:]
@@ -403,7 +418,7 @@ def trim_unnecessary_headers_from_file(
     for namespace in namespaces:
         print(namespace, " added in auto-namespace block")
 
-    if not compile_command(C_cc, file_contents, compile_args):
+    if not compile_command(C_cc, file_contents):
         print("ERROR: failed to compile after namespace addition twice")
         file_contents[C_cc] = last_compiling_version
         return
@@ -421,7 +436,7 @@ def trim_unnecessary_headers_from_file(
 
         print("...Testing: is ", X_hh, "necessary for", C_cc, end=" ")
 
-        if prohibit_removal(C_cc, X_hh, DRI):
+        if prohibit_removal(C_cc, X_hh):
             print("yes.  Prohibited from removing", X_hh)
             necessary.append(X_hh)
             continue
@@ -456,7 +471,7 @@ def trim_unnecessary_headers_from_file(
                 if file_contents[C_cc] != contents_after_removal:
                     backup_C_cc = file_contents[C_cc][:]  # deep copy
                     file_contents[C_cc] = contents_after_removal
-                    if not compile_command(C_cc, file_contents, compile_args):
+                    if not compile_command(C_cc, file_contents):
                         print(
                             "Whoa!  Removing header ",
                             X_hh,
@@ -480,7 +495,7 @@ def trim_unnecessary_headers_from_file(
         file_contents[C_cc] = remove_header_from_filelines(
             C_cc, file_contents[C_cc], X_hh
         )
-        if not compile_command(C_cc, file_contents, compile_args):
+        if not compile_command(C_cc, file_contents):
             if X_hh in tg:
                 print(
                     "yes.  Removing",
@@ -512,7 +527,7 @@ def trim_unnecessary_headers_from_file(
             C_cc, file_contents[C_cc], ns
         )
         print("...Testing: is namespace", ns, "necessary?", end=" ")
-        if not compile_command(C_cc, file_contents, compile_args):
+        if not compile_command(C_cc, file_contents):
             # if not test_compile_from_lines( expand_includes_for_file( C_cc, file_contents ) ) :
             print("yes. using namespace", ns, "must remain")
             file_contents[C_cc] = backup_C_cc
@@ -523,7 +538,7 @@ def trim_unnecessary_headers_from_file(
     # remove the auto-namespace block if it's empty
     file_contents[C_cc] = cleanup_auto_namespace_block_lines(file_contents[C_cc])
 
-    if not compile_command(C_cc, file_contents, compile_args):
+    if not compile_command(C_cc, file_contents):
         print(
             "Warning: Could not compile",
             C_cc,
@@ -539,7 +554,8 @@ def trim_unnecessary_headers_from_file(
                 total_order,
                 file_contents,
                 compile_command,
-                compile_args,
+                prohibit_removal,
+                add_indirect_headers,
                 super_cautious=True,
             )
 
@@ -563,10 +579,12 @@ def trim_inclusions_from_files(filelist):
     print("computing total order")
     total_order = total_order_from_graph(g)
     dummy = 1
+    dri = dont_remove_include.DontRemoveInclude()
     for fname in filelist:
         print("beginning work on", fname)
         trim_unnecessary_headers_from_file(
-            fname, tg, total_order, file_contents, simple_compile_from_lines, dummy
+            fname, tg, total_order, file_contents, simple_compile_from_lines,
+            canonical_prohibit_removal(dri)
         )
         write_file(fname, file_contents[fname])
 
@@ -577,10 +595,7 @@ def trim_inclusions_from_files(filelist):
 def trim_inclusions_from_files_extreme(
         filelist,
         id,
-        compilable_files,
-        all_includes,
         file_contents,
-        g,
         tg,
         total_order,
         dri,
@@ -590,10 +605,7 @@ def trim_inclusions_from_files_extreme(
         trim_inclusions_from_file_extreme(
             fname,
             id,
-            compilable_files,
-            all_includes,
             file_contents,
-            g,
             tg,
             total_order,
             dri,
@@ -603,18 +615,14 @@ def trim_inclusions_from_files_extreme(
 def trim_inclusions_from_file_extreme(
         fname,
         id,
-        compilable_files,
-        all_includes,
         file_contents,
-        g,
         tg,
         total_order,
         dri,
         super_cautious=False):
 
     if fname in dri.surrogates:
-        arg_tuple = (dri.surrogates[fname])
-        compile_function = wrap_compile_w_surrogate
+        compile_function = wrap_compile_w_surrogate(surrogate, id)
     else:
         builds, gold_objdump = generate_objdump_for_file(
             fname, id
@@ -623,8 +631,7 @@ def trim_inclusions_from_file_extreme(
             print("ERROR: could not compile", fname)
             return
         else:
-            arg_tuple = (gold_objdump, id)
-            compile_function = wrap_compile_extreme
+            compile_function = wrap_compile_extreme(gold_objdump, id)
 
     trim_unnecessary_headers_from_file(
         fname,
@@ -632,8 +639,9 @@ def trim_inclusions_from_file_extreme(
         total_order,
         file_contents,
         compile_function,
-        arg_tuple,
-        super_cautious,
+        canonical_prohibit_removal(dri),
+        add_indirect_headers=False,
+        super_cautious=super_cautious,
     )
     write_file(fname, file_contents[fname])
 
@@ -648,30 +656,36 @@ def trim_inclusions_from_cxxtest_files(filelist, id):
     remove_known_circular_dependencies_from_graph(g)
     tg = transitive_closure(g)
     total_order = total_order_from_graph(g)
+    dri = dont_remove_include.DontRemoveInclude()
     for fname in filelist:
         file_contents[fname] = open(fname).readlines()
-        arg_tuple = (id,)
         trim_unnecessary_headers_from_file(
-            fname, tg, total_order, file_contents, wrap_cxxtest_compile, arg_tuple
+            fname, tg, total_order, file_contents, wrap_cxxtest_compile(id),
+            canonical_prohibit_removal(dri)
         )
         write_file(fname, file_contents[fname])
 
-
-def wrap_compile_extreme(fname, file_contents, arg_tuple):
+@curry
+def wrap_compile_extreme(gold_objdump, id, fname, file_contents):
     write_file(fname, file_contents[fname])
     return test_compile_for_file_extreme(
-        fname, arg_tuple[0], arg_tuple[1]
+        fname, gold_objdump, id
     )
 
+@curry
+def wrap_compile_w_surrogate(surrogate, id, fname, file_contents):
+    write_file(fname, file_contents[fname])
+    return test_compile_w_surrogate(fname, surrogate, id)
 
-def simple_compile_from_lines(C_cc, file_contents, unused):
+
+def simple_compile_from_lines(C_cc, file_contents):
     return test_compile_from_stdin(C_cc, file_contents)
 
 
-def wrap_cxxtest_compile(C_cc, file_contents, arg_tuple):
+def wrap_cxxtest_compile(id, C_cc, file_contents):
     # no option to read from stdin, so first write the file to disk
     open(C_cc, "w").writelines(file_contents[C_cc])
-    return cxxtest_test_compile(C_cc, False, arg_tuple[0])
+    return cxxtest_test_compile(C_cc, False, id)
 
 
 def backup_file(filename, extension):
@@ -968,6 +982,36 @@ def topological_sorting(graph):
     post.reverse()
     return post
 
+@curry
+def canonical_prohibit_removal(DRI, C_cc, X_hh):
+    """ Only prohibit the removal of the standard
+    set of headers from C_cc
+    """
+    return not prohibit_removal_standard(C_cc, X_hh, DRI)
+
+@curry
+def prohibit_removal_of_non_subgraph_headers(
+        DRI,
+        original_tg,
+        current_tg,
+        starting_nodes,
+        C_cc,
+        X_hh
+):
+    """Prohibit the removal of headers that are not transcluded by
+    a file which C_cc itself transcludes"""
+    if prohibit_removal_standard(C_cc, X_hh, DRI): 
+       return True
+    if X_hh in starting_nodes:
+        return False
+    for starting_node in starting_nodes:
+        if (
+            starting_node in current_tg.node_neighbors[C_cc] and
+            X_hh in original_tg.node_neighbors[starting_node]
+        ):
+            return False
+    print("file", X_hh, "is not a trasclude of any of the starting nodes; leave it")
+    return True
 
 # report the number of #includes for each file.
 if __name__ == "__main__":

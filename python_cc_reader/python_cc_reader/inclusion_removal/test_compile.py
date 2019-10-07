@@ -209,7 +209,7 @@ def generate_objdump_for_file(fname, id=""):
     if id != "":
         temp_o = temp_o + "." + str(id)
     command = " ".join([compiler,"-o", temp_o, generic_command, fname])
-    print(command)
+    # print(command)
     command_list = no_empty_args(command.split(" "))
 
     job = subprocess.Popen(

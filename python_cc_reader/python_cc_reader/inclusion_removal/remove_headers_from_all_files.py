@@ -81,7 +81,7 @@ def create_inclusion_graph_from_source(pickle_file_name=None):
 
 
 def add_transitive_closure_headers(g, files_needing_transcludes, pickled_tg_and_eqset_fname=None):
-    if pickled_tg_and_eqset_fname and os.path.isfile():
+    if pickled_tg_and_eqset_fname and os.path.isfile(pickled_tg_and_eqset_fname):
         with open(pickled_tg_and_eqset_fname,"rb") as fid:
             eqsets = pickle.load(fid)
         tg = eqsets["tg"]
@@ -122,17 +122,13 @@ def remove_includes_from_files_in_parallel(
         total_order,
         dri
 ):
-    for i, fname in enumerate(es_filtered):
+    for i, fname in enumerate(fnames):
         pid = fork_manager.mfork()
-        # pid = 0 # TEMP !
         if pid == 0:
             trim_inclusions_from_file_extreme(
                 fname,
-                (i+1) % fork_manager.max_n_jobs,
-                compilable_files,
-                all_includes,
+                fork_manager.myjob_index+1,
                 file_contents,
-                g,
                 tg,
                 total_order,
                 dri

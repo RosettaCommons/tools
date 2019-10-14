@@ -310,11 +310,15 @@ def test_compile_for_file_extreme(fname, gold_objdump, id=""):
             # print "test compile extreme: objdump comparison fails"
             return False
 
-def test_compile_w_surrogate(fname, surrogate, id=""):
+def test_compile_w_surrogates(fname, surrogates, id=""):
     compiles = test_compile(fname, id=id)
     if compiles:
-        return test_compile(surrogate, id=id)
-    return False
+        for surrogate in surrogates:
+            if not test_compile(surrogate, id=id):
+                return False
+        return True
+    else:
+        return False
         
 
 def tar_everything(tar_file_name):

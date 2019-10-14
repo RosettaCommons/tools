@@ -18,6 +18,11 @@ if __name__ == "__main__":
     compiles, objdump = generate_objdump_for_file(sys.argv[1])
     print("file compiles?", compiles)
     #print(objdump)
+
+    if objdump:
+        compiles2 = test_compile_for_file_extreme(sys.argv[1], objdump)
+        print("file's objdump matches?", compiles2)
+    
     sys.exit( not compiles)
 
     # compiled = test_compile(sys.argv[1], True)

@@ -5,7 +5,10 @@ from python_cc_reader.external.blargs import blargs
 if __name__ == "__main__":
     with blargs.Parser(locals()) as p:
         p.int("ncpu")
-        p.multiword("starting_files").cast(lambda x: x.split()).required()
+        p.require_one(
+            p.multiword("starting_files").cast(lambda x: x.split()),
+            p.str("starting_file_list")
+        )
 
     # 1. Load the source tree
     # 2. Construct the transitive closure graph
@@ -22,5 +25,9 @@ if __name__ == "__main__":
 
 
     fork_manager = ForkManager(ncpu)
+
+    if starting_file_list is not None:
+        starting_files = [line.strip() for line in open(starting_file_list).readlines()]
+
     remove_transcludes_from_subgraph(starting_files, fork_manager)
 

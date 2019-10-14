@@ -24,7 +24,7 @@ def inclusion_equivalence_sets(inclusion_graph):
     for node in dg.nodes():
         remaining.append(node)
         if node != start and len(dg.node_neighbors[node]) == 0:
-            # print "connecting node ", node, "to the start node"
+            # print( "connecting node ", node, "to the start node")
             dg.add_edge(node, start)
         dg.add_node_attribute(node, red)
 
@@ -68,6 +68,7 @@ def inclusion_equivalence_sets(inclusion_graph):
                         actives_children_all_blue = False
                         break
                 if turn_this_node_blue:
+                    # print("turning node", node_incident, "blue in round", count)
                     newly_blued.append(node_incident)
             if actives_children_all_blue:
                 newly_inactive.append(active)

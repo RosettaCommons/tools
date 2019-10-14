@@ -163,3 +163,21 @@ def add_autoheaders_to_file_list(list_of_files, headers):
 
     for path in file_list:
         add_headers.add_autoheaders_to_file(path, headers)
+
+def count_autoheaders(fname, filelines):
+    auto_header_start = "//Auto Headers"
+    is_include = re.compile("#include")
+
+    cr = code_reader.CodeReader()
+    cr.push_new_file(fname)
+    include_count = 0
+    auto_headers_begun = False
+    for line in filelines:
+        cr.examine_line(line)
+        if not auto_headers_begun:
+            if line.startswith(auto_header_start):
+                auto_headers_begun = True
+        
+        elif cr.line_is_visible() and cr.scope_level == 0 and is_include.match(line):
+            include_count += 1
+    return include_count

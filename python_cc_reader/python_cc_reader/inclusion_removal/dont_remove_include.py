@@ -63,6 +63,9 @@ class DontRemoveInclude:
         intact.add("core/util/prof.hh")
         intact.add("core/scoring/etable/etrie/CountPairDataGeneric.hh")
         intact.add("devel/InvKinLigLoopDesign/ints.hh")
+        intact.add("utility/vectorL.hh")
+        intact.add("utility/vector1.hh")
+        intact.add("utility/vector0.hh")
         self.files_to_leave_intact = intact
 
     def initialize_regexes_to_leave_intact(self):
@@ -72,6 +75,8 @@ class DontRemoveInclude:
 
     def initialize_includes_to_leave_intact(self):
         pairs = [
+            ("cassert", "utility/backtrace.hh"),
+            ("utility/backtrace.hh", "utility/assert.hh"), # for debug assert
             ("core/types.hh", "core/pack/rotamer_set/RotamerSetsBase.hh"),
             ("core/types.hh", "core/grid/CartGrid.hh"),
             ("core/types.hh", "core/pack/rotamer_trials.hh"),
@@ -174,10 +179,6 @@ class DontRemoveInclude:
             ("core/pose/Pose.hh", "protocols/toolbox/PyReturnValuePolicyTest.hh"),
             ("core/scoring/ScoreFunction.hh", "protocols/toolbox/PyReturnValuePolicyTest.hh"),
             ("core/conformation/parametric/ParametersSet.hh", "protocols/viewer/viewers.cc"), # I'm not sure about this one
-            ("", ""),
-            ("", ""),
-            ("", ""),
-            ("", ""),
             (
                 "protocols/jd2/MPIWorkPoolJobDistributor.hh",
                 "apps/public/rosetta_scripts/rosetta_scripts.cc",
@@ -243,6 +244,10 @@ class DontRemoveInclude:
             ("core/chemical/AtomTypeSet.fwd.hh", "core/chemical/ResidueGraphTypes.hh"),
             ("boost/graph/adjacency_list.hpp", "core/chemical/ResidueGraphTypes.hh"),
             ("utility", "core/chemical/ResidueGraphTypes.hh"),
+            ("iostream", "core/io/nmr/ParaIon.cc"), # but why would it remove it at all??
+            ("iostream", "core/scoring/func/SumFunc.cc"), # maybe unnecessary?
+            ("iostream", "core/scoring/etable/count_pair/CountPairFunction.cc"),
+            ("ostream", "devel/denovo_protein_design/SSClass.hh"),
         ]
 
         for pair in pairs:
@@ -263,7 +268,9 @@ class DontRemoveInclude:
             ("core/pack/dunbrack/SemiRotamericSingleResidueDunbrackLibrary.tmpl.hh", "core/pack/dunbrack/RotamerLibrary.cc"),
             ("core/pack/dunbrack/RotamericSingleResidueDunbrackLibraryParser.tmpl.hh", "core/pack/dunbrack/SingleResidueDunbrackLibrary.cc"),
             ("core/pose/util.tmpl.hh", "protocols/helical_bundle/PerturbBundle.cc"),
+            ("core/pose/util.tmpl.hh", "protocols/forge/remodel/RemodelMover.cc"),
             ("core/io/silent/ProteinSilentStruct.tmpl.hh", "protocols/loophash/WorkUnit_LoopHash.cc"),
+            ("core/io/silent/ProteinSilentStruct.tmpl.hh", "apps/pilot/mike/loophash.cc"),
             ("core/scoring/rms_util.tmpl.hh", "protocols/protein_interface_design/filters/RmsdSimpleFilter.cc"),
             ("core/scoring/etable/BaseEtableEnergy.tmpl.hh", "core/scoring/etable/EtableEnergy.cc"),
             ("core/scoring/NeighborList.tmpl.hh", "core/energy_methods/StackElecEnergy.cc"),
@@ -278,4 +285,6 @@ class DontRemoveInclude:
         ]
         
         for surrpair in surrogates:
-            self.surrogates[surrpair[0]] = surrpair[1]
+            if surrpair[0] not in self.surrogates:
+                self.surrogates[surrpair[0]] = []
+            self.surrogates[surrpair[0]].append(surrpair[1])

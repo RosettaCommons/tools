@@ -28,6 +28,7 @@ from .test_compile import (
     generate_objdump,
     test_compile_for_file_extreme,
     test_compile_extreme,
+    test_compile_w_surrogates,
     cxxtest_test_compile,
 )
 # from ..cpp_parser.code_reader import (
@@ -622,7 +623,7 @@ def trim_inclusions_from_file_extreme(
         super_cautious=False):
 
     if fname in dri.surrogates:
-        compile_function = wrap_compile_w_surrogate(surrogate, id)
+        compile_function = wrap_compile_w_surrogates(dri.surrogates[fname], id)
     else:
         builds, gold_objdump = generate_objdump_for_file(
             fname, id
@@ -673,9 +674,9 @@ def wrap_compile_extreme(gold_objdump, id, fname, file_contents):
     )
 
 @curry
-def wrap_compile_w_surrogate(surrogate, id, fname, file_contents):
+def wrap_compile_w_surrogates(surrogates, id, fname, file_contents):
     write_file(fname, file_contents[fname])
-    return test_compile_w_surrogate(fname, surrogate, id)
+    return test_compile_w_surrogates(fname, surrogates, id)
 
 
 def simple_compile_from_lines(C_cc, file_contents):
@@ -843,7 +844,7 @@ def desired_node(node):
     name_list = node.split("/")
     if len(name_list) == 1:
         return False
-    desired_libs = ["core", "protocols", "devel", "apps"]
+    desired_libs = ["utility", "numeric", "basic", "core", "protocols", "devel", "apps"]
     if name_list[0] in desired_libs:
         return True
     return False
@@ -1004,13 +1005,31 @@ def prohibit_removal_of_non_subgraph_headers(
        return True
     if X_hh in starting_nodes:
         return False
+    if C_cc in starting_nodes:
+        return False
+
     for starting_node in starting_nodes:
+        # print("starting node", starting_node)
+        # print("C_cc", C_cc)
+        # print("neighbors", current_tg.node_neighbors[C_cc])
+        # print("starting_node in current_tg.node_neighbors[C_cc]", starting_node in current_tg.node_neighbors[C_cc])
+        # print("X_hh in original_tg.node_neighbors[starting_node]", X_hh in original_tg.node_neighbors[starting_node])
         if (
             starting_node in current_tg.node_neighbors[C_cc] and
             X_hh in original_tg.node_neighbors[starting_node]
         ):
             return False
-    print("file", X_hh, "is not a trasclude of any of the starting nodes; leave it")
+    print("file", X_hh, "is not a trasclude of any of the starting nodes; leave it...", end="")
+    if X_hh == "utility/CSI_Sequence.hh":
+        for starting_node in starting_nodes:
+            print("starting node", starting_node)
+            print("C_cc", C_cc)
+            print("C_cc neighbors", current_tg.node_neighbors[C_cc])
+            print("starting node neighbors", original_tg.node_neighbors[starting_node])
+            print("starting_node in current_tg.node_neighbors[C_cc]", starting_node in current_tg.node_neighbors[C_cc])
+            print("X_hh in original_tg.node_neighbors[starting_node]", X_hh in original_tg.node_neighbors[starting_node])
+        print("FAILED TO DETECT REMOVABLE HEADER!!!")
+        sys.exit(0)
     return True
 
 # report the number of #includes for each file.

@@ -190,7 +190,7 @@ class PreProcParser:
         if ind < len(self.tokens):
             #print("next token type?", ind, self.tokens[ind].type)
             if self.tokens[ind].type == PreProcTokenTypes.OR:
-                term2, ind2 = self.parse_term(ind+1)
+                term2, ind2 = self.parse_expression(ind+1)
                 if term2 is None:
                     return None, ind2
                 root = PreProcASTTerm()
@@ -235,7 +235,7 @@ class PreProcParser:
             return root, tok_ind+1
         elif self.tokens[tok_ind].type == PreProcTokenTypes.LPAREN:
             root, ind = self.parse_expression(tok_ind+1)
-            #print("lparen next?", ind, self.tokens[ind].type)
+            #print("rparen next?", ind, self.tokens[ind].type)
             if self.tokens[ind].type == PreProcTokenTypes.RPAREN:
                 return root, ind+1
             else:

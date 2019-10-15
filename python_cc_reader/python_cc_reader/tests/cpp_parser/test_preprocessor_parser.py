@@ -84,3 +84,8 @@ def test_preproc_evaluation_2():
     ast = parser.tree_from_line("0")
     assert not ast.eval()
 
+def test_preproc_parser_init_error():
+    line = "defined( MAC ) || defined( __APPLE__ ) || defined( __OSX__ )"
+    parser = PreProcParser()
+    ast = parser.tree_from_line(line)
+    assert ast

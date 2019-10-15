@@ -1020,16 +1020,17 @@ def prohibit_removal_of_non_subgraph_headers(
         ):
             return False
     print("file", X_hh, "is not a trasclude of any of the starting nodes; leave it...", end="")
-    if X_hh == "utility/CSI_Sequence.hh":
-        for starting_node in starting_nodes:
-            print("starting node", starting_node)
-            print("C_cc", C_cc)
-            print("C_cc neighbors", current_tg.node_neighbors[C_cc])
-            print("starting node neighbors", original_tg.node_neighbors[starting_node])
-            print("starting_node in current_tg.node_neighbors[C_cc]", starting_node in current_tg.node_neighbors[C_cc])
-            print("X_hh in original_tg.node_neighbors[starting_node]", X_hh in original_tg.node_neighbors[starting_node])
-        print("FAILED TO DETECT REMOVABLE HEADER!!!")
-        sys.exit(0)
+    # Debugging code
+    # if X_hh == "utility/CSI_Sequence.hh":
+    #     for starting_node in starting_nodes:
+    #         print("starting node", starting_node)
+    #         print("C_cc", C_cc)
+    #         print("C_cc neighbors", current_tg.node_neighbors[C_cc])
+    #         print("starting node neighbors", original_tg.node_neighbors[starting_node])
+    #         print("starting_node in current_tg.node_neighbors[C_cc]", starting_node in current_tg.node_neighbors[C_cc])
+    #         print("X_hh in original_tg.node_neighbors[starting_node]", X_hh in original_tg.node_neighbors[starting_node])
+    #     print("FAILED TO DETECT REMOVABLE HEADER!!!")
+    #     sys.exit(0)
     return True
 
 # report the number of #includes for each file.

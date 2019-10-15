@@ -125,17 +125,6 @@ def remove_transcludes_from_subgraph(starting_files, fork_manager):
         create_inclusion_graph_from_source("pickled_include_graph.bin")
     )
     orig_tg = transitive_closure(g)
-    print("prohibit_removal_of_non_subgraph_headers",
-          prohibit_removal_of_non_subgraph_headers(
-              dri, orig_tg, orig_tg,
-              starting_files,
-              "numeric/sphericalVector.hh",
-              "utility/CSI_Sequence.hh",
-          )
-    )
-
-    #sys.exit(0)
-
 
     add_inclusions_for_subgraph(orig_tg, starting_files, file_contents)
     subgraph = subgraph_from_starting_nodes(g, orig_tg, starting_files)

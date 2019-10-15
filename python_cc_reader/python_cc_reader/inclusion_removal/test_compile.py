@@ -41,6 +41,14 @@ def central_compile_command():
     # cc1plus: error: output filename specified twice
 
     include_directories = (
+        " -isystem ../external/boost_1_55_0/ " +
+        "-isystem ../external/ " +
+        "-isystem ../external/include/ " +
+        "-isystem ../external/dbio/" +
+        # "-isystem ../external/libxml2/include " +
+        # weird warning from the above -isystem line:
+        # "g++: warning: ../external/libxml2/include: linker input
+        # file unused because linking not done"
         " -I./ -I../external -I../external/include -Iplatform/"
         + os
         + "/"
@@ -55,7 +63,7 @@ def central_compile_command():
     )
 
     generic_command = (
-        " -c -std=c++11 -pipe -ffor-scope -w -pedantic -Wno-long-long -O0 -ffloat-store -DPTR_MODERN -DPTR_STD"
+        " -c -std=c++11 -pipe -ffor-scope -pedantic -Wno-long-long -Werror -O0 -ffloat-store -DPTR_MODERN -DPTR_STD"
         + include_directories
     )
     return compiler, generic_command
@@ -105,7 +113,7 @@ def cxxtest_test_compile(cxx_hh, verbose=False, id=""):
     return False
 
 
-def test_compile(cc_file, verbose=False, id="", devnull=False):
+def test_compile(cc_file, verbose=False, id="", devnull=False, silent=False):
 
     compiler, generic_command = central_compile_command()
 
@@ -142,13 +150,14 @@ def test_compile(cc_file, verbose=False, id="", devnull=False):
         return True
     else:
         # print file(out_log).read(), file(err_log).read()
-        print(
-            "To compile this header locally run following command: " +
-            "cd source/src && python ./../../../tools/python_cc_reader/" +
-            "test_all_headers_compile_w_fork.py --headers",
-            cc_file,
-            "\n\n",
-        )
+        if not silent:
+            print(
+                "To compile this header locally run following command: " +
+                "cd source/src && python ./../../../tools/python_cc_reader/" +
+                "test_all_headers_compile_w_fork.py --headers",
+                cc_file,
+                "\n\n",
+            )
         return False
 
     # return return_code == 0
@@ -311,10 +320,11 @@ def test_compile_for_file_extreme(fname, gold_objdump, id=""):
             return False
 
 def test_compile_w_surrogates(fname, surrogates, id=""):
-    compiles = test_compile(fname, id=id)
+    compiles = test_compile(fname, id=id, silent=True)
     if compiles:
         for surrogate in surrogates:
-            if not test_compile(surrogate, id=id):
+            # print("testing compilation of surrogate", surrogate)
+            if not test_compile(surrogate, id=id, silent=True):
                 return False
         return True
     else:

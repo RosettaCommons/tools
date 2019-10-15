@@ -6,7 +6,7 @@ import subprocess, re, time, sys
 from python_cc_reader.cpp_parser.code_utilities import expand_includes_for_file, load_source_tree
 from python_cc_reader.inclusion_removal.reinterpret_objdump import relabel_sections, compare_objdump_lines
 from python_cc_reader.inclusion_removal.test_compile import *
-
+from python_cc_reader.inclusion_removal.dont_remove_include import DontRemoveInclude
 
 
 if __name__ == "__main__":
@@ -15,7 +15,15 @@ if __name__ == "__main__":
         sys.exit(1)
     print("First testing compilation directly from .cc file")
 
-    compiles, objdump = generate_objdump_for_file(sys.argv[1])
+    target = sys.argv[1]
+    
+    dri = DontRemoveInclude()
+    objdump = None
+    if target in dri.surrogates:
+        print("testing compilation with surrogates")
+        compiles = test_compile_w_surrogates(target, dri.surrogates[target])
+    else:
+        compiles, objdump = generate_objdump_for_file(target)
     print("file compiles?", compiles)
     #print(objdump)
 

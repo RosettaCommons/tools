@@ -76,7 +76,13 @@ def cxxtest_testgen_command():
 
 
 def cxxtest_gcc_compile_command():
-    return "g++ -c -isystem ../external/boost_1_55_0/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/dbio -I/usr/local/include -I/usr/include -o "
+    return "g++ -c -std=c++0x -ffor-scope -isystem ../external/boost_1_55_0/ -isystem ../external/ -isystem ../external/include/ -isystem ../external/dbio/ -isystem ../external/libxml2/include -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. -I../external/include -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/libxml2/include -I../external -I../external/dbio -I/usr/include -I/usr/local/include -o "
+
+
+#"g++ -c -std=c++0x -ffor-scope -isystem external/boost_1_55_0/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Isrc/platform/linux/64/gcc/7 -Itest -Isrc/platform/linux/64/gcc -Isrc/platform/linux/64 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/libxml2/include -Iexternal -Iexternal/dbio -I/usr/include -I/usr/local/include -o"
+#
+    
+# return "g++ -c -isystem ../external/boost_1_55_0/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -I../external/libxml2/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/dbio -I/usr/local/include -I/usr/include -o "
 
 
 def cxxtest_test_compile(cxx_hh, verbose=False, id=""):
@@ -92,10 +98,12 @@ def cxxtest_test_compile(cxx_hh, verbose=False, id=""):
     first_compile_command = (
         cxxtest_testgen_command() + "cxx1_tmp" + str(id) + ".cpp " + cxx_hh
     )
-    return_code = subprocess.call(
+    # print("first compile command", first_compile_command)
+    job1 = subprocess.Popen(
         no_empty_args(first_compile_command.split(" ")), stderr=errfile, stdout=logfile
     )
-    if return_code == 0:
+    _, _2 = job1.communicate()
+    if job1.returncode == 0:
         second_compile_command = (
             cxxtest_gcc_compile_command()
             + "cxx2_tmp"
@@ -104,12 +112,14 @@ def cxxtest_test_compile(cxx_hh, verbose=False, id=""):
             + str(id)
             + ".cpp"
         )
-        return_code = subprocess.call(
+        # print("second compile command", second_compile_command)
+        job2 = subprocess.Popen(
             no_empty_args(second_compile_command.split(" ")),
             stderr=errfile,
             stdout=logfile,
         )
-        return return_code == 0
+        _, _2 = job2.communicate()
+        return job2.returncode == 0
     return False
 
 

@@ -682,7 +682,7 @@ def wrap_compile_w_surrogates(surrogates, id, fname, file_contents):
 def simple_compile_from_lines(C_cc, file_contents):
     return test_compile_from_stdin(C_cc, file_contents)
 
-
+@curry
 def wrap_cxxtest_compile(id, C_cc, file_contents):
     # no option to read from stdin, so first write the file to disk
     open(C_cc, "w").writelines(file_contents[C_cc])
@@ -988,7 +988,7 @@ def canonical_prohibit_removal(DRI, C_cc, X_hh):
     """ Only prohibit the removal of the standard
     set of headers from C_cc
     """
-    return not prohibit_removal_standard(C_cc, X_hh, DRI)
+    return prohibit_removal_standard(C_cc, X_hh, DRI)
 
 @curry
 def prohibit_removal_of_non_subgraph_headers(

@@ -251,6 +251,10 @@ class DontRemoveInclude:
             ("iostream", "core/scoring/func/SumFunc.cc"), # maybe unnecessary?
             ("iostream", "core/scoring/etable/count_pair/CountPairFunction.cc"),
             ("ostream", "devel/denovo_protein_design/SSClass.hh"),
+            ("utility/stream_util.hh", "../test/core/io/mmtf_IO.cxxtest.hh"),
+            ("utility/stream_util.hh", "../test/protocols/fldsgn/SheetConstraintGenerator.cxxtest.hh"),
+            ("utility/stream_util.hh", "../test/protocols/denovo_design/components/DivideAndConquerorTests.cxxtest.hh"),
+            ("numeric/VoxelGrid.impl.hh", "../test/core/scoring/nmr/NMRDummySpinlabelEnsemble.cxxtest.hh"),
         ]
 
         for pair in pairs:

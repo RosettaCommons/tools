@@ -181,3 +181,33 @@ def count_autoheaders(fname, filelines):
         elif cr.line_is_visible() and cr.scope_level == 0 and is_include.match(line):
             include_count += 1
     return include_count
+
+def remove_autoheader_scar(fname, filelines):
+    if count_autoheaders(fname, filelines) > 0:
+        return
+    auto_header_start = "//Auto Headers"
+
+    cr = code_reader.CodeReader()
+    cr.push_new_file(fname)
+
+    auto_headers_begun = False
+    blank_line_after = False
+    
+    newlines = []
+    for line in filelines:
+        cr.examine_line(line)
+        if not auto_headers_begun:
+            if line.startswith(auto_header_start):
+                auto_headers_begun = True
+            else:
+                newlines.append(line)
+        else:
+            if not blank_line_after:
+                if line == "\n":
+                    blank_line_after = True
+                    continue
+            newlines.append(line)
+    with open(fname, "w") as fid:
+        fid.writelines(newlines)
+
+        

@@ -186,7 +186,7 @@ if 'nochain' in args:
     #Don't remove, because we're also using it as a chain designator
 
 if len(args) != 2:
-    parse.error("Must specify both the pdb and the chain id")
+    parser.error("Must specify both the pdb and the chain id")
 
 files_to_unlink = []
 

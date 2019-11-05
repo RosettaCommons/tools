@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import Bio
 import argparse
 from Bio import AlignIO
@@ -11,7 +10,8 @@ import pandas as pd
 import pyrosetta
 pyrosetta.init()
 
-# Authors: Dr. Jason S. Fell, Dr. Stephanie C. Contreras, Dr. Steve J. Bertolani and Dr. Justin B. Siegel 
+# Authors: Dr. Jason S. Fell, Dr. Timothy Coulther, Dr. Stephanie C. Contreras,
+# Dr. Steve J. Bertolani and Dr. Justin B. Siegel 
 #
 # See: Bertolani SJ, Siegel JB (2019) A new benchmark illustrates that integration of geometric constraints 
 # inferred from enzyme reaction chemistry can increase enzyme active site modeling accuracy. 
@@ -175,6 +175,7 @@ CA1CA2 = []
 CB1CB2 = []
 CA1CB2 = []
 CB1CA2 = []
+FullTemp = []
 
 for i in os.listdir('.'): # Parsing thru data files. #
     if i.endswith('.data'):
@@ -212,15 +213,16 @@ for i in os.listdir('.'): # Parsing thru data files. #
             CA1CA2.append(CA1CA2_xyz.norm())
             CB1CB2.append(CB1CB2_xyz.norm())
             CA1CB2.append(CA1CB2_xyz.norm())
-            CB1CA2.append(CB1CA2_xyz.norm())        
-
-df = pd.DataFrame(zip(template,pairing,residue1,residue2,CA1CA2,CB1CB2,CA1CB2,CB1CA2), 
+            CB1CA2.append(CB1CA2_xyz.norm())
+            FullTemp.append(template_n)    #adding templates up
+            
+df = pd.DataFrame(zip(FullTemp,pairing,residue1,residue2,CA1CA2,CB1CB2,CA1CB2,CB1CA2), 
                   columns=['template','pairing','residue1','residue2','CA1CA2','CB1CB2','CA1CB2','CB1CA2'])
 
 pairs = []
 for i in set(pairing):
     pairs.append(i)
-    
+  
 CACA_average = []
 CBCB_average = []
 CACB_average = []
@@ -239,8 +241,7 @@ with open('%s_distances.txt' % (args.name),'w') as distance: # Calculates distan
         distance.write('%s ' % (df_copy['CA1CB2'].mean()))
         CBCA_average.append(df_copy['CB1CA2'].mean())
         distance.write('%s\n' % (df_copy['CB1CA2'].mean()))
-distance.close()
-        
+distance.close()       
 listdata = []
 
 d = pd.read_csv('%s_residues.txt' % (args.name), sep='\s+') # Opens last file from first step

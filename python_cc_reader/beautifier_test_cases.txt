@@ -763,3 +763,19 @@ void test()                    | void test()
         statement3;            |     }
 }                              | }
 --- 88 if-curly-brace placement
+extern int myint;   | extern int myint;
+--- 89 extern variable declaration
+extern "C" {       | extern "C" {
+int foo() {        | int foo() {
+int bar = 5;       |     int bar = 5;
+return bar;        |     return bar;
+}                  | }
+}                  | }
+--- 90 extern scope
+namespace core {   | namespace core {
+int foo() {        | int foo() {
+int bar = 5;       |     int bar = 5;
+return bar;        |     return bar;
+}                  | }
+}                  | }
+--- 91 namespace scope

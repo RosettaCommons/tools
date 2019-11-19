@@ -16,8 +16,8 @@ import blargs
 #               to X.cc.beaut
 
 
-debug = False
-# debug = True
+# debug = False
+debug = True
 
 debug_equiv = False
 # debug_equiv = True
@@ -74,6 +74,8 @@ token_types = [
     "template",
     "template-arg-list",
     "empty-statement",
+    "extern",
+    "extern-scope",
 ]
 
 white_listed_macros = set(
@@ -177,6 +179,7 @@ class Beautifier:
             [
                 "using",
                 "namespace",
+                "extern",
                 "class",
                 "for",
                 "while",
@@ -253,6 +256,7 @@ class Beautifier:
                 "catch-scope",
                 "scope",
                 "statement-scope",
+                "extern-scope",
             ]
         )
         self.for_types = set(
@@ -727,6 +731,8 @@ class Beautifier:
             return self.process_while(i, stack)
         elif i_spelling == "namespace":
             return self.process_namespace(i, stack)
+        elif i_spelling == "extern":
+            return self.process_extern(i, stack)
         elif i_spelling == "class" or i_spelling == "struct":
             # treat classes and structs identically
             return self.process_class_decl(i, stack)
@@ -768,7 +774,10 @@ class Beautifier:
             return self.process_enum(i, stack)
         elif i_spelling in white_listed_macros:
             return self.process_simple_statement(i, stack)
-        elif stack[-1].type == "namespace-scope" or stack[-1].type == "class-scope":
+        elif (
+                stack[-1].type == "namespace-scope" or
+                stack[-1].type == "class-scope" or
+                stack[-1].type == "extern-scope" ):
             return self.process_function_preamble_or_variable(i, stack)
         else:
             return self.process_simple_statement(i, stack)
@@ -1570,6 +1579,32 @@ class Beautifier:
         # we should not have arrived here
         self.handle_read_all_tokens_error("process_namespace", stack)
 
+    def process_extern(self, i, stack):
+        if debug:
+            self.print_entry("process_extern", i, stack)
+        self.set_parent(i, stack, "extern")
+        stack.append(self.all_tokens[i])
+        i += 1
+        while i < len(self.all_tokens):
+            i = self.find_next_visible_token(i, stack);
+            if self.all_tokens[i].spelling == "{":
+                i = self.process_statement(i, stack);
+                stack.pop()
+                if debug:
+                    if i < len(self.all_tokens):
+                        self.print_entry("exitting process_namespace", i, stack)
+                    else:
+                        print("exiting process_extern; all tokens processed")
+                return i
+            if self.all_tokens[i].spelling == ";":
+                self.set_parent(i, stack)
+                stack.pop()
+                return i+1
+            self.set_parent(i, stack)
+            i += 1
+        # we should not have arrived here
+        self.handle_read_all_tokens_error("process_extern", stack)            
+        
     def process_class_decl(self, i, stack):
         assert (
             self.all_tokens[i].spelling == "class"
@@ -1873,8 +1908,9 @@ class Beautifier:
                 self.line_indentations[line_number] = self.line_indentations[
                     first_token.parent.line_number
                 ]
-        elif first_token.context() == "namespace-scope":
-            # namespaces scopes don't indent
+        elif (first_token.context() == "namespace-scope" or
+               first_token.context() == "extern-scope") :
+            # namespace and extern scopes don't indent
             if line_number != 0 and first_token.parent.parent:
                 self.line_indentations[line_number] = self.line_indentations[
                     first_token.parent.parent.line_number
@@ -3581,6 +3617,56 @@ class Beautifier:
         print("Ran out of tokens in namespace_equiv")
         return False, i_this, i_other
 
+    def extern_equiv(self, other, i_this, i_other, stack):
+        if debug_equiv:
+            self.enter_equiv(other, "extern_equiv", i_this, i_other, stack)
+        tok_this, tok_other = self.two_toks(other, i_this, i_other)
+        if tok_other.type == "empty-statement":
+            return self.extern_equiv(
+                other, i_this, other.find_next_visible_token(i_other + 1), stack
+            )
+        if not tok_this.equivalent(tok_other):
+            return False, i_this, i_other
+        i_this, i_other = self.two_next_visible(other, i_this + 1, i_other + 1)
+        while i_this < len(self.all_tokens) and i_other < len(self.all_tokens):
+            tok_this2, tok_other2 = self.two_toks(other, i_this, i_other)
+            if tok_this2.type == "extern-scope" or tok_other2 == "extern-scope":
+                if tok_this2.type != tok_other2.type:
+                    return False, i_this, i_other
+                else:
+                    stack.append("extern_equiv")
+                    retval = self.statement_equiv(other, i_this, i_other, stack)
+                    stack.pop()
+                    return retval
+            if tok_this2.parent is not tok_this or tok_other2.parent is not tok_other:
+                if debug_equiv:
+                    print(
+                        " " * len(stack) + "leaving extern_equiv",
+                        tok_this2.spelling,
+                        tok_this2.parent.spelling,
+                        tok_other2.spelling,
+                        tok_other2.parent.spelling,
+                        i_this,
+                        i_other,
+                    )
+                if (
+                    tok_this2.parent is not tok_this
+                    and tok_other2.parent is not tok_other
+                ):
+                    if debug_equiv:
+                        print("returning true")
+                    return True, i_this, i_other
+                else:
+                    if debug_equiv:
+                        print("returning false")
+                    return False, i_this, i_other
+            if not tok_this2.equivalent(tok_other2):
+                return False, i_this, i_other
+            i_this, i_other = self.two_next_visible(other, i_this + 1, i_other + 1)
+
+        print("Ran out of tokens in namespace_equiv")
+        return False, i_this, i_other
+
     def class_equiv(self, other, i_this, i_other, stack):
         if debug_equiv:
             self.enter_equiv(other, "class_equiv", i_this, i_other, stack)
@@ -4235,6 +4321,8 @@ class Beautifier:
             retval = self.while_equiv(other, i_this, i_other, stack)
         elif tok_this.type == "namespace":
             retval = self.namespace_equiv(other, i_this, i_other, stack)
+        elif tok_this.type == "extern":
+            retval = self.extern_equiv(other, i_this, i_other, stack)
         elif tok_this.type == "class":
             retval = self.class_equiv(other, i_this, i_other, stack)
         elif tok_this.type == "class-privacy":

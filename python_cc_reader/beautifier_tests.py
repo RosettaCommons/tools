@@ -1,5 +1,5 @@
-import beautifier
-import blargs
+from python_cc_reader.beauty import beautifier
+from python_cc_reader.external.blargs import blargs
 import sys
 
 class BeautifierTest :
@@ -21,8 +21,9 @@ def print_all_tokens( beaut ) :
     for token in beaut.all_tokens :
         print_token( token )
 
-def test_code_reader( lines_initial, lines_final ) :
+def test_code_reader(test_name, lines_initial, lines_final):
     beaut = beautifier.Beautifier()
+    beaut.filename = test_name
     for line in lines_initial :
         # print line,
         beaut.tokenize_line( line )
@@ -208,7 +209,7 @@ if __name__ == "__main__" :
         count_pass = 0
         for i,test in enumerate( tests ) :
             if just_one is not None and i+1 != just_one : continue
-            ok = test_code_reader( test.lines_initial, test.lines_final )
+            ok = test_code_reader(test.name, test.lines_initial, test.lines_final)
             if not ok :
                 print("Failed test", test.name)
                 print()

@@ -1,6 +1,6 @@
 # :noTabs=true:
 
-from python_cc_reader.inclusion_removal import test_compile
+from python_cc_reader.inclusion_removal.test_compile import test_compile
 from python_cc_reader.cpp_parser.code_utilities import scan_compilable_files, regex_subset
 
 from optparse import OptionParser, IndentedHelpFormatter
@@ -46,7 +46,7 @@ Intended to be called from the rosetta/rosetta_source/src directory.
         if not test_compile( header, verbose=options.verbose ) :
             # Re-run one more time with verbose option to get exact command line was used to compile
             test_compile( header, verbose=True )
-            print(header, "fails to compile on its own with error message:", file("out.log").read() + '\n')
+            print(header, "fails to compile on its own with error message:", open("out.log").read() + '\n')
             all_compile = False
         else :
             pass

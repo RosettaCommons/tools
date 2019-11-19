@@ -122,6 +122,7 @@ class DontRemoveInclude:
             ("core/kinematics/Jump.hh", "core/io/silent/ProteinSilentStruct.hh"),
             ("core/conformation/Residue.hh", "core/pose/util.tmpl.hh"),
             ("core/conformation/Conformation.hh", "core/pose/util.tmpl.hh"),
+            ("core/pack/interaction_graph/LinearMemoryInteractionGraph.hh", "core/pack/interaction_graph/SurfaceInteractionGraph.hh"),
             ("core/pack/interaction_graph/LinearMemoryInteractionGraph.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
             ("core/pack/task/PackerTask.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),
             ("core/pack/rotamer_set/RotamerSet.hh", "core/pack/interaction_graph/HPatchInteractionGraph.hh"),

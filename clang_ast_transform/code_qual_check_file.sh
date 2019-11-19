@@ -10,6 +10,7 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=code_quality_check /tmp/ $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
 	-isystem external/boost_1_55_0/ \
+	-isystem external/boost_submod/ \
 	-isystem external/ \
 	-isystem external/include/ \
 	-isystem external/dbio/ \
@@ -26,7 +27,6 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=code_quality_check /tmp/ $FILE -- \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_1_55_0 \
 	-Iexternal/dbio \
 	-I/usr/include \
 	-I/usr/local/include 

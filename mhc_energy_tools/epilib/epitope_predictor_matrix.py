@@ -55,7 +55,7 @@ class EpitopePredictorMatrix (EpitopePredictor):
         # Figure out the path to the Rosetta database assuming everything was cloned together
         rosdb = None
         try:
-            rosdb = os.path.abspath(os.path.dirname(__file__) + '/../../../main/database')
+            rosdb = os.path.abspath(os.path.dirname(__file__) + '/../../../database')
             if not os.path.isdir(rosdb): rosdb = None
         except:
             # TODO: print a warning?

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # This demo runs a series of tests that use the IEDB download capabilities.
 # For this, need to have mysql / mariadb up and running, with access to a database.
 # Also need to have installed mysql.connector https://dev.mysql.com/downloads/connector/python/

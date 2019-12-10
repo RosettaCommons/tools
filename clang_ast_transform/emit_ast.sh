@@ -19,7 +19,6 @@ $BD/bin/clang++ $1 -emit-ast -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_submod \
 	-Iexternal/dbio \
 	-I/usr/include \
 	-I/usr/local/include

@@ -54,8 +54,13 @@ then
     git submodule update --init --recursive
 
     cd $ROSETTA/main
-    git submodule update --init --recursive
-
+    # We have enough submodules in main that we may need to retry.
+    # (On some systems Git/GitHub apparently throttles things.)
+    until git submodule update --init --recursive; do
+        echo ">>>>>>>>> Main submodule update did not complete successfully. Retrying. <<<<<<<<<"
+        sleep 10
+    done
+ 
 fi
 
 

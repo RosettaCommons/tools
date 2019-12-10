@@ -24,7 +24,6 @@ $CLANG_BIN/rosetta-refactor-tool ${*:2} $FILE -- \
 	-I$SOURCE/src/platform/linux/64/clang \
 	-I$SOURCE/src/platform/linux/64 \
 	-I$SOURCE/src/platform/linux \
-	-I$SOURCE/external/boost_submod \
 	-I$SOURCE/external/dbio \
 	-I/usr/include \
 	-I/usr/local/include

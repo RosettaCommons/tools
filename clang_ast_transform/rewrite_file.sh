@@ -27,7 +27,6 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=rewrite -verbose $OUT_DIR $FILE -- \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_submod \
 	-Iexternal/dbio \
 	-I/usr/include \
 	-I/usr/local/include

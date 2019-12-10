@@ -29,7 +29,6 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $OUT_DIR $FILE -- \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_submod \
 	-Iexternal/dbio \
 	-Iexternal/cxxtest/ \
 	-Itest/ \

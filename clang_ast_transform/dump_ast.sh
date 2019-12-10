@@ -41,7 +41,6 @@ $CLANG_BUILD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	-I$ROSETTA_SOURCE/src/platform/linux/64/clang \
 	-I$ROSETTA_SOURCE/src/platform/linux/64 \
 	-I$ROSETTA_SOURCE/src/platform/linux \
-	-I$ROSETTA_SOURCE/external/boost_submod \
 	-I$ROSETTA_SOURCE/external/dbio \
 	-I/usr/include \
 	-I/usr/local/include

@@ -85,7 +85,6 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/src/platform/linux/64/clang " + \
               "-I" + rosetta_source_dir + "/src/platform/linux/64 " + \
               "-I" + rosetta_source_dir + "/src/platform/linux " + \
-              "-I" + rosetta_source_dir + "/external/boost_submod " + \
               "-I" + rosetta_source_dir + "/external/dbio " + \
               "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \

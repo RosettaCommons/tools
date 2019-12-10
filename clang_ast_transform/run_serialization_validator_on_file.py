@@ -67,7 +67,7 @@ if __name__ == "__main__" :
               "-pipe " + \
               "-ffor-scope " + \
               "-DEXIT_THROWS_EXCEPTION " + \
-              "-isystem " + rosetta_source_dir + "/external/boost_1_55_0/ " + \
+              "-isystem " + rosetta_source_dir + "/external/boost_submod/ " + \
               "-isystem " + rosetta_source_dir + "/external/ " + \
               "-isystem " + rosetta_source_dir + "/external/include/ " + \
               "-isystem " + rosetta_source_dir + "/external/dbio/ " + \
@@ -85,7 +85,7 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/src/platform/linux/64/clang " + \
               "-I" + rosetta_source_dir + "/src/platform/linux/64 " + \
               "-I" + rosetta_source_dir + "/src/platform/linux " + \
-              "-I" + rosetta_source_dir + "/external/boost_1_55_0 " + \
+              "-I" + rosetta_source_dir + "/external/boost_submod " + \
               "-I" + rosetta_source_dir + "/external/dbio " + \
               "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \

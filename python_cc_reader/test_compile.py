@@ -53,7 +53,7 @@ def cxxtest_testgen_command() :
 
 
 def cxxtest_gcc_compile_command() :
-   return "g++ -c -isystem ../external/boost_submod/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_submod -I../external/dbio -I/usr/local/include -I/usr/include -o "
+   return "g++ -c -isystem ../external/boost_submod/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/dbio -I/usr/local/include -I/usr/include -o "
 
 def cxxtest_test_compile( cxx_hh, verbose=False, id="" ) :
    out_log = "out.log"

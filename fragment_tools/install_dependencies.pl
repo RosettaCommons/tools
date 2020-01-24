@@ -168,7 +168,9 @@ if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 	my $url = "http://sparks-lab.org/pmwiki/download/yueyang/SPARKS-X/$package";
 	print "INSTALLING SPARKS-X from $url ....\n";
 	system("rm -rf sparks-x") if (-d "sparks-x"); # clean up interrupted attempts
-	system("wget -N $url");
+	if (!-e $package) {
+		system("wget -N $url");
+	}
 	system("tar -zxvf $package");
 	push(@packages_to_clean, "$Bin/$package");
 	# update paths to sparks-x directory in sparks-x scripts

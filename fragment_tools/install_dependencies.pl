@@ -90,10 +90,10 @@ BLASTCREDIT
 chdir($Bin);
 
 # psipred
-# from http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/psipred3.3.tar.gz
+# from http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old_versions/psipred3.3.tar.gz
 if ($overwrite || !-d "$Bin/psipred/bin" || !-d "$Bin/psipred/data") {
 	my $package = "psipred3.3.tar.gz";
-	my $url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/$package";
+	my $url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/old_versions/$package";
 	print "INSTALLING PSIPRED from $url ....\n";
 	system("rm -rf $Bin/psipred") if (-d "$Bin/psipred"); # clean up interrupted attempts
 	(mkdir("$Bin/psipred")) or die "ERROR! cannot mkdir $Bin/psipred: $!\n";

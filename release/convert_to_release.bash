@@ -7,7 +7,7 @@
 #globally fail if any subcommand fails
 set -e
 
-source ./tools/release/release_common_functions.bash
+source ./main/tools/release/release_common_functions.bash
 
 check_folder #ensures we are in the right directory
 
@@ -43,7 +43,7 @@ ROSETTA=`pwd`
 
 #Make sure we have the latest of all the submodules
 if [ "$debug" = false ];
-then 
+then
     cd $ROSETTA/tools
     git submodule update --init --recursive
 
@@ -60,7 +60,7 @@ then
         echo ">>>>>>>>> Main submodule update did not complete successfully. Retrying. <<<<<<<<<"
         sleep 10
     done
- 
+
 fi
 
 
@@ -123,7 +123,7 @@ cd $ROSETTA/main
 pwd
 #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
-for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
+for do_not_release in `cat $ROSETTA/main/tools/release/DONOTRELEASE.files`
 do
     #sed -i -e '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
     # <- does not work on Mac OS X due to outdated sed verion
@@ -205,7 +205,7 @@ rm -rf tests/loop_creation tests/inverse_rotamer_remodel
 # fi
 
 #git commit -m "removing known-to-need-devel integration tests"
-source $ROSETTA/tools/release/detect_itest_exes.bash
+source $ROSETTA/main/tools/release/detect_itest_exes.bash
 #git commit -m "deleting autoremoved integration tests"
 
 #check compile

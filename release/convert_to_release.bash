@@ -44,14 +44,14 @@ ROSETTA=`pwd`
 #Make sure we have the latest of all the submodules
 if [ "$debug" = false ];
 then
-    cd $ROSETTA/tools
-    git submodule update --init --recursive
+    # cd $ROSETTA/tools
+    # git submodule update --init --recursive
 
-    cd $ROSETTA/demos
-    git submodule update --init --recursive
+    # cd $ROSETTA/demos
+    # git submodule update --init --recursive
 
-    cd $ROSETTA/documentation
-    git submodule update --init --recursive
+    # cd $ROSETTA/documentation
+    # git submodule update --init --recursive
 
     cd $ROSETTA/main
     # We have enough submodules in main that we may need to retry.
@@ -65,7 +65,7 @@ fi
 
 
 #prepare documentation
-cd $ROSETTA/documentation
+cd $ROSETTA/main/documentation
 pwd
 
 #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
@@ -77,13 +77,13 @@ python remove_internal.py
 if [ "$debug" = false ];
 then
     #tools is a little weird to update, since this script updates overtop itself - so this really should be skipped while debugging
-    cd $ROSETTA/tools
+    cd $ROSETTA/main/tools
     pwd
     #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 fi
 
 #prepare demos
-cd $ROSETTA/demos
+cd $ROSETTA/main/demos
 pwd
 #git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
@@ -154,7 +154,7 @@ cd $ROSETTA/main/source/src && git rm -rf ui || true
 # Remove all of the pilot directories.
 cd $ROSETTA/main/
 find . -name pilot -type d -exec rm -r {} +
-cd $ROSETTA/demos/
+cd $ROSETTA/main/demos/
 find . -name pilot -type d -exec rm -r {} +
 #documentation and tools don't have pilot dirs, skip to speed things up.
 

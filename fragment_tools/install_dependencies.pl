@@ -280,10 +280,10 @@ chdir($Bin);
 if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 	chdir($datdir);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
-	system("wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.9.0+-src.tar.gz");
-	system("tar -zxf ncbi-blast-2.9.0+-src.tar.gz");
-	system("cp ncbi-blast-2.9.0+-src/c++/src/app/blast/update_blastdb.pl .");
-	die "ERROR! wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-1.9.0+-src.tar.gz failed.\n" if (!-s "$datdir/update_blastdb.pl");
+	system("wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz");
+	system("tar -zxf ncbi-blast-2.10.0+-src.tar.gz");
+	system("cp ncbi-blast-2.10.0+-src/c++/src/app/blast/update_blastdb.pl .");
+	die "ERROR! wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz failed.\n" if (!-s "$datdir/update_blastdb.pl");
 	if ( -d "$datdir/nr" ) {
 		system("rm -rf $datdir/nr*"); # clean up interrupted attempts
 		$SIG{INT} = \&clean_nr_tgz;

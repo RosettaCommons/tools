@@ -7,7 +7,7 @@
 #globally fail if any subcommand fails
 set -e
 
-source ./tools/release/release_common_functions.bash
+source ./main/tools/release/release_common_functions.bash
 
 function deep_clean {
 

@@ -41,7 +41,10 @@ if __name__ == "__main__" :
         sys.stderr.write( "ERROR: Branch '" + ref_branch + "' doesn't seem to be a valid branch in this repository - not beautifying.\n" )
         sys.exit(-1)
     #print("rev to diff: " + rev_to_diff_against)
-    bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
+    # --name-status -- Simple "files changed" listing which annotates files which have been removed.
+    # --no-renames -- turn the more complicated rename line into two add & delete lines
+    # --relative -- make the name listing relative to the current subdirectory.
+    bash_command = [ "git", "diff", "--relative", "--no-renames", "--name-status", rev_to_diff_against, "HEAD" ]
     file_list = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0]
     # print("Initial list\n", file_list)
     file_list = [ x.split(None,1) for x in file_list.splitlines() ]

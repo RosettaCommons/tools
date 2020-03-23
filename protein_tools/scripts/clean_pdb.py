@@ -53,7 +53,7 @@ def download_pdb(pdb_id, dest_dir):
     url = 'http://www.rcsb.org/pdb/files/%s.pdb.gz' % (pdb_id.upper())
     dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id)
     wget_cmd = 'wget --quiet %s -O %s' % (url, dest)
-    print wget_cmd
+    print( wget_cmd )
     if remote_host:
         wget_cmd = 'ssh %s %s' % (remote_host, wget_cmd)
 
@@ -61,7 +61,7 @@ def download_pdb(pdb_id, dest_dir):
     if (exists(dest)):
         return dest
     else:
-        print "Error: didn't download file!"
+        print( "Error: didn't download file!" )
 
 
 def check_and_print_pdb(count, residue_buffer, residue_letter):
@@ -133,9 +133,9 @@ def open_pdb( name ):
     '''
     filename = get_pdb_filename( name )
     if filename is not None:
-        print "Found existing PDB file at", filename
+        print( "Found existing PDB file at", filename )
     else:
-        print "File for %s doesn't exist, downloading from internet." % (name)
+        print( "File for %s doesn't exist, downloading from internet." % (name) )
         filename = download_pdb(name[0:4].upper(), '.')
         global files_to_unlink
         files_to_unlink.append(filename)
@@ -306,7 +306,7 @@ if nres <= 0:
 if chainid == ' ':
     chainid = '_'
 
-print filename_stem, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful
+print( filename_stem, "".join(chainid), "%5d" % nres, flag_altpos,  flag_insres,  flag_modres,  flag_misdns, flag_successful )
 
 if nres > 0:
     if not options.nopdbout:

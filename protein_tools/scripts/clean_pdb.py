@@ -24,13 +24,13 @@ to get all the chains.
 ## generates a fasta file
 ## and leaves the 1st model among many NMR models
 
+from __future__ import print_function
 import sys
 import os
 from sys import argv, stderr, stdout
 from os import popen, system
 from os.path import exists, basename
 from optparse import OptionParser
-from __future__ import print_function
 
 # Local package imports
 

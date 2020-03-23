@@ -219,7 +219,7 @@ for line in lines:
 
         # Is it a modified residue ?
         # (Looking for modified residues in both ATOM and HETATM records is deliberate)
-        if modres.has_key(resn):
+        if resn in modres:
             # if so replace it with its canonical equivalent !
             orig_resn = resn
             resn = modres[resn]
@@ -237,7 +237,7 @@ for line in lines:
                 shit_stat_modres = True
 
         # Only process residues we know are valid.
-        if not longer_names.has_key(resn):
+        if resn not in longer_names:
             continue
 
         resnum = line_edit[22:27]
@@ -298,7 +298,7 @@ flag_misdns = "---"
 if shit_stat_misdns:
     flag_misdns = "DNS"
 
-nres = len("".join(fastaseq.values()))
+nres = len("".join(list(fastaseq.values())))
 
 flag_successful = "OK"
 if nres <= 0:
@@ -331,7 +331,7 @@ if nres > 0:
             handle.write('\n')
             handle.close()
     else:
-        fastaseq = ["".join(fastaseq.values())]
+        fastaseq = ["".join(list(fastaseq.values()))]
         fastaid.write('>'+filename_stem+"_"+chainid+'\n')
         fastaid.writelines(fastaseq)
         fastaid.write('\n')

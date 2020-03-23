@@ -30,6 +30,7 @@ from sys import argv, stderr, stdout
 from os import popen, system
 from os.path import exists, basename
 from optparse import OptionParser
+from __future__ import print_function
 
 # Local package imports
 

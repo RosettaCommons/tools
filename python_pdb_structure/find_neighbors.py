@@ -12,7 +12,7 @@ def find_interface_residues( pdb_structure, cutoff=10 ) :
 
 def find_interface_residues_from_neighbs( pdb_structure, neighbs ) :
     intsets = {}
-    for c in pdb_structure.chainmap.keys():
+    for c in list(pdb_structure.chainmap.keys()):
         intsets[ c ] = set( [] )
     for neighb in neighbs:
         if neighb[0][0] != neighb[1][0] :
@@ -70,10 +70,10 @@ def any_atoms_within_cutoff( res1, res2, cutoff ) :
     #                if (a1.xyz - a2.xyz).length() < cutoff :
     #                    return True
     r1isgly = res1.resname == "GLY"
-    for a1name in res1.stripped_atmap.keys() :
+    for a1name in list(res1.stripped_atmap.keys()) :
         if not r1isgly and a1name in bbats: continue
         a1 = res1.stripped_atmap[a1name]
-        for a2name in res2.stripped_atmap.keys() :
+        for a2name in list(res2.stripped_atmap.keys()) :
             a2 = res2.stripped_atmap[a2name]
             if (a1.xyz - a2.xyz).length() < cutoff :
                 return True
@@ -114,7 +114,7 @@ def find_interface_pointing_residues_from_neighbs( pdb, neighbs ):
     cb = " CB "
     #cos70 = math.cos( math.radians( 70 ))
     intsets = {}
-    for c in pdb.chainmap.keys():
+    for c in list(pdb.chainmap.keys()):
         intsets[ c ] = set( [] )
     for neighb in neighbs:
         if neighb[0][0] != neighb[1][0] :
@@ -184,14 +184,14 @@ def find_neighbors_within_CB_cutoff( pdb_struct, cutoff ) :
     cb = " CB "
     ca = " CA "
     neighbs = []
-    for cind in xrange( len( pdb_struct.chains )):
+    for cind in range( len( pdb_struct.chains )):
         c = pdb_struct.chains[ cind ]
-        for rind in xrange( len( c.residues )):
+        for rind in range( len( c.residues )):
             r = c.residues[ rind ]
             coord = select_coord_for_residue( r, cb, ca )
             if not coord:
                 continue
-            for rind2 in xrange( rind+1, len(c.residues)):
+            for rind2 in range( rind+1, len(c.residues)):
                 r2 = c.residues[ rind2 ]
                 coord2 = select_coord_for_residue( r2, cb, ca )
                 if not coord2:
@@ -199,9 +199,9 @@ def find_neighbors_within_CB_cutoff( pdb_struct, cutoff ) :
                 #print cind, rind, cind, rind2, coord, coord2, (coord - coord2).length()
                 if (coord - coord2).length() < cutoff :
                     neighbs.append( (( c.chain_name, r.resstring ), (c.chain_name, r2.resstring )) )
-            for cind2 in xrange( cind + 1, len( pdb_struct.chains ) ):
+            for cind2 in range( cind + 1, len( pdb_struct.chains ) ):
                 c2 = pdb_struct.chains[ cind2 ]
-                for rind2 in xrange( len( c2.residues )):
+                for rind2 in range( len( c2.residues )):
                     r2 = c2.residues[ rind2 ]
                     coord2 = select_coord_for_residue( r2, cb, ca )
                     if not coord2:
@@ -247,7 +247,7 @@ def get_average_neighb_vector( pdb_struct, target_res, neighbor_cutoff=10, close
         neighbs = find_neighbors_within_CB_cutoff( pdb_struct, 10 )
         neighb_graph = neighbor_graph( pdb_struct, 10, neighbs )
     if target_chain == "all" :
-        chains = pdb_struct.chainmap.keys()
+        chains = list(pdb_struct.chainmap.keys())
     else :
         chains = [ target_chain ]
     target_xyz = select_coord_for_residue( target_res )

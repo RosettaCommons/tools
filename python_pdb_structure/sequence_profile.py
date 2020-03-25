@@ -32,7 +32,7 @@ class DepthClassifier :
         for name in self.depth_names :
             if len(name) > self.max_depth_name_length : self.max_depth_name_length = len(name)
     def classify_depth_level( self, n_neighbors ) :
-        for i in xrange(len(self.upper_boundaries)):
+        for i in range(len(self.upper_boundaries)):
             if n_neighbors <= self.upper_boundaries[i] :
                 return i #found it
         return len(self.upper_boundaries) # return the index of the most buried depth
@@ -43,7 +43,7 @@ class DepthSequenceProfile :
     def __init__( self ) : # default ["EXP", "INT", "BUR" ]
         self.depth_profiles = []
         self.depth_classifier = DepthClassifier()
-        for i in xrange( self.depth_classifier.n_levels ) :
+        for i in range( self.depth_classifier.n_levels ) :
             self.depth_profiles.append( SequenceProfile() )
         self.whole_profile = SequenceProfile()
     def classify_depth_level( self, n_neighbors ) :
@@ -62,7 +62,7 @@ class DepthSequenceProfile :
         strlines.append( currline + "\n" )
         currline = "ALL" + " " * ( self.depth_classifier.max_depth_name_length + 1 - 3 )
         strlines.append( currline + self.strline_for_seqprof( self.whole_profile ) + "\n" )
-        for i in xrange( len( self.depth_classifier.depth_names )) :
+        for i in range( len( self.depth_classifier.depth_names )) :
             strlines.append( self.depth_classifier.depth_names[ i ]
                              + " " * ( self.depth_classifier.max_depth_name_length - len( self.depth_classifier.depth_names[ i ] ) + 1 )
                              + self.strline_for_seqprof( self.depth_profiles[ i ] ) + "\n" )
@@ -74,7 +74,7 @@ class DepthSequenceProfile :
         return line
     def increment( self, sqprf2 ) :
         assert( len(self.depth_profiles) == len( sqprf2.depth_profiles))
-        for i in xrange(len(self.depth_profiles)):
+        for i in range(len(self.depth_profiles)):
             self.depth_profiles[i].increment( sqprf2.depth_profiles[i] )
         self.whole_profile.increment( sqprf2.whole_profile )
 
@@ -92,10 +92,10 @@ def cross_entropy_for_twoseqprofs( prof1, prof2 ) :
 
 def print_depth_cross_entropies( dprof1, dprof2 ) :
     xent, ent = cross_entropy_for_twoseqprofs( dprof1.whole_profile, dprof2.whole_profile )
-    print "ALL :",( "%6.3f %6.3f %6.3f" % (ent, xent, (xent - ent) ))
-    for i in xrange(len(dprof1.depth_names)) :
+    print("ALL :",( "%6.3f %6.3f %6.3f" % (ent, xent, (xent - ent) )))
+    for i in range(len(dprof1.depth_names)) :
         xent, ent = cross_entropy_for_twoseqprofs( dprof1.depth_profiles[i], dprof2.depth_profiles[i] )
-        print dprof1.depth_names[i], ":", ( "%6.3f %6.3f %6.3f" % (ent, xent, (xent - ent) ))
+        print(dprof1.depth_names[i], ":", ( "%6.3f %6.3f %6.3f" % (ent, xent, (xent - ent) )))
 
 def freqs_for_aa_group( seqprof, aaset ) :
     sum = 0

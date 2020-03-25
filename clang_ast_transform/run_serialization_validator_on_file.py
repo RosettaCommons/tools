@@ -67,7 +67,6 @@ if __name__ == "__main__" :
               "-pipe " + \
               "-ffor-scope " + \
               "-DEXIT_THROWS_EXCEPTION " + \
-              "-isystem " + rosetta_source_dir + "/external/boost_1_55_0/ " + \
               "-isystem " + rosetta_source_dir + "/external/boost_submod/ " + \
               "-isystem " + rosetta_source_dir + "/external/ " + \
               "-isystem " + rosetta_source_dir + "/external/include/ " + \

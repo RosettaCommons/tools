@@ -8,7 +8,6 @@ cd $SOURCE
 $CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $1 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
-	-isystem external/boost_1_55_0/ \
 	-isystem external/boost_submod/ \
 	-isystem external/ \
 	-isystem external/include/ \

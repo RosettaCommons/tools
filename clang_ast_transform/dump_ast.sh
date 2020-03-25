@@ -23,7 +23,6 @@ ROSETTA_SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
 $CLANG_BUILD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
-	-isystem $ROSETTA_SOURCE/external/boost_1_55_0/ \
 	-isystem $ROSETTA_SOURCE/external/boost_submod/ \
 	-isystem $ROSETTA_SOURCE/external/ \
 	-isystem $ROSETTA_SOURCE/external/include/ \

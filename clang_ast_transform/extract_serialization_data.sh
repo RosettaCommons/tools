@@ -29,7 +29,6 @@ cd $SOURCE
 $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_decl,find_field_decl $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
-	-isystem $SOURCE/external/boost_1_55_0/ \
 	-isystem $SOURCE/external/boost_submod/ \
 	-isystem $SOURCE/external/ \
 	-isystem $SOURCE/external/include/ \

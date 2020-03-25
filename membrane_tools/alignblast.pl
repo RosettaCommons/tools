@@ -210,25 +210,24 @@ if ($query_file) {
 $line_number++;
 for ($i=1; $i<=9; $i++)
 {
-    $line=<INFILE>;
     if (!$line) {die("Error in alignblast.pl: blast output file $infile truncated: $!\n");} 
     $line_number++;
     if ($line=~/^Results from round/) 
     {
-	# PsiBlast output! Search for line number with last occurence of "Results from round"
-	if ($v>=3) {print("PsiBlast output with several rounds detected. Searching for last round...\n");}
-	my $last_line=$line_number;
-	while ($line=<INFILE>) #scan through PsiBlast-output line by line
-	{
-	    if ($line=~/^Results from round/) {$last_line=$line_number;}
-	    $line_number++;
-	}
-	# Advance to line with last occurence of "Results from round" 
-	close INFILE;
-	open INFILE,"<$infile" or die ("cannot open $infile: $!\n");
-	for ($j=1; $j<=$last_line; $j++) {<INFILE>;}
-	last;
-    } 
+		# PsiBlast output! Search for line number with last occurence of "Results from round"
+		if ($v>=3) {print("PsiBlast output with several rounds detected. Searching for last round...\n");}
+		my $last_line=$line_number;
+		while ($line=<INFILE>) #scan through PsiBlast-output line by line
+		{
+		    if ($line=~/^Results from round/) {$last_line=$line_number;}
+		    $line_number++;
+		}
+		# Advance to line with last occurence of "Results from round" 
+		close INFILE;
+		open INFILE,"<$infile" or die ("cannot open $infile: $!\n");
+		for ($j=1; $j<=$last_line; $j++) {<INFILE>;}
+		last;
+    }
 }
 
 

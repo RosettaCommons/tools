@@ -41,7 +41,7 @@ def central_compile_command():
     # cc1plus: error: output filename specified twice
 
     include_directories = (
-        " -isystem ../external/boost_1_55_0/ " +
+        " -isystem ../external/boost_submod/ " +
         "-isystem ../external/ " +
         "-isystem ../external/include/ " +
         "-isystem ../external/dbio/" +
@@ -59,7 +59,7 @@ def central_compile_command():
         + nbits
         + " -Iplatform/"
         + os
-        + " -I../external/boost_1_55_0 -I/usr/local/include -I/usr/include/ -I../external/dbio -I../external/libxml2/include"
+        + " -I../external/boost_submod -I/usr/local/include -I/usr/include/ -I../external/dbio -I../external/libxml2/include"
     )
 
     generic_command = (
@@ -76,7 +76,7 @@ def cxxtest_testgen_command():
 
 
 def cxxtest_gcc_compile_command():
-    return "g++ -c -std=c++0x -ffor-scope -isystem ../external/boost_1_55_0/ -isystem ../external/ -isystem ../external/include/ -isystem ../external/dbio/ -isystem ../external/libxml2/include -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. -I../external/include -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/libxml2/include -I../external -I../external/dbio -I/usr/include -I/usr/local/include -o "
+    return "g++ -c -std=c++0x -ffor-scope -isystem ../external/boost_submod/boost -isystem ../external/ -isystem ../external/include/ -isystem ../external/dbio/ -isystem ../external/libxml2/include -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. -I../external/include -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/libxml2/include -I../external -I../external/dbio -I/usr/include -I/usr/local/include -o "
 
 
 #"g++ -c -std=c++0x -ffor-scope -isystem external/boost_1_55_0/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Isrc/platform/linux/64/gcc/7 -Itest -Isrc/platform/linux/64/gcc -Isrc/platform/linux/64 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/libxml2/include -Iexternal -Iexternal/dbio -I/usr/include -I/usr/local/include -o"

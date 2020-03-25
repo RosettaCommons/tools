@@ -38,6 +38,7 @@ my $VALL = $ENV{"VALL"} || "$Bin/vall.jul19.2011"; # template database
 # BLAST path (Requires non-blast+ NCBI version)
 my $BLAST_DIR = $ENV{"BLAST_DIR"} || "$Bin/blast";
 my $BLAST_NUM_CPUS = int($ENV{"BLAST_NUM_CPUS"}) || 8;    # number of processors to use (blastpgp -a option)
+$ENV{"BLAST_NUM_CPUS"} = $BLAST_NUM_CPUS;  # set ENV for sparksX
 
 # NR database path
 my $NR = $ENV{"NR"} || "$Bin/databases/nr";
@@ -249,16 +250,11 @@ $VALL_BLAST_DB =~ s/\.gz\.blast$/\.blast/;
 my $PDB_SEQRES      = "$Bin/pdb_seqres.txt";
 if ( !$options{homs} ) {
 	if (!-s "$VALL_BLAST_DB.phr") {
-		system("gunzip $VALL_BLAST_DB.gz") if (-s "$VALL_BLAST_DB.gz");
+		system("gunzip -c $VALL_BLAST_DB.gz > $VALL_BLAST_DB") if (-s "$VALL_BLAST_DB.gz");
 		system("$BLAST_DIR/bin/formatdb -i $VALL_BLAST_DB") if (-s $VALL_BLAST_DB);
 	}
 	if (!-s $PDB_SEQRES) {
-		if ($INTERNET_HOST) {
-			my $pwd = cwd();
-			system("ssh $INTERNET_HOST 'cd $pwd; wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt'");
-		} else {
-			system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
-		}
+		system("wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt");
 		if (!-s "pdb_seqres.txt") { die "ERROR! wget ftp://ftp.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt failed\n"; }
 		system("mv pdb_seqres.txt $PDB_SEQRES") if (!-s $PDB_SEQRES);
 	}
@@ -448,7 +444,7 @@ unless ( &nonempty_file_exists("$options{runid}.check") ) {
     print_debug("Using nr: $NR");
     if (
         !&try_try_again(
-"$PSIBLAST -t 1 -i $options{fastafile} -F F -j2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
+"$PSIBLAST -t 1 -i $options{fastafile} -F F -j 2 -o $options{runid}.blast -d $NR -v10000 -b10000 -K1000 -h0.0009 -e0.0009 -C $options{runid}.check -Q $options{runid}.pssm",
             2,
             ["$options{runid}.check"],
             [
@@ -490,7 +486,7 @@ if ( $options{psipred}
         {
             print_debug("Running psi-blast for psipred, using $PFILTNR.");
             my $psiblast_success = &try_try_again(
-              "$PSIBLAST -t 1 -b10000 -v10000 -j3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
+              "$PSIBLAST -t 1 -b10000 -v10000 -j 3 -h0.001 -d $PFILTNR -i $options{fastafile} -C sstmp.chk -Q sstmp.ascii -o ss_blast",
               2, [ "sstmp.chk", "sstmp.ascii" ], [ "sstmp.chk", "sstmp.ascii", "ss_blast" ]);
             $psiblast_success or die("psipred psi-blast failed!\n");
 

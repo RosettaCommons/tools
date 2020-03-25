@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p out
 
 #1 List Propred epitope hits (5%) for SakStar, using the default Southwood set of 8 alleles

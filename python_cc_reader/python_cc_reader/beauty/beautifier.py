@@ -721,6 +721,13 @@ class Beautifier:
         if debug:
             self.print_entry("process_statement", i, stack)
         i_spelling = self.all_tokens[i].spelling
+
+        # not all externs lead to extern-scoping
+        if i_spelling == "extern":
+            extern_c_found, next_tok = self.process_extern(i, stack)
+            if extern_c_found:
+                return next_tok
+
         if i_spelling in self.for_types:
             return self.process_for(i, stack)
         elif i_spelling == "if":
@@ -731,8 +738,6 @@ class Beautifier:
             return self.process_while(i, stack)
         elif i_spelling == "namespace":
             return self.process_namespace(i, stack)
-        elif i_spelling == "extern":
-            return self.process_extern(i, stack)
         elif i_spelling == "class" or i_spelling == "struct":
             # treat classes and structs identically
             return self.process_class_decl(i, stack)
@@ -1580,6 +1585,22 @@ class Beautifier:
         self.handle_read_all_tokens_error("process_namespace", stack)
 
     def process_extern(self, i, stack):
+        # extern "C" is treated like a namespace declaration,
+        # but all other instances of extern are treated like "inline"
+        # i.e., they are ignored.
+        i_next = i + 1
+        while i_next < len(self.all_tokens):
+            i_next_token = self.all_tokens[i_next]
+            if i_next_token.is_visible:
+                if i_next_token.spelling != '"':
+                    return False, i+1
+                if self.all_tokens[i_next+1].spelling != "C":
+                    return False, i+1
+                if self.all_tokens[i_next+2].spelling != '"':
+                    return False, i+1
+                break
+            i_next += 1
+
         if debug:
             self.print_entry("process_extern", i, stack)
         self.set_parent(i, stack, "extern")
@@ -1595,11 +1616,11 @@ class Beautifier:
                         self.print_entry("exitting process_namespace", i, stack)
                     else:
                         print("exiting process_extern; all tokens processed")
-                return i
+                return True, i
             if self.all_tokens[i].spelling == ";":
                 self.set_parent(i, stack)
                 stack.pop()
-                return i+1
+                return True, i+1
             self.set_parent(i, stack)
             i += 1
         # we should not have arrived here

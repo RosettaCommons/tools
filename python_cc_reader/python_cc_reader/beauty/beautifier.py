@@ -16,8 +16,8 @@ import blargs
 #               to X.cc.beaut
 
 
-# debug = False
-debug = True
+debug = False
+# debug = True
 
 debug_equiv = False
 # debug_equiv = True

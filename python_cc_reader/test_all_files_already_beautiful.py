@@ -1,3 +1,7 @@
+import os
+print("PYTHONPATH environment variable:", os.environ["PYTHONPATH"])
+
+
 from beautify_compiled_files_w_fork import *
 import os, sys, subprocess
 try:

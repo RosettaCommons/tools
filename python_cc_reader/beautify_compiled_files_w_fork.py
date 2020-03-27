@@ -1,3 +1,7 @@
+import sys
+for path in sys.path:
+    print("syspath2:", path)
+
 
 from python_cc_reader.utility import fork_manager
 from python_cc_reader.external.blargs import blargs

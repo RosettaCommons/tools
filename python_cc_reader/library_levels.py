@@ -1,3 +1,9 @@
+import sys
+print("Python version")
+print (sys.version)
+print("Version info.")
+print (sys.version_info)
+
 from python_cc_reader.cpp_parser.code_utilities import *
 from python_cc_reader.inclusion_removal.inclusion_graph import *
 from optparse import OptionParser

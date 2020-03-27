@@ -1,5 +1,7 @@
-import os
-print("PYTHONPATH environment variable:", os.environ["PYTHONPATH"])
+import sys
+for path in sys.path:
+    print("syspath:", path)
+
 
 
 from beautify_compiled_files_w_fork import *

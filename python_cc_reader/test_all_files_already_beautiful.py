@@ -1,8 +1,3 @@
-import sys
-for path in sys.path:
-    print("syspath:", path)
-
-
 from beautify_compiled_files_w_fork import *
 import os, sys, subprocess
 try:

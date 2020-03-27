@@ -2,6 +2,10 @@ import sys
 for path in sys.path:
     print("syspath2:", path)
 
+import python_cc_reader
+print("python cc reader?")
+print(python_cc_reader)
+    
 
 from python_cc_reader.utility import fork_manager
 from python_cc_reader.external.blargs import blargs

@@ -330,6 +330,7 @@ class Beautifier:
                     self.take_token_for_range(i, i + 2)
                     start = -1
                     i += 2
+                # <<, >>
                 elif (
                     i + 1 < len(self.line)
                     and (self.line[i] == "<" or self.line[i] == ">")
@@ -1208,6 +1209,16 @@ class Beautifier:
         )  # save this in case we aren't actually entering a function; treat it like a statement in that case
         self.set_parent(i, stack, "function")
         stack.append(self.all_tokens[i])
+        if self.all_tokens[i].spelling in open_brackets:
+            if debug:
+                print(
+                    " " * len(stack),
+                    "found open bracket:",
+                    self.all_tokens[i].spelling,
+                    "on line",
+                    self.all_tokens[i].line_number + 1,
+                )
+            bracket_stack.append(self.all_tokens[i].spelling)
         i += 1
         while i < len(self.all_tokens):
             # print((" "*len(stack)), "process function preamble or variable", i, self.all_tokens[i].spelling, self.all_tokens[i].line_number+1)

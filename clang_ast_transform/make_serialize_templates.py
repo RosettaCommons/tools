@@ -32,11 +32,13 @@ Run: python3 src/core/io/serialization/make_serialize_templates.py src/core/io/s
 ### TODO: load_and_construct arguments?
 
 import os, sys, re
-import blargs
 
-sys.path.insert(0, os.path.realpath(__file__).rpartition("/")[0] + "/../")
+sys.path.insert(0, os.path.realpath(__file__).rpartition("/")[0] + "/../python_cc_reader/")
+sys.path.insert(0, os.path.realpath(__file__).rpartition("/")[0] + "/../external/")
 # print( sys.path )
-import python_cc_reader.code_reader
+
+import blargs
+from python_cc_reader.cpp_parser import code_reader
 
 
 dryrun = False  # Don't change files
@@ -264,9 +266,9 @@ class Unit:
         """
         Examine all the classes/structs in a single entire translation unit (i.e. a .hh file with one or more classes)
         """
-        hcropts = python_cc_reader.code_reader.HCROptions()
+        hcropts = code_reader.HCROptions()
         hcropts.defined_preprocessor_variables.append("SERIALIZATION")
-        classdecs = python_cc_reader.code_reader.read_classes_from_header(
+        classdecs = code_reader.read_classes_from_header(
             self.filename, open(self.filename).readlines(), hcropts
         )
         # print "read", len(classdecs), "class in file", self.filename

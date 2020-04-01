@@ -1,8 +1,8 @@
-from . import code_utilities
-from . import library_levels
-from . import pygraph
-from . import inclusion_graph
-from . import determine_protocols_library_dependencies
+from python_cc_reader.cpp_parser import code_utilities
+from python_cc_reader.inclusion_removal import library_levels
+from python_cc_reader.inclusion_removal import pygraph
+from python_cc_reader.inclusion_removal import inclusion_graph
+from python_cc_reader.inclusion_removal import determine_protocols_library_dependencies
 import sys
 
 

@@ -2,6 +2,7 @@ from python_cc_reader.beauty import beautifier
 from python_cc_reader.external.blargs import blargs
 import sys
 
+
 class BeautifierTest :
     def __init__( self, li, lf, name ) :
         self.lines_initial = li

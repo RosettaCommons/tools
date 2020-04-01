@@ -1,5 +1,5 @@
-from pythonc_cc_reader.code_improvement.inclusion_removal.inclusion_graph import *
-from pythonc_cc_reader.code_utilities import *
+from pythonc_cc_reader.inclusion_removal.inclusion_graph import *
+from pythonc_cc_reader.cpp_parser.code_utilities import *
 
 
 def total_inclusion_count():

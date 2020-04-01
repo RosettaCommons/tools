@@ -1,11 +1,13 @@
 import os, sys, re
 import make_serialize_templates
-import blargs
-import beautifier
 
-sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc_reader" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../external" )
 #print( sys.path )
-import python_cc_reader.code_reader
+
+import blargs
+from python_cc_reader.cpp_parser import code_reader
+from python_cc_reader.beauty import beautifier
 
 def mover_hh_stub() :
     return [

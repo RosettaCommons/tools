@@ -18,9 +18,9 @@
 #    revision 33042 lives (~/rosetta/SVN/mini_33042/mini)
 
 import sys, os
-from .code_utilities import *
-from .inclusion_graph import *
-from .add_headers import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.inclusion_graph import *
+from python_cc_reader.inclusion_removal.add_headers import *
 
 
 class Chdir:         

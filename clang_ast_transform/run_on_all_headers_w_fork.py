@@ -1,13 +1,17 @@
-import fork_manager
-import blargs
-import subprocess
-
-from test_compile import *
-from code_utilities import *
-from inclusion_equivalence_sets import *
-
+import os
 import re
 import sys
+import subprocess
+
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../external" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc_reader" )
+
+import blargs
+from python_cc_reader.utility import fork_manager
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.inclusion_removal.inclusion_equivalence_sets import *
+
 
 # this class keeps track of which process -- represented by pid -- is responsible for
 # which job.  It handles the two callbacks from the ForkManager

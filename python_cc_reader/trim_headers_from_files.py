@@ -1,10 +1,10 @@
-from .inclusion_graph import *
-from .code_utilities import *
-from .code_reader import *
-from .test_compile import *
-from .reinterpret_objdump import *
-from .add_headers import *
-from .add_namespaces import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.cpp_parser.code_reader import *
+from python_cc_reader.inclusion_removal.inclusion_graph import *
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.inclusion_removal.reinterpret_objdump import *
+from python_cc_reader.inclusion_removal.add_headers import *
+from python_cc_reader.inclusion_removal.add_namespaces import *
 import sys
 import os
 import subprocess

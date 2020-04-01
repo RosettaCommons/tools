@@ -1,19 +1,20 @@
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.cpp_parser.code_reader import *
 
-from .inclusion_graph import *
-from .test_compile import *
-from .code_utilities import *
-from .inclusion_equivalence_sets import *
-from .add_headers import *
-from .add_namespaces import *
-from .remove_header import *
-from .remove_duplicate_headers import *
-from .code_reader import *
-from .reinterpret_objdump import *
-from .dont_remove_include import *
-from . import code_reader
+from python_cc_reader.inclusion_removal.inclusion_graph import *
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.inclusion_removal.inclusion_equivalence_sets import *
+from python_cc_reader.inclusion_removal.add_headers import *
+from python_cc_reader.inclusion_removal.add_namespaces import *
+from python_cc_reader.inclusion_removal.remove_header import *
+from python_cc_reader.inclusion_removal.remove_duplicate_headers import *
+from python_cc_reader.inclusion_removal.reinterpret_objdump import *
+from python_cc_reader.inclusion_removal.dont_remove_include import *
+
 import re
 import sys
-from . import pygraph
+from python_cc_reader.external.pygraph import pygraph
+
 #from pygraph.algorithms.searching import depth_first_search
 import subprocess
 import pp

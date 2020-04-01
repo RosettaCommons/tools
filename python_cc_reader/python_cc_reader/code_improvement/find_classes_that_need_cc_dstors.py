@@ -1,5 +1,5 @@
-from .code_utilities import *
-from .code_reader import *
+from ..cpp_parser.code_utilities import *
+from ..cpp_parser.code_reader import *
 import re
 
 OP_regex1 = re.compile("OP")

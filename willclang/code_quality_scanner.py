@@ -6,7 +6,9 @@ from clang.cindex import Index,CursorKind,TypeKind;
 import os, commands, re, subprocess, time
 from os import path
 from optparse import OptionParser
-import code_utilities
+
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc_reader" )
+from python_cc_reader.cpp_parser import code_utilities
 
 
 class OI:

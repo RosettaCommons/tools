@@ -75,7 +75,7 @@ class BufferedFile:
 
     def writeFile(self, filename, contents):
         if dryrun:
-            print("Would write to %s:\n%s" % (filename, contents))
+            print(("Would write to %s:\n%s" % (filename, contents)))
             return
         with open(filename, "w") as f:
             return f.write(contents)
@@ -281,13 +281,13 @@ class Unit:
         for cdec in classdecs:
             # print ns + cdec.name
             if (ns + cdec.name) not in self.classes:
-                print(
+                print((
                     "Warning: Missing class:",
                     ns + cdec.name,
                     "from",
                     self.filename,
                     "when read with the HeavyCodReader",
-                )
+                ))
                 continue
             self.class_decs_from_cr[ns + cdec.name] = cdec
 
@@ -314,7 +314,7 @@ class Unit:
     def findSTLTypesInVartype(self, vartype):
         if vartype.find("std::") == -1:
             return
-        print("vartype: ", vartype)
+        print(("vartype: ", vartype))
 
         vartype = vartype[vartype.find("std::") + 5 :]
 
@@ -347,11 +347,11 @@ class Unit:
         """
         Process single object (class, struct, ...) in this unit
         """
-        print("preprocessObject:", decl.name)
+        print(("preprocessObject:", decl.name))
         # Check if this class already has save or load method
         if pycc_decl:
             for m in pycc_decl.functions:
-                print("function", decl.name, m.name)
+                print(("function", decl.name, m.name))
                 if m.name == "save":
                     decl.has_save = True
                 elif m.name == "load":
@@ -361,7 +361,7 @@ class Unit:
                 if decl.has_save and (decl.has_load or decl.has_load_and_construct):
                     decl.has_serialization_methods = True
         else:
-            print("No python class data for", decl.name)
+            print(("No python class data for", decl.name))
 
         if decl.has_serialization_methods:
             # we don't need to add any serialization methods to this class/struct
@@ -405,7 +405,7 @@ class Unit:
                     "reference" if v.vartype.find("&") >= 0 else "raw pointer",
                     v.vartype,
                 )
-                print("needs load and construct!", v.fullvartype)
+                print(("needs load and construct!", v.fullvartype))
                 decl.need_load_construct = True
             elif self.isConstNonPointer(v.fullvartype):
                 # print v.fullvartype, "and", v.fullvartype[6:]
@@ -436,7 +436,7 @@ class Unit:
                 # else:
                 #     #vd['enable'] = False
                 #     vd['comment'] = "const?"
-                print("needs load and construct!", v.fullvartype)
+                print(("needs load and construct!", v.fullvartype))
                 decl.need_load_construct = True
                 self.needs_access_fwd = (
                     True
@@ -519,16 +519,16 @@ class Unit:
             self.need_srlz_hh = True
 
     def addSerializationRoutinesForClass(self, decl):
-        print("addSerializationRoutinesForClass:", decl.name)
+        print(("addSerializationRoutinesForClass:", decl.name))
 
         if decl.has_serialization_methods:
             # we don't need to add any serialization methods to this class/struct
             return
 
         if decl.inline:
-            print(
+            print((
                 "Oops! Cannot create serialization functions (now) for class", decl.name
-            )
+            ))
             return
 
         # Insert the serialization function declarations into the .hh file
@@ -640,7 +640,7 @@ class Unit:
         fulltype = self.excise_templated_type(fulltype, "std::less")
         fulltype = fulltype.replace(">", " >")
         fulltype = fulltype.replace("  >", " >")
-        print("final type", fulltype)
+        print(("final type", fulltype))
         return fulltype
 
     def makeVarsArStub(self, decl, membvars, style, include_base=True):
@@ -810,11 +810,11 @@ class Unit:
             self.insert_new_serialization_include_block(buff, includes, comment_order)
             return
         existing_includes = buff.contents[include_block[0] : include_block[1]]
-        print("existing_includes", existing_includes)
+        print(("existing_includes", existing_includes))
         offset = 0
         for comment in comment_order:
             comment_group_begin = buff.contents.find(comment, include_block[0])
-            print(comment, "comment group begin", comment_group_begin)
+            print((comment, "comment group begin", comment_group_begin))
             if comment_group_begin == -1:
                 inserted_comment = comment
                 if comment is not comment_order[0]:
@@ -824,30 +824,30 @@ class Unit:
                 offset += len(inserted_comment)
             else:
                 offset = comment_group_begin - include_block[0] + len(comment)
-                print("new offset: ", offset)
+                print(("new offset: ", offset))
 
             for include in includes[comment]:
                 include_statement = "#include <" + include + ">\n"
                 if existing_includes.find(include_statement) >= 0:
-                    print("skipping existing include", include, offset)
+                    print(("skipping existing include", include, offset))
                     include_loc = buff.contents.find(
                         include_statement, include_block[0]
                     )
                     offset = include_loc - include_block[0] + len(include_statement)
-                    print(
+                    print((
                         "new offset",
                         offset,
                         "include_loc",
                         include_loc,
                         "include_block",
                         include_block,
-                    )
-                    print(
+                    ))
+                    print((
                         "buff.contents",
                         buff.contents[include_block[0] : (include_block[0] + offset)],
-                    )
+                    ))
                     continue
-                print("include", include_statement[:-1], "offset", offset)
+                print(("include", include_statement[:-1], "offset", offset))
                 buff.insertStub(include_block[0] + offset, include_statement, False)
                 offset += len(include_statement)
             # now advance offset to the next position where you see "\n\n"
@@ -996,7 +996,7 @@ class Unit:
                 if bc not in base_classes_to_ignore:
                     arc_gets_named = True
 
-        print("arc_gets_named", arc_gets_named, decl.has_vars, decl.base_class_names)
+        print(("arc_gets_named", arc_gets_named, decl.has_vars, decl.base_class_names))
 
         stub = []
         stub.append("\n#ifdef    SERIALIZATION\n\n")
@@ -1384,13 +1384,13 @@ def processAllClassesInHeader(all_definitions, unit_name):
     if unit_name[0] != "/":
         unit_name = os.getcwd() + "/" + unit_name
     if unit_name not in all_definitions.units:
-        print(
+        print((
             "No classes in file", unit_name, "listed in the definition file; skipping"
-        )
+        ))
         return
     # print "preprocessing", unit_name
     all_definitions.units[unit_name].preprocess()
-    print("Processing unit %s" % unit_name)
+    print(("Processing unit %s" % unit_name))
     unit = all_definitions.units[unit_name]
     unit.addSerializationRoutines()
 
@@ -1400,7 +1400,7 @@ def processClasses(defs, class_names, reparse_headers):
     target_units = set([])
     for class_name in class_names:
         if class_name not in defs.classes:
-            print("Could not find requested class", class_name)
+            print(("Could not find requested class", class_name))
             sys.exit(1)
     for class_name in class_names:
         cl = defs.classes[class_name]
@@ -1426,7 +1426,7 @@ def processClasses(defs, class_names, reparse_headers):
         if unit.made_modifications:
             unit.save()
         else:
-            print("No modifications for", unit_name)
+            print(("No modifications for", unit_name))
 
 
 def processAllClassesInHeaders(all_definitions, hhs):
@@ -1457,7 +1457,7 @@ def find_all_subclasses(all_definitions, base_class):
                 base_class_queue.append(cl.name)
 
     for sc in subclasses:
-        print("Derived class of", base_class, ":", sc.name)
+        print(("Derived class of", base_class, ":", sc.name))
     return subclasses
 
 
@@ -1486,7 +1486,7 @@ if __name__ == "__main__":
             classes.append(base_class)
         else:
             for subclass in subclasses:
-                print("Subclass of", base_class, ":", subclass.name)
+                print(("Subclass of", base_class, ":", subclass.name))
             sys.exit(0)
 
     if classes:

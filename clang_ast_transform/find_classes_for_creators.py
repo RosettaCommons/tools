@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     all_ok = True
     defs = make_serialize_templates.load_definitions( definitions )
-    print "definitions loaded2"
+    print("definitions loaded2")
 
     creator_classes = []
     class_keys = []
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         class_keys.append( cols[1].strip() )
 
         if creator_classes[-1] not in defs.classes :
-            print "Could not find class", creator_classes[-1], "in definitions file"
+            print("Could not find class", creator_classes[-1], "in definitions file")
             all_ok = False
 
 
@@ -52,13 +52,13 @@ if __name__ == '__main__':
             if not got_a_sub :
                 widget_classname += class_type # e.g. "Mover" or "Filter"
                 if widget_classname not in defs.classes :
-                    print "Could not find class", widget_classname, "in definitions file"
+                    print("Could not find class", widget_classname, "in definitions file")
                     all_ok = False
                     widget_classname = "FIXME"
         widget_classes.append( widget_classname )
 
-    for ii in xrange(len(widget_classes)) :
-        print creator_classes[ ii ], class_keys[ ii ], widget_classes[ ii ]
+    for ii in range(len(widget_classes)) :
+        print(creator_classes[ ii ], class_keys[ ii ], widget_classes[ ii ])
 
 
         

@@ -22,24 +22,24 @@ class JobManager :
       self.failed_jobs = []
    def success_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          del self.jobs[p]
    def error_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          self.failed_jobs.append( self.jobs[ p ] )
          del self.jobs[ p ]
 
 def run_job(executable, job):
-	 print "Running %s on %s" % (executable, job); sys.stdout.flush()
+	 print("Running %s on %s" % (executable, job)); sys.stdout.flush()
 	 command_list = [ executable, "src/" + job ]
 	 return subprocess.call( command_list ) == 0
 	
@@ -52,7 +52,7 @@ if __name__ == "__main__" :
    includes = scan_compilable_files()
 
    re_hh_header  = re.compile("\S*\.(cc|hh)$")
-   all_files = includes.keys()
+   all_files = list(includes.keys())
    hh_headers = regex_subset( all_files, re_hh_header )
    jobs = hh_headers
 
@@ -72,4 +72,4 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   print 'Failed jobs:', jm.failed_jobs
+   print('Failed jobs:', jm.failed_jobs)

@@ -21,17 +21,17 @@ class JobManager :
       self.failed_jobs = []
    def success_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          del self.jobs[p]
    def error_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          self.failed_jobs.append( self.jobs[ p ] )
@@ -68,8 +68,8 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   if ( jm.jobs ) : print jm.jobs
-   if ( jm.failed_jobs ) : print jm.failed_jobs
+   if ( jm.jobs ) : print(jm.jobs)
+   if ( jm.failed_jobs ) : print(jm.failed_jobs)
 
    if ( jm.jobs or jm.failed_jobs ) : sys.exit(1)
    else : sys.exit( 0 )

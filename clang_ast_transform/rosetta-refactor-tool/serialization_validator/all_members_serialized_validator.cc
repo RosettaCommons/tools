@@ -257,7 +257,7 @@ identify_datamembers_not_serialized(
 
 int main(int argc, const char **argv) {
 
-	std::cout << "RUNNING!" << std::endl;
+	// std::cout << "RUNNING!" << std::endl;
 
 	using namespace clang::tooling;
 	std::unique_ptr< CompilationDatabase > compilations = compilation_database_from_commandline( argc, argv );

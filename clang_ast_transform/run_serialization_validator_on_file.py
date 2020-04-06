@@ -49,7 +49,7 @@ if __name__ == "__main__" :
 
     # get the directory where we're executing this script
     # SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
-    rosetta_source_dir = os.getcwd().partition( "/src/" )[0]
+    rosetta_source_dir = os.path.join(os.getcwd().partition( "/main/" )[0], "main", "source")
 
     # the file to "compile" should be the one and only argument to this script.
     #MATCHERS=$1
@@ -89,8 +89,9 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \
               "-I/usr/local/include"
+    # print("command\n", command)
     command_list = command.split()
-    #print command_list
+    # print command_list
     p = subprocess.Popen( command_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE, encoding='utf8')
 
     output, errors = (str(x) for x in p.communicate())
@@ -120,6 +121,9 @@ if __name__ == "__main__" :
                 outdict[ fname ][ "results" ][ classname ][ load_save ] = []
             outdict[ fname ][ "results" ][ classname ][ load_save ].append( field )
 
+    # print("output", output)
+    # print("errors", errors)
+    # print("json_outfname", json_outfname)
     with open(json_outfname, 'w') as f:
         json.dump(outdict, f, sort_keys=True, indent=2)
 

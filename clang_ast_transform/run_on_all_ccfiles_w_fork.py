@@ -68,8 +68,12 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   if ( jm.jobs ) : print(jm.jobs)
-   if ( jm.failed_jobs ) : print(jm.failed_jobs)
+   if jm.jobs:
+      print(jm.jobs)
+   if jm.failed_jobs:
+      print("failed jobs", jm.failed_jobs)
 
-   if ( jm.jobs or jm.failed_jobs ) : sys.exit(1)
-   else : sys.exit( 0 )
+   if jm.jobs or jm.failed_jobs:
+      sys.exit(1)
+   else:
+      sys.exit( 0 )

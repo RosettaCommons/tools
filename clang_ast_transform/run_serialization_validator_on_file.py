@@ -49,7 +49,7 @@ if __name__ == "__main__" :
 
     # get the directory where we're executing this script
     # SOURCE=$( pwd | sed 's:/src/: :' | awk '{print $1}' )
-    rosetta_source_dir = os.path.join(os.getcwd().partition( "/main/" )[0], "main", "source")
+    rosetta_source_dir = os.getcwd().partition( "/src/" )[0]
 
     # the file to "compile" should be the one and only argument to this script.
     #MATCHERS=$1
@@ -126,5 +126,5 @@ if __name__ == "__main__" :
     # print("json_outfname", json_outfname)
     with open(json_outfname, 'w') as f:
         json.dump(outdict, f, sort_keys=True, indent=2)
-
+        
     sys.exit( 1 if output else 0 )

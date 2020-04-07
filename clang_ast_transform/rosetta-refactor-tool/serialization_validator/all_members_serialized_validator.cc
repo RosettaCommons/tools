@@ -166,28 +166,28 @@ identify_datamembers_not_serialized(
 	//	std::cout << "Class with fields: " << *iter << std::endl;
 	//}
 
-	for ( std::set< std::pair< std::string, std::string > >::const_iterator
-					iter = saved_variables.begin(), iter_end = saved_variables.end();
-				iter != iter_end; ++iter ) {
-		std::cout << "Saved variable " << iter->first << "::" << iter->second << std::endl;
-	}
-
-	for ( std::set< std::pair< std::string, std::string > >::const_iterator
-					iter = loaded_variables.begin(), iter_end = loaded_variables.end();
-				iter != iter_end; ++iter ) {
-		std::cout << "Loaded variable " << iter->first << "::" << iter->second << std::endl;
-	}
-	for ( std::set< std::pair< std::string, std::string > >::const_iterator
-					iter = saved_w_opts_variables.begin(), iter_end = saved_w_opts_variables.end();
-				iter != iter_end; ++iter ) {
-		std::cout << "Saved_w_opts variable " << iter->first << "::" << iter->second << std::endl;
-	}
-
-	for ( std::set< std::pair< std::string, std::string > >::const_iterator
-					iter = loaded_w_opts_variables.begin(), iter_end = loaded_w_opts_variables.end();
-				iter != iter_end; ++iter ) {
-		std::cout << "Loaded_w_opts variable " << iter->first << "::" << iter->second << std::endl;
-	}
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = saved_variables.begin(), iter_end = saved_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Saved variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	//
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = loaded_variables.begin(), iter_end = loaded_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Loaded variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = saved_w_opts_variables.begin(), iter_end = saved_w_opts_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Saved_w_opts variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	//
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = loaded_w_opts_variables.begin(), iter_end = loaded_w_opts_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Loaded_w_opts variable " << iter->first << "::" << iter->second << std::endl;
+	// }
 
 	bool any_missed = false;
 	for ( SerializationFunctionFinder::class_names::const_iterator

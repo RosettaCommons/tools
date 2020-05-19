@@ -49,11 +49,11 @@ def central_compile_command():
     # cc1plus: error: output filename specified twice
 
     include_directories = (
-        ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS if d != "external/libxml2/include" ) +
+        ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS if d != "external/libxml2/include" )
         # weird warning from the libxml2 -isystem line:
         # "g++: warning: ../external/libxml2/include: linker input
         # file unused because linking not done"
-        " -I./ -I../external -I../external/include -Iplatform/"
+        + " -I./ -I../external -I../external/include -Iplatform/"
         + os
         + "/"
         + nbits
@@ -63,7 +63,7 @@ def central_compile_command():
         + nbits
         + " -Iplatform/"
         + os
-        ' ' + ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + ' ' + ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS )
         + " -I/usr/local/include -I/usr/include/ "
     )
 
@@ -81,11 +81,11 @@ def cxxtest_testgen_command():
 
 
 def cxxtest_gcc_compile_command():
-    return ( "g++ -c -std=c++0x -ffor-scope " +
-        ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS ) +
-        " -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. " +
-        ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS ) +
-        " -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I/usr/include -I/usr/local/include -o "
+    return ( "g++ -c -std=c++0x -ffor-scope "
+        + ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + " -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. "
+        + ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + " -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I/usr/include -I/usr/local/include -o "
     )
 
 

@@ -11,6 +11,8 @@ $CLANG_BIN/rosetta-refactor-tool ${*:2} $FILE -- \
 	-isystem $SOURCE/external/ \
 	-isystem $SOURCE/external/include/ \
 	-isystem $SOURCE/external/dbio/ \
+	-isystem $SOURCE/external/libxml2/include \
+	-isystem $SOURCE/external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \

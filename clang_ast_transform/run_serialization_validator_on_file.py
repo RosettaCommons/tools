@@ -71,6 +71,7 @@ if __name__ == "__main__" :
               "-isystem " + rosetta_source_dir + "/external/ " + \
               "-isystem " + rosetta_source_dir + "/external/include/ " + \
               "-isystem " + rosetta_source_dir + "/external/dbio/ " + \
+              "-isystem " + rosetta_source_dir + "/external/rdkit/ " + \
               "-DUNUSUAL_ALLOCATOR_DECLARATION " + \
               "-stdlib=libstdc++ " + \
               "-DBOOST_ERROR_CODE_HEADER_ONLY " + \
@@ -126,5 +127,5 @@ if __name__ == "__main__" :
     # print("json_outfname", json_outfname)
     with open(json_outfname, 'w') as f:
         json.dump(outdict, f, sort_keys=True, indent=2)
-        
+
     sys.exit( 1 if output else 0 )

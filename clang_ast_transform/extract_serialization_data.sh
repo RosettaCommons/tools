@@ -33,6 +33,8 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=find_record_decl,find_constructor_dec
 	-isystem $SOURCE/external/ \
 	-isystem $SOURCE/external/include/ \
 	-isystem $SOURCE/external/dbio/ \
+	-isystem $SOURCE/external/libxml2/include \
+	-isystem $SOURCE/external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \

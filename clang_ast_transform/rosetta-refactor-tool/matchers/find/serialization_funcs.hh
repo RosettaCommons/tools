@@ -34,13 +34,17 @@ public:
 	class_names const & classes_w_serialization_funcs() const;
 
 	data_members const & exempted_members_from_save() const;
+	data_members const & exempted_members_from_save_w_opts() const;
 	data_members const & exempted_members_from_load() const;
+	data_members const & exempted_members_from_load_w_opts() const;
 
 private:
 
 	class_names  classes_w_serialization_funcs_;
 	data_members save_members_exempted_;
+	data_members save_w_opts_members_exempted_;
 	data_members load_members_exempted_;
+	data_members load_w_opts_members_exempted_;
 	bool verbose_;
 };
 
@@ -61,12 +65,16 @@ public:
 
 	class_names const & classes_w_serialization_funcs() const;
 	data_members const & members_saved() const;
+	data_members const & members_saved_w_opts() const;
 	data_members const & members_loaded() const;
+	data_members const & members_loaded_w_opts() const;
 
 private:
 	class_names  classes_w_serialization_funcs_;
 	data_members save_variables_;
+	data_members save_w_opts_variables_;
 	data_members load_variables_;
+	data_members load_w_opts_variables_;
 	bool verbose_;
 };
 

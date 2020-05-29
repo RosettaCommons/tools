@@ -7,7 +7,7 @@
 #globally fail if any subcommand fails
 set -e
 
-source ./tools/release/release_common_functions.bash
+source ./main/tools/release/release_common_functions.bash
 
 check_folder #ensures we are in the right directory
 
@@ -49,7 +49,7 @@ python remove_internal.py
 git commit -am "weekly release: remove 'internal' documentation"
 #generate static html
 #this is *really* stupid but I don't want to deal with tcsh and bash fighting today
-#../tools/release/generate_documentation.tcsh
+#../main/tools/release/generate_documentation.tcsh
 #skipping for this weekly (gollum)
 
 #prepare tools
@@ -100,7 +100,7 @@ cd $ROSETTA/main
 pwd
 git checkout -b weekly_releases/$branch_name #branch_name defined in release_common_functions
 
-for do_not_release in `cat $ROSETTA/tools/release/DONOTRELEASE.files`
+for do_not_release in `cat $ROSETTA/main/tools/release/DONOTRELEASE.files`
 do
     sed -i '/DONOTRELEASE_TOP/,/DONOTRELEASE_BOTTOM/{/DONOTRELEASE_TOP/!{/DONOTRELEASE_BOTTOM/!d;}}' $do_not_release
 done
@@ -150,7 +150,7 @@ else
     echo "DEBUG MODE ACTIVATED: skipping filesystem ref deletion of manually removed integration tests"
 fi
 git commit -m "removing known-to-need-devel integration tests"
-source $ROSETTA/tools/release/detect_itest_exes.bash
+source $ROSETTA/main/tools/release/detect_itest_exes.bash
 git commit -m "deleting autoremoved integration tests"
 
 #check compile

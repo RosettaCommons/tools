@@ -13,7 +13,7 @@ from sys import argv
 #    print " export ROSETTA='/Users/rhiju/src/rosetta/' "
 #    print "in your .bashrc or .bash_profile script."
 
-if not os.access('/path/to/folder', os.W_OK): exit( 0 )
+#if not os.access('/path/to/folder', os.W_OK): exit( 0 )
 
 CWD = getcwd()
 chdir( dirname( argv[0] ) )
@@ -32,7 +32,7 @@ for dirpath, dirnames, filenames in os.walk('./'):
             file2 = './bin/' + f
             try:
                 os.symlink(file1, file2)
-            except OSError, e:
+            except OSError as e:
                 if e.errno == errno.EEXIST:
                     os.remove(file2)
                     os.symlink(file1, file2)

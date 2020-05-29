@@ -25,6 +25,7 @@ if len( argv ) < 3:
 pos = 0
 resnums = []
 chains  = []
+segids  = []
 pdbfiles = []
 prefix = ''
 for pos in range( 1, len ( argv) ) :
@@ -34,7 +35,7 @@ for pos in range( 1, len ( argv) ) :
         pdbfiles.append( argv[pos] )
         continue
 
-    if get_resnum_chain( argv[ pos ], resnums, chains ):
+    if get_resnum_chain( argv[ pos ], resnums, chains, segids ):
         continue
 
     if len( prefix ) > 0:
@@ -48,29 +49,32 @@ if len( prefix ) == 0: prefix = 'subset_'
 
 print resnums
 print chains
+print segids
 
 
-def get_pdb_line( lines_out, pdb_lines, resnum_desired, chain_desired ):
+def get_pdb_line( lines_out, pdb_lines, resnum_desired, chain_desired, segid_desired ):
 
     lines = []
     for chain in pdb_lines.keys():
 
         if ( chain_desired != chain and chain_desired != '' ): continue
-        if ( isinstance( resnum_desired, int ) and (resnum_desired not in pdb_lines[ chain ].keys() ) ): continue
+        for segid in pdb_lines[chain].keys():
+            if ( segid_desired != segid and segid_desired != '    ' ): continue
+            if ( isinstance( resnum_desired, int ) and (resnum_desired not in pdb_lines[ chain ][segid].keys() ) ): continue
 
-        if isinstance( resnum_desired, int ):
-            if len( lines ) > 0:
-                print 'WARNING! Found residue ', resnum_desired, ' more than once: you may want to specify the chain.'
+            if isinstance( resnum_desired, int ):
+                if len( lines ) > 0:
+                    print 'WARNING! Found residue ', resnum_desired, ' more than once: you may want to specify the chain.'
 
-            for atom_name in pdb_lines[ chain ][ resnum_desired ].keys():
-                lines.append( pdb_lines[ chain ][ resnum_desired ][ atom_name ] )
+                for atom_name in pdb_lines[ chain ][segid][ resnum_desired ].keys():
+                    lines.append( pdb_lines[ chain ][segid][ resnum_desired ][ atom_name ] )
 
-        else: # 'all'
-            assert( resnum_desired == 'all' )
+            else: # 'all'
+                assert( resnum_desired == 'all' )
 
-            for resnum in pdb_lines[ chain ]:
-                for atom_name in pdb_lines[ chain ][ resnum ].keys():
-                    lines.append( pdb_lines[ chain ][ resnum ][ atom_name ] )
+                for resnum in pdb_lines[ chain ][segid]:
+                    for atom_name in pdb_lines[ chain ][segid][ resnum ].keys():
+                        lines.append( pdb_lines[ chain ][segid][ resnum ][ atom_name ] )
 
 
     if len( lines ) == 0:
@@ -82,11 +86,11 @@ def get_pdb_line( lines_out, pdb_lines, resnum_desired, chain_desired ):
 
 
 for pdbfile in pdbfiles:
-    [ coords, pdb_lines, sequence, _, __] = read_pdb( pdbfile )
+    [ coords, pdb_lines, sequence, _, __, ___] = read_pdb( pdbfile )
 
     lines_out = []
     for i in range( len( resnums ) ):
-        get_pdb_line( lines_out, pdb_lines, resnums[ i ], chains[ i ] )
+        get_pdb_line( lines_out, pdb_lines, resnums[ i ], chains[ i ], segids[ i ] )
 
     pdbfile_out = '/'.join(filter(None, [
         dirname(pdbfile),

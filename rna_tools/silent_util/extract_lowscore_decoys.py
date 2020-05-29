@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from sys import argv,exit
 from os import popen, system
 from os.path import basename,exists,expanduser,expandvars
-import string,subprocess,commands
+import string,subprocess
 from glob import glob
 
 def Help():
-    print
-    print 'Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> '
-    print '  Will extract N decoys with lowest score from each silent file.'
-    print '  If you want to select based on another column, say 12 (Rg), the'
-    print '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>'
-    print '    (for highest Rg).'
-    print
+    print()
+    print('Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> ')
+    print('  Will extract N decoys with lowest score from each silent file.')
+    print('  If you want to select based on another column, say 12 (Rg), the')
+    print('    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>')
+    print('    (for highest Rg).')
+    print()
     if ( subprocess.call( ['/bin/bash','-i','-c','alias ex']) == 1 ):
-        print ' You might consider using an alias "ex" for this function. Add '
-        print '  alias ex="extract_lowscore_decoys.py" '
-        print ' to your ~/.bashrc script.'
-    print
+        print(' You might consider using an alias "ex" for this function. Add ')
+        print('  alias ex="extract_lowscore_decoys.py" ')
+        print(' to your ~/.bashrc script.')
+    print()
     exit()
 
 
@@ -30,7 +31,6 @@ if argv.count('-no_replace_names'):
     pos = argv.index('-no_replace_names')
     del( argv[pos] )
     replace_names = 0
-
 
 extract_first_chain = 0
 if argv.count('-extract_first_chain'):
@@ -135,13 +135,13 @@ HOMEDIR = expanduser('~')
 for infile in infiles:
     tags = []
 
-    scoretags = string.split( popen('head -n 2 '+infile).readlines()[1] )
+    scoretags = popen('head -n 2 '+infile).readlines()[1].split()
     scoretag=''
     if scorecol_defined:
         scoretag = scoretags[ abs(scorecol) ]
 
     if scorecol_name_defined:
-        scorecol_names = string.split( scorecol_name,',' )
+        scorecol_names = scorecol_name.split(',')
         scorecols = []
         for s in scorecol_names:
             assert( scoretags.count( s ))
@@ -188,7 +188,7 @@ for infile in infiles:
 
     score_plus_lines = []
     for line in lines:
-        cols = string.split( line )
+        cols = line.split()
         score = 0.0
         try:
             for scorecol in scorecols: score += float( cols[ abs(scorecol) ] )
@@ -207,7 +207,7 @@ for infile in infiles:
     fid = open(templist_name,'w')
     count = 0
     for line in lines:
-        cols = string.split(line)
+        cols = line.split()
         tag = cols[-1]
         if tag.find('desc') < 0:
             fid.write(tag+'\n')
@@ -246,12 +246,12 @@ for infile in infiles:
         MINI_EXE = MINI_DIR+'/extract_pdbs.macosgccrelease'
         assert( exists( MINI_EXE ) )
 
-    command = '%s -in:file:silent  %s   -in:file:tags %s -database %s -out:file:residue_type_set centroid ' % \
-                  ( MINI_EXE, outfilename, string.join( tags ), DB )
+    command = '%s -load_PDB_components -in:file:silent  %s   -in:file:tags %s -database %s -out:file:residue_type_set centroid ' % \
+                  ( MINI_EXE, outfilename, " ".join(tags), DB )
 
     # This section (rosetta++) is really old and probably could be removed
     old_rosetta = 0
-    scorelabels = string.split( popen( 'head -n 2 '+outfilename ).readlines()[-1] )
+    scorelabels = popen( 'head -n 2 '+outfilename ).readlines()[-1].split()
     if "SCORE" in scorelabels:
         EXE = HOMEDIR+'/src/rosetta++/rosetta.gcc'
         if not exists( EXE ):
@@ -259,14 +259,14 @@ for infile in infiles:
         assert( exists( EXE ) )
         command = '%s -extract -l %s -paths %s/src/rosetta++/paths.txt -s %s %s %s '% (EXE, templist_name, HOMEDIR,outfilename, terminiflag, startpdbflag+extract_first_chain_tag)
         old_rosetta = 1
-        print "OLD_ROSETTA", old_rosetta
+        print("OLD_ROSETTA", old_rosetta)
 
     # Check if this is an RNA run.
     fid = open( infile, 'r')
     line = fid.readline(); # Should be the sequence.
-    print line
+    print(line)
     rna = 0
-    sequence = string.split(line)[-1]
+    sequence = line.split()[-1]
     rna = 1
     for c in sequence:
         if not ( c == 'a' or c == 'c' or c == 'u' or c == 'g'):
@@ -280,22 +280,22 @@ for infile in infiles:
 
     # Check if this is full atom.
     lines = popen('head -n 8 '+outfilename).readlines()
-    if len(string.split(lines[6])) > 10:
+    if len(lines[6].split()) > 10:
         command += ' -fa_input'
 
     # Hey this could be a new mini RNA file
     if rna and not old_rosetta:
 
-        command = '%s -database %s -in::file::silent %s -tags %s  -extract' % \
-                  ( MINI_EXE, DB, outfilename, string.join( tags ) )
+        command = '%s -load_PDB_components -database %s -in::file::silent %s -tags %s  -extract' % \
+                  ( MINI_EXE, DB, outfilename, " ".join(tags))
 
         if binary_silentfile:
             silent_struct_type = 'binary_rna'
         else:
             silent_struct_type = 'rna'
 
-        command = '%s -database %s -in:file:silent %s -in:file:tags %s -in:file:silent_struct_type %s  ' % \
-                  ( MINI_EXE, DB,outfilename, string.join( tags ), silent_struct_type )
+        command = '%s -load_PDB_components -database %s -in:file:silent %s -in:file:tags %s -in:file:silent_struct_type %s  ' % \
+                  ( MINI_EXE, DB,outfilename, " ".join(tags), silent_struct_type )
 
         if coarse:
             command += " -out:file:residue_type_set coarse_rna "
@@ -309,16 +309,16 @@ for infile in infiles:
 
     elif ( binary_silentfile ):
 
-        command = '%s -in:file:silent  %s  -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
-                  ( MINI_EXE, outfilename, string.join( tags ), DB )
+        command = '%s -load_PDB_components -in:file:silent  %s  -in:file:silent_struct_type binary -in:file:fullatom -in:file:tags %s -database %s  ' % \
+                  ( MINI_EXE, outfilename, " ".join(tags), DB )
         if output_virtual: command += " -output_virtual "
         if len( extra_res_fa ) > 0:
             command += " -extra_res_fa "
             for m in extra_res_fa: command += " "+m
 
         if (scoretags.count('vdw')): command += ' -out:file:residue_type_set centroid '
-    
-    
+
+
     print(command)
     system(command)
 
@@ -327,7 +327,7 @@ for infile in infiles:
     #  will never be used again...
     if outfilename.find('t343')>0:
         command = HOMEDIR+'/python/extract_t343.py %s %s' % (outfilename,
-                                                                 string.join(tags,' '))
+                                                                 " ".join(tags))
         print(command)
         system(command)
 
@@ -351,6 +351,6 @@ for infile in infiles:
 
     if (softlink_bonds_file):
         #system( 'rm '+wanted_bonds_file+' '+wanted_rot_templates_file )
-        print ' WARNING! WARNING'
-        print ' Found a .bonds and .rot_templates file and used it!'
+        print(' WARNING! WARNING')
+        print(' Found a .bonds and .rot_templates file and used it!')
 

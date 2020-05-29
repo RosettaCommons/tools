@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # :noTabs=true:
-
+from __future__ import print_function
 import string
 
 from os import popen,system
@@ -13,14 +13,14 @@ MAX_SEQUENCE_LENGTH = 32
 
 nts = ['g','c','u','a','G','C','U','A']
 ligands = ['z','Z','w','X']
-secstruct_chars = ['(',')','[',']','{','}','.']
+secstruct_chars = ['(',')','[',']','{','}','<','>','.']
 spacers = ['+','*',' ',','] # any of these are OK as strand separators
 complement = {'a':['u', 'X[OMU]', 'X[PSU]', 'X[5MU]'], 'u':['a','g', 'X[OMG]'], 'c':['g'], 'g':['c','X[5MC]', 'X[OMC]', 'u', 'X[OMU]', 'X[PSU]', 'X[5MU]']};
 aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y' ]
 
 
 def ValidationError( string ):
-    print string
+    print(string)
     exit()
 
 def join_sequence( sequence ):
@@ -31,7 +31,7 @@ def join_sequence( sequence ):
     in_nonstandard_name = False # for specifying ligands like Z[ROS],Z[Mg]
     for m in range( len( sequence ) ):
         c = sequence[m]
-        if c == '[' and sequence_joined[-1] in ligands: # in a ligand
+        if c == '[' and len(sequence_joined) > 0 and sequence_joined[-1] in ligands: # in a ligand
             sequence_joined += c
             in_nonstandard_name = True
             continue
@@ -162,7 +162,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             fasta_entities.append(entity)
 
         i += 1
-    #print fasta_entities
+    #print(fasta_entities)
 
 
     for i in range( len(line) ):
@@ -180,7 +180,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             all_pairs.append( [res1,res2] )
             if fasta_entities[ res2-1 ] in complement.keys() and len( fasta_entities ) > 0 and not ( fasta_entities[res1-1] in complement[ fasta_entities[res2-1] ] ):
                 raise ValidationError( "Not complementary at positions %s%d and %s%d!"  % (fasta_entities[res1-1],res1,fasta_entities[res2-1],res2) )
-    #print pair_map
+    #print(pair_map)
 
     if ( len (left_brackets) > 0 ):
         raise ValidationError( "Number of right brackets does not match left brackets" )
@@ -193,7 +193,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
     stems = []
     stem_count = 0
     for i in range( 1, numres+1 ):
-        if pair_map.has_key( i ) and not already_in_stem[ i ]:  # In a base pair
+        if i in pair_map and not already_in_stem[ i ]:  # In a base pair
             k = i
             stem_count += 1
             stem_res = []
@@ -203,7 +203,7 @@ def get_stems( line, chainbreak_pos, left_bracket_char = '(', right_bracket_char
             already_in_stem[ pair_map[k] ] = 1
 
             # Can we extend in one direction?
-            while( pair_map.has_key( k + 1 ) and  pair_map[ k+1 ] == pair_map[ k ] - 1  and not already_in_stem[k+1] and (not k in chainbreak_pos) and ( not pair_map[k+1] in chainbreak_pos )  ):
+            while k + 1 in pair_map and  pair_map[ k+1 ] == pair_map[ k ] - 1  and not already_in_stem[k+1] and (not k in chainbreak_pos) and ( not pair_map[k+1] in chainbreak_pos ):
                 k += 1
                 stem_res.append( [k, pair_map[k]] )
                 already_in_stem[ k ] = 1
@@ -237,7 +237,7 @@ def convert_fasta_to_rosetta_format( fasta_file_sequence ):
         #stderr.write( 'Cannot model a sequence with length greater than %d. Your sequence has length %d.\n' % (MAX_SEQUENCE_LENGTH, len( sequence) ) )
         #raise ValidationError( 'Cannot model a sequence with length greater than %d. Your sequence has length %d.!' % (MAX_SEQUENCE_LENGTH, len( sequence) ) )
         #return None
-        print ''
+        print('')
 
     # quick validation
     goodchars = ['a','c','g','u','z']
@@ -278,8 +278,8 @@ def does_PDB_match_fasta(pdb, fasta_file_sequence ):
     seq_PDB = get_sequence(pdb)
     seq_fasta = string.join( fasta_file_sequence.split('\n')[1:] ).replace( '\n', '' ).replace(' ','' )
 
-    #print 'does_PDB_match_fasta: pdb=%s\nfasta=%s' % (pdb, fasta_file_sequence)
-    #print 'does_PDB_match_fasta: %s %s' % (seq_PDB, seq_fasta)
+    #print('does_PDB_match_fasta: pdb=%s\nfasta=%s' % (pdb, fasta_file_sequence))
+    #print('does_PDB_match_fasta: %s %s' % (seq_PDB, seq_fasta))
 
     return ( seq_PDB == seq_fasta )
 
@@ -338,7 +338,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 if len(line_edit)>75:
                     if (line_edit[76:78] == 'SE'):
                         line_edit = line_edit[0:76]+' S'+line_edit[78:]
-            elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys()):
+            elif (line[0:6] == 'HETATM') & ( line[17:20] in hetatm_map.keys() ):
                 line_edit = 'ATOM  '+line[6:17]+ hetatm_map[line[17:20]] + line[20:]
 
             #Don't save alternative conformations.
@@ -349,57 +349,34 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
             else:                    resnum = line_edit[22:26]
             if ( chain, resnum, atomnum ) in outputted_atoms: continue # already found once
 
+            # converts to plain ol' RNA residues
+            rosetta_ready_names = { 'GTP':'  G', 'G  ':'  G', ' DG':'  G', ' DC':'  C', ' DA':'  A', ' DU':'  U',
+                                    'A  ':'  A', 'C  ':'  C', 'U  ':'  U', 'GUA':'  G',
+                                    'ADE':'  A', 'CYT':'  C', 'URA':'  U', 'URI':'  U',
+                                    ' rA':'  A', ' rC':'  C', ' rU':'  U', ' rG':'  G', '  I':'  G' }
+
             if line_edit[0:4] == 'ATOM':
-                if not resnum == oldresnum: #  or line_edit[12:16] == ' P  ':
+                if not resnum == oldresnum:
                     longname = line_edit[17:20]
-                    if longname == 'GTP':
-                        longname = '  G'
-                    elif longname == 'G  ':
-                        longname =   '  G'
-                    elif longname == ' DG':
-                        longname =   '  G'
-                    elif longname == 'A  ':
-                        longname =   '  A'
-                    elif longname == 'C  ':
-                        longname =   '  C'
-                    elif longname == 'U  ':
-                        longname =   '  U'
-                    elif longname == 'GUA':
-                        longname = '  G'
-                    elif longname == 'ADE':
-                        longname = '  A'
-                    elif longname == 'CYT':
-                        longname = '  C'
-                    elif longname == 'URA':
-                        longname = '  U'
-                    elif longname == 'URI':
-                        longname = '  U'
-                    elif longname == ' rA':
-                        longname =   '  A'
-                    elif longname == ' rC':
-                        longname =   '  C'
-                    elif longname == ' rU':
-                        longname =   '  U'
-                    elif longname == ' rG':
-                        longname =   '  G'
-                    elif longname == '  I':
-                        longname =   '  G'
+                    if longname in rosetta_ready_names.keys():
+                        longname = rosetta_ready_names[ longname ]
                     else:
                         if longname not in goodnames:    continue
 
-                    if longer_names.has_key(longname):
+                    if longname in longer_names:
                         #fastaid.write( longer_names[longname] );
                         pass
                     else:
                         #fastaid.write( 'X')
                         pass
 
-                    #print "AAH ==> " ,  resnum, oldresnum, line_edit
+                    #print("AAH ==> " ,  resnum, oldresnum, line_edit)
                     count = count + 1
 
                 oldresnum = resnum
 
                 if not longname in goodnames:
+                    print "Skipping: ", longname
                     continue
 
                 newnum = '%4d' % count

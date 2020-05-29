@@ -1,6 +1,7 @@
-import beautifier
-import blargs
+from python_cc_reader.beauty import beautifier
+from python_cc_reader.external.blargs import blargs
 import sys
+
 
 class BeautifierTest :
     def __init__( self, li, lf, name ) :
@@ -15,14 +16,15 @@ def depth( token ) :
         return 0
 
 def print_token( token ) :
-    print "%s (%s %d) %s %d %s" % ( " " * depth(token), token.parent.type, token.parent.line_number, token.type, token.line_number, token.spelling )
+    print("%s (%s %d) %s %d %s" % ( " " * depth(token), token.parent.type, token.parent.line_number, token.type, token.line_number, token.spelling ))
 
 def print_all_tokens( beaut ) :
     for token in beaut.all_tokens :
         print_token( token )
 
-def test_code_reader( lines_initial, lines_final ) :
+def test_code_reader(test_name, lines_initial, lines_final):
     beaut = beautifier.Beautifier()
+    beaut.filename = test_name
     for line in lines_initial :
         # print line,
         beaut.tokenize_line( line )
@@ -39,38 +41,38 @@ def test_code_reader( lines_initial, lines_final ) :
 
     # make sure line_tokens and all_tokens agree
     token_counter = -1
-    for line_number in xrange(len( beaut.line_tokens )) :
+    for line_number in range(len( beaut.line_tokens )) :
         for tok in beaut.line_tokens[line_number] :
             token_counter += 1
             if beaut.all_tokens[ token_counter ] is not tok :
                 good = False
-                print "all_tokens and line_tokens discrepancy", self.all_tokens[ token_counter ].spelling, "vs", tok.spelling
+                print("all_tokens and line_tokens discrepancy", self.all_tokens[ token_counter ].spelling, "vs", tok.spelling)
 
     for i, line in enumerate( beaut.new_lines ) :
         if i >= len(lines_final) :
-            print "Generated too many output lines", line,
+            print("Generated too many output lines", line, end=' ')
             good = False
         elif line != lines_final[i] :
-            print "Generated line",i+1, "of:", line[:-1], "did not match", lines_final[i][:-1]
+            print("Generated line",i+1, "of:", line[:-1], "did not match", lines_final[i][:-1])
             good = False
     if len(beaut.new_lines) < len(lines_final) :
         good = False
-        for i in xrange(len(beaut.new_lines),len(lines_final)) :
-            print "Failed to generate expected output line", i+1, ":", lines_final[i],
+        for i in range(len(beaut.new_lines),len(lines_final)) :
+            print("Failed to generate expected output line", i+1, ":", lines_final[i], end=' ')
 
     if not good :
         print_all_tokens( beaut )
 
-        print "Input:"
+        print("Input:")
         for line in lines_initial :
-            print line,
-        print "Expected:"
+            print(line, end=' ')
+        print("Expected:")
         for line in lines_final :
-            print line,
-        print "Generated:"
+            print(line, end=' ')
+        print("Generated:")
         for line in beaut.new_lines :
-            print line,
-        print "for failed test."
+            print(line, end=' ')
+        print("for failed test.")
     else :
         # now, make sure that all the tokens in the tree after beautification
         # represent the same tree that'd be created by parsing the beautified
@@ -81,18 +83,18 @@ def test_code_reader( lines_initial, lines_final ) :
         beaut2.minimally_parse_file()
         if len(beaut2.all_tokens) != len(beaut.all_tokens) :
             good = False
-            print "Reparsing the final lines produces a different number of tokens!"
-            print "Beautified:", len(beaut.all_tokens), "Parsed Expected Output:", len(beaut2.all_tokens)
+            print("Reparsing the final lines produces a different number of tokens!")
+            print("Beautified:", len(beaut.all_tokens), "Parsed Expected Output:", len(beaut2.all_tokens))
         else :
             for i, tok in enumerate(beaut.all_tokens) :
                 tok2 = beaut2.all_tokens[i]
                 if not tok.equivalent( tok2 ) :
                     tok2
-                    print "Tree mismatch:"
-                    print "  ", tok.spelling, "vs", tok2.spelling
-                    print "  ", tok.line_number, "vs", tok2.line_number
-                    print "  ", tok.type, "vs", tok2.type
-                    print "  ", tok.context(), "vs", tok2.context()
+                    print("Tree mismatch:")
+                    print("  ", tok.spelling, "vs", tok2.spelling)
+                    print("  ", tok.line_number, "vs", tok2.line_number)
+                    print("  ", tok.type, "vs", tok2.type)
+                    print("  ", tok.context(), "vs", tok2.context())
                     good = False
 
 
@@ -108,18 +110,18 @@ def test_code_reader( lines_initial, lines_final ) :
 
     good2, i_beaut, i_beaut2 = beaut.equivalent( beaut2 )
     if not good2 :
-        print "Input lines for test were not found equivalent"
-        print "They differ at tokens: "
+        print("Input lines for test were not found equivalent")
+        print("They differ at tokens: ")
         beaut_tok = beaut.all_tokens[i_beaut]
         beaut2_tok = beaut2.all_tokens[i_beaut2]
-        print beaut_tok.type, beaut_tok.line_number, beaut_tok.spelling
-        print beaut2_tok.type, beaut2_tok.line_number, beaut2_tok.spelling
-        print "lines initial:"
+        print(beaut_tok.type, beaut_tok.line_number, beaut_tok.spelling)
+        print(beaut2_tok.type, beaut2_tok.line_number, beaut2_tok.spelling)
+        print("lines initial:")
         for line in lines_initial :
-            print line,
-        print "lines final:"
+            print(line, end=' ')
+        print("lines final:")
         for line in lines_final :
-            print line,
+            print(line, end=' ')
 
     return good and good2
 
@@ -138,7 +140,7 @@ def replace_leading_spaces_w_tabs( line ) :
             break
 
     # now look at the characters we didn't examine; are any of them non-whitespace?
-    for i in xrange(i,len(line)) :
+    for i in range(i,len(line)) :
         if line[i] != " " and line[i] != "\n" and line[i] != "\t" :
             found_non_space = True
 
@@ -208,12 +210,12 @@ if __name__ == "__main__" :
         count_pass = 0
         for i,test in enumerate( tests ) :
             if just_one is not None and i+1 != just_one : continue
-            ok = test_code_reader( test.lines_initial, test.lines_final )
+            ok = test_code_reader(test.name, test.lines_initial, test.lines_final)
             if not ok :
-                print "Failed test", test.name
-                print
+                print("Failed test", test.name)
+                print()
             else :
                 count_pass += 1
-        print "Passed", count_pass, "of", len(tests),"tests."
+        print("Passed", count_pass, "of", len(tests),"tests.")
         if count_pass != len(tests) :
             sys.exit(1)

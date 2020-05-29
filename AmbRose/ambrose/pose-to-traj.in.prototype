@@ -1,0 +1,15 @@
+source leaprc.protein.ff14SB
+source leaprc.RNA.OL3
+source leaprc.DNA.OL15
+logfile +LOG-FILE+
++LOAD-SOLVENT+
+
+set default pbradii mbondi3
+
+struct = loadpdb +PDB-PATH+
++DISULFIDES+
++SOLVATEP+ solvate+SOLVENT-SHAPE+ struct +SOLVENT+ 15.0
++ADD-IONS-P+ addions struct Na+ 0
++ADD-IONS-P+ addions struct Cl- 0
+saveamberparm struct +OUT-TOP-PATH+ +OUT-CRD-PATH+
+quit

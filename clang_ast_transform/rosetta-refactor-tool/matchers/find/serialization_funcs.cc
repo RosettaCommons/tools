@@ -91,7 +91,6 @@ SerializationFunctionFinder::run( clang::ast_matchers::MatchFinder::MatchResult 
 	classes_w_serialization_funcs_.insert( classname );
 
 	std::string funcname = temp_decl->getNameAsString();
-	bool is_save( funcname == "save" );
 
 	clang::SourceLocation begin( temp_decl->getSourceRange().getBegin() ), end( temp_decl->getSourceRange().getEnd() );
 	clang::SourceLocation endend( clang::Lexer::getLocForEndOfToken( end, 0, *sm, LangOptions() ));
@@ -112,9 +111,13 @@ SerializationFunctionFinder::run( clang::ast_matchers::MatchFinder::MatchResult 
 		std::string varname;
 		while ( iss ) {
 			iss >> varname;
-			if ( is_save ) {
+			if ( funcname == "save" ) {
 				save_members_exempted_.insert( std::make_pair( classname, varname ));
-			} else {
+			} else if ( funcname == "save_with_options" ) {
+				save_w_opts_members_exempted_.insert( std::make_pair( classname, varname ));
+			} else if ( funcname == "load_with_options" ) {
+				load_w_opts_members_exempted_.insert( std::make_pair( classname, varname ));
+			}  else {
 				load_members_exempted_.insert( std::make_pair( classname, varname ));
 			}
 		}
@@ -135,9 +138,21 @@ SerializationFunctionFinder::exempted_members_from_save() const
 }
 
 SerializationFunctionFinder::data_members const &
+SerializationFunctionFinder::exempted_members_from_save_w_opts() const
+{
+	return save_w_opts_members_exempted_;
+}
+
+SerializationFunctionFinder::data_members const &
 SerializationFunctionFinder::exempted_members_from_load() const
 {
 	return load_members_exempted_;
+}
+
+SerializationFunctionFinder::data_members const &
+SerializationFunctionFinder::exempted_members_from_load_w_opts() const
+{
+	return load_w_opts_members_exempted_;
 }
 
 
@@ -146,7 +161,7 @@ match_to_serialization_method_definition()
 {
 	using namespace clang::ast_matchers;
 	return functionTemplateDecl(
-		anyOf( hasName( "save"), hasName("load"),hasName( "load_and_construct") )
+		anyOf( hasName("save"), hasName("load"),hasName( "load_and_construct"), hasName("save_with_options"), hasName("load_with_options") )
 		,hasDescendant( parmVarDecl( hasType( referenceType(pointee(asString("Archive" ))))))
 		,anyOf(
 			hasDescendant( methodDecl(isDefinition()).bind( "method_decl" )),
@@ -206,10 +221,17 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	std::string funcname = tempfunc->getNameAsString();
 
 
-  if ( funcname == "save" && save_variables_.find( std::make_pair( classname, varname )) != save_variables_.end() ) {
+	if ( funcname == "save" && save_variables_.find( std::make_pair( classname, varname )) != save_variables_.end() ) {
+		return;
+	}
+	if ( funcname == "save_with_options" && save_w_opts_variables_.find( std::make_pair( classname, varname )) != save_w_opts_variables_.end() ) {
 		return;
 	}
   if ( ( funcname == "load" || funcname == "load_and_construct" ) && load_variables_.find( std::make_pair( classname, varname )) != load_variables_.end() ) {
+		return;
+	}
+
+  if ( ( funcname == "load_with_options") && load_w_opts_variables_.find( std::make_pair( classname, varname )) != load_w_opts_variables_.end() ) {
 		return;
 	}
 
@@ -233,7 +255,9 @@ void SerializedMemberFinder::run(const clang::ast_matchers::MatchFinder::MatchRe
 	}// else { std::cout << "SMF being very quiet" << std::endl; }
 
 	if ( funcname == "save" )	save_variables_.insert( std::make_pair(classname, varname ));
+	if ( funcname == "save_with_options" )	save_w_opts_variables_.insert( std::make_pair(classname, varname ));
 	if ( funcname == "load" || funcname == "load_and_construct" ) load_variables_.insert( std::make_pair(classname, varname ));
+	if ( funcname == "load_with_options" ) load_w_opts_variables_.insert( std::make_pair(classname, varname ));
 }
 
 SerializedMemberFinder::class_names  const & SerializedMemberFinder::classes_w_serialization_funcs() const
@@ -246,9 +270,19 @@ SerializedMemberFinder::data_members const & SerializedMemberFinder::members_sav
 	return save_variables_;
 }
 
+SerializedMemberFinder::data_members const & SerializedMemberFinder::members_saved_w_opts() const
+{
+	return save_w_opts_variables_;
+}
+
 SerializedMemberFinder::data_members const & SerializedMemberFinder::members_loaded() const
 {
 	return load_variables_;
+}
+
+SerializedMemberFinder::data_members const & SerializedMemberFinder::members_loaded_w_opts() const
+{
+	return load_w_opts_variables_;
 }
 
 
@@ -304,7 +338,7 @@ match_to_serialized_data_members() {
 	return
 		memberExpr(
 			hasAncestor( functionTemplateDecl(
-				anyOf(hasName("save"),hasName("load"),hasName("load_and_construct")),
+				anyOf(hasName("save"),hasName("load"),hasName("load_and_construct"),hasName("save_with_options"),hasName("load_with_options")),
 				//,hasParameter(0,hasType(referenceType(pointee(asString("class cereal::JSONOutputArchive")))))
 				//,has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType()) ).bind("vardecl") )).bind("methdecl") )
 				has( methodDecl( hasDescendant( parmVarDecl( hasType(referenceType(pointee(asString("Archive")) )) ).bind("vardecl") )).bind("methdecl") )

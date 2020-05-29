@@ -1,23 +1,30 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 from sys import argv,exit
-from os import system,getcwd,popen
+from os import system,getcwd,popen,devnull
 from os.path import basename,dirname,expanduser,exists,expandvars
 import string
 
 def Help():
     print argv[0]+' <text file with rosetta command> <outdir> <# jobs>  [# hours]'
+    print '  give outdir as 0 and # jobs as 1 to not create separate outdirs.'
     exit()
 
-if len( argv ) < 4:
+if len( argv ) < 2:
     Help()
 
 infile = argv[1]
-outdir = argv[2]
+
+try:
+    outdir = argv[2]
+except:
+    outdir = '0'
+
 try:
     n_jobs = int( argv[3] )
 except:
-    print 'NEED TO SUPPLY NUMBER OF JOBS'
+    n_jobs = 1
+    if outdir != '0': print 'NEED TO SUPPLY NUMBER OF JOBS'
 
 DO_MPI = False # May need to reactivate for XSEDE.
 
@@ -28,6 +35,7 @@ if hostname_tag.find( 'DasLab' ) > -1 or hostname_tag.find( 'das' ) > -1: hostna
 if hostname_tag.find( 'stampede' ) > -1: hostname = 'stampede'
 if hostname_tag.find( 'comet' ) > -1: hostname = 'comet'
 if hostname_tag.find( 'sherlock' ) > -1 or hostname_tag.find( 'sh-' ) > -1: hostname = 'sherlock'
+if hostname_tag.find( 'biox3' ) > -1: hostname = 'biox3'
 
 queue_cmd = 'qsub'
 if hostname in ["stampede", "sherlock", "comet"]:
@@ -84,7 +92,7 @@ if len( argv ) > 4:
         nhours = min(nhours, 48)
 
 if not exists( infile ):
-    print 'Could not find: ', infile
+    print('Could not find: ', infile)
     exit( 0 )
 
 lines = open(infile).readlines()
@@ -95,13 +103,22 @@ condor_file = 'condorMINI'
 qsub_file = 'qsubMINI'
 sbatch_file = 'sbatchMINI'
 
+if queue_cmd == 'qsub' or queue_cmd == 'sbatch':
+    bsub_file = devnull
+    condor_file = devnull
+if queue_cmd == 'qsub': sbatch_file = devnull
+if queue_cmd == 'sbatch': qsub_file = devnull
+
 # MPI based systems require separate submission files for each command.
 queue_file_MPI = queue_cmd + 'MPI'
-queue_file_MPI_ONEBATCH = queue_cmd+'MPI_ONEBATCH'
+queue_file_MPI_ONEBATCH = queue_cmd+'MPI_ONEBATCH' # testing on stampede?
 job_file_MPI_ONEBATCH = 'MPI_ONEBATCH.job'
 all_commands_file = 'all_commands.sh'
 if hostname in ["stampede", "sherlock", "comet"]:
-    qsub_file_MPI_ONEBATCH = "job.batch"
+    queue_file_MPI_ONEBATCH = "job.batch"
+if hostname == 'sherlock':
+    queue_file_MPI_ONEBATCH = devnull
+    job_file_MPI_ONEBATCH = devnull
 
 fid = open( bsub_file,'w')
 fid_condor = open( condor_file,'w')
@@ -129,7 +146,7 @@ QSUB_SUBMIT_CMD = ('qsub.sh' if sum([exists('%s/qsub.sh'%p) for p in PATH_LIST])
 SBATCH_SUBMIT_CMD = 'sbatch'
 
 qsub_file_dir = 'qsub_files/'
-if not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
+if queue_cmd == 'qsub' and not exists( qsub_file_dir ): system( 'mkdir '+qsub_file_dir )
 
 if queue_cmd == 'sbatch':
     sbatch_file_dir = 'sbatch_files/'
@@ -152,10 +169,10 @@ for line in lines:
 
     if len(line) == 0: continue
     if line[0] == '#': continue
-    #if string.split( line[0]) == []: continue
+    #if line[0].split() == []: continue
     command_line = line[:-1]
 
-    cols = string.split( command_line )
+    cols = command_line.split()
     for i in range( len( cols ) ):
         if cols[i][0] == '@':
             flag_file = cols[i][1:]
@@ -165,17 +182,27 @@ for line in lines:
                 if len(flag)>0 and flag[0] != '#':
                     new_flags += ' ' + flag.replace( '\n', '')
             cols[i] = new_flags
-            command_line = string.join( cols )
+            command_line = ' '.join(cols)
 
     dir = outdir + '/$(Process)/'
-    if command_line.find( '-csa_bank_size' ) > -1:
+<<<<<<< HEAD
+    make_outdirs = False
+    if outdir == '0':
+        assert( n_jobs == 1 )
+    elif command_line.find( '-csa_bank_size' ) > -1:
         print "Detected CSA mode"
+=======
+    if command_line.find( '-csa_bank_size' ) > -1:
+        print("Detected CSA mode")
+>>>>>>> master
     else:
         command_line = command_line.replace( 'out:file:silent  ','out:file:silent ').replace( '-out:file:silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out::file::silent ', '-out::file::silent '+dir)
         command_line = command_line.replace( '-silent ', '-out:file:silent '+dir)
         command_line = command_line.replace( '-out:file:o ', '-out:file:o '+dir)
+        command_line = command_line.replace( '-output_histogram_file ', '-output_histogram_file '+dir)
         command_line = command_line.replace( '-o ', '-o '+dir)
+        make_outdirs = True
     #command_line = command_line.replace( '-seed_offset 0', '-seed_offset $(Process)')
     command_line = command_line.replace( '-constant_seed', '-constant_seed -jran $(Process)')
     command_line = command_line.replace( 'macosgcc', 'linuxgcc')
@@ -183,13 +210,15 @@ for line in lines:
     command_line = command_line.replace( '~/', HOMEDIR+'/')
     command_line = command_line.replace( '/home/rhiju',HOMEDIR)
 
-    cols = string.split( command_line )
+    cols = command_line.split()
     if len( cols ) == 0: continue
 
     EXE = cols[ 0 ]
     if not exists( EXE ):
         rosetta_folder = expandvars("$ROSETTA")
         EXE = rosetta_folder + '/main/source/bin/'+basename(EXE)
+    if not exists( EXE ):
+        EXE += ".linuxiccrelease"
     if not exists( EXE ):
         EXE += ".linuxclangrelease"
     if not exists( EXE ):
@@ -200,22 +229,24 @@ for line in lines:
 
     if not exists( cols[0] ):
         cols[0] = EXE
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
 
 
     if '-total_jobs' in cols:
         pos = cols.index( '-total_jobs' )
         cols[ pos+1 ] = '%d' % n_jobs
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
     if '-job_number' in cols:
         pos = cols.index( '-job_number' )
         cols[ pos+1 ] = '$(Process)'
-        command_line = string.join( cols )
+        command_line = ' '.join(cols)
 
 
     for i in range( n_jobs ):
-        dir_actual = dir.replace( '$(Process)', '%d' % i)
-        system( 'mkdir -p '+ dirname(dir_actual) )
+        if make_outdirs:
+            dir_actual = dir.replace( '$(Process)', '%d' % i)
+            system( 'mkdir -p '+ dirname(dir_actual) )
+        dir_actual = './'
 
         outfile = outfile_general.replace( '$(Process)', '%d' % i )
         errfile = errfile_general.replace( '$(Process)', '%d' % i )
@@ -225,24 +256,25 @@ for line in lines:
         command += command_line_explicit
         fid.write( command + '\n')
 
-        # qsub
-        pbs_outfile = '/dev/null'
-        pbs_errfile = '/dev/null'
-        qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
-        fid_qsub_submit_file = open( qsub_submit_file, 'w' )
-        fid_qsub_submit_file.write( '#!/bin/bash\n'  )
-        fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
-        fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
-        fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
-        fid_qsub_submit_file.write('#PBS -m n\n') # no mail
-        fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
-        #fid_qsub_submit_file.write('#PBS -l mem=500Mb\n'  )
-        fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
-        fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
-        fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
-        fid_qsub_submit_file.close()
+        if queue_cmd == 'qsub':
+            # qsub
+            pbs_outfile = '/dev/null'
+            pbs_errfile = '/dev/null'
+            qsub_submit_file = '%s/qsub%d.sh' % (qsub_file_dir, tot_jobs )
+            fid_qsub_submit_file = open( qsub_submit_file, 'w' )
+            fid_qsub_submit_file.write( '#!/bin/bash\n'  )
+            fid_qsub_submit_file.write('#PBS -N %s\n' %  (CWD+'/'+dir_actual[:-1]).replace( '/', '_' ) )
+            fid_qsub_submit_file.write('#PBS -o %s\n' % pbs_outfile)
+            fid_qsub_submit_file.write('#PBS -e %s\n' % pbs_errfile)
+            fid_qsub_submit_file.write('#PBS -m n\n') # no mail
+            fid_qsub_submit_file.write('#PBS -M nobody@stanford.edu\n') # no mail
+            #fid_qsub_submit_file.write('#PBS -l mem=500Mb\n'  )
+            fid_qsub_submit_file.write('#PBS -l walltime=%d:00:00\n\n' % nhours )
+            fid_qsub_submit_file.write( 'cd %s\n\n' % CWD )
+            fid_qsub_submit_file.write( '%s > %s 2> %s \n' % (command_line_explicit,outfile,errfile) )
+            fid_qsub_submit_file.close()
 
-        fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
+            fid_qsub.write( '%s %s\n' % ( QSUB_SUBMIT_CMD, qsub_submit_file ) )
 
         if queue_cmd == 'sbatch':
 
@@ -251,6 +283,7 @@ for line in lines:
             if not user_input_queue:
                 if hostname in ['comet']:    queue2 = 'shared'
                 if hostname in ['sherlock']: queue2 = 'owners'
+
             job_name = (basename(CWD)+'/'+dir_actual[:-1]).replace( '/', '_' )
 
             sbatch_submit_file = '%s/job%d.sbatch' % (sbatch_file_dir, tot_jobs )
@@ -283,7 +316,7 @@ for line in lines:
         command_lines_explicit.append( command_line_explicit )
         tot_jobs += 1
 
-    arguments = string.join( cols[ 1: ] )
+    arguments = ' '.join(cols[1:])
 
     fid_condor.write('\nexecutable = %s\n' % EXE )
     fid_condor.write('arguments = %s\n' % arguments)
@@ -335,7 +368,8 @@ if DO_MPI:
             #    queue = 'compute'
             #if development:
             #    queue = 'development'
-            #fid_qsub_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
+            if hostname in ['sherlock']:
+                queue='owners'
             fid_queue_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
@@ -445,37 +479,51 @@ if DO_MPI:
     fid_queue_MPI_ONEBATCH.close()
     fid_job_MPI_ONEBATCH.close()
 
-if len( hostname ) == 0:
+<<<<<<< HEAD
+if len( hostname ) == 0 and bsub_file != '/dev/null':
     print 'Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source',bsub_file
     print
+=======
+if len( hostname ) == 0:
+    print('Created bsub submission file ',bsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source',bsub_file)
+    print()
+>>>>>>> master
 
 if hostname == 'ade':
-    print 'Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>condor_submit',condor_file
-    print
+    print('Created condor submission file ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>condor_submit',condor_file)
+    print()
 
-    print 'Also created bash file with all commands ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>bash ', all_commands_file
-    print
+    print('Also created bash file with all commands ',condor_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>bash ', all_commands_file)
+    print()
 
-if len( hostname ) == 0:
+<<<<<<< HEAD
+if queue_cmd == 'qsub':
     print 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: '
     print '>source ',qsub_file
     print
+=======
+if len( hostname ) == 0:
+    print('Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source ',qsub_file)
+    print()
+>>>>>>> master
 
 if queue_cmd == 'sbatch':
-    print 'Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: '
-    print '>source ',sbatch_file
-    print
+    print('Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: ')
+    print('>source ',sbatch_file)
+    print()
 
 
 if DO_MPI:
     if len( hostname ) == 0:
-        print 'Created MPI_ONEBATCH qsub submission files ',queue_file_MPI_ONEBATCH,' with ',tot_jobs, ' jobs queued. To run, type: '
-        print '>qsub ',queue_file_MPI_ONEBATCH
-        print
+        print('Created MPI_ONEBATCH qsub submission files ',queue_file_MPI_ONEBATCH,' with ',tot_jobs, ' jobs queued. To run, type: ')
+        print('>qsub ',queue_file_MPI_ONEBATCH)
+        print()
 
-    print 'Created MPI submission files ',queue_file_MPI,' with ',tot_nodes, ' batches queued. To run, type: '
-    print '>source ',queue_file_MPI
+    print('Created MPI submission files ',queue_file_MPI,' with ',tot_nodes, ' batches queued. To run, type: ')
+    print('>source ',queue_file_MPI)
 

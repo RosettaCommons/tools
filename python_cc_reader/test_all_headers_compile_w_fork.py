@@ -1,9 +1,9 @@
-import fork_manager
-import blargs
+from python_cc_reader.utility import fork_manager
+from python_cc_reader.external.blargs import blargs
 
-from test_compile import *
-from code_utilities import *
-from inclusion_equivalence_sets import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.inclusion_removal.inclusion_equivalence_sets import *
 
 import re
 import sys
@@ -20,17 +20,17 @@ class HeaderCompilationManager :
       self.headers_that_failed = []
    def handle_successful_header_compilation( self, fm, p ) :
       if p not in self.header_for_job :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.header_for_job :
-            print "Process ", p, "responsible for", self.header_for_job[ p ]
+            print("Process ", p, "responsible for", self.header_for_job[ p ])
          sys.exit(1)
       else :
          del self.header_for_job[p]
    def handle_failed_header_compilation( self, fm, p ) :
       if p not in self.header_for_job :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.header_for_job :
-            print "Process ", p, "responsible for", self.header_for_job[ p ]
+            print("Process ", p, "responsible for", self.header_for_job[ p ])
          sys.exit(1)
       else :
          self.headers_that_failed.append( self.header_for_job[ p ] )
@@ -49,7 +49,7 @@ if __name__ == "__main__" :
        re_hh_header  = re.compile("\S*\.hh$")
        re_hpp_header = re.compile( "\S*\.hpp$")
 
-       all_files = includes.keys()
+       all_files = list(includes.keys())
 
        hh_headers = regex_subset( all_files, re_hh_header )
        hpp_headers = regex_subset( all_files, re_hpp_header )
@@ -75,7 +75,7 @@ if __name__ == "__main__" :
       sys.exit(0)
    else :
       for h in hcm.headers_that_failed :
-         print "Header", h, "fails to compile on its own"
+         print("Header", h, "fails to compile on its own")
       sys.exit(1)
 
 

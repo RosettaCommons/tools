@@ -13,7 +13,7 @@ parser.add_argument('-seq', help='Sequence of the helix, in the format: gg_cc' )
 parser.add_argument('-use_hist', help='Use hist.gz instead of bin.gz (note -- cannot reweight)',action='store_true', default=False )
 parser.add_argument('-no_kcal_mol', help='Put out numbers in kT, not kcal/mol',action='store_true', default=False )
 parser.add_argument('-weight_sets',help='File with other weight sets to test' )
-parser.add_argument('-print_delH',help='print delH and delS',action='store_true',default=False)
+parser.add_argument('-print_delH',help='print(delH and delS',action='store_true',default=False))
 parser.add_argument('-incorrect_wt_order', help='Tried new order of turner weights for rb_recces.',action='store_true', default=False )
 args = parser.parse_args()
 
@@ -32,24 +32,24 @@ else:
 
 if not args.no_kcal_mol: val *= KT_IN_KCAL
 
-print "RECCES  deltaG ",
-if not args.no_kcal_mol: print "(kcal/mol)",
-print ':',val
+print("RECCES  deltaG ",end='')
+if not args.no_kcal_mol: print("(kcal/mol)",end='')
+print(':',val)
 #if ( sim.value < 0.0 ):
-#    print "with -1 correction, kcal/mol:", -KT_IN_KCAL * log( exp( -sim.value ) - 1 )
+#    print("with -1 correction, kcal/mol:", -KT_IN_KCAL * log( exp( -sim.value ) - 1 ))
 
 if args.print_delH:
     val = sim.avg_energy
     if not args.no_kcal_mol: val *= KT_IN_KCAL
-    print "RECCES  deltaH ",
-    if not args.no_kcal_mol: print "(kcal/mol)",
-    print ':',val
+    print("RECCES  deltaH ",end='')
+    if not args.no_kcal_mol: print("(kcal/mol)",end='')
+    print(':',val)
     val = -sim.entropy
     if not args.no_kcal_mol: val *= KT_IN_KCAL
-    print "RECCES -TdeltaS",
-    if not args.no_kcal_mol: print "(kcal/mol)",
-    print ':',val
-print
+    print("RECCES -TdeltaS",end='')
+    if not args.no_kcal_mol: print("(kcal/mol)",end='')
+    print(':',val)
+print()
 
 
 if ( args.weight_sets != None ):
@@ -72,14 +72,14 @@ if ( args.weight_sets != None ):
     reorder = range(1,11)
     #reorder = [ 1, 2, 3, 7, 10, 5, 4, 9, 8, 6] # verified by looking at score_type output list and score_type order in turner.wts
     vals = []
-    print "Computing average over other weights..."
+    print("Computing average over other weights...")
     for weight in weight_list[0:1000:100]:
         if len(weight) == 11:
             sim.reweight( [float(weight[i]) for i in reorder ] )
-            print sim.value * KT_IN_KCAL
+            print(sim.value * KT_IN_KCAL)
             vals.append( sim.value * KT_IN_KCAL)
         else:
             continue
 
     print
-    print "deltaG(corr): ", np.mean( np.array( vals ) ), "+/-", np.std( np.array( vals ) ), " from ", len( vals ), " weight sets"
+    print("deltaG(corr): ", np.mean( np.array( vals ) ), "+/-", np.std( np.array( vals ) ), " from ", len( vals ), " weight sets")

@@ -96,27 +96,27 @@ def get_delta_G(seq1, seq2 ):
                 freeE_from_seq(strand3) - freeE_from_seq(dup0) +
                 freeE_from_seq(strand0) + freeE_from_seq(strand1))
             # for cooper 08/30
-            print dup1
-            print freeE_from_seq(dup1)
-            print strand2
-            print freeE_from_seq(strand2)
-            print strand3
-            print freeE_from_seq(strand3)
-            print dup0
-            print freeE_from_seq(dup0)
-            print strand0
-            print freeE_from_seq(strand0)
-            print strand1
-            print freeE_from_seq(strand1)
+            print(dup1)
+            print(freeE_from_seq(dup1))
+            print(strand2)
+            print(freeE_from_seq(strand2))
+            print(strand3)
+            print(freeE_from_seq(strand3))
+            print(dup0)
+            print(freeE_from_seq(dup0))
+            print(strand0)
+            print(freeE_from_seq(strand0))
+            print(strand1)
+            print(freeE_from_seq(strand1))
             return freeE
         freeE = freeE_duplex()
-        print "freeE for ",seq1," ", seq2, ":", freeE
+        print("freeE for ",seq1," ", seq2, ":", freeE)
 
         seq1_parsed, seq2_parsed = seq2_parsed, seq1_parsed
         seq1 = ''.join(seq1_parsed)
         seq2 = ''.join(seq2_parsed)
         freeE_flipped = freeE_duplex()
-        print "freeE for ",seq1," ", seq2, ":", freeE_flipped
+        print("freeE for ",seq1," ", seq2, ":", freeE_flipped)
 
         freeE += freeE_flipped
         freeE *= 0.5
@@ -124,9 +124,9 @@ def get_delta_G(seq1, seq2 ):
     #return kT_list, freeE
 
 for seq in seqs:
-    print seq
+    print(seq)
     dG = get_delta_G( seq[0], seq[1])
-    print KT_IN_KCAL*dG
+    print(KT_IN_KCAL*dG)
 
 
 
@@ -147,15 +147,15 @@ for seq in seqs:
 #for dir in ['cc/','gcc/','gg/','gg_cc/','ggc/','ggc_gcc/']:
 #    tag = dir[:-1]
 #    chdir( dir )
-#    print getcwd()
+#    print(getcwd())
 #    sim = SingleSimulation( 'ST/', curr_wt )
 #    seq1,seq2 = get_seqs( dir )
 #    val[tag] = sim.value - log( torsion_volume( seq1, seq2 ) )
-#    print tag, val[tag], val[tag] * KT_IN_KCAL
+#    print(tag, val[tag], val[tag] * KT_IN_KCAL)
 #    chdir( CWD )
 #
-#print 'ggc_gcc - ggc - gcc - (gg_cc - gg - cc )'
+#print('ggc_gcc - ggc - gcc - (gg_cc - gg - cc )')
 #val_final = val['ggc_gcc'] - val['ggc'] - val['gcc'] - ( val['gg_cc'] - val['gg'] - val['cc'] )
-#print val_final, val_final * KT_IN_KCAL
+#print(val_final, val_final * KT_IN_KCAL)
 #
 ##  LocalWords:  sim

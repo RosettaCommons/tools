@@ -7,7 +7,7 @@ import pickle
 job_file = open("prerun.job_list", 'w')
 
 temps = util.temp_list()
-print temps
+print(temps)
 
 one_strand, duplex = util.design_seq_from_file('seq_list')
 used_strand = []
@@ -17,7 +17,7 @@ n_cycle = 300000
 #cmdline_common = '/home/fcchou/Rosetta/main/source/bin/'
 cmdline_common = util.get_base_cmdline()
 cmdline_common += '-n_cycle %d ' % n_cycle
-print cmdline_common
+print(cmdline_common)
 
 root_path = abspath('./raw_data/')
 if not isdir(root_path):

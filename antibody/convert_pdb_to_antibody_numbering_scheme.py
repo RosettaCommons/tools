@@ -11,7 +11,7 @@ import re
 
 if len(sys.argv) < 3:
 	print "convert_pdb_to_antibody_numbering_scheme.py pdb output_pdb <heavy_chain> <light_chain> <scheme>\n \
-	ex. convert_pdb_to_antibody_numbering_scheme.py 3NGB.pdb 3NGB_kabat.py <H> <L> <c>\n \
+	ex. convert_pdb_to_antibody_numbering_scheme.py 3NGB.pdb 3NGB_kabat.py H L c\n \
 	sheme = c for chothia, k for kabat, e for extended chothia\n"
 	sys.exit()
 
@@ -51,7 +51,7 @@ def get_sequence(chain_object):
 	return "".join(res_names)
 
 def get_numbering_scheme(ab_string,scheme=scheme):
-	url_ = "http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme=-{}".format(ab_string,scheme)
+	url_ = "http://www.bioinf.org.uk/abs/abnum/abnum.cgi?plain=1&aaseq={}&scheme=-{}".format(ab_string,scheme)
 	response = url.urlopen(url_)
 	scheme = []
 	for i in response.readlines():
@@ -63,7 +63,7 @@ def get_numbering_scheme(ab_string,scheme=scheme):
 		re_ = re.search('[A-Za-z]',scheme_number)
 		if re_:
 			insertion_code = re_.group(0)
-			scheme_number = scheme_number[:scheme_number.index(insertion_code)] 		
+			scheme_number = scheme_number[:scheme_number.index(insertion_code)]
 		scheme_number = int(scheme_number)
 		scheme.append((' ',scheme_number,insertion_code))
 	return scheme
@@ -78,7 +78,7 @@ def set_new_res(resis):
 			res_.id = tmp_dict[res_.id]
 		except KeyError:
 			resnum += 1
-			res_.id = ( ' ',resnum, ' ') 
+			res_.id = ( ' ',resnum, ' ')
 
 
 set_new_res(heavy_chain_res)

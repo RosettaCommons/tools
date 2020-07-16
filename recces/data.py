@@ -5,9 +5,9 @@ import os
 import re
 import string
 import numpy as np
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 
-import util
+import recces.util as util
 
 '''
 RECCES (reweighting of energy-function collection with conformational ensemble sampling in Rosetta)
@@ -161,7 +161,7 @@ class SingleSimulation(BaseMinFunc):
         xyzfile = data_folder + "/xyz.txt"
         if ( os.path.isfile( xyzfile ) ):
             # almost ready for this: just need to store rmsd_cutoff somewhere on disk.
-            print "You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term."
+            print("You have ",xyzfile, " so make sure to run compute_ref.py to get rigid body entropy loss term.")
             #torsion_volume *= compute_rigid_body_volume_ratio( rmsd_cutoff, xyzfile )
         normalization *= ( 1.0 / torsion_volume )
 
@@ -179,9 +179,9 @@ class SingleSimulation(BaseMinFunc):
             self._score_terms = full_data[:, 2:] / self.curr_weight
         else:
             # this provides a check on weight order:
-            #for i in range(3): print full_data[i,:2], np.sum( full_data[i,2:] * self.curr_weight )
+            #for i in range(3): print(full_data[i,:2], np.sum( full_data[i,2:] * self.curr_weight ))
             # spit out mean values of each score-term:
-            #print np.sum( full_data[:,2:] * self.curr_weight, axis = 0 )/np.size( full_data, axis = 0 )
+            #print(np.sum( full_data[:,2:] * self.curr_weight, axis = 0 )/np.size( full_data, axis = 0 ))
             self._score_terms = full_data[:, 2:]
 
         self._update_free_energy_and_deriv()
@@ -646,8 +646,8 @@ def _wham(histograms, kt_list, energies=WHAM_ENERGIES):
         if np.all(diff <= WHAM_CONVERGE_LIMIT):
             # useful stuff ...
             # best_fit = np.tile(dos_raw, (len(kt_list),1)).T * (n_sample_per_hist * bin_size * exp_f_list * boltzmann_factor)
-            # print "delG (1 kT) [WHAM]", -logsumexp(-energies, b=dos_raw), " sum dos_raw", np.sum(dos_raw), "  bin_size", bin_size, " sum exp(f) ", np.sum(exp_f_list)
-            # print sorted( zip( kt_list, kt_list * np.log( exp_f_list ) ) ) # should be delG at each temperature actually
+            # print("delG (1 kT) [WHAM]", -logsumexp(-energies, b=dos_raw), " sum dos_raw", np.sum(dos_raw), "  bin_size", bin_size, " sum exp(f) ", np.sum(exp_f_list))
+            # print(sorted( zip( kt_list, kt_list * np.log( exp_f_list ) ) ) # should be delG at each temperature actually)
             return weight_per_bin, dos_raw
 
 
@@ -713,8 +713,8 @@ def get_name_from_folder( data_folder ):
     dir_name = os.path.basename(os.path.abspath(data_folder))
     if len( dir_name ) > 1 and dir_name[:2] == 'ST':
         dir_name = os.path.basename( os.path.dirname( os.path.abspath(data_folder)) )
-    dir_name = string.join( dir_name.split( '_' )[:2], '_')
+    dir_name = "_".join(dir_name.split( '_' )[:2])
     if not ( re.match( '[acguACGU][acguACGU]*[_acguACGU]*', dir_name ) == None ):
-        print 'Inferring sequence from directory name: ', dir_name
+        print('Inferring sequence from directory name: ', dir_name)
         return dir_name
     return ''

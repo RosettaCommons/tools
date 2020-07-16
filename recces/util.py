@@ -80,8 +80,7 @@ DG_IGIC = {('cZ[IGU]', 'Z[ICY]g'): -2.46,
            ('gZ[ICY]', 'Z[IGU]c'): -4.00,
            ('Z[IGU]Z[ICY]', 'Z[IGU]Z[ICY]'): -4.61}
 
-DG_ALL = dict(DG_CANONICAL.items() + DG_DANGLING.items() +
-              DG_GU.items() + DG_IGIC.items())
+DG_ALL = {**DG_CANONICAL, **DG_DANGLING, **DG_GU, **DG_IGIC}
 
 DG_TERMINAL = {('a', 'u'): 0.45,
                ('g', 'u'): 0,
@@ -286,25 +285,34 @@ def weight_evaluate(folder, hist_score):
 
     def get_hist(filename):
         hist = load_1d_bin_gz(filename, dtype=np.uint64)
-        #print filename, len( hist )
+        #print(filename, len( hist ))
         return np.column_stack((scores, hist))
 
     working_dir = os.getcwd()
-    os.chdir(folder)
+    # os.chdir(folder)
+    print("now in ", folder)
+    print(os.getcwd())
     # use prefix of hist_scores_file
-    file_list = glob.glob( hist_score.split('_')[0] + '*.hist.gz')
+    print("looking in ", hist_score.split('_')[0] + '*.hist.gz')
+    # file_list = glob.glob("{}*.hist.gz".format(hist_score.split('_')[0]))# + '*.hist.gz')
+    file_list = glob.glob("{}*.hist.gz".format(hist_score.split('_')[0]))# + '*.hist.gz')
+    print(file_list)
     data_list = [
         [name, float(name.split('_')[-1].replace('.hist.gz', ''))]
         for name in file_list]
+    print(data_list)
     data_list = sorted(data_list, key=lambda x: x[1])
-    data_list = zip(*data_list)
+    print(data_list)
+    data_list = list(zip(*data_list))
+    print(data_list)
     kT_list = data_list[1]
     name_list = data_list[0]
-    hist_list = map(get_hist, name_list)
+    hist_list = list(map(get_hist, name_list))
     print_hist_list( hist_list )
     weight_list = [0]
 
-    for hist1, kT1, hist2, kT2 in itertools.izip(
+    # for hist1, kT1, hist2, kT2 in itertools.izip(
+    for hist1, kT1, hist2, kT2 in zip(
             hist_list[:-1], kT_list[:-1], hist_list[1:], kT_list[1:]):
         delta_weight = get_ST_delta(hist1, hist2, kT1, kT2)
         weight_list.append(weight_list[-1] + delta_weight)
@@ -348,7 +356,7 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
     # Simple heuristic for the init weight based on avg. energy
     E1 = np.sum(hist1[:, 0] * hist1[:, 1]) / sum1
     E2 = np.sum(hist2[:, 0] * hist2[:, 1]) / sum2
-    #print "kt1", kt1, "<E1>", E1, "-- kt2", kt2, "<E2>",E2
+    #print("kt1", kt1, "<E1>", E1, "-- kt2", kt2, "<E2>",E2)
     delta_start = (beta2 - beta1) * (E1 + E2) / 2
     search_width = 5
     delta_range = (delta_start - search_width), (delta_start + search_width)
@@ -359,7 +367,7 @@ def get_ST_delta(hist1, hist2, kt1, kt2):
         delta_final = scipy.optimize.brentq(
             target_func, delta_range[0], delta_range[1])
     except ValueError:
-        print "Problem with %f to %f -- need to fill in intermediate temperatures" % (kt1,kt2)
+        print("Problem with %f to %f -- need to fill in intermediate temperatures" % (kt1,kt2))
         raise( ValueError )
     acpt_rate = get_acpt_rate(delta_final, log_prob_base1, hist1, sum1)
     if acpt_rate < 0.1:
@@ -421,15 +429,15 @@ def torsion_volume(seq1, seq2='', aform_torsion_range=2 * math.pi / 3):
     len1 = seq_len(seq1)
     len2 = seq_len(seq2)
     if len1 == 0:
-        print 'No phase space volume applied'
+        print('No phase space volume applied')
         return 1.0
     min_len = min(len1, len2)
     diff_len = abs(len1 - len2)
     if min_len == 0:  # One-strand
-        print "applying phase space volume for single strand with length ", diff_len
+        print("applying phase space volume for single strand with length ", diff_len)
         return (2 * pi) ** (6 * diff_len - 5) * (2 ** diff_len)
     else:
-        print "applying phase space volume for two strand with helix length ", min_len, " and dangle length ", diff_len
+        print("applying phase space volume for two strand with helix length ", min_len, " and dangle length ", diff_len)
         volume = aform_torsion_range ** (12 * min_len - 10)
         volume *= (2 * pi) ** (6 * diff_len) * (2 ** diff_len)
         return volume
@@ -480,7 +488,7 @@ def compute_rigid_body_ref( RMSD_cutoff = 3.0, xyz_file = 'xyz.txt'):
 
 def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
     """
-    print out histogram matrix; accept input from SingleSimulation
+    print(out histogram matrix; accept input from SingleSimulation)
     """
     fid = open( filename, 'w' )
     for i in range( len( energies ) ):
@@ -489,13 +497,13 @@ def print_hists( hist_list, energies, filename = 'hist_list.txt' ):
             fid.write( '%f ' % hist_list[j][i] )
         fid.write( '\n' )
     fid.close()
-    print "Created: ", filename
+    print("Created: ", filename)
     return
 
 
 def print_hist_list( hist_list ):
     """
-    print out histogram matrix; accept input from weight_evaluate
+    print(out histogram matrix; accept input from weight_evaluate)
     """
     print_hists( [ x[:,1] for x in hist_list ], hist_list[0][:,0] )
     return

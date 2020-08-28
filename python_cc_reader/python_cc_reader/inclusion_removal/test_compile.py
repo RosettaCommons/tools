@@ -68,7 +68,7 @@ def central_compile_command():
     )
 
     generic_command = (
-        " -c -std=c++11 -pipe -ffor-scope -pedantic -Wno-long-long -Werror -O0 -ffloat-store -DPTR_MODERN -DPTR_STD"
+        " -c -std=c++11 -pipe -ffor-scope -pedantic -Wno-long-long -Werror -O0 -ffloat-store -DPTR_MODERN -DPTR_STD "
         + include_directories
     )
     return compiler, generic_command

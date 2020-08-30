@@ -16,6 +16,8 @@
 # Pointers
 #{ include: ["<utility/pointer/boost/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { include: ["<utility/pointer/std/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/owning_ptr.fwd.hh>", "private", "<utility/pointer/owning_ptr.fwd.hh>", "public"] },
+{ include: ["<utility/pointer/std/memory.hh>", "private", "<utility/pointer/memory.hh>", "public"] },
 
 # Vector
 { include: ["<utility/vector1_bool.hh>", "private", "<utility/vector1.hh>", "public"] },
@@ -33,6 +35,7 @@
 { symbol: ["std::shared_ptr", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { symbol: ["std::weak_ptr", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 { symbol: ["std::enable_shared_from_this", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::make_shared", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { symbol: ["std::owner_less", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 
 { symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },

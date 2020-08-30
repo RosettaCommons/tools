@@ -41,10 +41,27 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_nonstandard_fwd.txt") ):
   with open(SCRIPTDIR+"/IWYU_nonstandard_fwd.txt") as f:
     for line in f:
         line = line.split()
-        if len(line) == 2 and line[0] != "#":
+        if len(line) == 2 and not line[0].startswith("#"):
             if line[0] in NONSTANDARD_FORWARDS:
                 print( "DUPLICATE ENTRY IN IWYU_nonstandard_fwd.txt!!!!!!! -", line[0] )
             NONSTANDARD_FORWARDS[ line[0] ] = line[1]
+
+SHADOWING_PROVIDERS = {}
+GLOBBING_PROVIDERS = {}
+if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
+  with open(SCRIPTDIR+"/IWYU_provided_by.txt") as f:
+    for line in f:
+        line = line.split()
+        if len(line) > 1 and not line[0].startswith("#"):
+            mainfile = line[0]
+            if '*' in mainfile:
+                provider_set = GLOBBING_PROVIDERS
+            else:
+                provider_set = SHADOWING_PROVIDERS
+            for entry in line[1:]:
+                if entry.startswith('#'):
+                    break
+                provider_set.setdefault(mainfile,[]).append(entry)
 
 ###################################
 
@@ -177,6 +194,22 @@ class IWYUChanges:
                 self.remove_addition( fn )
                 continue
 
+        # We want to make sure we do the other cleanups before we consider shadowing
+        for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
+            # Don't add if there's a shadowing provider
+            if fn in SHADOWING_PROVIDERS:
+                for entry in SHADOWING_PROVIDERS[fn]:
+                    if entry in self.additions or (entry in self.current_includes and entry not in self.deletions):
+                        if DEBUG: print("%% NO ADD DUE TO SHADOW", fn)
+                        self.remove_addition( fn )
+                        break
+            for gp in GLOBBING_PROVIDERS:
+                if fnmatch(fn, gp):
+                    for entry in GLOBBING_PROVIDERS[gp]:
+                        if entry in self.additions or (entry in self.current_includes and entry not in self.deletions):
+                            if DEBUG: print("%% NO ADD DUE TO GLOB SHADOW", fn)
+                            self.remove_addition(fn)
+                            break
 
     def prnt(self):
         if len(self.deletions) == 0 and len(self.additions) == 0:

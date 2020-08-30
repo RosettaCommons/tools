@@ -1,0 +1,92 @@
+#This is a helper file for the include_what_you_use.py script
+#
+# This file lists alternative locations from which one can consider to get
+# a particular header. That is if you have any of the headers B, C, D, or E, 
+# you shouldn't need to include the file A. -- Or in other words, that the B/C/D/E addition shadows the A include.
+#
+# In general, only add a header as a primary entry here if people shouldn't
+# be including the header directly. (It's better to be explicit.)
+#
+# Note that the A include won't be substituted if it's already present,
+# or if the shadowing header is otherwise going away.
+
+## Types
+cstddef platform/types.hh numeric/types.hh core/types.hh
+stddef.h platform/types.hh numeric/types.hh core/types.hh
+platform/types.hh numeric/types.hh core/types.hh
+numeric/types.hh core/types.hh 
+
+numeric/xyzVector.fwd.hh core/types.hh 
+
+## Vectors
+vector utility/vector1.hh utility/vector0.hh utility/vectorL.hh
+utility/vectorL.hh utility/vector1.hh utility/vector0.hh
+utility/vector1_bool.hh utility/vector1.hh
+utility/vector0_bool.hh utility/vector0.hh
+utility/vectorL_bool.hh utility/vector1_bool.hh utility/vector1.hh utility/vector0_bool.hh utility/vector0.hh utility/vectorL.hh
+
+# odd behavior due to std::vector
+ext/alloc_traits.h utility/vector1.hh utility/vector0.hh
+
+## Pointers
+memory utility/pointer/owning_ptr.hh 
+utility/pointer/std/memory.hh utility/pointer/owning_ptr.hh utility/pointer/memory.hh
+utility/pointer/std/owning_ptr.hh utility/pointer/owning_ptr.hh 
+ 
+## Exit/exception
+utility/backtrace.hh utility/assert.hh utility/exit.hh
+assert.h utility/backtrace.hh utility/assert.hh utility/exit.hh
+exception utility/excn/Exceptions.hh 
+#utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh
+stdlib.h utility/exit.hh 
+cstdlib utility/exit.hh 
+
+## Tracers & streams
+utility/thread/backwards_thread_local.hh basic/Tracer.hh 
+utility/CSI_Sequence.hh src/utility/backtrace.hh src/basic/Tracer.hh
+basic/TracerImpl.hh basic/Tracer.hh
+iomanip basic/Tracer.hh
+ostream basic/Tracer.hh
+
+utility/io/zipstream.hpp utility/io/izstream.hh utility/io/ozstream.hh
+
+## Rosetta Types
+core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh 
+protocols/moves/Mover.fwd.hh protocols/moves/MoverCreator.hh 
+protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh 
+protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh 
+protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh 
+
+## Residue Types
+boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh 
+boost/pending/property.hppboost/pending/property.hpp core/chemical/ResidueGraphTypes.hh 
+
+## Options
+basic/options/keys/OptionKeys.hh basic/options/option.hh 
+utility/options/*Option.hh basic/options/option.hh 
+utility/options/*Option_T_.hh basic/options/option.hh 
+
+## ObjexxFCL
+ObjexxFCL/string.functions.hh utility/string_util.hh 
+
+ObjexxFCL/FArray1.hh ObjexxFCL/FArray1D.hh 
+ObjexxFCL/FArray2.hh ObjexxFCL/FArray2D.hh 
+ObjexxFCL/FArray3.hh ObjexxFCL/FArray3D.hh 
+
+## Regular C names to C++ names
+math.h cmath
+stddef.h cstddef
+stdio.h cstdio
+stdlib.h cstdlib
+string.h cstring
+time.h ctime
+
+## std::pair is defined in <utility>, but we normally get it from <map>
+utility map 
+
+## Not strictly true, but needed for correct CLOCKS_PER_SEC on my machine
+sys/time.h time.h ctime
+
+## Eigen
+Eigen/src/* Eigen/Dense 
+Eigen/src/* Eigen/SVD 

@@ -1,0 +1,41 @@
+# This is the IWYU Mappings file for Rosetta
+# ( see https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md )
+#
+# When possible we should put the exceptions here, but that's not always possible 
+[
+##################################
+# References for external libraries
+{ ref: "boost-all.imp" },
+
+##################################
+# Header substitutions
+# (Note - the one will *always* substitute the other
+# If you just want to avoid adding the one when the other happens
+# to be present, see IWYU_provided_by.txt )
+
+# Pointers
+#{ include: ["<utility/pointer/boost/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+
+# Vector
+{ include: ["<utility/vector1_bool.hh>", "private", "<utility/vector1.hh>", "public"] },
+{ include: ["<utility/vector0_bool.hh>", "private", "<utility/vector0.hh>", "public"] },
+
+{ include: ["<utility/excn/EXCN_Base.hh>", "public", "<utility/excn/Exceptions.hh>", "public"] },
+
+{ include: ["<assert.h>", "public", "<utility/assert.hh>", "public"] },
+{ include: ["<cassert>", "public", "<utility/assert.hh>", "public"] },
+
+##################################
+# Symbol substitutions
+# If a symbol should be thought of as coming from a different header
+
+{ symbol: ["std::shared_ptr", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::weak_ptr", "private", "<utility/pointer/access_ptr.hh>", "public"] },
+{ symbol: ["std::enable_shared_from_this", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::owner_less", "private", "<utility/pointer/access_ptr.hh>", "public"] },
+
+{ symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },
+{ symbol: ["utility::vector0", "private", "<utility/vector0.hh>", "public"] },
+ 
+]

@@ -60,13 +60,22 @@ utility/tag/Tag.fwd.hh protocols/moves/Mover.hh
 basic/datacache/DataMap.fwd.hh protocols/moves/Mover.hh
 string protocols/moves/Mover.hh
 core/types.hh protocols/moves/Mover.hh
+string protocols/moves/MoverCreator.hh
+
+## Filters
+protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh 
+core/pose/Pose.fwd.hh protocols/filters/Filter.hh
+utility/tag/Tag.fwd.hh protocols/filters/Filter.hh
+basic/datacache/DataMap.fwd.hh protocols/filters/Filter.hh
 
 core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh 
-protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh 
 utility/tag/XMLSchemaGeneration.fwd.hh protocols/filters/FilterCreator.hh
 protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh 
 protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh 
 
+## XML
+boost/lexical_cast/bad_lexical_cast.hpp src/utility/tag/Tag.hh
+boost/lexical_cast.hpp src/utility/tag/Tag.hh
 
 ## Residue Types
 boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh 

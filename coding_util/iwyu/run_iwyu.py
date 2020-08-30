@@ -221,12 +221,22 @@ class IWYUChanges:
                         if DEBUG: print("%% NO ADD DUE TO SHADOW", fn)
                         self.remove_addition( fn )
                         break
+                    if entry in self.deletions:
+                        if DEBUG: print("%% NO ADD/DELETE DUE TO SHADOW", fn)
+                        self.remove_deletion( entry )
+                        self.remove_addition( fn )
+                        break
             for gp in GLOBBING_PROVIDERS:
                 if fnmatch(fn, gp):
                     for entry in GLOBBING_PROVIDERS[gp]:
                         if entry in self.additions or (entry in self.current_includes and entry not in self.deletions):
                             if DEBUG: print("%% NO ADD DUE TO GLOB SHADOW", fn)
                             self.remove_addition(fn)
+                            break
+                        if entry in self.deletions:
+                            if DEBUG: print("%% NO ADD/DELETE DUE TO GLOB SHADOW", fn)
+                            self.remove_deletion( entry )
+                            self.remove_addition( fn )
                             break
 
         # Finally, consider forced substitutions

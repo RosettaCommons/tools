@@ -76,9 +76,16 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
 
 ###################################
 
-def check_file_exists(filename):
+def check_include_file_exists(filename):
     '''We assume we're running in the main/source directory'''
     return os.path.exists( 'src/' + filename )
+
+def convert_disk_to_include(filename):
+    '''We assume we're running in the main/source directory'''
+    if filename.startswith('src/'):
+        return filename[4:]
+    else:
+        return filename
 
 def process_namespace_line(line):
     '''Convert a namespace line (like `namespace core { namespace chemical { class ResidueType; } }`) to forward header name'''
@@ -146,7 +153,7 @@ class IWYUChanges:
                 filename = '/'.join(hierarchy) + '.fwd.hh'
                 if filename in NONSTANDARD_FORWARDS:
                     filename = NONSTANDARD_FORWARDS[filename]
-                if not check_file_exists(filename):
+                if not check_include_file_exists(filename):
                     print("ERROR: Can't find forward header file: ", filename)
                 else:
                     adds.setdefault( filename, [ hierarchy[-1] ] )
@@ -169,9 +176,9 @@ class IWYUChanges:
 
         # Don't delete our own header
         if self.filename.endswith('.cc'):
-            parent_header = self.filename[:-3] + ".hh"
+            parent_header = convert_disk_to_include( self.filename[:-3] + ".hh" )
         elif self.filename.endswith('.hh'):
-            parent_header = self.filename[:-3] + ".fwd.hh"
+            parent_header = convert_disk_to_include( self.filename[:-3] + ".fwd.hh" )
         else:
             parent_header = None
         if parent_header in self.deletions:

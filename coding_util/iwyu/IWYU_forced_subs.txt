@@ -1,0 +1,11 @@
+# IWYU_forced_subs.txt
+#
+# This is a list of the forced substitions, to compensate for the fact that IWYU doesn't always obey the Rosetta.imp.
+# The first entry will be substituted with the second entry, except for the files in the second and subsequent places.
+#
+
+utility/pointer/std/owning_ptr.hh utility/pointer/owning_ptr.hh
+utility/pointer/std/owning_ptr.fwd.hh utility/pointer/owning_ptr.fwd.hh src/utility/pointer/std/owning_ptr.hh src/utility/pointer/owning_ptr.hh
+utility/pointer/std/memory.hh utility/pointer/memory.hh
+utility/pointer/std/access_ptr.hh utility/pointer/access_ptr.hh src/utility/pointer/access_ptr.fwd.hh
+

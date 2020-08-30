@@ -52,7 +52,7 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
   with open(SCRIPTDIR+"/IWYU_provided_by.txt") as f:
     for line in f:
         line = line.split()
-        if len(line) > 1 and not line[0].startswith("#"):
+        if len(line) >= 2 and not line[0].startswith("#"):
             mainfile = line[0]
             if '*' in mainfile:
                 provider_set = GLOBBING_PROVIDERS
@@ -62,6 +62,17 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
                 if entry.startswith('#'):
                     break
                 provider_set.setdefault(mainfile,[]).append(entry)
+
+FORCED_SUBS = {}
+if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
+  with open(SCRIPTDIR+"/IWYU_forced_subs.txt") as f:
+    for line in f:
+        line = line.split()
+        if len(line) >= 2 and not line[0].startswith("#"):
+            if line[0] in FORCED_SUBS:
+                print( "DUPLICATE ENTRY IN IWYU_forced_subs.txt !!!!!!! -", line[0] )
+            FORCED_SUBS[ line[0] ] = line[1:]
+
 
 ###################################
 
@@ -211,6 +222,30 @@ class IWYUChanges:
                             self.remove_addition(fn)
                             break
 
+        # Finally, consider forced substitutions
+        for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
+            if fn in FORCED_SUBS and self.filename not in FORCED_SUBS[fn]:
+                replace = FORCED_SUBS[fn][0]
+                if replace in self.deletions:
+                    if DEBUG: print("%% NO ADD FORCE SUB DELETION REMOVAL", fn)
+                    self.remove_deletion( replace )
+                    self.remove_addition( fn )
+                    continue
+                elif replace in self.additions:
+                    if DEBUG: print("%% NO ADD FORCE SUB ALREADY ADD", fn)
+                    self.remove_additions( fn )
+                    continue
+                elif replace in self.current_includes:
+                    if DEBUG: print("%% NO ADD FORCE SUB CURRENT", fn)
+                    self.remove_addition( fn )
+                    continue
+                else:
+                    if DEBUG: print("%% NO ADD FORCE SUB CONVERT", fn)
+                    self.additions[ replace ] = self.additions[ fn ]
+                    self.remove_addition( fn )
+                    continue
+
+
     def prnt(self):
         if len(self.deletions) == 0 and len(self.additions) == 0:
             print("%%%%%%%%%% NO MOD NEEDED:", self.filename)
@@ -269,6 +304,8 @@ def parse_output( filename, output ):
     in_delete_block = False
     in_hh_add_block = False
 
+    has_correct_includes = False
+
     # We parse the block for hh lines in cc run because IWYU tends to move them up.
     hh_filename = None
     if filename.endswith('.cc'):
@@ -276,6 +313,9 @@ def parse_output( filename, output ):
 
     for line in output:
         #Only trigger on the blocks for the file we're in.
+        if filename + ' has correct #includes/fwd-decls' in line:
+            has_correct_includes = True
+            continue
         if line.startswith(filename):
             if 'should add these lines:' in line:
                 in_add_block = True
@@ -320,7 +360,10 @@ def parse_output( filename, output ):
             continue
 
 
-    if additions is None or deletions is None:
+    if has_correct_includes:
+        print('>>>>', "No changes needed for", filename)
+        return None
+    elif additions is None or deletions is None:
         print_parse_error( filename, output, "Could not find addition and/or deletions block" )
         return None
 
@@ -340,7 +383,8 @@ def process_file(filename, options):
 
     mods = check_file(filename, options)
 
-    mods.prnt()
+    if mods is not None:
+        mods.prnt()
 
     return ###### !!!!!!
 

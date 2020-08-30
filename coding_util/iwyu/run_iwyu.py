@@ -122,6 +122,11 @@ class IWYUChanges:
         dels = {}
         for line in deletions:
             line = line.split()
+            if line[1] == 'namespace':
+                continue  # IWYU has some issues with unneeded forwards.
+            if line[1] != '#include':
+                print( ">>> WARNING: Deletion line is malformed:", ' '.join(line) )
+                continue
             filename = line[2][1:-1] # Assume semi-well formed.
             lineno = line[-1].split('-')[0]
             dels.setdefault( filename, [] ).append(lineno) # In case there's multiple lines for same.
@@ -145,6 +150,8 @@ class IWYUChanges:
                     print("ERROR: Can't find forward header file: ", filename)
                 else:
                     adds.setdefault( filename, [ hierarchy[-1] ] )
+            else:
+                print("WARNING: can't properly parse addition line:", line)
         return adds
 
     def remove_deletion(self, fn):

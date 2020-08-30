@@ -221,11 +221,8 @@ class IWYUChanges:
                         if DEBUG: print("%% NO ADD DUE TO SHADOW", fn)
                         self.remove_addition( fn )
                         break
-                    if entry in self.deletions:
-                        if DEBUG: print("%% NO ADD/DELETE DUE TO SHADOW", fn)
-                        self.remove_deletion( entry )
-                        self.remove_addition( fn )
-                        break
+                    # We deliberately don't undo deletions, the added file might be more than we actually need
+                    # (See the forced substitutions for alternative.)
             for gp in GLOBBING_PROVIDERS:
                 if fnmatch(fn, gp):
                     for entry in GLOBBING_PROVIDERS[gp]:
@@ -233,11 +230,8 @@ class IWYUChanges:
                             if DEBUG: print("%% NO ADD DUE TO GLOB SHADOW", fn)
                             self.remove_addition(fn)
                             break
-                        if entry in self.deletions:
-                            if DEBUG: print("%% NO ADD/DELETE DUE TO GLOB SHADOW", fn)
-                            self.remove_deletion( entry )
-                            self.remove_addition( fn )
-                            break
+                        # We deliberately don't undo deletions, the added file might be more than we actually need
+                        # (See the forced substitutions for alternative.)
 
         # Finally, consider forced substitutions
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop

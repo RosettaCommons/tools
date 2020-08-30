@@ -51,11 +51,22 @@ ostream basic/Tracer.hh
 utility/io/zipstream.hpp utility/io/izstream.hh utility/io/ozstream.hh
 
 ## Rosetta Types
-core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh 
+
+## Movers
 protocols/moves/Mover.fwd.hh protocols/moves/MoverCreator.hh 
+utility/tag/XMLSchemaGeneration.fwd.hh protocols/moves/MoverCreator.hh protocols/moves/Mover.hh
+core/pose/Pose.fwd.hh protocols/moves/Mover.hh
+utility/tag/Tag.fwd.hh protocols/moves/Mover.hh
+basic/datacache/DataMap.fwd.hh protocols/moves/Mover.hh
+string protocols/moves/Mover.hh
+core/types.hh protocols/moves/Mover.hh
+
+core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh 
 protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh 
+utility/tag/XMLSchemaGeneration.fwd.hh protocols/filters/FilterCreator.hh
 protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh 
 protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh 
+
 
 ## Residue Types
 boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh 

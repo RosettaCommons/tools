@@ -31,6 +31,8 @@ utility/options/RealVectorOptionKey.fwd.hh utility/options/keys/RealVectorOption
 utility/options/StringOptionKey.fwd.hh utility/options/keys/StringOptionKey.fwd.hh
 utility/options/StringVectorOptionKey.fwd.hh utility/options/keys/StringVectorOptionKey.fwd.hh
 
+utility/tag/XMLSchemaDefinition.fwd.hh utility/tag/XMLSchemaGeneration.fwd.hh 
+
 numeric/expression_parser/ASTVisitor.fwd.hh numeric/expression_parser/Arithmetic.fwd.hh 
 numeric/random/RandomGenerator.fwd.hh numeric/random/random.fwd.hh
 numeric/random/DistributionSampler.fwd.hh numeric/random/DistributionSampler.hh

@@ -133,7 +133,7 @@ class IWYUChanges:
             if line[1] == 'namespace':
                 continue  # IWYU has some issues with unneeded forwards.
             if line[1] != '#include':
-                print( ">>> WARNING: Deletion line is malformed:", ' '.join(line) )
+                print( "WARNING: Deletion line is malformed for ", self.filename, ':', ' '.join(line) )
                 continue
             filename = line[2][1:-1] # Assume semi-well formed.
             lineno = line[-1].split('-')[0]
@@ -155,11 +155,11 @@ class IWYUChanges:
                 if filename in NONSTANDARD_FORWARDS:
                     filename = NONSTANDARD_FORWARDS[filename]
                 if not check_include_file_exists(filename):
-                    print("ERROR: Can't find forward header file: ", filename)
+                    print("ERROR: Can't find forward header file:", filename, "for", self.filename )
                 else:
                     adds.setdefault( filename, [ hierarchy[-1] ] )
             else:
-                print("WARNING: can't properly parse addition line:", line)
+                print("WARNING: can't properly parse addition line:", line, "for", self.filename)
         return adds
 
     def remove_deletion(self, fn):
@@ -295,7 +295,6 @@ def get_output_for_file(filename, options):
         sys.stderr.write("Error: Please put IWYU's boost-all.imp file in the same directory as the script.\n")
         sys.exit()
 
-    print( "%%% Processing ", filename )
     command = [executable, '-Xiwyu', '--mapping_file=' + SCRIPTDIR + '/Rosetta.imp', '-Xiwyu', '--max_line_length=120']
     for option in options.X:
         command += [ '-Xiwyu', option ]
@@ -387,7 +386,7 @@ def parse_output( filename, output ):
 
 
     if has_correct_includes:
-        print('>>>>', "No changes needed for", filename)
+        if DEBUG: print('>>>>', "No changes needed for", filename)
         return None
     elif additions is None or deletions is None:
         print_parse_error( filename, output, "Could not find addition and/or deletions block" )
@@ -404,6 +403,7 @@ def check_file(filename, options):
     return mods
 
 def process_file(filename, options):
+    print("Running IWYU analysis on", filename)
     mods = check_file(filename, options)
 
     if DEBUG and mods is not None:
@@ -413,21 +413,30 @@ def process_file(filename, options):
         mods.save()
 
 
-def process_dir(dirname, options):
+def process_dir(dirname):
     for item in os.listdir(dirname):
         name = os.path.join(dirname,item)
         if os.path.isdir(name):
-            process_dir(name, options)
+            for fn in process_dir(name):
+                yield fn
         elif os.path.isfile(name):
             if name.endswith(".cc"):
-                #print( ">>> CC: ", name )
-                process_file(name, options)
+                yield name
             elif name.endswith(".hh"):
                 # While info for the header is reported when processing the cc file,
                 # the info is different than when the hh file is processed itself,
                 # and doesn't look to be a "compile on your own" sense.
-                #print( ">>> HH: ", name )
-                process_file(name, options)
+                yield name
+
+def find_files(pathlist):
+    for name in pathlist:
+        if os.path.isdir(name):
+            for fn in process_dir(name):
+                yield fn
+        elif os.path.isfile(name):
+            yield name
+        else:
+            print("Cannot find file or directory: "+name)
 
 if __name__ == "__main__":
     if not os.path.exists( "./src" ):
@@ -448,6 +457,9 @@ if __name__ == "__main__":
     parser.add_option("--debug",
       default=False, action="store_true",
       help="Print extra debugging info." )
+    parser.add_option("-j",
+      default=0, type=int,
+      help="Number of processes to run." )
 
     (options, args) = parser.parse_args(args=sys.argv[1:])
 
@@ -455,11 +467,20 @@ if __name__ == "__main__":
 
     if len(options.I) > 0:
         commandline_flags += ['-I'+path for path in options.I]
-    for name in args:
-        if os.path.isdir(name):
-            process_dir(name, options)
-        elif os.path.isfile(name):
-            process_file(name, options)
-        else:
-            print("Cannot find file or directory: "+name)
-            exit()
+
+    if options.j == 0:
+        for fn in find_files(args):
+            process_file(fn, options)
+    else:
+        import multiprocessing
+        pool = multiprocessing.Pool(options.j)
+
+        def callback(arg):
+            print("Processing is done")
+
+        for fn in find_files(args):
+            pool.apply_async(process_file, (fn, options) )
+
+        pool.close()
+        pool.join()
+

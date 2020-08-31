@@ -6,7 +6,7 @@ the Rosetta codebase, and adjust the output for the vagarities of the Rosetta co
 Run from the Rosetta/main/source directory and provide the script with files or directories,
 and the .cc .hh and .fwd.hh files therein will be processed.
 
-Because of order dependancy in removing headers, the default behavior is to create an *.iwyu
+Because of order dependancy in removing headers, this script will only create an *.riwyuf
 file in the same location, listing what should be done to the file.
 '''
 
@@ -404,9 +404,6 @@ def check_file(filename, options):
     return mods
 
 def process_file(filename, options):
-    if os.path.exists( filename + ".iwyu" ):
-        return
-
     mods = check_file(filename, options)
 
     if DEBUG and mods is not None:

@@ -7,20 +7,22 @@
 # In general, only add a header as a primary entry here if people shouldn't
 # be including the header directly. (It's better to be explicit.)
 #
-# Note that the A include won't be substituted if it's already present,
-# or if the shadowing header is otherwise going away.
+# Note that the A include won't be substituted if it's already present (not being slated to be added)
+#
+# Normally if the header which would shadow is being deleted, the shadowing won't happen,
+# But if you add the comment #ADDDEL to the line, the the shadowing will stop the deletion and addition.
 
 ## Types
 cstddef platform/types.hh numeric/types.hh core/types.hh
 stddef.h platform/types.hh numeric/types.hh core/types.hh
 platform/types.hh numeric/types.hh core/types.hh
-numeric/types.hh core/types.hh 
+numeric/types.hh core/types.hh  # ADDDEL
 
 numeric/xyzVector.fwd.hh core/types.hh 
 
 ## Vectors
-vector utility/vector1.hh utility/vector0.hh utility/vectorL.hh
-utility/vectorL.hh utility/vector1.hh utility/vector0.hh
+vector utility/vector1.hh utility/vector0.hh utility/vectorL.hh #ADDDEL
+utility/vectorL.hh utility/vector1.hh utility/vector0.hh #ADDDEL
 utility/vector1_bool.hh utility/vector1.hh
 utility/vector0_bool.hh utility/vector0.hh
 utility/vectorL_bool.hh utility/vector1_bool.hh utility/vector1.hh utility/vector0_bool.hh utility/vector0.hh utility/vectorL.hh
@@ -45,6 +47,7 @@ cstdlib utility/exit.hh
 utility/thread/backwards_thread_local.hh basic/Tracer.hh 
 utility/CSI_Sequence.hh src/utility/backtrace.hh src/basic/Tracer.hh
 basic/TracerImpl.hh basic/Tracer.hh
+basic/TracerImpl.fwd.hh basic/Tracer.hh basic/Tracer.fwd.hh
 iomanip basic/Tracer.hh
 ostream basic/Tracer.hh
 

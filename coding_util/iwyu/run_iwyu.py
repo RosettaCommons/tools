@@ -48,11 +48,12 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_nonstandard_fwd.txt") ):
             NONSTANDARD_FORWARDS[ line[0] ] = line[1]
 
 SHADOWING_PROVIDERS = {}
+ADDDEL_SHADOWS = {}
 GLOBBING_PROVIDERS = {}
 if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
   with open(SCRIPTDIR+"/IWYU_provided_by.txt") as f:
-    for line in f:
-        line = line.split()
+    for full_line in f:
+        line = full_line.split()
         if len(line) >= 2 and not line[0].startswith("#"):
             mainfile = line[0]
             if '*' in mainfile:
@@ -63,6 +64,11 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
                 if entry.startswith('#'):
                     break
                 provider_set.setdefault(mainfile,[]).append(entry)
+            if "ADDDEL" in full_line:
+                for entry in line[1:]:
+                    if entry.startswith('#'):
+                        break
+                    ADDDEL_SHADOWS.setdefault(mainfile,[]).append(entry)
 
 FORCED_SUBS = {}
 if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
@@ -254,6 +260,13 @@ class IWYUChanges:
                             break
                         # We deliberately don't undo deletions, the added file might be more than we actually need
                         # (See the forced substitutions for alternative.)
+            for fn in ADDDEL_SHADOWS:
+                for entry in ADDDEL_SHADOWS[fn]:
+                    if entry in self.deletions:
+                        if DEBUG: print("%% NO ADD/DEL DUE TO SHADOW", fn)
+                        self.remove_deletion( entry )
+                        self.remove_addition( fn )
+                        break
 
         # Finally, consider forced substitutions
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop

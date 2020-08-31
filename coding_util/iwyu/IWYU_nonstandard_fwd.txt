@@ -106,6 +106,8 @@ protocols/loops/loop_closure/ccd/CcdMover.fwd.hh protocols/loops/loop_closure/cc
 protocols/loops/LoopsFileData.fwd.hh protocols/loops/LoopsFileIO.fwd.hh
 protocols/loophash/BackboneSegment.fwd.hh protocols/loophash/BackboneDB.hh
 
+protocols/ligand_docking/Translate_info.fwd.hh protocols/ligand_docking/Translate.hh
+
 protocols/match/Bool3DGrid.fwd.hh protocols/match/BumpGrid.fwd.hh
 protocols/match/HitHasher.fwd.hh protocols/match/MatchSet.fwd.hh
 protocols/match/match_dspos1.fwd.hh protocols/match/Hit.fwd.hh

@@ -91,10 +91,14 @@ def convert_disk_to_include(filename):
 def process_namespace_line(line):
     '''Convert a namespace line (like `namespace core { namespace chemical { class ResidueType; } }`) to forward header name'''
     hierarchy = []
+    nesting = 0
     for entry in line.split():
-        if entry == 'namespace' or entry == '{' or entry == '}': continue
-        if entry == 'class' or entry == 'struct': continue
-        if entry == 'template' or entry == '<typename>': continue
+        if entry in ['namespace','{','template','class','struct','}']:
+            continue
+        nesting += entry.count('<')
+        nesting -= entry.count('>')
+        if nesting > 0 or '>' in entry:
+            continue
         if entry.endswith(';'):
             hierarchy.append( entry[:-1] )
         else:

@@ -9,3 +9,5 @@ utility/pointer/std/owning_ptr.fwd.hh utility/pointer/owning_ptr.fwd.hh src/util
 utility/pointer/std/memory.hh utility/pointer/memory.hh
 utility/pointer/std/access_ptr.hh utility/pointer/access_ptr.hh src/utility/pointer/access_ptr.fwd.hh
 
+basic/TracerImpl.fwd.hh basic/Tracer.fwd.hh
+basic/TracerImpl.hh basic/Tracer.hh

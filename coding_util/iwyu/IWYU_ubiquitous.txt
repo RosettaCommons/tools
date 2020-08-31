@@ -16,3 +16,4 @@ core/types.hh
 
 # Not quite overall ubiquitous, but not needed wherever used.
 boost/lexical_cast/bad_lexical_cast.hpp
+boost/detail/basic_pointerbuf.hpp

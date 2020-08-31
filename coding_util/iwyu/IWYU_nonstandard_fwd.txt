@@ -32,6 +32,7 @@ utility/options/StringOptionKey.fwd.hh utility/options/keys/StringOptionKey.fwd.
 utility/options/StringVectorOptionKey.fwd.hh utility/options/keys/StringVectorOptionKey.fwd.hh
 
 utility/tag/XMLSchemaDefinition.fwd.hh utility/tag/XMLSchemaGeneration.fwd.hh 
+utility/tag/XMLSchemaSimpleSubelementList.fwd.hh utility/tag/XMLSchemaGeneration.fwd.hh
 
 numeric/expression_parser/ASTVisitor.fwd.hh numeric/expression_parser/Arithmetic.fwd.hh 
 numeric/random/RandomGenerator.fwd.hh numeric/random/random.fwd.hh
@@ -56,6 +57,7 @@ core/indexed_structure_store/FragmentSpecification.fwd.hh core/indexed_structure
 
 core/pack/dunbrack/DunbrackRotamerSampleData.fwd.hh core/pack/dunbrack/DunbrackRotamer.fwd.hh
 core/pack/interaction_graph/EdgeBase.fwd.hh core/pack/interaction_graph/InteractionGraphBase.fwd.hh
+core/pack/annealer/PointDwell.fwd.hh core/pack/annealer/FixbbPwatSimAnnealer.fwd.hh
 core/pack/task/ResfileContents.fwd.hh core/pack/task/ResfileReader.fwd.hh
 core/pack/task/ResidueLevelTask.fwd.hh core/pack/task/PackerTask.fwd.hh
 core/pack/task/operation/InitializeFromCommandline.fwd.hh core/pack/task/operation/TaskOperations.fwd.hh

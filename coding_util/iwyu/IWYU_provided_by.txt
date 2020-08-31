@@ -45,7 +45,7 @@ cstdlib utility/exit.hh
 
 ## Tracers & streams
 utility/thread/backwards_thread_local.hh basic/Tracer.hh 
-utility/CSI_Sequence.hh src/utility/backtrace.hh src/basic/Tracer.hh
+utility/CSI_Sequence.hh utility/backtrace.hh basic/Tracer.hh
 basic/TracerImpl.hh basic/Tracer.hh
 basic/TracerImpl.fwd.hh basic/Tracer.hh basic/Tracer.fwd.hh
 iomanip basic/Tracer.hh
@@ -77,8 +77,9 @@ protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh
 protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh 
 
 ## XML
-boost/lexical_cast/bad_lexical_cast.hpp src/utility/tag/Tag.hh
-boost/lexical_cast.hpp src/utility/tag/Tag.hh
+boost/lexical_cast/bad_lexical_cast.hpp utility/tag/Tag.hh
+boost/lexical_cast.hpp utility/tag/Tag.hh
+boost/detail/basic_pointerbuf.hpp utility/tag/Tag.hh
 
 ## Residue Types
 boost/graph/undirected_graph.hpp core/chemical/ResidueGraphTypes.hh 

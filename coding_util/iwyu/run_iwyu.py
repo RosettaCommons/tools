@@ -16,6 +16,7 @@ import sys, os
 import subprocess
 import codecs
 from fnmatch import fnmatch
+import json
 
 from optparse import OptionParser
 
@@ -280,6 +281,13 @@ class IWYUChanges:
                 print('\n'.join( fn for fn in self.current_includes))
             print("%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename)
 
+    def save(self):
+        '''Save to a json-formatted .riwyuf (Rosetta include-what-you-use-fixes'''
+        if len(self.additions) == 0 and len(self.additions) == 0:
+            return # Save nothing if there's nothing to do.
+        ofn = self.filename + '.riwyuf'
+        with open(ofn, 'w') as f:
+            json.dump( {'additions':self.additions,'deletions':self.deletions}, f, indent=2 )
 
 def get_output_for_file(filename, options):
     '''Get the raw iwyu output for the file, as lines'''
@@ -401,24 +409,12 @@ def process_file(filename, options):
 
     mods = check_file(filename, options)
 
-    if mods is not None:
+    if DEBUG and mods is not None:
         mods.prnt()
 
-    return ###### !!!!!!
+    if mods is not None:
+        mods.save()
 
-
-    # Remove added includes if nested headers have them
-    # Should be in nested include order
-    for ii in range( len(mods) ):
-        for jj in range( ii+1, len(mods) ):
-            if not mods[ii].filename.startswith( mods[jj].filename[:-3] ):
-                print( "File "+mods[ii].filename+" is not in series with "+mods[jj].filename )
-                continue
-            mods[jj].nested_prune( mods[ii] )
-
-    for mod in mods:
-        mod.write_cache()
-        mod.prnt()
 
 def process_dir(dirname, options):
     for item in os.listdir(dirname):

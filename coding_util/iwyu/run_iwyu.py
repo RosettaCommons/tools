@@ -74,6 +74,16 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
                 print( "DUPLICATE ENTRY IN IWYU_forced_subs.txt !!!!!!! -", line[0] )
             FORCED_SUBS[ line[0] ] = line[1:]
 
+UBIQUITOUS = set()
+if( os.path.exists(SCRIPTDIR+"/IWYU_ubiquitous.txt") ):
+  with open(SCRIPTDIR+"/IWYU_ubiquitous.txt") as f:
+    for line in f:
+        line = line.split()
+        if len(line) >= 1 and not line[0].startswith("#"):
+            if line[0] in UBIQUITOUS:
+                print( "DUPLICATE ENTRY IN IWYU_forced_subs.txt !!!!!!! -", line[0] )
+            UBIQUITOUS.add( line[0] )
+
 
 ###################################
 
@@ -247,6 +257,10 @@ class IWYUChanges:
 
         # Finally, consider forced substitutions
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
+            if fn in UBIQUITOUS:
+                if DEBUG: print("%% NO ADD UBIQUITOUS", fn)
+                self.remove_addition( fn )
+                continue
             if fn in FORCED_SUBS and self.filename not in FORCED_SUBS[fn]:
                 replace = FORCED_SUBS[fn][0]
                 if replace in self.deletions:

@@ -1,0 +1,18 @@
+# IWYU_ubiquitous -- list of headers which are so ubiquitous you don't need to add them.
+#
+# Don't bother to add these headers with IWYU. Don't remove them if present, but don't add them.
+# Rely on the user to fix up any issues on the test-compilation phase.
+
+memory
+utility/pointer/owning_ptr.hh
+utility/pointer/access_ptr.hh
+utility/pointer/memory.hh
+utility/pointer/std/owning_ptr.hh
+utility/pointer/std/access_ptr.hh
+utility/pointer/std/memory.hh
+utility/VirtualBase.hh
+
+core/types.hh
+
+# Not quite overall ubiquitous, but not needed wherever used.
+boost/lexical_cast/bad_lexical_cast.hpp

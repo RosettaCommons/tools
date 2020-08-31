@@ -85,7 +85,9 @@ def apply_changes(filename, instructions, options ):
             if splitline[1][1:-1] != fn:
                 print("ERROR:: Line to remove does not match expected content", filename)
                 continue
-            contents[lineno] = '// ' + line.strip() + ' // AUTOREMOVED IWYU\n'
+            if "DO NOT AUTO-REMOVE" in line:
+                print("Skipping line removal for ", fn, " - comment tells it to stay.", filename)
+            contents[lineno] = '// AUTOREMOVED IWYU: ' + line.lstrip()
 
     insertion_pos = find_insertion_position(contents)
 
@@ -113,8 +115,7 @@ def process_file(filename, options):
     apply_changes( filename[:-len('.riwyuf')], instructions, options )
 
     if not options.nodelete:
-        pass
-        #os.remove( filename )
+        os.remove( filename )
 
 def process_dir(dirname, options):
     for item in os.listdir(dirname):

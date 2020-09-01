@@ -165,7 +165,7 @@ def test_compile(cc_file, verbose=False, id="", devnull=False, silent=False):
     else:
         # print file(out_log).read(), file(err_log).read()
         if not silent:
-            // print( command )
+            # print( command )
             print(
                 "To compile this header locally run following command: " +
                 "cd source/src && python ../../tools/python_cc_reader/" +

@@ -91,7 +91,12 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_ubiquitous.txt") ):
 
 def check_include_file_exists(filename):
     '''We assume we're running in the main/source directory'''
-    return os.path.exists( 'src/' + filename ) or os.path.exists( 'external/include/' + filename )
+    return ( os.path.exists( 'src/' + filename ) or
+        os.path.exists( 'external/include/' + filename ) or
+        os.path.exists( 'external/' + filename ) or
+        os.path.exists( 'external/boost_submod/' + filename ) or
+        os.path.exists( 'external/dbio/' + filename )
+    )
 
 def convert_disk_to_include(filename):
     '''We assume we're running in the main/source directory'''
@@ -481,6 +486,11 @@ def check_file(filename, options):
     return mods
 
 def process_file(filename, options):
+
+    if 'OptionKeys.cc.gen' in filename:
+        # Not intended to compile on their own - skip
+        return
+
     print("Running IWYU analysis on", filename)
     mods = check_file(filename, options)
 

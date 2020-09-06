@@ -182,6 +182,23 @@ class IWYUChanges:
                 print("WARNING: can't properly parse addition line:", line, "for", self.filename)
         return adds
 
+    def cleanup(self):
+        '''Do a bit of housekeeping.'''
+
+        self.cleanup_parent_delete()
+        self.cleanup_hh_additions()
+
+        # This is near the top because we don't merge reasons in the combinations below
+        self.cleanup_namespace_only()
+
+        self.cleanup_forward_additions()
+
+        # We want to make sure we do the other cleanups before we consider shadowing
+        self.cleanup_shadowing()
+
+        # Do forced subsitutions last, incase previous cleanups make them superfluous.
+        self.cleanup_forced()
+
     def remove_deletion(self, fn):
         if fn not in self.deletions: return
         self.deletions[fn] = self.deletions[fn][1:] # Remove first
@@ -192,10 +209,10 @@ class IWYUChanges:
         if fn not in self.additions: return
         del self.additions[fn]
 
-    def cleanup(self):
-        '''Do a bit of housekeeping.'''
-
-        # Don't delete our own header
+    def cleanup_parent_delete(self):
+        '''For cc files, don't delete the corresponding hh file.
+        For hh files, don't delete the corresponding fwd.hh file.
+        '''
         if self.filename.endswith('.cc'):
             parent_header = convert_disk_to_include( self.filename[:-3] + ".hh" )
         elif self.filename.endswith('.hh'):
@@ -206,6 +223,13 @@ class IWYUChanges:
             if DEBUG: print("%% NO DELETE PARENT", parent_header)
             self.remove_deletion( parent_header )
 
+    def cleanup_hh_additions(self):
+        '''IWYU has a habit of moving headers from the cc file to the hh file.
+        (It prints out info for the header file when doing the cc file.)
+        Since we explicitly run the hh files, and try to be minimal with the hh includes
+        (just enough to get them to compile) don't delete headers from the cc file only
+        to move them to the hh file.
+        '''
         for fn in list( self.deletions.keys() ): # Copy as we're modifying structure in loop
             # If we deleted from the cc file but added to hh file, don't delete
             # The header should be processed separately.
@@ -214,17 +238,16 @@ class IWYUChanges:
                 self.remove_deletion( fn )
                 continue
 
-        # Trim namespace-only additions. Near top because we don't merge reasons below.
+    def cleanup_namespace_only(self):
+        '''IWYU has a habit of ascribing namespaces to the first header which declares them,
+        which means that it can add irrelevant headers just for the "declaration" of the namespace,
+        even if another header we're adding/keeping also defines that namespace.
+        '''
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
             # If the only reason we're adding the header is a namespace, then don't add.
             reasons = self.additions[ fn ]
             namespaces = fn.split('/')[:-1] # Last is filename, not namespace
             trim_reasons = [ r for r in reasons if r not in namespaces ]
-            print( "NAME:", fn )
-            print( "REASONS:", reasons )
-            print( "NAMESPACES:", namespaces )
-            print( "TRIM REASONS:", trim_reasons )
-            print()
             if len(trim_reasons) == 0:
                 if DEBUG: print("%% NO ADD NAMESPACE ONLY", fn)
                 self.remove_addition( fn )
@@ -232,6 +255,14 @@ class IWYUChanges:
             elif len(trim_reasons) != reasons:
                 self.additions[ fn ] = trim_reasons
 
+    def cleanup_forward_additions(self):
+        '''Some forward-related cleanups. Much of this has to do with the manual conversion of
+        IWYU forward declarations to fwd header additions.
+
+        * Don't both add and delete the same header.
+        * Don't add the fwd.hh file if we already have the plain hh file
+        * Don't add if we already exist.
+        '''
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
             #Don't delete then add.
             if fn in self.deletions:
@@ -258,7 +289,8 @@ class IWYUChanges:
                 self.remove_addition( fn )
                 continue
 
-        # We want to make sure we do the other cleanups before we consider shadowing
+    def cleanup_shadowing(self):
+        '''Cleanup based on the provided shadowing definitions.'''
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
             # Don't add if there's a shadowing provider
             if fn in SHADOWING_PROVIDERS:
@@ -286,7 +318,9 @@ class IWYUChanges:
                         self.remove_addition( fn )
                         break
 
-        # Finally, consider forced substitutions
+    def cleanup_forced(self):
+        '''Address situations where we specify we always want to add a different header,
+        rather than the one auto-selected by IWYU.'''
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
             if fn in UBIQUITOUS:
                 if DEBUG: print("%% NO ADD UBIQUITOUS", fn)
@@ -312,7 +346,6 @@ class IWYUChanges:
                     self.additions[ replace ] = self.additions[ fn ]
                     self.remove_addition( fn )
                     continue
-
 
     def prnt(self):
         if len(self.deletions) == 0 and len(self.additions) == 0:

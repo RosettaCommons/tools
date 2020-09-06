@@ -25,11 +25,7 @@ from optparse import OptionParser
 #These are the clang commandline flags for debug mode, stripped of warning issues
 commandline_flags_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -Isrc -Iexternal/include -Isrc/platform/linux -ferror-limit=1'''.split()
 
-
-
 commandline_flags = commandline_flags_linux
-
-executable = 'include-what-you-use'
 
 DEBUG = False
 
@@ -377,7 +373,7 @@ def get_output_for_file(filename, options):
         sys.stderr.write("Error: Please put IWYU's boost-all.imp file in the same directory as the script.\n")
         sys.exit()
 
-    command = [executable, '-Xiwyu', '--mapping_file=' + SCRIPTDIR + '/Rosetta.imp', '-Xiwyu', '--max_line_length=120']
+    command = [ options.x, '-Xiwyu', '--mapping_file=' + SCRIPTDIR + '/Rosetta.imp', '-Xiwyu', '--max_line_length=120']
     for option in options.X:
         command += [ '-Xiwyu', option ]
 
@@ -533,6 +529,9 @@ if __name__ == "__main__":
     parser.add_option("-I",
       default=[], action="append",
       help="Add the passed directories to the inclusion search path (good if the stdlib isn't being properly found." )
+    parser.add_option("-x",
+      default="include-what-you-use", type=str,
+      help="The command (path) to the IWYU executable." )
     parser.add_option("-X",
       default=[], action="append",
       help="Add extra options to pass to Include What You Use." )

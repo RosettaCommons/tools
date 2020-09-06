@@ -29,8 +29,6 @@ def find_insertion_position(contents):
         line = line.strip()
         if len(line) == 0:
             continue
-        if line.startswith("// END AUTO HEADERS IWYU"):
-            return ii+1 # Use this location
         if line.startswith("//"):
             continue
         if line.startswith("#"):
@@ -95,11 +93,11 @@ def apply_changes(filename, instructions, options ):
         print("ERROR: Can't find insertion position", filename)
         return # The additions are critical to keep compilability. Don't do modification if we can't add.
 
-    added_lines = [ "\n", "\n", "// AUTO HEADERS IWYU\n" ]
+    added_lines = [ "\n", "\n" ]
     for fn in sorted( instructions['additions'].keys(), key=include_sort_key ):
         whys = instructions['additions'][fn]
         added_lines.append( '#include <'+fn+"> // AUTO IWYU For " + ' '.join(whys) + '\n' )
-    added_lines.append( "// END AUTO HEADERS IWYU\n" )
+    added_lines.append( "\n" )
 
 
     contents = contents[:insertion_pos] + added_lines + contents[insertion_pos:]

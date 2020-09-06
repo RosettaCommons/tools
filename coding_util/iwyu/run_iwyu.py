@@ -214,6 +214,24 @@ class IWYUChanges:
                 self.remove_deletion( fn )
                 continue
 
+        # Trim namespace-only additions. Near top because we don't merge reasons below.
+        for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
+            # If the only reason we're adding the header is a namespace, then don't add.
+            reasons = self.additions[ fn ]
+            namespaces = fn.split('/')[:-1] # Last is filename, not namespace
+            trim_reasons = [ r for r in reasons if r not in namespaces ]
+            print( "NAME:", fn )
+            print( "REASONS:", reasons )
+            print( "NAMESPACES:", namespaces )
+            print( "TRIM REASONS:", trim_reasons )
+            print()
+            if len(trim_reasons) == 0:
+                if DEBUG: print("%% NO ADD NAMESPACE ONLY", fn)
+                self.remove_addition( fn )
+                continue
+            elif len(trim_reasons) != reasons:
+                self.additions[ fn ] = trim_reasons
+
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
             #Don't delete then add.
             if fn in self.deletions:

@@ -91,7 +91,7 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_ubiquitous.txt") ):
 
 def check_include_file_exists(filename):
     '''We assume we're running in the main/source directory'''
-    return os.path.exists( 'src/' + filename )
+    return os.path.exists( 'src/' + filename ) or os.path.exists( 'external/include/' + filename )
 
 def convert_disk_to_include(filename):
     '''We assume we're running in the main/source directory'''

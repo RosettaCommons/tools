@@ -180,7 +180,7 @@ class IWYUChanges:
                 else:
                     adds.setdefault( filename, [ hierarchy[-1] ] )
             else:
-                print("WARNING: can't properly parse addition line:", line, "for", self.filename)
+                print("WARNING: can't properly parse addition line: `", line, "` for", self.filename)
         return adds
 
     def cleanup(self):
@@ -451,12 +451,12 @@ def parse_output( filename, output ):
             continue
         assert( not ( in_add_block and in_delete_block ) )
         if in_add_block:
-            if not (line.startswith('#include') or line.startswith('namespace')):
+            if not (line.startswith('#include') or line.startswith('namespace') or line.startswith('class') or line.startswith('struct')):
                 print_parse_error( filename, output, "Addition block line doesn't start with include or namespace: " + line )
             additions.append( line )
             continue
         if in_hh_add_block:
-            if not (line.startswith('#include') or line.startswith('namespace')):
+            if not (line.startswith('#include') or line.startswith('namespace') or line.startswith('class') or line.startswith('struct')):
                 print_parse_error( filename, output, "Addition block line doesn't start with include or namespace: " + line )
             hh_additions.append( line )
             continue

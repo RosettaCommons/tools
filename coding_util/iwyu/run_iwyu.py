@@ -398,6 +398,10 @@ def get_output_for_file(filename, options):
     return stderr.split('\n')
 
 def print_parse_error( filename, output, message  ):
+    if ( 'src/devel/' in filename  or 'src/apps/pilot/' in filename ):
+        print( "Skipping", filename, " -- does not appear to compile." )
+        return
+    # Give a detailed error report for the rest
     print( "###################################################" )
     print( ">>>> ERROR with", filename, "::", message, "<<<<" )
     sys.stdout.write('\n'.join(output)  )
@@ -487,11 +491,15 @@ def check_file(filename, options):
 
 def process_file(filename, options):
 
+    if not ( filename.endswith(".hh") or filename.endswith(".cc") ):
+        print("Skipping", filename, "-- not hh/cc")
     if 'OptionKeys.cc.gen' in filename:
-        # Not intended to compile on their own - skip
+        # Not intended to compile on their own
+        print("Skipping", filename, "-- Options gen")
         return
     if filename.endswith('.py.hh'):
         #PyRosetta-specific files - skip
+        print("Skipping", filename, "-- PyRosetta specific")
         return
 
     print("Running IWYU analysis on", filename)

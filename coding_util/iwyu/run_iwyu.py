@@ -176,7 +176,7 @@ class IWYUChanges:
                 if filename in NONSTANDARD_FORWARDS:
                     filename = NONSTANDARD_FORWARDS[filename]
                 if not check_include_file_exists(filename):
-                    print("ERROR: Can't find forward header file:", filename, "for", self.filename )
+                    print("WARNING: Can't find forward header file:", filename, "for", self.filename )
                 else:
                     adds.setdefault( filename, [ hierarchy[-1] ] )
             else:
@@ -489,6 +489,9 @@ def process_file(filename, options):
 
     if 'OptionKeys.cc.gen' in filename:
         # Not intended to compile on their own - skip
+        return
+    if filename.endswith('.py.hh'):
+        #PyRosetta-specific files - skip
         return
 
     print("Running IWYU analysis on", filename)

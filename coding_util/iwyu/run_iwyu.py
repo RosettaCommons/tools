@@ -516,6 +516,9 @@ def process_dir(dirname):
     for item in os.listdir(dirname):
         name = os.path.join(dirname,item)
         if os.path.isdir(name):
+            if name in ['src/platform/','src/utility/pointer/boost/','src/utility/py/','src/ui/']:
+                # Specialty directories - don't bother traversing.
+                continue
             for fn in process_dir(name):
                 yield fn
         elif os.path.isfile(name):

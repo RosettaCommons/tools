@@ -248,7 +248,7 @@ class IWYUChanges:
             # If the only reason we're adding the header is a namespace, then don't add.
             reasons = self.additions[ fn ]
             namespaces = fn.split('/')[:-1] # Last is filename, not namespace
-            trim_reasons = [ r for r in reasons if r not in namespaces ]
+            trim_reasons = [ r for r in reasons if r not in namespaces and r != "std" ]
             if len(trim_reasons) == 0:
                 if DEBUG: print("%% NO ADD NAMESPACE ONLY", fn)
                 self.remove_addition( fn )

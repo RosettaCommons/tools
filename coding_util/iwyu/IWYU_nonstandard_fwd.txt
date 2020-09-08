@@ -263,6 +263,8 @@ protocols/match/upstream/ProteinBackboneBuildPoint.fwd.hh protocols/match/upstre
 
 protocols/moves/RandomMover.fwd.hh protocols/moves/MoverContainer.fwd.hh
 
+protocols/normalmode/NormalModeMultifunc.fwd.hh protocols/normalmode/NormalModeMultiFunc.fwd.hh
+
 protocols/pack_daemon/EntityFunc.fwd.hh protocols/pack_daemon/DynamicAggregateFunction.fwd.hh
 protocols/pack_daemon/VectorExpressionCreator.fwd.hh protocols/pack_daemon/DynamicAggregateFunction.fwd.hh
 

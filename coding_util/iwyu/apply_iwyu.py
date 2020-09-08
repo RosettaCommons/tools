@@ -66,8 +66,19 @@ def include_sort_key(entry):
 
 
 def apply_changes(filename, instructions, options ):
+    '''Apply the changes for the filename.
+    Return true on success and false on failure.'''
     with open(filename) as f:
         contents = f.readlines()
+
+    # Find the insertion position first - we want it to be prior to the commenting out.
+    insertion_pos = find_insertion_position(contents)
+
+    if insertion_pos == 0 and len(instructions['additions']) != 0:
+        print("ERROR: Can't find insertion position --", filename)
+        return False # The additions are critical to keep compilability. Don't do modification if we can't add.
+
+    modified = False
 
     for fn, linenums in instructions['deletions'].items():
         for lineno in linenums:
@@ -75,44 +86,44 @@ def apply_changes(filename, instructions, options ):
             line = contents[lineno]
             splitline = line.split()
             if len(splitline) < 2:
-                print("ERROR: Line to remove does not match expected content", filename)
+                print("ERROR: Line to remove does not match expected content --", filename)
                 continue
             if splitline[0] != '#include':
-                print("ERROR - Line to remove does not match expected content", filename)
+                print("ERROR - Line to remove does not match expected content --", filename)
                 continue
             if splitline[1][1:-1] != fn:
-                print("ERROR:: Line to remove does not match expected content", filename)
+                print("ERROR:: Line to remove does not match expected content --", filename)
                 continue
             if "DO NOT AUTO-REMOVE" in line:
-                print("Skipping line removal for ", fn, " - comment tells it to stay.", filename)
+                print("Skipping line removal for ", fn, " - comment tells it to stay --", filename)
+                continue
             contents[lineno] = '// AUTOREMOVED IWYU: ' + line.lstrip()
+            modified = True
 
-    insertion_pos = find_insertion_position(contents)
-
-    if insertion_pos == 0 and len(instructions['additions'] != 0 ):
-        print("ERROR: Can't find insertion position", filename)
-        return # The additions are critical to keep compilability. Don't do modification if we can't add.
-
-    added_lines = [ "\n", "\n" ]
+    added_lines = [ "\n" ]
     for fn in sorted( instructions['additions'].keys(), key=include_sort_key ):
         whys = instructions['additions'][fn]
         added_lines.append( '#include <'+fn+"> // AUTO IWYU For " + ' '.join(whys) + '\n' )
     added_lines.append( "\n" )
 
+    if len(added_lines) > 2:
+        contents = contents[:insertion_pos] + added_lines + contents[insertion_pos:]
+        modified = True
 
-    contents = contents[:insertion_pos] + added_lines + contents[insertion_pos:]
+    if modified:
+        with open(filename, 'w') as f:
+            f.writelines(contents)
 
-    with open(filename, 'w') as f:
-        f.writelines(contents)
+    return True;
 
 def process_file(filename, options):
 
     with open(filename) as f:
         instructions = json.load(f)
 
-    apply_changes( filename[:-len('.riwyuf')], instructions, options )
+    success = apply_changes( filename[:-len('.riwyuf')], instructions, options )
 
-    if not options.nodelete:
+    if success and not options.nodelete:
         os.remove( filename )
 
 def process_dir(dirname, options):

@@ -16,7 +16,6 @@
 cstddef platform/types.hh numeric/types.hh core/types.hh
 stddef.h platform/types.hh numeric/types.hh core/types.hh
 platform/types.hh numeric/types.hh core/types.hh
-numeric/types.hh core/types.hh  # ADDDEL
 
 numeric/xyzVector.fwd.hh core/types.hh 
 
@@ -36,20 +35,18 @@ utility/pointer/std/memory.hh utility/pointer/owning_ptr.hh utility/pointer/memo
 utility/pointer/std/owning_ptr.hh utility/pointer/owning_ptr.hh 
  
 ## Exit/exception
-utility/backtrace.hh utility/assert.hh utility/exit.hh
-assert.h utility/backtrace.hh utility/assert.hh utility/exit.hh
+
+utility/backtrace.hh utility/assert.hh
+assert.h utility/assert.hh
+cassert utility/assert.hh
 exception utility/excn/Exceptions.hh 
-#utility/excn/EXCN_Base.hh utility/excn/Exceptions.hh
-stdlib.h utility/exit.hh 
-cstdlib utility/exit.hh 
+utility/CSI_Sequence.hh utility/backtrace.hh utility/assert.hh
 
 ## Tracers & streams
-utility/thread/backwards_thread_local.hh basic/Tracer.hh 
-utility/CSI_Sequence.hh utility/backtrace.hh basic/Tracer.hh
 basic/TracerImpl.hh basic/Tracer.hh
 basic/TracerImpl.fwd.hh basic/Tracer.hh basic/Tracer.fwd.hh
-iomanip basic/Tracer.hh
-ostream basic/Tracer.hh
+utility/CSI_Sequence.hh basic/Tracer.hh
+iosfwd basic/TracerImpl.fwd.hh basic/Tracer.fwd.hh
 
 utility/io/zipstream.hpp utility/io/izstream.hh utility/io/ozstream.hh
 
@@ -61,20 +58,31 @@ utility/tag/XMLSchemaGeneration.fwd.hh protocols/moves/MoverCreator.hh protocols
 core/pose/Pose.fwd.hh protocols/moves/Mover.hh
 utility/tag/Tag.fwd.hh protocols/moves/Mover.hh
 basic/datacache/DataMap.fwd.hh protocols/moves/Mover.hh
-string protocols/moves/Mover.hh
+string protocols/moves/Mover.hh protocols/moves/MoverCreator.hh 
 core/types.hh protocols/moves/Mover.hh
-string protocols/moves/MoverCreator.hh
 
 ## Filters
-protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh 
+protocols/filters/Filter.fwd.hh protocols/filters/FilterCreator.hh
+utility/tag/XMLSchemaGeneration.fwd.hh protocols/filters/FilterCreator.hh protocols/filters/Filter.hh 
 core/pose/Pose.fwd.hh protocols/filters/Filter.hh
 utility/tag/Tag.fwd.hh protocols/filters/Filter.hh
 basic/datacache/DataMap.fwd.hh protocols/filters/Filter.hh
+string protocols/filters/Filter.hh protocols/filters/FilterCreator.hh
+core/types.hh protocols/filters/Filter.hh
 
-core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh 
-utility/tag/XMLSchemaGeneration.fwd.hh protocols/filters/FilterCreator.hh
-protocols/jd2/JobInputter.fwd.hh protocols/jd2/JobInputterCreator.fwd.hh 
-protocols/jd2/JobOutputter.fwd.hh protocols/jd2/JobOutputterCreator.fwd.hh 
+## Task Operations
+core/pack/task/operation/TaskOperation.fwd.hh core/pack/task/operation/TaskOperationCreator.hh
+utility/tag/XMLSchemaGeneration.fwd.hh core/pack/task/operation/TaskOperationCreator.hh core/pack/task/operation/TaskOperation.hh
+core/pose/Pose.fwd.hh core/pack/task/operation/TaskOperation.hh 
+utility/tag/Tag.fwd.hh core/pack/task/operation/TaskOperation.hh 
+basic/datacache/DataMap.fwd.hh core/pack/task/operation/TaskOperation.hh
+
+## Simple Metrics
+core/simple_metrics/SimpleMetric.fwd.hh core/simple_metrics/SimpleMetricCreator.hh
+utility/tag/XMLSchemaGeneration.fwd.hh core/simple_metrics/SimpleMetricCreator.hh core/simple_metrics/SimpleMetric.hh
+core/pose/Pose.fwd.hh core/simple_metrics/SimpleMetric.hh
+utility/tag/Tag.fwd.hh core/simple_metrics/SimpleMetric.hh
+basic/datacache/DataMap.fwd.hh core/simple_metrics/SimpleMetric.hh
 
 ## XML
 boost/lexical_cast/bad_lexical_cast.hpp utility/tag/Tag.hh

@@ -40,5 +40,19 @@
 
 { symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },
 { symbol: ["utility::vector0", "private", "<utility/vector0.hh>", "public"] },
- 
+
+# Workarounds for IWYU bug #90
+{ symbol: ["std::ifstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::ofstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::fstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::filebuf", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::stringstream", "private", "<sstream>", "public" ] }, 
+
+# Workaround for the fact that IWYU assumes that Pose.hh provides the full definition for Pose::Conformation etc.
+{ symbol: ["core::pose::Pose::Conformation", "private", "<core/conformation/Conformation.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::Residue", "private", "<core/conformation/Residue.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::BasicDataCache", "private", "<basic/datacache/BasicDataCache.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::ObserverCache", "private", "<core/pose/datacache/ObserverCache.hh>", "public" ] }, 
+{ symbol: ["core::conformation::Conformation::AtomTree", "private", "<core/kinematics/AtomTree.hh>", "public" ] }, 
+
 ]

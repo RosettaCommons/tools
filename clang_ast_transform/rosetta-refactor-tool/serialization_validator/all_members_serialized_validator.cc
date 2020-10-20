@@ -149,19 +149,23 @@ identify_datamembers_not_serialized(
 		sff.classes_w_serialization_funcs();
 
 	SerializedMemberFinder::data_members const & saved_variables( smf.members_saved() );
+	SerializedMemberFinder::data_members const & saved_w_opts_variables( smf.members_saved_w_opts() );
 	SerializedMemberFinder::data_members const & loaded_variables( smf.members_loaded() );
+	SerializedMemberFinder::data_members const & loaded_w_opts_variables( smf.members_loaded_w_opts() );
 
 	SerializationFunctionFinder::data_members const & exempted_save_variables( sff.exempted_members_from_save() );
+	SerializationFunctionFinder::data_members const & exempted_save_w_opts_variables( sff.exempted_members_from_save_w_opts() );
 	SerializationFunctionFinder::data_members const & exempted_load_variables( sff.exempted_members_from_load() );
+	SerializationFunctionFinder::data_members const & exempted_load_w_opts_variables( sff.exempted_members_from_load_w_opts() );
 
 
 	std::list< std::string > classes_w_fields = fdf.all_classes_with_fields();
-	// for ( std::list< std::string >::const_iterator
-	// 				iter = classes_w_fields.begin(), iter_end = classes_w_fields.end();
-	// 			iter != iter_end; ++iter ) {
-	// 	std::cout << "Class with fields: " << *iter << std::endl;
-	// }
-	//
+	//for ( std::list< std::string >::const_iterator
+	//				iter = classes_w_fields.begin(), iter_end = classes_w_fields.end();
+	//			iter != iter_end; ++iter ) {
+	//	std::cout << "Class with fields: " << *iter << std::endl;
+	//}
+
 	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
 	// 				iter = saved_variables.begin(), iter_end = saved_variables.end();
 	// 			iter != iter_end; ++iter ) {
@@ -172,6 +176,17 @@ identify_datamembers_not_serialized(
 	// 				iter = loaded_variables.begin(), iter_end = loaded_variables.end();
 	// 			iter != iter_end; ++iter ) {
 	// 	std::cout << "Loaded variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = saved_w_opts_variables.begin(), iter_end = saved_w_opts_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Saved_w_opts variable " << iter->first << "::" << iter->second << std::endl;
+	// }
+	//
+	// for ( std::set< std::pair< std::string, std::string > >::const_iterator
+	// 				iter = loaded_w_opts_variables.begin(), iter_end = loaded_w_opts_variables.end();
+	// 			iter != iter_end; ++iter ) {
+	// 	std::cout << "Loaded_w_opts variable " << iter->first << "::" << iter->second << std::endl;
 	// }
 
 	bool any_missed = false;
@@ -198,10 +213,51 @@ identify_datamembers_not_serialized(
 			}
 		}
 	}
+
+	if ( ! saved_w_opts_variables.empty() || ! loaded_w_opts_variables.empty() ||
+		! exempted_save_w_opts_variables.empty() || ! exempted_load_w_opts_variables.empty() ) {
+
+		std::set< std::string > classes_w_save_load_w_opts;
+		for ( auto class_var_pair: saved_w_opts_variables ) { classes_w_save_load_w_opts.insert( class_var_pair.first ); }
+		for ( auto class_var_pair: loaded_w_opts_variables ) { classes_w_save_load_w_opts.insert( class_var_pair.first ); }
+		for ( auto class_var_pair: exempted_load_w_opts_variables ) { classes_w_save_load_w_opts.insert( class_var_pair.first ); }
+		for ( auto class_var_pair: exempted_save_w_opts_variables ) { classes_w_save_load_w_opts.insert( class_var_pair.first ); }
+
+  	for ( SerializationFunctionFinder::class_names::const_iterator
+  			class_iter = classes_w_serialization_funcs.begin(),
+  			class_iter_end = classes_w_serialization_funcs.end();
+  			class_iter != class_iter_end; ++class_iter ) {
+  		//std::cout << "Examining class " << *class_iter << std::endl;
+
+			if ( ! classes_w_save_load_w_opts.count( *class_iter ) ) continue;
+
+  		std::list< FieldDeclaration > fields = fdf.fields_for_class( *class_iter );
+  		for ( std::list< FieldDeclaration >::const_iterator
+  				field_iter = fields.begin(), field_iter_end = fields.end();
+  				field_iter != field_iter_end; ++field_iter ) {
+  			//std::cout << "  Examining field " << field_iter->var_name_ << std::endl;
+  			std::pair< std::string, std::string > class_field_pair( std::make_pair( *class_iter, field_iter->var_name_ ) );
+  			if ( saved_w_opts_variables.find( class_field_pair ) == saved_w_opts_variables.end() &&
+  					exempted_save_w_opts_variables.find( class_field_pair ) == exempted_save_w_opts_variables.end() ) {
+  				std::cout << "Data member of class " << *class_iter << " named " << field_iter->var_name_ << " was not saved in save_with_options" << std::endl;
+  				any_missed = true;
+  			}
+  			if ( loaded_w_opts_variables.find( class_field_pair ) == loaded_w_opts_variables.end() &&
+  					exempted_load_w_opts_variables.find( class_field_pair ) == exempted_load_w_opts_variables.end() ) {
+  				std::cout << "Data member of class " << *class_iter << " named " << field_iter->var_name_ << " was not loaded in load_with_options" << std::endl;
+  				any_missed = true;
+  			}
+  		}
+		}
+	}
+
+
 	return any_missed;
 }
 
 int main(int argc, const char **argv) {
+
+	// std::cout << "RUNNING!" << std::endl;
 
 	using namespace clang::tooling;
 	std::unique_ptr< CompilationDatabase > compilations = compilation_database_from_commandline( argc, argv );

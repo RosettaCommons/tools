@@ -121,7 +121,7 @@ class SingleSimulation(BaseMinFunc):
         seq = self.name.split('_')
         torsion_volume = util.torsion_volume(*seq)
         normalization *= np.sum(dos_raw) / torsion_volume
-        print "TORSION_VOL ", torsion_volume
+        print("TORSION_VOL ", torsion_volume)
 
         full_data = np.vstack(raw_data)
         energy = full_data[:, 1]

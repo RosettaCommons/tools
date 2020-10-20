@@ -8,14 +8,15 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^(standard|overwrite)\s*$/) {
 		$installtype = $1;
 	}
-	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr)\s*$/) {
+	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr|localnrcopy)\s*$/) {
 		$installtype = "";
 		last;
 	}
 }
+
 if (!$installtype) {
 	print "\n";
-	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr]\n\n";
+	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr|localnrcopy]\n\n";
 	print "This script installs blast, psipred, csblast, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "<standard> will only install what is missing.\n";
 	print "<overwrite> will do a fresh installation.\n";
@@ -45,9 +46,16 @@ my $skip_nr = 0;
 my $database = "nr";
 foreach my $arg (@ARGV) {
 	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
-	if ($arg =~ /^(uniref90|uniref50)\s*$/) { $database = $1; }
+	if ($arg =~ /^(uniref90|uniref50|localnrcopy)\s*$/) { $database = $1; }
 }
-
+if ($database eq "localnrcopy") {
+	if (!$ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not set!\n";
+	}
+	if (!-d $ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not a real dir: $ENV{'LOCAL_NR_COPY'}\n";
+	}
+}
 chdir($Bin);
 
 # blast binaries
@@ -197,6 +205,12 @@ if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 				print NF "$nl\n";
 				next;
 			}
+			if ($l =~ /^OPTS.* -a 4"/) {
+				print NF "#".$l;
+				print NF "# the following line was added by Rosetta/tools/fragment_tools/install_dependencies.pl\n";
+				print NF "OPTS=\"-d \$blastDB -j 4 -b 1 -a \$BLAST_NUM_CPUS\"\n";
+				next;
+			}
 			print NF $l;
 		}
 		close(F);
@@ -268,10 +282,18 @@ chdir($Bin);
 if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 	chdir($datdir);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
-	system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
-	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "$datdir/update_blastdb.pl");
-	system("rm $datdir/nr*"); # clean up interrupted attempts
-	$SIG{INT} = \&clean_nr_tgz;
+	system("wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz");
+	system("tar -zxf ncbi-blast-2.10.0+-src.tar.gz");
+	system("cp ncbi-blast-2.10.0+-src/c++/src/app/blast/update_blastdb.pl .");
+	die "ERROR! wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz failed.\n" if (!-s "$datdir/update_blastdb.pl");
+	if ( -d "$datdir/nr" ) {
+		system("rm -rf $datdir/nr*"); # clean up interrupted attempts
+		$SIG{INT} = \&clean_nr_tgz;
+	}
+	# Sometimes fails randomly, run multiple times (sorry horrible hack)
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
 	(system("perl $datdir/update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
 	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {
@@ -287,19 +309,45 @@ if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 }
 chdir($Bin);
 
+if (!$skip_nr && $database eq "localnrcopy" && ($overwrite || !-s "$datdir/nr.pal")) {
+	print "Copying your local nr database to $datdir...\n";
+	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'}/* $datdir";
+	print "$copy_cmd\n";
+	system($copy_cmd);
+	chdir($datdir);
+
+	foreach my $f (glob("$datdir/nr.*tar.gz")) {
+		my $ext_cmd = "tar -zxvf $f";
+		(system($ext_cmd) == 0) or die "Failed to exract with command $ext_cmd";
+	}
+	# Make sure at least one nr.pal file is there
+	(-s "$datdir/nr.pal") or die "ERROR! $datdir/nr database installation failed!\n";
+}
+chdir($Bin);
+
 # p_filt NR database from installed nr
 if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	chdir($datdir);
-	print "Generating nr fasta. Be very patient ......\n";
-	my $cmd = "$Bin/blast/bin/fastacmd -D 1 > $datdir/nr";
-	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
-	print "Generating nr_pfilt fasta. Be very very patient ......\n";
-	$cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
-	(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	if (!-s "$datdir/nr") {
+		print "Generating nr fasta. Be very patient ......\n";
+		my $cmd = "$Bin/blast/bin/fastacmd -D 1 > $datdir/nr";
+		print $cmd;
+		(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	}
+
+	if (!-s "$datdir/nr_pfilt") {
+		print "Generating nr_pfilt fasta. Be very very patient ......\n";
+		my $cmd = "$Bin/psipred/bin/pfilt $datdir/nr > $datdir/nr_pfilt";
+		print $cmd;
+		(system($cmd) == 0) or die "ERROR! $cmd failed.\n";
+	}
+
 	print "Formatting nr_pfilt fasta. Be very very very patient ......\n";
 	system("rm $datdir/nr_pfilt.*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_pfilt;
-	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt") == 0) or do { &clean_nr_pfilt; };
+	my $cmd = "$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt -v 10000";
+	print $cmd;
+	(system($cmd) == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr_pfilt.pal") or die "ERROR! $datdir/nr_pfilt database installation failed!\n";
 }

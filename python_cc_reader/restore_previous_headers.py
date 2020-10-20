@@ -18,9 +18,9 @@
 #    revision 33042 lives (~/rosetta/SVN/mini_33042/mini)
 
 import sys, os
-from code_utilities import *
-from inclusion_graph import *
-from add_headers import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.inclusion_graph import *
+from python_cc_reader.inclusion_removal.add_headers import *
 
 
 class Chdir:         
@@ -39,14 +39,14 @@ def read_ref_tree( ref_dir ) :
    try :
       newdir = Chdir( srcdir )
    except IOError :
-      print "Directory", srcdir, "does not exist!"
+      print("Directory", srcdir, "does not exist!")
       sys.exit(1)
    g = scan_files_to_create_inclusion_graph()
    return g
 
 
 if len( sys.argv ) != 3 :
-   print "Usage: restore_previous_headers.py <files.list> <reference_dir>"
+   print("Usage: restore_previous_headers.py <files.list> <reference_dir>")
    sys.exit(0)
 
 fnames = open( sys.argv[ 1 ] ).readlines()
@@ -57,7 +57,7 @@ ref_tg = transitive_closure( ref_g )
 working_g = read_ref_tree( os.getcwd() )
 working_tg = transitive_closure( working_g )
 
-print os.getcwd()
+print(os.getcwd())
 
 working_total_order = total_order_from_graph( working_g )
 
@@ -67,7 +67,7 @@ for fname in fnames :
    try :
       flines = open( fname.strip() ).readlines()
    except IOError :
-      print "ERROR: Cannot find file", fname, "Skipping to next file."
+      print("ERROR: Cannot find file", fname, "Skipping to next file.")
       continue
 
    inclusions = find_all_includes( fname, flines )

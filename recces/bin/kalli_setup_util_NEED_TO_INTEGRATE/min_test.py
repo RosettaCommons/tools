@@ -9,7 +9,7 @@ orig_wt = np.array([0.3651, 0.2008, 0.003492, 0.00001, 9.5238, 3.8095, 0.5079, 0
 
 # simulations = []
 # for fn in glob(folder + "/*"):
-#     print fn
+#     print(fn)
 #     sim = SingleSimulation(fn, orig_weight=orig_wt, down_sampling_ratio=0.05, use_existing_norm_factor=False)
 #     simulations.append(sim)
 #
@@ -33,7 +33,7 @@ for i in xrange(n_cycles):
     # Randomly start with 1/10 to 10x of the start_weight
     init_guess = start_weight * 10 ** np.random.uniform(-1, 1, len(start_weight))
     # init_guess = orig_wt
-    print min_func(init_guess)[0], init_guess
+    print(min_func(init_guess)[0], init_guess)
     result = minimize(min_func, x0=init_guess, method="TNC", jac=True, bounds= bounds)
     min_weight = result.x
     min_val, _ = min_func(min_weight)
@@ -41,4 +41,4 @@ for i in xrange(n_cycles):
     for i in min_weight:
         out_str += repr(i) + ", "
     out_str = out_str[:-2]
-    print out_str
+    print(out_str)

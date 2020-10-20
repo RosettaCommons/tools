@@ -1,5 +1,5 @@
-from code_utilities import *
-from inclusion_graph import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.inclusion_graph import *
 from optparse import OptionParser
 import sys
 
@@ -34,16 +34,16 @@ def levels_for_library( library_prefix ) :
    library_sublibs = {}
    sorted_src_projects = sorted( projects[ "src" ] )
    for lib in sorted_src_projects :
-       print lib
+       print(lib)
        if lib.find( library_prefix ) != -1 :
            level = int( lib.rpartition(".")[2] )
-           print lib, level
+           print(lib, level)
            if level not in library_sublibs :
                library_sublibs[level] = []
            library_sublibs[level].append( lib )
    levels = []
    nlevels = max( library_sublibs.keys() )
-   for level in xrange(1,nlevels+1) :
+   for level in range(1,nlevels+1) :
       columns = []
       for libname in library_sublibs[ level ] :
          subdirs = toplevel_subdirs_of_library( libname )
@@ -66,18 +66,18 @@ def protocols_levels() :
 def library_and_column_for_file( levels_for_lib, fname ) :
    dirs = fname.split("/")
    if len(dirs) < 3 :
-      print "Error in library_and_column_for_file", fname
-      print "Could not find subdirectory of the library directory"
+      print("Error in library_and_column_for_file", fname)
+      print("Could not find subdirectory of the library directory")
    topleveldir = dirs[1]
-   for i in xrange(len(levels_for_lib)) :
+   for i in range(len(levels_for_lib)) :
       ilib = levels_for_lib[i]
-      for column in xrange(len(ilib)) :
+      for column in range(len(ilib)) :
          if topleveldir in ilib[ column ] :
             if len(ilib) == 1 :
                return i+1, "" # no column name for libraries with only a single entry
             else :
                return i+1, chr( ord('a') + column )
-   print "ERROR top level directory",topleveldir,"not found in levels for this library"
+   print("ERROR top level directory",topleveldir,"not found in levels for this library")
    return None, None
 
 class DesiredDependencies :
@@ -106,7 +106,7 @@ class DesiredDependencies :
       #print sum( [ len(x) for x in self.lib_levels_[ 6 ][ 1 ] ] )
       #sys.exit()
    def lib_id( self, libname ) :
-      for i in xrange( self.lib_levels_ ) :
+      for i in range( self.lib_levels_ ) :
          if libname == self.lib_levels_[ i ][ 0 ]:
             return i
       return -1;
@@ -116,10 +116,10 @@ class DesiredDependencies :
 
    def subdir_level( self, libname, subdir_name ) :
       #print "subdir_level", libname, subdir_name
-      for i in xrange( len( self.lib_levels_ )) :
+      for i in range( len( self.lib_levels_ )) :
          if libname == self.lib_levels_[ i ][ 0 ] :
-            for j in xrange( len( self.lib_levels_[ i ][ 1 ] )) :
-               for k in xrange( len( self.lib_levels_[ i ][ 1 ][ j ] ) ) :
+            for j in range( len( self.lib_levels_[ i ][ 1 ] )) :
+               for k in range( len( self.lib_levels_[ i ][ 1 ][ j ] ) ) :
                   #print "  subdir_level", libname, subdir_name, i, j, k, self.lib_levels_[ i ][ 1 ][ j ][ k ]
                   if subdir_name in self.lib_levels_[ i ][ 1 ][ j ][ k ]:
                      #print "returning", j, k
@@ -128,7 +128,7 @@ class DesiredDependencies :
       return ( -1, -1 )
 
    def levels_for_lib( self, libname ) :
-      for i in xrange( len( self.lib_levels_)):
+      for i in range( len( self.lib_levels_)):
          if libname == self.lib_levels_[ i ][ 0 ] :
             return self.lib_levels_[ i ][ 1 ]
       return None
@@ -146,7 +146,7 @@ class DesiredDependencies :
       if par_libid == -1 or dep_libid == -1 :
          return True
       if dep_libid < par_libid :
-         print "Grossly illegal!", dependent, parent
+         print("Grossly illegal!", dependent, parent)
          return False
       if dep_libid > par_libid :
          return True
@@ -162,7 +162,7 @@ class DesiredDependencies :
       return True
 
    def level_for_lib( self, libname ):
-      for i in xrange( len( self.lib_levels_ )):
+      for i in range( len( self.lib_levels_ )):
          if self.lib_levels_[ i ][0] == libname :
             return i
       return -1
@@ -286,14 +286,14 @@ if __name__ == "__main__" :
 
 
    all_prot_levels = set( all_protocols_dirs())
-   print all_prot_levels
+   print(all_prot_levels)
    if all_prot_levels - prots_assigned :
-       print "protocol directories not assigned to the hierarchy"
-       print all_prot_levels - prots_assigned
-       print "----------"
+       print("protocol directories not assigned to the hierarchy")
+       print(all_prot_levels - prots_assigned)
+       print("----------")
    if prots_assigned - all_prot_levels :
-       print "protocol directories in the hierarchy that do not exist"
-       print prots_assigned - all_prot_levels
+       print("protocol directories in the hierarchy that do not exist")
+       print(prots_assigned - all_prot_levels)
 
    #sys.exit()
 
@@ -312,14 +312,14 @@ if __name__ == "__main__" :
    illegal_includes = find_and_group_illegal_dependencies( g, options.verbose )
    des_deps = DesiredDependencies()
    bad_deps_exist = False
-   for key in illegal_includes[0].keys():
-      print "Highly illegal dependency class:", key[ 0 ], "dependent on", key[ 1 ]
+   for key in list(illegal_includes[0].keys()):
+      print("Highly illegal dependency class:", key[ 0 ], "dependent on", key[ 1 ])
       for edge in illegal_includes[0][key]:
-         print "   " + edge[ 0 ] + " --> " + edge[1]
+         print("   " + edge[ 0 ] + " --> " + edge[1])
          bad_deps_exist = True
-   for lib in illegal_includes[1].keys():
-      for subdir in illegal_includes[1][lib].keys():
-         for key in illegal_includes[1][lib][subdir].keys():
+   for lib in list(illegal_includes[1].keys()):
+      for subdir in list(illegal_includes[1][lib].keys()):
+         for key in list(illegal_includes[1][lib][subdir].keys()):
             #print key, key[0].partition("/")[2], key[1].partition("/")[2]
             s1,col1 = des_deps.subdir_level( lib, key[0].partition("/")[2])
             s2,col2 = des_deps.subdir_level( lib, key[1].partition("/")[2])
@@ -327,14 +327,14 @@ if __name__ == "__main__" :
             if s1 == -1 or s2 == -1 :
                 continue
             if s1 == s2 :
-               print "s1 == s2", lib, key[0], key[1], s1, s2, col1, col2
+               print("s1 == s2", lib, key[0], key[1], s1, s2, col1, col2)
                assert( col1 != col2 )
-               print "Illegal lateral dependency between columns at the same level: directory ", key[0], "dependent on", key[1]
+               print("Illegal lateral dependency between columns at the same level: directory ", key[0], "dependent on", key[1])
             else:
-               print "Illegal intra-library dependency", key[ 0 ], "dependent on", key[ 1 ]
+               print("Illegal intra-library dependency", key[ 0 ], "dependent on", key[ 1 ])
             for edge in illegal_includes[1][lib][subdir][key]:
-               print "   " + edge[0] + " --> " + edge[1]
-            print
+               print("   " + edge[0] + " --> " + edge[1])
+            print()
             bad_deps_exist = True
 
    if bad_deps_exist :

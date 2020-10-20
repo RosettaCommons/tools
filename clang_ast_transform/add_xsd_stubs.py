@@ -1,11 +1,13 @@
 import os, sys, re
 import make_serialize_templates
-import blargs
-import beautifier
 
-sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc_reader" )
+sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../external" )
 #print( sys.path )
-import python_cc_reader.code_reader
+
+import blargs
+from python_cc_reader.cpp_parser import code_reader
+from python_cc_reader.beauty import beautifier
 
 def mover_hh_stub() :
     return [
@@ -176,7 +178,7 @@ class FunctionDecl :
 def reblob_tokens( toks ) :
     blobs = []
     working_blob = []
-    for i in xrange(len( toks )) :
+    for i in range(len( toks )) :
         working_blob.append( toks[i].spelling )
         if i+1 != len(toks) :
 
@@ -214,7 +216,7 @@ def turn_function_prefix_into_name( toks ) :
     return func_name
 
 def functions_for_file( file_lines, file_name ) :
-    print "reading functions from", file_name
+    print("reading functions from", file_name)
     beaut = beautifier.Beautifier()
     beaut.filename = file_name
     for line in file_lines :
@@ -290,7 +292,7 @@ def functions_for_file( file_lines, file_name ) :
     return funcs
 
 def comment_out_function( func, lines ) :
-    for ii in xrange( func.line_begin, func.line_end+1 ) :
+    for ii in range( func.line_begin, func.line_end+1 ) :
         lines[ ii ] = "// XRW TEMP " + lines[ ii ]
     return lines
 
@@ -303,7 +305,7 @@ def add_include_at_bottom_of_includes( lines, include_lines ) :
     beaut.minimally_parse_file()
 
     last_include_line = -1
-    for ii in xrange(len(lines)) :
+    for ii in range(len(lines)) :
         if beaut.line_tokens[ii] and beaut.line_tokens[ii][ 0 ].invisible_by_macro : continue
         if len(lines[ ii ]) > 7 and lines[ ii ][0:8] == "#include" :
             last_include_line = ii
@@ -358,7 +360,7 @@ if __name__ == '__main__':
         cc_stub = features_reporter_cc_stub
 
     defs = make_serialize_templates.load_definitions( definitions )
-    print "definitions loaded"
+    print("definitions loaded")
 
     creator_classes = []
     class_keys = []
@@ -373,20 +375,20 @@ if __name__ == '__main__':
         widget_classes.append( cols[2].strip() )
 
         if creator_classes[-1] not in defs.classes :
-            print "Could not find class", creator_classes[-1], "in definitions file"
+            print("Could not find class", creator_classes[-1], "in definitions file")
             all_ok = False
         if widget_classes[-1] not in defs.classes :
-            print "Could not find class", widget_classes[-1], "in definitions file"
+            print("Could not find class", widget_classes[-1], "in definitions file")
             all_ok = False
 
     if not all_ok :
         sys.exit(1)
 
-    for ii in xrange(len(creator_classes)) :
+    for ii in range(len(creator_classes)) :
         creator_name = creator_classes[ ii ]
         widget_name = widget_classes[ ii ]
         class_key = class_keys[ ii ]
-        print "processing", widget_name, creator_name
+        print("processing", widget_name, creator_name)
 
         creator_hh_fname = defs.classes[ creator_name ].filename
         creator_cc_fname = creator_hh_fname[ :-2 ] + "cc"

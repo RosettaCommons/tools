@@ -17,7 +17,7 @@ seqs = [
 G = turner_eval(seqs)
 expt = np.array([
     -0.93, -1.10, -2.24, -2.08, -1.33, -2.35, -2.11, -3.26, -2.36, -3.42])
-print np.sqrt(np.sum((G - expt) ** 2) / G.shape[0])
+print(np.sqrt(np.sum((G - expt) ** 2) / G.shape[0]))
 plt.plot(G, expt, 'ro')
 
 
@@ -33,7 +33,7 @@ expt = np.array([
     -0.6, -0.7, -0.1, -0.7, -0.1, -0.3, -0.3, -0.4, -0.2, -0.5, -0.3,
     -0.2, -0.1, -0.2, -0.3, 0, 0, -0.3, -0.1, -0.2, -0.2])
 G = turner_eval(seqs)
-print np.sqrt(np.sum((G - expt) ** 2) / G.shape[0])
+print(np.sqrt(np.sum((G - expt) ** 2) / G.shape[0]))
 plt.plot(G, expt, 'mx')
 
 
@@ -43,7 +43,7 @@ seqs = [
 expt = np.array([
     -0.55, -1.36, -1.41, -2.11, -1.53, -2.51, -1.27, -1.00])
 G = turner_eval(seqs)
-print np.sqrt(np.sum((G - expt) ** 2) / G.shape[0])
+print(np.sqrt(np.sum((G - expt) ** 2) / G.shape[0]))
 plt.plot(G, expt, 'bs')
 
 plt.plot([-3.8, 0.3], [-3.8, 0.3], 'k-')

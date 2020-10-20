@@ -14,15 +14,15 @@ val = {}
 for dir in ['cc/','gcc/','gg/','gg_cc/','ggc/','ggc_gcc/']:
     tag = dir[:-1]
     chdir( dir )
-    print getcwd()
+    print(getcwd())
     sim = SingleSimulation( 'ST/', curr_wt )
     seq1,seq2 = get_seqs( dir )
     val[tag] = sim.value - log( torsion_volume( seq1, seq2 ) )
-    print tag, val[tag], val[tag] * KT_IN_KCAL
+    print(tag, val[tag], val[tag] * KT_IN_KCAL)
     chdir( CWD )
 
-print 'ggc_gcc - ggc - gcc - (gg_cc - gg - cc )'
+print('ggc_gcc - ggc - gcc - (gg_cc - gg - cc )')
 val_final = val['ggc_gcc'] - val['ggc'] - val['gcc'] - ( val['gg_cc'] - val['gg'] - val['cc'] )
-print val_final, val_final * KT_IN_KCAL
+print(val_final, val_final * KT_IN_KCAL)
 
 #  LocalWords:  sim

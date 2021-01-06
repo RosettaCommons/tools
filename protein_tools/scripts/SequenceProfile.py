@@ -14,7 +14,10 @@
 # SequenceProfile.py
 # -l is the input list
 # -t is the template to align to
-# python ~/install/perl/tools/SequenceProfile.py -l list.txt -t original_structure.pdb
+# -c is the ID of chain of interest if multiple chains present
+# NOTE: IF LOOKING FOR PROFILE OF MULTIPLE CHAINS, RESULTS MIGHT NOT BE ACCURATE! RUN SCRIPT 
+#       MULTIPLE TIMES USING -c FOR EACH INDIVIDUAL CHAIN!
+# python ~/install/perl/tools/SequenceProfile.py -l list.txt -t original_structure.pdb -c chainID
 ################################################################################################
 
 import sys
@@ -71,7 +74,7 @@ def AA3LetTo1Let(aa):
 
 
 
-def get_coordinates(struct):
+def get_coordinates(struct,ChainID):
 
     struct = struct.replace("\n","")
     struct_file = open(struct,'r')
@@ -92,17 +95,18 @@ def get_coordinates(struct):
 
         if atom_reading_flag:
             cols = line.split()
-            if cur_res != int(line[23:26]):
-                if cur_res != -50000:
-                    all_coordinates[cur_res] = cur_coordinates
-                cur_res = int(line[23:26])
-                cur_coordinates = {}
-                cur_coordinates['type'] = cols[3]
-                cur_coordinates['chain'] = line[21:22]
-                cur_coordinates['active'] = 1  #keep track of whether we count this residue
-            cur_coordinates[cols[2]] = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
-           #     elif (not ca_only) and line[13:14] != 'H':
-           #         cur_coordinates[cols[2]] = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
+            if ( cols[4] == ChainID ) or ( ChainID == ''):
+                if cur_res != int(cols[5]):
+                    if cur_res != -50000:
+                        all_coordinates[cur_res] = cur_coordinates
+                    cur_res = int(cols[5])
+                    cur_coordinates = {}
+                    cur_coordinates['type'] = cols[3]
+                    cur_coordinates['chain'] = cols[4]
+                    cur_coordinates['active'] = 1  #keep track of whether we count this residue
+                cur_coordinates[cols[2]] = (float(cols[6]), float(cols[7]), float(cols[8]))
+               #     elif (not ca_only) and line[13:14] != 'H':
+               #         cur_coordinates[cols[2]] = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
 
     return all_coordinates
 
@@ -111,18 +115,20 @@ class SequenceProfile:
 
     def __init__(self, res_input):
         self.wt_pos = []
-        self.num_sequences = 0
+        self.res_id = []
+	self.num_sequences = 0
         self.mutations = {}
 
         for res in res_input:
             self.wt_pos.append( AA3LetTo1Let(res_input[res]['type']) )
+	    self.res_id.append( res )
 
 
     def add_struct( self, res_coords ):
 
         if len( res_coords ) != len( self.wt_pos ):
-            print "Error: input structure and wt structure doesn't have the same size"
-            print "res coords:", len (res_coords), "wt_pos", len (self.wt_pos)
+            print("Error: input structure and wt structure doesn't have the same size")
+            print("res coords:", len(res_coords), "wt_pos", len(self.wt_pos))
             sys.exit()
         i = -1
         self.num_sequences = self.num_sequences + 1
@@ -144,9 +150,14 @@ class SequenceProfile:
     def get_outstring( self ):
 
         outstring = ""
-        for i in range( len( self.wt_pos ) ):
+        firstMut = 0
+	for i in range( len( self.wt_pos ) ):
             if self.mutations.has_key( i ):
-                outstring = outstring + self.wt_pos[i] + str(i+1) + ": "
+                if firstMut == 0:
+		    outstring = "RosettaRes (pdbRes): % Mut\n"
+		    firstMut = firstMut + 1
+		
+		outstring = outstring + self.wt_pos[i] + str(i+1) + " (" + self.wt_pos[i] + str(self.res_id[i]) + "): "
                 for res in self.mutations[ i ]:
 
                     freq = float(self.mutations[ i ][res]) / float( self.num_sequences )
@@ -168,6 +179,7 @@ template = ''
 outfile = ""
 Singlefile = ''
 listmode = 0
+ChainID = ''
 
 CommandArgs = sys.argv[1:]
 
@@ -181,18 +193,21 @@ for arg in CommandArgs:
         outfile = CommandArgs[CommandArgs.index(arg)+1]
     elif arg == '-s':
         Singlefile = CommandArgs[CommandArgs.index(arg)+1]
+    elif arg == '-c':
+	ChainID = CommandArgs[CommandArgs.index(arg)+1]
 
 
 
 if ( (not Listfile and not Singlefile) or (not template) ):
-     print """
-Usage:  python ~/install/perl/tools/SequenceProfile.py -l list.txt -t original_structure.pdb
+     print("""
+Usage:  python ~/install/perl/tools/SequenceProfile.py -l list.txt -t original_structure.pdb -c chainID
 
 list.txt is a list of pdb files to be compared (e.g. ls *_DE_1.pdb > list.txt)
 original_structure.pdb is the sequence against which all others are compared, often the original pdb, or the input to design
+chainID is the chain of interest for the profile
 
-Note that the script only takes a monomer, it can't handle multiple chains. In those cases you might consider pulling out just the designed chain from all of your structures and running the script on those chains alone.
-     """
+Note that the script cannot profile  multiple chains. In those cases you will want to rerun the script multiple times, changing the chainID for each designed chain.
+     """)
      sys.exit()
 elif(listmode):
     inlist = open(Listfile,'r')
@@ -200,7 +215,7 @@ elif(listmode):
     inlist.close()
     if outfile == ' ':
         outfile = Listfile + '.ana'
-    print "Checking structures for %s structures in %s to template %s" % (len(FileList), Listfile, template)
+    print("Checking structures for %s structures in %s to template %s" % (len(FileList), Listfile, template))
 
 else:
     FileList.append(Singlefile)
@@ -208,7 +223,7 @@ else:
 template_coords = {}
 
 if template != '':
-    template_coords = get_coordinates(template)
+    template_coords = get_coordinates(template,ChainID)
 
 seq_prof = SequenceProfile( template_coords )
 
@@ -218,7 +233,7 @@ pymutstring = "select mutations, resi "
 for struct in FileList:
 
     if len(struct)>1:                             # make sure this is not an empty line
-        struct_coords = get_coordinates(struct)
+        struct_coords = get_coordinates(struct,ChainID)
 
         seq_prof.add_struct( struct_coords )
 
@@ -229,7 +244,7 @@ outstring = seq_prof.get_outstring()
 
 
 if outfile == "":
-    print outstring
+    print(outstring)
     #print pymutstring
 
 else:

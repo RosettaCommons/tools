@@ -7,6 +7,7 @@
 # (c) addressed to University of Washington CoMotion, email: license@uw.edu.
 
 ## Authors: Florian Richter
+## Modified by Nick Randolph (Jan 2021)
 
 ################################################################################################
 # Sequence profile for a list of structures vs a template

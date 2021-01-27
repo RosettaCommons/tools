@@ -13,10 +13,10 @@ parser.add_argument('xyz_file',nargs='?',help='txt file with xyz atoms for objec
 args = parser.parse_args()
 
 if not os.path.isfile( args.xyz_file ):
-    print "Please specify a valid file with -xyz_file. Could not find ", args.xyz_file
+    print("Please specify a valid file with -xyz_file. Could not find ", args.xyz_file)
     exit( 0 )
 
 ref_energy = compute_rigid_body_ref( args.RMSD_cutoff, args.xyz_file )
 
-print 'Analytical reference energy at 1 M for RMSD cutoff %4.1f with xyz from %s: %f' % ( args.RMSD_cutoff, args.xyz_file, ref_energy )
+print('Analytical reference energy at 1 M for RMSD cutoff %4.1f with xyz from %s: %f' % ( args.RMSD_cutoff, args.xyz_file, ref_energy ))
 

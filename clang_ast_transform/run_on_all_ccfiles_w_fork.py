@@ -7,10 +7,10 @@ sys.path.insert( 0, os.path.realpath(__file__).rpartition("/")[0]+"/../python_cc
 
 import blargs
 
-import fork_manager
-from test_compile import *
-from code_utilities import *
-from inclusion_equivalence_sets import *
+from python_cc_reader.utility import fork_manager
+from python_cc_reader.inclusion_removal.test_compile import *
+from python_cc_reader.cpp_parser.code_utilities import *
+from python_cc_reader.inclusion_removal.inclusion_equivalence_sets import *
 
 
 # this class keeps track of which process -- represented by pid -- is responsible for
@@ -21,17 +21,17 @@ class JobManager :
       self.failed_jobs = []
    def success_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          del self.jobs[p]
    def error_callback( self, fm, p ) :
       if p not in self.jobs :
-         print "Critical error.  Could not find header assigned to process ", p
+         print("Critical error.  Could not find header assigned to process ", p)
          for p in self.jobs :
-            print "Process ", p, "responsible for", self.jobs[ p ]
+            print("Process ", p, "responsible for", self.jobs[ p ])
          sys.exit(1)
       else :
          self.failed_jobs.append( self.jobs[ p ] )
@@ -68,8 +68,12 @@ if __name__ == "__main__" :
          jm.jobs[pid] = job
    fm.wait_for_remaining_jobs()
 
-   if ( jm.jobs ) : print jm.jobs
-   if ( jm.failed_jobs ) : print jm.failed_jobs
+   if jm.jobs:
+      print(jm.jobs)
+   if jm.failed_jobs:
+      print("failed jobs", jm.failed_jobs)
 
-   if ( jm.jobs or jm.failed_jobs ) : sys.exit(1)
-   else : sys.exit( 0 )
+   if jm.jobs or jm.failed_jobs:
+      sys.exit(1)
+   else:
+      sys.exit( 0 )

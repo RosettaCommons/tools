@@ -576,6 +576,7 @@ if __name__=="__main__":
         os.chdir(tempdir)
 
     # get alignment
+    alignment = None
     converted_aln = os.path.abspath("converted_alignment.aln")
     if args.alignment != "":
         if args.alignment_format not in ["grishin", "modeller", "hhsearch", "clustalw", "fasta"]:

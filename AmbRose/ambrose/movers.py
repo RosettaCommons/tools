@@ -15,77 +15,14 @@ import warnings
 import pytraj as pt
 # pragma pylint: enable=import-error
 
-from . import errors
+from . import utils
 from . import enums
+from . import validation
 from . import traj_to_poses
 from . import pose_to_traj
 from . import pose_selectors
 
 ### Supporting functions
-
-def _check_pose_convertibility(pose, crd_path, top_path):
-    '''Checks whether a Pose changes its topology upon being converted to AMBER
-    coordinates and back, given the pose and the paths to the coordinates and
-    topology files it's been converted to.
-
-    Parameters
-    ----------
-    pose : rosetta.core.Pose
-        Pose to check.
-    crd_path : str
-        Path to coordinates file Pose has been converted to.
-    top_path : str
-        Path to topology file Pose has been converted to.
-    '''
-
-    ambered_pose = traj_to_poses.pose_from_amber_params(crd_path, top_path)
-    # pylint: disable=no-member
-    if ambered_pose.size() > pose.size():
-        bad_residue = None
-        for i in range(1, ambered_pose.size()+1):
-            if ambered_pose.residue(i).type() != pose.residue(i).type():
-                bad_residue = f'{i} {ambered_pose.residue(i).name()}'
-                break
-        raise errors.TopologySizeError(
-            'Pose changed size when piped through AMBER! It somehow got '
-            'bigger, which should be impossible. Please open an issue on the '
-            'Github repo and describe your error there in detail. Here\'s the '
-            '(first) residue that sprouted out of thin air:\n  ' + bad_residue)
-    if ambered_pose.size() < pose.size():
-        bad_residue = None
-        for i in range(1, pose.size()+1):
-            if ambered_pose.residue(i).type() != pose.residue(i).type():
-                bad_residue = f'{i} {pose.residue(i).name()}'
-                break
-        raise errors.TopologySizeError(
-            'Pose changed size when piped through AMBER! Here\'s the (first) '
-            'residue that went missing:\n  ' + bad_residue)
-    for i in range(1, pose.size()+1):
-        bad_residue = None
-        if ambered_pose.residue(i).type() != pose.residue(i).type():
-            bad_residue = f'{i} {pose.residue(i).name()}'
-            break
-    if bad_residue is not None:
-        raise errors.TopologyTypeError(
-            'Pose changed at least one residue\'s type when piped through '
-            'AMBER! Here\'s the offending residue:\n  ' + bad_residue)
-    # pylint: enable=no-member
-
-def _check_file_existence(path, file_type='AMBER file'):
-    '''Checks whether a file exists. If it doesn't exist, this raises an
-    `AMBERFileError`_ with the path of the file and a description of it.
-
-    Parameters
-    ----------
-    path : str
-        Path to file to check existence of.
-    file_type : str
-        Noun phrase describing file, to be inserted into error message.
-    '''
-
-    if not os.path.isfile(path):
-        raise errors.AMBERFileError(
-            f'Failed to produce {file_type} at {path}; cannot continue.')
 
 def _timestamp():
     '''Gets timestamp in standardized format.'''
@@ -207,6 +144,8 @@ class _AMBERMover(_NotAMover):
         common_dict = {'igb': int(not wet)*8,
                        'ntb': int(wet),
                        'cut': cutoff}
+        if ref_pose is not None:
+            common_dict['ntr'] = 1
         if cst_mask is not None:
             common_dict['restraintmask'] = cst_mask
         if cst_weight is not None:
@@ -228,6 +167,9 @@ class _AMBERMover(_NotAMover):
         self._working_dir = value
     @property
     def prefix(self):
+        '''str or None: The prefix of the intermediate files output by the
+        simulation. If set to None, will use the timestamp at which `apply`_
+        was called.'''
         return self._prefix
     @prefix.setter
     def prefix(self, value):
@@ -281,51 +223,45 @@ class _AMBERMover(_NotAMover):
     @ref_pose.setter
     def ref_pose(self, value):
         self._ref_pose = value
+        if value is None:
+            if 'ntr' in self._min_mdin_dict:
+                del self._min_mdin_dict['ntr']
+            if 'ntr' in self._mdin_dict:
+                del self._mdin_dict['ntr']
+        else:
+            self._min_mdin_dict['ntr'] = 1
+            self._mdin_dict['ntr'] = 1
     @property
     def cst_mask(self):
         '''str or None: Atom mask string specifying which atoms are affected by
         the coordinate constraints. Given in ambmask syntax: see section 19.1 of
         the 2019 AMBER manual, on page 410.'''
-        try:
-            return self._mdin_dict['restraintmask']
-        except KeyError:
-            return None
+        return self._mdin_dict.get('restraintmask')
     @cst_mask.setter
     def cst_mask(self, value):
         if value is None:
-            try:
+            if 'restraintmask' in self._min_mdin_dict:
                 del self._min_mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            try:
+            if 'restraintmask' in self._mdin_dict:
                 del self._mdin_dict['restraintmask']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraintmask'] = value
-        self._mdin_dict['restraintmask'] = value
+        else:
+            self._min_mdin_dict['restraintmask'] = value
+            self._mdin_dict['restraintmask'] = value
     @property
     def cst_weight(self):
         '''int or float or None: Weight of coordinate constraints, in
         kcal/mol/angstroms^2.'''
-        try:
-            return self._mdin_dict['restraint_wt']
-        except KeyError:
-            return None
+        return self._mdin_dict.get('restraint_wt')
     @cst_weight.setter
     def cst_weight(self, value):
         if value is None:
-            try:
+            if 'restraint_wt' in self._min_mdin_dict:
                 del self._min_mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            try:
+            if 'restraint_wt' in self._mdin_dict:
                 del self._mdin_dict['restraint_wt']
-            except KeyError:
-                pass
-            return
-        self._min_mdin_dict['restraint_wt'] = value
-        self._mdin_dict['restraint_wt'] = value
+        else:
+            self._min_mdin_dict['restraint_wt'] = value
+            self._mdin_dict['restraint_wt'] = value
     @property
     def min_mdin_dict(self):
         '''dict: Key-value pairs for AMBER minimization parameters. Only tamper
@@ -421,6 +357,9 @@ class _AMBERMover(_NotAMover):
             when this `apply`_ was called.
         '''
 
+        if self.working_dir is not None:
+            assert os.path.exists(self.working_dir) or not self.working_dir, \
+                   'Working directory must exist.'
         working_dir = self.working_dir if self.working_dir is not None \
                       else tempfile.TemporaryDirectory()
         prefix = _timestamp() if self.prefix is None else self.prefix
@@ -429,11 +368,14 @@ class _AMBERMover(_NotAMover):
         leap_args['solvent'] = self.solvent
         leap_args['solvent_shape'] = self.solvent_shape
         pose_to_traj.pose_to_amber_params(pose, **leap_args)
-        _check_file_existence(leap_args['crd_path'], 'input coordinates file')
-        _check_file_existence(leap_args['top_path'], 'input topology file')
-        _check_pose_convertibility(pose,
-                                   leap_args['crd_path'],
-                                   leap_args['top_path'])
+        validation.check_file_existence(leap_args['crd_path'],
+                                        'input coordinates file')
+        validation.check_file_existence(leap_args['top_path'],
+                                        'input topology file')
+        validation.check_pose_convertibility(
+            pose,
+            leap_args['crd_path'],
+            leap_args['top_path'])
         min_args = self._make_run_md_args(working_dir=working_dir,
                                           prefix=prefix,
                                           minp=True)
@@ -441,15 +383,11 @@ class _AMBERMover(_NotAMover):
         if ref_pose is not None:
             ref_leap_args = copy.copy(leap_args)
             ref_leap_args['crd_path'] = min_args['refc']
-            pose_to_traj.pose_to_amber_params(ref_pose, **leap_args)
-            # Check whether AMBER-ified Pose has the same topology as the
-            # original Pose. If it doesn't, then all our work would be for
-            # naught (since leaving the missing residues in their places
-            # wouldn't make sense, and deleting them would be rude), so we
-            # raise a TopologyError and call it a day.
-            _check_pose_convertibility(ref_pose,
-                                       ref_leap_args['crd_path'],
-                                       ref_leap_args['top_path'])
+            pose_to_traj.pose_to_amber_params(ref_pose, **ref_leap_args)
+            validation.check_pose_convertibility(
+                ref_pose,
+                ref_leap_args['crd_path'],
+                ref_leap_args['top_path'])
         pose_to_traj.run_md(**min_args)
         # Actual .apply methods aren't supposed to return anything, but this is
         # only half of one; all the local variables need to get carried over,
@@ -542,6 +480,13 @@ class AMBERMinMover(_AMBERMover):
                              solvent=solvent,
                              solvent_shape=solvent_shape,
                              cutoff=cutoff)
+    def __repr__(self):
+        return f'AMBERMinMover(\n' \
+               + f'  working_dir={self.working_dir},\n' \
+               + f'  prefix={self.prefix},\n' \
+               + f'  solvent={self.solvent},\n' \
+               + f'  solvent_shape={self.solvent_shape},\n' \
+               + f'  cutoff={self.cutoff})'
     @property
     def name(self):
         return 'AMBERMinMover'
@@ -558,10 +503,13 @@ class AMBERMinMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, _, min_args = _AMBERMover.apply(self, pose)
-        _check_file_existence(min_args['restrt'], 'minimization results')
+        validation.check_file_existence(
+            min_args['restrt'],
+            'minimization results')
         _transfer_xyz_from_pose_to_pose(
-            traj_to_poses.TrajToPoses(pt.iterload(min_args['restrt'],
-                                                  min_args['prmtop']))[0],
+            traj_to_poses.pose_from_amber_params(
+                min_args['restrt'],
+                min_args['prmtop']),
             pose)
         # working_dir should get cleaned up on its own if it's a
         # TemporaryDirectory
@@ -698,6 +646,22 @@ class AMBERSimulateMover(_AMBERMover):
         self.output_interval = output_interval
         self.seed = seed
         self._pose_selector = pose_selectors.last
+    def __repr__(self):
+        return f'AMBERMinMover(\n' \
+               + f'  working_dir={self.working_dir},\n' \
+               + f'  prefix={self.prefix},\n' \
+               + f'  solvent={self.solvent},\n' \
+               + f'  solvent_shape={self.solvent_shape},\n' \
+               + f'  duration={self.duration},\n' \
+               + f'  temperature={self.temperature},\n' \
+               + f'  starting_temperature={self.starting_temperature},\n' \
+               + f'  cutoff={self.cutoff},\n' \
+               + f'  output_interval={self.output_interval},\n' \
+               + f'  seed={self.seed},\n' \
+               + f'  pose_selector={self.pose_selector},\n' \
+               + f'  ref_pose={self.ref_pose},\n' \
+               + f'  cst_mask={self.cst_mask},\n' \
+               + f'  cst_weight={self.cst_weight})'
     @property
     def name(self):
         return 'AMBERSimulateMover'
@@ -706,8 +670,8 @@ class AMBERSimulateMover(_AMBERMover):
         '''function: A function that selects which frame of the simulated
         trajectory to use to overwrite your input Pose when `apply`_ is called.
         In practice, it can be any function that takes an ordered list of Poses
-        and returns one of them, since it operates on a TrajToPose_ object and
-        returns one of its entries. By default, it's equal to the function
+        and returns one of them, since it operates on a `TrajToPoses`_ object
+        and returns one of its entries. By default, it's equal to the function
         `last`_ from the submodule `pose_selectors`_, which selects the last
         frame of the trajectory; there is also the more sophisticated option of
         `lowest_energy_from_end`_ available from the same module.'''
@@ -718,6 +682,8 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def duration(self):
         '''int or float: Duration of simulation in picoseconds.'''
+        if 'nstlim' not in self._mdin_dict:
+            return None
         if self._duration_is_int:
             return self._mdin_dict['nstlim'] // 1000
         return self._mdin_dict['nstlim'] / 1000.
@@ -728,6 +694,8 @@ class AMBERSimulateMover(_AMBERMover):
     @property
     def temperature(self):
         '''int or float: Temperature of simulation in kelvins.'''
+        if 'temp0' not in self._mdin_dict:
+            return None
         return self._mdin_dict.get('temp0')
     @temperature.setter
     def temperature(self, value):
@@ -792,7 +760,9 @@ class AMBERSimulateMover(_AMBERMover):
         # (working_dir needs to be alive so that the directory can continue
         #  existing if it's a temporary directory)
         working_dir, prefix, min_args = _AMBERMover.apply(self, pose)
-        _check_file_existence(min_args['restrt'], 'minimization results')
+        validation.check_file_existence(
+            min_args['restrt'],
+            'minimization results')
         md_args = self._make_run_md_args(working_dir=working_dir,
                                          prefix=prefix,
                                          minp=False)

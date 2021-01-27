@@ -1,8 +1,8 @@
-import code_utilities
-import library_levels
-import pygraph
-import inclusion_graph
-import determine_protocols_library_dependencies
+from python_cc_reader.cpp_parser import code_utilities
+from python_cc_reader.inclusion_removal import library_levels
+from python_cc_reader.inclusion_removal import pygraph
+from python_cc_reader.inclusion_removal import inclusion_graph
+from python_cc_reader.inclusion_removal import determine_protocols_library_dependencies
 import sys
 
 
@@ -25,15 +25,15 @@ if __name__ == "__main__" :
       if cols[1] not in topleveldir_graph.nodes() :
          topleveldir_graph.add_node( cols[1] )
 
-   print libname, srcsettings_fname
+   print(libname, srcsettings_fname)
    liblevel, libcolumn = determine_protocols_library_dependencies.library_level_and_column_from_src_settingsfile_name( libname, srcsettings_fname )
 
    prot_levels = library_levels.protocols_levels()
 
    compilable_files, all_includes, file_contents = code_utilities.load_source_tree()
-   print "...source tree loaded"
+   print("...source tree loaded")
    g = inclusion_graph.create_graph_from_includes( all_includes )
-   print "...inclusion graph created"
+   print("...inclusion graph created")
 
    topleveldir_graph_nodes = topleveldir_graph.nodes() # save this for rapid lookup
 
@@ -50,22 +50,22 @@ if __name__ == "__main__" :
       node1 = file1.split("/")[1]
       node2 = file2.split("/")[1]
       if node1 not in topleveldir_graph_nodes:
-         print "node1:", node1
-         print "all nodes:", topleveldir_graph_nodes
+         print("node1:", node1)
+         print("all nodes:", topleveldir_graph_nodes)
          assert( node1 in topleveldir_graph_nodes )
       if node2 not in topleveldir_graph_nodes:
-         print "node2:", node2
-         print "all nodes:", topleveldir_graph_nodes
+         print("node2:", node2)
+         print("all nodes:", topleveldir_graph_nodes)
          assert( node2 in topleveldir_graph_nodes )
 
       if node2 not in topleveldir_graph.neighbors( node1 ) :
-          print "adding edge", node1, node2
+          print("adding edge", node1, node2)
           topleveldir_graph.add_edge( node1, node2 )
 
    #_tg = inclusion_graph.transitive_closure( protocols_library_graph )
    for node in topleveldir_graph.nodes() :
-      print "Dependencies for node", node
+      print("Dependencies for node", node)
       for node_neighbor in topleveldir_graph.neighbors( node ) :
-          print "  ", node_neighbor
+          print("  ", node_neighbor)
 
 

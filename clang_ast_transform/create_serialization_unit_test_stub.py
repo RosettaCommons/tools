@@ -130,7 +130,7 @@ def add_serialization_stub_to_existing( test_file, namespace, classname ) :
     flines = open( test_file ).readlines()
     flines = insert_needed_includes( flines )
     flines = insert_serialization_stub_into_test_suite( flines, namespace, classname )
-    print ( "writing to", test_file )
+    print(( "writing to", test_file ))
     open( test_file, "w" ).writelines( flines )
 
 def create_new_test_suite_w_serialization_stub( test_file, namespace, classname, hhfile ) :
@@ -140,7 +140,7 @@ def create_new_test_suite_w_serialization_stub( test_file, namespace, classname,
     flines = flines.splitlines(True)
     flines = insert_needed_includes( flines )
     flines = insert_serialization_stub_into_test_suite( flines, namespace, classname )
-    print ( "writing to", test_file )
+    print(( "writing to", test_file ))
     open( test_file, "w" ).writelines( flines )
 
 

@@ -10,6 +10,7 @@
 #Authors: Phil Bradley, Rhiju Das, Mike Tyka
 
 import string
+from functools import reduce
 from operator import add
 import functools
 

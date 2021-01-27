@@ -12,10 +12,12 @@ cp -a $FILE $OUT_DIR/$FILE
 $CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $OUT_DIR $FILE -- \
 	clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
-	-isystem external/boost_1_55_0/ \
+	-isystem external/boost_submod/ \
 	-isystem external/ \
 	-isystem external/include/ \
 	-isystem external/dbio/ \
+	-isystem external/libxml2/include \
+	-isystem external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \
@@ -29,7 +31,6 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=rewrite $OUT_DIR $FILE -- \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_1_55_0 \
 	-Iexternal/dbio \
 	-Iexternal/cxxtest/ \
 	-Itest/ \

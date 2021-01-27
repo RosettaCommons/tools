@@ -10,5 +10,5 @@ epsilon = 1e-5
 fn = folder + "/gcc_ggc"
 # sim = SingleSimulation(fn, orig_weight=orig_wt, use_existing_norm_factor=False)
 sim = SingleSimulation(fn, orig_weight=orig_wt, down_sampling_ratio=0.001, use_existing_norm_factor=False)
-print sim.value
+print(sim.value)
 

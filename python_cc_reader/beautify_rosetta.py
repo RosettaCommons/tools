@@ -22,19 +22,19 @@ if __name__ == "__main__" :
         p.flag( "overwrite")
 
     if not overwrite :
-        print "WARNING: In the absence of the --overwrite flag, this script will not change"
-        print "any of your source files. It will instead write the beautified output to new"
-        print ".beaut files for you to review. Also note: you should not commit these .beaut"
-        print "files to git! To actually beautify your source files, run this script with"
-        print "the --overwrite flag"
+        print("WARNING: In the absence of the --overwrite flag, this script will not change")
+        print("any of your source files. It will instead write the beautified output to new")
+        print(".beaut files for you to review. Also note: you should not commit these .beaut")
+        print("files to git! To actually beautify your source files, run this script with")
+        print("the --overwrite flag")
 
 
     os.chdir( "src" )
-    print "Beautifying src/"
+    print("Beautifying src/")
     fbm_src = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )
     os.chdir( ".." )
     os.chdir( "test" )
-    print "Beautifying test/"
+    print("Beautifying test/")
     fbm_test = beautify_compiled_files_w_fork.beautify_all_files_in_pwd( overwrite, num_cpu )
     os.chdir( ".." )
 
@@ -42,11 +42,11 @@ if __name__ == "__main__" :
         sys.exit(0)
     else :
         if not fbm_src.all_files_beautified :
-            print "Files in src/ that could not be beautified:"
+            print("Files in src/ that could not be beautified:")
             for fname in fbm_src.files_that_failed :
-                print "File", fname, "could not be beautified"
+                print("File", fname, "could not be beautified")
         if not fbm_test.all_files_beautified :
-            print "Files in test/ that could not be beautified:"
+            print("Files in test/ that could not be beautified:")
             for fname in fbm_test.files_that_failed :
-                print "File", fname, "could not be beautified"
+                print("File", fname, "could not be beautified")
 

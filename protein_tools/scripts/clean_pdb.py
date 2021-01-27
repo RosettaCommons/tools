@@ -35,6 +35,7 @@ from optparse import OptionParser
 
 from amino_acids import longer_names
 from amino_acids import modres
+from __future__ import print_function
 
 # remote host for downloading pdbs
 remote_host = ''

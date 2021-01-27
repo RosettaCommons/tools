@@ -36,6 +36,7 @@ from optparse import OptionParser
 
 from amino_acids import longer_names
 from amino_acids import modres
+from __future__ import print_function
 
 # remote host for downloading pdbs
 remote_host = ''
@@ -50,7 +51,7 @@ pdbfile = ""
 
 
 def download_pdb(pdb_id, dest_dir):
-    # print "downloading %s" % ( pdb_id )
+    # print("downloading %s" % ( pdb_id ))
     url = 'http://www.rcsb.org/pdb/files/%s.pdb.gz' % (pdb_id.upper())
     dest = '%s/%s.pdb.gz' % (os.path.abspath(dest_dir), pdb_id)
     wget_cmd = 'wget --quiet %s -O %s' % (url, dest)
@@ -60,7 +61,7 @@ def download_pdb(pdb_id, dest_dir):
 
     lines = popen(wget_cmd).readlines()
     if (exists(dest)):
-        return dest
+        return(dest)
     else:
         print( "Error: didn't download file!" )
 

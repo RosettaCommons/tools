@@ -1,6 +1,6 @@
 import sys
-import PSSM
-from Bio.PDB import * 
+from . import PSSM
+from Bio.PDB import *
 from rosettautil.util import fileutil
 import math
 

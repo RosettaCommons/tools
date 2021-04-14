@@ -147,14 +147,10 @@ if __name__ == "__main__":
                 break
         if args.nomain and (b'MAIN' in branches or b'FOLDIT' in branches):
             continue
-        sys.stdout.buffer.write(b"; ".join(fnames))
-        sys.stdout.buffer.write(b"   ")
-        sys.stdout.buffer.write(blob)
-        print( " --", pprint_size(size) )
+
+        print( "; ".join(f.decode() for f in fnames), "  ", blob.decode(), "--", pprint_size(size) )
         for branch in branches:
-            sys.stdout.buffer.write(b'\t')
-            sys.stdout.buffer.write(branch)
-            sys.stdout.buffer.write(b'\n')
+            print("\t",branch.decode())
         print()
 
 

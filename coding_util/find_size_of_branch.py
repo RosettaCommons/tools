@@ -100,8 +100,7 @@ if __name__ == "__main__":
     for s, b, fn in sizes:
         if s <= args.size*1024:
             continue
-        sys.stdout.buffer.write(fn)
-        print( " --", pprint_size(s) )
+        print( fn.decode(), " --", pprint_size(s) )
 
         files[ (fn+b':'+b).decode() ] = s
 

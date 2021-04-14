@@ -59,9 +59,9 @@ def blob_sizes(blobs, cutoff):
         if size < cutoff:
             continue
 
-        retval.append( (s, n) )
+        retval.append( (size, n) )
 
-    retval.sort()
+    retval.sort(reverse=True)
 
     return retval
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     #blobs = [b'c5a5e8a8a503', b'8fded302d37a', b'19fb1a211058' ]
 
     print("Getting file sizes")
-    sizes = blob_sizes( blobs, args.size )
+    sizes = blob_sizes( blobs, args.size*1024 )
 
     print("Finding branches")
     for size, blob in sizes:
@@ -143,6 +143,8 @@ if __name__ == "__main__":
                 branches = {b'FOLDIT'}
                 break
         sys.stdout.buffer.write(b"; ".join(fnames))
+        sys.stdout.buffer.write(b"   ")
+        sys.stdout.buffer.write(blob)
         print( " --", pprint_size(size) )
         for branch in branches:
             sys.stdout.buffer.write(b'\t')

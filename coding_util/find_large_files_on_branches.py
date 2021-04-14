@@ -91,13 +91,23 @@ if __name__ == "__main__":
     if not args.noclean:
         cleanup()
 
+    print("Getting list of files")
     blobs = find_blobs()
     #blobs = [b'c5a5e8a8a503', b'8fded302d37a', b'19fb1a211058' ]
 
-    sizes = [ (s,b) for (s,b)  in [ (blob_size(b), b) for b in blobs] if s is not None ]
-    #sizes = [ (s,b) for (s,b) in sizes if s >= args.size*1024 ]
+    print("Getting file sizes")
+    sizes = []
+    for b in blobs:
+        s = blob_size(b)
+        if s is None:
+            continue
+        if s <= args.size*10124:
+            continue
+        sizes.append( (s,b) )
+
     sizes.sort(reverse=True)
 
+    print("Finding branches")
     for size, blob in sizes:
         commits = find_commits(blob)
 

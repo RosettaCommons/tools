@@ -115,7 +115,7 @@ def pprint_size(size):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-c', '--noclean', action="store_true", help="Don't clean up repo first")
-    parser.add_argument('-s', '--size', type=int, default=100,
+    parser.add_argument('-s', '--size', type=int, default=1024,
                         help='The size (in KB) under which not to bother with files.')
     parser.add_argument('-m', '--nomain', action="store_true", help="Don't print out blobs labeled MAIN/FOLDIT")
     args = parser.parse_args()

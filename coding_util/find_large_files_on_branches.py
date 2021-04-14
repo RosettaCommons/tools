@@ -7,6 +7,8 @@ This includes branches on which the files have been added and then subsequently 
 The files will be printed out in reverse order of size. It may take a while to complete, so feel free to cancel the script when you get what you need.
 
 NOTE: This script will run a git prune & git gc to make its job easier
+
+TO TRACK DOWN COMMITS FOR A BLOB: `git whatchanged --all --find-object=${blob_SHA1}`
 '''
 
 import os, sys

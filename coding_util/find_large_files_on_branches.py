@@ -115,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--noclean', action="store_true", help="Don't clean up repo first")
     parser.add_argument('-s', '--size', type=int, default=100,
                         help='The size (in KB) under which not to bother with files.')
+    parser.add_argument('-m', '--nomain', action="store_true", help="Don't print out blobs labeled MAIN/FOLDIT")
     args = parser.parse_args()
 
     if not args.noclean:
@@ -142,6 +143,8 @@ if __name__ == "__main__":
             if b'origin/interactive/develop' in branches:
                 branches = {b'FOLDIT'}
                 break
+        if args.nomain and (b'MAIN' in branches or b'FOLDIT' in branches):
+            continue
         sys.stdout.buffer.write(b"; ".join(fnames))
         sys.stdout.buffer.write(b"   ")
         sys.stdout.buffer.write(blob)

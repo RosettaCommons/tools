@@ -23,18 +23,47 @@ def cleanup():
 def find_blobs():
     '''Returns list of (bitstring) hashes of blobs in the repo'''
     run = subprocess.run( "git rev-list --objects --all", stdout=subprocess.PIPE, shell=True )
-    output = run.stdout.split()
-    return output
+    retval = []
+    for line in run.stdout.split(b'\n'):
+        sl = line.split()
+        if len(sl) == 0:
+            continue
+        retval.append(sl[0])
 
-def blob_size(blob):
-    '''Returns the size (in bytes) of the blob contents'''
-    run = subprocess.run( b"git cat-file -s " + blob, stdout=subprocess.PIPE, shell=True )
-    try:
-        output = int( run.stdout.decode() )
-        return output
-    except:
-        print("ERROR: can't find size for blob: ", blob)
-        return None
+    return retval
+
+def blob_sizes(blobs, cutoff):
+    '''Returns a sorted list of (size, hash) for the input blob values.
+    (size in bytes, hash in bytestring.)
+    Won't include anything smaller than cutoff.
+    '''
+    inputdata = b'\n'.join(blobs)
+    run = subprocess.run( b"git cat-file --batch-check='%(objecttype) %(objectsize) %(objectname)'", stdout=subprocess.PIPE, shell=True, input=inputdata )
+
+    retval = []
+
+    for line in run.stdout.split(b'\n'):
+        ls = line.split()
+        if len(ls) == 0:
+            continue
+        if len(ls) != 3:
+            print("ERROR: can't interpret blob size line ", line)
+            continue
+
+        t, s, n = ls
+        if t != b'blob':
+            continue
+
+        size = int( s.decode() );
+
+        if size < cutoff:
+            continue
+
+        retval.append( (s, n) )
+
+    retval.sort()
+
+    return retval
 
 def find_commits(blob):
     '''Find the commit(s) which involve a particular blob
@@ -96,16 +125,7 @@ if __name__ == "__main__":
     #blobs = [b'c5a5e8a8a503', b'8fded302d37a', b'19fb1a211058' ]
 
     print("Getting file sizes")
-    sizes = []
-    for b in blobs:
-        s = blob_size(b)
-        if s is None:
-            continue
-        if s <= args.size*10124:
-            continue
-        sizes.append( (s,b) )
-
-    sizes.sort(reverse=True)
+    sizes = blob_sizes( blobs, args.size )
 
     print("Finding branches")
     for size, blob in sizes:

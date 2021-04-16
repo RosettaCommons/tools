@@ -100,6 +100,11 @@ def find_branches(commit):
     run = subprocess.run( b"git branch -r --contains " + commit, stdout=subprocess.PIPE, shell=True )
     return run.stdout.split()
 
+def find_tags(commit):
+    '''Find a list of tags (returned as bitstrting names) which contain a particular commit'''
+    run = subprocess.run( b"git tag --contains " + commit, stdout=subprocess.PIPE, shell=True )
+    return run.stdout.split()
+
 def pprint_size(size):
     if size < 1024:
         return str(size)+"B"
@@ -124,8 +129,8 @@ if __name__ == "__main__":
         cleanup()
 
     print("Getting list of files")
-    blobs = find_blobs()
-    #blobs = [b'c5a5e8a8a503', b'8fded302d37a', b'19fb1a211058' ]
+    #blobs = find_blobs()
+    blobs = [b'45b5e296da6b0c6a44c53e41819955c7bb9fd69a', b'afe4de164e1b34959ac7b7a272ee94ba6df31f30' ]
 
     print("Getting file sizes")
     sizes = blob_sizes( blobs, args.size*1024 )
@@ -135,22 +140,30 @@ if __name__ == "__main__":
         commits = find_commits(blob)
 
         branches = set()
+        tags = set()
         fnames = set()
         for chash, fname in commits:
             fnames.add(fname)
             branches.update( find_branches(chash) )
+            tags.update( find_tags(chash) )
             if b'origin/master' in branches:
                 branches = {b'MAIN'}
+                tags = set()
                 break
             if b'origin/interactive/develop' in branches:
                 branches = {b'FOLDIT'}
+                tags = set()
                 break
+
         if args.nomain and (b'MAIN' in branches or b'FOLDIT' in branches):
             continue
 
         print( "; ".join(f.decode() for f in fnames), "  ", blob.decode(), "--", pprint_size(size) )
         for branch in branches:
             print("\t",branch.decode())
+        for tag in tags:
+            print("\tTag:",tag.decode())
+
         print()
 
 

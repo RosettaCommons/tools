@@ -129,8 +129,8 @@ if __name__ == "__main__":
         cleanup()
 
     print("Getting list of files")
-    #blobs = find_blobs()
-    blobs = [b'45b5e296da6b0c6a44c53e41819955c7bb9fd69a', b'afe4de164e1b34959ac7b7a272ee94ba6df31f30' ]
+    blobs = find_blobs()
+    #blobs = [b'45b5e296da6b0c6a44c53e41819955c7bb9fd69a', b'afe4de164e1b34959ac7b7a272ee94ba6df31f30' ]
 
     print("Getting file sizes")
     sizes = blob_sizes( blobs, args.size*1024 )

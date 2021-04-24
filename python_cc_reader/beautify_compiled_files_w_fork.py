@@ -1,3 +1,6 @@
+
+from __future__ import print_function
+
 from python_cc_reader.utility import fork_manager
 from python_cc_reader.external.blargs import blargs
 from python_cc_reader.beauty import beautifier
@@ -6,7 +9,7 @@ import sys, os
 
 from python_cc_reader.cpp_parser.code_utilities import *
 
-# This script is meant to be run from either the Rosetta/main/source/src/ or 
+# This script is meant to be run from either the Rosetta/main/source/src/ or
 # the Rosetta/main/source/test/ directories. It reads the scons .settings
 # files to determine what files are compiled, and then runs the beautifier
 # on all of them.  By default, the script does NOT modify the input files, but
@@ -72,7 +75,7 @@ def files_to_beautify() :
         return files_in_src_to_beautify()
     elif lastdir == "test" :
         return files_in_test_to_beautify()
-    
+
 
 def files_in_src_to_beautify() :
     includes = scan_compilable_files()

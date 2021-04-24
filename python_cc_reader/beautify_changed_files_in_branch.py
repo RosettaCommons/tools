@@ -26,7 +26,7 @@ def parse_changedlist(rev_to_diff_against):
     # --relative -- make the name listing relative to the current subdirectory.
     bash_command = [ "git", "diff", "--relative", "--name-status", rev_to_diff_against, "HEAD" ]
     command_output = subprocess.Popen(bash_command, stdout=subprocess.PIPE).communicate()[0].decode('ascii')
-    print("Initial list\n", command_output)
+    #print("Initial list\n", command_output)
 
     file_list = []
     for line in command_output.splitlines():

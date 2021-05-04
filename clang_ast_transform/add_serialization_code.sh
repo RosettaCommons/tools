@@ -14,6 +14,8 @@ $CLANG_BIN/rosetta-refactor-tool -matchers=add_serialization_code $OUT_DIR $FILE
 	-isystem external/ \
 	-isystem external/include/ \
 	-isystem external/dbio/ \
+	-isystem external/libxml2/include \
+	-isystem external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \

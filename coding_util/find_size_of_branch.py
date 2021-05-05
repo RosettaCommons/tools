@@ -80,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--ref', help="The reference branch (default:origin/master", default="origin/master")
     parser.add_argument('-j', '--json', help="If present, write results to the JSON file parameter.", default=None)
     parser.add_argument('-s', '--size', type=int, default=1024, help="Don't individually list files under the given size (in KB)" )
+    parser.add_argument('-v', '--verbose', action="store_true", help="increase output verbosity")
     args = parser.parse_args()
 
     blobs = get_blobs( args.branch, args.ref )
@@ -91,6 +92,11 @@ if __name__ == "__main__":
     json_output = {}
     json_output["total"] = total_size
     json_output["nentries"] = nblobs
+
+    json_output['merge-head'] = subprocess.check_output(f'git rev-parse {args.branch}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
+    json_output['merge-base'] = subprocess.check_output(f'git rev-parse {args.ref}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
+
+    if args.verbose: print(f'Merge: {json_output["merge-base"]} ← {json_output["merge-base"]}')
 
     print("TOTAL SIZE:", pprint_size(total_size) )
     print("NENTRIES:", nblobs )
@@ -106,6 +112,6 @@ if __name__ == "__main__":
 
     json_output["files"] = files
 
-    if args.json is not None:
+    if args.json:
         with open(args.json, 'w') as f:
             json.dump(json_output, f)

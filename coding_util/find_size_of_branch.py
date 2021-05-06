@@ -96,7 +96,7 @@ if __name__ == "__main__":
     json_output['merge-head'] = subprocess.check_output(f'git rev-parse {args.branch}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
     json_output['merge-base'] = subprocess.check_output(f'git rev-parse {args.ref}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
 
-    if args.verbose: print(f'Merge: {json_output["merge-base"]} ← {json_output["merge-base"]}')
+    if args.verbose: print(f'Merge: {json_output["merge-base"]} ← {json_output["merge-head"]}')
 
     print("TOTAL SIZE:", pprint_size(total_size) )
     print("NENTRIES:", nblobs )

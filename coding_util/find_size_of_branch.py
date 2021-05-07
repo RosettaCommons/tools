@@ -7,7 +7,7 @@ Note that the total space taken in the repo is likely to be much, much smaller t
 due to the compression which Git uses.
 '''
 
-import os, sys
+import os, sys, zlib
 import argparse
 import subprocess
 import json
@@ -74,15 +74,8 @@ def pprint_size(size):
     size //= 1024
     return str(size)+"GiB"
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-b', '--branch', help="The branch to use (default:current branch)", default="HEAD")
-    parser.add_argument('-r', '--ref', help="The reference branch (default:origin/master", default="origin/master")
-    parser.add_argument('-j', '--json', help="If present, write results to the JSON file parameter.", default=None)
-    parser.add_argument('-s', '--size', type=int, default=1024, help="Don't individually list files under the given size (in KB)" )
-    parser.add_argument('-v', '--verbose', action="store_true", help="increase output verbosity")
-    args = parser.parse_args()
 
+def calculate_size_using_blobs(args):
     blobs = get_blobs( args.branch, args.ref )
     sizes = blob_sizes( blobs )
 
@@ -115,3 +108,54 @@ if __name__ == "__main__":
     if args.json:
         with open(args.json, 'w') as f:
             json.dump(json_output, f)
+
+
+def calculate_size_using_diffs(args):
+    merge_head = subprocess.check_output(f'git rev-parse {args.branch}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
+    merge_base = subprocess.check_output(f'git rev-parse {args.ref}', shell=True).decode(encoding='utf-8', errors='backslashreplace').replace('\n', '')
+
+    print(f'merge: {merge_base} ← {merge_head}')
+
+    commits = subprocess.check_output(f'git rev-list {merge_head} ^{merge_base}', shell=True).decode(encoding='utf-8', errors='backslashreplace')
+
+    #print('Calculating commit-diff size for following commits:\n', commits)
+    commits = commits.split()
+
+    results = []
+    for c in commits:
+        diff = subprocess.check_output(f'git format-patch --stdout --binary -1 {c}', shell=True).decode(encoding='utf-8', errors='backslashreplace')
+        compressed_diff = zlib.compress( diff.encode("utf-8") )
+
+        results.append( dict(commit=c, diff=len(diff), compressed_diff=len(compressed_diff)) )
+
+
+    print("Raw and compressed size of diff's for each commit:")
+    results.sort(key = lambda c: -c['compressed_diff'] )
+    for c in results: print(f'{c["commit"]} → raw: {pprint_size(c["diff"])}, compressed: {pprint_size(c["compressed_diff"])}')
+
+
+    json_output = dict(
+        commits = results,
+        raw_diff_size = sum( ( c['diff'] for c in results ) ),
+        compressed_diff_size = sum( ( c['compressed_diff'] for c in results ) ),
+    )
+
+    print(f'\ntotal-compressed-diff-size: {pprint_size(json_output["compressed_diff_size"])}, total-raw-diff-size: {pprint_size(json_output["raw_diff_size"])}')
+    with open(args.json, 'w') as f:
+         json.dump(json_output, f, sort_keys=True, indent=2)
+
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('-b', '--branch', help="The branch to use (default:current branch)", default="HEAD")
+    parser.add_argument('-r', '--ref', help="The reference branch (default:origin/master", default="origin/master")
+    parser.add_argument('-j', '--json', help="If present, write results to the JSON file parameter.", default=None)
+    parser.add_argument('-s', '--size', type=int, default=1024, help="Don't individually list files under the given size (in KB)" )
+    parser.add_argument('-v', '--verbose', action="store_true", help="increase output verbosity")
+    parser.add_argument('-d', '--diff', action="store_true", help="calculate size of a diff's")
+    args = parser.parse_args()
+
+    if args.diff: calculate_size_using_diffs(args)
+    else: calculate_size_using_blobs(args)

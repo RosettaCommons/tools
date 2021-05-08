@@ -6,6 +6,14 @@ import subprocess, re, time, sys
 from ..cpp_parser.code_utilities import expand_includes_for_file, load_source_tree
 from .reinterpret_objdump import relabel_sections, compare_objdump_lines
 
+EXTERNAL_INCLUDE_DIRS = [
+    'external',
+    'external/include',
+    'external/boost_submod',
+    'external/dbio',
+    'external/libxml2/include',
+    'external/rdkit',
+]
 
 def no_empty_args(command_list):
     clprime = []
@@ -41,15 +49,11 @@ def central_compile_command():
     # cc1plus: error: output filename specified twice
 
     include_directories = (
-        " -isystem ../external/boost_submod/ " +
-        "-isystem ../external/ " +
-        "-isystem ../external/include/ " +
-        "-isystem ../external/dbio/" +
-        # "-isystem ../external/libxml2/include " +
-        # weird warning from the above -isystem line:
+        ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS if d != "external/libxml2/include" )
+        # weird warning from the libxml2 -isystem line:
         # "g++: warning: ../external/libxml2/include: linker input
         # file unused because linking not done"
-        " -I./ -I../external -I../external/include -Iplatform/"
+        + " -I./ -I../external -I../external/include -Iplatform/"
         + os
         + "/"
         + nbits
@@ -59,11 +63,12 @@ def central_compile_command():
         + nbits
         + " -Iplatform/"
         + os
-        + " -I../external/boost_submod -I/usr/local/include -I/usr/include/ -I../external/dbio -I../external/libxml2/include"
+        + ' ' + ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + " -I/usr/local/include -I/usr/include/ "
     )
 
     generic_command = (
-        " -c -std=c++11 -pipe -ffor-scope -pedantic -Wno-long-long -Werror -O0 -ffloat-store -DPTR_MODERN -DPTR_STD"
+        " -c -std=c++11 -pipe -ffor-scope -pedantic -Wno-long-long -Werror -O0 -ffloat-store -DPTR_MODERN -DPTR_STD "
         + include_directories
     )
     return compiler, generic_command
@@ -76,13 +81,12 @@ def cxxtest_testgen_command():
 
 
 def cxxtest_gcc_compile_command():
-    return "g++ -c -std=c++0x -ffor-scope -isystem ../external/boost_submod/boost -isystem ../external/ -isystem ../external/include/ -isystem ../external/dbio/ -isystem ../external/libxml2/include -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. -I../external/include -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/libxml2/include -I../external -I../external/dbio -I/usr/include -I/usr/local/include -o "
-
-
-#"g++ -c -std=c++0x -ffor-scope -isystem external/boost_1_55_0/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Isrc/platform/linux/64/gcc/7 -Itest -Isrc/platform/linux/64/gcc -Isrc/platform/linux/64 -Isrc/platform/linux -Iexternal/boost_1_55_0 -Iexternal/libxml2/include -Iexternal -Iexternal/dbio -I/usr/include -I/usr/local/include -o"
-#
-    
-# return "g++ -c -isystem ../external/boost_1_55_0/boost/ -O0 -g -ggdb -ffloat-store -I../external/cxxtest -I../. -I../test -I../src -I../external -I../external/include -I../external/libxml2/include -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I../external/boost_1_55_0 -I../external/dbio -I/usr/local/include -I/usr/include -o "
+    return ( "g++ -c -std=c++0x -ffor-scope "
+        + ' '.join( "-isystem ../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + " -isystem ../external/cxxtest/ -pipe -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -march=core2 -mtune=generic -O0 -g -ggdb -ffloat-store -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -D_GLIBCXX_DEBUG -Iexternal/cxxtest -I../. -I. "
+        + ' '.join( "-I../"+d for d in EXTERNAL_INCLUDE_DIRS )
+        + " -Iplatform/linux/64/gcc/7 -I../test -Iplatform/linux/64/gcc -Iplatform/linux/64 -Iplatform/linux -I/usr/include -I/usr/local/include -o "
+    )
 
 
 def cxxtest_test_compile(cxx_hh, verbose=False, id=""):
@@ -161,9 +165,10 @@ def test_compile(cc_file, verbose=False, id="", devnull=False, silent=False):
     else:
         # print file(out_log).read(), file(err_log).read()
         if not silent:
+            # print( command )
             print(
                 "To compile this header locally run following command: " +
-                "cd source/src && python ./../../../tools/python_cc_reader/" +
+                "cd source/src && python ../../tools/python_cc_reader/" +
                 "test_all_headers_compile_w_fork.py --headers",
                 cc_file,
                 "\n\n",
@@ -189,7 +194,7 @@ def test_compile_from_lines(filelines, verbose=False):
     # errfile = open("test_compile.err", "w")
     # with open("example_input.cc", "w") as fid:
     #     fid.writelines(filelines)
-    
+
     job = subprocess.Popen(
         command_list,
         stderr=subprocess.PIPE,
@@ -240,7 +245,7 @@ def generate_objdump_for_file(fname, id=""):
     out, err = job.communicate()
 
     if job.returncode == 0:
-        if len(fname) > 3 and fname[-3:] == ".cc": 
+        if len(fname) > 3 and fname[-3:] == ".cc":
             command2 = " ".join(["objdump -d", temp_o])
             command_list2 = no_empty_args(command2.split(" "))
             job2 = subprocess.Popen(
@@ -339,7 +344,7 @@ def test_compile_w_surrogates(fname, surrogates, id=""):
         return True
     else:
         return False
-        
+
 
 def tar_everything(tar_file_name):
     dirs_to_tar = ["core", "devel", "apps", "protocols"]

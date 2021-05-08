@@ -7,6 +7,8 @@ $BD/bin/clang++ $1 -emit-ast -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-isystem external/ \
 	-isystem external/include/ \
 	-isystem external/dbio/ \
+	-isystem external/libxml2/include \
+	-isystem external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \

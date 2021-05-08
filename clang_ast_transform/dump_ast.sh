@@ -27,6 +27,8 @@ $CLANG_BUILD/bin/clang-check -ast-dump $1 -ast-dump-filter=$2 -- \
 	-isystem $ROSETTA_SOURCE/external/ \
 	-isystem $ROSETTA_SOURCE/external/include/ \
 	-isystem $ROSETTA_SOURCE/external/dbio/ \
+	-isystem $ROSETTA_SOURCE/external/libxml2/include \
+	-isystem $ROSETTA_SOURCE/external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \

@@ -23,7 +23,7 @@ from optparse import OptionParser
 ########## Internal config #############################
 
 #These are the clang commandline flags for debug mode, stripped of warning issues
-commandline_flags_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -Isrc -I./ -Itest/ -Isrc/platform/linux -ferror-limit=1 -DIWYU_SCAN'''.split()
+commandline_flags_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/rdkit -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -Isrc -I./ -Itest/ -Isrc/platform/linux -ferror-limit=1 -DIWYU_SCAN'''.split()
 
 commandline_flags = commandline_flags_linux
 
@@ -491,15 +491,19 @@ def check_file(filename, options):
 
 def process_file(filename, options):
 
+    if options.nofwd and filename.endswith(".fwd.hh"):
+        if DEBUG: print("Not processing forward header", filename)
+        return
     if not ( filename.endswith(".hh") or filename.endswith(".cc") ):
         print("Skipping", filename, "-- not hh/cc")
+        return
     if 'OptionKeys.cc.gen' in filename:
         # Not intended to compile on their own
-        print("Skipping", filename, "-- Options gen")
+        if DEBUG: print("Skipping", filename, "-- Options gen")
         return
     if filename.endswith('.py.hh'):
         #PyRosetta-specific files - skip
-        print("Skipping", filename, "-- PyRosetta specific")
+        if DEBUG: print("Skipping", filename, "-- PyRosetta specific")
         return
 
     print("Running IWYU analysis on", filename)
@@ -565,6 +569,9 @@ if __name__ == "__main__":
     parser.add_option("-j",
       default=0, type=int,
       help="Number of processes to run." )
+    parser.add_option("--nofwd",
+      default=False, action="store_true",
+      help="Don't process fwd.hh files." )
 
     (options, args) = parser.parse_args(args=sys.argv[1:])
 

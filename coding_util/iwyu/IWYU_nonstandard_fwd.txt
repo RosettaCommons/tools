@@ -71,6 +71,7 @@ numeric/geometry/hashing/Ball.fwd.hh numeric/geometry/hashing/xyzStripeHash.fwd.
 numeric/geometry/hashing/SixDCoordinateBinner.fwd.hh numeric/geometry/hashing/SixDHasher.fwd.hh
 
 basic/MetricValueBase.fwd.hh basic/MetricValue.fwd.hh
+basic/citation_manager/CitationCollectionList.fwd.hh basic/citation_manager/CitationCollectionBase.fwd.hh
 basic/datacache/DataCache_CacheableData.fwd.hh basic/datacache/DataCache.fwd.hh
 basic/gpu/float4.fwd.hh basic/gpu/GPU.hh
 
@@ -87,6 +88,8 @@ core/conformation/AtomGraphVertexData.fwd.hh core/conformation/AtomGraphData.fwd
 core/conformation/PointGraphEdgeData.fwd.hh core/conformation/PointGraphData.fwd.hh
 core/conformation/PointGraphVertexData.fwd.hh core/conformation/PointGraphData.fwd.hh
 core/conformation/PseudoBondCollection.fwd.hh core/conformation/PseudoBond.fwd.hh
+
+core/energy_methods/GridInfo.fwd.hh core/energy_methods/ExactOccludedHbondSolEnergy.fwd.hh 
 
 core/fragment/ConstFrameIterator.fwd.hh core/fragment/FrameIterator.fwd.hh
 
@@ -205,6 +208,7 @@ protocols/contact_map/Contact.fwd.hh protocols/contact_map/ContactMap.fwd.hh
 protocols/denovo_design/connection/AreConnectablePredicate.fwd.hh protocols/denovo_design/connection/ConnectionArchitect.fwd.hh
 protocols/denovo_design/components/BuildPhases.fwd.hh protocols/denovo_design/components/DivideAndConqueror.fwd.hh
 protocols/denovo_design/components/ResidueDihedrals.fwd.hh protocols/denovo_design/components/Segment.fwd.hh
+protocols/denovo_design/components/PoseBuilder.fwd.hh protocols/denovo_design/components/ExtendedPoseBuilder.fwd.hh
 
 protocols/evaluation/MetaPoseEvaluator.fwd.hh protocols/evaluation/PoseEvaluator.fwd.hh
 

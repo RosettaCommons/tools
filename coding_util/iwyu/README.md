@@ -106,6 +106,13 @@ The forced sub file lists internal implementation files and the public file whic
 `WARNING: Can't find forward header file:` -- Add a forward header for the given symbol. 
 If a forward header for the symbol already exists, you can add the translation to `IWYU_nonstandard_fwd.txt` 
 
+`WARNING: File <fn> does not compile with regular Clang.` -- As the script doesn't use the regular build system,
+it can find files which aren't compiled normally. As such, there's a check of compilation against plain clang
+if the IWYU errors out. If you don't expect these files to compile (e.g. they're non-compiled pilot or devel apps)
+then there's nothing to be done. (No riwyuf file will be generated and no fixes will be applied).
+If you expect them to compile, though, you should figure out if there's compilation issues.
+(Note that you'll also get this error if the compilation backcheck is not working for some reason.)
+
 *Output*
 
 The `*.riwyuf` files are JSON formatted files with the edited suggested fixes, 

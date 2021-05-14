@@ -16,7 +16,9 @@ def get_commandline_flags():
     # We could add some fancy platform parsing, but that's not needed at the moment.
     if True:
         flags = commandline_flags_debug_linux
-    return flags + ["-ferror-limit=1","-DIWYU_SCAN"]
+    # Stop at first error, add the IWYU specific define,
+    # Add a define that's injected by the CXXTEST suite generating script
+    return flags + ["-ferror-limit=1","-DIWYU_SCAN","-D_CXXTEST_HAVE_STD"]
 
 
 # May need to be updated for additional include directories in command line

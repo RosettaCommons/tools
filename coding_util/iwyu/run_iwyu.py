@@ -308,6 +308,18 @@ class IWYUChanges:
         with open(ofn, 'w') as f:
             json.dump( {'additions':self.additions,'deletions':self.deletions,'replacements':self.replacements}, f, indent=2 )
 
+def test_compilation(filename):
+    '''Test a regular compilation, and returns True on success and False on failure'''
+    command = [ "clang++" ] + commandline_flags + [ filename, '-o', filename+'.o' ]
+
+    run = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    run.communicate()
+
+    if os.path.exists( filename+'.o' ):
+        os.remove( filename+'.o' )
+
+    return run.returncode == 0
+
 def get_output_for_file(filename, options):
     '''Get the raw iwyu output for the file, as lines'''
     if not os.path.exists( SCRIPTDIR + '/boost-all.imp' ):
@@ -321,7 +333,6 @@ def get_output_for_file(filename, options):
     command += commandline_flags + [ filename ]
 
     run = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
     stdout, stderr = run.communicate()
     stdout = codecs.decode( stdout, "UTF-8", "replace")
     stderr = codecs.decode( stderr, "UTF-8", "replace")
@@ -331,12 +342,21 @@ def get_output_for_file(filename, options):
         sys.stdout.write( stderr )
         sys.stdout.write( "%%%\n" )
 
+    # IWYU return 1 if error, 2 if no changes, and 2 + nchanges for files with suggested changes.
+    if run.returncode == 1:
+        if test_compilation(filename):
+            # File compiles normally, just not with IWYU
+            print_parse_error( filename, stderr.split('\n'), "File does not compile under IWYU." )
+        else:
+            # File does not compile normally
+            print("\tWARNING: File", filename, "does not compile with regular Clang.")
+            if DEBUG:
+                print_parse_error( filename, stderr.split('\n'), "File does not compile under IWYU or Clang." )
+        return [] # Empty output - will skip further processing
+
     return stderr.split('\n')
 
 def print_parse_error( filename, output, message  ):
-    if ( 'src/devel/' in filename  or 'src/apps/pilot/' in filename ):
-        print( "Skipping", filename, " -- does not appear to compile." )
-        return
     # Give a detailed error report for the rest
     print( "###################################################" )
     print( ">>>> ERROR with", filename, "::", message, "<<<<" )
@@ -420,6 +440,9 @@ def parse_output( filename, output ):
 def check_file(filename, options):
 
     output = get_output_for_file(filename, options)
+    if len(output) == 0:
+        return None # No need to parse
+
     mods = parse_output(filename, output)
     if mods is not None and options.f:
         mods.prnt()

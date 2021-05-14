@@ -98,8 +98,8 @@ class IWYUChanges:
         self.additions = self.process_additions( additions ) # {file:[why]}
         self.deletions = self.process_deletions( deletions ) # {file:[line]}
         self.hh_additions = self.process_additions( hh_adds )
-        if DEBUG: self.prnt()
         self.replacements = {} # { file:(line,[why]) }
+        if DEBUG: self.prnt()
         self.cleanup()
 
     def process_deletions(self, deletions):
@@ -258,7 +258,7 @@ class IWYUChanges:
                     continue
                 elif replace in self.additions:
                     if DEBUG: print("%% NO ADD FORCE SUB ALREADY ADD", fn)
-                    self.remove_additions( fn )
+                    self.remove_addition( fn )
                     continue
                 elif replace in self.current_includes:
                     if DEBUG: print("%% NO ADD FORCE SUB CURRENT", fn)

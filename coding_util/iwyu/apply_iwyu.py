@@ -127,7 +127,7 @@ class CompileTest:
         else:
             self.outfilename = filename
 
-    def test_compile(self, contents):
+    def test_compile(self, contents, print_errors=False):
         with open(self.testfilename, 'w') as f:
             f.writelines(contents)
 
@@ -135,8 +135,12 @@ class CompileTest:
 
         run = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = run.communicate()
-        #stdout = codecs.decode( stdout, "UTF-8", "replace")
-        #stderr = codecs.decode( stderr, "UTF-8", "replace")
+        if print_errors and run.returncode != 0:
+            print( "======= Issue Compiling",self.testfilename,"==========")
+            print( codecs.decode( stdout, "UTF-8", "replace") )
+            print( "----------------------------------")
+            print( codecs.decode( stderr, "UTF-8", "replace") )
+            print( "==================================")
 
         if os.path.exists( self.testfilename+'.o' ):
             os.remove( self.testfilename+'.o' )
@@ -172,7 +176,7 @@ class CompileTest:
             if DEBUG: print("File does not compile, and there's no remaining additions we can make.")
             return False # Skip additional trials, we're at the maximum already.
 
-        if not self.test_compile(self.inserted_contents( contents, insertion_pos, self.possible_additions )):
+        if not self.test_compile(self.inserted_contents( contents, insertion_pos, self.possible_additions ), print_errors=DEBUG):
             if DEBUG: print("File does not compile, even with all remaining additions")
             return False # We can't even compile with all the contents added, don't bother minimizing
 

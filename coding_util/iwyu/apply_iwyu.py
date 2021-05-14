@@ -122,10 +122,10 @@ class CompileTest:
         else:
             self.compiler = options.compiler
         self.testfilename = filename[:-3] + ".test" + filename[-3:]
-        if options.overwrite:
-            self.outfilename = filename
-        else:
+        if options.nooverwrite:
             self.outfilename = filename[:-3] + ".trim" + filename[-3:]
+        else:
+            self.outfilename = filename
 
     def test_compile(self, contents):
         with open(self.testfilename, 'w') as f:
@@ -145,7 +145,10 @@ class CompileTest:
 
     def inserted_contents(self, contents, insertion_pos, additions=None):
         if insertion_pos is None or insertion_pos == 0:
-            return contents
+            return contents # Can't insert.
+        if len(self.known_additions) == 0:
+            if additions is None or len(additions) == 0:
+                return contents # No additions to make
 
         new_contents = contents[:insertion_pos]
         if contents[insertion_pos-1] != '\n' and "AUTO IWYU" not in contents[insertion_pos-1]:
@@ -288,7 +291,7 @@ class CompileTest:
 
 def apply_changes(filename, instructions, options ):
     '''Apply the changes for the filename.
-    Return true on success and false on failure.'''
+    Return true if we've modified the file, and false if we didn't.'''
 
     obj = CompileTest(filename,instructions,options)
 
@@ -301,10 +304,12 @@ def process_file(filename, options):
     with open(filename) as f:
         instructions = json.load(f)
 
-    success = apply_changes( filename[:-len('.riwyuf')], instructions, options )
+    modified = apply_changes( filename[:-len('.riwyuf')], instructions, options )
 
-    if success and not options.nodelete:
+    if modified and options.delete:
         os.remove( filename )
+
+    return modified
 
 def process_dir(dirname):
     for item in os.listdir(dirname):
@@ -330,6 +335,8 @@ def find_files(pathlist):
             if os.path.isfile(name):
                 print("Corresponding .riwyuf not found")
 
+MADE_CHANGES = 0
+
 if __name__ == "__main__":
     if not os.path.exists( "./src" ):
         print( "Script must be run from within Rosetta/main/source/" )
@@ -337,15 +344,15 @@ if __name__ == "__main__":
 
     parser = OptionParser(usage="usage: %prog [OPTIONS] [FILES|DIRECTORIES]")
     parser.set_description(__doc__)
-    parser.add_option("--nodelete",
+    parser.add_option("--delete",
       default=False, action="store_true",
-      help="Don't delete the .riwyuf file afterwards." )
+      help="Delete the .riwyuf file afterwards. (Not recommended)" )
     parser.add_option("--debug",
       default=False, action="store_true",
       help="Print extra debugging info." )
-    parser.add_option("--overwrite",
+    parser.add_option("--nooverwrite",
       default=False, action="store_true",
-      help="Overwrite the main file, rather than making a new trim file." )
+      help="Make a *.trim.* file, rather than overwriting the main file." )
     parser.add_option("--compiler",
       default=None,
       help="The command for the Clang compiler to use in compilation testing." )
@@ -359,16 +366,25 @@ if __name__ == "__main__":
 
     if options.j == 0:
         for fn in find_files(args):
-            process_file(fn, options)
+            if process_file(fn, options):
+                MADE_CHANGES += 1
     else:
         import multiprocessing
         pool = multiprocessing.Pool(options.j)
 
         def callback(arg):
-            print("Processing is done")
+            global MADE_CHANGES
+            if arg:
+                MADE_CHANGES += 1
 
         for fn in find_files(args):
-            pool.apply_async(process_file, (fn, options) )
+            pool.apply_async(process_file, (fn, options), callback=callback )
 
         pool.close()
         pool.join()
+
+    print()
+    if MADE_CHANGES:
+        print("++++Made changes to", MADE_CHANGES, "files.++++")
+    else:
+        print("----No changes made to files.----")

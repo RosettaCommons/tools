@@ -93,6 +93,7 @@ class CompileTest:
         self.failed = False
 
         self.deletions = instructions['deletions'] # { headername: [lineno] }
+        self.replacements = instructions['replacements'] # { headername: (lineno, [whys]) }
         self.possible_additions = [] # [ (sortorder, line) ]
         self.known_additions = [] # [ (sortorder, line) ]
 
@@ -241,6 +242,36 @@ class CompileTest:
                 self.modified = True
             else:
                 print("\tIssue removing",fn,"from",self.filename)
+
+        for fn in sorted( self.replacements.keys(), key=include_sort_key ):
+            test_contents = self.contents[:] # Make a copy
+            lineno, whys = self.replacements[fn]
+            lineno = int(lineno)-1 # Compensate for zero-based
+            line = test_contents[lineno]
+            header = fn[:-7] +".hh"
+            if fn in line:
+                continue  # Already replaces
+            splitline = line.split()
+            if len(splitline) < 2:
+                print("ERROR: Line to replace does not match expected content --", self.filename)
+                continue
+            if splitline[0] != '#include':
+                print("ERROR - Line to replace does not match expected content --", self.filename)
+            if splitline[1][1:-1] != header:
+                print("ERROR:: Line to replace does not match expected content --", self.filename)
+                continue
+            if "DO NOT AUTO-REMOVE" in line:
+                if DEBUG:
+                    print("Skipping line replacement for ", fn, " - comment tells it to stay --", self.filename)
+                continue
+            test_contents[lineno] = test_contents[lineno].replace(header,fn)
+            if DEBUG: print("Trying to replace",header,"with fwd.hh in",self.filename)
+            if self.test_additions(test_contents,self.insert_pos):
+                if DEBUG: print("... replacement succeeded")
+                self.contents = test_contents
+                self.modified = True
+            else:
+                print("\tIssue replacing",header,"with fwd.hh in",self.filename)
 
     def write_results(self):
         if os.path.isfile(self.testfilename):

@@ -19,6 +19,20 @@ The scripts in this directory are currently built to work with version 0.14 (Cla
 They may or may not work properly with newer/older versions of IWYU, 
 and some updates to the approach may be needed for newer IWYU versions.
 
+Rosetta Version
+---------------
+
+Both `run_iwyu.py` and `apply_iwyu.py` rely on having the current Clang++ compile line. 
+This is encoded in the `iwyu_support.py` file.
+
+Setup
+-----
+
+Include what you use should be installed into a standard location, 
+ideally such that the default `iwyu` command will invoke it.
+The corresponding Clang compiler should be invokable with the default `clang++`.
+(Although there should be options on the scripts to change these, if necessary.)
+
 Run
 ---
 
@@ -35,10 +49,15 @@ While you can run on individual files, it's recommended to run on the entire rep
 before applying any edits. (As edits to one file can result in other files then not compiling.)
 
     cd Rosetta/main/source/
-    ../tools/coding_util/iwyu/run_iwyu.py  src/ test/
+    ../tools/coding_util/iwyu/run_iwyu.py -j12 src/ test/
+
+Alter the -j setting for the number of processors availible.
 
 There may be some error and warning messages. 
 It's best to fix those issues and re-run before moving on to the apply stage.
+
+Note that due to the way IWYU wants to handle forwarding, the script won't run on fwd.hh by default.
+Those are best handled manually.
 
 *Differences from  default*
 

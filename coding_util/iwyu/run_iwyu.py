@@ -17,15 +17,13 @@ import subprocess
 import codecs
 from fnmatch import fnmatch
 import json
+from iwyu_support import get_commandline_flags, check_include_file_exists
 
 from optparse import OptionParser
 
 ########## Internal config #############################
 
-#These are the clang commandline flags for debug mode, stripped of warning issues
-commandline_flags_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/rdkit -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -Isrc -I./ -Itest/ -Isrc/platform/linux -ferror-limit=1 -DIWYU_SCAN'''.split()
-
-commandline_flags = commandline_flags_linux
+commandline_flags = get_commandline_flags()
 
 DEBUG = False
 
@@ -43,29 +41,6 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_nonstandard_fwd.txt") ):
                 print( "DUPLICATE ENTRY IN IWYU_nonstandard_fwd.txt!!!!!!! -", line[0] )
             NONSTANDARD_FORWARDS[ line[0] ] = line[1]
 
-SHADOWING_PROVIDERS = {}
-ADDDEL_SHADOWS = {}
-GLOBBING_PROVIDERS = {}
-if( os.path.exists(SCRIPTDIR+"/IWYU_provided_by.txt") ):
-  with open(SCRIPTDIR+"/IWYU_provided_by.txt") as f:
-    for full_line in f:
-        line = full_line.split()
-        if len(line) >= 2 and not line[0].startswith("#"):
-            mainfile = line[0]
-            if '*' in mainfile:
-                provider_set = GLOBBING_PROVIDERS
-            else:
-                provider_set = SHADOWING_PROVIDERS
-            for entry in line[1:]:
-                if entry.startswith('#'):
-                    break
-                provider_set.setdefault(mainfile,[]).append(entry)
-            if "ADDDEL" in full_line:
-                for entry in line[1:]:
-                    if entry.startswith('#'):
-                        break
-                    ADDDEL_SHADOWS.setdefault(mainfile,[]).append(entry)
-
 FORCED_SUBS = {}
 if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
   with open(SCRIPTDIR+"/IWYU_forced_subs.txt") as f:
@@ -76,27 +51,7 @@ if( os.path.exists(SCRIPTDIR+"/IWYU_forced_subs.txt") ):
                 print( "DUPLICATE ENTRY IN IWYU_forced_subs.txt !!!!!!! -", line[0] )
             FORCED_SUBS[ line[0] ] = line[1:]
 
-UBIQUITOUS = set()
-if( os.path.exists(SCRIPTDIR+"/IWYU_ubiquitous.txt") ):
-  with open(SCRIPTDIR+"/IWYU_ubiquitous.txt") as f:
-    for line in f:
-        line = line.split()
-        if len(line) >= 1 and not line[0].startswith("#"):
-            if line[0] in UBIQUITOUS:
-                print( "DUPLICATE ENTRY IN IWYU_forced_subs.txt !!!!!!! -", line[0] )
-            UBIQUITOUS.add( line[0] )
-
-
 ###################################
-
-def check_include_file_exists(filename):
-    '''We assume we're running in the main/source directory'''
-    return ( os.path.exists( 'src/' + filename ) or
-        os.path.exists( 'external/include/' + filename ) or
-        os.path.exists( 'external/' + filename ) or
-        os.path.exists( 'external/boost_submod/' + filename ) or
-        os.path.exists( 'external/dbio/' + filename )
-    )
 
 def convert_disk_to_include(filename):
     '''We assume we're running in the main/source directory'''
@@ -144,6 +99,7 @@ class IWYUChanges:
         self.deletions = self.process_deletions( deletions ) # {file:[line]}
         self.hh_additions = self.process_additions( hh_adds )
         if DEBUG: self.prnt()
+        self.replacements = {} # { file:(line,[why]) }
         self.cleanup()
 
     def process_deletions(self, deletions):
@@ -194,11 +150,10 @@ class IWYUChanges:
 
         self.cleanup_forward_additions()
 
-        # We want to make sure we do the other cleanups before we consider shadowing
-        self.cleanup_shadowing()
-
         # Do forced subsitutions last, incase previous cleanups make them superfluous.
         self.cleanup_forced()
+
+        self.find_replacements()
 
     def remove_deletion(self, fn):
         if fn not in self.deletions: return
@@ -290,43 +245,10 @@ class IWYUChanges:
                 self.remove_addition( fn )
                 continue
 
-    def cleanup_shadowing(self):
-        '''Cleanup based on the provided shadowing definitions.'''
-        for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
-            # Don't add if there's a shadowing provider
-            if fn in SHADOWING_PROVIDERS:
-                for entry in SHADOWING_PROVIDERS[fn]:
-                    if entry in self.additions or (entry in self.current_includes and entry not in self.deletions):
-                        if DEBUG: print("%% NO ADD DUE TO SHADOW", fn)
-                        self.remove_addition( fn )
-                        break
-                    # We deliberately don't undo deletions, the added file might be more than we actually need
-                    # (See the forced substitutions for alternative.)
-            for gp in GLOBBING_PROVIDERS:
-                if fnmatch(fn, gp):
-                    for entry in GLOBBING_PROVIDERS[gp]:
-                        if entry in self.additions or (entry in self.current_includes and entry not in self.deletions):
-                            if DEBUG: print("%% NO ADD DUE TO GLOB SHADOW", fn)
-                            self.remove_addition(fn)
-                            break
-                        # We deliberately don't undo deletions, the added file might be more than we actually need
-                        # (See the forced substitutions for alternative.)
-            for fn in ADDDEL_SHADOWS:
-                for entry in ADDDEL_SHADOWS[fn]:
-                    if entry in self.deletions:
-                        if DEBUG: print("%% NO ADD/DEL DUE TO SHADOW", fn)
-                        self.remove_deletion( entry )
-                        self.remove_addition( fn )
-                        break
-
     def cleanup_forced(self):
         '''Address situations where we specify we always want to add a different header,
         rather than the one auto-selected by IWYU.'''
         for fn in list( self.additions.keys() ): # Copy as we're modifying structure in loop
-            if fn in UBIQUITOUS:
-                if DEBUG: print("%% NO ADD UBIQUITOUS", fn)
-                self.remove_addition( fn )
-                continue
             if fn in FORCED_SUBS and self.filename not in FORCED_SUBS[fn]:
                 replace = FORCED_SUBS[fn][0]
                 if replace in self.deletions:
@@ -348,13 +270,27 @@ class IWYUChanges:
                     self.remove_addition( fn )
                     continue
 
+    def find_replacements(self):
+        for fn in list( self.additions.keys() ): # Copy as we're modifying in loop
+            if fn.endswith('.fwd.hh'):
+                header = fn[:-7]+".hh"
+                if header in self.deletions:
+                    line = self.deletions[header][0] # Get the first one
+                    self.replacements[ fn ] = (line, self.additions[fn] )
+                    self.remove_addition( fn )
+                    self.remove_deletion( header )
+
+
     def prnt(self):
-        if len(self.deletions) == 0 and len(self.additions) == 0:
+        if len(self.deletions) == 0 and len(self.additions) == 0 and len(self.replacements) == 0:
             print("%%%%%%%%%% NO MOD NEEDED:", self.filename)
         else:
             print("%%%%%%%%%%%%%%%%%%%%%%%%%", self.filename)
             print("~~~~~ Deleting")
             print('\n'.join( fn + " // Line " + ','.join(lns) for fn, lns in self.deletions.items()))
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            print("~~~~~~ Replacing")
+            print('\n'.join( "-> " + fn + " // Line " + ln + " For " + ' '.join(whys) for fn, (ln, whys) in self.replacements.items() ) )
             print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             print("~~~~~ Adding")
             print('\n'.join( "#include <" + fn + "> // For " + ' '.join(whys) for fn, whys in self.additions.items()))
@@ -366,11 +302,11 @@ class IWYUChanges:
 
     def save(self):
         '''Save to a json-formatted .riwyuf (Rosetta include-what-you-use-fixes'''
-        if len(self.additions) == 0 and len(self.additions) == 0:
+        if len(self.additions) == 0 and len(self.additions) == 0 and len(self.replacements) == 0:
             return # Save nothing if there's nothing to do.
         ofn = self.filename + '.riwyuf'
         with open(ofn, 'w') as f:
-            json.dump( {'additions':self.additions,'deletions':self.deletions}, f, indent=2 )
+            json.dump( {'additions':self.additions,'deletions':self.deletions,'replacements':self.replacements}, f, indent=2 )
 
 def get_output_for_file(filename, options):
     '''Get the raw iwyu output for the file, as lines'''
@@ -491,7 +427,7 @@ def check_file(filename, options):
 
 def process_file(filename, options):
 
-    if options.nofwd and filename.endswith(".fwd.hh"):
+    if not options.fwd and filename.endswith(".fwd.hh"):
         if DEBUG: print("Not processing forward header", filename)
         return
     if not ( filename.endswith(".hh") or filename.endswith(".cc") ):
@@ -569,9 +505,9 @@ if __name__ == "__main__":
     parser.add_option("-j",
       default=0, type=int,
       help="Number of processes to run." )
-    parser.add_option("--nofwd",
+    parser.add_option("--fwd",
       default=False, action="store_true",
-      help="Don't process fwd.hh files." )
+      help="Process fwd.hh files as well as hh/cc files" )
 
     (options, args) = parser.parse_args(args=sys.argv[1:])
 

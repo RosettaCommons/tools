@@ -54,5 +54,6 @@
 { symbol: ["core::pose::Pose::BasicDataCache", "private", "<basic/datacache/BasicDataCache.hh>", "public" ] }, 
 { symbol: ["core::pose::Pose::ObserverCache", "private", "<core/pose/datacache/ObserverCache.hh>", "public" ] }, 
 { symbol: ["core::conformation::Conformation::AtomTree", "private", "<core/kinematics/AtomTree.hh>", "public" ] }, 
+{ symbol: ["protocols::moves::Mover::Pose", "private", "<core/pose/Pose.hh>", "public" ] }, 
 
 ]

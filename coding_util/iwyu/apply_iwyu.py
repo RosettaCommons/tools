@@ -335,9 +335,9 @@ def find_files(pathlist):
         elif os.path.isfile( name+'.riwyuf' ):
             yield name+'.riwyuf'
         else:
-            print("Cannot find file or directory: "+name)
+            print("Cannot process file or directory: "+name)
             if os.path.isfile(name):
-                print("Corresponding .riwyuf not found")
+                print("\tCorresponding .riwyuf not found")
 
 MADE_CHANGES = 0
 

@@ -266,7 +266,7 @@ class IWYUChanges:
                     continue
                 else:
                     if DEBUG: print("%% NO ADD FORCE SUB CONVERT", fn)
-                    self.additions[ replace ] = self.additions[ fn ]
+                    self.additions[ replace ] = self.additions[ fn ] + self.additions.get( replace, [] ) # In case we're already adding replace
                     self.remove_addition( fn )
                     continue
 

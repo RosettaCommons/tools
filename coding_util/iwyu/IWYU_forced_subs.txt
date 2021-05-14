@@ -11,3 +11,7 @@ utility/pointer/std/access_ptr.hh utility/pointer/access_ptr.hh src/utility/poin
 
 basic/TracerImpl.fwd.hh basic/Tracer.fwd.hh
 basic/TracerImpl.hh basic/Tracer.hh
+
+# To work around deficiencies in boost
+boost/lexical_cast/bad_lexical_cast.hpp boost/lexical_cast.hpp
+boost/detail/basic_pointerbuf.hpp boost/lexical_cast.hpp

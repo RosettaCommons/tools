@@ -33,6 +33,24 @@ ideally such that the default `iwyu` command will invoke it.
 The corresponding Clang compiler should be invokable with the default `clang++`.
 (Although there should be options on the scripts to change these, if necessary.)
 
+Suggested Usage
+---------------
+
+Feel free to vary from this usage, as you preference dictates.
+
+1. Start with a clean working directory which compiles with Clang
+2. Run `run_iwyu.py` on the src/ and test/ directories
+3. Fix any issues mentioned (commiting fixes), and repeat `run_iwyu.py` until you get a clean run.
+4. Run `apply_iwyu.py` on the src/ and test/ directories.
+5. Keep re-running `apply_iwyu.py` until the script reports no modifications.
+6. Check compilation by normal means, making manual fixes, as needed
+    Manual fixes may be "just check out the original version of some files"
+7. Once you get a clean compile, run `sed -i '/AUTOREMOVED IWYU/d' src test`
+8. Double check you're still clean.
+9. Commit changes to src/ and test/
+10. (Optional) Update the `run_iwyu.py` and `apply_iwyu.py` scripts to handle failure cases encounterd.
+11. Repeat steps 2-9 until the process no longer suggests changes.
+
 Run
 ---
 
@@ -76,12 +94,17 @@ As much as possible, fixes for Rosetta should be represented in that fashion
 into forward header inclusion are straightforward.
 But some forward declarations are in header names which are not autodiscoverable. The `IWYU_nonstandard_fwd.txt` lists these. 
 Needed additions to this file should be obvious, as the `run_iwyu.py` script should print
-`WARNING: Can't find forward header file:` for potnetial files.
+`WARNING: Can't find forward header file:` for potential files.
 NOTE: Please don't list regular hh files here - it's almost always worth making a fwd.hh file if one doesn't already exists.
 
 `IWYU_forced_subs.txt` -- IWYU sometimes wants to expose internal implementation files. 
 The forced sub file lists internal implementation files and the public file which should be included instead.
 (Note that the Rosetta.imp should theoretically take care of this, but it doesn't always.)
+
+*Common Errors/Warnings*
+
+`WARNING: Can't find forward header file:` -- Add a forward header for the given symbol. 
+If a forward header for the symbol already exists, you can add the translation to `IWYU_nonstandard_fwd.txt` 
 
 *Output*
 
@@ -101,3 +124,27 @@ and add in the minimal number of headers to make sure the file compiles.
 This is slightly different than the IWYU approach, in that it won't necessarily add transitive headers.
 As such, you may need to run `apply_iwyu.py` multiple times in order to correct fully for header removals.
 
+*Suggested Run Command*
+
+    cd Rosetta/main/source/
+    ../tools/coding_util/iwyu/apply_iwyu.py -j12 src/ test/
+
+*Repeated application*
+
+Since removing a header can have a downstream effect on the compile-ability of other files,
+it's recommended to keep running the `apply_iwyu.py` command until it reports that no changes to files have been made.
+(Running `apply_iwyu.py` can fix the compilation of files if the reason for the compilation is a missing header
+which is listed in the corresponding .riwyuf file. While `run_iwyu.py` can't generate a riwyuf file from a non-compiling file,
+if you have have the version from when it was compiling, it may be able to fix things.)
+
+Note that some issues may not be fixable with repeated applications of `apply_iwyu.py`.
+You will likely need to try compiling and fix (hopefully a scant few) things up manually.
+
+*Reported issues*
+
+Unlike the `run_iwyu.py` script, issues with `apply_iwyu.py` don't necessarily need to be fixed prior to accepting the result.
+The script should leave the source files in a compilable state.
+
+If you do want to address the issues, I recommend doing it in a separate step.
+
+*Common Issues*

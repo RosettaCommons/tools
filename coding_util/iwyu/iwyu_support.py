@@ -6,9 +6,8 @@ from __future__ import print_function
 
 import sys, os
 
-#These are the clang commandline flags for debug mode, stripped of warning issues (You can update them by just copy-pasting from a regular Clang compile).
-commandline_flags_debug_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/rdkit -isystem external/libxml2/include -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -Wno-long-long -Wno-strict-aliasing -O0 -g -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DPTR_STD -Isrc -I./ -Itest/ -Isrc/platform/linux'''.split()
-
+#These are the clang commandline flags for the extras=serialization cat=test debug mode (You can update them by just copy-pasting from a regular Clang compile).
+commandline_flags_debug_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/rdkit -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -W -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -O0 -g -Wno-unused-function -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DBOOST_DISABLE_THREADS -DPTR_STD -DSERIALIZATION -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Itest -Isrc/platform/linux/64/clang -Isrc/platform/linux/64 -Isrc/platform/linux'''.split()
 
 def get_commandline_flags():
     '''Return the command line flags for the Clang++ run on this system.'''
@@ -16,9 +15,12 @@ def get_commandline_flags():
     # We could add some fancy platform parsing, but that's not needed at the moment.
     if True:
         flags = commandline_flags_debug_linux
-    # Stop at first error, add the IWYU specific define,
-    # Add a define that's injected by the CXXTEST suite generating script
-    return flags + ["-ferror-limit=1","-DIWYU_SCAN","-D_CXXTEST_HAVE_STD"]
+    return flags + [
+        "-x", "c++",           # I'm not sure why, but this causes clang to (correctly) error out when it otherwise wouldn't
+        "-ferror-limit=1",     # Stop on first error
+        "-DIWYU_SCAN",         # Special flag to say we're in the IWYU_SCAN environment
+        "-D_CXXTEST_HAVE_STD", # A needed define added by the testings system scripts
+        ]
 
 
 # May need to be updated for additional include directories in command line

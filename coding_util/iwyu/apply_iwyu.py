@@ -131,7 +131,7 @@ class CompileTest:
         with open(self.testfilename, 'w') as f:
             f.writelines(contents)
 
-        command = [ self.compiler ] + commandline_flags + [ self.testfilename, '-o', self.testfilename +'.o' ]
+        command = [ self.compiler ] + commandline_flags + [ self.testfilename, '-o', '/dev/null' ]
 
         run = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = run.communicate()
@@ -141,9 +141,6 @@ class CompileTest:
             print( "----------------------------------")
             print( codecs.decode( stderr, "UTF-8", "replace") )
             print( "==================================")
-
-        if os.path.exists( self.testfilename+'.o' ):
-            os.remove( self.testfilename+'.o' )
 
         return run.returncode == 0
 
@@ -212,7 +209,7 @@ class CompileTest:
         if not self.test_additions(self.contents,self.insert_pos):
             # We failed - no sense of testing any of the deletions, as we can't recover:
             self.failed = True
-            if DEBUG: print("File", self.filename, "doesn't even compile without removals.")
+            print("WARNING: File", self.filename, "can't be made to compile even without removals.")
             return
 
         # We go through in descending library level order, to try to keep the lower level headers around in preference to the upper ones.
@@ -285,8 +282,13 @@ class CompileTest:
             os.remove(self.testfilename)
         if self.modified and not self.failed:
             self.known_additions.sort() # Make sure we have a decent order to the included headers.
-            with open(self.outfilename, 'w') as f:
+            # A bit of a dance to make sure we are as atomic as possible
+            # (If we're multithreaded, we don't want a partial header to show up in another threads test compile.)
+            with open(self.outfilename + '.tmp', 'w') as f:
                 f.writelines(self.inserted_contents(self.contents,self.insert_pos))
+                f.flush()
+                os.fsync(f.fileno())
+            os.rename(self.outfilename + '.tmp',self.outfilename)
             return True
         else:
             if DEBUG: print('\t', "No alterations to",self.filename,"were made")

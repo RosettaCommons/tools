@@ -310,13 +310,10 @@ class IWYUChanges:
 
 def test_compilation(filename):
     '''Test a regular compilation, and returns True on success and False on failure'''
-    command = [ "clang++" ] + commandline_flags + [ filename, '-o', filename+'.o' ]
+    command = [ "clang++" ] + commandline_flags + [ filename, '-o', '/dev/null' ]
 
     run = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.communicate()
-
-    if os.path.exists( filename+'.o' ):
-        os.remove( filename+'.o' )
 
     return run.returncode == 0
 

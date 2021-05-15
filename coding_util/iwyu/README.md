@@ -38,10 +38,11 @@ Suggested Usage
 
 Feel free to vary from this usage, as you preference dictates.
 
+
 1. Start with a clean working directory which compiles with Clang
-2. Run `run_iwyu.py` on the src/ and test/ directories
+2. Run `run_iwyu.py` on the full src/ and test/ directories
 3. Fix any issues mentioned (commiting fixes), and repeat `run_iwyu.py` until you get a clean run.
-4. Run `apply_iwyu.py` on the src/ and test/ directories.
+4. Run `apply_iwyu.py`
 5. Keep re-running `apply_iwyu.py` until the script reports no modifications.
 6. Check compilation by normal means, making manual fixes, as needed
     Manual fixes may be "just check out the original version of some files"
@@ -109,8 +110,7 @@ If a forward header for the symbol already exists, you can add the translation t
 `WARNING: File <fn> does not compile with regular Clang.` -- As the script doesn't use the regular build system,
 it can find files which aren't compiled normally. As such, there's a check of compilation against plain clang
 if the IWYU errors out. If you don't expect these files to compile (e.g. they're non-compiled pilot or devel apps)
-then there's nothing to be done. (No riwyuf file will be generated and no fixes will be applied).
-If you expect them to compile, though, you should figure out if there's compilation issues.
+then there's nothing to be done. If you expect them to compile, though, you should figure out if there's compilation issues.
 (Note that you'll also get this error if the compilation backcheck is not working for some reason.)
 
 *Output*
@@ -144,7 +144,9 @@ it's recommended to keep running the `apply_iwyu.py` command until it reports th
 which is listed in the corresponding .riwyuf file. While `run_iwyu.py` can't generate a riwyuf file from a non-compiling file,
 if you have have the version from when it was compiling, it may be able to fix things.)
 
-Note that some issues may not be fixable with repeated applications of `apply_iwyu.py`.
+Note that subsequent runs of `apply_iwyu.py` after the first one are much faster. (And can/should be applied without resetting the file contents.)
+
+Some issues may not be fixable with repeated applications of `apply_iwyu.py`.
 You will likely need to try compiling and fix (hopefully a scant few) things up manually.
 
 *Reported issues*
@@ -154,4 +156,22 @@ The script should leave the source files in a compilable state.
 
 If you do want to address the issues, I recommend doing it in a separate step.
 
-*Common Issues*
+*Fixing Common Issues*
+
+One common issue is that IWYU gets overzealous, even with the compile check. (Particularly the case with the test/ directory.)
+This will show up in files that don't compile after the run (even after repeated calls). 
+Fix this by uncommenting the needed header, and then adding `// DO NOT AUTO-REMOVE` to the line
+
+IWYU can also add some odd headers, or a somewhat extensive set of headers.
+The scripts are set up to avoid most of that, but it sometimes happens.
+I'd recommend doing a `grep -R 'AUTO IWYU'` to see what headers are being added (particularly boost and stdlib headers),
+and which files have a large number of low-level files being added.
+Often just checking out the original version and re-running will fix the odd additions.
+
+`ERROR - Line to remove does not match expected content` -- This generally happens on subsequent rounds 
+when the auto added headers are inserted above headers to remove. The inserting at the top is typically due to having non-include lines
+interspersed within the include lines. (It's recommended to fix those for subsequent iterations of run/apply.)
+
+Common reasons for "Issues Removing"
+* Extra "using namespace" directives.
+

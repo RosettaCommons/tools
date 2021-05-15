@@ -25,3 +25,14 @@ boost/algorithm/string/predicate.hpp boost/algorithm/string.hpp
 boost/algorithm/string/replace.hpp boost/algorithm/string.hpp
 boost/algorithm/string/split.hpp boost/algorithm/string.hpp
 boost/algorithm/string/trim.hpp boost/algorithm/string.hpp
+
+#Work around issue with Eigen
+src/Core/ArrayBase.h Eigen/Core
+src/Core/DenseBase.h Eigen/Core
+src/Core/MatrixBase.h Eigen/Core
+Eigen/src/plugins/ArrayCwiseUnaryOps.h Eigen/Core
+Eigen/src/Core/Map.h Eigen/Core
+Eigen/src/Core/Matrix.h Eigen/Core
+Eigen/src/Core/util/Constants.h Eigen/Core
+Eigen/src/Geometry/Transform.h Eigen/Geometry
+Eigen/src/Geometry/Translation.h Eigen/Geometry

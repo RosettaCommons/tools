@@ -6,8 +6,8 @@ from __future__ import print_function
 
 import sys, os
 
-#These are the clang commandline flags for the extras=serialization cat=test debug mode (You can update them by just copy-pasting from a regular Clang compile).
-commandline_flags_debug_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/rdkit -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -W -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -O0 -g -Wno-unused-function -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DBOOST_DISABLE_THREADS -DPTR_STD -DSERIALIZATION -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Itest -Isrc/platform/linux/64/clang -Isrc/platform/linux/64 -Isrc/platform/linux'''.split()
+#These are the clang commandline flags for the cat=test debug mode (You can update them by just copy-pasting from a regular Clang compile).
+commandline_flags_debug_linux = '''-c -std=c++11 -isystem external/boost_submod/ -isystem external/ -isystem external/include/ -isystem external/dbio/ -isystem external/libxml2/include -isystem external/rdkit -isystem external/cxxtest/ -pipe -Qunused-arguments -DUNUSUAL_ALLOCATOR_DECLARATION -ftemplate-depth-256 -stdlib=libstdc++ -W -Wall -Wextra -pedantic -Werror -Wno-long-long -Wno-strict-aliasing -O0 -g -Wno-unused-function -DBOOST_ERROR_CODE_HEADER_ONLY -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS -DBOOST_DISABLE_THREADS -DPTR_STD -Iexternal/cxxtest -I. -Isrc -Iexternal/include -Itest -Isrc/platform/linux/64/clang -Isrc/platform/linux/64 -Isrc/platform/linux'''.split()
 
 def get_commandline_flags():
     '''Return the command line flags for the Clang++ run on this system.'''

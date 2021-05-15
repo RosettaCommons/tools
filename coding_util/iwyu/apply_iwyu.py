@@ -44,7 +44,7 @@ def find_insertion_position(contents):
         if line.startswith("/*") or line.startswith("*/") or line.startswith("*"):
             continue # C-style comment blocks
         if line.startswith("#"):
-            if line.startswith('#if') and not line.startswith('#ifndef INCLUDED'):
+            if line.startswith('#if') and not (line.startswith('#ifndef') and 'INCLUDED' in line):
                 if_loop_level += 1
                 continue
             if line.startswith('#endif'):

@@ -6,6 +6,7 @@
 ##################################
 # References for external libraries
 { ref: "boost-all.imp" },
+{ ref: "Eigen.imp" },
 
 ##################################
 # Header substitutions
@@ -16,7 +17,9 @@
 # Pointers
 #{ include: ["<utility/pointer/boost/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { include: ["<utility/pointer/std/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.hh>", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 { include: ["<utility/pointer/std/owning_ptr.fwd.hh>", "private", "<utility/pointer/owning_ptr.fwd.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.fwd.hh>", "private", "<utility/pointer/access_ptr.fwd.hh>", "public"] },
 { include: ["<utility/pointer/std/memory.hh>", "private", "<utility/pointer/memory.hh>", "public"] },
 
 # Vector

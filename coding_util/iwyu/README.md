@@ -172,6 +172,10 @@ Often just checking out the original version and re-running will fix the odd add
 when the auto added headers are inserted above headers to remove. The inserting at the top is typically due to having non-include lines
 interspersed within the include lines. (It's recommended to fix those for subsequent iterations of run/apply.)
 
+Namespaces: IWYU 0.14 has a weird way of ascribing namespaces, so `run_iwyu.py` tries to ignore for-namespace-only includes.
+This means that compilation can get broken due to `using namespace` directives which aren't actually used.
+The fix is to manually delete the useless using directives.
+
 Common reasons for "Issues Removing"
 * Extra "using namespace" directives.
 

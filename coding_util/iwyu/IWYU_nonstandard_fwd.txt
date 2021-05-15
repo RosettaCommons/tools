@@ -24,6 +24,7 @@ mmtf/StructureData.fwd.hh mmtf.hpp
 mmtf/GroupType.fwd.hh mmtf.hpp
 msgpack/v1/zone.fwd.hh msgpack/zone.hpp
 Eigen/DenseBase.fwd.hh Eigen/Core
+RDKit/RWMol.fwd.hh core/chemical/rdkit/RDKit.fwd.hh
 
 ObjexxFCL/DimensionExpression.fwd.hh ObjexxFCL/DimensionExpression.hh
 ObjexxFCL/Fsubstring.fwd.hh ObjexxFCL/Fstring.fwd.hh
@@ -109,6 +110,9 @@ core/optimization/SimpleDerivCheckResult.fwd.hh core/optimization/NumericalDeriv
 
 core/pack/annealer/PointDwell.fwd.hh core/pack/annealer/FixbbPwatSimAnnealer.fwd.hh
 core/pack/dunbrack/DunbrackRotamerSampleData.fwd.hh core/pack/dunbrack/DunbrackRotamer.fwd.hh
+core/pack/dunbrack/MainchainTorsionReporter.fwd.hh core/pack/dunbrack/StandardDOFReporters.fwd.hh
+core/pack/dunbrack/PeptideTorsionReporter.fwd.hh core/pack/dunbrack/StandardDOFReporters.fwd.hh
+core/pack/dunbrack/PeptoidOmegaReporter.fwd.hh core/pack/dunbrack/PeptoidDOFReporters.fwd.hh 
 core/pack/interaction_graph/EdgeBase.fwd.hh core/pack/interaction_graph/InteractionGraphBase.fwd.hh
 core/pack/interaction_graph/NodeBase.fwd.hh core/pack/interaction_graph/InteractionGraphBase.fwd.hh
 core/pack/interaction_graph/OnTheFlyEdge.fwd.hh core/pack/interaction_graph/OnTheFlyInteractionGraph.fwd.hh
@@ -173,6 +177,9 @@ core/scoring/etable/AnalyticEtableEvaluator.fwd.hh core/scoring/etable/EtableEne
 core/scoring/etable/TableLookupEvaluator.fwd.hh core/scoring/etable/EtableEnergy.fwd.hh
 core/scoring/etable/count_pair/Invoker.fwd.hh core/scoring/etable/count_pair/CountPairFactory.fwd.hh
 core/scoring/etable/MembEtable.fwd.hh core/scoring/memb_etable/MembEtable.fwd.hh
+core/scoring/facts/FACTSPoseInfo.fwd.hh  core/scoring/facts/FACTSPotential.fwd.hh
+core/scoring/facts/FACTSResidueInfo.fwd.hh core/scoring/facts/FACTSPotential.fwd.hh
+core/scoring/facts/FACTSRsdTypeMap.fwd.hh core/scoring/facts/FACTSPotential.fwd.hh
 core/scoring/fiber_diffraction/OneGaussianScattering.fwd.hh core/scoring/fiber_diffraction/xray_scattering.fwd.hh
 core/scoring/geometric_solvation/GridInfo.fwd.hh core/energy_methods/ExactOccludedHbondSolEnergy.fwd.hh
 core/scoring/hbonds/HBond.fwd.hh core/scoring/hbonds/HBondSet.fwd.hh
@@ -247,6 +254,7 @@ protocols/ligand_docking/Translate_info.fwd.hh protocols/ligand_docking/Translat
 
 protocols/ligand_docking/ga_ligand_dock/LigandConformer.fwd.hh protocols/ligand_docking/GALigandDock/LigandConformer.fwd.hh
 protocols/ligand_docking/ga_ligand_dock/GridScorer.fwd.hh protocols/ligand_docking/GALigandDock/GridScorer.fwd.hh
+protocols/ligand_docking/ga_ligand_dock/TorsionSampler.fwd.hh protocols/ligand_docking/GALigandDock/TorsionSampler.fwd.hh
 
 protocols/loophash/BackboneSegment.fwd.hh protocols/loophash/BackboneDB.fwd.hh
 

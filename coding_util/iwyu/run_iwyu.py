@@ -302,7 +302,7 @@ class IWYUChanges:
 
     def save(self):
         '''Save to a json-formatted .riwyuf (Rosetta include-what-you-use-fixes'''
-        if len(self.additions) == 0 and len(self.additions) == 0 and len(self.replacements) == 0:
+        if len(self.additions) == 0 and len(self.deletions) == 0 and len(self.replacements) == 0:
             return # Save nothing if there's nothing to do.
         ofn = self.filename + '.riwyuf'
         with open(ofn, 'w') as f:

@@ -44,13 +44,15 @@ Feel free to vary from this usage, as you preference dictates.
 3. Fix any issues mentioned (commiting fixes), and repeat `run_iwyu.py` until you get a clean run.
 4. Run `apply_iwyu.py`
 5. Keep re-running `apply_iwyu.py` until the script reports no modifications.
-6. Check compilation by normal means, making manual fixes, as needed
+6. Do a `grep -R 'AUTO IWYU' src/ test/` to check for over-zealous additions
+7. Check compilation by normal means, making manual fixes, as needed
     Manual fixes may be "just check out the original version of some files"
-7. Once you get a clean compile, run `sed -i '/AUTOREMOVED IWYU/d' src test`
-8. Double check you're still clean.
-9. Commit changes to src/ and test/
-10. (Optional) Update the `run_iwyu.py` and `apply_iwyu.py` scripts to handle failure cases encounterd.
-11. Repeat steps 2-9 until the process no longer suggests changes.
+8. Once you get a clean compile, run `sed -i -r '/AUTOREMOVED IWYU/d' $(grep -Rl 'AUTOREMOVED IWYU' src/ test/)`
+    to remove the autoremoved lines.
+9. Double check you're still a clean compile
+10. Commit changes to src/ and test/
+11. (Optional) Update the `run_iwyu.py` and `apply_iwyu.py` scripts to handle failure cases encounterd.
+12. Repeat steps 2-10 until the process no longer suggests changes.
 
 Run
 ---

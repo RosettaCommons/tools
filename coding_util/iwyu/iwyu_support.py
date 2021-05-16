@@ -20,6 +20,7 @@ def get_commandline_flags():
         "-ferror-limit=1",     # Stop on first error
         "-DIWYU_SCAN",         # Special flag to say we're in the IWYU_SCAN environment
         "-D_CXXTEST_HAVE_STD", # A needed define added by the testings system scripts
+        "-Wno-unused-variable", # Some headers have unused variables
         ]
 
 

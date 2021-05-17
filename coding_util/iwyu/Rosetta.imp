@@ -41,6 +41,8 @@
 { symbol: ["std::make_shared", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { symbol: ["std::owner_less", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 
+{ symbol: ["debug_assert", "private", "<utility/assert.hh>", "public"] },
+
 { symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },
 { symbol: ["utility::vector0", "private", "<utility/vector0.hh>", "public"] },
 

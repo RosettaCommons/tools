@@ -12,9 +12,13 @@ utility/pointer/std/access_ptr.hh utility/pointer/access_ptr.hh src/utility/poin
 basic/TracerImpl.fwd.hh basic/Tracer.fwd.hh
 basic/TracerImpl.hh basic/Tracer.hh
 
+utility/backtrace.hh utility/assert.hh
+
 # To work around deficiencies in boost
 boost/lexical_cast/bad_lexical_cast.hpp boost/lexical_cast.hpp
 boost/detail/basic_pointerbuf.hpp boost/lexical_cast.hpp
+
+boost/core/noncopyable.hpp boost/noncopyable.hpp
 
 boost/unordered/unordered_map.hpp boost/unordered_map.hpp
 boost/unordered/unordered_set.hpp boost/unordered_set.hpp
@@ -25,6 +29,10 @@ boost/algorithm/string/predicate.hpp boost/algorithm/string.hpp
 boost/algorithm/string/replace.hpp boost/algorithm/string.hpp
 boost/algorithm/string/split.hpp boost/algorithm/string.hpp
 boost/algorithm/string/trim.hpp boost/algorithm/string.hpp
+
+boost/range/begin.hpp boost/range.hpp
+boost/range/end.hpp boost/range.hpp
+boost/range/size.hpp boost/range.hpp
 
 #Work around issue with Eigen
 src/Core/ArrayBase.h Eigen/Core

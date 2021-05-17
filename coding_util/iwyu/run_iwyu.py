@@ -302,9 +302,11 @@ class IWYUChanges:
 
     def save(self):
         '''Save to a json-formatted .riwyuf (Rosetta include-what-you-use-fixes'''
-        if len(self.additions) == 0 and len(self.deletions) == 0 and len(self.replacements) == 0:
-            return # Save nothing if there's nothing to do.
         ofn = self.filename + '.riwyuf'
+        if len(self.additions) == 0 and len(self.deletions) == 0 and len(self.replacements) == 0:
+            if os.path.exists(ofn):
+                os.remove(ofn) # Clear out any stale file if we're now clean
+            return
         with open(ofn, 'w') as f:
             json.dump( {'additions':self.additions,'deletions':self.deletions,'replacements':self.replacements}, f, indent=2 )
 
@@ -427,6 +429,9 @@ def parse_output( filename, output ):
 
     if has_correct_includes:
         if DEBUG: print('>>>>', "No changes needed for", filename)
+        ofn = filename + ".riwyuf"
+        if os.path.exists( ofn ):
+            os.remove( ofn )  # Clean out stale update file.
         return None
     elif additions is None or deletions is None:
         print_parse_error( filename, output, "Could not find addition and/or deletions block" )

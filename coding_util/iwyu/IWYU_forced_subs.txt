@@ -34,6 +34,8 @@ boost/range/begin.hpp boost/range.hpp
 boost/range/end.hpp boost/range.hpp
 boost/range/size.hpp boost/range.hpp
 
+boost/uuid/detail/sha1.hpp boost/uuid/uuid_generators.hpp
+
 #Work around issue with Eigen
 src/Core/ArrayBase.h Eigen/Core
 src/Core/DenseBase.h Eigen/Core

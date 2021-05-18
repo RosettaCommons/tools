@@ -44,7 +44,7 @@ def find_insertion_position(contents):
         if line.startswith("/*") or line.startswith("*/") or line.startswith("*"):
             continue # C-style comment blocks
         if line.startswith("#"):
-            if line.startswith('#if') and not (line.startswith('#ifndef') and 'INCLUDED' in line):
+            if line.startswith('#if') and not (line.startswith('#ifndef') and 'INCLUDE' in line):
                 if_loop_level += 1
                 continue
             if line.startswith('#endif'):
@@ -145,11 +145,11 @@ class CompileTest:
         return run.returncode == 0
 
     def inserted_contents(self, contents, insertion_pos, additions=None):
-        if insertion_pos is None or insertion_pos == 0:
-            return contents # Can't insert.
         if len(self.known_additions) == 0:
             if additions is None or len(additions) == 0:
                 return contents # No additions to make
+        if insertion_pos is None or insertion_pos == 0:
+            return contents # Can't insert.
 
         new_contents = contents[:insertion_pos]
         if contents[insertion_pos-1] != '\n' and "AUTO IWYU" not in contents[insertion_pos-1]:
@@ -172,6 +172,10 @@ class CompileTest:
         if len(self.possible_additions) == 0:
             if DEBUG: print("File does not compile, and there's no remaining additions we can make.")
             return False # Skip additional trials, we're at the maximum already.
+
+        if insertion_pos is None or insertion_pos == 0:
+            print("WARNING: Cannot attempt to fix", self.filename, "as insertion position can't be found.")
+            return False
 
         if not self.test_compile(self.inserted_contents( contents, insertion_pos, self.possible_additions ), print_errors=DEBUG):
             if DEBUG: print("File does not compile, even with all remaining additions")

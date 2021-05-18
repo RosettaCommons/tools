@@ -462,9 +462,26 @@ def process_file(filename, options):
         # Not intended to compile on their own
         if DEBUG: print("Skipping", filename, "-- Options gen")
         return
+    if filename.endswith('.gen.hh'):
+        # Generated files
+        if DEBUG: print("Skipping", filename, "-- Generated headers")
+        return
     if filename.endswith('.py.hh'):
         #PyRosetta-specific files - skip
         if DEBUG: print("Skipping", filename, "-- PyRosetta specific")
+        return
+    if filename.endswith(".cc") and "basic/options/keys/OptionKeys" in filename: # e.g. src/basic/options/keys/OptionKeys1.cc
+        if DEBUG: print("Skipping", filename, "-- Excluded file")
+        return
+    if filename.endswith(".cc") and "protocols/init/register" in filename: # e.g. src/protocols/init/register2.cc
+        if DEBUG: print("Skipping", filename, "-- Excluded file")
+        return
+    if any( filename.endswith(f) for f in [
+        "utility/options/keys/all.hh",
+        "basic/options/keys/OptionKeys.hh",
+        "basic/options/option_macros.hh",
+    ] ):
+        if DEBUG: print("Skipping", filename, "-- Excluded file")
         return
 
     print("Running IWYU analysis on", filename)
@@ -481,7 +498,7 @@ def process_dir(dirname):
     for item in os.listdir(dirname):
         name = os.path.join(dirname,item)
         if os.path.isdir(name):
-            if name in ['src/platform','src/utility/pointer/boost','src/utility/py','src/ui']:
+            if name in ['src/platform','src/utility/pointer/boost','src/utility/pointer/std','src/utility/py','src/ui']:
                 # Specialty directories - don't bother traversing.
                 continue
             for fn in process_dir(name):

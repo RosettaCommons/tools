@@ -18,6 +18,8 @@ utility/backtrace.hh utility/assert.hh
 boost/lexical_cast/bad_lexical_cast.hpp boost/lexical_cast.hpp
 boost/detail/basic_pointerbuf.hpp boost/lexical_cast.hpp
 
+boost/bind.hpp boost/bind/bind.hpp
+
 boost/core/noncopyable.hpp boost/noncopyable.hpp
 
 boost/unordered/unordered_map.hpp boost/unordered_map.hpp

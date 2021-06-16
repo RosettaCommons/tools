@@ -11,3 +11,40 @@ utility/pointer/std/access_ptr.hh utility/pointer/access_ptr.hh src/utility/poin
 
 basic/TracerImpl.fwd.hh basic/Tracer.fwd.hh
 basic/TracerImpl.hh basic/Tracer.hh
+
+utility/backtrace.hh utility/assert.hh
+
+# To work around deficiencies in boost
+boost/lexical_cast/bad_lexical_cast.hpp boost/lexical_cast.hpp
+boost/detail/basic_pointerbuf.hpp boost/lexical_cast.hpp
+
+boost/bind.hpp boost/bind/bind.hpp
+
+boost/core/noncopyable.hpp boost/noncopyable.hpp
+
+boost/unordered/unordered_map.hpp boost/unordered_map.hpp
+boost/unordered/unordered_set.hpp boost/unordered_set.hpp
+
+boost/algorithm/string/case_conv.hpp boost/algorithm/string.hpp
+boost/algorithm/string/classification.hpp boost/algorithm/string.hpp
+boost/algorithm/string/predicate.hpp boost/algorithm/string.hpp
+boost/algorithm/string/replace.hpp boost/algorithm/string.hpp
+boost/algorithm/string/split.hpp boost/algorithm/string.hpp
+boost/algorithm/string/trim.hpp boost/algorithm/string.hpp
+
+boost/range/begin.hpp boost/range.hpp
+boost/range/end.hpp boost/range.hpp
+boost/range/size.hpp boost/range.hpp
+
+boost/uuid/detail/sha1.hpp boost/uuid/uuid_generators.hpp
+
+#Work around issue with Eigen
+src/Core/ArrayBase.h Eigen/Core
+src/Core/DenseBase.h Eigen/Core
+src/Core/MatrixBase.h Eigen/Core
+Eigen/src/plugins/ArrayCwiseUnaryOps.h Eigen/Core
+Eigen/src/Core/Map.h Eigen/Core
+Eigen/src/Core/Matrix.h Eigen/Core
+Eigen/src/Core/util/Constants.h Eigen/Core
+Eigen/src/Geometry/Transform.h Eigen/Geometry
+Eigen/src/Geometry/Translation.h Eigen/Geometry

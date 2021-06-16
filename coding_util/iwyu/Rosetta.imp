@@ -6,6 +6,7 @@
 ##################################
 # References for external libraries
 { ref: "boost-all.imp" },
+{ ref: "Eigen.imp" },
 
 ##################################
 # Header substitutions
@@ -16,7 +17,9 @@
 # Pointers
 #{ include: ["<utility/pointer/boost/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { include: ["<utility/pointer/std/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.hh>", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 { include: ["<utility/pointer/std/owning_ptr.fwd.hh>", "private", "<utility/pointer/owning_ptr.fwd.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.fwd.hh>", "private", "<utility/pointer/access_ptr.fwd.hh>", "public"] },
 { include: ["<utility/pointer/std/memory.hh>", "private", "<utility/pointer/memory.hh>", "public"] },
 
 # Vector
@@ -38,6 +41,8 @@
 { symbol: ["std::make_shared", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
 { symbol: ["std::owner_less", "private", "<utility/pointer/access_ptr.hh>", "public"] },
 
+{ symbol: ["debug_assert", "private", "<utility/assert.hh>", "public"] },
+
 { symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },
 { symbol: ["utility::vector0", "private", "<utility/vector0.hh>", "public"] },
 
@@ -54,5 +59,6 @@
 { symbol: ["core::pose::Pose::BasicDataCache", "private", "<basic/datacache/BasicDataCache.hh>", "public" ] }, 
 { symbol: ["core::pose::Pose::ObserverCache", "private", "<core/pose/datacache/ObserverCache.hh>", "public" ] }, 
 { symbol: ["core::conformation::Conformation::AtomTree", "private", "<core/kinematics/AtomTree.hh>", "public" ] }, 
+{ symbol: ["protocols::moves::Mover::Pose", "private", "<core/pose/Pose.hh>", "public" ] }, 
 
 ]

@@ -1,0 +1,64 @@
+# This is the IWYU Mappings file for Rosetta
+# ( see https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md )
+#
+# When possible we should put the exceptions here, but that's not always possible 
+[
+##################################
+# References for external libraries
+{ ref: "boost-all.imp" },
+{ ref: "Eigen.imp" },
+
+##################################
+# Header substitutions
+# (Note - the one will *always* substitute the other
+# If you just want to avoid adding the one when the other happens
+# to be present, see IWYU_provided_by.txt )
+
+# Pointers
+#{ include: ["<utility/pointer/boost/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/owning_ptr.hh>", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.hh>", "private", "<utility/pointer/access_ptr.hh>", "public"] },
+{ include: ["<utility/pointer/std/owning_ptr.fwd.hh>", "private", "<utility/pointer/owning_ptr.fwd.hh>", "public"] },
+{ include: ["<utility/pointer/std/access_ptr.fwd.hh>", "private", "<utility/pointer/access_ptr.fwd.hh>", "public"] },
+{ include: ["<utility/pointer/std/memory.hh>", "private", "<utility/pointer/memory.hh>", "public"] },
+
+# Vector
+{ include: ["<utility/vector1_bool.hh>", "private", "<utility/vector1.hh>", "public"] },
+{ include: ["<utility/vector0_bool.hh>", "private", "<utility/vector0.hh>", "public"] },
+
+{ include: ["<utility/excn/EXCN_Base.hh>", "public", "<utility/excn/Exceptions.hh>", "public"] },
+
+{ include: ["<assert.h>", "public", "<utility/assert.hh>", "public"] },
+{ include: ["<cassert>", "public", "<utility/assert.hh>", "public"] },
+
+##################################
+# Symbol substitutions
+# If a symbol should be thought of as coming from a different header
+
+{ symbol: ["std::shared_ptr", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::weak_ptr", "private", "<utility/pointer/access_ptr.hh>", "public"] },
+{ symbol: ["std::enable_shared_from_this", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::make_shared", "private", "<utility/pointer/owning_ptr.hh>", "public"] },
+{ symbol: ["std::owner_less", "private", "<utility/pointer/access_ptr.hh>", "public"] },
+
+{ symbol: ["debug_assert", "private", "<utility/assert.hh>", "public"] },
+
+{ symbol: ["utility::vector1", "private", "<utility/vector1.hh>", "public"] },
+{ symbol: ["utility::vector0", "private", "<utility/vector0.hh>", "public"] },
+
+# Workarounds for IWYU bug #90
+{ symbol: ["std::ifstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::ofstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::fstream", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::filebuf", "private", "<fstream>", "public" ] }, 
+{ symbol: ["std::stringstream", "private", "<sstream>", "public" ] }, 
+
+# Workaround for the fact that IWYU assumes that Pose.hh provides the full definition for Pose::Conformation etc.
+{ symbol: ["core::pose::Pose::Conformation", "private", "<core/conformation/Conformation.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::Residue", "private", "<core/conformation/Residue.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::BasicDataCache", "private", "<basic/datacache/BasicDataCache.hh>", "public" ] }, 
+{ symbol: ["core::pose::Pose::ObserverCache", "private", "<core/pose/datacache/ObserverCache.hh>", "public" ] }, 
+{ symbol: ["core::conformation::Conformation::AtomTree", "private", "<core/kinematics/AtomTree.hh>", "public" ] }, 
+{ symbol: ["protocols::moves::Mover::Pose", "private", "<core/pose/Pose.hh>", "public" ] }, 
+
+]

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import beautify_compiled_files_w_fork
 import blargs
 import os, sys

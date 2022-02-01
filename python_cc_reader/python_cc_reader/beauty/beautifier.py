@@ -110,6 +110,7 @@ class Token:
         self.is_commented = False
         self.is_visible = True
         self.is_inside_string = False
+        self.is_inside_raw_string = False
         self.is_preprocessor_directive = False
         self.invisible_by_macro = False
         self.is_macro = False
@@ -279,6 +280,7 @@ class Beautifier:
         # without providing a full-fledged preprocessor directive reader, or "take_neither" to skip everything
         self.binary_math_symbols = set(["*", "-", "+", "/"])
         self.in_comment_block = False
+        self.raw_string_literal_delim = None # When in the string, this variable will be replaced by the delimiter
         self.in_string = False
         self.in_char_quote = False
         self.in_macro_definition = False
@@ -449,7 +451,18 @@ class Beautifier:
                 tok.is_visible = False
                 tok.invisible_by_macro = True
                 # print("token is invisible by macro:", tok.spelling, tok.line_number+1)
-            if not self.in_string and tok.spelling == "\t":
+            if self.raw_string_literal_delim is not None:
+                tok.is_inside_string = True
+                tok.is_inside_raw_string = True
+                if ( tok.spelling == ')' and i+2 < len(self.this_line_tokens)
+                        and self.this_line_tokens[i+1].spelling == self.raw_string_literal_delim
+                        and self.this_line_tokens[i+2].spelling == '"'
+                    ):
+                    self.this_line_tokens[i+1].is_inside_string = True
+                    self.this_line_tokens[i+2].is_inside_string = True
+                    self.raw_string_literal_delim = None
+                    i += 2 # skip the next two delimiters
+            elif not self.in_string and tok.spelling == "\t":
                 # keep around tab tokens only so long as they are inside strings
                 # they'll be replaced by escaped tabs when the file is written out
                 self.this_line_tokens.remove(tok)
@@ -527,6 +540,11 @@ class Beautifier:
                     print("in char quote", tok.spelling, tok.line_number)
                 tok.is_inside_string = True
                 self.in_char_quote = True
+            elif tok.spelling == "R" and i+2 < len(self.this_line_tokens) and self.this_line_tokens[i+1].spelling == '"':
+                tok.is_inside_string = True
+                self.this_line_tokens[i+1].is_inside_string = True
+                self.this_line_tokens[i+2].is_inside_string = True
+                self.raw_string_literal_delim = self.this_line_tokens[i+2].spelling
             # elif tok.spelling == "'" and not self.in_string :
             #     if single_char :
             #         single_char = False
@@ -1635,8 +1653,8 @@ class Beautifier:
             self.set_parent(i, stack)
             i += 1
         # we should not have arrived here
-        self.handle_read_all_tokens_error("process_extern", stack)            
-        
+        self.handle_read_all_tokens_error("process_extern", stack)
+
     def process_class_decl(self, i, stack):
         assert (
             self.all_tokens[i].spelling == "class"
@@ -2340,15 +2358,20 @@ class Beautifier:
 
     def line_from_line_tokens(self, line_number):
         toks = self.line_tokens[line_number]
-        if len(toks) == 0 or not toks[0].invisible_by_macro:
+        if len(toks) == 0:
+            return "\n"
+        elif not toks[0].invisible_by_macro:
             # print(line_number, [ x.spelling for x in toks ])
-            spellings = ["\t" * self.line_indentations[line_number]]
+            if toks[0].is_inside_raw_string:
+                spellings = [] # Don't indent raw strings.
+            else:
+                spellings = ["\t" * self.line_indentations[line_number]]
             for i, tok in enumerate(toks):
-                if tok.spelling == "\t":
+                if tok.spelling == "\t" and not tok.is_inside_raw_string:
                     assert tok.is_inside_string
                     spellings.append(
                         "\\t"
-                    )  # output tabs inside strings as escaped tab sequences
+                    )  # output tabs inside regular strings as escaped tab sequences
                 else:
                     spellings.append(tok.spelling)
                 if i + 1 != len(toks):

@@ -477,14 +477,22 @@ class Beautifier:
             if self.raw_string_literal_delim is not None:
                 tok.is_inside_string = True
                 tok.is_inside_raw_string = True
-                if ( tok.spelling == ')' and i+2 < len(self.this_line_tokens)
+                if tok.spelling == ')':
+                    if ( i+2 < len(self.this_line_tokens)
                         and self.this_line_tokens[i+1].spelling == self.raw_string_literal_delim
                         and self.this_line_tokens[i+2].spelling == '"'
                     ):
-                    self.this_line_tokens[i+1].is_inside_string = True
-                    self.this_line_tokens[i+2].is_inside_string = True
-                    self.raw_string_literal_delim = None
-                    i += 2 # skip the next two delimiters
+                        self.this_line_tokens[i+1].is_inside_string = True
+                        self.this_line_tokens[i+2].is_inside_string = True
+                        self.raw_string_literal_delim = None
+                        i += 2 # skip the next two delimiters
+                    elif ( i+1 < len(self.this_line_tokens)
+                        and self.raw_string_literal_delim == ""
+                        and self.this_line_tokens[i+1].spelling == '"'
+                    ):
+                        self.this_line_tokens[i+1].is_inside_string = True
+                        self.raw_string_literal_delim = None
+                        i += 1 # skip next delimiter.
             elif not self.in_string and tok.spelling == "\t":
                 # keep around tab tokens only so long as they are inside strings
                 # they'll be replaced by escaped tabs when the file is written out
@@ -567,7 +575,16 @@ class Beautifier:
                 tok.is_inside_string = True
                 self.this_line_tokens[i+1].is_inside_string = True
                 self.this_line_tokens[i+2].is_inside_string = True
-                self.raw_string_literal_delim = self.this_line_tokens[i+2].spelling
+                if i+3 < len(self.this_line_tokens) and self.this_line_tokens[i+3].spelling == '(':
+                    self.raw_string_literal_delim = self.this_line_tokens[i+2].spelling
+                elif self.this_line_tokens[i+2].spelling == '(':
+                    self.raw_string_literal_delim = ""
+                else:
+                    print( tok.spelling )
+                    print( self.this_line_tokens[i+1].spelling )
+                    print( self.this_line_tokens[i+2].spelling )
+                    print( self.this_line_tokens[i+3].spelling )
+                    raise ValueError("Problem parsing raw string in line " + str(self.line_number) )
             # elif tok.spelling == "'" and not self.in_string :
             #     if single_char :
             #         single_char = False

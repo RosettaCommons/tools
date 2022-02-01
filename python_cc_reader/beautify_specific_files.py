@@ -15,6 +15,7 @@ if __name__ == "__main__" :
     parser.add_argument("--pound_if_setting", default="take_if", help="Can be take_if or take_else.")
     parser.add_argument("--dry_run", action="store_true", help="Only attempt to beautify without changing the files.")
     parser.add_argument("-q","--quiet", action="store_true", help="Silent all output produced by this script")
+    parser.add_argument("-v","--debug", action="store_true", help="Add additional debugging output.")
     parser.add_argument("file_list", nargs="+", help="The files to beautify.")
 
 
@@ -23,6 +24,9 @@ if __name__ == "__main__" :
     pound_if_setting = options.pound_if_setting
     dry_run = options.dry_run
     quiet = options.quiet
+    if options.debug and not options.quiet:
+        import python_cc_reader.beauty.beautifier
+        python_cc_reader.beauty.beautifier.debug = True
 
     # First, let's make sure all the files are absolute, so they still work when we change directory
     file_list = [ (fn, os.path.abspath(fn)) for fn in options.file_list ]

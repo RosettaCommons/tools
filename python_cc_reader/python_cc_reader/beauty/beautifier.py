@@ -93,6 +93,29 @@ white_listed_macros = set(
         "CEREAL_REGISTER_DYNAMIC_INIT",
         "CEREAL_REGISTER_TYPE",
         "SPECIAL_COP_SERIALIZATION_HANDLING",
+#INTERACTIVE BEGIN -- MACROS used by Foldit
+        "ASSERT_ALWAYS",
+        "ASSERT_ALWAYS_MSG",
+        "THROW_BOINC_EXCEPTION",
+        "DEFINE_STATIC_OBJECT",
+        "DECLARE_CLASS",
+        "DECLARE_ACTION_CREATOR_0",
+        "DECLARE_ACTION_CREATOR_1",
+        "DECLARE_ACTION_CREATOR_2",
+        "DECLARE_ACTION_CREATOR_3",
+        "DECLARE_ACTION_CREATOR_4",
+        "DECLARE_ACTION_CREATOR_5",
+        "DECLARE_ACTION_CREATOR_6",
+        "DEFINE_ACTION_CREATOR_0",
+        "DEFINE_ACTION_CREATOR_1",
+        "DEFINE_ACTION_CREATOR_2",
+        "DEFINE_ACTION_CREATOR_3",
+        "DEFINE_ACTION_CREATOR_4",
+        "DEFINE_ACTION_CREATOR_5",
+        "DEFINE_ACTION_CREATOR_6",
+        "HELP_ON_MACROACTION",
+        "HELP_ON_MACROELEMENT",
+#INTERACTIVE END
     ]
 )
 
@@ -454,14 +477,22 @@ class Beautifier:
             if self.raw_string_literal_delim is not None:
                 tok.is_inside_string = True
                 tok.is_inside_raw_string = True
-                if ( tok.spelling == ')' and i+2 < len(self.this_line_tokens)
+                if tok.spelling == ')':
+                    if ( i+2 < len(self.this_line_tokens)
                         and self.this_line_tokens[i+1].spelling == self.raw_string_literal_delim
                         and self.this_line_tokens[i+2].spelling == '"'
                     ):
-                    self.this_line_tokens[i+1].is_inside_string = True
-                    self.this_line_tokens[i+2].is_inside_string = True
-                    self.raw_string_literal_delim = None
-                    i += 2 # skip the next two delimiters
+                        self.this_line_tokens[i+1].is_inside_string = True
+                        self.this_line_tokens[i+2].is_inside_string = True
+                        self.raw_string_literal_delim = None
+                        i += 2 # skip the next two delimiters
+                    elif ( i+1 < len(self.this_line_tokens)
+                        and self.raw_string_literal_delim == ""
+                        and self.this_line_tokens[i+1].spelling == '"'
+                    ):
+                        self.this_line_tokens[i+1].is_inside_string = True
+                        self.raw_string_literal_delim = None
+                        i += 1 # skip next delimiter.
             elif not self.in_string and tok.spelling == "\t":
                 # keep around tab tokens only so long as they are inside strings
                 # they'll be replaced by escaped tabs when the file is written out
@@ -544,7 +575,16 @@ class Beautifier:
                 tok.is_inside_string = True
                 self.this_line_tokens[i+1].is_inside_string = True
                 self.this_line_tokens[i+2].is_inside_string = True
-                self.raw_string_literal_delim = self.this_line_tokens[i+2].spelling
+                if i+3 < len(self.this_line_tokens) and self.this_line_tokens[i+3].spelling == '(':
+                    self.raw_string_literal_delim = self.this_line_tokens[i+2].spelling
+                elif self.this_line_tokens[i+2].spelling == '(':
+                    self.raw_string_literal_delim = ""
+                else:
+                    print( tok.spelling )
+                    print( self.this_line_tokens[i+1].spelling )
+                    print( self.this_line_tokens[i+2].spelling )
+                    print( self.this_line_tokens[i+3].spelling )
+                    raise ValueError("Problem parsing raw string in line " + str(self.line_number) )
             # elif tok.spelling == "'" and not self.in_string :
             #     if single_char :
             #         single_char = False
@@ -1346,8 +1386,17 @@ class Beautifier:
                 # print("found_square_brackets", found_square_brackets)
                 # print("found_equals", found_equals)
                 # print("found_operator", found_operator)
+                # print("found_parens", found_parens )
+                # print("classname", classname )
                 if (found_square_brackets or found_equals) and not found_operator:
                     i = self.process_to_end_rcb(i, stack, "array-value-initializer")
+                    i = self.find_next_visible_token(i, stack)
+                    assert self.all_tokens[i].spelling == ";"
+                    self.set_parent(i, stack)
+                    stack.pop()  # remove function
+                    return i + 1
+                elif not found_parens:
+                    i = self.process_to_end_rcb(i, stack, "curly-brace-initializer")
                     i = self.find_next_visible_token(i, stack)
                     assert self.all_tokens[i].spelling == ";"
                     self.set_parent(i, stack)

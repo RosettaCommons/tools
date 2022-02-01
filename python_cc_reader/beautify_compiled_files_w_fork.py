@@ -9,6 +9,14 @@ import sys, os
 
 from python_cc_reader.cpp_parser.code_utilities import *
 
+# Files which should not be beautified.
+EXCLUSION_LIST = [
+# INTERACTIVE BEGIN
+    "src/interactive/external/unzip.cc",
+    "src/interactive/external/zip.cc",
+# INTERACTIVE END
+]
+
 # This script is meant to be run from either the Rosetta/main/source/src/ or
 # the Rosetta/main/source/test/ directories. It reads the scons .settings
 # files to determine what files are compiled, and then runs the beautifier
@@ -64,6 +72,13 @@ class FileBeautifierManager :
 
 # from inclusion_equivalence_sets import *
 
+def in_exclusion_list(fname):
+    # fname should be absolute path -- we can look for the name of the file as a trailing entry.
+    for entry in EXCLUSION_LIST:
+        if fname.endswith( entry ):
+            return True
+    return False
+
 class Dummy :
     pass
 
@@ -113,6 +128,9 @@ def beautify_files_in_parallel( file_list, overwrite, num_cpu, pound_if_setting 
         opts.pound_if_setting = pound_if_setting
 
     for fname in file_list :
+        if in_exclusion_list( fname ):
+            print("Skipping beautification of", fname, "as it's in the exclusion list")
+            continue
         pid = fm.mfork()
         if pid == 0 :
             # print("beautifying", fname)

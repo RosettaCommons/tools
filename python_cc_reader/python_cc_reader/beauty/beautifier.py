@@ -1369,8 +1369,17 @@ class Beautifier:
                 # print("found_square_brackets", found_square_brackets)
                 # print("found_equals", found_equals)
                 # print("found_operator", found_operator)
+                # print("found_parens", found_parens )
+                # print("classname", classname )
                 if (found_square_brackets or found_equals) and not found_operator:
                     i = self.process_to_end_rcb(i, stack, "array-value-initializer")
+                    i = self.find_next_visible_token(i, stack)
+                    assert self.all_tokens[i].spelling == ";"
+                    self.set_parent(i, stack)
+                    stack.pop()  # remove function
+                    return i + 1
+                elif not found_parens:
+                    i = self.process_to_end_rcb(i, stack, "curly-brace-initializer")
                     i = self.find_next_visible_token(i, stack)
                     assert self.all_tokens[i].spelling == ";"
                     self.set_parent(i, stack)

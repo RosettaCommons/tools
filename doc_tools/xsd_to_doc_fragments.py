@@ -64,9 +64,9 @@ def get_annotation(node, name1, name2=None):
     if node.tag != '{http://www.w3.org/2001/XMLSchema}annotation': return ''
     if len(node) < 1 or node[0].tag != '{http://www.w3.org/2001/XMLSchema}documentation':
         if name2 is not None:
-            print "Error parsing annotation for entry", name1, "in", name2
+            print( "Error parsing annotation for entry", name1, "in", name2 )
         else:
-            print "Error parsing annotation for entry", name1
+            print( "Error parsing annotation for entry", name1 )
         return ''
     return node[0].text
 
@@ -78,16 +78,16 @@ def parse_subelement( subelem, parentname ):
     doc_lines = []
 
     if 'name' not in subelem.attrib:
-        print 'Error: missing name when parsing subtag for ', parentname
+        print( 'Error: missing name when parsing subtag for ', parentname )
     name = subelem.attrib['name']
 
     if len(subelem) >=2:
-        print "Error: can't parse type for", name, "in", parentname
+        print( "Error: can't parse type for", name, "in", parentname )
         return None
 
     if len( subelem ) == 0:
         if 'type' not in subelem.attrib:
-            print "Error: can't parse type entry for", name, "in", parentname
+            print( "Error: can't parse type entry for", name, "in", parentname )
             return None
         typename = subelem.attrib['type']
         if typename in COMMON_TYPES:
@@ -99,14 +99,14 @@ def parse_subelement( subelem, parentname ):
 
         # Parse complex type in ALL_ENTRIES
         if typename not in ALL_ENTRIES:
-            print "Error: can't parse type of ", typename, " for", name, "in", parentname
+            print( "Error: can't parse type of ", typename, " for", name, "in", parentname )
             return None
         ctype = ALL_ENTRIES[typename]
     elif len( subelem ) == 1:
         ctype = subelem[0]
 
     if ctype.tag != '{http://www.w3.org/2001/XMLSchema}complexType':
-        print "Error getting type for", name, "in", parentname
+        print( "Error getting type for", name, "in", parentname )
         return None
     sct = parse_complextype( name, parentname, ctype )
     if sct is None:
@@ -165,7 +165,7 @@ def parse_multi( node, parentname ):
             tag_lines.extend( subtag_lines )
             doc_lines.extend( subdoc_lines )
         else:
-            print "Error parsing subtag of", nodetype, "for", parentname, '::', subelem.tag
+            print( "Error parsing subtag of", nodetype, "for", parentname, '::', subelem.tag )
             continue
 
 
@@ -182,7 +182,7 @@ def parse_group( node, parentname ):
     #print "PARSING GROUP for ", parentname
 
     if 'ref' not in node.attrib:
-        print "Error parsing group element for ", parentname
+        print( "Error parsing group element for ", parentname )
         return None
 
     ref = node.attrib['ref']
@@ -193,16 +193,16 @@ def parse_group( node, parentname ):
         return '', '', [ tagline, ], ['',docline,]
 
     if ref not in ALL_ENTRIES:
-        print "Error: can't parse group ", typename, " for in", parentname
+        print( "Error: can't parse group ", typename, " for in", parentname )
         return None
     ctype = ALL_ENTRIES[ref]
     if ctype.tag != '{http://www.w3.org/2001/XMLSchema}group' or len(ctype) != 1:
-        print "Error: issue parsing group", ref, 'in', parentname
+        print( "Error: issue parsing group", ref, 'in', parentname )
         return None
     ctype = ctype[0]
     if ctype.tag != '{http://www.w3.org/2001/XMLSchema}choice':
-        print 'Error: issue parsing group', ref, 'in', parentname
-    print '... putting group', ref, 'in-line for', parentname
+        print( 'Error: issue parsing group', ref, 'in', parentname )
+    print( '... putting group', ref, 'in-line for', parentname )
     sc = parse_choice( ctype, parentname )
     if sc is None:
         return None
@@ -225,9 +225,9 @@ def parse_complextype( name, parentname, node ):
         elif gc.tag == '{http://www.w3.org/2001/XMLSchema}attribute':
             if 'name' not in gc.attrib:
                 if parentname is not None:
-                    print "Error parsing attribute for entry", name, 'on', parentname
+                    print( "Error parsing attribute for entry", name, 'on', parentname )
                 else:
-                    print "Error parsing attribute for entry", name
+                    print( "Error parsing attribute for entry", name )
                 continue
             attrib = dict( gc.attrib )
             docstring = ''
@@ -255,7 +255,7 @@ def parse_complextype( name, parentname, node ):
             if sa is not None:
                 subtags.append( sa )
         else:
-            print "Warning: skipping entry of type '"+ gc.tag+ "' in", name
+            print( "Warning: skipping entry of type '"+ gc.tag+ "' in", name )
             pass
 
     # Format the tags:
@@ -315,7 +315,7 @@ def process( name, node, outfilename ):
     subtags = []
 
     if node.tag != '{http://www.w3.org/2001/XMLSchema}complexType':
-        print "Error: expected complex type."
+        print( "Error: expected complex type." )
         return
 
     _, main_doc, tag_lines, doc_lines = parse_complextype( name, None, node )
@@ -342,13 +342,13 @@ def main( xsdfile, outdir ):
     root = xsd.getroot()
 
     if root.tag != '{http://www.w3.org/2001/XMLSchema}schema':
-        print "ERROR: Malformed XSD schema file."
+        print( "ERROR: Malformed XSD schema file." )
         sys.exit()
 
     entries = {}
     for child in root:
         if 'name' not in child.attrib:
-            print "Error in reading", child.tag
+            print( "Error in reading", child.tag )
             continue
 
         entries[ child.attrib['name'] ] = child
@@ -360,7 +360,7 @@ def main( xsdfile, outdir ):
     to_process = {} # dictionary of lower-cased name:(xsd_type_name, display_name)
     for section in SECTIONS:
         if section not in entries:
-            print "ERROR: can't find section for", section, " in XSD."
+            print( "ERROR: can't find section for", section, " in XSD." )
             continue
         sec_entry = entries[ section ]
         sec_choice = None
@@ -368,20 +368,20 @@ def main( xsdfile, outdir ):
             if se.tag != '{http://www.w3.org/2001/XMLSchema}choice':
                 continue
             if sec_choice is not None:
-                print "ERROR: malformed entry for section", section
+                print( "ERROR: malformed entry for section", section )
                 continue
             sec_choice = se
         if sec_choice is None:
-            print "ERROR: malformed entry for section", section
+            print( "ERROR: malformed entry for section", section )
             continue
         for child in sec_choice:
             if 'type' not in child.attrib or 'name' not in child.attrib:
-                print "ERROR: malformed entry in section", section
+                print( "ERROR: malformed entry in section", section )
                 continue
             entry_type = child.attrib['type']
             entry_name = child.attrib['name']
             if entry_type not in entries:
-                print "ERROR: can't find definition for", entry_type
+                print( "ERROR: can't find definition for", entry_type )
                 continue
             to_process.setdefault( entry_type.lower(), [] ).append( (entry_type, entry_name) )
 
@@ -391,7 +391,7 @@ def main( xsdfile, outdir ):
     for key in to_process:
         to_process[key].sort()
         if len( to_process[key] ) > 1:
-            print "Case sensitivity conflict between: ", ' '.join( et for et, en in to_process[key] )
+            print( "Case sensitivity conflict between: ", ' '.join( et for et, en in to_process[key] ) )
         for ii, (entry_type, entry_name) in enumerate( to_process[key] ):
             if ii == 0:
                 outname = outdir + '/' + entry_type + '.md'
@@ -403,10 +403,10 @@ def main( xsdfile, outdir ):
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
-        print
-        print "ERROR: Usage: ./create_rosetta_scripts_docs.py <xsd file> <directory to write docs to>"
-        print
-        print __doc__
+        print( "\n" )
+        print( "ERROR: Usage: ./create_rosetta_scripts_docs.py <xsd file> <directory to write docs to>" )
+        print( "\n" )
+        print( __doc__ )
         sys.exit()
 
     main(sys.argv[1], sys.argv[2])

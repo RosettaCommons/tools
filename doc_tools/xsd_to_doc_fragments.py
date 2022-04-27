@@ -221,7 +221,7 @@ def parse_complextype( name, parentname, node ):
 
     for gc in node:
         if gc.tag == '{http://www.w3.org/2001/XMLSchema}annotation':
-            main_doc = get_annotation( gc, name )
+            main_doc = get_annotation( gc, name ).replace( "*", "\*" )
         elif gc.tag == '{http://www.w3.org/2001/XMLSchema}attribute':
             if 'name' not in gc.attrib:
                 if parentname is not None:

@@ -22,7 +22,7 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 from subprocess import Popen, PIPE
 import os
-grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" % os.environ[ "ROSETTA" ] ], stdout=PIPE )
+grep = Popen( ["grep", "-r", "IO_STRING", "%s/database/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" % os.environ[ "ROSETTA" ] ], stdout=PIPE )
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()

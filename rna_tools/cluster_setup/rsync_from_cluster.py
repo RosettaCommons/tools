@@ -7,12 +7,12 @@ from os.path import basename,dirname,abspath,exists,expanduser
 from cluster_info import *
 
 def Help():
-    print
-    print argv[0]+' <cluster> <any extra rsync flags>'
-    print
+    print ()
+    print ( argv[0]+' <cluster> <any extra rsync flags>' )
+    print()
     if ( subprocess.call( ['/bin/bash','-i','-c','alias rfc']) == 1 ):
-        print "You may want to alias this command to rfc, by putting the following in your .bashrc: "
-        print ' alias rfc="rsync_from_cluster.py"'
+        print ("You may want to alias this command to rfc, by putting the following in your .bashrc: ")
+        print (' alias rfc="rsync_from_cluster.py"')
     exit()
 
 if len(argv)<2:
@@ -45,12 +45,12 @@ if len(cluster) == 0: cluster_prefix = ''
 commands = []
 for filename in filenames:
     remote_filename = ' ' + cluster_prefix+clusterdir + '/' + filename
-    command = 'rsync -avzL '+ remote_filename + ' . '+string.join(extra_args)
+    command = 'rsync -avzL '+ remote_filename + ' . '+' '.join(extra_args)
     print(command)
     system(command)
     commands.append( command )
 print
-print 'Ran the following commands: '
+print ('Ran the following commands: ')
 for command in commands:
     print
     print(command)

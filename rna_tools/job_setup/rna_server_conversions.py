@@ -376,7 +376,7 @@ def make_rna_rosetta_ready( pdb, removechain=False, ignore_chain=True, chainids 
                 oldresnum = resnum
 
                 if not longname in goodnames:
-                    print "Skipping: ", longname
+                    print( "Skipping: ", longname )
                     continue
 
                 newnum = '%4d' % count

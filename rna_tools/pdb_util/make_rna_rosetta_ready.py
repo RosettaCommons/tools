@@ -49,7 +49,7 @@ if argv.count('-reassign_chainids'):
     new_chainids = argv[pos]
     del( argv[pos] )
     reassign_chainids = 1
-    print new_chainids
+    print( new_chainids )
 
 chainids = []
 if len( argv ) > 2:
@@ -63,16 +63,16 @@ else:
 
 for pdbname in pdbnames:
 
-    pdblines = string.join( open(pdbname,'r').readlines(), '\n')
+    pdblines = '\n'.join( open(pdbname,'r').readlines())
 
     outputstring = make_rna_rosetta_ready( pdblines, removechain, ignore_chain, chainids, new_chainids, no_renumber, removeions, old_rna )
     
-    outfile = string.lower( basename( pdbname ) )
+    outfile = basename( pdbname ).lower()
     outfile = outfile.replace( '.pdb', '_RNA.pdb').replace('.gz','');
 
     outid = open( outfile, 'w')
     outid.write( outputstring )
-    print 'Writing ... '+outfile
+    print( 'Writing ... '+outfile )
 
     outid.close()
 

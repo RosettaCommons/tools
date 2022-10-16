@@ -7,18 +7,18 @@ user_name = basename( expanduser('~') )
 biox3_user_name = expandvars( '$BIOX3_USER_NAME' )
 if biox3_user_name == '$BIOX3_USER_NAME': biox3_user_name = user_name
 sherlock_user_name = expandvars( '$SHERLOCK_USER_NAME' )
-if not len(sherlock_user_name): sherlock_user_name = user_name
+if sherlock_user_name == '$SHERLOCK_USER_NAME': sherlock_user_name = user_name
 comet_user_name = expandvars( '$COMET_USER_NAME' )
 if not len(comet_user_name): comet_user_name = user_name
 xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
 def cluster_check( cluster_in ):
-    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet', 'sherlock','sherlock_scratch' ];
+    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet', 'sherlock','sherlock_scratch','sherlock_group' ];
 
     cluster = cluster_in
     if cluster not in clusterlist:
-        print 'Hey, '+cluster+' is not a known cluster.'
+        print ('Hey, '+cluster+' is not a known cluster.')
         cluster = 'unknown'
 
     cluster_dir = ''
@@ -76,12 +76,16 @@ def cluster_check( cluster_in ):
         cluster_dir = '/scratch/users/%s/' % biox3_user_name
 
     if cluster == 'sherlock':
-        cluster = '%s@sherlock.stanford.edu' % biox3_user_name
-        cluster_dir = '/home/%s/' % biox3_user_name
+        cluster = '%s@login.sherlock.stanford.edu' % biox3_user_name
+        cluster_dir = '/home/users/%s/' % biox3_user_name
+
+    if cluster == 'sherlock_group':
+        cluster = '%s@login.sherlock.stanford.edu' % sherlock_user_name
+        cluster_dir = '/home/groups/rhiju/%s/' % sherlock_user_name
 
     if cluster == 'sherlock_scratch':
-        cluster = '%s@sherlock.stanford.edu' % biox3_user_name
-        cluster_dir = '/scratch/users/%s/' % biox3_user_name
+        cluster = '%s@login.sherlock.stanford.edu' % sherlock_user_name
+        cluster_dir = '/scratch/users/%s/' % sherlock_user_name
 
     if cluster == 'ade_scratch':
         cluster = 'ade.stanford.edu'

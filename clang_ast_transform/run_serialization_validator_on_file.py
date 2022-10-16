@@ -67,10 +67,11 @@ if __name__ == "__main__" :
               "-pipe " + \
               "-ffor-scope " + \
               "-DEXIT_THROWS_EXCEPTION " + \
-              "-isystem " + rosetta_source_dir + "/external/boost_1_55_0/ " + \
+              "-isystem " + rosetta_source_dir + "/external/boost_submod/ " + \
               "-isystem " + rosetta_source_dir + "/external/ " + \
               "-isystem " + rosetta_source_dir + "/external/include/ " + \
               "-isystem " + rosetta_source_dir + "/external/dbio/ " + \
+              "-isystem " + rosetta_source_dir + "/external/rdkit/ " + \
               "-DUNUSUAL_ALLOCATOR_DECLARATION " + \
               "-stdlib=libstdc++ " + \
               "-DBOOST_ERROR_CODE_HEADER_ONLY " + \
@@ -85,16 +86,16 @@ if __name__ == "__main__" :
               "-I" + rosetta_source_dir + "/src/platform/linux/64/clang " + \
               "-I" + rosetta_source_dir + "/src/platform/linux/64 " + \
               "-I" + rosetta_source_dir + "/src/platform/linux " + \
-              "-I" + rosetta_source_dir + "/external/boost_1_55_0 " + \
               "-I" + rosetta_source_dir + "/external/dbio " + \
               "-I" + rosetta_source_dir + "/external/libxml2/include " + \
               "-I/usr/include " + \
               "-I/usr/local/include"
+    # print("command\n", command)
     command_list = command.split()
-    #print command_list
-    p = subprocess.Popen( command_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    # print command_list
+    p = subprocess.Popen( command_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE, encoding='utf8')
 
-    output, errors = p.communicate()
+    output, errors = (str(x) for x in p.communicate())
     exit_code = p.returncode
 
     outlines = []
@@ -121,6 +122,10 @@ if __name__ == "__main__" :
                 outdict[ fname ][ "results" ][ classname ][ load_save ] = []
             outdict[ fname ][ "results" ][ classname ][ load_save ].append( field )
 
-    with file(json_outfname, 'w') as f: json.dump(outdict, f, sort_keys=True, indent=2)
+    # print("output", output)
+    # print("errors", errors)
+    # print("json_outfname", json_outfname)
+    with open(json_outfname, 'w') as f:
+        json.dump(outdict, f, sort_keys=True, indent=2)
 
     sys.exit( 1 if output else 0 )

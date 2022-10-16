@@ -21,17 +21,17 @@
 # which headers C.cc requires.
 
 import pp
-import pygraph
-import thread
-from pygraph.algorithms.sorting import topological_sorting
-from inclusion_graph import read_inclusion_graph, write_inclusion_graph, transitive_closure
-from inclusion_graph import add_using_namespaces, remove_using_namespace, cleanup_auto_namespace_header
-from inclusion_graph import backup_file, restore_backup, cc_subset, auto_ns_comment
-from test_compile import test_compile
-from remove_duplicate_headers import remove_duplicate_headers_from_file
-from add_headers import add_autoheaders_to_file, group_and_sort_headers
-from remove_header import remove_header_from_file
-from trim_files_from_cc import trim_headers_from_cc
+from . import pygraph
+import _thread
+from .pygraph.algorithms.sorting import topological_sorting
+from .inclusion_graph import read_inclusion_graph, write_inclusion_graph, transitive_closure
+from .inclusion_graph import add_using_namespaces, remove_using_namespace, cleanup_auto_namespace_header
+from .inclusion_graph import backup_file, restore_backup, cc_subset, auto_ns_comment
+from .test_compile import test_compile
+from .remove_duplicate_headers import remove_duplicate_headers_from_file
+from .add_headers import add_autoheaders_to_file, group_and_sort_headers
+from .remove_header import remove_header_from_file
+from .trim_files_from_cc import trim_headers_from_cc
 
 funcs  = ( add_using_namespaces, remove_using_namespace, cleanup_auto_namespace_header, backup_file, restore_backup, cc_subset, test_compile, remove_duplicate_headers_from_file, add_autoheaders_to_file, remove_header_from_file, trim_headers_from_cc, group_and_sort_headers, auto_ns_comment )
 
@@ -43,7 +43,7 @@ def trim_headers_from_ccs( cc_list, tg, total_order, index ) :
 
 class Submitter :
    def __init__( self, job_server, cc_list ) :
-      self.lock = thread.allocate_lock()
+      self.lock = _thread.allocate_lock()
       self.count = 0
       self.job_server = job_server
       self.cc_list = cc_list
@@ -55,7 +55,7 @@ class Submitter :
       if self.count >= len( self.cc_list ) :
          self.lock.release()
          return
-      print "Submitting job ", self.count
+      print("Submitting job ", self.count)
       ccsubset = []
       for i in range( self.batch_size ) :
          if self.count + i == len( self.cc_list ) :
@@ -67,21 +67,21 @@ class Submitter :
       self.lock.release()
 
 def local_pafn( fname ) :
-   print fname
+   print(fname)
    return 1123
 
 
-print "reading inclusion graph..."
+print("reading inclusion graph...")
 g = read_inclusion_graph( "filtered_graph.txt" )
 #g = read_inclusion_graph( "medium_graph.txt" )
-print "done"
-print "computing transitive closure graph..."
+print("done")
+print("computing transitive closure graph...")
 tg = transitive_closure( g )
-print "done"
+print("done")
 
 for node in tg.nodes() :
    for neighb in tg.node_incidence[ node ] :
-      print neighb, "-->", node
+      print(neighb, "-->", node)
 
 
 toposort = topological_sorting( tg )
@@ -90,7 +90,7 @@ count_total_order = 0
 for file in toposort :
    count_total_order += 1
    total_order[ file ] = count_total_order
-   print file, count_total_order
+   print(file, count_total_order)
 
 cc_files = cc_subset( tg.nodes() )
 # cc_files = group_and_sort_headers( cc_files )
@@ -114,6 +114,6 @@ submitter.submit_job()
 job_server.wait()
 
 for job in submitter.jobs :
-  print job()
+  print(job())
 
 

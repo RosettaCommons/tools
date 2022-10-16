@@ -20,10 +20,10 @@ CONTADOR_MAX=24
 
 while getopts "dj:" opt; do
     case "$opt" in
-	d)  
+	d)
 	    debug=true
             ;;
-	j)  
+	j)
 	    CONTADOR_MAX=$OPTARG
 	    if (("$CONTADOR_MAX" > 24));
 	    then
@@ -108,11 +108,11 @@ function guess_load {
     floor_load=${current_load/.*} #I don't know what this does, but it floors the load value
     JOBS=$(($CONTADOR_MAX-(1+$floor_load))) #attempt number of jobs minus load ceiling
     echo "load was $current_load, attempting $JOBS"
-} 
+}
 
 #determine our location, and bail out if this is the wrong place to be!
 function check_folder {
-    for subdir in main tools demos
+    for subdir in main main/tools main/demos
     do
 	if [ ! -d $subdir ]
 	then

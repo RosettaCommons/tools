@@ -1,0 +1,29 @@
+# This is a Rosetta-internal attempt at making an imp file for Eigen, such that IWYU won't attempt to expose internal-only headers.
+[
+{ include: ["@<Eigen/src/Cholesky/.*>", private, "<Eigen/Cholesky>", public ] },
+{ include: ["@<Eigen/src/CholmodSupport/.*>", private, "<Eigen/CholmodSupport>", public ] },
+{ include: ["@<Eigen/src/Core/.*>", private, "<Eigen/Core>", public ] },
+{ include: ["@<Eigen/src/Eigenvalues/.*>", private, "<Eigen/Eigenvalues>", public ] },
+{ include: ["@<Eigen/src/Geometry/.*>", private, "<Eigen/Geometry>", public ] },
+{ include: ["@<Eigen/src/Householder/.*>", private, "<Eigen/Householder>", public ] },
+{ include: ["@<Eigen/src/IterativeLinearSolvers/.*>", private, "<Eigen/IterativeLinearSolvers>", public ] },
+{ include: ["@<Eigen/src/Jacobi/.*>", private, "<Eigen/Jacobi>", public ] },
+{ include: ["@<Eigen/src/KLUSupport/.*>", private, "<Eigen/KLUSupport>", public ] },
+{ include: ["@<Eigen/src/LU/.*>", private, "<Eigen/LU>", public ] },
+{ include: ["@<Eigen/src/MetisSupport/.*>", private, "<Eigen/MetisSupport>", public ] },
+{ include: ["@<Eigen/src/OrderingMethods/.*>", private, "<Eigen/OrderingMethods>", public ] },
+{ include: ["@<Eigen/src/PaStiXSupport/.*>", private, "<Eigen/PaStiXSupport>", public ] },
+{ include: ["@<Eigen/src/PardisoSupport/.*>", private, "<Eigen/PardisoSupport>", public ] },
+{ include: ["@<Eigen/src/QR/.*>", private, "<Eigen/QR>", public ] },
+{ include: ["@<Eigen/src/SPQRSupport/.*>", private, "<Eigen/SPQRSupport>", public ] },
+{ include: ["@<Eigen/src/SVD/.*>", private, "<Eigen/SVD>", public ] },
+{ include: ["@<Eigen/src/SparseCholesky/.*>", private, "<Eigen/SparseCholesky>", public ] },
+{ include: ["@<Eigen/src/SparseCore/.*>", private, "<Eigen/SparseCore>", public ] },
+{ include: ["@<Eigen/src/SparseLU/.*>", private, "<Eigen/SparseLU>", public ] },
+{ include: ["@<Eigen/src/SparseQR/.*>", private, "<Eigen/SparseQR>", public ] },
+{ include: ["@<Eigen/src/SuperLUSupport/.*>", private, "<Eigen/SuperLUSupport>", public ] },
+{ include: ["@<Eigen/src/UmfPackSupport/.*>", private, "<Eigen/UmfPackSupport>", public ] },
+
+# These are one-by-one corrections for some odd things I've seen
+{ include: ["@<src/Core/.*>", private, "<Eigen/Core>", public ] }
+]

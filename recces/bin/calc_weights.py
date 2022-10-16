@@ -9,5 +9,5 @@ assert( exists( hist_scores_file ) )
 
 (temps, wts) = weight_evaluate('./', hist_scores_file )
 
-for wt in wts: print wt,
-print
+for wt in wts: print(wt,end='')
+print()

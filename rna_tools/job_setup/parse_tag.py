@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import string
 
 ####################################################################
@@ -26,12 +27,14 @@ import string
 def parse_tag( tag, alpha_sort=False ):
 
     if isinstance( tag, list ):
-        tag = string.join( tag, ' ' )
+        tag = ' '.join(tag)
 
     int_vector = []
     char_vector= []
+    segid_vector = []
 
     xchar = ''
+    xsegid = '    '
 
     tag = tag.replace(',',' ')
     tag = tag.replace(';',' ')
@@ -43,22 +46,32 @@ def parse_tag( tag, alpha_sort=False ):
 
         if '-' in subtag: # '1-10' or 'A1-10' or 'A:1-10' or 'A:1-A:10'
             ( start, stop ) = subtag.split('-')
-            ( start_idx, start_char ) = parse_tag( start )
-            ( stop_idx, stop_char ) = parse_tag( stop )
-            assert( ( start_char[0] == stop_char[0] ) or ( stop_char[0] == '' ) )
+            ( start_idx, start_char, start_seg ) = parse_tag( start )
+            ( stop_idx, stop_char, stop_seg ) = parse_tag( stop )
+            assert( ( ( start_char[0] == stop_char[0] ) or ( stop_char[0] == '' ) ) and ( start_seg == stop_seg or stop_seg == '    ' ) )
             if start_char[0] != '':
                 xchar = start_char[0]
-            subtag = string.join([xchar+':'+str(x) for x in xrange(start_idx[0],stop_idx[0]+1)], ' ')
+            if start_seg[0] != '':
+                xseg = start_seg[0]
+            subtag = ' '.join([xchar+':'+str(x) for x in range(start_idx[0],stop_idx[0]+1)])
             int_vector.extend( parse_tag( subtag )[0] )
             char_vector.extend( parse_tag( subtag )[1] )
+            segid_vector.extend( parse_tag( subtag )[2] )
             continue
 
-        if ':' in subtag: # A:100
+        coloncount = subtag.count(':')
+        if coloncount == 2:
+            subtag = subtag.split(':')
+            xchar = subtag[0]
+            xsegid = subtag[1]
+            xint = int(subtag[-1])
+        elif coloncount == 1:
             subtag = subtag.split(':')
             xchar = subtag[0]
             xint = int(subtag[-1])
+            xsegid = '    '
         else: # A100 or 100 or 0100
-            for x in xrange( len( subtag ) ):
+            for x in range( len( subtag ) ):
                 try: # 100
                     xint = int(subtag[x:])
                     break
@@ -67,15 +80,17 @@ def parse_tag( tag, alpha_sort=False ):
 
         int_vector.append( xint )
         char_vector.append( xchar )
+        segid_vector.append( xsegid )
 
     assert( len(int_vector) == len(char_vector) )
+    assert( len(int_vector) == len(segid_vector) )
 
     if alpha_sort:
-        sorted = zip( char_vector, int_vector )
+        sorted = list(zip( char_vector, int_vector, segid_vector ))
         sorted.sort()
-        [ char_vector, int_vector ] = [ list(l) for l in zip(*sorted) ]
+        [ char_vector, int_vector, segid_vector ] = [ l for l in list(zip(*sorted)) ]
 
-    return int_vector, char_vector
+    return int_vector, char_vector, segid_vector
 
 ##########################################################
 ##########################################################
@@ -90,6 +105,6 @@ if __name__=='__main__':
 
     args=parser.parse_args()
 
-    if isinstance( args.tag, list ): args.tag = string.join( args.tag, ' ' )
-    print( parse_tag( args.tag, alpha_sort=args.alpha_sort ) )
+    if isinstance( args.tag, list ): args.tag = ' '.join(args.tag)
+    print(parse_tag( args.tag, alpha_sort=args.alpha_sort ))
 

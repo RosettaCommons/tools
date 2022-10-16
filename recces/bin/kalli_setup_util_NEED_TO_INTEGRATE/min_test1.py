@@ -39,5 +39,5 @@ for i in xrange(n_cycles):
     out_str = out_str[:-2]
     out.write(out_str + '\n')
     out.flush()
-    print time.time() - time0
+    print(time.time() - time0)
 out.close()

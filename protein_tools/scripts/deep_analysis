@@ -1,1 +1,5 @@
-design_analysis/deep_analysis
+#!/usr/bin/env python
+import design_analysis
+
+if __name__ == '__main__':
+	design_analysis.main()

@@ -23,11 +23,11 @@ def extractchain(actualpdbname, out, chains_to_extract):
 actualpdbname = argv[1]
 chains_to_extract = argv[2:]
 
-newpdbfile = actualpdbname.replace('.pdb',string.join(chains_to_extract,'')+'.pdb')
+newpdbfile = actualpdbname.replace('.pdb',''.join(chains_to_extract)+'.pdb')
 
 out = open( newpdbfile, 'w' )
 
-print 'Extracting to ',newpdbfile,'...'
+print( 'Extracting to ',newpdbfile,'...' )
 
 extractchain(actualpdbname, out, chains_to_extract)
 

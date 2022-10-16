@@ -15,7 +15,7 @@ def find_gaps(alignment,tag):
         if(record.id == tag): #as far as I can tell I can only iterate through an alignment, I can't lookup by tag
             sequence = record
             break
-    if sequence == None:
+    if sequence is None:
         raise LookupError("invalid tag specified")
     resid = 1
     gap_start = 1
@@ -28,9 +28,9 @@ def find_gaps(alignment,tag):
                 in_gap = True
         else: #we are not in a gap now
             if in_gap: #the last gap position must have been the previous residue
-                gap_end = resid-1 
+                gap_end = resid-1
                 in_gap = False
                 print gap_start, gap_end
-                gaplist.append( (gap_start,gap_end) ) 
+                gaplist.append( (gap_start,gap_end) )
         resid += 1
     return gaplist

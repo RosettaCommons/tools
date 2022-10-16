@@ -206,7 +206,7 @@ def weight_evaluate(folder):
 def get_hist(filename):
     scores = load_1d_bin_gz('/work/01937/fcchou/projects/turner/run5/hist_scores.gz', dtype=np.float64)
     hist = load_1d_bin_gz(filename, dtype=np.uint64)
-    print hist, scores
+    print(hist, scores)
     return np.column_stack((scores, hist))
 
 
@@ -352,7 +352,7 @@ def torsion_volume(seq1, seq2=''):
     len2 = seq_len(seq2)
     min_len = min(len1, len2)
     diff_len = abs(len1 - len2)
-    # print seq1, seq2, min_len, diff_len
+    # print(seq1, seq2, min_len, diff_len)
     if min_len == 0:  # One-strand
         return (2 * pi) ** (6 * diff_len - 5) * (2 ** diff_len)
     else:

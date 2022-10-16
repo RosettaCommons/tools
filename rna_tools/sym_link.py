@@ -19,7 +19,8 @@ CWD = getcwd()
 chdir( dirname( argv[0] ) )
 
 for f in glob.glob('./bin/*'):
-    if not os.path.isdir(f): os.remove(f)
+    try: os.remove(f)
+    except: pass
 
 for dirpath, dirnames, filenames in os.walk('./'):
     if len( basename(dirpath) ) == 0 or basename(dirpath)[0] == '.' or basename(dirpath) == 'bin':
@@ -32,7 +33,7 @@ for dirpath, dirnames, filenames in os.walk('./'):
             file2 = './bin/' + f
             try:
                 os.symlink(file1, file2)
-            except (OSError, e):
+            except OSError as e:
                 if e.errno == errno.EEXIST:
                     os.remove(file2)
                     os.symlink(file1, file2)

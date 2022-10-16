@@ -3,10 +3,12 @@ SRC=/local/luki/clang/llvm
 
 $BD/bin/clang++ $1 -emit-ast -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-std=c++11 \
-	-isystem external/boost_1_55_0/ \
+	-isystem external/boost_submod/ \
 	-isystem external/ \
 	-isystem external/include/ \
 	-isystem external/dbio/ \
+	-isystem external/libxml2/include \
+	-isystem external/rdkit/ \
 	-DUNUSUAL_ALLOCATOR_DECLARATION \
 	-stdlib=libstdc++ \
 	-DBOOST_ERROR_CODE_HEADER_ONLY \
@@ -19,7 +21,6 @@ $BD/bin/clang++ $1 -emit-ast -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
 	-Isrc/platform/linux/64/clang \
 	-Isrc/platform/linux/64 \
 	-Isrc/platform/linux \
-	-Iexternal/boost_1_55_0 \
 	-Iexternal/dbio \
 	-I/usr/include \
 	-I/usr/local/include

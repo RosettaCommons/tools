@@ -20,4 +20,4 @@ for fn in glob(folder + "/*"):
         sim.reweight(test_wt)
         deriv_numerical = (sim.value - curr_val) / epsilon
         err = (deriv_numerical - deriv_analytical[i]) / deriv_analytical[i]
-        print deriv_numerical, deriv_analytical[i], err
+        print(deriv_numerical, deriv_analytical[i], err)

@@ -1,0 +1,23 @@
+* 2sak_A 54.0
+* 2sak_A 54.0
+* 2sak_A 54.0
+* 2sak_A 54.0
+warning: unscored peptide ALDATAYKE
+* 2sak_A 154.0
+ERROR unscored peptide ALDATAYKE
+
+usage: mhc_score.py [-h] [--fa FA | --fsa FSA | --pdb PDB | --pep PEP]
+                    [--chain CHAIN]
+                    [--csv CSV | --db DB | --matrix MATRIX | --netmhcii | --propred]
+                    [--allele_set {test,greenbaum11,paul15,all} | --alleles ALLELES]
+                    [--epi_thresh EPI_THRESH] [--noncanon {error,silent,warn}]
+                    [--netmhcii_score {rank,absolute}]
+                    [--db_unseen {warn,error,score}]
+                    [--db_unseen_score DB_UNSEEN_SCORE]
+                    [--report {total,hits,full}] [--report_file REPORT_FILE]
+                    [--plot_hits_file PLOT_HITS_FILE]
+                    [seq [seq ...]]
+* seq0 8.0
+* seq1 8.0
+* seq2 5.0
+* seq3 2.0

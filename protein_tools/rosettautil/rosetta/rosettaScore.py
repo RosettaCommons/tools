@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import operator
 from rosettautil.util import fileutil
 import sqlite3
@@ -82,7 +84,7 @@ class SilentScoreTable:
                         record.add_score(*pair)
                     self.records[tag] = record
                 except ValueError:
-                    print "theres some problem with this score line, possible corruption, skipping line"
+                    print("theres some problem with this score line, possible corruption, skipping line")
                     continue
                 #elif
             elif line[0] == "SCORE:": #this is a normal silent file
@@ -93,10 +95,10 @@ class SilentScoreTable:
                     record = PoseScoreRecord(tag)
                     record.set_file(path)
                     for term,score in zip(header,line[1:len(line)-1]):
-			try:
-				record.add_score(term,float(score))
-			except ValueError:
-				record.add_score(term,score)
+                        try:
+                            record.add_score(term,float(score))
+                        except ValueError:
+                            record.add_score(term,score)
                     self.records[tag] = record
         infile.close()
 
@@ -107,7 +109,7 @@ class SilentScoreTable:
         try:
             return self.records[tag].get_score(scoreterm)
         except KeyError:
-            print "no",scoreterm,"in",tag,"returning 0"
+            print("no",scoreterm,"in",tag,"returning 0")
             return 0
 
     def score_generator(self,scoreterm):
@@ -115,7 +117,7 @@ class SilentScoreTable:
             try:
                 yield (tag,self.records[tag].get_score(scoreterm))
             except KeyError:
-                print "no",scoreterm,"in",tag,"returning 0"
+                print("no",scoreterm,"in",tag,"returning 0")
                 yield (tag,0)
 
     def sorted_score_generator(self,scoreterm):
@@ -204,28 +206,28 @@ class ScoreTableMap:
 
 class DataBaseScoreTable:
     def __init__(self,path):
-	self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path)
 
     def get_score(self,tag,term):
-	cursor = self.connection.cursor()
-	command = "SELECT structures.tag, string_real_data.data_value FROM structures LEFT JOIN string_real_data ON structures.struct_id=string_real_data.struct_id WHERE string_real_data.data_key=? and structures.tag=?"
-	params = (term,tag)
+        cursor = self.connection.cursor()
+        command = "SELECT structures.tag, string_real_data.data_value FROM structures LEFT JOIN string_real_data ON structures.struct_id=string_real_data.struct_id WHERE string_real_data.data_key=? and structures.tag=?"
+        params = (term,tag)
 
-	cursor.execute(command,params)
-	score = cursor.next()
-	cursor.close()
-	return score
+        cursor.execute(command,params)
+        score = cursor.next()
+        cursor.close()
+        return score
 
     def score_generator(self,term):
-	cursor = self.connection.cursor()
-	command = """SELECT structures.tag, string_real_data.data_value
-	FROM structures
-	LEFT JOIN string_real_data
-	ON structures.struct_id=string_real_data.struct_id
-	WHERE string_real_data.data_key = ?"""
-	params = (term,)
-	cursor.execute(command,params)
-	for tag,value in cursor:
-	    yield (tag,value)
-	cursor.close()
+        cursor = self.connection.cursor()
+        command = """SELECT structures.tag, string_real_data.data_value
+        FROM structures
+        LEFT JOIN string_real_data
+        ON structures.struct_id=string_real_data.struct_id
+        WHERE string_real_data.data_key = ?"""
+        params = (term,)
+        cursor.execute(command,params)
+        for tag,value in cursor:
+            yield (tag,value)
+        cursor.close()
 

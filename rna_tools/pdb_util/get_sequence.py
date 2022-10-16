@@ -25,7 +25,7 @@ grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_typ
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()
-for tlc in tlcs.split('\n'):
+for tlc in tlcs.decode('iso-8859-15').split('\n'):
     longer_names[tlc] = "X[%s]" % tlc
 
 def get_sequences( pdbname, removechain = 0 ):
@@ -133,4 +133,4 @@ if __name__=='__main__':
     args=parser.parse_args()
 
     ( sequences, all_chains, all_resnums ) = get_sequences( args.pdbname, removechain = args.removechain )
-    print string.join(sequences, '')
+    print( ''.join(sequences) )

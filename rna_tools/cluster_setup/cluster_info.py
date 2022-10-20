@@ -14,7 +14,7 @@ xsede_user_name = expandvars( '$XSEDE_USER_NAME' )
 xsede_dir_number = expandvars( '$XSEDE_DIR_NUMBER' )
 
 def cluster_check( cluster_in ):
-    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet', 'sherlock','sherlock_scratch','sherlock_group' ];
+    clusterlist = [ 'syd','niau','seth','bes','hapy','apep','gebb','ptah','yah','isis','yah','maat','nut','fin','dig','biox2','biox2_scratch','biox3','biox3_scratch','vanlang_scratch','ade','ade.stanford.edu','steele','steele_scratch','tg-condor','tg-condor_scratch','abe','ncsa','abe_scratch','ade_scratch','vanlang','kwipapat','kwip','lovejoy','tsuname','lovejoy_scratch','backup','lonestar','ranger','lonestar_work','lonestar_scratch','trestles','stampede','stampede_scratch','sherlock', 'comet', 'sherlock','sherlock_scratch','sherlock_group','sherlock_scratch_group' ];
 
     cluster = cluster_in
     if cluster not in clusterlist:
@@ -86,6 +86,10 @@ def cluster_check( cluster_in ):
     if cluster == 'sherlock_scratch':
         cluster = '%s@login.sherlock.stanford.edu' % sherlock_user_name
         cluster_dir = '/scratch/users/%s/' % sherlock_user_name
+
+    if cluster == 'sherlock_scratch_group':
+        cluster = '%s@login.sherlock.stanford.edu' % sherlock_user_name
+        cluster_dir = '/scratch/groups/rhiju/%s/' % sherlock_user_name
 
     if cluster == 'ade_scratch':
         cluster = 'ade.stanford.edu'

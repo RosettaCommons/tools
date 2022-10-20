@@ -31,6 +31,7 @@ def make_tag_with_dashes( int_vector, char_vector = 0, segid_vector = 0 ):
                 assert( len( char_vector[i-1] ) == 1 )
                 tag += char_vector[i-1]+':'
             if segid_vector[i-1] != "    ":
+                print ( segid_vector )
                 assert( len( segid_vector[i-1] ) == 4 )
                 tag += segid_vector[i-1].strip()+":"
             if stop_res > start_res:

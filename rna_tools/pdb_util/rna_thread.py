@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 ###############################################################################
 ### imports
@@ -17,7 +17,7 @@ import argparse
 ###############################################################################
 def safe_submit(command, verbose = False):
     if verbose:
-    	print command if isinstance(command, str) else ' '.join(command)
+    	print(command if isinstance(command, str) else ' '.join(command))
     out, err = sp.Popen(
         command,
         shell=isinstance(command, str),
@@ -25,7 +25,7 @@ def safe_submit(command, verbose = False):
         stderr=sp.PIPE
     ).communicate()
     if err:
-        print '\n'.join([out, err])
+        print('\n'.join([out, err]))
         return False
     return out
 
@@ -54,7 +54,7 @@ def rna_thread(options):
         rna_thread += ['-' + o for o in options.options.split('-') if len(o)]
     out = safe_submit(rna_thread, options.verbose)
     if options.verbose:
-        print out
+        print(out)
     if not os.path.exists(options.out_file_o):
         return None
     return options.out_file_o 
@@ -68,10 +68,10 @@ def init_options(options):
         parser = init_options_parser()
         options = parser.parse_args(args = options)
     if options.in_file_s is None:
-        print "[WARNING] Must supply a template pdb (-s) for threading!"
+        print("[WARNING] Must supply a template pdb (-s) for threading!")
         sys.exit(1)
-    if not len(filter(None, [options.fasta, options.seq])):
-        print "[WARNING] Must specify either -fasta, -seq or -mutate"
+    if not len([_f for _f in [options.fasta, options.seq] if _f]):
+        print("[WARNING] Must specify either -fasta, -seq or -mutate")
         sys.exit(1)
     return options
 
@@ -146,4 +146,4 @@ def init_options_parser():
 ###############################################################################
 if __name__=='__main__':
     
-    print rna_thread(sys.argv[1:])
+    print(rna_thread(sys.argv[1:]))

@@ -56,7 +56,7 @@ if hostname == 'comet':
         account = 'TG-MCB120152'
 if hostname == 'sherlock':
     DO_MPI = True
-    tasks_per_node_MPI = n_jobs if n_jobs < 16 else 16
+    tasks_per_node_MPI = n_jobs if n_jobs < 24 else 24
     account = None
 
 save_logs = False
@@ -332,21 +332,21 @@ if DO_MPI:
     for n in range( tot_nodes ):
         # big pain in the ass -- the way we submit jobs via ppserver.py  is
         # failing unless we split the job processor by processor!
-        job_submit_file_MPI = '%s/%sMPI%d.job' % (queue_file_dir_MPI, queue_cmd, n )
-
-        fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
-        for m in range( tasks_per_node_MPI ):
-            count = count + 1
-            if ( count <= tot_jobs ):
-                outfile = outfile_general.replace( '$(Process)', '%d' % (count-1) )
-                errfile = errfile_general.replace( '$(Process)', '%d' % (count-1) )
-                command_line_explicit = command_lines_explicit[ count-1 ]
-                if hostname in ["stampede", "sherlock", "comet"]:
-                    fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
-                else:
-                    command_line_explit +=  ' > %s 2> %s' % (outfile, errfile)
-                    fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
-        fid_job_submit_file_MPI.close()
+        #job_submit_file_MPI = '%s/%sMPI%d.job' % (queue_file_dir_MPI, queue_cmd, n )
+        #
+        #fid_job_submit_file_MPI  = open( job_submit_file_MPI, 'w' )
+        #for m in range( tasks_per_node_MPI ):
+        #    count = count + 1
+        #    if ( count <= tot_jobs ):
+        #        outfile = outfile_general.replace( '$(Process)', '%d' % (count-1) )
+        #        errfile = errfile_general.replace( '$(Process)', '%d' % (count-1) )
+        #        command_line_explicit = command_lines_explicit[ count-1 ]
+        #        if hostname in ["stampede", "sherlock", "comet"]:
+        #            fid_job_submit_file_MPI.write( '%s\t%s \n' % (CWD, command_line_explicit ) )
+        #        else:
+        #            command_line_explicit +=  ' > %s 2> %s' % (outfile, errfile)
+        #            fid_job_submit_file_MPI.write( '%s ;;; %s\n' % (CWD, command_line_explicit) )
+        #fid_job_submit_file_MPI.close()
 
         if queue_cmd == 'sbatch':
             # sbatch MPI
@@ -364,7 +364,25 @@ if DO_MPI:
             #if development:
             #    queue = 'development'
             if hostname in ['sherlock']:
-                queue='biochem'#'biochem,owners'
+                queue='biochem,owners'
+
+            #fid_queue_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
+            #fid_queue_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
+            #fid_queue_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
+            #if development:
+            #    fid_queue_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
+            #else:
+            #    fid_queue_submit_file_MPI.write( '#SBATCH -t %d:00:00\n' % nhours )
+            #fid_queue_submit_file_MPI.write( '#SBATCH -n %d\n' % tasks_per_node_MPI )
+            #fid_queue_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
+            #if account: fid_queue_submit_file_MPI.write( '#SBATCH -A %s\n' % account )
+            #fid_queue_submit_file_MPI.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n'
+            #                                % (job_submit_file_MPI, hostname) )
+            #fid_queue_submit_file_MPI.close()
+
+            #fid_queue_MPI.write( 'sbatch %s\n' % queue_submit_file_MPI )
+
+
             fid_queue_submit_file_MPI.write( '#SBATCH -J %s\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -o %s.o%%j\n' % job_name )
             fid_queue_submit_file_MPI.write( '#SBATCH -p %s\n' % queue)
@@ -372,17 +390,23 @@ if DO_MPI:
                 fid_queue_submit_file_MPI.write( '#SBATCH -t 00:10:00\n' )
             else:
                 fid_queue_submit_file_MPI.write( '#SBATCH -t %d:00:00\n' % nhours )
-            #fid_queue_submit_file_MPI.write( '#SBATCH --mail-user=rhiju@stanford.edu\n' )
-            #fid_queue_submit_file_MPI.write( '#SBATCH --mail-type=ALL\n' )
             fid_queue_submit_file_MPI.write( '#SBATCH -n %d\n' % tasks_per_node_MPI )
             fid_queue_submit_file_MPI.write( '#SBATCH -N %d\n' % 1 )
-            if account: fid_queue_submit_file_MPI.write( '#SBATCH -A %s\n' % account )
-            #fid_queue_submit_file_MPI.write( 'echo $SLURM_NODELIST > nodefile.txt\n' )
-            fid_queue_submit_file_MPI.write( 'pp_jobsub.py %s -cluster_name %s -nodelist $SLURM_NODELIST -job_cpus_per_node $SLURM_JOB_CPUS_PER_NODE\n'
-                                            % (job_submit_file_MPI, hostname) )
+
+            for m in range( tasks_per_node_MPI ):
+                count = count + 1
+                if ( count <= tot_jobs ):
+                    outfile = outfile_general.replace( '$(Process)', '%d' % (count-1) )
+                    errfile = errfile_general.replace( '$(Process)', '%d' % (count-1) )
+                    command_line_explicit = command_lines_explicit[ count-1 ]
+                    command_line_explicit +=  ' > %s 2> %s & ' % (outfile, errfile)
+                    fid_queue_submit_file_MPI.write( '%s\n' % (command_line_explicit ) )
+
+            fid_queue_submit_file_MPI.write( '\nwait\n' )
             fid_queue_submit_file_MPI.close()
 
             fid_queue_MPI.write( 'sbatch %s\n' % queue_submit_file_MPI )
+
         else:
             # qsub MPI
             jobname= (CWD + '/' + outdir).replace( '/', '_' )
@@ -487,11 +511,6 @@ if hostname == 'ade':
 if queue_cmd == 'qsub':
     print( 'Created qsub submission files ',qsub_file,' with ',tot_jobs, ' jobs queued. To run, type: ' )
     print( '>source ',qsub_file )
-    print( )
-
-if queue_cmd == 'sbatch':
-    print( 'Created sbatch submission files ',sbatch_file,' with ',tot_jobs, ' jobs queued. To run, type: ' )
-    print( '>source ',sbatch_file )
     print( )
 
 if len( hostname ) == 0:

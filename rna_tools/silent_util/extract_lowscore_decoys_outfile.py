@@ -7,18 +7,18 @@ import string,subprocess
 
 def Help():
     print()
-    print('Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> ')
-    print('  Will extract N models with lowest score from each silent file.')
-    print('  If you want to select based on another column, say 12 (Rg), the')
-    print('    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>')
-    print('    (for highest Rg).')
-    print('  If N is a float, it will be treated as a score cutoff, rather than')
-    print('    desired number of models.')
+    print( 'Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> ')
+    print( '  Will extract N models with lowest score from each silent file.')
+    print( '  If you want to select based on another column, say 12 (Rg), the')
+    print( '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>')
+    print( '    (for highest Rg).')
+    print( '  If N is a float, it will be treated as a score cutoff, rather than')
+    print( '    desired number of models.')
     print()
     if ( subprocess.call( ['/bin/bash','-i','-c','alias exo']) == 1 ):
-        print(' You might consider using an alias "exo" for this function. Add ')
-        print('   alias exo="extract_lowscore_decoys_outfile.py -out"')
-        print(' to your ~/.bashrc script.')
+        print( ' You might consider using an alias "exo" for this function. Add ')
+        print( '   alias exo="extract_lowscore_decoys_outfile.py -out"')
+        print( ' to your ~/.bashrc script.')
 
     exit()
 
@@ -110,7 +110,7 @@ for infile in infiles:
     lines = popen( command ).readlines()
 
     for line in lines:
-        cols = line.split()
+        cols =  line.split( )
         score = 0.0
 
         try:
@@ -144,7 +144,7 @@ for score_plus_line in score_plus_lines:
     count += 1
     if ( NSTRUCT > 0 and count >= NSTRUCT ): break
 
-stderr.write( 'Extracting %d models from %s\n' % (count, ' '.join(infiles) ) )
+stderr.write( 'Extracting %d models from %s\n' % (count, ' '.join( infiles ) ) )
 
 fid = stdout
 if output_to_file:
@@ -192,7 +192,7 @@ for infile in infiles:
         line = data.readline()[:-1]
         if len( line ) < 2: continue
         if line[:9] == 'SEQUENCE:': continue # Should not be any more sequence lines!
-        cols = line.split()
+        cols =  line.split( )
         tag = cols[-1]
 
         if cols[0][:5] == "SCORE":

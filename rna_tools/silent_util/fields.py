@@ -7,11 +7,11 @@ from os import popen
 import sys
 
 def Help():
-    print argv[0] + ' <scorefilename>'
-    print
-    print '  Used for Rosetta silent files or score files -- figure out'
-    print '  which column numbers correspond to which score terms.'
-    print
+    print( argv[0] + ' <scorefilename>' )
+    print( )
+    print( '  Used for Rosetta silent files or score files -- figure out' )
+    print( '  which column numbers correspond to which score terms.' )
+    print( )
     exit( 0 )
 
 if len(argv) < 2:
@@ -27,23 +27,23 @@ if firstline.find('desc') < 0:
 
 if firstline.find('desc') >= 0:
     #Typical out file or score file
-    labels=string.split(firstline)
+    labels=firstline.split()
     i=0
     while i < len(labels) :
-        print '%4d %s' % ( i+1, labels[i] )
+        print( '%4d %s' % ( i+1, labels[i] ) )
         i = i+1
 else:
     lines = popen( 'grep SCORE '+file1+'| head -n 50').readlines()
     if len( lines ) > 0:
-        cols = string.split( lines[-1] )
+        cols =  lines[-1].split()
         for i in range( len( cols )/2 ):
-            print '%4d %s' %  (2*i+2, cols[2*i] )
+            print( '%4d %s' %  (2*i+2, cols[2*i] ) )
     else:
         lines = popen( 'head -n 1 '+file1 ).readlines()
-        cols = string.split( lines[0] )
+        cols =  lines[0].split()
         for i in range( len( cols ) ):
-            print '%4d %s' % (i+1, cols[i])
+            print( '%4d %s' % (i+1, cols[i]) )
 
 
-print
-print 'Score tags for: ',file1
+print( )
+print( 'Score tags for: ',file1 )

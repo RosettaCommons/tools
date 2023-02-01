@@ -45,7 +45,7 @@ def read_pdb( filename ):
                  resnum != old_resnum or chain != old_chain or segid != old_segid ):
                 chains.append( chain )
                 residues.append( resnum )
-                segids.append( segids )
+                segids.append( segid )
             old_resnum = resnum
             old_chain  = chain
             old_segid  = segid

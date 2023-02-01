@@ -21,4 +21,4 @@ for (chain,residue,segid) in zip(chains, residues, segids ):
                 if ( not atom in atom_keys ):
                         print(atom, "missing from", chain, residue)
                         exit( 0 )
-                print(pdb_lines[ chain ][ residue ][ atom ])
+                print(pdb_lines[ chain ][ segid ][ residue ][ atom ])

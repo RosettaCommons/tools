@@ -45,6 +45,7 @@ shit_stat_altpos = False
 shit_stat_modres = False
 shit_stat_misdns = False  # missing density!
 
+pdb_resnum_mapping = ""
 fastaseq = {}
 pdbfile = ""
 
@@ -203,6 +204,7 @@ count = 1
 
 residue_buffer = []
 residue_letter = ''
+residue_chain = ''
 
 if chainid == '_':
     chainid = ' '
@@ -249,12 +251,17 @@ for line in lines:
                     # if unsuccessful
                     shit_stat_misdns = True
                 else:
+                    #kdrew: store mapping between original pdb numbering and new residue numbering
+                    #print("%s%s : %s" % (oldresnum.strip(), residue_chain.strip(), count))
+                    pdb_resnum_mapping += "%s%s : %s\n" % (oldresnum.strip(), residue_chain.strip(), count)
+
                     count = count + 1
 
             residue_buffer = []
             residue_letter = longer_names[resn]
 
         oldresnum = resnum
+        residue_chain = line[21]
 
         insres = line[26]
         if insres != ' ':
@@ -283,6 +290,10 @@ if residue_buffer != []: # is there a residue in the buffer ?
         # if unsuccessful
         shit_stat_misdns = True
     else:
+        #kdrew: store mapping between original pdb numbering and new residue numbering
+        #print("%s%s : %s" % (oldresnum.strip(), residue_chain.strip(), count))
+        pdb_resnum_mapping += "%s%s : %s\n" % (oldresnum.strip(), residue_chain.strip(), count)
+
         count = count + 1
 
 flag_altpos = "---"
@@ -330,6 +341,12 @@ if nres > 0:
             handle.write(fastaseq[chain])
             handle.write('\n')
             handle.close()
+
+            #kdrew: write out pdb number mapping 
+            handle = open(filename_stem+"_"+chainid + ".resnum_map", 'w')
+            handle.writelines(pdb_resnum_mapping) 
+            handle.write('\n') 
+            handle.close()
     else:
         fastaseq = ["".join(list(fastaseq.values()))]
         fastaid.write('>'+filename_stem+"_"+chainid+'\n')
@@ -339,6 +356,12 @@ if nres > 0:
         handle.write('>'+filename_stem+"_"+chainid+'\n')
         handle.writelines(fastaseq)
         handle.write('\n')
+        handle.close()
+
+        #kdrew: write out pdb number mapping 
+        handle = open(filename_stem+"_"+chainid + ".resnum_map", 'w')
+        handle.writelines(pdb_resnum_mapping) 
+        handle.write('\n') 
         handle.close()
 
 if len(files_to_unlink) > 0:

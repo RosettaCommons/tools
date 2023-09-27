@@ -32,7 +32,7 @@ $| = 1; # disable stdout buffering
 # ROSETTA
 my $FRAGMENT_PICKER = $ENV{"FRAGMENT_PICKER"} || "$Bin/../../main/source/bin/fragment_picker.boost_thread.linuxgccrelease";
 my $FRAGMENT_PICKER_NUM_CPUS = int($ENV{"FRAGMENT_PICKER_NUM_CPUS"}) || 8;    # number of processors to use
-my $ROSETTA_DATABASE = $ENV{"ROSETTA_DATABASE"} || "$Bin/../../main/database"; # rosetta database
+my $ROSETTA_DATABASE = $ENV{"ROSETTA_DATABASE"} || "$Bin/../../database"; # rosetta database
 my $VALL = $ENV{"VALL"} || "$Bin/vall.jul19.2011"; # template database
 
 # BLAST path (Requires non-blast+ NCBI version)

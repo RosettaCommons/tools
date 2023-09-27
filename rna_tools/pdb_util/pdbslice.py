@@ -12,9 +12,11 @@ segment_residues = parse_options( argv, "segments", [-1] )
 if len( segment_residues ) > 0:
     assert( len( subset_residues ) == 0 )
     assert( 2 * (len(segment_residues)/2) == len(segment_residues ) ) # check even
-    for i in range( len(segment_residues)/2):
+    for i in range( int(len(segment_residues)/2) ):
         for j in range( segment_residues[2*i], segment_residues[2*i+1]+1 ):
             subset_residues.append( j )
+            subset_chains.append( '' )
+            subset_segids.append( '    ' )
 [excise_residues, excise_chains, excise_segids] = parse_options( argv, "excise", [[0],['A'],['    ']] )
 use_subset = ( len( subset_residues ) > 0 )
 use_excise = ( len( excise_residues ) > 0 )
@@ -50,13 +52,13 @@ def matches( res, chain, segid, match_res, match_chain, match_segid ):
 
 for pdbfile in pdbfiles:
     if not( exists( pdbfile ) ):
-        print "Problem: ",pdbfile, " does not exist!"
+        print("Problem: ",pdbfile, " does not exist!")
 
     gzipped = 0
     try:
         outid = open(prefix+basename(pdbfile),'w')
     except:
-        print 'failed to open outfile'
+        print('failed to open outfile')
 
     if pdbfile[-2:] == 'gz':
         lines = popen('zcat '+pdbfile).readlines()
@@ -68,7 +70,7 @@ for pdbfile in pdbfiles:
             currentchain = line[21]
             currentresidue = line[22:26]
             currentsegid = line[72:76].strip()
-            if len(currentsegid) == 0: currentsegid = '    ' 
+            if len(currentsegid) == 0: currentsegid = '    '
             atomnum = int( line[6:11] )
             try:
                 currentresidue_val = int(currentresidue)

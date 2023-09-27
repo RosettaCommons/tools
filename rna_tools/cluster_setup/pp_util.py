@@ -56,7 +56,7 @@ def jobserver_init(cluster_name, nodelist = '', job_cpus_per_node=''):
     nworkers = int(job_cpus_per_node.split('(')[0])
     ncpus = nworkers * len(nodes)
 
-    print 'Submitting the ppserver...'
+    print( 'Submitting the ppserver...' )
     submit_cmdline = [submit_command, '/home/rhiju/src/pp-1.6.4/ppserver.py']
     if not nworkers is None:
         submit_cmdline += ['-w', str(nworkers)]
@@ -89,7 +89,7 @@ def load_jobfile(filename):
                 cmdline_list.append(cmdline)
         except:
             continue
-    print cmdline_list
+    print( cmdline_list )
     return work_dir_list, cmdline_list
 
 
@@ -104,7 +104,7 @@ def submit_cmdline(work_dir, cmdline):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT ).communicate()
         if error:
-            print error
+            print( error )
             output = error
             returncode = 1
     except subprocess.CalledProcessError as err:

@@ -19,7 +19,8 @@ CWD = getcwd()
 chdir( dirname( argv[0] ) )
 
 for f in glob.glob('./bin/*'):
-    os.remove(f)
+    try: os.remove(f)
+    except: pass
 
 for dirpath, dirnames, filenames in os.walk('./'):
     if len( basename(dirpath) ) == 0 or basename(dirpath)[0] == '.' or basename(dirpath) == 'bin':

@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 import string
-from os.path import exists,basename
+from os.path import exists,basename,isdir
 from parse_tag import parse_tag
 
 
@@ -22,7 +22,12 @@ longer_names={'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D',
 
 from subprocess import Popen, PIPE
 import os
-grep = Popen( ["grep", "-r", "IO_STRING", "%s/main/database/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" % os.environ[ "ROSETTA" ] ], stdout=PIPE )
+
+ROSETTA_DB = '%s/database' % os.environ[ "ROSETTA" ]
+if not isdir( ROSETTA_DB ):
+    ROSETTA_DB = '%s/main/database' % os.environ[ "ROSETTA" ]
+    assert( isdir( ROSETTA_DB ) )
+grep = Popen( ["grep", "-r", "IO_STRING", "%s/chemical/residue_type_sets/fa_standard/residue_types/nucleic/rna_nonnatural/" %  ROSETTA_DB ], stdout=PIPE )
 awk = Popen( ["awk", "{print $2}"], stdin=grep.stdout, stdout=PIPE )
 grep.stdout.close()
 tlcs, err = awk.communicate()
@@ -75,6 +80,7 @@ def get_sequences( pdbname, removechain = 0 ):
             resnum = line_edit[22:26].replace( ' ', '' )
             chain = line_edit[21]
             segid = line_edit[72:76]
+            if len(segid) == 0: segid = '    '
         if ( line[0:3] == 'TER' or ( not chain == oldchain ) or ( not segid == oldsegid ) ) and len( sequence ) > 0:
             sequences.append( sequence )
             all_chains.append( chains )
@@ -106,7 +112,6 @@ def get_sequences( pdbname, removechain = 0 ):
         all_chains.append( chains )
         all_resnums.append( resnums )
         all_segids.append( segids )
-
     return ( sequences, all_chains, all_resnums, all_segids )
 
 def get_sequence( pdbname, removechain = 0, join = False ):

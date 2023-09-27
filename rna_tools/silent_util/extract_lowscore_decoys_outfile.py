@@ -6,19 +6,19 @@ from os.path import basename
 import string,subprocess
 
 def Help():
-    print
-    print 'Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> '
-    print '  Will extract N models with lowest score from each silent file.'
-    print '  If you want to select based on another column, say 12 (Rg), the'
-    print '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>'
-    print '    (for highest Rg).'
-    print '  If N is a float, it will be treated as a score cutoff, rather than'
-    print '    desired number of models.'
-    print
+    print()
+    print( 'Usage: '+argv[0]+' <silent out file 1> < silent file 2> ... <N> ')
+    print( '  Will extract N models with lowest score from each silent file.')
+    print( '  If you want to select based on another column, say 12 (Rg), the')
+    print( '    last arguments should be -12 <N>  (for lowest Rg) or +12 <N>')
+    print( '    (for highest Rg).')
+    print( '  If N is a float, it will be treated as a score cutoff, rather than')
+    print( '    desired number of models.')
+    print()
     if ( subprocess.call( ['/bin/bash','-i','-c','alias exo']) == 1 ):
-        print ' You might consider using an alias "exo" for this function. Add '
-        print '   alias exo="extract_lowscore_decoys_outfile.py -out"'
-        print ' to your ~/.bashrc script.'
+        print( ' You might consider using an alias "exo" for this function. Add ')
+        print( '   alias exo="extract_lowscore_decoys_outfile.py -out"')
+        print( ' to your ~/.bashrc script.')
 
     exit()
 
@@ -85,17 +85,17 @@ for infile in infiles:
 
     if len( firstlines ) == 0:
         firstlines = popen('head -n 5 '+infile).readlines()
-        scoretags = string.split( firstlines[1] )
+        scoretags = firstlines[1].split()
         if firstlines[0].find( "SEQUENCE" ) < 0  and   firstlines[0].find("SCORE:") >= 0:
             IS_OUTFILE = 0
-            scoretags = string.split( firstlines[0] )
+            scoretags = firstlines[0].split()
 
     scoretag=''
     if scorecol_defined:
         scoretag = scoretags[ abs(scorecol) ]
 
     if scorecol_name_defined:
-        scorecol_names = string.split( scorecol_name,',' )
+        scorecol_names = scorecol_name.split(',' )
         scorecols = []
         for s in scorecol_names:
             assert( scoretags.count( s ))
@@ -110,7 +110,7 @@ for infile in infiles:
     lines = popen( command ).readlines()
 
     for line in lines:
-        cols = string.split( line )
+        cols =  line.split( )
         score = 0.0
 
         try:
@@ -135,7 +135,7 @@ for infile in infiles: tags_for_infile[ infile ] = []
 count = 0
 for score_plus_line in score_plus_lines:
     line = score_plus_line[1]
-    cols = string.split(line)
+    cols = line.split()
     tag = cols[-1]
 
     infile = score_plus_line[2]
@@ -144,7 +144,7 @@ for score_plus_line in score_plus_lines:
     count += 1
     if ( NSTRUCT > 0 and count >= NSTRUCT ): break
 
-stderr.write( 'Extracting %d models from %s\n' % (count, string.join( infiles,' ' ) ) )
+stderr.write( 'Extracting %d models from %s\n' % (count, ' '.join( infiles ) ) )
 
 fid = stdout
 if output_to_file:
@@ -192,7 +192,7 @@ for infile in infiles:
         line = data.readline()[:-1]
         if len( line ) < 2: continue
         if line[:9] == 'SEQUENCE:': continue # Should not be any more sequence lines!
-        cols = string.split( line )
+        cols =  line.split( )
         tag = cols[-1]
 
         if cols[0][:5] == "SCORE":
@@ -202,11 +202,11 @@ for infile in infiles:
         if not writeout: continue
 
         if (n>0):
-            tagcols = string.split( tag, '_')
+            tagcols = tag.split('_')
             try:
                 tagnum = int( tagcols[-1] )
                 tagcols[-1] = '%04d_%06d' %  ( n, tagnum )
-                newtag = string.join( tagcols,'_')
+                newtag = '_'.join(tagcols)
                 description_index = line.find( tag )
                 line = line[:description_index] + newtag
             except:

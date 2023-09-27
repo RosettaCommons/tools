@@ -128,12 +128,12 @@ if ($overwrite || !-d "$Bin/csblast/bin") {
 	chdir("$Bin/csblast/");
 	system("wget -N $url");
 	system("tar -zxvf $package");
-  my $sph_package = "sparsehash-2.0.3.tar.gz";
+  my $sph_package = "sparsehash-2.0.4.tar.gz";
   system("wget -N https://github.com/sparsehash/sparsehash/archive/$sph_package");
 	system("tar -zxvf $sph_package");
 	push(@packages_to_clean, "$Bin/csblast/$package", "$Bin/csblast/$sph_package");
 
-	chdir("$Bin/csblast/sparsehash-sparsehash-2.0.3");
+	chdir("$Bin/csblast/sparsehash-sparsehash-2.0.4");
   system("./configure --prefix=$Bin/csblast/local");
 	system("make install"); # build from src
 

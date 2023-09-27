@@ -1,5 +1,5 @@
 --- sparks-x/bin/buildinp.py	2011-09-16 12:25:22.000000000 -0400
-+++ buildinp.py	2023-09-27 16:32:57.495537818 -0400
++++ buildinp.py	2023-09-27 16:59:09.179358476 -0400
 @@ -6,7 +6,7 @@
  		170, 185, 160, 145, 180, 225, 115, 140, 155, 255, 230)
  def rdphipsi(fn):
@@ -239,7 +239,7 @@
  			if not opts.useDSSP:
  				run1([fn+'.phipsi', fn+'.pssm', ofile])
  			else:
-@@ -311,10 +311,10 @@
+@@ -311,7 +311,7 @@
  				elif os.path.isfile(fn + '.dssp2'):
  					fdssp = fn + '.dssp2'
  				else:
@@ -248,5 +248,3 @@
  					continue
  				run1([fn+'.phipsi', fn+'.pssm', ofile, fdssp])
  	else:
- 		if len(args)!=4 and not (not opts.useDSSP and len(args)==3):
- 			parser.print_help(); sys.exit()

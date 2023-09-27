@@ -167,11 +167,13 @@ chdir($Bin);
 # from http://sparks-lab.org/pmwiki/download/yueyang/SPARKS-X/sparksx-1.tgz
 if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 	my $package = "SPARKS-X.tgz";
+	my $innerpackage = "sparksx-1.tgz";
 	my $url = "https://apisz.sparks-lab.org:8443/downloads/Resource/Protein/1_Protein_3d_structure_prediction/$package";
 	print "INSTALLING SPARKS-X from $url ....\n";
 	system("rm -rf sparks-x") if (-d "sparks-x"); # clean up interrupted attempts
 	system("wget -N $url");
 	system("tar -zxvf $package");
+	system("tar -xvzf SPARKS-X/$innerpackage");
 	push(@packages_to_clean, "$Bin/$package");
 	# update paths to sparks-x directory in sparks-x scripts
 	# instead of using the SPARKSXDIR environment variable.

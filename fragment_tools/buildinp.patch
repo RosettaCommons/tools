@@ -58,14 +58,14 @@
 +	print( ''.join(seq1), file=fp )
 +	for m in range(20):
 +		for dat in Fseq: print( dat[m], file=fp )
-+	        print( "", file=fp )
++		print( "", file=fp )
 +	for m in range(20):
 +		for dat in Pseq: print( dat[m], file=fp )
-+	        print( "", file=fp )
++		print( "", file=fp )
 +	print( ''.join(ssec1), file=fp )
 +	for m in range(3):
 +		for dat in phipsi1: print( dat[m], file=fp )
-+	        print( "", file=fp )
++		print( "", file=fp )
 +	for m in range(3):
 +		print( ''.join([str(dat[m]) for dat in Fphipsi]), file=fp )
  	if bDSSP:
@@ -250,5 +250,3 @@
  	else:
  		if len(args)!=4 and not (not opts.useDSSP and len(args)==3):
  			parser.print_help(); sys.exit()
--		run1(args)
-+                run1(args)

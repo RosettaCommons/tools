@@ -270,11 +270,18 @@ chdir($Bin);
 if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 	chdir($datdir);
 	print "Fetching NR database from NCBI. Be very patient ......\n";
-	#system("wget -N http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl");
-	system("cp /home/renfrew/Projects/MicrobiomImmunityProject/Programs/BLAST/install-2.6.0+/bin/update_blastdb.pl . ");
-	die "ERROR! wget http://www.ncbi.nlm.nih.gov/blast/docs/update_blastdb.pl failed.\n" if (!-s "$datdir/update_blastdb.pl");
-	system("rm $datdir/nr*"); # clean up interrupted attempts
-	$SIG{INT} = \&clean_nr_tgz;
+	system("wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz");
+	system("tar -zxf ncbi-blast-2.10.0+-src.tar.gz");
+	system("cp ncbi-blast-2.10.0+-src/c++/src/app/blast/update_blastdb.pl .");
+	die "ERROR! wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.10.0/ncbi-blast-2.10.0+-src.tar.gz failed.\n" if (!-s "$datdir/update_blastdb.pl");
+	if ( -d "$datdir/nr" ) {
+	        system("rm -rf $datdir/nr*"); # clean up interrupted attempts
+	        $SIG{INT} = \&clean_nr_tgz;
+	}
+	# Sometimes fails randomly, run multiple times (sorry horrible hack)
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
+	system("perl $datdir/update_blastdb.pl nr");
 	(system("perl $datdir/update_blastdb.pl nr") == 0) or do { &clean_nr_tgz; };
 	$SIG{INT} = \&clean_nr;
 	foreach my $f (glob("$datdir/nr.*tar.gz")) {

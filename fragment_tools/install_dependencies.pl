@@ -205,6 +205,8 @@ if ($overwrite || !-d "$Bin/sparks-x/bin" || !-d "$Bin/sparks-x/data") {
 		close(NF);
 	}
 	system( "patch sparks-x/SPINE-X/bin/buildinp_mat.pl < buildinp_mat.patch" ); 
+	system( "patch -R sparks-x/bin/buildinp.py < buildinp.patch" ); 
+	system( "patch -R sparks-x/bin/prolib.py < prolib.patch" ); 
 	chdir("$Bin/sparks-x");
 	system("ln -sf ../blast ./");
 	system("ln -sf ../databases/ ./blast-NR");

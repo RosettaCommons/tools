@@ -135,13 +135,14 @@ if ($overwrite || !-d "$Bin/csblast/bin") {
 
 	chdir("$Bin/csblast/sparsehash-sparsehash-2.0.4");
   system("./configure --prefix=$Bin/csblast/local");
-	system("make install"); # build from src
+	system("make install -j `nproc`"); # build from src
 
 	chdir("$Bin/csblast");
   system("mv csblast-*/* .");
 	chdir("$Bin/csblast/src");
+  	system( "sed -i 's/FLAGS = \-Wall/FLAGS = \-Wall \-std=c++11/g' Makefile"); # Ensure that newer compilers don't default to C++17 standard, which produces errors.
   system('sed -i -e "s|^INC.*|INC = -I../local/include|" Makefile');
-  system("make csblast csbuild");
+  system("make csblast csbuild -j `nproc`");
 
 	(-d "$Bin/csblast/bin") or die "ERROR! psipred installation failed!\n";
 }

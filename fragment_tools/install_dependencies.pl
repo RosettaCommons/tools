@@ -61,7 +61,7 @@ if ($overwrite || !-d "$Bin/blast/bin" || !-d "$Bin/blast/data") {
 	} elsif ($proc =~ /ia64/) {
 		$package = "blast-2.2.17-ia64-linux.tar.gz";
 	}
-	my $url = "ftp://ftp.ncbi.nih.gov/blast/executables/legacy/2.2.17/$package";
+	my $url = "ftp://ftp.ncbi.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.17/$package";
 	print "INSTALLING BLAST from $url ....\n";
 	system("rm -rf blast") if (-d "blast");  # clean up interrupted attempts
 	system("wget -N $url");

@@ -1,5 +1,5 @@
 --- sparks-x/bin/buildinp.py	2011-09-16 12:25:22.000000000 -0400
-+++ buildinp.py	2023-09-27 16:59:09.179358476 -0400
++++ buildinp.py	2023-09-27 17:19:07.254542124 -0400
 @@ -6,7 +6,7 @@
  		170, 185, 160, 145, 180, 225, 115, 140, 155, 255, 230)
  def rdphipsi(fn):
@@ -212,7 +212,7 @@
  			if x[0] == '#': continue
  			plist.append( x.split()[0] )
  			args += plist
-@@ -287,22 +287,22 @@
+@@ -287,22 +287,23 @@
  			parser.print_help(); sys.exit()
  		if not os.path.isdir(opts.odir):
  			parser.print_help()
@@ -225,7 +225,8 @@
  				i += '.phipsi'
  			elif not os.path.isfile(i):
 -				print >>sys.stderr, 'file not exists:', i; continue
-+				print( 'file not exists:', i; continue, file=sys.stderr)
++				print( 'file not exists:', i, file=sys.stderr)
++				continue
  			dn, bn = os.path.split(i)
  			if bn.endswith('.phipsi'): bn = bn[:-7]
  			fn = os.path.join(dn, bn)
@@ -239,7 +240,7 @@
  			if not opts.useDSSP:
  				run1([fn+'.phipsi', fn+'.pssm', ofile])
  			else:
-@@ -311,7 +311,7 @@
+@@ -311,7 +312,7 @@
  				elif os.path.isfile(fn + '.dssp2'):
  					fdssp = fn + '.dssp2'
  				else:

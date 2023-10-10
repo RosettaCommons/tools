@@ -4540,6 +4540,7 @@ def canonical_set_of_macros_to_test():
         ["_WIN32"],
         ["MAC"],
         ["WIN_PYROSETTA"],
+        ["USE_PYTORCH","CXX14","CXX14_OR_LATER","USE_TENSORFLOW","USE_TENSORFLOW_CPU"],
     ]
 
 

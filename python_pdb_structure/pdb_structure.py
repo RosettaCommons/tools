@@ -37,7 +37,7 @@ class Residue :
         if atname in self.atmap : return self.atmap[ atname ]
         elif atname.strip() in self.stripped_atmap : return self.stripped_atmap[ atname.strip() ]
         else:
-            print "Error in looking up atom",atname,"in residue", self.resname
+            print("Error in looking up atom",atname,"in residue", self.resname)
             sys.exit(1)
     def has_atom( self, atname ) :
         #print "has atom? ", self.resname, atname, atname in self.atmap, atname.strip() in self.stripped_atmap
@@ -65,10 +65,10 @@ class Chain :
         copyres = copy.copy( newresidue )
         copyres.claim( self )
         if newresidue.resstring not in self.resmap :
-            print "Could not replace residue", newresidue.resstring
-            print len( self.resmap )
+            print("Could not replace residue", newresidue.resstring)
+            print(len( self.resmap ))
         assert( newresidue.resstring in self.resmap )
-        for i in xrange(len( self.residues )) :
+        for i in range(len( self.residues )) :
             if self.residues[ i ].resstring == newresidue.resstring :
                 self.residues[ i ] = copyres
         self.resmap[ newresidue.resstring ] = copyres

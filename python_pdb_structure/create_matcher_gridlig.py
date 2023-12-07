@@ -34,4 +34,4 @@ if __name__ == "__main__" :
     pose = pdbstructure_from_file( options.struct )
     lines = gridlig_bounding_box_lines( pose, options.extension )
     for line in lines :
-        print line,
+        print(line, end=' ')

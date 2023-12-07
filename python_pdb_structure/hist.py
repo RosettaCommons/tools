@@ -91,10 +91,10 @@ class Histogramer() :
       self.n_values += 1.0
 
    def print_histogram( self  ) :
-      keys = self.data.keys()
+      keys = list(self.data.keys())
       keys.sort()
       for key in keys :
-         print self.first_column_for_key( key ) + self.printval_for_key( key )
+         print(self.first_column_for_key( key ) + self.printval_for_key( key ))
 
    def printval_for_key( self, key ) :
       len_for_key = len(self.data[key])

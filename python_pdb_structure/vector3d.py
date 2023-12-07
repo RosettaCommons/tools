@@ -88,8 +88,8 @@ if __name__ == "__main__" :
     p1.set( 1, 2, 3 )
     p2 = vector3d()
     p2.set( 4, 5, 6 )
-    print p1 + p2
-    print p1 * p2
+    print(p1 + p2)
+    print(p1 * p2)
     p3 = p1 - p2
     p3.normalize()
-    print p3
+    print(p3)

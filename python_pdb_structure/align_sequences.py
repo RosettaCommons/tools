@@ -7,28 +7,28 @@ def print_alignments( a1, a2, name1, name2 ) :
     cnt1, cnt2 = 0, 0
     seqstr = [None]*60;
     while cnt1 < len(a1) :
-        for i in xrange( 60 ) :
+        for i in range( 60 ) :
             seqstr[i] = a1[cnt1]
             cnt1 += 1
             if cnt1 == len(a1) : 
                 seqstr = seqstr[:i+1]
                 break
-        print name1, "".join(seqstr)
-        for i in xrange( 60 ) :
+        print(name1, "".join(seqstr))
+        for i in range( 60 ) :
             seqstr[i] = a2[cnt2]
             cnt2 += 1
             if cnt2 == len(a2) : 
                 break
-        print name2, "".join(seqstr)
-        print
+        print(name2, "".join(seqstr))
+        print()
 
 
 def print_mat( mat ) :
-    for i in xrange(len(mat)) :
-        print "[",
-        for j in xrange(len(mat[i])) :
-            print "%3d" % mat[i][j],
-        print "]"
+    for i in range(len(mat)) :
+        print("[", end=' ')
+        for j in range(len(mat[i])) :
+            print("%3d" % mat[i][j], end=' ')
+        print("]")
 
 def needleman_wunsch( seq1, seq2 ) :
     gap_pen = -1
@@ -41,17 +41,17 @@ def needleman_wunsch( seq1, seq2 ) :
     # 2: increase j, keep i the same  = insert a gap into seq1
     # 3: increase i and j             = align i and j to each other
 
-    for i in xrange(len(seq1)+1) :
+    for i in range(len(seq1)+1) :
         score[i] = [ None ] * ( len(seq2) +1 )
         trace[i] = [ None ] * ( len(seq2) +1 )
         score[i][0] = gap_pen * i
         trace[i][0] = 1
-    for j in xrange(len(seq2)+1) :
+    for j in range(len(seq2)+1) :
         score[0][j] = gap_pen * j
         trace[0][j] = 2
 
-    for i in xrange(1,len(seq1)+1) :
-        for j in xrange(1,len(seq2)+1) :
+    for i in range(1,len(seq1)+1) :
+        for j in range(1,len(seq2)+1) :
             sc1 = gap_pen + score[i-1][j]
             sc2 = gap_pen + score[i][j-1]
             sc3 = ( 1 if seq1[i-1] == seq2[j-1] else 0 ) + score[i-1][j-1]
@@ -94,7 +94,7 @@ def needleman_wunsch( seq1, seq2 ) :
 
     seq1_aln, seq2_aln = [], []
     cnt1, cnt2 = 0, 0
-    for i in xrange(len(best_path)) :
+    for i in range(len(best_path)) :
         if best_path[i] == 2 :
             seq1_aln.append( "-" )
             seq2_aln.append( seq2[cnt2] )

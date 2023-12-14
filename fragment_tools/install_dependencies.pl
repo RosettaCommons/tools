@@ -338,6 +338,7 @@ print $csblast_credit;
 print $sparksx_credit;
 
 print "FOR ACADEMIC USE ONLY.\n\n";
+exit 0; # We have successfully installed dependencies. 
 
 ## catch ctrl-c
 sub clean_uniref90 {

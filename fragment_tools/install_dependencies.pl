@@ -9,6 +9,7 @@ foreach my $arg (@ARGV) {
 		$installtype = $1;
 	}
 	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr)\s*$/) {
+		print "ERROR: Unrecognized command line parameter `$arg` found!\n"
 		$installtype = "";
 		last;
 	}

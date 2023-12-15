@@ -8,7 +8,7 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^(standard|overwrite)\s*$/) {
 		$installtype = $1;
 	}
-	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr)\s*$/) {
+	if ($arg !~ /^(standard|overwrite|nr|uniref90|uniref50|skip_nr|localnrcopy)\s*$/) {
 		print "ERROR: Unrecognized command line parameter `$arg` found!\n"
 		$installtype = "";
 		last;
@@ -16,7 +16,7 @@ foreach my $arg (@ARGV) {
 }
 if (!$installtype) {
 	print "\n";
-	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr]\n\n";
+	print "USAGE: $0 <standard|overwrite> [nr(default)|uniref90|uniref50|skip_nr|localnrcopy]\n\n";
 	print "This script installs blast, psipred, csblast, sparks-x, and the NCBI non-redundant (nr) database.\n";
 	print "<standard> will only install what is missing.\n";
 	print "<overwrite> will do a fresh installation.\n";
@@ -46,7 +46,15 @@ my $skip_nr = 0;
 my $database = "nr";
 foreach my $arg (@ARGV) {
 	$skip_nr = 1 if ($arg =~ /^skip_nr\s*$/);
-	if ($arg =~ /^(uniref90|uniref50)\s*$/) { $database = $1; }
+	if ($arg =~ /^(uniref90|uniref50|localnrcopy)\s*$/) { $database = $1; }
+}
+if ($database eq "localnrcopy") {
+	if (!$ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not set!\n";
+	}
+	if (!-d $ENV{'LOCAL_NR_COPY'}) {
+		die "ERROR: CANNOT USE 'localnrcopy' if environment variable 'LOCAL_NR_COPY' is not a real dir: $ENV{'LOCAL_NR_COPY'}\n";
+	}
 }
 
 chdir($Bin);
@@ -302,6 +310,22 @@ if (!$skip_nr && $database eq "nr" && ($overwrite || !-s "$datdir/nr.pal")) {
 }
 chdir($Bin);
 
+if (!$skip_nr && $database eq "localnrcopy" && ($overwrite || !-s "$datdir/nr.pal")) {
+	print "Copying your local nr database to $datdir...\n";
+	my $copy_cmd = "rsync -rav $ENV{'LOCAL_NR_COPY'}/* $datdir";
+	print "$copy_cmd\n";
+	system($copy_cmd);
+	chdir($datdir);
+
+	foreach my $f (glob("$datdir/nr.*tar.gz")) {
+		my $ext_cmd = "tar -zxvf $f";
+		(system($ext_cmd) == 0) or die "Failed to exract with command $ext_cmd";
+	}
+	# Make sure at least one nr.pal file is there
+	(-s "$datdir/nr.pal") or die "ERROR! $datdir/nr database installation failed!\n";
+}
+chdir($Bin);
+
 # p_filt NR database from installed nr
 if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	chdir($datdir);
@@ -339,7 +363,6 @@ print $csblast_credit;
 print $sparksx_credit;
 
 print "FOR ACADEMIC USE ONLY.\n\n";
-exit 0; # We have successfully installed dependencies. 
 
 ## catch ctrl-c
 sub clean_uniref90 {

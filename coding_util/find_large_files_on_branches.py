@@ -2,7 +2,7 @@
 
 '''
 This script will find large files in the repository, and then attempt to print the branches on which they can be reached.
-This includes branches on which the files have been added and then subsequently deleted. (As a simplification, the labels MAIN and FOLDIT will be printed for files which are in the main (master) Rosetta branch and the main Foldit branch, respectively.)
+This includes branches on which the files have been added and then subsequently deleted. (As a simplification, the labels MAIN and FOLDIT will be printed for files which are in the main Rosetta branch and the main Foldit branch, respectively.)
 
 The files will be printed out in reverse order of size. It may take a while to complete, so feel free to cancel the script when you get what you need.
 
@@ -146,7 +146,7 @@ if __name__ == "__main__":
             fnames.add(fname)
             branches.update( find_branches(chash) )
             tags.update( find_tags(chash) )
-            if b'origin/master' in branches:
+            if b'origin/main' in branches:
                 branches = {b'MAIN'}
                 tags = set()
                 break

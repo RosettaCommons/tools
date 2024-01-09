@@ -52,7 +52,7 @@ if __name__ == "__main__" :
         p.int( "num_cpu" ).shorthand("j").default(1)
         p.str( "pound_if_setting" ).default("take_if").described_as( "Can be take_if or take_else.")
         p.flag( "dry_run" ).described_as( "Only attempt to beautify without changing the files.")
-        p.str( "ref_branch" ).default("origin/master").described_as( "Which branch to use for 'master' when calculating changes." )
+        p.str( "ref_branch" ).default("origin/main").described_as( "Which branch to use for 'main' when calculating changes." )
         p.flag( "quiet" ).shorthand("q").described_as( "Silent all output produced by this script" )
 
     # ok, let's CD into the root of the git repository
@@ -65,8 +65,8 @@ if __name__ == "__main__" :
     os.chdir( pwd_parts[0] )
 
 
-    closest_master_command = [ "git", "merge-base", ref_branch, "HEAD" ]
-    rev_to_diff_against = subprocess.Popen(closest_master_command, stdout=subprocess.PIPE).communicate()[0].strip()
+    closest_main_command = [ "git", "merge-base", ref_branch, "HEAD" ]
+    rev_to_diff_against = subprocess.Popen(closest_main_command, stdout=subprocess.PIPE).communicate()[0].strip()
     if ( rev_to_diff_against == '' ): # If, for some reason, the branch doesn't exist
         sys.stderr.write( "ERROR: Branch '" + ref_branch + "' doesn't seem to be a valid branch in this repository - not beautifying.\n" )
         sys.exit(-1)

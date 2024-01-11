@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-This script will find large files that are in a particular branch, but not in a reference branch (usually master).
+This script will find large files that are in a particular branch, but not in a reference branch (usually main).
 It will also sum the size of all files (including deleted/modified ones) for the branch.
 Note that the total space taken in the repo is likely to be much, much smaller than the printed size,
 due to the compression which Git uses.
@@ -150,7 +150,7 @@ def calculate_size_using_diffs(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-b', '--branch', help="The branch to use (default:current branch)", default="HEAD")
-    parser.add_argument('-r', '--ref', help="The reference branch (default:origin/master", default="origin/master")
+    parser.add_argument('-r', '--ref', help="The reference branch (default:origin/main", default="origin/main")
     parser.add_argument('-j', '--json', help="If present, write results to the JSON file parameter.", default=None)
     parser.add_argument('-s', '--size', type=int, default=1024, help="Don't individually list files under the given size (in KB)" )
     parser.add_argument('-v', '--verbose', action="store_true", help="increase output verbosity")

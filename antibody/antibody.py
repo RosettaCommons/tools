@@ -17,6 +17,7 @@ import os, sys, re, json, commands, shutil, random
 
 from optparse import OptionParser, IndentedHelpFormatter
 from time import time
+import random
 
 _script_path_ = os.path.dirname( os.path.realpath(__file__) )
 
@@ -1017,13 +1018,18 @@ def run_blast(cdr_query, prefix, blast, blast_database, verbose=False):
                     else:
                         selected_template = table[0]['subject-id']
                 else:  # if there is no template... table is a list, which has a blast result
+                    pdb_entries_of_same_length=[]
                     for v in cdr_info.items():
                         check_length = '%s_length' % k
                         if len_cdr == int(v[1][check_length]):
-                            pdb_random = v[0]
-                            break
-                    print '\nWARNING: No template avaliable for %s after filtering! Using a random template of the same length as the query\n' % k
-                    selected_template = pdb_random
+                            pdb_entries_of_same_length.append(v[0])
+                    print '\n\nWARNING: No template avaliable for %s after filtering! Seeking templates of the same length %d as the query.\n' % (k,len_cdr)
+                    if 0 == len(pdb_entries_of_same_length):
+                        print 'ERROR: Could not find any template with that same length.\n'
+                        sys.exit(1)
+                    else:
+                        print 'INFO: Making a random choice from %d entries found featuring %s with length %d.\n' % (len(pdb_entries_of_same_length),k,len_cdr)
+                    selected_template = random.choice(pdb_entries_of_same_length)
                     #sys.exit(1)
                 print "%s template: %s" % (k, selected_template)
             else:

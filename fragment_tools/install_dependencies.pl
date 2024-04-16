@@ -253,7 +253,7 @@ if (!$skip_nr && $database eq "uniref90" && ($overwrite || !-f "$datdir/uniref90
 	(system("gunzip $datdir/uniref90.fasta.gz") == 0) or do { &clean_uniref90; };
 	(system("mv $datdir/uniref90.fasta $datdir/nr") == 0) or do { &clean_uniref90; };
 	print "Formating nr fasta. Be very very very patient ......\n";
-	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr") == 0) or do { &clean_uniref90; };
+	(system("$Bin/blast/bin/formatdb -v 10000 -o T -i $datdir/nr") == 0) or do { &clean_uniref90; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr.pal") or die "ERROR! uniref90 as $datdir/nr database installation failed!\n";
 	(system("ln -s nr uniref90") == 0) or do { &clean_uniref90; }; # create a link just to know the nr is uniref
@@ -272,7 +272,7 @@ if (!$skip_nr && $database eq "uniref50" && ($overwrite || !-s "$datdir/uniref50
 	(system("gunzip $datdir/uniref50.fasta.gz") == 0) or do { &clean_uniref50; };
 	(system("mv $datdir/uniref50.fasta $datdir/nr") == 0) or do { &clean_uniref50; };
 	print "Formating nr fasta. Be very very very patient ......\n";
-	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr") == 0) or do { &clean_uniref50; };
+	(system("$Bin/blast/bin/formatdb -v 10000 -o T -i $datdir/nr") == 0) or do { &clean_uniref50; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr.pal") or die "ERROR! uniref50 as $datdir/nr database installation failed!\n";
 	(system("ln -s nr uniref50") == 0) or do { &clean_uniref50; }; # create a link just to know the nr is uniref
@@ -338,7 +338,7 @@ if (!$skip_nr && ($overwrite || !-s "$datdir/nr_pfilt.pal")) {
 	print "Formatting nr_pfilt fasta. Be very very very patient ......\n";
 	system("rm $datdir/nr_pfilt.*"); # clean up interrupted attempts
 	$SIG{INT} = \&clean_nr_pfilt;
-	(system("$Bin/blast/bin/formatdb -o T -i $datdir/nr_pfilt") == 0) or do { &clean_nr_pfilt; };
+	(system("$Bin/blast/bin/formatdb -v 10000 -o T -i $datdir/nr_pfilt") == 0) or do { &clean_nr_pfilt; };
 	$SIG{INT} = 'DEFAULT';
 	(-s "$datdir/nr_pfilt.pal") or die "ERROR! $datdir/nr_pfilt database installation failed!\n";
 }

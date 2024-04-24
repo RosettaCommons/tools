@@ -1,3 +1,6 @@
+
+from __future__ import print_function
+
 from Bio import AlignIO
 
 def get_id_from_tag(alignment,tag):
@@ -30,7 +33,7 @@ def find_gaps(alignment,tag):
             if in_gap: #the last gap position must have been the previous residue
                 gap_end = resid-1
                 in_gap = False
-                print gap_start, gap_end
+                print(gap_start, gap_end)
                 gaplist.append( (gap_start,gap_end) )
         resid += 1
     return gaplist

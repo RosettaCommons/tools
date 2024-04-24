@@ -2,20 +2,29 @@
 
 #author: Jordan Willis
 
+from __future__ import print_function
+
 try:
     from Bio.PDB.PDBParser import PDBParser
-    from Bio.PDB.Polypeptide import three_to_one
+    import Bio.PDB.Polypeptide
 except ImportError:
     import sys
     sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
     sys.exit()
 
+if hasattr(Bio.PDB.Polypeptide, 'three_to_one'):
+    three_to_one = Bio.PDB.Polypeptide.three_to_one
+else:
+    def three_to_one(three):
+        return Bio.PDB.Polypeptide.protein_letters_3to1[three]
+
+
 import sys
 import glob
 
 def usage():
-    print "Pulls fasta file of a specific chain up to a specified output file"
-    print "python get_fasta_from_pdb_by_chain.py <pdb> <chain> <output>"
+    print("Pulls fasta file of a specific chain up to a specified output file")
+    print("python get_fasta_from_pdb_by_chain.py <pdb> <chain> <output>")
 
 
 #import warnings
@@ -53,11 +62,11 @@ def get_three_letter(pdb, chain_id):
 def get_one_letter(list_of_three):
     fasta_one=[]
     for x in list_of_three:
-	if x == "S56" or x == "TES":
-		x="N"
-	else:
-		x=three_to_one(x)
-	fasta_one.append(x)
+        if x == "S56" or x == "TES":
+                x="N"
+        else:
+                x=three_to_one(x)
+        fasta_one.append(x)
     return fasta_one
 
 

@@ -68,11 +68,11 @@ if options.database != "":
     x_axis_scores = db.score_generator(options.x_axis)
     y_axis_scores = db.score_generator(options.y_axis)
     for x_point, y_point in zip(x_axis_scores,y_axis_scores):
-	x_tag = x_point[0]
-	y_tag = y_point[0]
-	if x_tag != y_tag:
-	    sys.exit("tags aren't equal, something is very wrong")
-	data.append( (x_tag, x_point[1],y_point[1]) )
+        x_tag = x_point[0]
+        y_tag = y_point[0]
+        if x_tag != y_tag:
+            sys.exit("tags aren't equal, something is very wrong")
+        data.append( (x_tag, x_point[1],y_point[1]) )
 
 #now we have the data, so we output it
 output_file = fileutil.universal_open(args[0],'w')

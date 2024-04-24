@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 from optparse import OptionParser
 import os, sys
 import array
@@ -32,7 +34,15 @@ except ImportError:
     sys.stderr.write("\nERROR: This script requires that Biopython (http://biopython.org) is installed.\n\n")
     sys.exit()
 
-
+if hasattr(Bio.PDB.Polypeptide, 'one_to_three'):
+    one_to_three = Bio.PDB.Polypeptide.one_to_three
+else:
+    def one_to_three(one):
+        found = [ k for k,v in Bio.PDB.Polypeptide.protein_letters_3to1.items() if v == one ]
+        if found:
+            return found[0]
+        else:
+            raise KeyError(one)
 
 def list_to_generator(list):
     for x in list:
@@ -50,7 +60,7 @@ if len(args) != 3:
     parser.error("you must specify an alignment file, template pdb, and output pdb")
 
 #read in our input files
-alignment_file = fileutil.universal_open(args[0],'rU')
+alignment_file = fileutil.universal_open(args[0],'r')
 alignment_data = AlignIO.read(alignment_file,options.align_format)
 alignment_file.close()
 template_struct = util.load_pdb(args[1])
@@ -84,9 +94,9 @@ gapped_template = pdbStat.find_gaps(template_struct,template_sequence,options.ch
 #if you have an alignment gap thats larger than 1 aa, this script won't work
 for gap in target_gaps:
     if abs(gap[1]-gap[0]) > 1:
-		print "WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. "
-		print "We cannot completely thread this protein in an automatic way, "
-		print "manual inspection and adjustment of loop files will be required."
+        print("WARNING: gap of size "+ str(gap[0]-gap[1])+" in target sequence. ")
+        print("We cannot completely thread this protein in an automatic way, ")
+        print("manual inspection and adjustment of loop files will be required.")
 
 #we need to make a new structure, then a new model, then a new chain, then we fill the chain with residues, and atoms
 output_structure_builder = Bio.PDB.StructureBuilder.StructureBuilder()
@@ -107,7 +117,7 @@ for chain in template_struct.get_chains():
         break
 
 if not chain_found:
-	sys.exit("ERROR: You specified chain "+options.chain+" but this chain does not exist in the pdb file "+ args[1])
+    sys.exit("ERROR: You specified chain "+options.chain+" but this chain does not exist in the pdb file "+ args[1])
 
 #template_residues = template_struct.get_chains()
 sequence_num = 1 #the pdb sequence number
@@ -117,7 +127,7 @@ for align_resn, temp_resn,gap_temp_resn in zip(alignment_data[target_id],alignme
     if align_resn == '-' and temp_resn == '-':  #this shouldn't happen, but it is safe to ignore
         continue
     elif align_resn != '-' and (temp_resn == '-' or gap_temp_resn == '-'): #gap in the template (or pdb), not in the alignment, build a loop
-        align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
+        align_name3 = one_to_three(align_resn)
         output_structure_builder.init_residue(align_name3," ",sequence_num," ")
         zero_triplet = array.array('f',[0.0,0.0,0.0])
         output_structure_builder.init_atom("N",zero_triplet,0.0,-1.0," "," N  ", atom_num, "N")
@@ -130,16 +140,16 @@ for align_resn, temp_resn,gap_temp_resn in zip(alignment_data[target_id],alignme
         atom_num += 1
         sequence_num += 1
     elif align_resn == '-' and temp_resn != '-': #gap in the alignment, not in the template, skip the residue
-        template_residues.next() #pull a residue out of the pdb and throw it away
+        next(template_residues) #pull a residue out of the pdb and throw it away
         continue
     elif align_resn != '-' and temp_resn != '-': #we're aligned, copy backbone from old pdb to new, if the sidechain is identical, copy that too
         align_name3 = amino_acids.one_letter_names[align_resn]
-        #align_name3 = Bio.PDB.Polypeptide.one_to_three(align_resn)
+        #align_name3 = one_to_three(align_resn)
         temp_name3 = amino_acids.one_letter_names[temp_resn]
-        #temp_name3 = Bio.PDB.Polypeptide.one_to_three(temp_resn)
-        current_res = template_residues.next() #pull the next residue out of the pdb file
+        #temp_name3 = one_to_three(temp_resn)
+        current_res = next(template_residues) #pull the next residue out of the pdb file
         if(current_res.get_resname() != temp_name3):  #if the current residue from the pdb isnt the same type as the current from the template, something's broken
-            print current_res.get_resname(),temp_name3
+            print(current_res.get_resname(),temp_name3)
             sys.exit("Residue mismatch between alignment and PDB, check that PDB sequence and alignment sequence are identical")
         output_structure_builder.init_residue(align_name3," ",sequence_num," ")
         if(align_name3 == temp_name3): #if we have an exact alignment, copy all the atoms over, including the sidechain

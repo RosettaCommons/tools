@@ -1,12 +1,15 @@
+
+from __future__ import print_function
+
 import sys
-import PSSM
+from . import PSSM
 from Bio.PDB import *
 from Bio import pairwise2
 from rosettautil.util import fileutil
 import math
 import warnings
 from Bio import SVDSuperimposer
-from itertools import izip
+
 import amino_acids
 
 def sequence_recovery(native_struct, designed_struct):
@@ -82,7 +85,7 @@ def sequence_recovery_group(native_struct, designed_struct, min, max):
                     total[group] += 1
                     break
     for group in groups:
-        print group, recovered[group], total[group]
+        print(group, recovered[group], total[group])
         # recovered[group]=recovered[group]/total[group]
 
     return recovered
@@ -353,9 +356,9 @@ def atom_rms(atoms_a, atoms_b, debug=False, force=False):
         distance_2 = (atom_a - atom_b) ** 2
         if atom_a.get_id() != atom_b.get_id():
             if force is True:
-                print str(atom_a.id) + "_" + str(atom_a.get_parent().id[1]) + "_" + str(atom_a.get_parent().get_parent().id), \
+                print(str(atom_a.id) + "_" + str(atom_a.get_parent().id[1]) + "_" + str(atom_a.get_parent().get_parent().id), \
                     "and", str(atom_b.id) + "_" + str(atom_b.get_parent().id[1]) + "_" + str(atom_b.get_parent().get_parent(
-                    ).id), "don't match up, tossing them out of the rmsd calculation"
+                    ).id), "don't match up, tossing them out of the rmsd calculation")
                 garbage_counter += 1
                 continue
             else:
@@ -368,8 +371,8 @@ def atom_rms(atoms_a, atoms_b, debug=False, force=False):
         d_2_sum += distance_2
         resn += 1
     if debug:
-        print "removed %i atom sets from RMSD calculation" % (garbage_counter)
-        print "calculating rmsd on %i sets of atoms" % (included_counter)
+        print("removed %i atom sets from RMSD calculation" % (garbage_counter))
+        print("calculating rmsd on %i sets of atoms" % (included_counter))
     rmsd = math.sqrt(d_2_sum / resn)
     if debug:
         with open("debug_atoms.txt", 'w') as f:
@@ -418,7 +421,7 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
     for(native_chain, decoy_chain) in zip(native[0].get_list(), decoy[0].get_list()):
         if chain:
             if native_chain.get_id() not in chain:
-                print "ignoring chain " + native_chain.get_id()
+                print("ignoring chain " + native_chain.get_id())
                 continue
     # iterate through residues
         for(native_residue, decoy_residue) in zip(native_chain.get_list(), decoy_chain.get_list()):
@@ -429,7 +432,7 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
                         native_atoms.append(native_residue['CA'])
                         decoy_atoms.append(decoy_residue['CA'])
                     except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
+                        print("WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations.")
                 elif ca_mode == "bb":
                     try:
                         native_atoms.append(native_residue['CA'])
@@ -441,13 +444,13 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
                         decoy_atoms.append(decoy_residue['O'])
                         decoy_atoms.append(decoy_residue['N'])
                     except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms"
+                        print("WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms")
                 elif ca_mode == "all":
                     for (native_atom, decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
                         native_atoms.append(native_atom)
                         decoy_atoms.append(decoy_atom)
                 else:
-                    print "you must specify a ca_mode, all,bb, or ca"
+                    print("you must specify a ca_mode, all,bb, or ca")
                     sys.exit()
 
             # no residue set
@@ -457,7 +460,7 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
                         native_atoms.append(native_residue['CA'])
                         decoy_atoms.append(decoy_residue['CA'])
                     except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations."
+                        print("WARNING: residue", str(native_residue.get_id()[1]), "has no CA atom in either the native or the decoy structure.  Either this residue is a hetatm or part of your backbone is missing. The residue will not be included in the RMSD calculations.")
                 elif ca_mode == 'bb':
                     try:
                         native_atoms.append(native_residue['CA'])
@@ -469,13 +472,13 @@ def calculate_rms(native, decoy, ca_mode, residues, rms_residues, chain, debug, 
                         decoy_atoms.append(decoy_residue['N'])
                         decoy_atoms.append(decoy_residue['O'])
                     except KeyError:
-                        print "WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms"
+                        print("WARNING: residue", str(native_residue.get_id()[1]), "has no backbone atoms")
                 elif ca_mode == 'all':
                     for (native_atom, decoy_atom) in zip(native_residue.get_list(), decoy_residue.get_list()):
                         native_atoms.append(native_atom)
                         decoy_atoms.append(decoy_atom)
                 else:
-                    print "you must specify a ca_mode, all,bb, or ca"
+                    print("you must specify a ca_mode, all,bb, or ca")
                     sys.exit()
     superpose = Superimposer()
     superpose.set_atoms(native_atoms, decoy_atoms)
@@ -519,7 +522,7 @@ def calculate_all_superpositions(native, decoy, residues, debug,pairwise):
         if counter in what_to_skip_native:
             decoy_residues.remove(residue)
 
-    zipped_file = izip(native_residues,decoy_residues)
+    zipped_file = zip(native_residues,decoy_residues)
 
 
     if residues:
@@ -534,7 +537,7 @@ def calculate_all_superpositions(native, decoy, residues, debug,pairwise):
                     native_atoms_ca.append(native_residue['CA'])
                     decoy_atoms_ca.append(decoy_residue['CA'])
                 except KeyError:
-                    print "warning: residue", str(native_residue.get_id()[1]), "has no ca atom in either the native or the decoy structure.  either this residue is a hetatm or part of your backbone is missing. the residue will not be included in the rmsd calculations."
+                    print("warning: residue", str(native_residue.get_id()[1]), "has no ca atom in either the native or the decoy structure.  either this residue is a hetatm or part of your backbone is missing. the residue will not be included in the rmsd calculations.")
                 try:
                     native_atoms_bb.append(native_residue['CA'])
                     native_atoms_bb.append(native_residue['C'])
@@ -545,14 +548,14 @@ def calculate_all_superpositions(native, decoy, residues, debug,pairwise):
                     decoy_atoms_bb.append(decoy_residue['O'])
                     decoy_atoms_bb.append(decoy_residue['N'])
                 except KeyError:
-                    print "warning: residue", str(native_residue.get_id()[1]), "has no backbone atoms"
+                    print("warning: residue", str(native_residue.get_id()[1]), "has no backbone atoms")
 
-                zipped_atoms = izip(native_list, decoy_list)
+                zipped_atoms = zip(native_list, decoy_list)
                 for (native_atom, decoy_atom) in zipped_atoms:
                     if native_atom.id != decoy_atom.id:
                         if debug:
-                            print "atom {0} from chain {1}, residue {2} and atom {3} from chain {4}, residue {5} don't match up, skipping".format(
-                                native_atom.id, chain_native, res_native, decoy_atom.id, chain_decoy, res_decoy)
+                            print("atom {0} from chain {1}, residue {2} and atom {3} from chain {4}, residue {5} don't match up, skipping".format(
+                                native_atom.id, chain_native, res_native, decoy_atom.id, chain_decoy, res_decoy))
                         continue
                     native_atoms_all.append(native_atom)
                     decoy_atoms_all.append(decoy_atom)
@@ -567,7 +570,7 @@ def calculate_all_superpositions(native, decoy, residues, debug,pairwise):
                 native_atoms_ca.append(native_residue['CA'])
                 decoy_atoms_ca.append(decoy_residue['CA'])
             except KeyError:
-                print "warning: residue", str(native_residue.get_id()[1]), "has no ca atom in either the native or the decoy structure.  either this residue is a hetatm or part of your backbone is missing. the residue will not be included in the rmsd calculations."
+                print("warning: residue", str(native_residue.get_id()[1]), "has no ca atom in either the native or the decoy structure.  either this residue is a hetatm or part of your backbone is missing. the residue will not be included in the rmsd calculations.")
             try:
                 native_atoms_bb.append(native_residue['CA'])
                 native_atoms_bb.append(native_residue['C'])
@@ -578,14 +581,14 @@ def calculate_all_superpositions(native, decoy, residues, debug,pairwise):
                 decoy_atoms_bb.append(decoy_residue['O'])
                 decoy_atoms_bb.append(decoy_residue['N'])
             except KeyError:
-                print "warning: residue", str(native_residue.get_id()[1]), "has no backbone atoms"
+                print("warning: residue", str(native_residue.get_id()[1]), "has no backbone atoms")
 
-            zipped_atoms = izip(native_list, decoy_list)
+            zipped_atoms = zip(native_list, decoy_list)
             for (native_atom, decoy_atom) in zipped_atoms:
                 if native_atom.id != decoy_atom.id:
                     if debug:
-                        print "atom {0} from chain {1}, residue {2} and atom {3} from chain {4}, residue {5} don't match up, skipping".format(
-                            native_atom.id, chain_native, res_native, decoy_atom.id, chain_decoy, res_decoy)
+                        print("atom {0} from chain {1}, residue {2} and atom {3} from chain {4}, residue {5} don't match up, skipping".format(
+                            native_atom.id, chain_native, res_native, decoy_atom.id, chain_decoy, res_decoy))
                     continue
                 native_atoms_all.append(native_atom)
                 decoy_atoms_all.append(decoy_atom)
@@ -625,7 +628,7 @@ def calculate_all_superpositions_clustal_constraints(native, decoy, residues, de
     native_atoms_all = []
     decoy_atoms_all = []
     # the native and decoy list from mammoth class
-    zipped_file = izip(native_list, decoy_list)
+    zipped_file = zip(native_list, decoy_list)
 
     # gather both decoy and native atoms
     for residue in native.get_residues():
@@ -641,7 +644,7 @@ def calculate_all_superpositions_clustal_constraints(native, decoy, residues, de
             if decoy_residue not in residues:
                 continue
             if debug:
-                print native_atoms[native_residue]['atom_list'][1].get_parent().resname, decoy_atoms[decoy_residue]['atom_list'][1].get_parent().resname
+                print(native_atoms[native_residue]['atom_list'][1].get_parent().resname, decoy_atoms[decoy_residue]['atom_list'][1].get_parent().resname)
             for atom in native_atoms[native_residue]['atom_list']:
                 if atom.id == 'CA':
                     native_atoms_ca.append(atom)
@@ -672,7 +675,7 @@ def calculate_all_superpositions_clustal_constraints(native, decoy, residues, de
         for(native_residue, decoy_residue) in zipped_file:
             if debug:
                 # print native_residue, decoy_residue
-                print native_residue, native_atoms[native_residue]['name'], decoy_residue, decoy_atoms[decoy_residue]['name']
+                print(native_residue, native_atoms[native_residue]['name'], decoy_residue, decoy_atoms[decoy_residue]['name'])
                # print native_atoms[native_residue][0].get_parent().resname, decoy_atoms[decoy_residue][0].get_parent().resname
             for atom in native_atoms[native_residue]['atom_list']:
                 if atom.id == 'CA':
@@ -730,7 +733,7 @@ def find_gaps(pdb, sequence, chain):
         type(residue_name)
         pdb_sequence += residue_name
     if len(pdb_sequence) == 0:
-        print "There is a problem with the command line options. Check your commandline for consitency with inputs."
+        print("There is a problem with the command line options. Check your commandline for consitency with inputs.")
     # now we align the two sequences
     alignment = pairwise2.align.globalmx(pdb_sequence, sequence, 2, -1)
     # print alignment

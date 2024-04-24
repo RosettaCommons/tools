@@ -4,17 +4,19 @@
 #  @brief  Converts various secondary structure profile formats to a PsiPred-SS2 file
 #  @author Dominik Gront (dgront@chem.uw.edu.pl)
 
+from __future__ import print_function
+
 import sys,re
 import getopt
 
 class ResiduePrediction:
-  id = -1 
+  id = -1
   aa = 'X'
   ss = 'C'
   h = 0.0
   e = 0.0
   c = 1.0
- 
+
   def __init__(self,id,aa,ss,h,e,c):
     self.id = id
     self.aa = aa
@@ -31,11 +33,11 @@ def usage():
     -t --talos filename           Converts TALOS+ -> PsiPred SS2
     -p --porter filename          Converts PORTER -> PsiPred SS2
     """
-    print usage
+    print(usage)
 
 def isFloat(s):
    try: return float(s) or True
-   except (ValueError, TypeError), e: return False
+   except (ValueError, TypeError) as e: return False
 
 def readTalos(fileName) :
   out = []
@@ -59,9 +61,9 @@ def readPorter(fileName) :
   skipIt = f.readline().strip()
   seq = f.readline().strip()
   sec = f.readline().strip()
-  h = re.split("\s+",f.readline().strip())
-  e = re.split("\s+",f.readline().strip())  
-  c = re.split("\s+",f.readline().strip())  
+  h = re.split(r"\s+",f.readline().strip())
+  e = re.split(r"\s+",f.readline().strip())
+  c = re.split(r"\s+",f.readline().strip())
 
   for i in range(len(seq)) :
       out.append( ResiduePrediction(i+1,seq[i],sec[i],float(h[i]),float(e[i]),float(c[i])) )
@@ -89,8 +91,8 @@ def readSam(fileName) :
   plusOne = 0
   for line in open(fileName) :
     if line[0] == '#' : continue
-    entries = re.split("\s+",line.strip())
-    if len(entries) != 5 : 
+    entries = re.split(r"\s+",line.strip())
+    if len(entries) != 5 :
       continue
     if isFloat(entries[2]) and isFloat(entries[3]) and isFloat(entries[4]) :
       e = float(entries[2])
@@ -107,18 +109,18 @@ def readSam(fileName) :
   return out
 
 def printSS2(ss_entries) :
-  print "# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n"
+  print("# PSIPRED VFORMAT (PSIPRED V2.6 by David Jones)\n")
   for e in ss_entries:
-    print "%4d %c %c   %5.3f  %5.3f  %5.3f" % (e.id,e.aa,e.ss,e.c,e.h,e.e)
+    print("%4d %c %c   %5.3f  %5.3f  %5.3f" % (e.id,e.aa,e.ss,e.c,e.h,e.e))
 
 def main():
     if len(sys.argv) == 1 : usage()
     # parse command line options
     try:
       opts, args = getopt.getopt(sys.argv[1:], "hs:j:t:p:", ["help","sam=","juffo=","talos=","porter="])
-    except getopt.error, msg:
-      print msg
-      print "for help use --help"
+    except getopt.error as msg:
+      print(msg)
+      print("for help use --help")
       sys.exit(2)
     # process options
     for o, a in opts:

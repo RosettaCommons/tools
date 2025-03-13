@@ -1,0 +1,23 @@
+easy_fragments.py is an easy to use utility to make fragments without any software dependencies. 
+
+To pick fragments you will need:
+ - sequence of your protein in FASTA format (one-letter code)
+ - secondary structure of your protein, either predicted, desired, or the true one extracted 
+   from the respective PDB deposit
+
+You will also need fragment_picker executable provided by the Rosetta 3.x distribution 
+and the vall.jul19.2011.gz which you can find in this folder.
+
+Example command lines:
+
+1) Pick 'default' fragments for a given sequence and secondary structure:
+./easy_fragments.py  --sequence MQYKLILNGKTLKGETTTEAVDAATAEKVFKQYANDNGVDGEWTYDDATKTFTVTE \
+    --secondary CEEEEEECCCCCCEEEEEECCHHHHHHHHHHHHHHHHCCCCEEEEECCCCEEEEEC \
+    --vall vall.jul19.2011.gz --bin ~/src.git/Rosetta/main/source/bin/
+
+2) as above, just read sequence and secondary structure from files in the FASTA format:
+./easy_fragments.py --secfile 2jsv.ss 2jsv.ss --seqfile 2jsv.fasta --vall vall.jul19.2011.gz --bin ~/src.git/Rosetta/main/source/bin/
+
+3) as above, but this time pick only 5-mers
+./easy_fragments.py --secfile 2jsv.ss 2jsv.ss --seqfile 2jsv.fasta -n 5 --vall vall.jul19.2011.gz --bin ~/src.git/Rosetta/main/source/bin/
+

@@ -27,6 +27,7 @@ to get all the chains.
 from __future__ import print_function
 import sys
 import os
+import gzip
 from sys import argv, stderr, stdout
 from os import popen, system
 from os.path import exists, basename
@@ -150,7 +151,7 @@ def open_pdb( name ):
         stem = stem[:-4]
 
     if filename[-3:] == '.gz':
-        lines = popen('zcat '+filename, 'r').readlines()
+        lines = gzip.open(filename).readlines()
     else:
         lines = open(filename, 'r').readlines()
 

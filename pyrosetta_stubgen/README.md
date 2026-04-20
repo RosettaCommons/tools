@@ -1,0 +1,5 @@
+# stubify-pyrosetta
+Scripts to generate type-stub files for pyrosetta using pybind11-stubgen and add them to the local pyrosetta package for static type checkers and autocompletion. Includes a step-through jupyter notebook and a bash script with the same contents: install pyrosetta (if not installed), install pybind11-stubgen, generate stubs in the local directory, copy stubs to the system site-packages pyrosetta install location, and delete generated stubs.
+
+## (un)installation details
+The pyrosetta pip package is automatically installed at `<your-python-site-packages-folder>/pyrosetta`, containing the `rosetta.so` core compiled rosetta library+bindings and several helper pure-python files and folders. Running either script adds a new subfolder at `pyrosetta/rosetta` containing stub (*.pyi) files in a directory structure matching the namespace structure of `rosetta.so`. If there is an error in installation, incorrect bindings, or you just want to get rid of them, simply delete the `pyrosetta/rosetta` folder.
